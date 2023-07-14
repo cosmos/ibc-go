@@ -8,11 +8,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -34,7 +36,7 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 	codeKey := types.CodeIDKey(codeID)
 	code := store.Get(codeKey)
 	if code == nil {
-		return nil, status.Error(codes.NotFound, sdkerrors.Wrap(types.ErrWasmCodeIDNotFound, req.CodeId).Error())
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeIDNotFound, req.CodeId).Error())
 	}
 
 	return &types.QueryCodeResponse{

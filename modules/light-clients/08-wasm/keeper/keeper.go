@@ -8,14 +8,16 @@ import (
 	"strings"
 
 	cosmwasm "github.com/CosmWasm/wasmvm"
+
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 // Keeper defines the 08-wasm keeper
@@ -73,7 +75,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
 		code, err = types.Uncompress(code, types.MaxWasmByteSize())
 		if err != nil {
-			return nil, sdkerrors.Wrap(err, "failed to store contract")
+			return nil, errorsmod.Wrap(err, "failed to store contract")
 		}
 	}
 
@@ -86,19 +88,19 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// run the code through the wasm light client validation process
 	if err := types.ValidateWasmCode(code); err != nil {
-		return nil, sdkerrors.Wrapf(err, "wasm bytecode validation failed")
+		return nil, errorsmod.Wrapf(err, "wasm bytecode validation failed")
 	}
 
 	// create the code in the vm
 	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
 	codeHash, err := k.wasmVM.StoreCode(code)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to store contract")
+		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}
 
 	// safety check to assert that code ID returned by WasmVM equals to code hash
 	if !bytes.Equal(codeHash, expectedHash) {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidCodeID, "expected %s, got %s", hex.EncodeToString(expectedHash), hex.EncodeToString(codeHash))
+		return nil, errorsmod.Wrapf(types.ErrInvalidCodeID, "expected %s, got %s", hex.EncodeToString(expectedHash), hex.EncodeToString(codeHash))
 	}
 
 	store.Set(codeIDKey, code)
@@ -111,13 +113,13 @@ func (k Keeper) importWasmCode(ctx sdk.Context, wasmCode []byte) error {
 		var err error
 		wasmCode, err = types.Uncompress(wasmCode, types.MaxWasmByteSize())
 		if err != nil {
-			return sdkerrors.Wrap(err, "failed to store contract")
+			return errorsmod.Wrap(err, "failed to store contract")
 		}
 	}
 
 	codeID, err := k.wasmVM.Create(wasmCode)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to store contract")
+		return errorsmod.Wrap(err, "failed to store contract")
 	}
 	codeIDKey := types.CodeIDKey(codeID)
 

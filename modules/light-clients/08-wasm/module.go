@@ -5,18 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/client/cli"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/client/cli"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 var (

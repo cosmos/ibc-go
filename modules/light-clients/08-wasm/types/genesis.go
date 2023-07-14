@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 

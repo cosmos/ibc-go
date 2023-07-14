@@ -3,10 +3,10 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
