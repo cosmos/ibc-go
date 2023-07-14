@@ -17,6 +17,9 @@ import (
 )
 
 func (suite *CapabilityTestSuite) TestGenesis() {
+	// InitGenesis must be called in order to set the intial index to 1.
+	capability.InitGenesis(suite.ctx, *suite.keeper, *types.DefaultGenesis())
+
 	sk1 := suite.keeper.ScopeToModule(banktypes.ModuleName)
 	sk2 := suite.keeper.ScopeToModule(stakingtypes.ModuleName)
 
@@ -33,15 +36,11 @@ func (suite *CapabilityTestSuite) TestGenesis() {
 
 	genState := capability.ExportGenesis(suite.ctx, *suite.keeper)
 
-	// create new app that does not share persistent or in-memory state
-	// and initialize app from exported genesis state above.
-	db := dbm.NewMemDB()
-	newApp := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
-
-	newKeeper := keeper.NewKeeper(suite.cdc, newApp.GetKey(types.StoreKey), newApp.GetMemKey(types.MemStoreKey))
+	newKeeper := keeper.NewKeeper(suite.cdc, suite.storeKey, suite.memStoreKey)
 	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
 	newSk2 := newKeeper.ScopeToModule(stakingtypes.ModuleName)
-	deliverCtx, _ := newApp.BaseApp.NewUncachedContext(false, tmproto.Header{}).WithBlockGasMeter(storetypes.NewInfiniteGasMeter()).CacheContext()
+
+	deliverCtx := suite.NewTestContext()
 
 	capability.InitGenesis(deliverCtx, *newKeeper, *genState)
 

@@ -637,11 +637,11 @@ module.exports = {
         },
         {
           service: "youtube",
-          url: "https://www.youtube.com/c/CosmosProject",
+          url: "https://www.youtube.com/@interchain_io/featured",
         },
       ],
       smallprint:
-        "The development of IBC-Go is led primarily by [Interchain GmbH](https://interchain.berlin/). Funding for this development comes primarily from the Interchain Foundation, a Swiss non-profit.",
+        "The development of IBC-Go is led primarily by Interchain GmbH. Funding for this development comes primarily from the [Interchain Foundation](https://interchain.io/), a Swiss non-profit.",
       links: [
         {
           title: "Documentation",
@@ -655,7 +655,11 @@ module.exports = {
               url: "https://hub.cosmos.network",
             },
             {
-              title: "Tendermint Core",
+              title: "CometBFT",
+              url: "https://docs.cometbft.com/",
+            },
+            {
+              title: "Tendermint Core (archived)",
               url: "https://docs.tendermint.com",
             },
           ],

@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -39,6 +40,17 @@ func Codec() *codec.ProtoCodec {
 func EncodingConfig() simappparams.EncodingConfig {
 	_, cfg := codecAndEncodingConfig()
 	return cfg
+}
+
+// SDKEncodingConfig returns the global E2E encoding config.
+func SDKEncodingConfig() *testutil.TestEncodingConfig {
+	_, cfg := codecAndEncodingConfig()
+	return &testutil.TestEncodingConfig{
+		InterfaceRegistry: cfg.InterfaceRegistry,
+		Codec:             cfg.Codec,
+		TxConfig:          cfg.TxConfig,
+		Amino:             cfg.Amino,
+	}
 }
 
 func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {

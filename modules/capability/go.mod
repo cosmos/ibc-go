@@ -8,7 +8,7 @@ require (
 	cosmossdk.io/api v0.5.0
 	cosmossdk.io/client/v2 v2.0.0-20230710152158-ba163e0fd064
 	cosmossdk.io/core v0.9.0
-	cosmossdk.io/errors v1.0.0-beta.7.0.20230524212735-6cabb6aa5741
+	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.1.1-0.20230704160919-88f2c830b0ca
 	cosmossdk.io/math v1.0.1
 	cosmossdk.io/store v0.1.0-alpha.1.0.20230606190835-3e18f4088b2c
