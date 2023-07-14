@@ -71,7 +71,7 @@ func EmitCallbackEvent(
 		sdk.NewAttribute(AttributeKeyCallbackTrigger, string(callbackTrigger)),
 		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.GasLimit)),
-		sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourceChannel()),
+		sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourcePort()),
 		sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),
 		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.GetSequence())),
 	}
