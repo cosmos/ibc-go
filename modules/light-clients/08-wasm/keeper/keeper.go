@@ -100,7 +100,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// pin the code in the vm
 	if err := k.wasmVM.Pin(codeHash); err != nil {
-		return nil, errorsmod.Wrap(types.ErrPinContractFailed, err.Error())
+		return nil, errorsmod.Wrap(err, "pinning contract failed")
 	}
 
 	// safety check to assert that code ID returned by WasmVM equals to code hash
