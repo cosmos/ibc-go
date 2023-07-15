@@ -56,7 +56,7 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 
 	currentChannel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeInit step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeInit step,  portID: %s, channelID: %s", portID, channelID))
 	}
 
 	currentChannel.State = types.INITUPGRADE
@@ -95,7 +95,7 @@ func (k Keeper) ChanUpgradeTry(
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return types.Upgrade{}, errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
+		return types.Upgrade{}, errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
@@ -144,7 +144,7 @@ func (k Keeper) ChanUpgradeTry(
 
 		if !reflect.DeepEqual(upgrade.Fields, proposedUpgradeFields) {
 			return types.Upgrade{}, errorsmod.Wrapf(
-				types.ErrInvalidUpgrade, "upgrade fields are not equal to current upgrade fields in crossing hellos case, expected %s", upgrade.Fields)
+				types.ErrInvalidUpgrade, "upgrade fields are not equal to current upgrade fields in crossing hellos case; expected %s, got %s", upgrade.Fields, proposedUpgradeFields)
 		}
 
 	default:
@@ -238,7 +238,7 @@ func (k Keeper) ChanUpgradeAck(
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
+		return errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
@@ -284,7 +284,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgra
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, port ID: %s, channel ID: %s", portID, channelID))
 	}
 
 	previousState := channel.State
@@ -300,7 +300,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgra
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("cound not find existing upgrade when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Sprintf("cound not find existing upgrade when updating channel state in successful ChanUpgradeAck step, port ID: %s, channel ID: %s", portID, channelID))
 	}
 
 	upgrade.Fields.Version = upgradeVersion
@@ -341,7 +341,7 @@ func (k Keeper) ChanUpgradeOpen(
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
+		return errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
@@ -394,7 +394,7 @@ func (k Keeper) ChanUpgradeOpen(
 		}
 
 	default:
-		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s, %s]; got %s", types.TRYUPGRADE, types.ACKUPGRADE, types.OPEN, counterpartyChannelState))
+		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s, %s], got %s", types.TRYUPGRADE, types.ACKUPGRADE, types.OPEN, counterpartyChannelState))
 	}
 
 	if err = k.connectionKeeper.VerifyChannelState(
@@ -405,7 +405,7 @@ func (k Keeper) ChanUpgradeOpen(
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed to verify counterparty channel, expected counterparty channel state: %s", counterpartyChannel.String())
+		return errorsmod.Wrap(err, "failed to verify counterparty channel")
 	}
 
 	return nil
@@ -458,7 +458,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 	// get underlying connection for proof verification
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
+		return errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
@@ -667,7 +667,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
+		errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
@@ -731,7 +731,7 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, proposedUpgradeFie
 	if err != nil {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return errorsmod.Wrap(err, "expected proposed connection to be found")
+		return errorsmod.Wrapf(err, "failed to retrieve connection using the proposed connection hops (%s)", proposedUpgradeFields.ConnectionHops[0])
 	}
 
 	if proposedConnection.GetState() != int32(connectiontypes.OPEN) {
@@ -760,7 +760,7 @@ func (k Keeper) validateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types
 	currentFields := extractUpgradeFields(currentChannel)
 
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
-		return errorsmod.Wrapf(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end: got %s", proposedUpgrade)
+		return errorsmod.Wrapf(types.ErrChannelExists, "existing channel end (%s) is identical to proposed upgrade channel end (%s)", currentFields, proposedUpgrade)
 	}
 
 	connectionID := proposedUpgrade.ConnectionHops[0]
@@ -809,7 +809,7 @@ func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
 func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
 	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
 	if !found {
-		return types.Upgrade{}, types.ErrSequenceSendNotFound
+		return types.Upgrade{}, errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	return types.Upgrade{
