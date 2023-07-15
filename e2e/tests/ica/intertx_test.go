@@ -15,7 +15,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
-	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -64,7 +63,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		version := getICAVersion(testsuite.GetChainATag(), testsuite.GetChainBTag())
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 	})
@@ -155,7 +154,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_FailedTransfer_InsufficientFunds() {
 	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		version := getICAVersion(testsuite.GetChainATag(), testsuite.GetChainBTag())
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
 	})

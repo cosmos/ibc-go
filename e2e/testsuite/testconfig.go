@@ -1,4 +1,4 @@
-package testconfig
+package testsuite
 
 import (
 	"encoding/json"
@@ -389,6 +389,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 		Bech32Prefix:           "cosmos",
 		CoinType:               fmt.Sprint(sdk.GetConfig().GetCoinType()),
 		Denom:                  denom,
+		EncodingConfig:         SDKEncodingConfig(),
 		GasPrices:              fmt.Sprintf("0.00%s", denom),
 		GasAdjustment:          1.3,
 		TrustingPeriod:         "508h",
