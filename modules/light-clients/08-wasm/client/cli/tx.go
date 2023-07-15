@@ -38,7 +38,7 @@ func newStoreCodeCmd() *cobra.Command {
 
 			msg := &types.MsgStoreCode{
 				Signer:       clientCtx.GetFromAddress().String(),
-				WASMByteCode: code,
+				WasmByteCode: code,
 			}
 
 			if err := msg.ValidateBasic(); err != nil {

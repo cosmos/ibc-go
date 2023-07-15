@@ -12,13 +12,13 @@ var _ sdk.Msg = (*MsgStoreCode)(nil)
 func NewMsgStoreCode(signer string, code []byte) *MsgStoreCode {
 	return &MsgStoreCode{
 		Signer:       signer,
-		WASMByteCode: code,
+		WasmByteCode: code,
 	}
 }
 
 // ValidateBasic implements sdk.Msg
 func (m MsgStoreCode) ValidateBasic() error {
-	if len(m.WASMByteCode) == 0 {
+	if len(m.WasmByteCode) == 0 {
 		return ErrWasmEmptyCode
 	}
 
