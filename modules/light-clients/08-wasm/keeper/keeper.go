@@ -14,8 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -32,7 +30,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string) Keeper {
 	// Wasm VM
 	const wasmDataDir = "ibc_08-wasm_client_data"
 	wasmSupportedFeatures := strings.Join([]string{"storage", "iterator"}, ",")
@@ -46,14 +44,11 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 	}
 	types.WasmVM = vm
 
-	// governance authority
-	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
-
 	return Keeper{
 		cdc:       cdc,
 		storeKey:  key,
 		wasmVM:    vm,
-		authority: authority.String(),
+		authority: authority,
 	}
 }
 
