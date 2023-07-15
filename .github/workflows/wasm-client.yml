@@ -1,0 +1,33 @@
+name: Wasm Light-Client
+# This workflow runs when a PR is opened that targets code that is part of the wasm light-client.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/wasm-client.yml'
+      - 'modules/light-clients/08-wasm/**'
+      - 'proto/ibc/lightclients/wasm/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - name: Build wasm-client
+        run: |
+          cd modules/light-clients/08-wasm
+          GOARCH=${{ matrix.go-arch }} go build ./...
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - name: Go Test
+        run: |
+          cd modules/light-clients/08-wasm
+          go test -v -mod=readonly ./...
