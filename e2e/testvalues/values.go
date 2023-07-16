@@ -74,7 +74,7 @@ var SimdNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
-// SelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
+// SelfParamsFeatureReleases represents the releases where the ibc modules started managing their own params.
 var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
