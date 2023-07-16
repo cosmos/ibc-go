@@ -465,7 +465,7 @@ func NewSimApp(
 		),
 	)
 
-	app.WasmClientKeeper = wasmkeeper.NewKeeper(appCodec, keys[wasmtypes.StoreKey])
+	app.WasmClientKeeper = wasmkeeper.NewKeeper(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
