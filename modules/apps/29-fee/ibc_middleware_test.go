@@ -1103,13 +1103,12 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 			err := path.EndpointA.ChanUpgradeInit()
 
 			isFeeEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().Equal(expFeeEnabled, isFeeEnabled)
 
 			expPass := tc.expError == nil
 			if expPass {
-				suite.Require().Equal(expFeeEnabled, isFeeEnabled)
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Equal(expFeeEnabled, isFeeEnabled)
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
 			}
