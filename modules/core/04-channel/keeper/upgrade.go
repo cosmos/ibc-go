@@ -95,7 +95,7 @@ func (k Keeper) ChanUpgradeTry(
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return types.Upgrade{}, errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
@@ -238,7 +238,7 @@ func (k Keeper) ChanUpgradeAck(
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
+		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
@@ -341,7 +341,7 @@ func (k Keeper) ChanUpgradeOpen(
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
+		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
@@ -458,7 +458,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 	// get underlying connection for proof verification
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
+		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
@@ -667,7 +667,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		return errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
+		return errorsmod.Wrap(err, "failed to retrieve connection using the channel connection hops")
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
