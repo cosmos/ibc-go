@@ -667,7 +667,7 @@ func (k Keeper) startFlushUpgradeHandshake(
 
 	connection, err := k.GetConnection(ctx, channel.ConnectionHops[0])
 	if err != nil {
-		errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
+		return errorsmod.Wrapf(err, "failed to retrieve connection using the channel connection hops (%s)", channel.ConnectionHops[0])
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
