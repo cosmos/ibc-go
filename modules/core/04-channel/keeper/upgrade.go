@@ -468,7 +468,15 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		)
 	}
 
-	if err := k.connectionKeeper.VerifyChannelUpgradeError(ctx, portID, channelID, connection, errorReceipt, errorReceiptProof, proofHeight); err != nil {
+	if err := k.connectionKeeper.VerifyChannelUpgradeError(
+		ctx,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		connection,
+		errorReceipt,
+		errorReceiptProof,
+		proofHeight,
+	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty error receipt")
 	}
 
