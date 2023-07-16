@@ -7,10 +7,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"gopkg.in/yaml.v2"
-
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -18,9 +16,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
-	tmjson "github.com/cometbft/cometbft/libs/json"
-	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -336,7 +334,7 @@ func IsCI() bool {
 
 // ChainOptions stores chain configurations for the chains that will be
 // created for the tests. They can be modified by passing ChainOptionConfiguration
-// to E2ETests.GetChains.
+// to E2ETestSuite.GetChains.
 type ChainOptions struct {
 	ChainAConfig *ibc.ChainConfig
 	ChainBConfig *ibc.ChainConfig
@@ -346,7 +344,7 @@ type ChainOptions struct {
 type ChainOptionConfiguration func(options *ChainOptions)
 
 // DefaultChainOptions returns the default configuration for the chains.
-// These options can be configured by passing configuration functions to E2ETests.GetChains.
+// These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
 
@@ -456,13 +454,13 @@ func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 	const appStateKey = "app_state"
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		genesisDocMap := map[string]any{}
+		genesisDocMap := map[string]interface{}{}
 		err := json.Unmarshal(genbz, &genesisDocMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
 		}
 
-		appStateMap, ok := genesisDocMap[appStateKey].(map[string]any)
+		appStateMap, ok := genesisDocMap[appStateKey].(map[string]interface{})
 		if !ok {
 			return nil, fmt.Errorf("failed to extract to app_state")
 		}
@@ -477,7 +475,7 @@ func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, err
 			return nil, err
 		}
 
-		govModuleGenesisMap := map[string]any{}
+		govModuleGenesisMap := map[string]interface{}{}
 		err = json.Unmarshal(govModuleGenesisBytes, &govModuleGenesisMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)

@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-
 	sdkmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -74,7 +72,7 @@ var SimdNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
-// SelfParamsFeatureReleases represents the releases where the ibc modules started managing their own params.
+// TransferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
 var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }

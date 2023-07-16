@@ -6,12 +6,6 @@ import (
 	"sort"
 	"time"
 
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -20,6 +14,11 @@ import (
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
@@ -33,7 +32,7 @@ import (
 
 // GRPCClients holds a reference to any GRPC clients that are needed by the tests.
 // These should typically be used for query clients only. If we need to make changes, we should
-// use E2ETests.BroadcastMessages to broadcast transactions instead.
+// use E2ETestSuite.BroadcastMessages to broadcast transactions instead.
 type GRPCClients struct {
 	ClientQueryClient        clienttypes.QueryClient
 	ConnectionQueryClient    connectiontypes.QueryClient
@@ -217,13 +216,13 @@ func (s *E2ETestSuite) QueryInterchainAccountLegacy(ctx context.Context, chain i
 func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
 	ctx context.Context,
 	chain *cosmos.CosmosChain,
-	portID,
-	channelID string,
+	portId,
+	channelId string,
 ) ([]*feetypes.IdentifiedPacketFees, error) {
 	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
 	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
-		PortId:    portID,
-		ChannelId: channelID,
+		PortId:    portId,
+		ChannelId: channelId,
 	})
 	if err != nil {
 		return nil, err
@@ -285,7 +284,7 @@ func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Cha
 	if res.SdkBlock != nil {
 		return &res.SdkBlock.Header, nil
 	}
-	return &res.Block.Header, nil // nolint:staticcheck // ignore SA1019 because we need to support v6, v5, and v4
+	return &res.Block.Header, nil
 }
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators

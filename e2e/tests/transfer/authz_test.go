@@ -4,15 +4,13 @@ import (
 	"context"
 	"testing"
 
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
-
 	sdkmath "cosmossdk.io/math"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -28,31 +26,30 @@ type AuthzTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
-	t := s.T()
+func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
+	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
-	chainA, chainB := s.GetChains()
+	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
+	chainA, chainB := suite.GetChains()
 
 	chainADenom := chainA.Config().Denom
 
-	granterWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	granterWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granterAddress := granterWallet.FormattedAddress()
 
-	granteeWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	granteeWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granteeAddress := granteeWallet.FormattedAddress()
 
-	receiverWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	receiverWallet := suite.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		suite.StartRelayer(relayer)
 	})
 
 	// createMsgGrantFn initializes a TransferAuthorization and broadcasts a MsgGrant message.
 	createMsgGrantFn := func(t *testing.T) {
-		t.Helper()
 		transferAuth := transfertypes.TransferAuthorization{
 			Allocations: []transfertypes.Allocation{
 				{
@@ -65,7 +62,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		}
 
 		protoAny, err := codectypes.NewAnyWithValue(&transferAuth)
-		s.Require().NoError(err)
+		suite.Require().NoError(err)
 
 		msgGrant := &authz.MsgGrant{
 			Granter: granterAddress,
@@ -77,24 +74,23 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
-		s.AssertTxSuccess(resp)
+		resp := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
+		suite.AssertTxSuccess(resp)
 	}
 
 	// verifyGrantFn returns a test function which asserts chainA has a grant authorization
 	// with the given spend limit.
 	verifyGrantFn := func(expectedLimit int64) func(t *testing.T) {
 		return func(t *testing.T) {
-			t.Helper()
-			grantAuths, err := s.QueryGranterGrants(ctx, chainA, granterAddress)
+			grantAuths, err := suite.QueryGranterGrants(ctx, chainA, granterAddress)
 
-			s.Require().NoError(err)
-			s.Require().Len(grantAuths, 1)
+			suite.Require().NoError(err)
+			suite.Require().Len(grantAuths, 1)
 			grantAuthorization := grantAuths[0]
 
-			transferAuth := s.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
+			transferAuth := suite.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
 			expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdkmath.NewInt(expectedLimit)))
-			s.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
+			suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
 		}
 	}
 
@@ -107,36 +103,36 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			Token:         testvalues.DefaultTransferAmount(chainADenom),
 			Sender:        granterAddress,
 			Receiver:      receiverWalletAddress,
-			TimeoutHeight: s.GetTimeoutHeight(ctx, chainB),
+			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
 		}
 
 		protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
-		s.Require().NoError(err)
+		suite.Require().NoError(err)
 
 		msgExec := &authz.MsgExec{
 			Grantee: granteeAddress,
 			Msgs:    []*codectypes.Any{protoAny},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-		s.AssertTxSuccess(resp)
+		resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+		suite.AssertTxSuccess(resp)
 	})
 
 	t.Run("verify granter wallet amount", func(t *testing.T) {
-		actualBalance, err := s.GetChainANativeBalance(ctx, granterWallet)
-		s.Require().NoError(err)
+		actualBalance, err := suite.GetChainANativeBalance(ctx, granterWallet)
+		suite.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		suite.Require().Equal(expected, actualBalance)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(context.TODO(), 10, chainB))
+	suite.Require().NoError(test.WaitForBlocks(context.TODO(), 10, chainB))
 
 	t.Run("verify receiver wallet amount", func(t *testing.T) {
 		chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 		actualBalance, err := chainB.GetBalance(ctx, receiverWalletAddress, chainBIBCToken.IBCDenom())
-		s.Require().NoError(err)
-		s.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
+		suite.Require().NoError(err)
+		suite.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
 	})
 
 	t.Run("granter grant spend limit reduced", verifyGrantFn(testvalues.StartingTokenAmount-testvalues.IBCTransferAmount))
@@ -152,8 +148,8 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			MsgTypeUrl: transfertypes.TransferAuthorization{}.MsgTypeURL(),
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, &msgRevoke)
-		s.AssertTxSuccess(resp)
+		resp := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, &msgRevoke)
+		suite.AssertTxSuccess(resp)
 	})
 
 	t.Run("exec unauthorized MsgTransfer", func(t *testing.T) {
@@ -163,43 +159,43 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			Token:         testvalues.DefaultTransferAmount(chainADenom),
 			Sender:        granterAddress,
 			Receiver:      receiverWalletAddress,
-			TimeoutHeight: s.GetTimeoutHeight(ctx, chainB),
+			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
 		}
 
 		protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
-		s.Require().NoError(err)
+		suite.Require().NoError(err)
 
 		msgExec := &authz.MsgExec{
 			Grantee: granteeAddress,
 			Msgs:    []*codectypes.Any{protoAny},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-		s.AssertTxFailure(resp, authz.ErrNoAuthorizationFound)
+		resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+		suite.AssertTxFailure(resp, authz.ErrNoAuthorizationFound)
 	})
 }
 
-func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
-	t := s.T()
+func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
+	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
-	chainA, chainB := s.GetChains()
+	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
+	chainA, chainB := suite.GetChains()
 
 	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 
-	granterWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	granterWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granterAddress := granterWallet.FormattedAddress()
 
-	granteeWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	granteeWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granteeAddress := granteeWallet.FormattedAddress()
 
-	receiverWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	receiverWallet := suite.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		suite.StartRelayer(relayer)
 	})
 
 	const spendLimit = 1000
@@ -217,7 +213,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 		}
 
 		protoAny, err := codectypes.NewAnyWithValue(&transferAuth)
-		s.Require().NoError(err)
+		suite.Require().NoError(err)
 
 		msgGrant := &authz.MsgGrant{
 			Granter: granterAddress,
@@ -229,8 +225,8 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
-		s.AssertTxSuccess(resp)
+		resp := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
+		suite.AssertTxSuccess(resp)
 	})
 
 	t.Run("exceed spend limit", func(t *testing.T) {
@@ -243,53 +239,53 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)},
 				Sender:        granterAddress,
 				Receiver:      receiverWalletAddress,
-				TimeoutHeight: s.GetTimeoutHeight(ctx, chainB),
+				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
 			}
 
 			protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
-			s.Require().NoError(err)
+			suite.Require().NoError(err)
 
 			msgExec := &authz.MsgExec{
 				Grantee: granteeAddress,
 				Msgs:    []*codectypes.Any{protoAny},
 			}
 
-			resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
 			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
-				s.AssertTxFailure(resp, ibcerrors.ErrInsufficientFunds)
+				suite.AssertTxFailure(resp, ibcerrors.ErrInsufficientFunds)
 			} else {
-				s.AssertTxFailure(resp, sdkerrors.ErrInsufficientFunds)
+				suite.AssertTxFailure(resp, sdkerrors.ErrInsufficientFunds)
 			}
 		})
 
 		t.Run("verify granter wallet amount", func(t *testing.T) {
-			actualBalance, err := s.GetChainANativeBalance(ctx, granterWallet)
-			s.Require().NoError(err)
-			s.Require().Equal(testvalues.StartingTokenAmount, actualBalance)
+			actualBalance, err := suite.GetChainANativeBalance(ctx, granterWallet)
+			suite.Require().NoError(err)
+			suite.Require().Equal(testvalues.StartingTokenAmount, actualBalance)
 		})
 
 		t.Run("verify receiver wallet amount", func(t *testing.T) {
 			chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 			actualBalance, err := chainB.GetBalance(ctx, receiverWalletAddress, chainBIBCToken.IBCDenom())
-			s.Require().NoError(err)
-			s.Require().Equal(int64(0), actualBalance)
+			suite.Require().NoError(err)
+			suite.Require().Equal(int64(0), actualBalance)
 		})
 
 		t.Run("granter grant spend limit unchanged", func(t *testing.T) {
-			grantAuths, err := s.QueryGranterGrants(ctx, chainA, granterAddress)
+			grantAuths, err := suite.QueryGranterGrants(ctx, chainA, granterAddress)
 
-			s.Require().NoError(err)
-			s.Require().Len(grantAuths, 1)
+			suite.Require().NoError(err)
+			suite.Require().Len(grantAuths, 1)
 			grantAuthorization := grantAuths[0]
 
-			transferAuth := s.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
+			transferAuth := suite.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
 			expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdkmath.NewInt(spendLimit)))
-			s.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
+			suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
 		})
 	})
 
 	t.Run("send funds to invalid address", func(t *testing.T) {
-		invalidWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+		invalidWallet := suite.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 		invalidWalletAddress := invalidWallet.FormattedAddress()
 
 		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
@@ -299,22 +295,22 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)},
 				Sender:        granterAddress,
 				Receiver:      invalidWalletAddress,
-				TimeoutHeight: s.GetTimeoutHeight(ctx, chainB),
+				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
 			}
 
 			protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
-			s.Require().NoError(err)
+			suite.Require().NoError(err)
 
 			msgExec := &authz.MsgExec{
 				Grantee: granteeAddress,
 				Msgs:    []*codectypes.Any{protoAny},
 			}
 
-			resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
 			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
-				s.AssertTxFailure(resp, ibcerrors.ErrInvalidAddress)
+				suite.AssertTxFailure(resp, ibcerrors.ErrInvalidAddress)
 			} else {
-				s.AssertTxFailure(resp, sdkerrors.ErrInvalidAddress)
+				suite.AssertTxFailure(resp, sdkerrors.ErrInvalidAddress)
 			}
 		})
 	})
@@ -322,13 +318,13 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 // extractTransferAuthorizationFromGrantAuthorization extracts a TransferAuthorization from the given
 // GrantAuthorization.
-func (s *AuthzTransferTestSuite) extractTransferAuthorizationFromGrantAuthorization(grantAuth *authz.GrantAuthorization) *transfertypes.TransferAuthorization {
+func (suite *AuthzTransferTestSuite) extractTransferAuthorizationFromGrantAuthorization(grantAuth *authz.GrantAuthorization) *transfertypes.TransferAuthorization {
 	cfg := testsuite.EncodingConfig()
 	var authorization authz.Authorization
 	err := cfg.InterfaceRegistry.UnpackAny(grantAuth.Authorization, &authorization)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	transferAuth, ok := authorization.(*transfertypes.TransferAuthorization)
-	s.Require().True(ok)
+	suite.Require().True(ok)
 	return transferAuth
 }
