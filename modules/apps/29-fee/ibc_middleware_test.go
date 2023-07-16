@@ -1049,7 +1049,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
 
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ uint64, _, _ string) (string, error) {
-					// intentionally force the error here so we can assert that a passthrough results in isFeeEnabled == false
+					// intentionally force the error here so we can assert that a passthrough occurs when fees should not be enabled for this channel
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			},
