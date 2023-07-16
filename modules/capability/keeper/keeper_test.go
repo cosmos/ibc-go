@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -27,8 +30,8 @@ type KeeperTestSuite struct {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	key := sdk.NewKVStoreKey(types.StoreKey)
-	testCtx := testutil.DefaultContextWithDB(s.T(), key, sdk.NewTransientStoreKey("transient_test"))
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(s.T(), key, storetypes.NewTransientStoreKey("transient_test"))
 	s.ctx = testCtx.Ctx
 	encCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
 	s.keeper = keeper.NewKeeper(encCfg.Codec, key, key)
@@ -140,7 +143,8 @@ func (s *KeeperTestSuite) TestAuthenticateCapability() {
 	s.Require().False(sk2.AuthenticateCapability(s.ctx, cap2, "invalid"))
 	s.Require().False(sk2.AuthenticateCapability(s.ctx, cap1, "bond"))
 
-	sk2.ReleaseCapability(s.ctx, cap2)
+	err = sk2.ReleaseCapability(s.ctx, cap2)
+	s.Require().NoError(err)
 	s.Require().False(sk2.AuthenticateCapability(s.ctx, cap2, "bond"))
 
 	badCap := types.NewCapability(100)
@@ -272,7 +276,7 @@ func (s *KeeperTestSuite) TestReleaseCapability() {
 	s.Require().Error(sk1.ReleaseCapability(s.ctx, nil))
 }
 
-func (s KeeperTestSuite) TestRevertCapability() {
+func (s *KeeperTestSuite) TestRevertCapability() {
 	sk := s.keeper.ScopeToModule(bankModuleName)
 
 	ms := s.ctx.MultiStore()
