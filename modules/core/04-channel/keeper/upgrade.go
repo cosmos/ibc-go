@@ -731,7 +731,7 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, proposedUpgradeFie
 	if err != nil {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return errorsmod.Wrapf(err, "failed to retrieve connection using the proposed connection hops (%s)", proposedUpgradeFields.ConnectionHops[0])
+		return errorsmod.Wrap(err, "failed to retrieve connection using the proposed connection hops")
 	}
 
 	if proposedConnection.GetState() != int32(connectiontypes.OPEN) {
