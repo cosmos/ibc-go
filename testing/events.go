@@ -125,7 +125,7 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
 			for _, attr := range ev.Attributes {
-				if attr.Key == channeltypes.AttributeKeyAckHex { //nolint:staticcheck // DEPRECATED
+				if attr.Key == channeltypes.AttributeKeyAck { //nolint:staticcheck // DEPRECATED
 					return []byte(attr.Value), nil
 				}
 			}
