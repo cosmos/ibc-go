@@ -32,7 +32,6 @@ func (suite *CapabilityTestSuite) TestGenesis() {
 	newKeeper := keeper.NewKeeper(suite.cdc, suite.storeKey, suite.memStoreKey)
 	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
 	newSk2 := newKeeper.ScopeToModule(stakingtypes.ModuleName)
-
 	deliverCtx := suite.NewTestContext()
 
 	capability.InitGenesis(deliverCtx, *newKeeper, *genState)
