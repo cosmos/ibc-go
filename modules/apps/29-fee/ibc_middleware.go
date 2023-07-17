@@ -396,9 +396,9 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 	// If upgrade handshake was initialized with fee enabled it must complete with fee enabled.
 	// If upgrade handshake was initialized with fee disabled it must complete with fee disabled.
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		var versionMetadata types.Metadata
-		if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
-			return errorsmod.Wrapf(types.ErrInvalidVersion, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
+		versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
+		if err != nil {
+			return errorsmod.Wrapf(err, "invalid counterparty version")
 		}
 
 		if versionMetadata.FeeVersion != types.Version {
