@@ -34,7 +34,7 @@ func (k Keeper) ChanUpgradeInit(
 		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
-	if err := k.validateUpgradeFields(ctx, upgradeFields, channel); err != nil {
+	if err := k.validateSelfUpgradeFields(ctx, upgradeFields, channel); err != nil {
 		return types.Upgrade{}, err
 	}
 
@@ -319,7 +319,7 @@ func (k Keeper) ChanUpgradeOpen(
 	portID,
 	channelID string,
 	counterpartyChannelState types.State,
-	proofChannel []byte,
+	proofCounterpartyChannel []byte,
 	proofHeight clienttypes.Height,
 ) error {
 	if k.hasInflightPackets(ctx, portID, channelID) {
@@ -397,8 +397,14 @@ func (k Keeper) ChanUpgradeOpen(
 		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s, %s]; got %s", types.TRYUPGRADE, types.ACKUPGRADE, types.OPEN, counterpartyChannelState))
 	}
 
-	err = k.connectionKeeper.VerifyChannelState(ctx, connection, proofHeight, proofChannel, portID, channelID, counterpartyChannel)
-	if err != nil {
+	if err = k.connectionKeeper.VerifyChannelState(
+		ctx,
+		connection,
+		proofHeight, proofCounterpartyChannel,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		counterpartyChannel,
+	); err != nil {
 		return errorsmod.Wrapf(err, "failed to verify counterparty channel, expected counterparty channel state: %s", counterpartyChannel.String())
 	}
 
@@ -429,7 +435,7 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	// Delete auxiliary state.
+	// delete state associated with upgrade which is no longer required.
 	k.deleteUpgrade(ctx, portID, channelID)
 	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
 
@@ -462,7 +468,15 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		)
 	}
 
-	if err := k.connectionKeeper.VerifyChannelUpgradeError(ctx, portID, channelID, connection, errorReceipt, errorReceiptProof, proofHeight); err != nil {
+	if err := k.connectionKeeper.VerifyChannelUpgradeError(
+		ctx,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		connection,
+		errorReceipt,
+		errorReceiptProof,
+		proofHeight,
+	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty error receipt")
 	}
 
@@ -699,47 +713,50 @@ func (k Keeper) startFlushUpgradeHandshake(
 		)
 	}
 
+	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgrade); err != nil {
+		return types.NewUpgradeError(channel.UpgradeSequence, err)
+	}
+
+	return nil
+}
+
+// checkForUpgradeCompatibility checks performs stateful validation of self upgrade fields relative to counterparty upgrade.
+func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, proposedUpgradeFields types.UpgradeFields, counterpartyUpgrade types.Upgrade) error {
 	// assert that both sides propose the same channel ordering
 	if proposedUpgradeFields.Ordering != counterpartyUpgrade.Fields.Ordering {
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", proposedUpgradeFields.Ordering, counterpartyUpgrade.Fields.Ordering),
-		)
+		return errorsmod.Wrapf(types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", proposedUpgradeFields.Ordering, counterpartyUpgrade.Fields.Ordering)
 	}
 
 	proposedConnection, err := k.GetConnection(ctx, proposedUpgradeFields.ConnectionHops[0])
 	if err != nil {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(
-			err, "expected proposed connection to be found"),
-		)
+		return errorsmod.Wrap(err, "expected proposed connection to be found")
 	}
 
 	if proposedConnection.GetState() != int32(connectiontypes.OPEN) {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(proposedConnection.GetState()).String()),
-		)
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(proposedConnection.GetState()).String())
 	}
 
 	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
 	if counterpartyUpgrade.Fields.ConnectionHops[0] != proposedConnection.GetCounterparty().GetConnectionID() {
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgrade.Fields.ConnectionHops[0], proposedConnection.GetCounterparty().GetConnectionID()),
-		)
+		return errorsmod.Wrapf(
+			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgrade.Fields.ConnectionHops[0], proposedConnection.GetCounterparty().GetConnectionID())
 	}
+
 	return nil
 }
 
-// validateUpgradeFields validates the proposed upgrade fields against the existing channel.
+// validateSelfUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
 // - the proposed order is a subset of the existing order
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
-func (k Keeper) validateUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
+func (k Keeper) validateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
 	currentFields := extractUpgradeFields(currentChannel)
 
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
@@ -802,9 +819,18 @@ func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID stri
 	}, nil
 }
 
-// AbortUpgrade will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
-// any unnecessary state is deleted. An error receipt is written, and the OnChanUpgradeRestore callback is called.
-func (k Keeper) AbortUpgrade(ctx sdk.Context, portID, channelID string, err error) error {
+// MustAbortUpgrade will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
+// Any unnecessary state is deleted and an error receipt is written.
+// This function is expected to always succeed, a panic will occur if an error occurs.
+func (k Keeper) MustAbortUpgrade(ctx sdk.Context, portID, channelID string, err error) {
+	if err := k.abortUpgrade(ctx, portID, channelID, err); err != nil {
+		panic(err)
+	}
+}
+
+// abortUpgrade will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
+// Any unnecessary state is delete and an error receipt is written.
+func (k Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err error) error {
 	if err == nil {
 		return errorsmod.Wrap(types.ErrInvalidUpgradeError, "cannot abort upgrade handshake with nil error")
 	}

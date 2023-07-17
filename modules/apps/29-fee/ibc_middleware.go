@@ -321,19 +321,30 @@ func (im IBCMiddleware) OnTimeoutPacket(
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, sequence uint64, version, previousVersion string) (string, error) {
-	var versionMetadata types.Metadata
-	if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
-		// Since it is valid for fee version to not be specified, the above upgrade version may be for a middleware
-		// or application further down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying application.
-		return im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, sequence, version, previousVersion)
+func (im IBCMiddleware) OnChanUpgradeInit(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+	order channeltypes.Order,
+	connectionHops []string,
+	upgradeSequence uint64,
+	upgradeVersion string,
+	previousVersion string,
+) (string, error) {
+	versionMetadata, err := types.MetadataFromVersion(upgradeVersion)
+	if err != nil {
+		// fee version is unable to be parsed from upgrade version, disable fee
+		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+		// since it is valid for fee version to not be specified, the upgrade version may be for a middleware
+		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
+		return im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, upgradeSequence, upgradeVersion, previousVersion)
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
-	appVersion, err := im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, sequence, versionMetadata.AppVersion, previousVersion)
+	appVersion, err := im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, upgradeSequence, versionMetadata.AppVersion, previousVersion)
 	if err != nil {
 		return "", err
 	}
@@ -351,10 +362,12 @@ func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID str
 
 // OnChanUpgradeTry implement s the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
-	var versionMetadata types.Metadata
-	if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
-		// Since it is valid for fee version to not be specified, the above upgrade version may be for a middleware
-		// or application further down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying application.
+	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
+		// fee version is unable to be parsed from upgrade version, disable fee
+		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
+		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
+		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
 		return im.app.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
 	}
 
