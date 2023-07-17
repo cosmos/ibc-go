@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"math"
-	"strings"
 
 	cosmwasm "github.com/CosmWasm/wasmvm"
 
@@ -29,16 +27,35 @@ type Keeper struct {
 	authority string
 }
 
-// NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string) Keeper {
-	// Wasm VM
-	const wasmDataDir = "ibc_08-wasm_client_data"
-	wasmSupportedFeatures := strings.Join([]string{"storage", "iterator"}, ",")
-	wasmMemoryLimitMb := uint32(math.Pow(2, 12))
-	wasmPrintDebug := true
-	wasmCacheSizeMb := uint32(math.Pow(2, 8))
+// NewKeeper creates a new NewKeeper instance with the provided Wasm VM.
+// This constructor functions is meant to be used when the chain uses x/wasm
+// and the same Wasm VM instance should be shared with it.
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	key storetypes.StoreKey,
+	authority string,
+	vm *cosmwasm.VM,
+) Keeper {
+	types.WasmVM = vm
 
-	vm, err := cosmwasm.NewVM(wasmDataDir, wasmSupportedFeatures, wasmMemoryLimitMb, wasmPrintDebug, wasmCacheSizeMb)
+	return Keeper{
+		cdc:       cdc,
+		storeKey:  key,
+		wasmVM:    vm,
+		authority: authority,
+	}
+}
+
+// NewKeeper creates a new NewKeeper instance with the provided Wasm configuration.
+// This constructor function is meant to be used when the chain does not use x/wasm
+// and a Wasm VM needs to be instantiated using the provided parameters.
+func NewKeeperWithConfig(
+	cdc codec.BinaryCodec,
+	key storetypes.StoreKey,
+	authority string,
+	wasmConfig types.WasmConfig,
+) Keeper {
+	vm, err := cosmwasm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedFeatures, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, wasmConfig.MemoryCacheSize)
 	if err != nil {
 		panic(err)
 	}
