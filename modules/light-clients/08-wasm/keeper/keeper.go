@@ -28,7 +28,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new NewKeeper instance with the provided Wasm VM.
-// This constructor functions is meant to be used when the chain uses x/wasm
+// This constructor function is meant to be used when the chain uses x/wasm
 // and the same Wasm VM instance should be shared with it.
 func NewKeeper(
 	cdc codec.BinaryCodec,
