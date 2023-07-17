@@ -33,6 +33,8 @@ const (
 )
 
 var (
+	StatefulCounterKey = "stateful-callback-counter"
+
 	MockAcknowledgement             = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
 	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement(fmt.Errorf("mock failed acknowledgement"))
 	ErrorMock                       = fmt.Errorf("mock failed acknowledgement")

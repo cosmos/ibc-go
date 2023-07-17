@@ -81,13 +81,13 @@ func (suite *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		},
 		{
 			"failure: dest callback with low gas (panic)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "30000"}}`, callbackAddr),
 			types.CallbackTypeWriteAcknowledgement,
 			false,
 		},
 		{
 			"failure: source callback with low gas (panic)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "30000"}}`, callbackAddr),
 			types.CallbackTypeAcknowledgement,
 			false,
 		},
@@ -149,13 +149,13 @@ func (suite *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 		},
 		{
 			"success: dest callback with low gas (panic)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "30000"}}`, callbackAddr),
 			"none",
 			true,
 		},
 		{
 			"failure: source callback with low gas (panic)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "100"}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "30000"}}`, callbackAddr),
 			types.CallbackTypeTimeoutPacket,
 			false,
 		},

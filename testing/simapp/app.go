@@ -323,6 +323,8 @@ func NewSimApp(
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 	bApp.SetTxEncoder(txConfig.TxEncoder())
 
+	// NOTE: The ibcmock.StoreKey is just mounted for testing purposes. Actual applications should
+	// not include this key.
 	keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey, crisistypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
@@ -440,7 +442,8 @@ func NewSimApp(
 	)
 
 	// Mock Keepers
-	app.MockKeeper = ibcmock.NewMockKeeper()
+	// real applications should not use these
+	app.MockKeeper = ibcmock.NewMockKeeper(memKeys[ibcmock.MemStoreKey])
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
