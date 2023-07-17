@@ -3,6 +3,8 @@ package ibccallbacks
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -208,9 +210,14 @@ func (im IBCMiddleware) processCallback(
 		if r := recover(); r != nil {
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
-			types.Logger(ctx).Info("Recovered from panic.", "panic", r)
-			if !hasEnoughGas {
-				err = types.ErrCallbackPanic
+			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
+				types.Logger(ctx).Info("Callbacks recovered from out of gas panic.", "panic", oogError)
+				if !hasEnoughGas {
+					err = errorsmod.Wrapf(types.ErrCallbackOutOfGas,
+						"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
+						oogError.Descriptor, cachedCtx.GasMeter().Limit(), cachedCtx.GasMeter().GasConsumed(),
+					)
+				}
 			}
 		}
 	}()
