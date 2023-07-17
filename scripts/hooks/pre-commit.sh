@@ -26,6 +26,7 @@ function lint_and_add_modified_go_files() {
   for f in $go_files; do
     local dir_name="$(dirname $f)"
     golangci-lint run "${dir_name}" --fix --out-format=tab --issues-exit-code=0
+    echo "adding ${f} to git index"
     git add $f
   done
 }
