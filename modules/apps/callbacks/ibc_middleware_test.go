@@ -17,6 +17,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *CallbacksTestSuite) TestInvalidNewIBCMiddleware() {
@@ -201,6 +202,31 @@ func (suite *CallbacksTestSuite) TestOnTimeoutPacketError() {
 	err := transferStack.OnTimeoutPacket(suite.chainA.GetContext(), channeltypes.Packet{}, suite.chainA.SenderAccount.GetAddress())
 	suite.Require().ErrorIs(ibcerrors.ErrUnknownRequest, err)
 	suite.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet data:")
+}
+
+func (suite *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
+	suite.SetupMockFeeTest()
+
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+	suite.Require().NoError(err)
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
+	suite.Require().True(ok)
+
+	packet := channeltypes.NewPacket(
+		ibcmock.MockAsyncPacketData,
+		suite.chainA.SenderAccount.GetSequence(),
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(0, 100),
+		0,
+	)
+
+	ack := mockFeeCallbackStack.OnRecvPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
+	suite.Require().Nil(ack)
 }
 
 func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {

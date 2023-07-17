@@ -16,6 +16,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 // CallbacksTestSuite defines the needed instances and methods to test callbacks
@@ -65,6 +66,20 @@ func (suite *CallbacksTestSuite) SetupFeeTransferTest() {
 
 	suite.chainB.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+}
+
+func (suite *CallbacksTestSuite) SetupMockFeeTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	mockFeeVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: ibcmock.Version}))
+	path.EndpointA.ChannelConfig.Version = mockFeeVersion
+	path.EndpointB.ChannelConfig.Version = mockFeeVersion
+	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	suite.path = path
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
