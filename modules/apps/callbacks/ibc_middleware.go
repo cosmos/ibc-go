@@ -93,7 +93,38 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	return im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
 }
 
-// WriteAcknowledgement implements the ICS4 Wrapper interface
+// OnRecvPacket implements the WriteAcknowledgement destination callbacks for the ibc-callbacks middleware during
+// synchronous packet acknowledgement.
+// It defers to the underlying application and then calls the contract callback.
+// If the contract callback fails (within the gas limit), state changes are reverted via a panic.
+func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+	ack := im.app.OnRecvPacket(ctx, packet, relayer)
+	// if ack is nil, then the callback is handled in WriteAcknowledgement
+	if ack == nil {
+		return nil
+	}
+
+	packetReceiverAddress := im.GetPacketReceiver(packet)
+	callbackDataGetter := func() (types.CallbackData, bool, error) {
+		return types.GetDestCallbackData(im.app, packet.GetData(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	}
+	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
+		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress, packetReceiverAddress)
+	}
+
+	err := im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
+	if err != nil {
+		// revert entire tx if processCallback returns an error
+		panic(err)
+	}
+
+	return ack
+}
+
+// WriteAcknowledgement implements the WriteAcknowledgement destination callbacks for the ibc-callbacks middleware during
+// asynchronous packet acknowledgement.
+// It defers to the underlying application and then calls the contract callback.
+// If the contract callback fails (within the gas limit), state changes are reverted.
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
@@ -150,7 +181,8 @@ func (im IBCMiddleware) SendPacket(
 }
 
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
-// If the callbackExecutor panics, and the relayer has not provided enough gas, an error is returned.
+//
+// An error is returned only if the callbackExecutor panics, and the relayer has not provided enough gas.
 func (im IBCMiddleware) processCallback(
 	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
 	callbackDataGetter func() (types.CallbackData, bool, error),
@@ -169,7 +201,10 @@ func (im IBCMiddleware) processCallback(
 		return nil
 	}
 
+	cachedCtx, writeFn := ctx.CacheContext()
+	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 	defer func() {
+		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), fmt.Sprintf("ibc %s callback", callbackType))
 		if r := recover(); r != nil {
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
@@ -180,23 +215,13 @@ func (im IBCMiddleware) processCallback(
 		}
 	}()
 
-	cachedCtx, writeFn := ctx.CacheContext()
-	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
-
 	err = callbackExecutor(cachedCtx, callbackData.ContractAddr)
 	if err == nil {
 		writeFn()
 	}
-	ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), fmt.Sprintf("ibc %s callback", callbackType))
 
 	types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
-
-	return err
-}
-
-// OnRecvPacket defers to the underlying application
-func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	return im.app.OnRecvPacket(ctx, packet, relayer)
+	return nil
 }
 
 // OnChanOpenInit defers to the underlying application
