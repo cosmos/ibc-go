@@ -146,7 +146,7 @@ func (suite *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 	suite.path.EndpointA.ChannelConfig.PortID = portID
 }
 
-// AssertHasExecutedExpectedCallback checks if the only the expected type of callback has been executed.
+// AssertHasExecutedExpectedCallback checks if only the expected type of callback has been executed.
 // It assumes that the source chain is chainA and the destination chain is chainB.
 //
 // The callbackType can be one of the following:
@@ -197,8 +197,8 @@ func TestIBCCallbacksTestSuite(t *testing.T) {
 	suite.Run(t, new(CallbacksTestSuite))
 }
 
-// AssertHasExecutedExpectedCallbackWithFee checks if the only the expected type of callback has been executed
-// and that the expected fee has been paid.
+// AssertHasExecutedExpectedCallbackWithFee checks if only the expected type of callback has been executed
+// and that the expected ics-29 fee has been paid.
 func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 	callbackType types.CallbackType, isSuccessful bool, isTimeout bool,
 	originalSenderBalance sdk.Coins, fee feetypes.Fee,
