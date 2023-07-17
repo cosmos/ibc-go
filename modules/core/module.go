@@ -177,12 +177,6 @@ func (am AppModule) BeginBlock(ctx sdk.Context) {
 	ibcclient.BeginBlocker(ctx, am.keeper.ClientKeeper)
 }
 
-// EndBlock returns the end blocker for the ibc module. It returns no validator
-// updates.
-func (am AppModule) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}
-
 // AppModuleSimulation functions
 
 // GenerateGenesisState creates a randomized GenState of the ibc module.
