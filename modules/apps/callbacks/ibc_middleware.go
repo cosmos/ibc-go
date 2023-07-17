@@ -37,12 +37,12 @@ func NewIBCMiddleware(
 	app porttypes.IBCModule, ics4Wrapper porttypes.ICS4Wrapper,
 	contractKeeper types.ContractKeeper, maxCallbackGas uint64,
 ) IBCMiddleware {
-	packetUnmarshalerApp, ok := app.(types.PacketInfoProviderIBCModule)
+	packetInfoProviderApp, ok := app.(types.PacketInfoProviderIBCModule)
 	if !ok {
 		panic(fmt.Sprintf("underlying application does not implement %T", (*types.PacketInfoProviderIBCModule)(nil)))
 	}
 	return IBCMiddleware{
-		app:            packetUnmarshalerApp,
+		app:            packetInfoProviderApp,
 		ics4Wrapper:    ics4Wrapper,
 		contractKeeper: contractKeeper,
 		maxCallbackGas: maxCallbackGas,
