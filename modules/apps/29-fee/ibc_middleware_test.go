@@ -1225,16 +1225,12 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 			tc.malleate()
 
 			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
 
 			isFeeEnabled := suite.chainB.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().Equal(expFeeEnabled, isFeeEnabled)
 
-			expPass := tc.expError == nil
-			if expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().NoError(err)
-
+			if tc.expError != nil {
 				// NOTE: application callback failure in OnChanUpgradeTry results in an ErrorReceipt being written to state signaling for cancellation
 				if expUpgradeError, ok := tc.expError.(*channeltypes.UpgradeError); ok {
 					errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
