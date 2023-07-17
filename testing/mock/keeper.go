@@ -113,10 +113,9 @@ func (k MockContractKeeper) processMockCallbacks(
 ) error {
 	gasRemaining := ctx.GasMeter().GasRemaining()
 	if gasRemaining < 10000 {
-		// panic if gas remaining is less than 10000, for tests
-		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), fmt.Sprintf("mock %s callback panic", callbackType))
 		callbackCounter.IncrementFailure()
-		panic("mock recv packet callback failure")
+		// consume gas will panic since we attempt to consume 100_000 gas, for tests
+		ctx.GasMeter().ConsumeGas(100000, fmt.Sprintf("mock %s callback panic", callbackType))
 	} else if gasRemaining < 100000 {
 		// error if gas remaining is less than 100000, for tests
 		callbackCounter.IncrementFailure()
