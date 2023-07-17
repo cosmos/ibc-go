@@ -11,7 +11,7 @@ import (
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
@@ -36,13 +36,13 @@ func (suite *CallbacksTestSuite) TestUnmarshalPacketData() {
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(ibctransfertypes.ModuleName)
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 	suite.Require().True(ok)
 
 	unmarshalerStack, ok := transferStack.(types.PacketInfoProviderIBCModule)
 	suite.Require().True(ok)
 
-	expPacketData := ibctransfertypes.FungibleTokenPacketData{
+	expPacketData := transfertypes.FungibleTokenPacketData{
 		Denom:    ibctesting.TestCoin.Denom,
 		Amount:   ibctesting.TestCoin.Amount.String(),
 		Sender:   ibctesting.TestAccAddress,
@@ -110,18 +110,53 @@ func (suite *CallbacksTestSuite) TestSendPacket() {
 }
 
 func (suite *CallbacksTestSuite) TestWriteAcknowledgement() {
-	icaAddress := suite.SetupICATest()
+	suite.SetupTransferTest()
 
 	// build packet
-	icaPacketData := suite.buildICAMsgDelegatePacketData(icaAddress, "")
+	packetData := transfertypes.NewFungibleTokenPacketData(
+		ibctesting.TestCoin.Denom,
+		ibctesting.TestCoin.Amount.String(),
+		ibctesting.TestAccAddress,
+		ibctesting.TestAccAddress,
+		fmt.Sprintf(`{"dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress),
+	)
 
 	packet := channeltypes.NewPacket(
-		icaPacketData.GetBytes(),
+		packetData.GetBytes(),
 		1,
 		suite.path.EndpointA.ChannelConfig.PortID,
 		suite.path.EndpointA.ChannelID,
 		suite.path.EndpointB.ChannelConfig.PortID,
 		suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(1, 100),
+		0,
+	)
+
+	transferStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+
+	transferStackMw := transferStack.(porttypes.Middleware)
+
+	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
+	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+
+	err := transferStackMw.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+	suite.Require().NoError(err)
+
+	packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
+	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
+}
+
+func (suite *CallbacksTestSuite) TestWriteAcknowledgementError() {
+	suite.SetupICATest()
+
+	packet := channeltypes.NewPacket(
+		[]byte("invalid packet data"),
+		1,
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		"invalid_port",
+		"invalid_channel",
 		clienttypes.NewHeight(1, 100),
 		0,
 	)
@@ -135,10 +170,7 @@ func (suite *CallbacksTestSuite) TestWriteAcknowledgement() {
 	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
 	err := hostStack.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
-	suite.Require().NoError(err)
-
-	packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
-	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
+	suite.Require().ErrorIs(err, errorsmod.Wrap(channeltypes.ErrChannelNotFound, packet.GetDestChannel()))
 }
 
 func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketError() {
@@ -148,7 +180,7 @@ func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketError() {
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack OnAcknowledgementPacket call order: callbacks -> fee -> transfer
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(ibctransfertypes.ModuleName)
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 	suite.Require().True(ok)
 
 	err := transferStack.OnAcknowledgementPacket(suite.chainA.GetContext(), channeltypes.Packet{}, []byte("invalid"), suite.chainA.SenderAccount.GetAddress())
@@ -163,7 +195,7 @@ func (suite *CallbacksTestSuite) TestOnTimeoutPacketError() {
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack OnTimeoutPacket call order: callbacks -> fee -> transfer
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(ibctransfertypes.ModuleName)
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 	suite.Require().True(ok)
 
 	err := transferStack.OnTimeoutPacket(suite.chainA.GetContext(), channeltypes.Packet{}, suite.chainA.SenderAccount.GetAddress())
@@ -175,7 +207,7 @@ func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	// The successful cases, other errors, and panics are tested in transfer_test.go and ica_test.go.
 	suite.SetupTransferTest()
 
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(ibctransfertypes.ModuleName)
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 	suite.Require().True(ok)
 	callbackStack, ok := transferStack.(ibccallbacks.IBCMiddleware)
 	suite.Require().True(ok)
