@@ -3,22 +3,18 @@ package types_test
 import (
 	"testing"
 
-	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/log"
-
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
-	"github.com/cosmos/ibc-go/v7/testing/simapp/params"
 )
 
 func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
@@ -148,13 +144,7 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			Amount:      ibctesting.TestCoins,
 		}
 
-		tempApp := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(t.TempDir()))
-		encodingConfig := params.EncodingConfig{
-			InterfaceRegistry: tempApp.InterfaceRegistry(),
-			Codec:             tempApp.AppCodec(),
-			TxConfig:          tempApp.TxConfig(),
-			Amino:             tempApp.LegacyAmino(),
-		}
+		encodingConfig := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
 
 		data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 		require.NoError(t, err)
@@ -192,13 +182,7 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 		Amount:      ibctesting.TestCoins,
 	}
 
-	tempApp := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(t.TempDir()))
-	encodingConfig := params.EncodingConfig{
-		InterfaceRegistry: tempApp.InterfaceRegistry(),
-		Codec:             tempApp.AppCodec(),
-		TxConfig:          tempApp.TxConfig(),
-		Amino:             tempApp.LegacyAmino(),
-	}
+	encodingConfig := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
 
 	data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 	require.NoError(t, err)
