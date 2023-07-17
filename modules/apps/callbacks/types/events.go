@@ -7,7 +7,7 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 )
 
 const (

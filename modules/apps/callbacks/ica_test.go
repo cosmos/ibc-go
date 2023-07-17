@@ -11,11 +11,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	icacontrollertypes "github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/controller/types"
+	icahosttypes "github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func (suite *CallbacksTestSuite) TestICACallbacks() {

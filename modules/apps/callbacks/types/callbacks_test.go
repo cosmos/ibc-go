@@ -7,10 +7,10 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
-	transfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+	transfer "github.com/cosmos/ibc-go/modules/apps/transfer"
+	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/testing"
 )
 
 func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
