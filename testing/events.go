@@ -134,9 +134,9 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	return nil, fmt.Errorf("acknowledgement event attribute not found")
 }
 
-// AssertEvents asserts that expected events are present in the actual events.
+// AssertEventsLegacy asserts that expected events are present in the actual events.
 // Expected map needs to be a subset of actual events to pass.
-func AssertEvents(
+func AssertEventsLegacy(
 	suite *suite.Suite,
 	expected EventsMap,
 	actual []abci.Event,
@@ -161,5 +161,51 @@ func AssertEvents(
 
 	for eventName, hasEvent := range hasEvents {
 		suite.Require().True(hasEvent, "event: %s was not found in events", eventName)
+	}
+}
+
+// AssertEvents asserts that expected events are present in the actual events.
+func AssertEvents(
+	suite *suite.Suite,
+	expected []abci.Event,
+	actual []abci.Event,
+) {
+	foundEvents := make(map[int]bool)
+	// taking advantage that looping over a slice is deterministic
+	for i := range expected {
+		foundEvents[i] = false
+	}
+
+	for i, expectedEvent := range expected {
+		for _, actualEvent := range actual {
+			// the actual event will have an extra attribute added automatically
+			// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
+			// with the number of attributes in the expected event.
+			if expectedEvent.Type == actualEvent.Type && (len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1) {
+				eventMatch := true
+				for _, expectedAttr := range expectedEvent.Attributes {
+					attributeMatch := false
+					for _, actualAttr := range actualEvent.Attributes {
+						attributeMatch = attributeMatch || actualAttr == expectedAttr
+
+						if attributeMatch {
+							break
+						}
+					}
+					eventMatch = eventMatch && attributeMatch
+				}
+
+				if eventMatch {
+					foundEvents[i] = eventMatch
+					continue
+				}
+			}
+		}
+	}
+
+	for i, expectedEvent := range expected {
+		if !foundEvents[i] {
+			suite.Require().True(foundEvents[i], "event: %s was not found in events", expectedEvent.Type)
+		}
 	}
 }
