@@ -77,7 +77,9 @@ func NewKeeper(
 	}
 }
 
-// WithICS4Wrapper sets the ICS4 wrapper
+// WithICS4Wrapper sets the ICS4Wrapper.
+// This function is used to change this keeper's ics4wrapper to a
+// middleware's ics4wrapper after this keeper has been created.
 func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 	k.ics4Wrapper = wrapper
 }
