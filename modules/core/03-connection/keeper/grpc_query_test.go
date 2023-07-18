@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 				suite.Require().NoError(err)
 
 				counterparty := types.NewCounterparty(path.EndpointB.ClientID, "", suite.chainB.GetPrefix())
-				expConnection = types.NewConnectionEnd(types.INIT, path.EndpointA.ClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 500)
+				expConnection = types.NewConnectionEnd(types.INIT, path.EndpointA.ClientID, counterparty, types.GetCompatibleVersions(), 500)
 				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, expConnection)
 
 				req = &types.QueryConnectionRequest{
@@ -135,9 +135,9 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 				// counterparty connection id is blank after open init
 				counterparty3 := types.NewCounterparty(path3.EndpointB.ClientID, "", suite.chainB.GetPrefix())
 
-				conn1 := types.NewConnectionEnd(types.OPEN, path1.EndpointA.ClientID, counterparty1, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
-				conn2 := types.NewConnectionEnd(types.OPEN, path2.EndpointA.ClientID, counterparty2, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
-				conn3 := types.NewConnectionEnd(types.INIT, path3.EndpointA.ClientID, counterparty3, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+				conn1 := types.NewConnectionEnd(types.OPEN, path1.EndpointA.ClientID, counterparty1, types.GetCompatibleVersions(), 0)
+				conn2 := types.NewConnectionEnd(types.OPEN, path2.EndpointA.ClientID, counterparty2, types.GetCompatibleVersions(), 0)
+				conn3 := types.NewConnectionEnd(types.INIT, path3.EndpointA.ClientID, counterparty3, types.GetCompatibleVersions(), 0)
 
 				iconn1 := types.NewIdentifiedConnection(path1.EndpointA.ConnectionID, conn1)
 				iconn2 := types.NewIdentifiedConnection(path2.EndpointA.ConnectionID, conn2)
