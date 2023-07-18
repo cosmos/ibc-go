@@ -7,7 +7,7 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	transfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"

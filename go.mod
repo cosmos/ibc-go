@@ -2,6 +2,8 @@ go 1.20
 
 module github.com/cosmos/ibc-go/v7
 
+replace github.com/cosmos/ibc-go/modules/apps/callbacks => ./modules/apps/callbacks
+
 require (
 	cosmossdk.io/api v0.3.1
 	cosmossdk.io/errors v1.0.0
