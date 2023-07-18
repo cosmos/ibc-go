@@ -14,8 +14,14 @@ type PacketInfoProviderIBCModule interface {
 
 // CallbackData is the callback data parsed from the packet.
 type CallbackData struct {
+	// ContractAddr is the address of the callback contract
 	ContractAddr string
-	GasLimit     uint64
+	// GasLimit is the gas limit actually used for the callback execution
+	GasLimit uint64
+	// CommitGasLimit is the gas needed to commit the callback even if the
+	// callback execution fails due to out of gas. This parameter is only
+	// used to be emitted in the event.
+	CommitGasLimit uint64
 }
 
 // GetSourceCallbackData parses the packet data and returns the source callback data.
@@ -74,13 +80,15 @@ func getCallbackData(
 	if gasLimit == 0 || gasLimit > maxGas {
 		gasLimit = maxGas
 	}
+	commitGasLimit := gasLimit
 	if remainingGas < gasLimit {
 		gasLimit = remainingGas
 		remainingGasIsAtGasLimit = false
 	}
 
 	return CallbackData{
-		ContractAddr: addressGetter(callbackData),
-		GasLimit:     gasLimit,
+		ContractAddr:   addressGetter(callbackData),
+		GasLimit:       gasLimit,
+		CommitGasLimit: commitGasLimit,
 	}, remainingGasIsAtGasLimit, nil
 }
