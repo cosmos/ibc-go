@@ -108,28 +108,29 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				suite.chainB.GetSimApp().AccountKeeper.RemoveAccount(suite.chainB.GetContext(), acc)
 			}, false,
 		},
+		{"reopening account fails - existing account is not interchain account type",
+			func() {
+				// create interchain account
+				// undo setup
+				path.EndpointB.ChannelID = ""
+				err := suite.chainB.App.GetScopedIBCKeeper().ReleaseCapability(suite.chainB.GetContext(), chanCap)
+				suite.Require().NoError(err)
 
-		/*
-			{ // this test now seems to violate a uniqueness constraint on the account address
-				"reopening account fails - existing account is not interchain account type",
-				func() {
-					// create interchain account
-					// undo setup
-					path.EndpointB.ChannelID = ""
-					err := suite.chainB.App.GetScopedIBCKeeper().ReleaseCapability(suite.chainB.GetContext(), chanCap)
-					suite.Require().NoError(err)
+				suite.openAndCloseChannel(path)
 
-					suite.openAndCloseChannel(path)
+				addr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
 
-					addr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-					suite.Require().True(found)
+				accAddress := sdk.MustAccAddressFromBech32(addr)
+				acc := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), accAddress)
 
-					accAddress := sdk.MustAccAddressFromBech32(addr)
-					baseAcc := authtypes.NewBaseAccountWithAddress(accAddress)
-					suite.chainB.GetSimApp().AccountKeeper.SetAccount(suite.chainB.GetContext(), baseAcc)
-				}, false,
-			},
-		*/
+				icaAcc, ok := acc.(*icatypes.InterchainAccount)
+				suite.Require().True(ok)
+
+				// overwrite existing account with only base account type, not intercahin account type
+				suite.chainB.GetSimApp().AccountKeeper.SetAccount(suite.chainB.GetContext(), icaAcc.BaseAccount)
+			}, false,
+		},
 		{
 			"account already exists",
 			func() {
