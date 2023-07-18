@@ -16,7 +16,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 // CallbacksTestSuite defines the needed instances and methods to test callbacks

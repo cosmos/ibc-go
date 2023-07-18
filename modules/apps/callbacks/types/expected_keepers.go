@@ -3,9 +3,9 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // ContractKeeper defines the entry points to a smart contract that must be exposed by the VM module
