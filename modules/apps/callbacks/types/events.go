@@ -33,6 +33,9 @@ const (
 	// AttributeKeyCallbackGasLimit denotes the custom gas limit for the callback execution
 	// if custom gas limit is not in effect, then this key will not be included in the event
 	AttributeKeyCallbackGasLimit = "callback_gas_limit"
+	// AttributeKeyCallbackCommitGasLimit denotes the gas needed to commit the callback even
+	// if the callback execution fails due to out of gas.
+	AttributeKeyCallbackCommitGasLimit = "callback_commit_gas_limit"
 	// AttributeKeyCallbackPortID denotes the port ID of the packet
 	AttributeKeyCallbackSourcePortID = "callback_src_port"
 	// AttributeKeyCallbackChannelID denotes the channel ID of the packet
@@ -71,6 +74,7 @@ func EmitCallbackEvent(
 		sdk.NewAttribute(AttributeKeyCallbackTrigger, string(callbackTrigger)),
 		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.GasLimit)),
+		sdk.NewAttribute(AttributeKeyCallbackCommitGasLimit, fmt.Sprintf("%d", callbackData.CommitGasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourcePort()),
 		sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),
 		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.GetSequence())),
