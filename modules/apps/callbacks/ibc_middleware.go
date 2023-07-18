@@ -206,7 +206,6 @@ func (im IBCMiddleware) processCallback(
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 	defer func() {
-		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), fmt.Sprintf("ibc %s callback", callbackType))
 		if r := recover(); r != nil {
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
@@ -220,6 +219,7 @@ func (im IBCMiddleware) processCallback(
 				}
 			}
 		}
+		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), fmt.Sprintf("ibc %s callback", callbackType))
 	}()
 
 	err = callbackExecutor(cachedCtx, callbackData.ContractAddr)
