@@ -223,7 +223,7 @@ func (im IBCMiddleware) processCallback(
 				}
 			}
 		}
-		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), fmt.Sprintf("ibc %s callback", callbackType))
+		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
 	}()
 
 	err = callbackExecutor(cachedCtx, callbackData.ContractAddr)
