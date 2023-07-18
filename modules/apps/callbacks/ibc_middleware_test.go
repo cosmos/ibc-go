@@ -258,11 +258,13 @@ func (suite *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
 	transferStackMw := transferStack.(porttypes.Middleware)
 
 	modifiedCtx := suite.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(400000))
-	suite.Require().Panics(func() {
+	suite.AssertPanicContains(func() {
 		transferStackMw.OnRecvPacket(modifiedCtx, packet, suite.chainB.SenderAccount.GetAddress())
-	})
+	}, "callback out of gas", "out of gas in location:")
 
 	// check that it doesn't panic when gas is high enough
+	ack := transferStackMw.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainB.SenderAccount.GetAddress())
+	suite.Require().NotNil(ack)
 }
 
 func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
