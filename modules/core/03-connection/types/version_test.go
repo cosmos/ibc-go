@@ -71,7 +71,7 @@ func TestFindSupportedVersion(t *testing.T) {
 		{"valid supported version", types.DefaultIBCVersion, types.GetCompatibleVersions(), types.DefaultIBCVersion, true},
 		{"empty (invalid) version", &types.Version{}, types.GetCompatibleVersions(), &types.Version{}, false},
 		{"empty supported versions", types.DefaultIBCVersion, []*types.Version{}, &types.Version{}, false},
-		{"desired version is last", types.DefaultIBCVersion, []*types.Version{types.NewVersion("1", nil), types.NewVersion("2", []string{"ORDER_UNORDERED"}), types.NewVersion("3", nil)}, types.DefaultIBCVersion, true},
+		{"desired version is last", types.DefaultIBCVersion, []*types.Version{types.NewVersion("1.1", nil), types.NewVersion("2", []string{"ORDER_UNORDERED"}), types.NewVersion("3", nil), types.DefaultIBCVersion}, types.DefaultIBCVersion, true},
 		{"desired version identifier with different feature set", types.NewVersion(types.DefaultIBCVersionIdentifier, []string{"ORDER_DAG"}), types.GetCompatibleVersions(), types.DefaultIBCVersion, true},
 		{"version not supported", types.NewVersion("2", []string{"ORDER_DAG"}), types.GetCompatibleVersions(), &types.Version{}, false},
 	}
