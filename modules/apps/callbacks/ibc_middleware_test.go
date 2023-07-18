@@ -229,6 +229,42 @@ func (suite *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 	suite.Require().Nil(ack)
 }
 
+func (suite *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
+	suite.SetupTransferTest()
+
+	// build packet
+	packetData := transfertypes.NewFungibleTokenPacketData(
+		ibctesting.TestCoin.Denom,
+		ibctesting.TestCoin.Amount.String(),
+		ibctesting.TestAccAddress,
+		ibctesting.TestAccAddress,
+		fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"500000"}}`, ibctesting.TestAccAddress),
+	)
+
+	packet := channeltypes.NewPacket(
+		packetData.GetBytes(),
+		1,
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(1, 100),
+		0,
+	)
+
+	transferStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+
+	transferStackMw := transferStack.(porttypes.Middleware)
+
+	modifiedCtx := suite.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(400000))
+	suite.Require().Panics(func() {
+		transferStackMw.OnRecvPacket(modifiedCtx, packet, suite.chainB.SenderAccount.GetAddress())
+	})
+
+	// check that it doesn't panic when gas is high enough
+}
+
 func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	// The successful cases, other errors, and panics are tested in transfer_test.go and ica_test.go.
 	suite.SetupTransferTest()
