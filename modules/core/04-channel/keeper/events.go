@@ -189,7 +189,7 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, cha
 			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 			sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
-			sdk.NewAttribute(types.AttributeKeyAckHex, string(acknowledgement)), //nolint:staticcheck // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyAck, string(acknowledgement)), //nolint:staticcheck // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyAckHex, hex.EncodeToString(acknowledgement)),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)
