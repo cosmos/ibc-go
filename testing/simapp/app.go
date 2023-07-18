@@ -323,6 +323,8 @@ func NewSimApp(
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 	bApp.SetTxEncoder(txConfig.TxEncoder())
 
+	// NOTE: The ibcmock.StoreKey is just mounted for testing purposes. Actual applications should
+	// not include this key.
 	keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey, crisistypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
@@ -440,7 +442,8 @@ func NewSimApp(
 	)
 
 	// Mock Keepers
-	app.MockKeeper = ibcmock.NewMockKeeper()
+	// real applications should not use these
+	app.MockKeeper = ibcmock.NewMockKeeper(memKeys[ibcmock.MemStoreKey])
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
@@ -591,7 +594,8 @@ func NewSimApp(
 	// create fee wrapped mock module
 	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
-	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
+	var feeWithMockModule porttypes.Middleware = ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
+	feeWithMockModule = ibccallbacks.NewIBCMiddleware(feeWithMockModule, app.IBCFeeKeeper, app.MockKeeper, maxCallbackGas)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// Seal the IBC Router

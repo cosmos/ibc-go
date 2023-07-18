@@ -1,14 +1,11 @@
 package types_test
 
 import (
-	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/testing"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 // CallbacksTestSuite defines the needed instances and methods to test callbacks
@@ -28,21 +25,4 @@ func (suite *CallbacksTypesTestSuite) SetupSuite() {
 
 func TestCallbacksTypesTestSuite(t *testing.T) {
 	suite.Run(t, new(CallbacksTypesTestSuite))
-}
-
-type MockPacketDataUnmarshaler struct{}
-
-func (m MockPacketDataUnmarshaler) UnmarshalPacketData(data []byte) (interface{}, error) {
-	if reflect.DeepEqual(data, []byte("no unmarshaler error")) {
-		return nil, nil
-	}
-	return nil, fmt.Errorf("mock error")
-}
-
-func (m MockPacketDataUnmarshaler) GetPacketSender(packet exported.PacketI) string {
-	return ""
-}
-
-func (m MockPacketDataUnmarshaler) GetPacketReceiver(packet exported.PacketI) string {
-	return ""
 }

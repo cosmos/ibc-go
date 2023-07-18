@@ -11,6 +11,7 @@ import (
 	transfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
@@ -304,7 +305,7 @@ func (suite *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
 	// the packet data can be unmarshaled but the resulting packet data cannot be
 	// casted to a CallbackPacketData.
 
-	packetUnmarshaler := MockPacketDataUnmarshaler{}
+	packetUnmarshaler := ibcmock.IBCModule{}
 
 	// "no unmarshaler error" instructs the MockPacketDataUnmarshaler to return nil nil
 	callbackData, hasEnoughGas, err := types.GetCallbackData(packetUnmarshaler, []byte("no unmarshaler error"), 100000, uint64(1_000_000), nil, nil)

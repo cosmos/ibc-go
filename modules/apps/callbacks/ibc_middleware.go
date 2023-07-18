@@ -3,6 +3,8 @@ package ibccallbacks
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
@@ -35,12 +37,12 @@ func NewIBCMiddleware(
 	app porttypes.IBCModule, ics4Wrapper porttypes.ICS4Wrapper,
 	contractKeeper types.ContractKeeper, maxCallbackGas uint64,
 ) IBCMiddleware {
-	packetUnmarshalerApp, ok := app.(types.PacketInfoProviderIBCModule)
+	packetInfoProviderApp, ok := app.(types.PacketInfoProviderIBCModule)
 	if !ok {
 		panic(fmt.Sprintf("underlying application does not implement %T", (*types.PacketInfoProviderIBCModule)(nil)))
 	}
 	return IBCMiddleware{
-		app:            packetUnmarshalerApp,
+		app:            packetInfoProviderApp,
 		ics4Wrapper:    ics4Wrapper,
 		contractKeeper: contractKeeper,
 		maxCallbackGas: maxCallbackGas,
@@ -188,7 +190,7 @@ func (im IBCMiddleware) processCallback(
 	callbackDataGetter func() (types.CallbackData, bool, error),
 	callbackExecutor func(sdk.Context, string) error,
 ) (err error) {
-	callbackData, hasEnoughGas, err := callbackDataGetter()
+	callbackData, remainingGasIsAtGasLimit, err := callbackDataGetter()
 	if err != nil {
 		types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
 		return nil
@@ -204,15 +206,20 @@ func (im IBCMiddleware) processCallback(
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 	defer func() {
-		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), fmt.Sprintf("ibc %s callback", callbackType))
 		if r := recover(); r != nil {
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
-			types.Logger(ctx).Info("Recovered from panic.", "panic", r)
-			if !hasEnoughGas {
-				err = types.ErrCallbackPanic
+			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
+				types.Logger(ctx).Info("Callbacks recovered from out of gas panic.", "panic", oogError)
+				if !remainingGasIsAtGasLimit {
+					err = errorsmod.Wrapf(types.ErrCallbackOutOfGas,
+						"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
+						oogError.Descriptor, cachedCtx.GasMeter().Limit(), cachedCtx.GasMeter().GasConsumed(),
+					)
+				}
 			}
 		}
+		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumed(), fmt.Sprintf("ibc %s callback", callbackType))
 	}()
 
 	err = callbackExecutor(cachedCtx, callbackData.ContractAddr)

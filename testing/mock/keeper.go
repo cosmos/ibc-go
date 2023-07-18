@@ -3,6 +3,7 @@ package mock
 import (
 	"fmt"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	callbacktypes "github.com/cosmos/ibc-go/modules/apps/callbacks/types"
@@ -22,6 +23,8 @@ var _ callbacktypes.ContractKeeper = (*MockKeeper)(nil)
 //   - callbacktypes.ContractKeeper
 type MockKeeper struct {
 	MockContractKeeper
+
+	key storetypes.StoreKey
 }
 
 // This is a mock keeper used for testing. It is not wired up to any modules.
@@ -34,9 +37,35 @@ type MockContractKeeper struct {
 	WriteAcknowledgementCallbackCounter *types.CallbackCounter
 }
 
+// SetStateCounter sets the stateful callback counter in state.
+// This function is used to test state reversals. The callback counters
+// directly listed under MockContractKeeper will not be reversed if the
+// state is reversed.
+func (k MockKeeper) SetStateCounter(ctx sdk.Context, count uint8) {
+	store := ctx.KVStore(k.key)
+	store.Set([]byte(StatefulCounterKey), []byte{count})
+}
+
+// GetStateCounter returns the stateful callback counter from state.
+func (k MockKeeper) GetStateCounter(ctx sdk.Context) uint8 {
+	store := ctx.KVStore(k.key)
+	bz := store.Get([]byte(StatefulCounterKey))
+	if bz == nil {
+		return 0
+	}
+	return bz[0]
+}
+
+// IncrementStatefulCounter increments the stateful callback counter in state.
+func (k MockKeeper) IncrementStatefulCounter(ctx sdk.Context) {
+	count := k.GetStateCounter(ctx)
+	k.SetStateCounter(ctx, count+1)
+}
+
 // NewKeeper creates a new mock Keeper.
-func NewMockKeeper() MockKeeper {
+func NewMockKeeper(key storetypes.StoreKey) MockKeeper {
 	return MockKeeper{
+		key: key,
 		MockContractKeeper: MockContractKeeper{
 			SendPacketCallbackCounter:           types.NewCallbackCounter(),
 			AckCallbackCounter:                  types.NewCallbackCounter(),
@@ -47,10 +76,10 @@ func NewMockKeeper() MockKeeper {
 }
 
 // IBCPacketSendCallback returns nil if the gas meter has greater than
-// or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
-// This function also consumes 100000 gas, or the remaining gas if less than 100000.
-// This function panics if the gas remaining is less than 10000.
-func (k MockContractKeeper) IBCSendPacketCallback(
+// or equal to 500000 gas remaining.
+// This function consumes 500000 gas, or the remaining gas if less than 500000.
+// This function oog panics if the gas remaining is less than 400000.
+func (k MockKeeper) IBCSendPacketCallback(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
@@ -60,14 +89,14 @@ func (k MockContractKeeper) IBCSendPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeSendPacket, k.SendPacketCallbackCounter)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeSendPacket, k.SendPacketCallbackCounter)
 }
 
 // IBCOnAcknowledgementPacketCallback returns nil if the gas meter has greater than
-// or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
-// This function also consumes 100000 gas, or the remaining gas if less than 100000.
-// This function panics if the gas remaining is less than 10000.
-func (k MockContractKeeper) IBCOnAcknowledgementPacketCallback(
+// or equal to 500000 gas remaining.
+// This function consumes 500000 gas, or the remaining gas if less than 500000.
+// This function oog panics if the gas remaining is less than 400000.
+func (k MockKeeper) IBCOnAcknowledgementPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -75,49 +104,53 @@ func (k MockContractKeeper) IBCOnAcknowledgementPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeAcknowledgement, k.AckCallbackCounter)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeAcknowledgement, k.AckCallbackCounter)
 }
 
 // IBCOnTimeoutPacketCallback returns nil if the gas meter has greater than
-// or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
-// This function also consumes 100000 gas, or the remaining gas if less than 100000.
-// This function panics if the gas remaining is less than 10000.
-func (k MockContractKeeper) IBCOnTimeoutPacketCallback(
+// or equal to 500000 gas remaining.
+// This function consumes 500000 gas, or the remaining gas if less than 500000.
+// This function oog panics if the gas remaining is less than 400000.
+func (k MockKeeper) IBCOnTimeoutPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeTimeoutPacket, k.TimeoutCallbackCounter)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeTimeoutPacket, k.TimeoutCallbackCounter)
 }
 
 // IBCWriteAcknowledgementCallback returns nil if the gas meter has greater than
-// or equal to 100000 gas remaining. Otherwise, it returns an out of gas error.
-// This function also consumes 100000 gas, or the remaining gas if less than 100000.
-// This function panics if the gas remaining is less than 10000.
-func (k MockContractKeeper) IBCWriteAcknowledgementCallback(
+// or equal to 500000 gas remaining.
+// This function consumes 500000 gas, or the remaining gas if less than 500000.
+// This function oog panics if the gas remaining is less than 400000.
+func (k MockKeeper) IBCWriteAcknowledgementCallback(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallbacks(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, k.WriteAcknowledgementCallbackCounter)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, k.WriteAcknowledgementCallbackCounter)
 }
 
-func (k MockContractKeeper) processMockCallbacks(
+// processMockCallback returns nil if the gas meter has greater than or equal to 500000 gas remaining.
+// This function consumes 500000 gas, or the remaining gas if less than 500000.
+// This function oog panics if the gas remaining is less than 400000.
+func (k MockKeeper) processMockCallback(
 	ctx sdk.Context,
 	callbackType callbacktypes.CallbackType,
 	callbackCounter *types.CallbackCounter,
 ) error {
 	gasRemaining := ctx.GasMeter().GasRemaining()
-	if gasRemaining < 10000 {
-		// panic if gas remaining is less than 10000, for tests
-		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), fmt.Sprintf("mock %s callback panic", callbackType))
+	k.IncrementStatefulCounter(ctx)
+
+	if gasRemaining < 400000 {
 		callbackCounter.IncrementFailure()
-		panic("mock recv packet callback failure")
-	} else if gasRemaining < 100000 {
+		// consume gas will panic since we attempt to consume 100_000 gas, for tests
+		ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback panic", callbackType))
+	} else if gasRemaining < 500000 {
 		// error if gas remaining is less than 100000, for tests
 		callbackCounter.IncrementFailure()
 		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), fmt.Sprintf("mock %s callback failure", callbackType))
@@ -125,6 +158,6 @@ func (k MockContractKeeper) processMockCallbacks(
 	}
 
 	callbackCounter.IncrementSuccess()
-	ctx.GasMeter().ConsumeGas(100000, fmt.Sprintf("mock %s callback success", callbackType))
+	ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback success", callbackType))
 	return nil
 }

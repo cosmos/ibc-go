@@ -89,7 +89,7 @@ The Memo format is defined like so:
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
 func (iapd InterchainAccountPacketData) GetSourceCallbackAddress() string {
-	callbackData := iapd.getSrcCallbackData()
+	callbackData := iapd.getCallbackData("src_callback")
 	if callbackData == nil {
 		return ""
 	}
@@ -116,7 +116,7 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 // The memo is expected to specify the user defined gas limit in the following format:
 // { "src_callback": { ... , "gas_limit": {stringForGasLimit} }
 func (iapd InterchainAccountPacketData) GetSourceUserDefinedGasLimit() uint64 {
-	callbackData := iapd.getSrcCallbackData()
+	callbackData := iapd.getCallbackData("src_callback")
 	if callbackData == nil {
 		return 0
 	}
@@ -143,7 +143,7 @@ func (iapd InterchainAccountPacketData) GetDestUserDefinedGasLimit() uint64 {
 
 // getCallbackData returns the memo as `map[string]interface{}` so that it can be
 // interpreted as a json object with keys.
-func (iapd InterchainAccountPacketData) getSrcCallbackData() map[string]interface{} {
+func (iapd InterchainAccountPacketData) getCallbackData(callbackKey string) map[string]interface{} {
 	if len(iapd.Memo) == 0 {
 		return nil
 	}
@@ -154,7 +154,7 @@ func (iapd InterchainAccountPacketData) getSrcCallbackData() map[string]interfac
 		return nil
 	}
 
-	callbackData, ok := jsonObject["src_callback"].(map[string]interface{})
+	callbackData, ok := jsonObject[callbackKey].(map[string]interface{})
 	if !ok {
 		return nil
 	}
