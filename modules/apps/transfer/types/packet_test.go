@@ -152,9 +152,9 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
-				Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, receiver),
+				Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, sender),
 			},
-			receiver,
+			sender,
 		},
 		{
 			"success: valid dest_callback address specified in memo that matches receiver",
