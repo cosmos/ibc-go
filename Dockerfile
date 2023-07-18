@@ -11,10 +11,11 @@ RUN test -n "${IBC_GO_VERSION}"
 
 # Copy relevant files before go mod download. Replace directives to local paths break if local
 # files are not copied before go mod download.
-ADD internal internal
-ADD testing testing
-ADD modules modules
-ADD LICENSE LICENSE
+#ADD internal internal
+#ADD testing testing
+#ADD modules modules
+#ADD LICENSE LICENSE
+ADD . .
 
 COPY contrib/devtools/Makefile contrib/devtools/Makefile
 COPY Makefile .
