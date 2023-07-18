@@ -7,9 +7,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	feetypes "github.com/cosmos/ibc-go/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 var (

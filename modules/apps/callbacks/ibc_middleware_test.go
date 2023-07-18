@@ -7,16 +7,16 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	icacontrollertypes "github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/controller/types"
-	icahosttypes "github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/host/types"
 	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/testing"
+	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *CallbacksTestSuite) TestInvalidNewIBCMiddleware() {

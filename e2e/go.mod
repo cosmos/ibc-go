@@ -238,6 +238,8 @@ replace (
 // uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
 replace github.com/cosmos/ibc-go/v7 => ../
 
+replace github.com/cosmos/ibc-go/modules/apps/callbacks => ../modules/apps/callbacks
+
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1

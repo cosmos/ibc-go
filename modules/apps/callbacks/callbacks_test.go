@@ -10,12 +10,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	icatypes "github.com/cosmos/ibc-go/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	transfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/testing"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 // CallbacksTestSuite defines the needed instances and methods to test callbacks
