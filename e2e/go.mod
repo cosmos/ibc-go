@@ -9,6 +9,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.47.3
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/v7 v7.2.0
+	github.com/cosmos/ibc-go/v7/testing/simapp v1.0.0
 	github.com/cosmos/interchain-accounts v0.5.1
 	github.com/docker/docker v24.0.1+incompatible
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230622193330-220ce33823c0
@@ -18,6 +19,8 @@ require (
 	google.golang.org/grpc v1.56.2
 	gopkg.in/yaml.v2 v2.4.0
 )
+
+replace github.com/cosmos/ibc-go/v7/testing/simapp => ../testing/simapp
 
 require (
 	cloud.google.com/go v0.110.0 // indirect
