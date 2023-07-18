@@ -85,7 +85,7 @@ func TestMustParseConnectionPath(t *testing.T) {
 		expected string
 		expPass  bool
 	}{
-		{"valid", "connection/connection-localhost", "connection-localhost", true},
+		{"valid", "a/connection", "connection", true},
 		{"valid localhost", "/connection-localhost", "connection-localhost", true},
 		{"invalid empty path", "", "", false},
 	}
