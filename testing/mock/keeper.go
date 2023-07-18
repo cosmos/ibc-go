@@ -76,9 +76,9 @@ func NewMockKeeper(key storetypes.StoreKey) MockKeeper {
 }
 
 // IBCPacketSendCallback returns nil if the gas meter has greater than
-// or equal to 100000 gas remaining.
-// This function consumes 100000 gas, or the remaining gas if less than 100000.
-// This function oog panics if the gas remaining is less than 40000.
+// or equal to 500000 gas remaining.
+// This function consumes 500000 gas, or the remaining gas if less than 500000.
+// This function oog panics if the gas remaining is less than 400000.
 func (k MockKeeper) IBCSendPacketCallback(
 	ctx sdk.Context,
 	sourcePort string,
@@ -93,9 +93,9 @@ func (k MockKeeper) IBCSendPacketCallback(
 }
 
 // IBCOnAcknowledgementPacketCallback returns nil if the gas meter has greater than
-// or equal to 100000 gas remaining.
-// This function consumes 100000 gas, or the remaining gas if less than 100000.
-// This function oog panics if the gas remaining is less than 40000.
+// or equal to 500000 gas remaining.
+// This function consumes 500000 gas, or the remaining gas if less than 500000.
+// This function oog panics if the gas remaining is less than 400000.
 func (k MockKeeper) IBCOnAcknowledgementPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -108,9 +108,9 @@ func (k MockKeeper) IBCOnAcknowledgementPacketCallback(
 }
 
 // IBCOnTimeoutPacketCallback returns nil if the gas meter has greater than
-// or equal to 100000 gas remaining.
-// This function consumes 100000 gas, or the remaining gas if less than 100000.
-// This function oog panics if the gas remaining is less than 40000.
+// or equal to 500000 gas remaining.
+// This function consumes 500000 gas, or the remaining gas if less than 500000.
+// This function oog panics if the gas remaining is less than 400000.
 func (k MockKeeper) IBCOnTimeoutPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -122,9 +122,9 @@ func (k MockKeeper) IBCOnTimeoutPacketCallback(
 }
 
 // IBCWriteAcknowledgementCallback returns nil if the gas meter has greater than
-// or equal to 100000 gas remaining.
-// This function consumes 100000 gas, or the remaining gas if less than 100000.
-// This function oog panics if the gas remaining is less than 40000.
+// or equal to 500000 gas remaining.
+// This function consumes 500000 gas, or the remaining gas if less than 500000.
+// This function oog panics if the gas remaining is less than 400000.
 func (k MockKeeper) IBCWriteAcknowledgementCallback(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
@@ -135,9 +135,9 @@ func (k MockKeeper) IBCWriteAcknowledgementCallback(
 	return k.processMockCallback(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, k.WriteAcknowledgementCallbackCounter)
 }
 
-// processMockCallback returns nil if the gas meter has greater than or equal to 100000 gas remaining.
-// This function consumes 100000 gas, or the remaining gas if less than 100000.
-// This function oog panics if the gas remaining is less than 40000.
+// processMockCallback returns nil if the gas meter has greater than or equal to 500000 gas remaining.
+// This function consumes 500000 gas, or the remaining gas if less than 500000.
+// This function oog panics if the gas remaining is less than 400000.
 func (k MockKeeper) processMockCallback(
 	ctx sdk.Context,
 	callbackType callbacktypes.CallbackType,
@@ -146,11 +146,11 @@ func (k MockKeeper) processMockCallback(
 	gasRemaining := ctx.GasMeter().GasRemaining()
 	k.IncrementStatefulCounter(ctx)
 
-	if gasRemaining < 40000 {
+	if gasRemaining < 400000 {
 		callbackCounter.IncrementFailure()
 		// consume gas will panic since we attempt to consume 100_000 gas, for tests
-		ctx.GasMeter().ConsumeGas(100000, fmt.Sprintf("mock %s callback panic", callbackType))
-	} else if gasRemaining < 100000 {
+		ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback panic", callbackType))
+	} else if gasRemaining < 500000 {
 		// error if gas remaining is less than 100000, for tests
 		callbackCounter.IncrementFailure()
 		ctx.GasMeter().ConsumeGas(ctx.GasMeter().GasRemaining(), fmt.Sprintf("mock %s callback failure", callbackType))
@@ -158,6 +158,6 @@ func (k MockKeeper) processMockCallback(
 	}
 
 	callbackCounter.IncrementSuccess()
-	ctx.GasMeter().ConsumeGas(100000, fmt.Sprintf("mock %s callback success", callbackType))
+	ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback success", callbackType))
 	return nil
 }
