@@ -29,10 +29,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*exported.ClientMessage)(nil),
 		&Misbehaviour{},
 	)
-	registry.RegisterImplementations(
-		(*exported.ClientState)(nil),
-		&ClientState{},
-	)
 }
 
 func UnmarshalSignatureData(cdc codec.BinaryCodec, data []byte) (signing.SignatureData, error) {
