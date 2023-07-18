@@ -36,8 +36,6 @@ func (a TransferAuthorization) MsgTypeURL() string {
 
 // Accept implements Authorization.Accept.
 func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	msgTransfer, ok := msg.(*MsgTransfer)
 	if !ok {
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
@@ -48,6 +46,7 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			continue
 		}
 
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		if !isAllowedAddress(sdkCtx, msgTransfer.Receiver, allocation.AllowList) {
 			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
