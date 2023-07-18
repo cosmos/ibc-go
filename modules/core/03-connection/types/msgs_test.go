@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	cosmossdk.io/store/iavl"
-	cosmossdk.io/store/rootmulti"
-	storetypes cosmossdk.io/store/types"
+	"cosmossdk.io/store/iavl"
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	dbm "github.com/cometbft/cometbft-db"
