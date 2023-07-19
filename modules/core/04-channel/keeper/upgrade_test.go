@@ -756,7 +756,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 
 // TestChanUpgradeOpenCounterPartyStates tests the handshake in the cases where
 // the counterparty is in a state other than OPEN.
-func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterPartyStates() {
+func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterpartyStates() {
 	var path *ibctesting.Path
 	testCases := []struct {
 		name     string
@@ -830,7 +830,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterPartyStates() {
 				path.EndpointB.GetChannel().State, proofCounterpartyChannel, proofHeight,
 			)
 
-			if tc.expError == nil {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
