@@ -355,11 +355,20 @@ func (k Keeper) ChanUpgradeOpen(
 		if !found {
 			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
 		}
+		// If counterparty has reached OPEN, we must use the upgraded connection to verify the counterparty channel
+		upgradeConnection, err := k.GetConnection(ctx, upgrade.Fields.ConnectionHops[0])
+		if err != nil {
+			return errorsmod.Wrap(err, "failed to retrieve connection using the upgrade connection hops")
+		}
+
+		if upgradeConnection.GetState() != int32(connectiontypes.OPEN) {
+			return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(upgradeConnection.GetState()).String())
+		}
 
 		counterpartyChannel = types.Channel{
 			State:           types.OPEN,
 			Ordering:        upgrade.Fields.Ordering,
-			ConnectionHops:  upgrade.Fields.ConnectionHops,
+			ConnectionHops:  []string{upgradeConnection.GetCounterparty().GetConnectionID()},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         upgrade.Fields.Version,
 			UpgradeSequence: channel.UpgradeSequence,
