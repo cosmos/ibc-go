@@ -754,6 +754,92 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 	}
 }
 
+// TestChanUpgradeOpenCounterPartyStates tests the handshake in the cases where
+// the counterparty is in a state other than OPEN.
+func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterpartyStates() {
+	var path *ibctesting.Path
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success, counterparty in OPEN",
+			func() {
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeTry()
+				suite.Require().NoError(err)
+
+				err = path.EndpointB.ChanUpgradeAck()
+				suite.Require().NoError(err)
+
+				// TODO: Remove when #4030 is closed. Channel will automatically
+				// move to OPEN in that case.
+				err = path.EndpointB.ChanUpgradeOpen()
+				suite.Require().NoError(err)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+			},
+			nil,
+		},
+		{
+			"success, counterparty in TRYUPGRADE",
+			func() {
+				err := path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointB.ChanUpgradeTry()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeAck()
+				suite.Require().NoError(err)
+			},
+			nil,
+		},
+	}
+
+	// Create an initial path used only to invoke ConnOpenInit/ChanOpenInit handlers.
+	// This bumps the connection/channel identifiers generated for chain A on the
+	// next path used to run the upgrade handshake.
+	// See issue 4062.
+	path = ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path)
+	suite.Require().NoError(path.EndpointA.ConnOpenInit())
+	suite.coordinator.SetupConnections(path)
+	suite.Require().NoError(path.EndpointA.ChanOpenInit())
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			tc.malleate()
+
+			proofCounterpartyChannel, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeOpen(
+				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+				path.EndpointB.GetChannel().State, proofCounterpartyChannel, proofHeight,
+			)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 	var (
 		path                     *ibctesting.Path
