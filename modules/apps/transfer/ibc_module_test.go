@@ -251,7 +251,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 	}{
 		{
 			"success",
-			func() {},
+			func() {}, // successful happy path for a standalone transfer app is swapping out the underlying connection
 			nil,
 		},
 		{
