@@ -11,5 +11,5 @@ var (
 	ErrWasmCodeTooLarge          = errorsmod.Register(ModuleName, 5, "wasm code too large")
 	ErrWasmCodeExists            = errorsmod.Register(ModuleName, 6, "wasm code already exists")
 	ErrWasmCodeIDNotFound        = errorsmod.Register(ModuleName, 7, "wasm code id not found")
-	ErrWasmSubMessagesNotAllowed = errorsmod.Register(ModuleName, 7, "execution of sub messages is not allowed")
+	ErrWasmSubMessagesNotAllowed = errorsmod.Register(ModuleName, 8, "execution of sub messages is not allowed")
 )
