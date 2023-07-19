@@ -68,3 +68,74 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 		fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
 		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance[0]))
 }
+
+// TODO: determine if table tests are needed or not
+func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			// configure the initial path to create a regular transfer channel
+			path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
+			path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
+			path.EndpointA.ChannelConfig.Version = transfertypes.Version
+			path.EndpointB.ChannelConfig.Version = transfertypes.Version
+
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade to upgrade to an incentivized fee enabled transfer channel
+			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+
+			tc.malleate()
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeOpen()
+			suite.Require().NoError(err)
+
+			expPass := tc.expError == nil
+			if expPass {
+				channelA := path.EndpointA.GetChannel()
+				suite.Require().Equal(upgradeVersion, channelA.Version)
+
+				channelB := path.EndpointB.GetChannel()
+				suite.Require().Equal(upgradeVersion, channelB.Version)
+
+				isFeeEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(isFeeEnabled)
+
+				isFeeEnabled = suite.chainB.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(isFeeEnabled)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
