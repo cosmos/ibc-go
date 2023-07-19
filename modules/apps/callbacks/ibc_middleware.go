@@ -70,7 +70,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	packetSenderAddress := im.GetPacketSender(packet)
 	callbackDataGetter := func() (types.CallbackData, bool, error) {
-		return types.GetSourceCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+		return types.GetSourceCallbackData(im.app, packet.GetData(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
 		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackAddress, packetSenderAddress)
@@ -90,7 +90,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 
 	packetSenderAddress := im.GetPacketSender(packet)
 	callbackDataGetter := func() (types.CallbackData, bool, error) {
-		return types.GetSourceCallbackData(im.app, packet.Data, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+		return types.GetSourceCallbackData(im.app, packet.GetData(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
 		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackAddress, packetSenderAddress)
