@@ -79,7 +79,7 @@ to retrieve the desired callback addresses for the ICS20 packet on the source an
 
 The Memo is used to ensure that the callback is desired by the user. This allows a user to send an ICS20 packet
 to a contract with ADR-8 enabled without automatically triggering the callback logic which may lead to unexpected
-behaviour.
+behavior.
 
 The Memo format is defined like so:
 
@@ -101,13 +101,13 @@ The Memo format is defined like so:
 }
 ```
 
-For transfer, we will NOT enforce that the src_callback_address is the same as sender and dest_callback_address is the same as receiver.
+For transfer, we will NOT enforce that the source callback address is the same as sender and destination callback address is the same as receiver.
 
 */
 
 // GetSourceCallbackAddress returns the source callback address
 // if it is specified in the packet data memo.
-// If no callback address is specified, an empty string is returned.
+// If no callback address is specified or is improperly formatted, an empty string is returned.
 //
 // The memo is expected to contain the destination callback address in the following format:
 // { "src_callback": { "address": {stringCallbackAddress}}
@@ -120,7 +120,7 @@ func (ftpd FungibleTokenPacketData) GetSourceCallbackAddress() string {
 
 // GetDestCallbackAddress returns the destination callback address
 // if it is specified in the packet data memo.
-// If no callback address is specified, an empty string is returned.
+// If no callback address is specified or is improperly formatted, an empty string is returned.
 //
 // The memo is expected to contain the destination callback address in the following format:
 // { "dest_callback": { "address": {stringCallbackAddress}}
@@ -178,7 +178,7 @@ func (ftpd FungibleTokenPacketData) getUserDefinedGasLimit(callbackKey string) u
 }
 
 // getCallbackAddress returns the callback address if it is specified in the packet data memo.
-// If no callback address is specified, an empty string is returned.
+// If no callback address is specified or is improperly formatted, an empty string is returned.
 //
 // The memo is expected to contain the destination callback address in the following format:
 // { "{callbackKey}": { "address": {stringCallbackAddress}}
