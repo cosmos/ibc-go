@@ -801,8 +801,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterPartyStates() {
 		},
 	}
 
-	// Create an initial path used only to invoke a ChanOpenInit handshake.
-	// This bumps the channel identifier generated for chain A on the
+	// Create an initial path used only to invoke ConnOpenInit/ChanOpenInit handlers.
+	// This bumps the connection/channel identifiers generated for chain A on the
 	// next path used to run the upgrade handshake.
 	// See issue 4062.
 	path = ibctesting.NewPath(suite.chainA, suite.chainB)
