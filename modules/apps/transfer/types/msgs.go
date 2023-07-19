@@ -9,7 +9,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 // msg types

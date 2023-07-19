@@ -5,12 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-<<<<<<< HEAD
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-=======
-
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
->>>>>>> 847e11dc (chore: make errors public (#3578))
 )
 
 var (

@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/client"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 

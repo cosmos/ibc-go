@@ -8,7 +8,6 @@ import (
 
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 var _ sdk.Msg = &MsgRegisterInterchainAccount{}
