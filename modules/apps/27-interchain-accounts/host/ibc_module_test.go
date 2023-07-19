@@ -713,7 +713,7 @@ func (suite *InterchainAccountsTestSuite) TestPacketInfoProviderInterface() {
 	expPacketData := icatypes.InterchainAccountPacketData{
 		Type: icatypes.EXECUTE_TX,
 		Data: []byte("data"),
-		Memo: `{"callback": {"src_callback_address": "testAddr"}}`,
+		Memo: `{"src_callback": {"address": "testAddr"}}`,
 	}
 
 	packetData, err := icahost.IBCModule{}.UnmarshalPacketData(expPacketData.GetBytes())
