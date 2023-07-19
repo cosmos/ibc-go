@@ -242,9 +242,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 }
 
 func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
