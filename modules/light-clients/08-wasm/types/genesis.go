@@ -11,13 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-type (
-	exportMetadataInnerPayload struct{}
-	exportMetadataPayload      struct {
-		ExportMetadata exportMetadataInnerPayload `json:"export_metadata"`
-	}
-)
-
 // NewGenesisState creates an 08-wasm GenesisState instance.
 func NewGenesisState(contracts []GenesisContract) *GenesisState {
 	return &GenesisState{Contracts: contracts}
@@ -26,7 +19,9 @@ func NewGenesisState(contracts []GenesisContract) *GenesisState {
 // ExportMetadata exports all the consensus metadata in the client store so they
 // can be included in clients genesis and imported by a ClientKeeper
 func (cs ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
-	var payload exportMetadataPayload
+	payload := QueryMsg{
+		ExportMetadata: &exportMetadataMsg{},
+	}
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {

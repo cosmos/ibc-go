@@ -54,13 +54,6 @@ func (cs ClientState) Validate() error {
 	return nil
 }
 
-type (
-	statusInnerPayload struct{}
-	statusPayload      struct {
-		Status statusInnerPayload `json:"status"`
-	}
-)
-
 // Status returns the status of the wasm client.
 // The client may be:
 // - Active: frozen height is zero and client is not expired
@@ -71,7 +64,7 @@ type (
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
 func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.BinaryCodec) exported.Status {
-	payload := statusPayload{Status: statusInnerPayload{}}
+	payload := QueryMsg{Status: &statusMsg{}}
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
@@ -96,6 +89,7 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	return &cs
 }
 
+// GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	_ sdk.Context,
 	clientStore sdk.KVStore,
@@ -129,20 +123,6 @@ func (cs ClientState) Initialize(ctx sdk.Context, marshaler codec.BinaryCodec, c
 	return nil
 }
 
-type (
-	verifyMembershipInnerPayload struct {
-		Height           exported.Height `json:"height"`
-		DelayTimePeriod  uint64          `json:"delay_time_period"`
-		DelayBlockPeriod uint64          `json:"delay_block_period"`
-		Proof            []byte          `json:"proof"`
-		Path             exported.Path   `json:"path"`
-		Value            []byte          `json:"value"`
-	}
-	verifyMembershipPayload struct {
-		VerifyMembership verifyMembershipInnerPayload `json:"verify_membership"`
-	}
-)
-
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
@@ -174,8 +154,8 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrap(err, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
-	payload := verifyMembershipPayload{
-		VerifyMembership: verifyMembershipInnerPayload{
+	payload := QueryMsg{
+		VerifyMembership: &verifyMembershipMsg{
 			Height:           height,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
@@ -187,19 +167,6 @@ func (cs ClientState) VerifyMembership(
 	_, err = call[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
-
-type (
-	verifyNonMembershipInnerPayload struct {
-		Height           exported.Height `json:"height"`
-		DelayTimePeriod  uint64          `json:"delay_time_period"`
-		DelayBlockPeriod uint64          `json:"delay_block_period"`
-		Proof            []byte          `json:"proof"`
-		Path             exported.Path   `json:"path"`
-	}
-	verifyNonMembershipPayload struct {
-		VerifyNonMembership verifyNonMembershipInnerPayload `json:"verify_non_membership"`
-	}
-)
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
@@ -231,8 +198,8 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrap(err, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
-	payload := verifyNonMembershipPayload{
-		VerifyNonMembership: verifyNonMembershipInnerPayload{
+	payload := QueryMsg{
+		VerifyNonMembership: &verifyNonMembershipMsg{
 			Height:           height,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
