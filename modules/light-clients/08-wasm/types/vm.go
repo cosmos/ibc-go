@@ -60,20 +60,15 @@ func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeID []byte) (*was
 	return response, err
 }
 
-// callContract calls vm.Execute with internally constructed gas meter and environment.
+// callContract calls vm.Sudo with internally constructed gas meter and environment.
 func callContract(ctx sdk.Context, clientStore sdk.KVStore, codeID []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
-
 	env := getEnv(ctx)
 
-	msgInfo := wasmvmtypes.MessageInfo{
-		Sender: "",
-		Funds:  nil,
-	}
-	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: execute")
-	resp, gasUsed, err := WasmVM.Execute(codeID, env, msgInfo, msg, newStoreAdapter(clientStore), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: sudo")
+	resp, gasUsed, err := WasmVM.Sudo(codeID, env, msg, newStoreAdapter(clientStore), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
