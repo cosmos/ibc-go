@@ -8,6 +8,13 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
+// pathRegex defines a regular expression to extract values between forward slashes (/) from a path.
+// [^/] is a negated set to match any character which is not a forward slash.
+// + matches one or more occurrences of the preceding token (up to n slashes).
+//
+// Examples:
+// - a/b/c matches a, b, and c
+// - /a matches a
 var pathRegex = regexp.MustCompile("[^/]+")
 
 // ParseIdentifier parses the sequence from the identifier using the provided prefix. This function
