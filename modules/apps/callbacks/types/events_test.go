@@ -12,11 +12,11 @@ import (
 func (suite *CallbacksTypesTestSuite) TestLogger() {
 	suite.SetupSuite()
 
-	ctx := suite.chain.GetContext()
+	mockLogger := NewMockLogger()
+	ctx := suite.chain.GetContext().WithLogger(mockLogger)
+	types.Logger(ctx)
 
-	suite.Require().Equal(
-		ctx.Logger().With("module", "x/"+types.ModuleName),
-		types.Logger(ctx))
+	suite.Require().Equal(mockLogger.WithRecord, []interface{}{"module", "x/"+types.ModuleName})
 }
 
 func (suite *CallbacksTypesTestSuite) TestEvents() {
