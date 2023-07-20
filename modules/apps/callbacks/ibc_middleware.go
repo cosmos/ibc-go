@@ -200,7 +200,7 @@ func (im IBCMiddleware) processCallback(
 		return nil
 	}
 	if callbackData.ContractAddr == "" {
-		types.Logger(ctx).Info(
+		types.Logger(ctx).Debug(
 			fmt.Sprintf("No %s callback found for packet.", callbackType),
 			"packet", packet,
 		)
@@ -214,7 +214,7 @@ func (im IBCMiddleware) processCallback(
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
 			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
-				types.Logger(ctx).Info("Callbacks recovered from out of gas panic.", "panic", oogError)
+				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "panic", oogError)
 				if !remainingGasIsAtGasLimit {
 					err = errorsmod.Wrapf(types.ErrCallbackOutOfGas,
 						"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
