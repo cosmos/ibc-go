@@ -19,7 +19,7 @@ type (
 )
 
 // NewGenesisState creates an 08-wasm GenesisState instance.
-func NewGenesisState(contracts []GenesisContract) *GenesisState {
+func NewGenesisState(contracts []Contract) *GenesisState {
 	return &GenesisState{Contracts: contracts}
 }
 
@@ -34,7 +34,7 @@ func (cs ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetada
 	}
 
 	ctx := sdk.NewContext(nil, tmproto.Header{Height: 1, Time: time.Now()}, true, nil) // context with infinite gas meter
-	response, err := queryContract(ctx, store, cs.CodeId, encodedData)
+	response, err := queryContract(ctx, store, cs.CodeHash, encodedData)
 	if err != nil {
 		panic(err)
 	}

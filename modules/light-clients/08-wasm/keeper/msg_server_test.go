@@ -74,13 +74,13 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().NotEmpty(res.CodeId)
+				suite.Require().NotEmpty(res.Checksum)
 
 				// Verify events
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(
 						"store_wasm_code",
-						sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(res.CodeId)),
+						sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeHash, hex.EncodeToString(res.Checksum)),
 					),
 				}
 

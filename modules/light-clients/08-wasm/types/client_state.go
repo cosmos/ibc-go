@@ -19,10 +19,10 @@ import (
 var _ exported.ClientState = (*ClientState)(nil)
 
 // NewClientState creates a new ClientState instance.
-func NewClientState(data []byte, codeID []byte, height clienttypes.Height) *ClientState {
+func NewClientState(data []byte, codeHash []byte, height clienttypes.Height) *ClientState {
 	return &ClientState{
 		Data:         data,
-		CodeId:       codeID,
+		CodeHash:     codeHash,
 		LatestHeight: height,
 	}
 }
@@ -43,12 +43,12 @@ func (cs ClientState) Validate() error {
 		return errorsmod.Wrap(ErrInvalidData, "data cannot be empty")
 	}
 
-	lenCodeID := len(cs.CodeId)
-	if lenCodeID == 0 {
-		return errorsmod.Wrap(ErrInvalidCodeID, "code ID cannot be empty")
+	lenCodeHash := len(cs.CodeHash)
+	if lenCodeHash == 0 {
+		return errorsmod.Wrap(ErrInvalidCodeHash, "code hash cannot be empty")
 	}
-	if lenCodeID > 32 { // sha256 output is 256 bits long
-		return errorsmod.Wrapf(ErrInvalidCodeID, "expected 32, got %d", lenCodeID)
+	if lenCodeHash != 32 { // sha256 output is 256 bits long
+		return errorsmod.Wrapf(ErrInvalidCodeHash, "expected length of 32 bytes, got %d", lenCodeHash)
 	}
 
 	return nil
@@ -78,7 +78,7 @@ func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.B
 		return exported.Unknown
 	}
 
-	response, err := queryContract(ctx, clientStore, cs.CodeId, encodedData)
+	response, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return exported.Unknown
 	}
@@ -122,7 +122,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, marshaler codec.BinaryCodec, c
 	setClientState(clientStore, marshaler, &cs)
 	setConsensusState(clientStore, marshaler, consensusState, cs.GetLatestHeight())
 
-	_, err := initContract(ctx, clientStore, cs.CodeId)
+	_, err := initContract(ctx, clientStore, cs.CodeHash)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to initialize contract")
 	}
@@ -251,7 +251,7 @@ func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Client
 	if err != nil {
 		return output, errorsmod.Wrapf(err, "failed to marshal wasm contract payload")
 	}
-	out, err := callContract(ctx, clientStore, cs.CodeId, encodedData)
+	out, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return output, errorsmod.Wrapf(err, "call to wasm contract failed")
 	}
@@ -259,7 +259,7 @@ func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Client
 		return output, errorsmod.Wrapf(err, "failed unmarshal wasm contract payload")
 	}
 	if !output.Validate() {
-		return output, errorsmod.Wrapf(errors.New(output.Error()), "error occurred while calling contract with code ID %s", hex.EncodeToString(cs.CodeId))
+		return output, errorsmod.Wrapf(errors.New(output.Error()), "error occurred while calling contract with code hash %s", hex.EncodeToString(cs.CodeHash))
 	}
 	return output, nil
 }
