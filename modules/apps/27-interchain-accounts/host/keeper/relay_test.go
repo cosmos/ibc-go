@@ -331,6 +331,40 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			true,
 		},
 		{
+			"Msg fails its ValidateBasic: MsgTransfer has an empty receiver",
+			func(encoding string) {
+				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+				suite.coordinator.Setup(transferPath)
+
+				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
+
+				msg := &transfertypes.MsgTransfer{
+					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
+					SourceChannel:    transferPath.EndpointA.ChannelID,
+					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
+					Sender:           interchainAccountAddr,
+					Receiver:         "",
+					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),
+					TimeoutTimestamp: uint64(0),
+				}
+
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				suite.Require().NoError(err)
+
+				icaPacketData := icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
+					Data: data,
+				}
+
+				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+			},
+			false,
+		},
+		{
 			"unregistered sdk.Msg",
 			func(encoding string) {
 				msg := &banktypes.MsgSendResponse{}
