@@ -317,8 +317,8 @@ func (suite *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
 
 	packetUnmarshaler := ibcmock.IBCModule{}
 
-	// "no unmarshaler error" instructs the MockPacketDataUnmarshaler to return nil nil
-	callbackData, hasEnoughGas, err := types.GetCallbackData(packetUnmarshaler, []byte("no unmarshaler error"), 100000, uint64(1_000_000), nil, nil)
+	// ibcmock.MockPacketData instructs the MockPacketDataUnmarshaler to return ibcmock.MockPacketData, nil
+	callbackData, hasEnoughGas, err := types.GetCallbackData(packetUnmarshaler, ibcmock.MockPacketData, 100000, uint64(1_000_000), nil, nil)
 	suite.Require().False(hasEnoughGas)
 	suite.Require().Equal(types.CallbackData{}, callbackData)
 	suite.Require().ErrorIs(err, types.ErrNotCallbackPacketData)

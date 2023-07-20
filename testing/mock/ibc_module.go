@@ -172,7 +172,7 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 // UnmarshalPacketData returns the MockPacketData. This function implements the optional
 // PacketInfoProvider interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	if reflect.DeepEqual(bz, []byte("no unmarshaler error")) {
+	if reflect.DeepEqual(bz, MockPacketData) {
 		return MockPacketData, nil
 	}
 	return nil, ErrorMock

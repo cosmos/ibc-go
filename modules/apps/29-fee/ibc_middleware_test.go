@@ -1095,11 +1095,11 @@ func (suite *FeeTestSuite) TestPacketInfoProviderInterface() {
 	suite.Require().True(ok)
 
 	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
-	suite.Require().ErrorIs(err, ibcmock.ErrorMock)
-	suite.Require().Nil(packetData)
+	suite.Require().NoError(err)
+	suite.Require().Equal(ibcmock.MockPacketData, packetData)
 
-	suite.Require().Equal(ibcmock.MockPacketSender, feeModule.GetPacketSender(channeltypes.Packet{}))
-	suite.Require().Equal(ibcmock.MockPacketReceiver, feeModule.GetPacketReceiver(channeltypes.Packet{}))
+	suite.Require().Equal(ibcmock.MockPacketSender, feeModule.GetPacketSender(nil))
+	suite.Require().Equal(ibcmock.MockPacketReceiver, feeModule.GetPacketReceiver(nil))
 }
 
 func (suite *FeeTestSuite) TestPacketInfoProviderInterfaceError() {
