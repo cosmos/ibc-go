@@ -261,5 +261,8 @@ func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Client
 	if !output.Validate() {
 		return output, errorsmod.Wrapf(errors.New(output.Error()), "error occurred while calling contract with code hash %s", hex.EncodeToString(cs.CodeHash))
 	}
+	if len(out.Messages) > 0 {
+		return output, errorsmod.Wrapf(ErrWasmSubMessagesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+	}
 	return output, nil
 }
