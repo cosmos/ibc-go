@@ -36,10 +36,14 @@ const (
 	// AttributeKeyCallbackCommitGasLimit denotes the gas needed to commit the callback even
 	// if the callback execution fails due to out of gas.
 	AttributeKeyCallbackCommitGasLimit = "callback_commit_gas_limit"
-	// AttributeKeyCallbackSourcePortID denotes the port ID of the packet
+	// AttributeKeyCallbackSourcePortID denotes the source port ID of the packet
 	AttributeKeyCallbackSourcePortID = "callback_src_port"
-	// AttributeKeyCallbackSourceChannelID denotes the channel ID of the packet
+	// AttributeKeyCallbackSourceChannelID denotes the source channel ID of the packet
 	AttributeKeyCallbackSourceChannelID = "callback_src_channel"
+	// AttributeKeyCallbackSourcePortID denotes the destination port ID of the packet
+	AttributeKeyCallbackDestPortID = "callback_dest_port"
+	// AttributeKeyCallbackSourceChannelID denotes the destination channel ID of the packet
+	AttributeKeyCallbackDestChannelID = "callback_dest_channel"
 	// AttributeKeyCallbackSequence denotes the sequence of the packet
 	AttributeKeyCallbackSequence = "callback_sequence"
 )
@@ -57,18 +61,6 @@ func EmitCallbackEvent(
 	callbackData CallbackData,
 	err error,
 ) {
-	var eventType string
-	switch callbackTrigger {
-	case CallbackTypeAcknowledgement:
-		eventType = EventTypeSourceCallback
-	case CallbackTypeTimeoutPacket:
-		eventType = EventTypeSourceCallback
-	case CallbackTypeWriteAcknowledgement:
-		eventType = EventTypeDestinationCallback
-	default:
-		eventType = "unknown"
-	}
-
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
 		sdk.NewAttribute(AttributeKeyCallbackTrigger, string(callbackTrigger)),
@@ -79,6 +71,21 @@ func EmitCallbackEvent(
 		sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),
 		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.GetSequence())),
 	}
+
+	var eventType string
+	switch callbackTrigger {
+	case CallbackTypeSendPacket:
+		eventType = EventTypeSourceCallback
+	case CallbackTypeAcknowledgement:
+		eventType = EventTypeSourceCallback
+	case CallbackTypeTimeoutPacket:
+		eventType = EventTypeSourceCallback
+	case CallbackTypeWriteAcknowledgement:
+		eventType = EventTypeDestinationCallback
+	default:
+		eventType = "unknown"
+	}
+
 	if err == nil {
 		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, "success"))
 	} else {
