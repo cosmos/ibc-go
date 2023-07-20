@@ -194,7 +194,7 @@ func (im IBCMiddleware) processCallback(
 	callbackDataGetter func() (types.CallbackData, bool, error),
 	callbackExecutor func(sdk.Context, string) error,
 ) (err error) {
-	callbackData, remainingGasIsAtGasLimit, err := callbackDataGetter()
+	callbackData, commitTxIfOutOfGas, err := callbackDataGetter()
 	if err != nil {
 		types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
 		return nil
@@ -215,7 +215,7 @@ func (im IBCMiddleware) processCallback(
 			// and out of gas panics are handled.
 			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
 				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "panic", oogError)
-				if !remainingGasIsAtGasLimit {
+				if !commitTxIfOutOfGas {
 					err = errorsmod.Wrapf(types.ErrCallbackOutOfGas,
 						"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
 						oogError.Descriptor, cachedCtx.GasMeter().Limit(), cachedCtx.GasMeter().GasConsumed(),

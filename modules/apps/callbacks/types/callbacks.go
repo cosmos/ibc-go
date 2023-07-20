@@ -64,7 +64,7 @@ func getCallbackData(
 	addressGetter func(ibcexported.CallbackPacketData) string,
 	gasLimitGetter func(ibcexported.CallbackPacketData) uint64,
 ) (CallbackData, bool, error) {
-	remainingGasIsAtGasLimit := true
+	commitTxIfOutOfGas := true
 	// unmarshal packet data
 	unmarshaledData, err := packetInfoProvider.UnmarshalPacketData(packetData)
 	if err != nil {
@@ -83,12 +83,12 @@ func getCallbackData(
 	commitGasLimit := gasLimit
 	if remainingGas < gasLimit {
 		gasLimit = remainingGas
-		remainingGasIsAtGasLimit = false
+		commitTxIfOutOfGas = false
 	}
 
 	return CallbackData{
 		ContractAddr:   addressGetter(callbackData),
 		GasLimit:       gasLimit,
 		CommitGasLimit: commitGasLimit,
-	}, remainingGasIsAtGasLimit, nil
+	}, commitTxIfOutOfGas, nil
 }
