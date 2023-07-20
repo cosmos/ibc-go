@@ -107,7 +107,7 @@ For transfer, we will NOT enforce that the source callback address is the same a
 
 // GetSourceCallbackAddress returns the source callback address
 // if it is specified in the packet data memo.
-// If no callback address is specified or is improperly formatted, an empty string is returned.
+// If no callback address is specified or the memo is improperly formatted, an empty string is returned.
 //
 // The memo is expected to contain the source callback address in the following format:
 // { "src_callback": { "address": {stringCallbackAddress}}
@@ -120,7 +120,7 @@ func (ftpd FungibleTokenPacketData) GetSourceCallbackAddress() string {
 
 // GetDestCallbackAddress returns the destination callback address
 // if it is specified in the packet data memo.
-// If no callback address is specified or is improperly formatted, an empty string is returned.
+// If no callback address is specified or the memo is improperly formatted, an empty string is returned.
 //
 // The memo is expected to contain the destination callback address in the following format:
 // { "dest_callback": { "address": {stringCallbackAddress}}
@@ -184,7 +184,7 @@ func (ftpd FungibleTokenPacketData) getUserDefinedGasLimit(callbackKey string) u
 }
 
 // getCallbackAddress returns the callback address if it is specified in the packet data memo.
-// If no callback address is specified or is improperly formatted, an empty string is returned.
+// If no callback address is specified or the memo is improperly formatted, an empty string is returned.
 //
 // The memo is expected to contain the callback address in the following format:
 // { "{callbackKey}": { "address": {stringCallbackAddress}}

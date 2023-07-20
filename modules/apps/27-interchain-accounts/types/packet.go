@@ -81,7 +81,7 @@ The Memo format is defined like so:
 */
 
 // GetSourceCallbackAddress returns the source callback address if it is specified in the packet data memo.
-// If no callback address is specified or is improperly formatted, an empty string is returned.
+// If no callback address is specified or the memo is improperly formatted, an empty string is returned.
 //
 // The memo is expected to contain the source callback address in the following format:
 // { "src_callback": { "address": {stringCallbackAddress}}
