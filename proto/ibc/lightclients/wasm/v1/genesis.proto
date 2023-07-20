@@ -9,12 +9,12 @@ option go_package = "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/type
 // GenesisState defines 08-wasm's keeper genesis state
 message GenesisState {
   // uploaded light client wasm contracts
-  repeated GenesisContract contracts = 1 [(gogoproto.nullable) = false];
+  repeated Contract contracts = 1 [(gogoproto.nullable) = false];
 }
 
-// GenesisContract stores contract code
-message GenesisContract {
+// Contract stores contract code
+message Contract {
   option (gogoproto.goproto_getters) = false;
-  // metadata value
-  bytes contract_code = 1;
+  // contract byte code
+  bytes code_bytes = 1;
 }

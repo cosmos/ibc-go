@@ -18,10 +18,12 @@ message MsgStoreCode {
   option (cosmos.msg.v1.signer) = "signer";
 
   string signer = 1;
-  bytes  code   = 2;
+  // wasm byte code of light client contract. It can be raw or gzip compressed
+  bytes wasm_byte_code = 2;
 }
 
 // MsgStoreCodeResponse defines the response type for the StoreCode rpc
 message MsgStoreCodeResponse {
-  bytes code_id = 1;
+  // the sha256 hash of the stored code
+  bytes checksum = 1;
 }
