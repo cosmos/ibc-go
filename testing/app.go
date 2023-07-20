@@ -60,7 +60,7 @@ type TestingApp interface {
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
-	return app, simapp.NewDefaultGenesisState(app.AppCodec())
+	return app, app.DefaultGenesis()
 }
 
 // SetupWithGenesisValSet initializes a new SimApp with a validator set and genesis accounts
