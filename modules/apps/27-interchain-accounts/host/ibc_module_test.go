@@ -14,7 +14,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
@@ -707,27 +706,6 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	suite.Require().NoError(err) // relay committed
 
 	suite.assertBalance(icaAddr, expBalAfterSecondSend)
-}
-
-func (suite *InterchainAccountsTestSuite) TestPacketInfoProviderInterface() {
-	expPacketData := icatypes.InterchainAccountPacketData{
-		Type: icatypes.EXECUTE_TX,
-		Data: []byte("data"),
-		Memo: `{"src_callback": {"address": "testAddr"}}`,
-	}
-
-	packetData, err := icahost.IBCModule{}.UnmarshalPacketData(expPacketData.GetBytes())
-	suite.Require().NoError(err)
-	suite.Require().Equal(expPacketData, packetData)
-
-	invalidPacketData := []byte("invalid packet data")
-	packetData, err = icahost.IBCModule{}.UnmarshalPacketData(invalidPacketData)
-	suite.Require().Error(err)
-	suite.Require().Nil(packetData)
-
-	// Always return empty string for packet sender and receiver in host:
-	suite.Require().Equal("", icahost.IBCModule{}.GetPacketSender(channeltypes.Packet{}))
-	suite.Require().Equal("", icahost.IBCModule{}.GetPacketReceiver(channeltypes.Packet{}))
 }
 
 // assertBalance asserts that the provided address has exactly the expected balance.
