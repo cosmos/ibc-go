@@ -108,7 +108,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				suite.chainB.GetSimApp().AccountKeeper.RemoveAccount(suite.chainB.GetContext(), acc)
 			}, false,
 		},
-		{"reopening account fails - existing account is not interchain account type",
+		{
+			"reopening account fails - existing account is not interchain account type",
 			func() {
 				// create interchain account
 				// undo setup
