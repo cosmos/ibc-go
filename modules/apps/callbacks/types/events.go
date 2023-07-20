@@ -24,8 +24,8 @@ const (
 	// AttributeKeyCallbackAddress denotes the callback address
 	AttributeKeyCallbackAddress = "callback_address"
 	// AttributeKeyCallbackResult denotes the callback result:
-	//   "success": the callback is successfully executed
-	//   "failure": the callback has failed to execute
+	//   AttributeValueCallbackSuccess: the callback is successfully executed
+	//   AttributeValueCallbackFailure: the callback has failed to execute
 	AttributeKeyCallbackResult = "callback_result"
 	// AttributeKeyCallbackError denotes the callback error message
 	// if no error is returned, then this key will not be included in the event
@@ -46,6 +46,11 @@ const (
 	AttributeKeyCallbackDestChannelID = "callback_dest_channel"
 	// AttributeKeyCallbackSequence denotes the sequence of the packet
 	AttributeKeyCallbackSequence = "callback_sequence"
+
+	// AttributeValueCallbackSuccess denotes that the callback is successfully executed
+	AttributeValueCallbackSuccess = "success"
+	// AttributeValueCallbackFailure denotes that the callback has failed to execute
+	AttributeValueCallbackFailure = "failure"
 )
 
 // Logger returns a module-specific logger.
@@ -70,12 +75,12 @@ func EmitCallbackEvent(
 		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.GetSequence())),
 	}
 	if err == nil {
-		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, "success"))
+		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, AttributeValueCallbackSuccess))
 	} else {
 		attributes = append(
 			attributes,
 			sdk.NewAttribute(AttributeKeyCallbackError, err.Error()),
-			sdk.NewAttribute(AttributeKeyCallbackResult, "failure"),
+			sdk.NewAttribute(AttributeKeyCallbackResult, AttributeValueCallbackFailure),
 		)
 	}
 
