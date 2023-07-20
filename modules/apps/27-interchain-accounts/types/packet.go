@@ -121,7 +121,7 @@ func (iapd InterchainAccountPacketData) GetSourceUserDefinedGasLimit() uint64 {
 		return 0
 	}
 
-	// json number won't be unmarshaled as a uint64, so we a use string instead
+	// the gas limit must be specified as a string and not a json number
 	gasLimit, ok := callbackData["gas_limit"].(string)
 	if !ok {
 		return 0
