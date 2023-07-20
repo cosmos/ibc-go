@@ -193,7 +193,7 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 	channel.State = types.TRYUPGRADE
 	channel.FlushStatus = types.FLUSHING
 
-	if !k.hasInflightPackets(ctx, portID, channelID) {
+	if !k.HasInflightPackets(ctx, portID, channelID) {
 		channel.FlushStatus = types.FLUSHCOMPLETE
 	}
 
@@ -291,7 +291,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgra
 	channel.State = types.ACKUPGRADE
 	channel.FlushStatus = types.FLUSHING
 
-	if !k.hasInflightPackets(ctx, portID, channelID) {
+	if !k.HasInflightPackets(ctx, portID, channelID) {
 		channel.FlushStatus = types.FLUSHCOMPLETE
 	}
 
@@ -322,7 +322,7 @@ func (k Keeper) ChanUpgradeOpen(
 	proofCounterpartyChannel []byte,
 	proofHeight clienttypes.Height,
 ) error {
-	if k.hasInflightPackets(ctx, portID, channelID) {
+	if k.HasInflightPackets(ctx, portID, channelID) {
 		return errorsmod.Wrapf(types.ErrPendingInflightPackets, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 

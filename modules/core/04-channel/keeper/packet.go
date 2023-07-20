@@ -477,7 +477,7 @@ func (k Keeper) AcknowledgePacket(
 	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
-	if channel.FlushStatus == types.FLUSHING && !k.hasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+	if channel.FlushStatus == types.FLUSHING && !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 		channel.FlushStatus = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 	}
