@@ -160,8 +160,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	return ack
 }
 
-// WriteAcknowledgement implements the WriteAcknowledgement destination callbacks for the ibc-callbacks middleware during
-// asynchronous packet acknowledgement.
+// WriteAcknowledgement implements the WriteAcknowledgement destination callbacks for the ibc-callbacks middleware
+// during asynchronous packet acknowledgement.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback fails (within the gas limit), state changes are reverted.
 func (im IBCMiddleware) WriteAcknowledgement(
