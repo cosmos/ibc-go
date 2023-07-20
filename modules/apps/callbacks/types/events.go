@@ -25,7 +25,7 @@ const (
 	AttributeKeyCallbackAddress = "callback_address"
 	// AttributeKeyCallbackResult denotes the callback result:
 	//   "success": the callback is successfully executed
-	//   "failure": the callback is failed to execute
+	//   "failure": the callback has failed to execute
 	AttributeKeyCallbackResult = "callback_result"
 	// AttributeKeyCallbackError denotes the callback error message
 	// if no error is returned, then this key will not be included in the event
