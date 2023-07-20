@@ -269,7 +269,7 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 	}
 	histInfo, err := k.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
 	if err != nil {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrNotFound, "no historical info found at height %d", selfHeight.RevisionHeight)
+		return nil, errorsmod.Wrapf(err, "height %d", selfHeight.RevisionHeight)
 	}
 
 	consensusState := &ibctm.ConsensusState{
@@ -325,8 +325,9 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 
 	expectedUbdPeriod, err := k.stakingKeeper.UnbondingTime(ctx)
 	if err != nil {
-		return err
+		return errorsmod.Wrapf(err, "failed to retrieve unbonding period")
 	}
+
 	if expectedUbdPeriod != tmClient.UnbondingPeriod {
 		return errorsmod.Wrapf(types.ErrInvalidClient, "invalid unbonding period. expected: %s, got: %s",
 			expectedUbdPeriod, tmClient.UnbondingPeriod)
