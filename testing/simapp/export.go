@@ -116,20 +116,24 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
 		scraps, err := app.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, val.GetOperator())
 		if err != nil {
-			return err != nil
+			panic(err)
 		}
 		feePool, err := app.DistrKeeper.FeePool.Get(ctx)
 		if err != nil {
-			return err != nil
+			panic(err)
 		}
 		feePool.CommunityPool = feePool.CommunityPool.Add(scraps...)
 		err = app.DistrKeeper.FeePool.Set(ctx, feePool)
 		if err != nil {
-			return err != nil
+			panic(err)
 		}
 
 		err = app.DistrKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
-		return err != nil
+		if err != nil {
+			panic(err)
+		}
+
+		return false
 	})
 	if err != nil {
 		panic(err)
@@ -166,7 +170,10 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 			red.Entries[i].CreationHeight = 0
 		}
 		err = app.StakingKeeper.SetRedelegation(ctx, red)
-		return err != nil
+		if err != nil {
+			panic(err)
+		}
+		return false
 	})
 	if err != nil {
 		panic(err)
@@ -178,7 +185,10 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 			ubd.Entries[i].CreationHeight = 0
 		}
 		err = app.StakingKeeper.SetUnbondingDelegation(ctx, ubd)
-		return err != nil
+		if err != nil {
+			panic(err)
+		}
+		return false
 	})
 	if err != nil {
 		panic(err)
@@ -224,7 +234,10 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool) {
 			info.StartHeight = 0
 			err = app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
-			return err != nil
+			if err != nil {
+				panic(err)
+			}
+			return false
 		},
 	)
 	if err != nil {
