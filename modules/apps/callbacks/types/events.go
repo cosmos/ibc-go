@@ -67,9 +67,16 @@ func EmitCallbackEvent(
 		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.GasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackCommitGasLimit, fmt.Sprintf("%d", callbackData.CommitGasLimit)),
-		sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourcePort()),
-		sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),
 		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.GetSequence())),
+	}
+	if err == nil {
+		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, "success"))
+	} else {
+		attributes = append(
+			attributes,
+			sdk.NewAttribute(AttributeKeyCallbackError, err.Error()),
+			sdk.NewAttribute(AttributeKeyCallbackResult, "failure"),
+		)
 	}
 
 	var eventType string
@@ -86,13 +93,16 @@ func EmitCallbackEvent(
 		eventType = "unknown"
 	}
 
-	if err == nil {
-		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, "success"))
-	} else {
+	switch eventType {
+	case EventTypeDestinationCallback:
 		attributes = append(
-			attributes,
-			sdk.NewAttribute(AttributeKeyCallbackError, err.Error()),
-			sdk.NewAttribute(AttributeKeyCallbackResult, "failure"),
+			attributes, sdk.NewAttribute(AttributeKeyCallbackDestPortID, packet.GetDestPort()),
+			sdk.NewAttribute(AttributeKeyCallbackDestChannelID, packet.GetDestChannel()),
+		)
+	default:
+		attributes = append(
+			attributes, sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourcePort()),
+			sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),
 		)
 	}
 
