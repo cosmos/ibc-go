@@ -72,7 +72,7 @@ func (im IBCMiddleware) SendPacket(
 	}
 
 	// Reconstruct the sent packet. The destination portID and channelID are intentionally left empty as the sender information
-	// must only be derived from the source packet information. 
+	// must only be derived from the source packet information.
 	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 	packetSenderAddress := im.GetPacketSender(reconstructedPacket)
 
