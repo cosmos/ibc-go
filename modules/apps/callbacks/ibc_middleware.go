@@ -54,6 +54,9 @@ func NewIBCMiddleware(
 }
 
 // SendPacket implements source callbacks for sending packets.
+// It defers to the underlying application and then calls the contract callback.
+// If the contract callback runs out of gas and may be retried with a higher gas limit
+// then the state changes are reverted.
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
@@ -68,9 +71,8 @@ func (im IBCMiddleware) SendPacket(
 		return seq, err
 	}
 
-	// we use the reconstructed packet to get the packet sender, this should be fine since the only missing fields are
-	// the destination port and channel. And GetPacketSender is a static method that does not depend on the context, so
-	// it should be fine to use the reconstructed packet.
+	// Reconstruct the sent packet. The destination portID and channelID are intentionally left empty as the sender information
+	// must only be derived from the source packet information. 
 	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 	packetSenderAddress := im.GetPacketSender(reconstructedPacket)
 
