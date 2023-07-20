@@ -133,7 +133,7 @@ func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
 
 // GetSourceUserDefinedGasLimit returns the custom gas limit provided for source callbacks
 // if it is specified in the packet data memo.
-// If no gas limit is specified, 0 is returned.
+// If no gas limit is specified or the gas limit is improperly formatted, 0 is returned.
 //
 // The memo is expected to specify the user defined gas limit in the following format:
 // { "src_callback": { ... , "gas_limit": {stringForCallback} }
@@ -145,7 +145,7 @@ func (ftpd FungibleTokenPacketData) GetSourceUserDefinedGasLimit() uint64 {
 
 // GetDestUserDefinedGasLimit returns the custom gas limit provided for destination callbacks
 // if it is specified in the packet data memo.
-// If no gas limit is specified, 0 is returned.
+// If no gas limit is specified or the gas limit is improperly formatted, 0 is returned.
 //
 // The memo is expected to specify the user defined gas limit in the following format:
 // { "dest_callback": { ... , "gas_limit": {stringForCallback} }
@@ -157,7 +157,7 @@ func (ftpd FungibleTokenPacketData) GetDestUserDefinedGasLimit() uint64 {
 
 // getUserDefinedGasLimit returns the custom gas limit provided for callbacks
 // if it is specified in the packet data memo.
-// If no gas limit is specified, 0 is returned.
+// If no gas limit is specified or the gas limit is improperly formatted, 0 is returned.
 //
 // The memo is expected to specify the user defined gas limit in the following format:
 // { "{callbackKey}": { ... , "gas_limit": {stringForCallback} }
