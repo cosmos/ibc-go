@@ -61,7 +61,6 @@ type KeeperTestSuite struct {
 	ctx            sdk.Context
 	keeper         *keeper.Keeper
 	consensusState *ibctm.ConsensusState
-	header         *ibctm.Header
 	valSet         *tmtypes.ValidatorSet
 	valSetHash     tmbytes.HexBytes
 	privVal        tmtypes.PrivValidator
@@ -81,7 +80,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	isCheckTx := false
 	suite.now = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	suite.past = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	now2 := suite.now.Add(time.Hour)
 	app := simapp.Setup(suite.T(), isCheckTx)
 
 	suite.cdc = app.AppCodec()
@@ -91,8 +89,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	pubKey, err := suite.privVal.GetPubKey()
 	suite.Require().NoError(err)
 
-	testClientHeightMinus1 := types.NewHeight(0, height-1)
-
 	validator := tmtypes.NewValidator(pubKey, 1)
 	suite.valSet = tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
 	suite.valSetHash = suite.valSet.Hash()
@@ -100,7 +96,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.signers = make(map[string]tmtypes.PrivValidator, 1)
 	suite.signers[validator.Address.String()] = suite.privVal
 
-	suite.header = suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight), testClientHeightMinus1, now2, suite.valSet, suite.valSet, suite.valSet, suite.signers)
 	suite.consensusState = ibctm.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot([]byte("hash")), suite.valSetHash)
 
 	var validators stakingtypes.Validators
@@ -306,30 +301,6 @@ func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is
 			suite.Require().Nil(cs, "Case %d should have failed: %s", i, tc.name)
 		}
 	}
-}
-
-func (suite KeeperTestSuite) TestConsensusStateHelpers() { //nolint:govet // this is a test, we are okay with copying locks
-	// initial setup
-	clientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-
-	suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
-	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
-
-	nextState := ibctm.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot([]byte("next")), suite.valSetHash)
-
-	testClientHeightPlus5 := types.NewHeight(0, height+5)
-
-	header := suite.chainA.CreateTMClientHeader(testClientID, int64(testClientHeightPlus5.RevisionHeight), testClientHeight, suite.header.Header.Time.Add(time.Minute),
-		suite.valSet, suite.valSet, suite.valSet, suite.signers)
-
-	// mock update functionality
-	clientState.LatestHeight = header.GetHeight().(types.Height)
-	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, header.GetHeight(), nextState)
-	suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
-
-	latest, ok := suite.keeper.GetLatestClientConsensusState(suite.ctx, testClientID)
-	suite.Require().True(ok)
-	suite.Require().Equal(nextState, latest, "Latest client not returned correctly")
 }
 
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
