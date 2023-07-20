@@ -171,3 +171,47 @@ func (suite *TypesTestSuite) TestUpgradeErrorUnwrap() {
 	suite.Require().Equal(types.ErrInvalidChannel, unWrapped, "unwrapped error was not equal to base underlying error")
 	suite.Require().Equal(originalUpgradeError, postUnwrapUpgradeError, "original error was modified when unwrapped")
 }
+
+func (suite *TypesTestSuite) TestIsUpgradeError() {
+	var (
+		err error
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"true",
+			func() {},
+			true,
+		},
+		{
+			"false with non upgrade error",
+			func() {
+				err = errors.New("error")
+			},
+			false,
+		},
+		{
+			"false with nil error",
+			func() {
+				err = nil
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.msg, func() {
+			err = types.NewUpgradeError(1, types.ErrInvalidChannel)
+
+			tc.malleate()
+
+			res := types.IsUpgradeError(err)
+			suite.Require().Equal(tc.expPass, res)
+		})
+	}
+}

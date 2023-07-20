@@ -117,3 +117,12 @@ func (u *UpgradeError) GetErrorReceipt() ErrorReceipt {
 		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
 	}
 }
+
+// IsUpgradeError returns true if err is of type UpgradeErroe, otherwise false.
+func IsUpgradeError(err error) bool {
+	if err == nil {
+		return false
+	}
+	_, ok := err.(*UpgradeError)
+	return ok
+}
