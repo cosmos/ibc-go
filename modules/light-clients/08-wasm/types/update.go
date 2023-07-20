@@ -16,18 +16,8 @@ var _ exported.ClientState = (*ClientState)(nil)
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
 func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
-	verifyClientMessageMsg := verifyClientMessageMsg{
-		Header:       nil,
-		Misbehaviour: nil,
-	}
-	switch clientMsg := clientMsg.(type) {
-	case *Header:
-		verifyClientMessageMsg.Header = clientMsg
-	case *Misbehaviour:
-		verifyClientMessageMsg.Misbehaviour = clientMsg
-	}
 	payload := QueryMsg{
-		VerifyClientMessage: &verifyClientMessageMsg,
+		VerifyClientMessage: &verifyClientMessageMsg{ClientMessage: clientMsg},
 	}
 	_, err := call[contractResult](ctx, clientStore, &cs, payload)
 	return err
@@ -35,13 +25,13 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, 
 
 // Client state and new consensus states are updated in the store by the contract
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	header, ok := clientMsg.(*Header)
+	_, ok := clientMsg.(*Header)
 	if !ok {
 		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
 	}
 
 	payload := SudoMsg{
-		UpdateState: &updateStateMsg{Header: header},
+		UpdateState: &updateStateMsg{ClientMessage: clientMsg},
 	}
 
 	_, err := call[contractResult](ctx, clientStore, &cs, payload)
@@ -55,16 +45,8 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 // Client state is updated in the store by contract.
 func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
-	var updateStateOnMisbehaviourMsg updateStateOnMisbehaviourMsg
-	switch clientMsg := clientMsg.(type) {
-	case *Header:
-		updateStateOnMisbehaviourMsg.Header = clientMsg
-	case *Misbehaviour:
-		updateStateOnMisbehaviourMsg.Misbehaviour = clientMsg
-	}
-
 	payload := SudoMsg{
-		UpdateStateOnMisbehaviour: &updateStateOnMisbehaviourMsg,
+		UpdateStateOnMisbehaviour: &updateStateOnMisbehaviourMsg{ClientMessage: clientMsg},
 	}
 
 	_, err := call[contractResult](ctx, clientStore, &cs, payload)

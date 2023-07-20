@@ -53,8 +53,7 @@ type (
 		Height exported.Height `json:"height"`
 	}
 	verifyClientMessageMsg struct {
-		Header       *Header       `json:"header,omitempty"`
-		Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
+		ClientMessage exported.ClientMessage `json:"client_message"`
 	}
 	verifyMembershipMsg struct {
 		Height           exported.Height `json:"height"`
@@ -72,8 +71,7 @@ type (
 		Path             exported.Path   `json:"path"`
 	}
 	checkForMisbehaviourMsg struct {
-		Header       *Header       `json:"header,omitempty"`
-		Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
+		ClientMessage exported.ClientMessage `json:"client_message"`
 	}
 )
 
@@ -91,11 +89,10 @@ type (
 		ConsensusState *ConsensusState `json:"consensus_state"`
 	}
 	updateStateMsg struct {
-		Header *Header `json:"header,omitempty"`
+		ClientMessage exported.ClientMessage `json:"client_message"`
 	}
 	updateStateOnMisbehaviourMsg struct {
-		Header       *Header       `json:"header,omitempty"`
-		Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
+		ClientMessage exported.ClientMessage `json:"client_message"`
 	}
 	verifyUpgradeAndUpdateStateMsg struct {
 		UpgradeClientState         exported.ClientState    `json:"upgrade_client_state"`
