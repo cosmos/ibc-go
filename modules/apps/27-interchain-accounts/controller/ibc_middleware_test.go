@@ -920,7 +920,6 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 }
 
 func (suite *InterchainAccountsTestSuite) TestPacketInfoProviderInterface() {
-	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 	err := SetupICAPath(path, TestOwnerAddress)
