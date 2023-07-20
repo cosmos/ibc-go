@@ -14,8 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -32,7 +30,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string) Keeper {
 	// Wasm VM
 	const wasmDataDir = "ibc_08-wasm_client_data"
 	wasmSupportedFeatures := strings.Join([]string{"storage", "iterator"}, ",")
@@ -46,14 +44,11 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey) Keeper {
 	}
 	types.WasmVM = vm
 
-	// governance authority
-	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
-
 	return Keeper{
 		cdc:       cdc,
 		storeKey:  key,
 		wasmVM:    vm,
-		authority: authority.String(),
+		authority: authority,
 	}
 }
 
@@ -98,6 +93,11 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}
 
+	// pin the code to the vm in-memory cache
+	if err := k.wasmVM.Pin(codeHash); err != nil {
+    return nil, errorsmod.Wrapf(err, "failed to pin contract with code hash (%) to vm cache", codeHash)
+	}
+
 	// safety check to assert that code hash returned by WasmVM equals to code hash
 	if !bytes.Equal(codeHash, expectedHash) {
 		return nil, errorsmod.Wrapf(types.ErrInvalidCodeHash, "expected %s, got %s", hex.EncodeToString(expectedHash), hex.EncodeToString(codeHash))
@@ -105,24 +105,4 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	store.Set(codeHashKey, code)
 	return codeHash, nil
-}
-
-func (k Keeper) importWasmCode(ctx sdk.Context, wasmCode []byte) error {
-	store := ctx.KVStore(k.storeKey)
-	if types.IsGzip(wasmCode) {
-		var err error
-		wasmCode, err = types.Uncompress(wasmCode, types.MaxWasmByteSize())
-		if err != nil {
-			return errorsmod.Wrap(err, "failed to store contract")
-		}
-	}
-
-	codeHash, err := k.wasmVM.Create(wasmCode)
-	if err != nil {
-		return errorsmod.Wrap(err, "failed to store contract")
-	}
-	codeHashKey := types.CodeHashKey(codeHash)
-
-	store.Set(codeHashKey, wasmCode)
-	return nil
 }

@@ -20,80 +20,80 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-// wrappedStore combines two KVStores into one while transparently routing the calls based on key prefix
-type wrappedStore struct {
-	first  sdk.KVStore
-	second sdk.KVStore
+// updateProposalWrappedStore combines two KVStores into one while transparently routing the calls based on key prefix
+type updateProposalWrappedStore struct {
+	subjectStore    sdk.KVStore
+	substituteStore sdk.KVStore
 
-	firstPrefix  []byte
-	secondPrefix []byte
+	subjectPrefix    []byte
+	substitutePrefix []byte
 }
 
-func newWrappedStore(first, second sdk.KVStore, firstPrefix, secondPrefix []byte) wrappedStore {
-	return wrappedStore{
-		first:        first,
-		second:       second,
-		firstPrefix:  firstPrefix,
-		secondPrefix: secondPrefix,
+func newUpdateProposalWrappedStore(subjectStore, substituteStore sdk.KVStore, subjectPrefix, substitutePrefix []byte) updateProposalWrappedStore {
+	return updateProposalWrappedStore{
+		subjectStore:     subjectStore,
+		substituteStore:  substituteStore,
+		subjectPrefix:    subjectPrefix,
+		substitutePrefix: substitutePrefix,
 	}
 }
 
-func (ws wrappedStore) Get(key []byte) []byte {
+func (ws updateProposalWrappedStore) Get(key []byte) []byte {
 	return ws.getStore(key).Get(ws.trimPrefix(key))
 }
 
-func (ws wrappedStore) Has(key []byte) bool {
+func (ws updateProposalWrappedStore) Has(key []byte) bool {
 	return ws.getStore(key).Has(ws.trimPrefix(key))
 }
 
-func (ws wrappedStore) Set(key, value []byte) {
+func (ws updateProposalWrappedStore) Set(key, value []byte) {
 	ws.getStore(key).Set(ws.trimPrefix(key), value)
 }
 
-func (ws wrappedStore) Delete(key []byte) {
+func (ws updateProposalWrappedStore) Delete(key []byte) {
 	ws.getStore(key).Delete(ws.trimPrefix(key))
 }
 
-func (ws wrappedStore) GetStoreType() storetypes.StoreType {
-	return ws.first.GetStoreType()
+func (ws updateProposalWrappedStore) GetStoreType() storetypes.StoreType {
+	return ws.subjectStore.GetStoreType()
 }
 
-func (ws wrappedStore) Iterator(start, end []byte) sdk.Iterator {
+func (ws updateProposalWrappedStore) Iterator(start, end []byte) sdk.Iterator {
 	return ws.getStore(start).Iterator(ws.trimPrefix(start), ws.trimPrefix(end))
 }
 
-func (ws wrappedStore) ReverseIterator(start, end []byte) sdk.Iterator {
+func (ws updateProposalWrappedStore) ReverseIterator(start, end []byte) sdk.Iterator {
 	return ws.getStore(start).ReverseIterator(ws.trimPrefix(start), ws.trimPrefix(end))
 }
 
-func (ws wrappedStore) CacheWrap() storetypes.CacheWrap {
+func (ws updateProposalWrappedStore) CacheWrap() storetypes.CacheWrap {
 	return cachekv.NewStore(ws)
 }
 
-func (ws wrappedStore) CacheWrapWithTrace(w io.Writer, tc storetypes.TraceContext) storetypes.CacheWrap {
+func (ws updateProposalWrappedStore) CacheWrapWithTrace(w io.Writer, tc storetypes.TraceContext) storetypes.CacheWrap {
 	return cachekv.NewStore(tracekv.NewStore(ws, w, tc))
 }
 
-func (ws wrappedStore) CacheWrapWithListeners(storeKey storetypes.StoreKey, listeners []storetypes.WriteListener) storetypes.CacheWrap {
+func (ws updateProposalWrappedStore) CacheWrapWithListeners(storeKey storetypes.StoreKey, listeners []storetypes.WriteListener) storetypes.CacheWrap {
 	return cachekv.NewStore(listenkv.NewStore(ws, storeKey, listeners))
 }
 
-func (ws wrappedStore) trimPrefix(key []byte) []byte {
-	if bytes.HasPrefix(key, ws.firstPrefix) {
-		key = bytes.TrimPrefix(key, ws.firstPrefix)
+func (ws updateProposalWrappedStore) trimPrefix(key []byte) []byte {
+	if bytes.HasPrefix(key, ws.subjectPrefix) {
+		key = bytes.TrimPrefix(key, ws.subjectPrefix)
 	} else {
-		key = bytes.TrimPrefix(key, ws.secondPrefix)
+		key = bytes.TrimPrefix(key, ws.substitutePrefix)
 	}
 
 	return key
 }
 
-func (ws wrappedStore) getStore(key []byte) sdk.KVStore {
-	if bytes.HasPrefix(key, ws.firstPrefix) {
-		return ws.first
+func (ws updateProposalWrappedStore) getStore(key []byte) sdk.KVStore {
+	if bytes.HasPrefix(key, ws.subjectPrefix) {
+		return ws.subjectStore
 	}
 
-	return ws.second
+	return ws.substituteStore
 }
 
 // setClientState stores the client state.
