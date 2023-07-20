@@ -215,7 +215,7 @@ func (im IBCMiddleware) processCallback(
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
 			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
-				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "panic", oogError)
+				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "packet", packet, "panic", oogError)
 				if !commitTxIfOutOfGas {
 					err = errorsmod.Wrapf(types.ErrCallbackOutOfGas,
 						"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
