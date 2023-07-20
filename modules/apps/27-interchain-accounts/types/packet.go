@@ -115,6 +115,8 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 //
 // The memo is expected to specify the user defined gas limit in the following format:
 // { "src_callback": { ... , "gas_limit": {stringForGasLimit} }
+//
+// Note: the user defined gas limit must be set as a string and not a json number.
 func (iapd InterchainAccountPacketData) GetSourceUserDefinedGasLimit() uint64 {
 	callbackData := iapd.getCallbackData("src_callback")
 	if callbackData == nil {
