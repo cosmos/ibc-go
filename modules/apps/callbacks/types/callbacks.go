@@ -5,9 +5,9 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-// PacketUnmarshalerIBCModule is an interface that combines the IBCModule and PacketInfoProvider
+// CallbacksCompatibleModule is an interface that combines the IBCModule and PacketInfoProvider
 // interfaces to assert that the underlying application supports both.
-type PacketInfoProviderIBCModule interface {
+type CallbacksCompatibleModule interface {
 	porttypes.IBCModule
 	porttypes.PacketInfoProvider
 }

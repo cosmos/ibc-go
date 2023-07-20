@@ -40,7 +40,7 @@ func (suite *CallbacksTestSuite) TestUnmarshalPacketData() {
 	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 	suite.Require().True(ok)
 
-	unmarshalerStack, ok := transferStack.(types.PacketInfoProviderIBCModule)
+	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
 	suite.Require().True(ok)
 
 	expPacketData := transfertypes.FungibleTokenPacketData{
