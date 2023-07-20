@@ -285,14 +285,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-
-			// configure the initial path to create a regular transfer channel
-			path.EndpointA.ChannelConfig.PortID = types.PortID
-			path.EndpointB.ChannelConfig.PortID = types.PortID
-			path.EndpointA.ChannelConfig.Version = types.Version
-			path.EndpointB.ChannelConfig.Version = types.Version
-
+			path = NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
 			// configure the channel upgrade to modify the underlying connection
