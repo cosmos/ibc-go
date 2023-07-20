@@ -937,8 +937,27 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		expResult func(res *channeltypes.MsgChannelUpgradeAckResponse, err error)
 	}{
 		{
-			"success",
+			"success, no pending in-flight packets",
 			func() {},
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
+
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+				suite.Require().Equal(channeltypes.NOTINFLUSH, channel.FlushStatus)
+			},
+		},
+		{
+			"success, pending in-flight packets",
+			func() {
+				portID := path.EndpointA.ChannelConfig.PortID
+				channelID := path.EndpointA.ChannelID
+				// Set a dummy packet commitment to simulate in-flight packets
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), portID, channelID, 1, []byte("hash"))
+			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
@@ -947,7 +966,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channeltypes.ACKUPGRADE, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
-				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.FlushStatus)
+				suite.Require().Equal(channeltypes.FLUSHING, channel.FlushStatus)
 			},
 		},
 		{
