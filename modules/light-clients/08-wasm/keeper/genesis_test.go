@@ -7,67 +7,43 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
 	var (
-		genesisState types.GenesisState
-		expCodeIds   []string
+		genesisState  types.GenesisState
+		expCodeHashes []string
 	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
 	}{
 		{
 			"success",
 			func() {
-				codeID := "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"
-				codeIDBytes, err := hex.DecodeString(codeID)
-				suite.Require().NoError(err)
+				codeHash := "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"
 				contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
 				suite.Require().NoError(err)
 
 				genesisState = *types.NewGenesisState(
-					[]types.GenesisContract{
+					[]types.Contract{
 						{
-							CodeIdKey:    types.CodeIDKey(codeIDBytes),
-							ContractCode: contractCode,
+							CodeBytes: contractCode,
 						},
 					},
 				)
 
-				expCodeIds = []string{codeID}
+				expCodeHashes = []string{codeHash}
 			},
-			true,
 		},
 		{
 			"success with empty genesis contract",
 			func() {
-				genesisState = *types.NewGenesisState([]types.GenesisContract{})
-				expCodeIds = []string{}
+				genesisState = *types.NewGenesisState([]types.Contract{})
+				expCodeHashes = []string{}
 			},
-			true,
-		},
-		{
-			"failure with genesis contract with code ID that does not match hash of contract code",
-			func() {
-				codeID := "wrong-code-id"
-				contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
-				suite.Require().NoError(err)
-
-				genesisState = *types.NewGenesisState(
-					[]types.GenesisContract{
-						{
-							CodeIdKey:    types.CodeIDKey([]byte(codeID)),
-							ContractCode: contractCode,
-						},
-					},
-				)
-			},
-			false,
 		},
 	}
 
@@ -78,19 +54,14 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			tc.malleate()
 
 			err := suite.chainA.GetSimApp().WasmClientKeeper.InitGenesis(ctx, genesisState)
+			suite.Require().NoError(err)
 
-			if tc.expPass {
-				suite.Require().NoError(err)
-
-				req := &types.QueryCodeIdsRequest{}
-				res, err := suite.chainA.GetSimApp().WasmClientKeeper.CodeIds(ctx, req)
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(len(expCodeIds), len(res.CodeIds))
-				suite.Require().ElementsMatch(expCodeIds, res.CodeIds)
-			} else {
-				suite.Require().Error(err)
-			}
+			req := &types.QueryCodeHashesRequest{}
+			res, err := suite.chainA.GetSimApp().WasmClientKeeper.CodeHashes(ctx, req)
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
+			suite.Require().Equal(len(expCodeHashes), len(res.CodeHashes))
+			suite.Require().ElementsMatch(expCodeHashes, res.CodeHashes)
 		})
 	}
 }
@@ -99,17 +70,18 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.SetupTest()
 	ctx := suite.chainA.GetContext()
 
+	expCodeHash := "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"
+
 	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
 	suite.Require().NoError(err)
+
 	msg := types.NewMsgStoreCode(signer, contractCode)
 	res, err := suite.chainA.GetSimApp().WasmClientKeeper.StoreCode(ctx, msg)
 	suite.Require().NoError(err)
-	codeIDKey := types.CodeIDKey(res.CodeId)
+	suite.Require().Equal(expCodeHash, hex.EncodeToString(res.Checksum))
 
 	genesisState := suite.chainA.GetSimApp().WasmClientKeeper.ExportGenesis(ctx)
 	suite.Require().Len(genesisState.Contracts, 1)
-
-	suite.Require().Equal(codeIDKey, genesisState.Contracts[0].CodeIdKey)
-	suite.Require().NotEmpty(genesisState.Contracts[0].ContractCode)
+	suite.Require().NotEmpty(genesisState.Contracts[0].CodeBytes)
 }

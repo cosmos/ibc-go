@@ -5,7 +5,7 @@ package ibc.lightclients.wasm.v1;
 import "gogoproto/gogo.proto";
 import "ibc/core/client/v1/client.proto";
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types";
+option go_package = "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types";
 
 // Wasm light client's Client state
 message ClientState {
@@ -13,7 +13,7 @@ message ClientState {
   // bytes encoding the client state of the underlying light client
   // implemented as a Wasm contract.
   bytes                     data          = 1;
-  bytes                     code_id       = 2;
+  bytes                     code_hash     = 2;
   ibc.core.client.v1.Height latest_height = 3 [(gogoproto.nullable) = false];
 }
 

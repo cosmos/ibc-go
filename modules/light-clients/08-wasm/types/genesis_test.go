@@ -5,9 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -17,7 +17,7 @@ func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
 	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
 	suite.Require().NoError(err)
 
-	clientState := types.NewClientState(clientStateData, suite.codeID, clienttypes.NewHeight(2000, 4))
+	clientState := types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 4))
 	gm := clientState.ExportMetadata(suite.store)
 	suite.Require().NotNil(gm, "client returned nil")
 	suite.Require().Len(gm, 0, "exported metadata has unexpected length")
