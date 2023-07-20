@@ -144,12 +144,9 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
 	// if ack is nil (asynchronous acknowledgements), then the callback will be handled in WriteAcknowledgement
-	if ack == nil {
-		return nil
-	}
 	// if ack is not successful, all state changes are reverted. If a packet cannot be received, then you need not
 	// execute a callback on the receiving chain.
-	if !ack.Success() {
+	if ack == nil || !ack.Success() {
 		return ack
 	}
 
