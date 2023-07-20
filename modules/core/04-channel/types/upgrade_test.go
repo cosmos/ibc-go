@@ -173,9 +173,7 @@ func (suite *TypesTestSuite) TestUpgradeErrorUnwrap() {
 }
 
 func (suite *TypesTestSuite) TestIsUpgradeError() {
-	var (
-		err error
-	)
+	var err error
 
 	testCases := []struct {
 		msg      string
