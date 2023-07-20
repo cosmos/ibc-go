@@ -53,7 +53,7 @@ func NewIBCMiddleware(
 	}
 }
 
-// SendPacket implements the ICS4 Wrapper interface
+// SendPacket implements source callbacks for sending packets.
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
@@ -88,7 +88,8 @@ func (im IBCMiddleware) SendPacket(
 
 // OnAcknowledgementPacket implements source callbacks for acknowledgement packets.
 // It defers to the underlying application and then calls the contract callback.
-// If the contract callback fails (within the gas limit), state changes are reverted.
+// If the contract callback runs out of gas and may be retried with a higher gas limit
+// then the state changes are reverted.
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -114,7 +115,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 // OnTimeoutPacket implements timeout source callbacks for the ibc-callbacks middleware.
 // It defers to the underlying application and then calls the contract callback.
-// If the contract callback fails (within the gas limit), state changes are reverted.
+// If the contract callback runs out of gas and may be retried with a higher gas limit
+// then the state changes are reverted.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	err := im.app.OnTimeoutPacket(ctx, packet, relayer)
 	if err != nil {
@@ -135,10 +137,11 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 // OnRecvPacket implements the WriteAcknowledgement destination callbacks for the ibc-callbacks middleware during
 // synchronous packet acknowledgement.
 // It defers to the underlying application and then calls the contract callback.
-// If the contract callback fails (within the gas limit), state changes are reverted via a panic.
+// If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
+// reverted via a panic.
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
-	// if ack is nil, then the callback is handled in WriteAcknowledgement
+	// if ack is nil (asynchronous acknowledgements), then the callback will be handled in WriteAcknowledgement
 	if ack == nil {
 		return nil
 	}
@@ -153,7 +156,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 
 	err := im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
 	if err != nil {
-		// revert entire tx if processCallback returns an error
+		// revert entire tx if processCallback returns an error, requiring the relayer to provide more gas on a retry
 		panic(err)
 	}
 
@@ -163,7 +166,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 // WriteAcknowledgement implements the WriteAcknowledgement destination callbacks for the ibc-callbacks middleware
 // during asynchronous packet acknowledgement.
 // It defers to the underlying application and then calls the contract callback.
-// If the contract callback fails (within the gas limit), state changes are reverted.
+// If the contract callback runs out of gas and may be retried with a higher gas limit
+// then the state changes are reverted.
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
@@ -288,22 +292,26 @@ func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID st
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
-// GetAppVersion returns the application version of the underlying application
+// GetAppVersion implements the ICS4Wrapper interface. Callbacks has no version,
+// so the call is deferred to the underlying application.
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
 
 // UnmarshalPacketData defers to the underlying app to unmarshal the packet data.
+// This function implements the optional PacketInfoProvider interface.
 func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	return im.app.UnmarshalPacketData(bz)
 }
 
 // GetPacketSender defers to the underlying app.
+// This function implements the optional PacketInfoProvider interface.
 func (im IBCMiddleware) GetPacketSender(packet ibcexported.PacketI) string {
 	return im.app.GetPacketSender(packet)
 }
 
 // GetPacketReceiver defers to the underlying app.
+// This function implements the optional PacketInfoProvider interface.
 func (im IBCMiddleware) GetPacketReceiver(packet ibcexported.PacketI) string {
 	return im.app.GetPacketReceiver(packet)
 }
