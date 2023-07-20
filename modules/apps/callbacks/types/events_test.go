@@ -7,16 +7,17 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *CallbacksTypesTestSuite) TestLogger() {
 	suite.SetupSuite()
 
-	mockLogger := NewMockLogger()
+	mockLogger := ibcmock.NewMockLogger()
 	ctx := suite.chain.GetContext().WithLogger(mockLogger)
 	types.Logger(ctx)
 
-	suite.Require().Equal(mockLogger.WithRecord, []interface{}{"module", "x/"+types.ModuleName})
+	suite.Require().Equal(mockLogger.WithRecord, []interface{}{"module", "x/" + types.ModuleName})
 }
 
 func (suite *CallbacksTypesTestSuite) TestEvents() {
@@ -97,15 +98,15 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 			nil,
 			ibctesting.EventsMap{
 				types.EventTypeDestinationCallback: {
-					sdk.AttributeKeyModule:                    types.ModuleName,
-					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeWriteAcknowledgement),
-					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
-					types.AttributeKeyCallbackGasLimit:        "100000",
-					types.AttributeKeyCallbackCommitGasLimit:  "200000",
-					types.AttributeKeyCallbackDestPortID:      ibctesting.MockFeePort,
-					types.AttributeKeyCallbackDestChannelID:   ibctesting.InvalidID,
-					types.AttributeKeyCallbackSequence:        "1",
-					types.AttributeKeyCallbackResult:          "success",
+					sdk.AttributeKeyModule:                   types.ModuleName,
+					types.AttributeKeyCallbackTrigger:        string(types.CallbackTypeWriteAcknowledgement),
+					types.AttributeKeyCallbackAddress:        ibctesting.TestAccAddress,
+					types.AttributeKeyCallbackGasLimit:       "100000",
+					types.AttributeKeyCallbackCommitGasLimit: "200000",
+					types.AttributeKeyCallbackDestPortID:     ibctesting.MockFeePort,
+					types.AttributeKeyCallbackDestChannelID:  ibctesting.InvalidID,
+					types.AttributeKeyCallbackSequence:       "1",
+					types.AttributeKeyCallbackResult:         "success",
 				},
 			},
 		},

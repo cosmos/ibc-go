@@ -227,6 +227,33 @@ func (suite *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 
 	ack := mockFeeCallbackStack.OnRecvPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
 	suite.Require().Nil(ack)
+	suite.AssertHasExecutedExpectedCallback("none", true)
+}
+
+func (suite *CallbacksTestSuite) TestOnRecvPacketFailedAck() {
+	suite.SetupMockFeeTest()
+
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+	suite.Require().NoError(err)
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
+	suite.Require().True(ok)
+
+	packet := channeltypes.NewPacket(
+		nil,
+		suite.chainA.SenderAccount.GetSequence(),
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(0, 100),
+		0,
+	)
+
+	ack := mockFeeCallbackStack.OnRecvPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
+	suite.Require().Equal(ibcmock.MockFailAcknowledgement, ack)
+	suite.AssertHasExecutedExpectedCallback("none", true)
 }
 
 func (suite *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
@@ -279,20 +306,14 @@ func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	invalidDataGetter := func() (types.CallbackData, bool, error) {
 		return types.CallbackData{}, false, fmt.Errorf("invalid data getter")
 	}
-
-	ctx := suite.chainA.GetContext()
 	mockPacket := channeltypes.Packet{Sequence: 0}
+
+	mockLogger := ibcmock.NewMockLogger()
+	ctx := suite.chainA.GetContext().WithLogger(mockLogger)
+
 	err := callbackStack.ProcessCallback(ctx, mockPacket, types.CallbackTypeWriteAcknowledgement, invalidDataGetter, nil)
 	suite.Require().NoError(err)
-
-	// Verify events
-	events := ctx.EventManager().Events().ToABCIEvents()
-	suite.T().Log("test: ", events)
-
-	newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
-	expCallbackData, _, expError := invalidDataGetter()
-	types.EmitCallbackEvent(newCtx, mockPacket, types.CallbackTypeWriteAcknowledgement, expCallbackData, expError)
-	expEvents := newCtx.EventManager().Events().ToABCIEvents()
-
-	suite.Require().Equal(expEvents, events)
+	suite.Require().Equal(1, len(mockLogger.DebugLogs))
+	suite.Require().Equal("Failed to get callback data.", mockLogger.DebugLogs[0].Message)
+	suite.Require().Equal([]interface{}{"packet", mockPacket, "err", fmt.Errorf("invalid data getter")}, mockLogger.DebugLogs[0].Params)
 }
