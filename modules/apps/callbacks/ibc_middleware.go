@@ -200,14 +200,11 @@ func (im IBCMiddleware) processCallback(
 ) (err error) {
 	callbackData, commitTxIfOutOfGas, err := callbackDataGetter()
 	if err != nil {
-		types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
+		types.Logger(ctx).Debug("Failed to get callback data.", "packet", packet, "err", err)
 		return nil
 	}
 	if callbackData.ContractAddr == "" {
-		types.Logger(ctx).Debug(
-			fmt.Sprintf("No %s callback found for packet.", callbackType),
-			"packet", packet,
-		)
+		types.Logger(ctx).Debug(fmt.Sprintf("No %s callback found for packet.", callbackType), "packet", packet)
 		return nil
 	}
 
