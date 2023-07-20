@@ -156,18 +156,17 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			nil,
 		},
-		// {
-		// 	"success: upgrade sequence is fast forwarded to counterparty upgrade sequence",
-		// 	func() {
-		// 		channel := path.EndpointA.GetChannel()
-		// 		channel.UpgradeSequence = 5
-		// 		path.EndpointA.SetChannel(channel)
+		{
+			"success: upgrade sequence is fast forwarded to counterparty upgrade sequence",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.UpgradeSequence = 5
+				path.EndpointA.SetChannel(channel)
 
-		// 		expSequence = 5
-		// 	},
-		// 	true,
-		// },
-		// {
+				suite.coordinator.CommitBlock(suite.chainA)
+			},
+			nil,
+		},
 		{
 			"channel not found",
 			func() {

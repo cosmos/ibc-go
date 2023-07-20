@@ -127,8 +127,18 @@ func (k Keeper) ChanUpgradeTry(
 			return types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
 
-		// TODO: add fast forward feature
-		// https://github.com/cosmos/ibc-go/issues/3794
+		// get latest state of channel here after ChanUpgradeInit
+		// fast forward channel sequence to the counterpartyupgradesequence here if it is still lower
+		// counterparty upgrade sequence does not need to be verified here because if it fails proof verification in startFlushUpgradeHandshake, this change will be reverted
+		channel, found := k.GetChannel(ctx, portID, channelID)
+		if !found {
+			return types.Upgrade{}, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		}
+
+		if counterpartyUpgradeSequence > channel.UpgradeSequence {
+			channel.UpgradeSequence = counterpartyUpgradeSequence
+		}
+		k.SetChannel(ctx, portID, channelID, channel)
 
 		// NOTE: OnChanUpgradeInit will not be executed by the application
 
