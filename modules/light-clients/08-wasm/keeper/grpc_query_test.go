@@ -7,7 +7,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryCode() {
@@ -29,7 +29,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 				res, err := suite.chainA.GetSimApp().WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
-				req = &types.QueryCodeRequest{CodeId: hex.EncodeToString(res.CodeId)}
+				req = &types.QueryCodeRequest{CodeHash: hex.EncodeToString(res.Checksum)}
 			},
 			true,
 		},
@@ -41,9 +41,9 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 			false,
 		},
 		{
-			"fails with non-existent code ID",
+			"fails with non-existent code hash",
 			func() {
-				req = &types.QueryCodeRequest{CodeId: "test"}
+				req = &types.QueryCodeRequest{CodeHash: "test"}
 			},
 			false,
 		},
@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().NotEmpty(res.Code)
+				suite.Require().NotEmpty(res.Data)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -68,8 +68,8 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryCodeIDs() {
-	var expCodeIds []string
+func (suite *KeeperTestSuite) TestQueryCodeHashes() {
+	var expCodeHashes []string
 
 	testCases := []struct {
 		name     string
@@ -77,14 +77,14 @@ func (suite *KeeperTestSuite) TestQueryCodeIDs() {
 		expPass  bool
 	}{
 		{
-			"success with no code IDs",
+			"success with no code hashes",
 			func() {
-				expCodeIds = []string{}
+				expCodeHashes = []string{}
 			},
 			true,
 		},
 		{
-			"success with one code ID",
+			"success with one code hash",
 			func() {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 				code, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) TestQueryCodeIDs() {
 				res, err := suite.chainA.GetSimApp().WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
-				expCodeIds = append(expCodeIds, hex.EncodeToString(res.CodeId))
+				expCodeHashes = append(expCodeHashes, hex.EncodeToString(res.Checksum))
 			},
 			true,
 		},
@@ -106,14 +106,14 @@ func (suite *KeeperTestSuite) TestQueryCodeIDs() {
 
 			tc.malleate()
 
-			req := &types.QueryCodeIdsRequest{}
-			res, err := suite.chainA.GetSimApp().WasmClientKeeper.CodeIds(suite.chainA.GetContext(), req)
+			req := &types.QueryCodeHashesRequest{}
+			res, err := suite.chainA.GetSimApp().WasmClientKeeper.CodeHashes(suite.chainA.GetContext(), req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(len(expCodeIds), len(res.CodeIds))
-				suite.Require().ElementsMatch(expCodeIds, res.CodeIds)
+				suite.Require().Equal(len(expCodeHashes), len(res.CodeHashes))
+				suite.Require().ElementsMatch(expCodeHashes, res.CodeHashes)
 			} else {
 				suite.Require().Error(err)
 			}
