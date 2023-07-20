@@ -262,7 +262,7 @@ func (suite *TypesTestSuite) TestSourceUserDefinedGasLimit() {
 			100,
 		},
 		{
-			"failure: memo has user defined gas limit as number",
+			"failure: memo has user defined gas limit as json number",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
@@ -352,7 +352,7 @@ func (suite *TypesTestSuite) TestDestUserDefinedGasLimit() {
 			100,
 		},
 		{
-			"failure: memo has user defined gas limit as number",
+			"failure: memo has user defined gas limit as json number",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,

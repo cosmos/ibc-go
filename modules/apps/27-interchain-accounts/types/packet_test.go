@@ -130,7 +130,7 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 			"",
 		},
 		{
-			"failure: memo has dest_callback in json struct but does not have address key",
+			"failure: memo has src_callback in json struct but does not have address key",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
@@ -257,7 +257,7 @@ func (suite *TypesTestSuite) TestSourceUserDefinedGasLimit() {
 			0,
 		},
 		{
-			"failure: memo has user defined gas limit as number",
+			"failure: memo has user defined gas limit as json number",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
@@ -334,7 +334,7 @@ func (suite *TypesTestSuite) TestDestUserDefinedGasLimit() {
 			0,
 		},
 		{
-			"failure: memo has user defined gas limit as number",
+			"failure: memo has user defined gas limit as json number",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
