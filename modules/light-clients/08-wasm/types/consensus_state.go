@@ -1,7 +1,7 @@
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -28,7 +28,7 @@ func (cs ConsensusState) GetTimestamp() uint64 {
 // ValidateBasic defines a basic validation for the wasm client consensus state.
 func (cs ConsensusState) ValidateBasic() error {
 	if len(cs.Data) == 0 {
-		return sdkerrors.Wrap(ErrInvalidData, "data cannot be empty")
+		return errorsmod.Wrap(ErrInvalidData, "data cannot be empty")
 	}
 
 	return nil

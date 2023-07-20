@@ -4,16 +4,17 @@ import (
 	"encoding/base64"
 	"time"
 
+	tmtypes "github.com/cometbft/cometbft/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -41,7 +42,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 
 				clientState = &types.ClientState{
 					Data:         clientStateData,
-					CodeId:       suite.codeID,
+					CodeHash:     suite.codeHash,
 					LatestHeight: clienttypes.NewHeight(2000, 39),
 				}
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)

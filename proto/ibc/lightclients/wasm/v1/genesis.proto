@@ -4,19 +4,17 @@ package ibc.lightclients.wasm.v1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types";
+option go_package = "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types";
 
-// Wasm light client's keeper genesis state
+// GenesisState defines 08-wasm's keeper genesis state
 message GenesisState {
   // uploaded light client wasm contracts
-  repeated GenesisContract contracts = 1 [(gogoproto.nullable) = false];
+  repeated Contract contracts = 1 [(gogoproto.nullable) = false];
 }
 
-// A contract's store key and code
-message GenesisContract {
+// Contract stores contract code
+message Contract {
   option (gogoproto.goproto_getters) = false;
-  // store key of metadata without clientID-prefix
-  bytes code_id_key = 1;
-  // metadata value
-  bytes contract_code = 2;
+  // contract byte code
+  bytes code_bytes = 1;
 }

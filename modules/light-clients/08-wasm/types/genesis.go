@@ -18,7 +18,7 @@ type (
 )
 
 // NewGenesisState creates an 08-wasm GenesisState instance.
-func NewGenesisState(contracts []GenesisContract) *GenesisState {
+func NewGenesisState(contracts []Contract) *GenesisState {
 	return &GenesisState{Contracts: contracts}
 }
 
