@@ -16,7 +16,7 @@ type CallbacksCompatibleModule interface {
 type CallbackData struct {
 	// ContractAddr is the address of the callback contract
 	ContractAddr string
-	// GasLimit is the gas limit actually used for the callback execution
+	// GasLimit is the gas limit which will be used for the callback execution
 	GasLimit uint64
 	// CommitGasLimit is the gas needed to commit the callback even if the
 	// callback execution fails due to out of gas. This parameter is only
@@ -39,7 +39,7 @@ func GetSourceCallbackData(
 	return getCallbackData(packetInfoProvider, packetData, remainingGas, maxGas, addressGetter, gasLimitGetter)
 }
 
-// GetDestCallbackData parses the packet data and returns the source callback data.
+// GetDestCallbackData parses the packet data and returns the destination callback data.
 // It also checks that the remaining gas is greater than the gas limit specified in the packet data.
 func GetDestCallbackData(
 	packetInfoProvider porttypes.PacketInfoProvider,
@@ -64,7 +64,6 @@ func getCallbackData(
 	addressGetter func(ibcexported.CallbackPacketData) string,
 	gasLimitGetter func(ibcexported.CallbackPacketData) uint64,
 ) (CallbackData, bool, error) {
-	commitTxIfOutOfGas := true
 	// unmarshal packet data
 	unmarshaledData, err := packetInfoProvider.UnmarshalPacketData(packetData)
 	if err != nil {
@@ -76,19 +75,28 @@ func getCallbackData(
 		return CallbackData{}, false, ErrNotCallbackPacketData
 	}
 
+	// if the relayer did not specify enough gas to meet the minimum of the
+	// user defined gas limit and the max allowed gas limit, the callback execution
+	// may be retried
+	var allowRetry bool
 	gasLimit := gasLimitGetter(callbackData)
+
+	// ensure user defined gas limit does not exceed the max gas limit
 	if gasLimit == 0 || gasLimit > maxGas {
 		gasLimit = maxGas
 	}
+
+	// account for the remaining gas in the context being less than the desired gas limit for the callback execution
+	// in this case, the callback execution may be retried upon failure
 	commitGasLimit := gasLimit
 	if remainingGas < gasLimit {
 		gasLimit = remainingGas
-		commitTxIfOutOfGas = false
+		allowRetry = true
 	}
 
 	return CallbackData{
 		ContractAddr:   addressGetter(callbackData),
 		GasLimit:       gasLimit,
 		CommitGasLimit: commitGasLimit,
-	}, commitTxIfOutOfGas, nil
+	}, allowRetry, nil
 }

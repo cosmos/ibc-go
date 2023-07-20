@@ -25,7 +25,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 		malleate        func()
 		remainingGas    uint64
 		expCallbackData types.CallbackData
-		expHasEnoughGas bool
+		expAllowRetry   bool
 		expPass         bool
 	}{
 		{
@@ -46,7 +46,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				GasLimit:       1_000_000,
 				CommitGasLimit: 1_000_000,
 			},
-			true,
+			false,
 			true,
 		},
 		{
@@ -67,7 +67,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				GasLimit:       50000,
 				CommitGasLimit: 50000,
 			},
-			true,
+			false,
 			true,
 		},
 		{
@@ -88,7 +88,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				GasLimit:       100000,
 				CommitGasLimit: 200000,
 			},
-			false,
+			true,
 			true,
 		},
 		{
@@ -109,7 +109,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				GasLimit:       100000,
 				CommitGasLimit: 1_000_000,
 			},
-			false,
+			true,
 			true,
 		},
 		{
@@ -130,7 +130,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				GasLimit:       1_000_000,
 				CommitGasLimit: 1_000_000,
 			},
-			true,
+			false,
 			true,
 		},
 		{
@@ -152,7 +152,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 
 		callbackData, hasEnoughGas, err := types.GetSourceCallbackData(packetUnmarshaler, packetData, tc.remainingGas, uint64(1_000_000))
 
-		suite.Require().Equal(tc.expHasEnoughGas, hasEnoughGas, tc.name)
+		suite.Require().Equal(tc.expAllowRetry, hasEnoughGas, tc.name)
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
 			suite.Require().Equal(tc.expCallbackData, callbackData, tc.name)
@@ -173,7 +173,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 		malleate        func()
 		remainingGas    uint64
 		expCallbackData types.CallbackData
-		expHasEnoughGas bool
+		expAllowRetry   bool
 		expPass         bool
 	}{
 		{
@@ -194,7 +194,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				GasLimit:       1_000_000,
 				CommitGasLimit: 1_000_000,
 			},
-			true,
+			false,
 			true,
 		},
 		{
@@ -215,7 +215,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				GasLimit:       50000,
 				CommitGasLimit: 50000,
 			},
-			true,
+			false,
 			true,
 		},
 		{
@@ -236,7 +236,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				GasLimit:       100000,
 				CommitGasLimit: 200000,
 			},
-			false,
+			true,
 			true,
 		},
 		{
@@ -257,7 +257,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				GasLimit:       100000,
 				CommitGasLimit: 1_000_000,
 			},
-			false,
+			true,
 			true,
 		},
 		{
@@ -278,7 +278,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				GasLimit:       1_000_000,
 				CommitGasLimit: 1_000_000,
 			},
-			true,
+			false,
 			true,
 		},
 		{
@@ -300,7 +300,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 
 		callbackData, hasEnoughGas, err := types.GetDestCallbackData(packetUnmarshaler, packetData, tc.remainingGas, uint64(1_000_000))
 
-		suite.Require().Equal(tc.expHasEnoughGas, hasEnoughGas, tc.name)
+		suite.Require().Equal(tc.expAllowRetry, hasEnoughGas, tc.name)
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
 			suite.Require().Equal(tc.expCallbackData, callbackData, tc.name)
