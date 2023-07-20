@@ -30,7 +30,7 @@ type IBCMiddleware struct {
 
 	// maxCallbackGas defines the maximum amount of gas that a callback actor can ask the
 	// relayer to pay for. If a callback fails due to insufficient gas, the entire tx
-	// is reverted if the relayer hadn't provided the actor defined gas.
+	// is reverted if the relayer hadn't provided the minimum(userDefinedGas, maxCallbackGas).
 	// If the actor hasn't defined a gas limit, then it is assumed to be the maxCallbackGas.
 	maxCallbackGas uint64
 }
