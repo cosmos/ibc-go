@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-  
+
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -43,7 +43,7 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_frozen"])
 				suite.Require().NoError(err)
 
-				clientState = types.NewClientState(clientStateData, suite.codeID, clienttypes.NewHeight(2000, 5))
+				clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 5))
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 			},
@@ -55,7 +55,7 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_no_consensus"])
 				suite.Require().NoError(err)
 
-				clientState = types.NewClientState(clientStateData, suite.codeID, clienttypes.NewHeight(2000, 36 /* This doesn't matter, but the grandpa client state is set to this */))
+				clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 36 /* This doesn't matter, but the grandpa client state is set to this */))
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 			},
@@ -67,8 +67,8 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
 				suite.Require().NoError(err)
 
-				codeID := sha256.Sum256([]byte("bytes-of-light-client-wasm-contract-that-does-not-exist")) // code ID for a contract that does not exists in store
-				clientState = types.NewClientState(clientStateData, codeID[:], clienttypes.NewHeight(2000, 5))
+				codeHash := sha256.Sum256([]byte("bytes-of-light-client-wasm-contract-that-does-not-exist")) // code hash for a contract that does not exists in store
+				clientState = types.NewClientState(clientStateData, codeHash[:], clienttypes.NewHeight(2000, 5))
 			},
 			exported.Unknown,
 		},
@@ -188,17 +188,17 @@ func (suite *TypesTestSuite) TestValidate() {
 			expPass:     false,
 		},
 		{
-			name:        "nil code id",
+			name:        "nil code hash",
 			clientState: types.NewClientState([]byte{0}, nil, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
-			name:        "empty code id",
+			name:        "empty code hash",
 			clientState: types.NewClientState([]byte{0}, []byte{}, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
-			name: "longer than 32 bytes code id",
+			name: "longer than 32 bytes code hash",
 			clientState: types.NewClientState(
 				[]byte{0},
 				[]byte{
@@ -248,7 +248,7 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 			suite.SetupWasmGrandpa()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
-			clientState := types.NewClientState([]byte("data"), suite.codeID, clienttypes.NewHeight(2000, 4))
+			clientState := types.NewClientState([]byte("data"), suite.codeHash, clienttypes.NewHeight(2000, 4))
 			err := clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, tc.consensusState)
 
 			if tc.expPass {
@@ -299,7 +299,7 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 			tmClientStateData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
 			suite.Require().NoError(err)
 
-			wasmClientState := types.NewClientState(tmClientStateData, suite.codeID, tmClientState.LatestHeight)
+			wasmClientState := types.NewClientState(tmClientStateData, suite.codeHash, tmClientState.LatestHeight)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, path.EndpointA.ClientID)
 			err = wasmClientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, tc.consensusState)

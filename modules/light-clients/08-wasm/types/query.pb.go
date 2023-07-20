@@ -29,24 +29,24 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// QueryCodeIdsRequest is the request type for the Query/CodeIds RPC method.
-type QueryCodeIdsRequest struct {
+// QueryCodeHashesRequest is the request type for the Query/CodeHashes RPC method.
+type QueryCodeHashesRequest struct {
 	// pagination defines an optional pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryCodeIdsRequest) Reset()         { *m = QueryCodeIdsRequest{} }
-func (m *QueryCodeIdsRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryCodeIdsRequest) ProtoMessage()    {}
-func (*QueryCodeIdsRequest) Descriptor() ([]byte, []int) {
+func (m *QueryCodeHashesRequest) Reset()         { *m = QueryCodeHashesRequest{} }
+func (m *QueryCodeHashesRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryCodeHashesRequest) ProtoMessage()    {}
+func (*QueryCodeHashesRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9e3718a8cb915777, []int{0}
 }
-func (m *QueryCodeIdsRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryCodeHashesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryCodeIdsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryCodeHashesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryCodeIdsRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryCodeHashesRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -56,44 +56,44 @@ func (m *QueryCodeIdsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *QueryCodeIdsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryCodeIdsRequest.Merge(m, src)
+func (m *QueryCodeHashesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryCodeHashesRequest.Merge(m, src)
 }
-func (m *QueryCodeIdsRequest) XXX_Size() int {
+func (m *QueryCodeHashesRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryCodeIdsRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryCodeIdsRequest.DiscardUnknown(m)
+func (m *QueryCodeHashesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryCodeHashesRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryCodeIdsRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryCodeHashesRequest proto.InternalMessageInfo
 
-func (m *QueryCodeIdsRequest) GetPagination() *query.PageRequest {
+func (m *QueryCodeHashesRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-// QueryCodeIdsResponse is the response type for the Query/CodeIds RPC method.
-type QueryCodeIdsResponse struct {
-	CodeIds []string `protobuf:"bytes,1,rep,name=code_ids,json=codeIds,proto3" json:"code_ids,omitempty"`
+// QueryCodeHashesResponse is the response type for the Query/CodeHashes RPC method.
+type QueryCodeHashesResponse struct {
+	CodeHashes []string `protobuf:"bytes,1,rep,name=code_hashes,json=codeHashes,proto3" json:"code_hashes,omitempty"`
 	// pagination defines an optional pagination for the request.
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryCodeIdsResponse) Reset()         { *m = QueryCodeIdsResponse{} }
-func (m *QueryCodeIdsResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryCodeIdsResponse) ProtoMessage()    {}
-func (*QueryCodeIdsResponse) Descriptor() ([]byte, []int) {
+func (m *QueryCodeHashesResponse) Reset()         { *m = QueryCodeHashesResponse{} }
+func (m *QueryCodeHashesResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryCodeHashesResponse) ProtoMessage()    {}
+func (*QueryCodeHashesResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9e3718a8cb915777, []int{1}
 }
-func (m *QueryCodeIdsResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryCodeHashesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryCodeIdsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryCodeHashesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryCodeIdsResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryCodeHashesResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -103,26 +103,26 @@ func (m *QueryCodeIdsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (m *QueryCodeIdsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryCodeIdsResponse.Merge(m, src)
+func (m *QueryCodeHashesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryCodeHashesResponse.Merge(m, src)
 }
-func (m *QueryCodeIdsResponse) XXX_Size() int {
+func (m *QueryCodeHashesResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryCodeIdsResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryCodeIdsResponse.DiscardUnknown(m)
+func (m *QueryCodeHashesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryCodeHashesResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryCodeIdsResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryCodeHashesResponse proto.InternalMessageInfo
 
-func (m *QueryCodeIdsResponse) GetCodeIds() []string {
+func (m *QueryCodeHashesResponse) GetCodeHashes() []string {
 	if m != nil {
-		return m.CodeIds
+		return m.CodeHashes
 	}
 	return nil
 }
 
-func (m *QueryCodeIdsResponse) GetPagination() *query.PageResponse {
+func (m *QueryCodeHashesResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
@@ -131,7 +131,7 @@ func (m *QueryCodeIdsResponse) GetPagination() *query.PageResponse {
 
 // QueryCodeRequest is the request type for the Query/Code RPC method.
 type QueryCodeRequest struct {
-	CodeId string `protobuf:"bytes,1,opt,name=code_id,json=codeId,proto3" json:"code_id,omitempty"`
+	CodeHash string `protobuf:"bytes,1,opt,name=code_hash,json=codeHash,proto3" json:"code_hash,omitempty"`
 }
 
 func (m *QueryCodeRequest) Reset()         { *m = QueryCodeRequest{} }
@@ -167,16 +167,16 @@ func (m *QueryCodeRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryCodeRequest proto.InternalMessageInfo
 
-func (m *QueryCodeRequest) GetCodeId() string {
+func (m *QueryCodeRequest) GetCodeHash() string {
 	if m != nil {
-		return m.CodeId
+		return m.CodeHash
 	}
 	return ""
 }
 
 // QueryCodeResponse is the response type for the Query/Code RPC method.
 type QueryCodeResponse struct {
-	Code []byte `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (m *QueryCodeResponse) Reset()         { *m = QueryCodeResponse{} }
@@ -212,16 +212,16 @@ func (m *QueryCodeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryCodeResponse proto.InternalMessageInfo
 
-func (m *QueryCodeResponse) GetCode() []byte {
+func (m *QueryCodeResponse) GetData() []byte {
 	if m != nil {
-		return m.Code
+		return m.Data
 	}
 	return nil
 }
 
 func init() {
-	proto.RegisterType((*QueryCodeIdsRequest)(nil), "ibc.lightclients.wasm.v1.QueryCodeIdsRequest")
-	proto.RegisterType((*QueryCodeIdsResponse)(nil), "ibc.lightclients.wasm.v1.QueryCodeIdsResponse")
+	proto.RegisterType((*QueryCodeHashesRequest)(nil), "ibc.lightclients.wasm.v1.QueryCodeHashesRequest")
+	proto.RegisterType((*QueryCodeHashesResponse)(nil), "ibc.lightclients.wasm.v1.QueryCodeHashesResponse")
 	proto.RegisterType((*QueryCodeRequest)(nil), "ibc.lightclients.wasm.v1.QueryCodeRequest")
 	proto.RegisterType((*QueryCodeResponse)(nil), "ibc.lightclients.wasm.v1.QueryCodeResponse")
 }
@@ -231,34 +231,35 @@ func init() {
 }
 
 var fileDescriptor_9e3718a8cb915777 = []byte{
-	// 430 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0xc1, 0x8a, 0x13, 0x31,
-	0x18, 0xc7, 0x9b, 0xba, 0x6e, 0xdd, 0xe8, 0x41, 0xa3, 0x60, 0x2d, 0x32, 0x2c, 0xc3, 0xe2, 0x96,
-	0x96, 0x49, 0x9c, 0xf6, 0xa2, 0xe0, 0x49, 0x41, 0xf1, 0xa6, 0x73, 0xf0, 0x20, 0x88, 0x64, 0x32,
-	0x61, 0x1a, 0x98, 0x99, 0x4c, 0x9b, 0x4c, 0xa5, 0x8a, 0x17, 0x9f, 0x40, 0xd0, 0x93, 0xaf, 0xe2,
-	0x0b, 0x78, 0x2c, 0x78, 0xf1, 0x28, 0xad, 0x0f, 0x22, 0x93, 0x64, 0xb4, 0x85, 0x2d, 0xed, 0x2d,
-	0xb4, 0xbf, 0xef, 0xff, 0xfb, 0x27, 0xf3, 0xc1, 0x33, 0x11, 0x33, 0x92, 0x89, 0x74, 0xa2, 0x59,
-	0x26, 0x78, 0xa1, 0x15, 0x79, 0x47, 0x55, 0x4e, 0xe6, 0x21, 0x99, 0x56, 0x7c, 0xb6, 0xc0, 0xe5,
-	0x4c, 0x6a, 0x89, 0xba, 0x22, 0x66, 0x78, 0x93, 0xc2, 0x35, 0x85, 0xe7, 0x61, 0xef, 0x6e, 0x2a,
-	0x65, 0x9a, 0x71, 0x42, 0x4b, 0x41, 0x68, 0x51, 0x48, 0x4d, 0xb5, 0x90, 0x85, 0xb2, 0x73, 0xbd,
-	0x01, 0x93, 0x2a, 0x97, 0x8a, 0xc4, 0x54, 0x71, 0x1b, 0x48, 0xe6, 0x61, 0xcc, 0x35, 0x0d, 0x49,
-	0x49, 0x53, 0x51, 0x18, 0xd8, 0xb2, 0xfe, 0x1b, 0x78, 0xf3, 0x65, 0x4d, 0x3c, 0x91, 0x09, 0x7f,
-	0x9e, 0xa8, 0x88, 0x4f, 0x2b, 0xae, 0x34, 0x7a, 0x0a, 0xe1, 0x7f, 0xb4, 0x0b, 0x4e, 0x41, 0xff,
-	0xea, 0xe8, 0x1e, 0xb6, 0xb9, 0xb8, 0xce, 0xc5, 0xb6, 0xa8, 0xcb, 0xc5, 0x2f, 0x68, 0xca, 0xdd,
-	0x6c, 0xb4, 0x31, 0xe9, 0xbf, 0x87, 0xb7, 0xb6, 0xe3, 0x55, 0x29, 0x0b, 0xc5, 0xd1, 0x1d, 0x78,
-	0x85, 0xc9, 0x84, 0xbf, 0x15, 0x89, 0xea, 0x82, 0xd3, 0x4b, 0xfd, 0x93, 0xa8, 0xc3, 0x2c, 0x82,
-	0x9e, 0x6d, 0xa9, 0xdb, 0x46, 0x7d, 0xbe, 0x57, 0x6d, 0x73, 0xb7, 0xdc, 0x43, 0x78, 0xfd, 0x9f,
-	0xbb, 0xb9, 0xd7, 0x6d, 0xd8, 0x71, 0x5e, 0x73, 0xa9, 0x93, 0xe8, 0xd8, 0x6a, 0xfd, 0x73, 0x78,
-	0x63, 0x03, 0x76, 0x2d, 0x11, 0x3c, 0xaa, 0xff, 0x36, 0xe8, 0xb5, 0xc8, 0x9c, 0x47, 0xdf, 0xdb,
-	0xf0, 0xb2, 0x21, 0xd1, 0x57, 0x00, 0x3b, 0xee, 0x5e, 0x28, 0xc0, 0xbb, 0xbe, 0x15, 0xbe, 0xe0,
-	0x79, 0x7b, 0xf8, 0x50, 0xdc, 0x16, 0xf1, 0x07, 0x9f, 0x7e, 0xfe, 0xf9, 0xd2, 0x3e, 0x43, 0x3e,
-	0xd9, 0xb9, 0x38, 0xcd, 0x73, 0xa2, 0x6f, 0x00, 0x1e, 0xd5, 0xf3, 0x68, 0x70, 0x80, 0xa4, 0x29,
-	0x34, 0x3c, 0x88, 0x75, 0x6d, 0x1e, 0x9a, 0x36, 0x63, 0x14, 0xee, 0x6f, 0x43, 0x3e, 0xb8, 0xd3,
-	0x47, 0xf3, 0xd3, 0xe3, 0x57, 0x3f, 0x56, 0x1e, 0x58, 0xae, 0x3c, 0xf0, 0x7b, 0xe5, 0x81, 0xcf,
-	0x6b, 0xaf, 0xb5, 0x5c, 0x7b, 0xad, 0x5f, 0x6b, 0xaf, 0xf5, 0xfa, 0x51, 0x2a, 0xf4, 0xa4, 0x8a,
-	0x31, 0x93, 0x39, 0x71, 0xfb, 0x2b, 0x62, 0x16, 0xa4, 0x92, 0xe4, 0x32, 0xa9, 0x32, 0xae, 0xac,
-	0x28, 0x68, 0x4c, 0xf7, 0x1f, 0x04, 0x46, 0xa6, 0x17, 0x25, 0x57, 0xf1, 0xb1, 0xd9, 0xe6, 0xf1,
-	0xdf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xdb, 0xfa, 0x1c, 0x74, 0x59, 0x03, 0x00, 0x00,
+	// 436 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0xbf, 0x8e, 0xd3, 0x30,
+	0x1c, 0xc7, 0xeb, 0x72, 0x20, 0xea, 0x63, 0x00, 0x0f, 0x50, 0x15, 0x14, 0x4e, 0x11, 0xd0, 0xd3,
+	0xa1, 0xd8, 0x97, 0x43, 0x42, 0x37, 0x20, 0x06, 0x90, 0x80, 0x11, 0x32, 0x30, 0xb0, 0x80, 0xe3,
+	0x58, 0x89, 0xa5, 0x24, 0x4e, 0x6b, 0xa7, 0xa8, 0x42, 0x2c, 0xf0, 0x02, 0x48, 0x3c, 0x00, 0x3c,
+	0x0e, 0x03, 0x43, 0x25, 0x16, 0x46, 0xd4, 0xf2, 0x20, 0x28, 0x76, 0x92, 0xa6, 0x82, 0x8a, 0xde,
+	0x96, 0x58, 0xdf, 0x3f, 0x9f, 0x9f, 0xfd, 0x83, 0xb7, 0x44, 0xc8, 0x48, 0x2a, 0xe2, 0x44, 0xb3,
+	0x54, 0xf0, 0x5c, 0x2b, 0xf2, 0x96, 0xaa, 0x8c, 0xcc, 0x7c, 0x32, 0x29, 0xf9, 0x74, 0x8e, 0x8b,
+	0xa9, 0xd4, 0x12, 0x0d, 0x45, 0xc8, 0x70, 0x57, 0x85, 0x2b, 0x15, 0x9e, 0xf9, 0xa3, 0x1b, 0xb1,
+	0x94, 0x71, 0xca, 0x09, 0x2d, 0x04, 0xa1, 0x79, 0x2e, 0x35, 0xd5, 0x42, 0xe6, 0xca, 0xfa, 0x46,
+	0x47, 0x4c, 0xaa, 0x4c, 0x2a, 0x12, 0x52, 0xc5, 0x6d, 0x20, 0x99, 0xf9, 0x21, 0xd7, 0xd4, 0x27,
+	0x05, 0x8d, 0x45, 0x6e, 0xc4, 0x56, 0xeb, 0xbe, 0x81, 0x57, 0x5f, 0x54, 0x8a, 0xc7, 0x32, 0xe2,
+	0xcf, 0xa8, 0x4a, 0xb8, 0x0a, 0xf8, 0xa4, 0xe4, 0x4a, 0xa3, 0x27, 0x10, 0xae, 0xd5, 0x43, 0x70,
+	0x00, 0x0e, 0xf7, 0x4f, 0xee, 0x60, 0x1b, 0x8d, 0xab, 0x68, 0x6c, 0x59, 0xeb, 0x68, 0xfc, 0x9c,
+	0xc6, 0xbc, 0xf6, 0x06, 0x1d, 0xa7, 0xfb, 0x11, 0xc0, 0x6b, 0x7f, 0x55, 0xa8, 0x42, 0xe6, 0x8a,
+	0xa3, 0x9b, 0x70, 0x9f, 0xc9, 0x88, 0xbf, 0x4e, 0xcc, 0xf1, 0x10, 0x1c, 0x9c, 0x3b, 0x1c, 0x04,
+	0x90, 0xb5, 0x42, 0xf4, 0x74, 0x03, 0xa2, 0x6f, 0x20, 0xc6, 0xff, 0x85, 0xb0, 0xe9, 0x1b, 0x14,
+	0x04, 0x5e, 0x6e, 0x21, 0x9a, 0x09, 0xaf, 0xc3, 0x41, 0xdb, 0x6e, 0x06, 0x1c, 0x04, 0x17, 0x9b,
+	0x6e, 0x77, 0x0c, 0xaf, 0x74, 0x0c, 0x35, 0x2f, 0x82, 0x7b, 0x11, 0xd5, 0xd4, 0x88, 0x2f, 0x05,
+	0xe6, 0xfb, 0xe4, 0x7b, 0x1f, 0x9e, 0x37, 0x4a, 0xf4, 0x15, 0x40, 0xb8, 0x1e, 0x12, 0x1d, 0xe3,
+	0x6d, 0xef, 0x87, 0xff, 0x7d, 0xe5, 0x23, 0xff, 0x0c, 0x0e, 0x4b, 0xe4, 0x7a, 0x1f, 0x7e, 0xfc,
+	0xfe, 0xdc, 0x1f, 0xa3, 0xdb, 0x64, 0xeb, 0x4a, 0x75, 0x6e, 0x18, 0x7d, 0x01, 0x70, 0xaf, 0x4a,
+	0x41, 0x47, 0x3b, 0x54, 0x35, 0x58, 0x77, 0x77, 0xd2, 0xd6, 0x40, 0x0f, 0x0d, 0xd0, 0x29, 0xba,
+	0xbf, 0x13, 0x10, 0x79, 0xd7, 0xfe, 0xbc, 0x37, 0xe7, 0x8f, 0x5e, 0x7e, 0x5b, 0x3a, 0x60, 0xb1,
+	0x74, 0xc0, 0xaf, 0xa5, 0x03, 0x3e, 0xad, 0x9c, 0xde, 0x62, 0xe5, 0xf4, 0x7e, 0xae, 0x9c, 0xde,
+	0xab, 0x07, 0xb1, 0xd0, 0x49, 0x19, 0x62, 0x26, 0x33, 0x52, 0x6f, 0xb8, 0x08, 0x99, 0x17, 0x4b,
+	0x92, 0xc9, 0xa8, 0x4c, 0xb9, 0xb2, 0x6d, 0x5e, 0x53, 0x77, 0x7c, 0xea, 0x99, 0x46, 0x3d, 0x2f,
+	0xb8, 0x0a, 0x2f, 0x98, 0x7d, 0xbf, 0xf7, 0x27, 0x00, 0x00, 0xff, 0xff, 0x89, 0x19, 0x66, 0xd6,
+	0x7b, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -273,9 +274,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
-	// Get all Wasm code IDs
-	CodeIds(ctx context.Context, in *QueryCodeIdsRequest, opts ...grpc.CallOption) (*QueryCodeIdsResponse, error)
-	// Get Wasm code for given code ID
+	// Get all Wasm code hashes
+	CodeHashes(ctx context.Context, in *QueryCodeHashesRequest, opts ...grpc.CallOption) (*QueryCodeHashesResponse, error)
+	// Get Wasm code for given code hash
 	Code(ctx context.Context, in *QueryCodeRequest, opts ...grpc.CallOption) (*QueryCodeResponse, error)
 }
 
@@ -287,9 +288,9 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 	return &queryClient{cc}
 }
 
-func (c *queryClient) CodeIds(ctx context.Context, in *QueryCodeIdsRequest, opts ...grpc.CallOption) (*QueryCodeIdsResponse, error) {
-	out := new(QueryCodeIdsResponse)
-	err := c.cc.Invoke(ctx, "/ibc.lightclients.wasm.v1.Query/CodeIds", in, out, opts...)
+func (c *queryClient) CodeHashes(ctx context.Context, in *QueryCodeHashesRequest, opts ...grpc.CallOption) (*QueryCodeHashesResponse, error) {
+	out := new(QueryCodeHashesResponse)
+	err := c.cc.Invoke(ctx, "/ibc.lightclients.wasm.v1.Query/CodeHashes", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -307,9 +308,9 @@ func (c *queryClient) Code(ctx context.Context, in *QueryCodeRequest, opts ...gr
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
-	// Get all Wasm code IDs
-	CodeIds(context.Context, *QueryCodeIdsRequest) (*QueryCodeIdsResponse, error)
-	// Get Wasm code for given code ID
+	// Get all Wasm code hashes
+	CodeHashes(context.Context, *QueryCodeHashesRequest) (*QueryCodeHashesResponse, error)
+	// Get Wasm code for given code hash
 	Code(context.Context, *QueryCodeRequest) (*QueryCodeResponse, error)
 }
 
@@ -317,8 +318,8 @@ type QueryServer interface {
 type UnimplementedQueryServer struct {
 }
 
-func (*UnimplementedQueryServer) CodeIds(ctx context.Context, req *QueryCodeIdsRequest) (*QueryCodeIdsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CodeIds not implemented")
+func (*UnimplementedQueryServer) CodeHashes(ctx context.Context, req *QueryCodeHashesRequest) (*QueryCodeHashesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CodeHashes not implemented")
 }
 func (*UnimplementedQueryServer) Code(ctx context.Context, req *QueryCodeRequest) (*QueryCodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Code not implemented")
@@ -328,20 +329,20 @@ func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
 	s.RegisterService(&_Query_serviceDesc, srv)
 }
 
-func _Query_CodeIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryCodeIdsRequest)
+func _Query_CodeHashes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryCodeHashesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).CodeIds(ctx, in)
+		return srv.(QueryServer).CodeHashes(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ibc.lightclients.wasm.v1.Query/CodeIds",
+		FullMethod: "/ibc.lightclients.wasm.v1.Query/CodeHashes",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).CodeIds(ctx, req.(*QueryCodeIdsRequest))
+		return srv.(QueryServer).CodeHashes(ctx, req.(*QueryCodeHashesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -369,8 +370,8 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CodeIds",
-			Handler:    _Query_CodeIds_Handler,
+			MethodName: "CodeHashes",
+			Handler:    _Query_CodeHashes_Handler,
 		},
 		{
 			MethodName: "Code",
@@ -381,7 +382,7 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 	Metadata: "ibc/lightclients/wasm/v1/query.proto",
 }
 
-func (m *QueryCodeIdsRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryCodeHashesRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -391,12 +392,12 @@ func (m *QueryCodeIdsRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryCodeIdsRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryCodeHashesRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryCodeIdsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryCodeHashesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -416,7 +417,7 @@ func (m *QueryCodeIdsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryCodeIdsResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryCodeHashesResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -426,12 +427,12 @@ func (m *QueryCodeIdsResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryCodeIdsResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryCodeHashesResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryCodeIdsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryCodeHashesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -448,11 +449,11 @@ func (m *QueryCodeIdsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.CodeIds) > 0 {
-		for iNdEx := len(m.CodeIds) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.CodeIds[iNdEx])
-			copy(dAtA[i:], m.CodeIds[iNdEx])
-			i = encodeVarintQuery(dAtA, i, uint64(len(m.CodeIds[iNdEx])))
+	if len(m.CodeHashes) > 0 {
+		for iNdEx := len(m.CodeHashes) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.CodeHashes[iNdEx])
+			copy(dAtA[i:], m.CodeHashes[iNdEx])
+			i = encodeVarintQuery(dAtA, i, uint64(len(m.CodeHashes[iNdEx])))
 			i--
 			dAtA[i] = 0xa
 		}
@@ -480,10 +481,10 @@ func (m *QueryCodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.CodeId) > 0 {
-		i -= len(m.CodeId)
-		copy(dAtA[i:], m.CodeId)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.CodeId)))
+	if len(m.CodeHash) > 0 {
+		i -= len(m.CodeHash)
+		copy(dAtA[i:], m.CodeHash)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.CodeHash)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -510,10 +511,10 @@ func (m *QueryCodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Code) > 0 {
-		i -= len(m.Code)
-		copy(dAtA[i:], m.Code)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Code)))
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Data)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -531,7 +532,7 @@ func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *QueryCodeIdsRequest) Size() (n int) {
+func (m *QueryCodeHashesRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -544,14 +545,14 @@ func (m *QueryCodeIdsRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryCodeIdsResponse) Size() (n int) {
+func (m *QueryCodeHashesResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.CodeIds) > 0 {
-		for _, s := range m.CodeIds {
+	if len(m.CodeHashes) > 0 {
+		for _, s := range m.CodeHashes {
 			l = len(s)
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -569,7 +570,7 @@ func (m *QueryCodeRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.CodeId)
+	l = len(m.CodeHash)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
@@ -582,7 +583,7 @@ func (m *QueryCodeResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Code)
+	l = len(m.Data)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
@@ -595,7 +596,7 @@ func sovQuery(x uint64) (n int) {
 func sozQuery(x uint64) (n int) {
 	return sovQuery(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *QueryCodeIdsRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryCodeHashesRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -618,10 +619,10 @@ func (m *QueryCodeIdsRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryCodeIdsRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryCodeHashesRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryCodeIdsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryCodeHashesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -681,7 +682,7 @@ func (m *QueryCodeIdsRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryCodeIdsResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryCodeHashesResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -704,15 +705,15 @@ func (m *QueryCodeIdsResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryCodeIdsResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryCodeHashesResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryCodeIdsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryCodeHashesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CodeIds", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CodeHashes", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -740,7 +741,7 @@ func (m *QueryCodeIdsResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CodeIds = append(m.CodeIds, string(dAtA[iNdEx:postIndex]))
+			m.CodeHashes = append(m.CodeHashes, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -830,7 +831,7 @@ func (m *QueryCodeRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CodeId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CodeHash", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -858,7 +859,7 @@ func (m *QueryCodeRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CodeId = string(dAtA[iNdEx:postIndex])
+			m.CodeHash = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -912,7 +913,7 @@ func (m *QueryCodeResponse) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Code", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -939,9 +940,9 @@ func (m *QueryCodeResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Code = append(m.Code[:0], dAtA[iNdEx:postIndex]...)
-			if m.Code == nil {
-				m.Code = []byte{}
+			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
+			if m.Data == nil {
+				m.Data = []byte{}
 			}
 			iNdEx = postIndex
 		default:

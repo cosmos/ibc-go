@@ -17,7 +17,7 @@ const (
 	AttributeKeyUpgradeStore      = "upgrade_store"
 	AttributeKeyUpgradePlanHeight = "upgrade_plan_height"
 	AttributeKeyUpgradePlanTitle  = "title"
-	AttributeKeyWasmCodeID        = "wasm_code_id"
+	AttributeKeyWasmCodeHash      = "wasm_code_hash"
 )
 
 // IBC client events vars
