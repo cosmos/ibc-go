@@ -147,6 +147,11 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	if ack == nil {
 		return nil
 	}
+	// if ack is not successful, all state changes are reverted. If a packet cannot be received, then you need not
+	// execute a callback on the receiving chain.
+	if !ack.Success() {
+		return ack
+	}
 
 	packetReceiverAddress := im.GetPacketReceiver(packet)
 	callbackDataGetter := func() (types.CallbackData, bool, error) {
