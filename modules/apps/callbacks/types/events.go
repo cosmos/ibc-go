@@ -21,7 +21,7 @@ const (
 	//   "timeout": the callback is executed on the timeout of the packet
 	//   "recv_packet": the callback is executed on the reception of the packet
 	AttributeKeyCallbackTrigger = "callback_trigger"
-	// AttributeKeySourceCallbackAddress denotes the source callback contract address
+	// AttributeKeyCallbackAddress denotes the callback address
 	AttributeKeyCallbackAddress = "callback_address"
 	// AttributeKeyCallbackResult denotes the callback result:
 	//   "success": the callback is successfully executed
@@ -36,9 +36,9 @@ const (
 	// AttributeKeyCallbackCommitGasLimit denotes the gas needed to commit the callback even
 	// if the callback execution fails due to out of gas.
 	AttributeKeyCallbackCommitGasLimit = "callback_commit_gas_limit"
-	// AttributeKeyCallbackPortID denotes the port ID of the packet
+	// AttributeKeyCallbackSourcePortID denotes the port ID of the packet
 	AttributeKeyCallbackSourcePortID = "callback_src_port"
-	// AttributeKeyCallbackChannelID denotes the channel ID of the packet
+	// AttributeKeyCallbackSourceChannelID denotes the channel ID of the packet
 	AttributeKeyCallbackSourceChannelID = "callback_src_channel"
 	// AttributeKeyCallbackSequence denotes the sequence of the packet
 	AttributeKeyCallbackSequence = "callback_sequence"
@@ -49,7 +49,7 @@ func Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ModuleName)
 }
 
-// emitCallbackEvent emits an event for a callback
+// EmitCallbackEvent emits an event for a callback
 func EmitCallbackEvent(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
