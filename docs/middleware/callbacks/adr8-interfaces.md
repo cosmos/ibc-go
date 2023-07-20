@@ -111,7 +111,7 @@ type ContractKeeper interface {
 
 To allow for current `ibc-go` applications to handle ADR8 callbacks, a `callbacks` middleware has been implemented which can wrap any existing `ibc-go` application. This middleware expects the underlying application to have implemented the `CallbackPacketData` interface described above as well as an implementation of the `ContractKeeper` interface. It grabs the callback address and gas limit information from this interface, and then executes the relevant callback specified by the `ContractKeeper` at each step of the packet lifecycle.
 
-For more detail on this middleware, please check out [the middleware specific documentation](docs/middleware/callbacks/callbacks.md).
+For more detail on this middleware, please check out [the middleware specific documentation](../../ibc/middleware/callbacks/callbacks.md).
 
 # Optional Interface (WIP)
 *Note that this interface is still subject to change*
