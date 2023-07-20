@@ -261,10 +261,9 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			var clientState exported.ClientState
-			clientState = path.EndpointA.GetClientState()
 			tc.malleate()
 
+			var clientState exported.ClientState
 			if tc.expPass {
 				clientState = path.EndpointA.GetClientState()
 			}
