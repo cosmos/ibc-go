@@ -57,6 +57,53 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 		}, true},
+		{"success: channel is in TRYUPGRADE and FLUSHING", func() {
+			suite.coordinator.Setup(path)
+
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			// need to update chainA's client representing chainB to prove missing ack
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			// Move channel to TRYUPGRADE
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			err = path.EndpointB.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeTry()
+			suite.Require().NoError(err)
+		}, true},
+		{"success: channel is in ACKUPGRADE and FLUSHING", func() {
+			suite.coordinator.Setup(path)
+
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			// need to update chainA's client representing chainB to prove missing ack
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			// Move channel to ACKUPGRADE
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			err = path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+		}, true},
 		{"packet already timed out: ORDERED", func() {
 			expError = types.ErrNoOpMsg
 			ordered = true
@@ -114,6 +161,25 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 			err = path.EndpointA.SetChannelState(types.CLOSED)
 			suite.Require().NoError(err)
+		}, false},
+		{"channel in TRYUPGRADE and FLUSH_COMPLETE", func() {
+			expError = types.ErrInvalidChannelState
+			suite.coordinator.Setup(path)
+
+			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+
+			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+			// need to update chainA's client representing chainB to prove missing ack
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			// Move channel to TRYUPGRADE and to FLUSH_COMPLETE manually.
+			channel := path.EndpointA.GetChannel()
+			channel.State = types.TRYUPGRADE
+			channel.FlushStatus = types.FLUSHCOMPLETE
+			path.EndpointA.SetChannel(channel)
 		}, false},
 		{"packet destination port ≠ channel counterparty port", func() {
 			expError = types.ErrInvalidPacket

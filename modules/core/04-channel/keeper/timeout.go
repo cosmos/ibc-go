@@ -83,10 +83,10 @@ func (k Keeper) TimeoutPacket(
 		return types.ErrNoOpMsg
 	}
 
-	if channel.State != types.OPEN {
+	if channel.State != types.OPEN && channel.FlushStatus != types.FLUSHING {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
+			"cannot timeout packet on channel with state (%s) and flush status (%s)", channel.State, channel.FlushStatus,
 		)
 	}
 
