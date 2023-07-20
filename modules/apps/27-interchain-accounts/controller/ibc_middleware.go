@@ -274,7 +274,10 @@ func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 // GetPacketSender returns the owner address contained in the controller portID.
 // This function implements the optional PacketInfoProvider interface required for ADR 008 support.
 func (im IBCMiddleware) GetPacketSender(packet ibcexported.PacketI) string {
-	icaOwner, _ := strings.CutPrefix(packet.GetSourcePort(), icatypes.ControllerPortPrefix)
+	icaOwner, found := strings.CutPrefix(packet.GetSourcePort(), icatypes.ControllerPortPrefix)
+	if !found {
+		return ""
+	}
 	return icaOwner
 }
 

@@ -951,6 +951,12 @@ func (suite *InterchainAccountsTestSuite) TestPacketInfoProviderInterface() {
 	packetReceiver := controller.IBCMiddleware{}.GetPacketReceiver(packet)
 	suite.Require().Equal("", packetReceiver)
 
+	// test invalid port data
+	packet.SourcePort = "invalid port"
+	packetSender = controller.IBCMiddleware{}.GetPacketSender(packet)
+	suite.Require().Equal("", packetSender)
+
+	// test invalid packet data
 	invalidPacketData := []byte("invalid packet data")
 	packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(invalidPacketData)
 	suite.Require().Error(err)
