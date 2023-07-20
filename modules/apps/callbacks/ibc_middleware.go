@@ -53,6 +53,39 @@ func NewIBCMiddleware(
 	}
 }
 
+// SendPacket implements the ICS4 Wrapper interface
+func (im IBCMiddleware) SendPacket(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	sourcePort string,
+	sourceChannel string,
+	timeoutHeight clienttypes.Height,
+	timeoutTimestamp uint64,
+	data []byte,
+) (uint64, error) {
+	seq, err := im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+	if err != nil {
+		return seq, err
+	}
+
+	// we use the reconstructed packet to get the packet sender, this should be fine since the only missing fields are
+	// the destination port and channel. And GetPacketSender is a static method that does not depend on the context, so
+	// it should be fine to use the reconstructed packet.
+	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
+	packetSenderAddress := im.GetPacketSender(reconstructedPacket)
+
+	callbackDataGetter := func() (types.CallbackData, bool, error) {
+		return types.GetSourceCallbackData(im.app, data, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	}
+	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
+		return im.contractKeeper.IBCSendPacketCallback(
+			cachedCtx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data, callbackAddress, packetSenderAddress,
+		)
+	}
+
+	return seq, im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackDataGetter, callbackExecutor)
+}
+
 // OnAcknowledgementPacket implements source callbacks for acknowledgement packets.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback fails (within the gas limit), state changes are reverted.
@@ -151,39 +184,6 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	}
 
 	return im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
-}
-
-// SendPacket implements the ICS4 Wrapper interface
-func (im IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (uint64, error) {
-	seq, err := im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
-	if err != nil {
-		return seq, err
-	}
-
-	// we use the reconstructed packet to get the packet sender, this should be fine since the only missing fields are
-	// the destination port and channel. And GetPacketSender is a static method that does not depend on the context, so
-	// it should be fine to use the reconstructed packet.
-	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
-	packetSenderAddress := im.GetPacketSender(reconstructedPacket)
-
-	callbackDataGetter := func() (types.CallbackData, bool, error) {
-		return types.GetSourceCallbackData(im.app, data, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
-	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
-		return im.contractKeeper.IBCSendPacketCallback(
-			cachedCtx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data, callbackAddress, packetSenderAddress,
-		)
-	}
-
-	return seq, im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackDataGetter, callbackExecutor)
 }
 
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
