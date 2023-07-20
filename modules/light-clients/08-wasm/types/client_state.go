@@ -48,7 +48,7 @@ func (cs ClientState) Validate() error {
 		return errorsmod.Wrap(ErrInvalidCodeHash, "code hash cannot be empty")
 	}
 	if lenCodeHash != 32 { // sha256 output is 256 bits long
-		return errorsmod.Wrapf(ErrInvalidCodeHash, "expected 32, got %d", lenCodeHash)
+		return errorsmod.Wrapf(ErrInvalidCodeHash, "expected length of 32 bytes, got %d", lenCodeHash)
 	}
 
 	return nil
