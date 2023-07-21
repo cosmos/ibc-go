@@ -53,7 +53,7 @@ type (
 		Height exported.Height `json:"height"`
 	}
 	verifyClientMessageMsg struct {
-		ClientMessage exported.ClientMessage `json:"client_message"`
+		ClientMessage *ClientMessage `json:"client_message"`
 	}
 	verifyMembershipMsg struct {
 		Height           exported.Height `json:"height"`
@@ -71,7 +71,7 @@ type (
 		Path             exported.Path   `json:"path"`
 	}
 	checkForMisbehaviourMsg struct {
-		ClientMessage exported.ClientMessage `json:"client_message"`
+		ClientMessage *ClientMessage `json:"client_message"`
 	}
 )
 
@@ -89,10 +89,10 @@ type (
 		ConsensusState *ConsensusState `json:"consensus_state"`
 	}
 	updateStateMsg struct {
-		ClientMessage exported.ClientMessage `json:"client_message"`
+		ClientMessage *ClientMessage `json:"client_message"`
 	}
 	updateStateOnMisbehaviourMsg struct {
-		ClientMessage exported.ClientMessage `json:"client_message"`
+		ClientMessage *ClientMessage `json:"client_message"`
 	}
 	verifyUpgradeAndUpdateStateMsg struct {
 		UpgradeClientState         exported.ClientState    `json:"upgrade_client_state"`

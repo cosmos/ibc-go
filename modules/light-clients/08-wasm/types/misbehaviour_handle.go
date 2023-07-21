@@ -10,8 +10,13 @@ import (
 // CheckForMisbehaviour detects misbehaviour in a submitted Header message and verifies
 // the correctness of a submitted Misbehaviour ClientMessage
 func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) bool {
+	clientMessage, ok := clientMsg.(*ClientMessage)
+	if !ok {
+		return false
+	}
+
 	payload := QueryMsg{
-		CheckForMisbehaviour: &checkForMisbehaviourMsg{ClientMessage: clientMsg},
+		CheckForMisbehaviour: &checkForMisbehaviourMsg{ClientMessage: clientMessage},
 	}
 
 	result, err := call[contractResult](ctx, clientStore, &cs, payload)

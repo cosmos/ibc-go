@@ -43,3 +43,10 @@ message Misbehaviour {
 
   bytes data = 1;
 }
+
+// Wasm light client message (either header(s) or misbehaviour)
+message ClientMessage {
+  option (gogoproto.goproto_getters) = false;
+
+  bytes data = 1;
+}

@@ -3,6 +3,8 @@ package types
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -16,8 +18,13 @@ var _ exported.ClientState = (*ClientState)(nil)
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
 func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+	clientMessage, ok := clientMsg.(*ClientMessage)
+	if !ok {
+		return errorsmod.Wrapf(ErrInvalidClientMessage, "expected type %T, got %T", &ClientMessage{}, clientMsg)
+	}
+
 	payload := QueryMsg{
-		VerifyClientMessage: &verifyClientMessageMsg{ClientMessage: clientMsg},
+		VerifyClientMessage: &verifyClientMessageMsg{ClientMessage: clientMessage},
 	}
 	_, err := call[contractResult](ctx, clientStore, &cs, payload)
 	return err
@@ -25,13 +32,13 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, 
 
 // Client state and new consensus states are updated in the store by the contract
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	_, ok := clientMsg.(*Header)
+	clientMessage, ok := clientMsg.(*ClientMessage)
 	if !ok {
-		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
+		panic(fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
 	}
 
 	payload := SudoMsg{
-		UpdateState: &updateStateMsg{ClientMessage: clientMsg},
+		UpdateState: &updateStateMsg{ClientMessage: clientMessage},
 	}
 
 	_, err := call[contractResult](ctx, clientStore, &cs, payload)
@@ -45,8 +52,13 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 // Client state is updated in the store by contract.
 func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
+	clientMessage, ok := clientMsg.(*ClientMessage)
+	if !ok {
+		panic(fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
+	}
+
 	payload := SudoMsg{
-		UpdateStateOnMisbehaviour: &updateStateOnMisbehaviourMsg{ClientMessage: clientMsg},
+		UpdateStateOnMisbehaviour: &updateStateOnMisbehaviourMsg{ClientMessage: clientMessage},
 	}
 
 	_, err := call[contractResult](ctx, clientStore, &cs, payload)
