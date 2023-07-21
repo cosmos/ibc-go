@@ -157,7 +157,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeHash, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -216,7 +216,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeHash, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -258,7 +258,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeHash, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
@@ -286,7 +286,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeHash, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
@@ -540,7 +540,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeHash, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -592,7 +592,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 			tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 			suite.Require().NoError(err)
 
-			upgradedClient = types.NewClientState(tmUpgradedClientBz, clientState.CodeId, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1))
+			upgradedClient = types.NewClientState(tmUpgradedClientBz, clientState.CodeHash, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1))
 			upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 			suite.Require().NoError(err)
 

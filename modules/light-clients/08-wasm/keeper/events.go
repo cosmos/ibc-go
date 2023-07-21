@@ -9,11 +9,11 @@ import (
 )
 
 // emitCreateClientEvent emits a create client event
-func emitStoreWasmCodeEvent(ctx sdk.Context, codeID []byte) {
+func emitStoreWasmCodeEvent(ctx sdk.Context, codeHash []byte) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			clienttypes.EventTypeStoreWasmCode,
-			sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeID, hex.EncodeToString(codeID)),
+			sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeHash, hex.EncodeToString(codeHash)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

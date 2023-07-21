@@ -117,7 +117,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		if err != nil {
 			return err
 		}
-		clientState = wasmtypes.NewClientState(wasmClientState, endpoint.Chain.Coordinator.CodeID, height)
+		clientState = wasmtypes.NewClientState(wasmClientState, endpoint.Chain.Coordinator.CodeHash, height)
 
 		wasmConsensusState, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
 		if err != nil {

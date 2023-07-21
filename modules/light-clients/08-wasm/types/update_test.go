@@ -42,7 +42,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 
 				clientState = &types.ClientState{
 					Data:         clientStateData,
-					CodeId:       suite.codeID,
+					CodeHash:     suite.codeHash,
 					LatestHeight: clienttypes.NewHeight(2000, 39),
 				}
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
