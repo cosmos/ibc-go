@@ -293,6 +293,29 @@ func (suite *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
 	suite.Require().NotNil(ack)
 }
 
+func (suite *CallbacksTestSuite) TestSendPacketReject() {
+	suite.SetupTransferTest()
+
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+	callbackStack, ok := transferStack.(porttypes.Middleware)
+	suite.Require().True(ok)
+
+	// We use the MockCallbackUnauthorizedAddress so that mock contract keeper knows to reject the packet
+	ftpd := transfertypes.NewFungibleTokenPacketData(
+		ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibcmock.MockCallbackUnauthorizedAddress,
+		ibctesting.TestAccAddress, fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+	)
+
+	channelCap := suite.path.EndpointA.Chain.GetChannelCapability(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	seq, err := callbackStack.SendPacket(
+		suite.chainA.GetContext(), channelCap, suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0, ftpd.GetBytes(),
+	)
+	suite.Require().ErrorIs(err, ibcmock.ErrorMock)
+	suite.Require().Equal(uint64(0), seq)
+}
+
 func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	// The successful cases, other errors, and panics are tested in transfer_test.go and ica_test.go.
 	suite.SetupTransferTest()
