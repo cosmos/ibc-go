@@ -268,9 +268,9 @@ func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Client
 	if !output.Validate() {
 		return output, errorsmod.Wrapf(errors.New(output.Error()), "error occurred while executing contract with code hash %s", hex.EncodeToString(cs.CodeHash))
 	}
-  if len(out.Messages) > 0 {
+	if len(out.Messages) > 0 {
 		return output, errorsmod.Wrapf(ErrWasmSubMessagesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-  }
+	}
 	return output, nil
 }
 
@@ -281,7 +281,7 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *C
 	if err != nil {
 		return output, errorsmod.Wrapf(err, "failed to marshal payload for wasm query")
 	}
-	out, err := queryContract(ctx, clientStore, cs.CodeId, encodedData)
+	out, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return output, errorsmod.Wrapf(err, "call to wasm contract failed")
 	}
