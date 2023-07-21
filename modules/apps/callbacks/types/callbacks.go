@@ -18,6 +18,10 @@ type CallbackData struct {
 	ContractAddr string
 	// GasLimit is the gas limit which will be used for the callback execution
 	GasLimit uint64
+	// AuthAddr is the sender of the packet in the case of a source callback
+	// or the receiver of the packet in the case of a destination callback
+	// This address may be empty if it is not provided in the packet data.
+	AuthAddr string
 	// CommitGasLimit is the gas needed to commit the callback even if the
 	// callback execution fails due to out of gas. This parameter is only
 	// used to be emitted in the event.
@@ -28,7 +32,7 @@ type CallbackData struct {
 // It also checks that the remaining gas is greater than the gas limit specified in the packet data.
 func GetSourceCallbackData(
 	packetInfoProvider porttypes.PacketInfoProvider,
-	packetData []byte, remainingGas uint64, maxGas uint64,
+	packet ibcexported.PacketI, remainingGas uint64, maxGas uint64,
 ) (CallbackData, bool, error) {
 	addressGetter := func(callbackData ibcexported.CallbackPacketData) string {
 		return callbackData.GetSourceCallbackAddress()
@@ -36,14 +40,17 @@ func GetSourceCallbackData(
 	gasLimitGetter := func(callbackData ibcexported.CallbackPacketData) uint64 {
 		return callbackData.GetSourceUserDefinedGasLimit()
 	}
-	return getCallbackData(packetInfoProvider, packetData, remainingGas, maxGas, addressGetter, gasLimitGetter)
+	authGetter := func(callbackData ibcexported.CallbackPacketData) string {
+		return callbackData.GetPacketSender(packet.GetSourcePort(), packet.GetSourceChannel())
+	}
+	return getCallbackData(packetInfoProvider, packet.GetData(), remainingGas, maxGas, addressGetter, gasLimitGetter, authGetter)
 }
 
 // GetDestCallbackData parses the packet data and returns the destination callback data.
 // It also checks that the remaining gas is greater than the gas limit specified in the packet data.
 func GetDestCallbackData(
 	packetInfoProvider porttypes.PacketInfoProvider,
-	packetData []byte, remainingGas uint64, maxGas uint64,
+	packet ibcexported.PacketI, remainingGas uint64, maxGas uint64,
 ) (CallbackData, bool, error) {
 	addressGetter := func(callbackData ibcexported.CallbackPacketData) string {
 		return callbackData.GetDestCallbackAddress()
@@ -51,7 +58,10 @@ func GetDestCallbackData(
 	gasLimitGetter := func(callbackData ibcexported.CallbackPacketData) uint64 {
 		return callbackData.GetDestUserDefinedGasLimit()
 	}
-	return getCallbackData(packetInfoProvider, packetData, remainingGas, maxGas, addressGetter, gasLimitGetter)
+	authGetter := func(callbackData ibcexported.CallbackPacketData) string {
+		return callbackData.GetPacketReceiver(packet.GetDestPort(), packet.GetDestChannel())
+	}
+	return getCallbackData(packetInfoProvider, packet.GetData(), remainingGas, maxGas, addressGetter, gasLimitGetter, authGetter)
 }
 
 // getCallbackData parses the packet data and returns the callback data.
@@ -63,6 +73,7 @@ func getCallbackData(
 	packetData []byte, remainingGas uint64, maxGas uint64,
 	addressGetter func(ibcexported.CallbackPacketData) string,
 	gasLimitGetter func(ibcexported.CallbackPacketData) uint64,
+	authGetter func(ibcexported.CallbackPacketData) string,
 ) (CallbackData, bool, error) {
 	// unmarshal packet data
 	unmarshaledData, err := packetInfoProvider.UnmarshalPacketData(packetData)
@@ -97,6 +108,7 @@ func getCallbackData(
 	return CallbackData{
 		ContractAddr:   addressGetter(callbackData),
 		GasLimit:       gasLimit,
+		AuthAddr:       authGetter(callbackData),
 		CommitGasLimit: commitGasLimit,
 	}, allowRetry, nil
 }

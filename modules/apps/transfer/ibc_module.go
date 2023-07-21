@@ -318,27 +318,3 @@ func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 
 	return packetData, nil
 }
-
-// GetPacketSender returns the sender address of the FungibleTokenPacketData.
-func (im IBCModule) GetPacketSender(packet ibcexported.PacketI) string {
-	packetDataI, err := im.UnmarshalPacketData(packet.GetData())
-	if err != nil {
-		return ""
-	}
-
-	// This casting is safe because we use the transfer module's UnmarshalPacketData
-	// which returns a FungibleTokenPacketData
-	return packetDataI.(types.FungibleTokenPacketData).Sender
-}
-
-// GetPacketReceiver returns the receiver address of the FungibleTokenPacketData.
-func (im IBCModule) GetPacketReceiver(packet ibcexported.PacketI) string {
-	packetDataI, err := im.UnmarshalPacketData(packet.GetData())
-	if err != nil {
-		return ""
-	}
-
-	// This casting is safe because we use the transfer module's UnmarshalPacketData
-	// which returns a FungibleTokenPacketData
-	return packetDataI.(types.FungibleTokenPacketData).Receiver
-}

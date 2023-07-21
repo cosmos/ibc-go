@@ -72,14 +72,13 @@ func (im IBCMiddleware) SendPacket(
 	}
 
 	// Reconstruct the sent packet. The destination portID and channelID are intentionally left empty as the sender information
-	// must only be derived from the source packet information.
+	// is only derived from the source packet information in `GetSourceCallbackData`.
 	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
-	packetSenderAddress := im.GetPacketSender(reconstructedPacket)
 
 	callbackDataGetter := func() (types.CallbackData, bool, error) {
-		return types.GetSourceCallbackData(im.app, data, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+		return types.GetSourceCallbackData(im.app, reconstructedPacket, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
+	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetSenderAddress string) error {
 		return im.contractKeeper.IBCSendPacketCallback(
 			cachedCtx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data, callbackAddress, packetSenderAddress,
 		)
@@ -104,11 +103,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	packetSenderAddress := im.GetPacketSender(packet)
 	callbackDataGetter := func() (types.CallbackData, bool, error) {
-		return types.GetSourceCallbackData(im.app, packet.GetData(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+		return types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
+	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetSenderAddress string) error {
 		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackAddress, packetSenderAddress)
 	}
 
@@ -125,11 +123,10 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return err
 	}
 
-	packetSenderAddress := im.GetPacketSender(packet)
 	callbackDataGetter := func() (types.CallbackData, bool, error) {
-		return types.GetSourceCallbackData(im.app, packet.GetData(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+		return types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
+	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetSenderAddress string) error {
 		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackAddress, packetSenderAddress)
 	}
 
@@ -150,11 +147,10 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return ack
 	}
 
-	packetReceiverAddress := im.GetPacketReceiver(packet)
 	callbackDataGetter := func() (types.CallbackData, bool, error) {
-		return types.GetDestCallbackData(im.app, packet.GetData(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+		return types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
+	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetReceiverAddress string) error {
 		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress, packetReceiverAddress)
 	}
 
@@ -183,11 +179,10 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	packetReceiverAddress := im.GetPacketReceiver(packet)
 	callbackDataGetter := func() (types.CallbackData, bool, error) {
-		return types.GetDestCallbackData(im.app, packet.GetData(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+		return types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress string) error {
+	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetReceiverAddress string) error {
 		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress, packetReceiverAddress)
 	}
 
@@ -200,7 +195,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 func (im IBCMiddleware) processCallback(
 	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
 	callbackDataGetter func() (types.CallbackData, bool, error),
-	callbackExecutor func(sdk.Context, string) error,
+	callbackExecutor func(sdk.Context, string, string) error,
 ) (err error) {
 	callbackData, allowRetry, err := callbackDataGetter()
 	if err != nil {
@@ -231,7 +226,7 @@ func (im IBCMiddleware) processCallback(
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
 	}()
 
-	err = callbackExecutor(cachedCtx, callbackData.ContractAddr)
+	err = callbackExecutor(cachedCtx, callbackData.ContractAddr, callbackData.AuthAddr)
 	if err == nil {
 		writeFn()
 	}
@@ -303,16 +298,4 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 // This function implements the optional PacketInfoProvider interface.
 func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	return im.app.UnmarshalPacketData(bz)
-}
-
-// GetPacketSender defers to the underlying app.
-// This function implements the optional PacketInfoProvider interface.
-func (im IBCMiddleware) GetPacketSender(packet ibcexported.PacketI) string {
-	return im.app.GetPacketSender(packet)
-}
-
-// GetPacketReceiver defers to the underlying app.
-// This function implements the optional PacketInfoProvider interface.
-func (im IBCMiddleware) GetPacketReceiver(packet ibcexported.PacketI) string {
-	return im.app.GetPacketReceiver(packet)
 }

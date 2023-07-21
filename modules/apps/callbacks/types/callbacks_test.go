@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -43,6 +44,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			2_000_000,
 			types.CallbackData{
 				ContractAddr:   sender,
+				AuthAddr:       sender,
 				GasLimit:       1_000_000,
 				CommitGasLimit: 1_000_000,
 			},
@@ -64,6 +66,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			100000,
 			types.CallbackData{
 				ContractAddr:   sender,
+				AuthAddr:       sender,
 				GasLimit:       50000,
 				CommitGasLimit: 50000,
 			},
@@ -85,6 +88,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			100000,
 			types.CallbackData{
 				ContractAddr:   sender,
+				AuthAddr:       sender,
 				GasLimit:       100000,
 				CommitGasLimit: 200000,
 			},
@@ -106,6 +110,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			100000,
 			types.CallbackData{
 				ContractAddr:   sender,
+				AuthAddr:       sender,
 				GasLimit:       100000,
 				CommitGasLimit: 1_000_000,
 			},
@@ -127,6 +132,7 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			2_000_000,
 			types.CallbackData{
 				ContractAddr:   sender,
+				AuthAddr:       sender,
 				GasLimit:       1_000_000,
 				CommitGasLimit: 1_000_000,
 			},
@@ -150,7 +156,8 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 
 		packetUnmarshaler := transfer.IBCModule{}
 
-		callbackData, hasEnoughGas, err := types.GetSourceCallbackData(packetUnmarshaler, packetData, tc.remainingGas, uint64(1_000_000))
+		testPacket := channeltypes.Packet{Data: packetData}
+		callbackData, hasEnoughGas, err := types.GetSourceCallbackData(packetUnmarshaler, testPacket, tc.remainingGas, uint64(1_000_000))
 
 		suite.Require().Equal(tc.expAllowRetry, hasEnoughGas, tc.name)
 		if tc.expPass {
@@ -191,6 +198,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			2_000_000,
 			types.CallbackData{
 				ContractAddr:   sender,
+				AuthAddr:       receiver,
 				GasLimit:       1_000_000,
 				CommitGasLimit: 1_000_000,
 			},
@@ -212,6 +220,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			100000,
 			types.CallbackData{
 				ContractAddr:   sender,
+				AuthAddr:       receiver,
 				GasLimit:       50000,
 				CommitGasLimit: 50000,
 			},
@@ -233,6 +242,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			100000,
 			types.CallbackData{
 				ContractAddr:   sender,
+				AuthAddr:       receiver,
 				GasLimit:       100000,
 				CommitGasLimit: 200000,
 			},
@@ -254,6 +264,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			100000,
 			types.CallbackData{
 				ContractAddr:   sender,
+				AuthAddr:       receiver,
 				GasLimit:       100000,
 				CommitGasLimit: 1_000_000,
 			},
@@ -275,6 +286,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			2_000_000,
 			types.CallbackData{
 				ContractAddr:   sender,
+				AuthAddr:       receiver,
 				GasLimit:       1_000_000,
 				CommitGasLimit: 1_000_000,
 			},
@@ -298,7 +310,8 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 
 		packetUnmarshaler := transfer.IBCModule{}
 
-		callbackData, hasEnoughGas, err := types.GetDestCallbackData(packetUnmarshaler, packetData, tc.remainingGas, uint64(1_000_000))
+		testPacket := channeltypes.Packet{Data: packetData}
+		callbackData, hasEnoughGas, err := types.GetDestCallbackData(packetUnmarshaler, testPacket, tc.remainingGas, uint64(1_000_000))
 
 		suite.Require().Equal(tc.expAllowRetry, hasEnoughGas, tc.name)
 		if tc.expPass {
@@ -318,8 +331,8 @@ func (suite *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
 	packetUnmarshaler := ibcmock.IBCModule{}
 
 	// ibcmock.MockPacketData instructs the MockPacketDataUnmarshaler to return ibcmock.MockPacketData, nil
-	callbackData, hasEnoughGas, err := types.GetCallbackData(packetUnmarshaler, ibcmock.MockPacketData, 100000, uint64(1_000_000), nil, nil)
-	suite.Require().False(hasEnoughGas)
+	callbackData, allowRetry, err := types.GetCallbackData(packetUnmarshaler, ibcmock.MockPacketData, 100000, uint64(1_000_000), nil, nil, nil)
+	suite.Require().False(allowRetry)
 	suite.Require().Equal(types.CallbackData{}, callbackData)
 	suite.Require().ErrorIs(err, types.ErrNotCallbackPacketData)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 var largeMemo = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
@@ -382,5 +383,37 @@ func (suite *TypesTestSuite) TestDestUserDefinedGasLimit() {
 
 	for _, tc := range testCases {
 		suite.Require().Equal(tc.expUserGas, tc.packetData.GetDestUserDefinedGasLimit())
+	}
+}
+
+func (suite *TypesTestSuite) TestGetPacketSenderAndReceiver() {
+	// dest user defined gas limits are not supported for ICS 27
+	testCases := []struct {
+		name      string
+		srcPortID string
+		expSender string
+	}{
+		{
+			"success: port id has prefix",
+			types.ControllerPortPrefix + ibctesting.TestAccAddress,
+			ibctesting.TestAccAddress,
+		},
+		{
+			"failure: missing prefix",
+			ibctesting.TestAccAddress,
+			"",
+		},
+		{
+			"failure: empty port id",
+			"",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		packetData := types.InterchainAccountPacketData{}
+		suite.Require().Equal(tc.expSender, packetData.GetPacketSender(tc.srcPortID, ibctesting.InvalidID))
+		// GetPacketReceiver always returns empty string for ICS 27
+		suite.Require().Equal("", packetData.GetPacketReceiver(tc.srcPortID, tc.srcPortID))
 	}
 }

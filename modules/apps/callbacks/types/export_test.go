@@ -15,6 +15,7 @@ func GetCallbackData(
 	packetData []byte, remainingGas uint64, maxGas uint64,
 	addressGetter func(ibcexported.CallbackPacketData) string,
 	gasLimitGetter func(ibcexported.CallbackPacketData) uint64,
+	authGetter func(ibcexported.CallbackPacketData) string,
 ) (CallbackData, bool, error) {
-	return getCallbackData(packetInfoProvider, packetData, remainingGas, maxGas, addressGetter, gasLimitGetter)
+	return getCallbackData(packetInfoProvider, packetData, remainingGas, maxGas, addressGetter, gasLimitGetter, authGetter)
 }

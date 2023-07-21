@@ -47,4 +47,12 @@ type CallbackPacketData interface {
 	// maximum gas limit, missing, 0, or improperly formatted, then the callbacks middleware will set it to the
 	// maximum gas limit. In other words, `min(ctx.GasLimit, UserDefinedGasLimit())`.
 	GetDestUserDefinedGasLimit() uint64
+
+	// GetPacketSender returns the sender address of the packet.
+	// If the packet sender is unknown, or undefined, an empty string should be returned.
+	GetPacketSender(srcPortID, srcChannelID string) string
+
+	// GetPacketReceiver returns the receiver address of the packet.
+	// If the packet receiver is unknown, or undefined, an empty string should be returned.
+	GetPacketReceiver(dstPortID, dstChannelID string) string
 }

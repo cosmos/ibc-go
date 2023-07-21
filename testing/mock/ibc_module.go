@@ -178,16 +178,6 @@ func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	return nil, ErrorMock
 }
 
-// GetPacketSender returns MockPacketSender.
-func (im IBCModule) GetPacketSender(packet exported.PacketI) string {
-	return MockPacketSender
-}
-
-// GetPacketSender returns an MockPacketReceiver.
-func (im IBCModule) GetPacketReceiver(packet exported.PacketI) string {
-	return MockPacketReceiver
-}
-
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
 func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
 	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))

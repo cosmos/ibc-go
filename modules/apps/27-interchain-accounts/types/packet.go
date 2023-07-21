@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -141,6 +142,20 @@ func (iapd InterchainAccountPacketData) GetSourceUserDefinedGasLimit() uint64 {
 // This feature is natively supported by interchain accounts host submodule transaction execution.
 func (iapd InterchainAccountPacketData) GetDestUserDefinedGasLimit() uint64 {
 	return 0
+}
+
+// GetPacketSender returns the sender address of the packet.
+func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID, srcChannelID string) string {
+	icaOwner, found := strings.CutPrefix(srcPortID, ControllerPortPrefix)
+	if !found {
+		return ""
+	}
+	return icaOwner
+}
+
+// GetPacketReceiver returns the empty string because destination callbacks are not supported for ICS 27.
+func (iapd InterchainAccountPacketData) GetPacketReceiver(dstPortID, dstChannelID string) string {
+	return ""
 }
 
 // getCallbackData returns the memo as `map[string]interface{}` so that it can be

@@ -930,31 +930,10 @@ func (suite *InterchainAccountsTestSuite) TestPacketInfoProviderInterface() {
 		Data: []byte("data"),
 		Memo: `{"src_callback": {"address": "testAddr"}}`,
 	}
-	packet := channeltypes.NewPacket(
-		expPacketData.GetBytes(),
-		suite.chainA.SenderAccount.GetSequence(),
-		path.EndpointA.ChannelConfig.PortID,
-		path.EndpointA.ChannelID,
-		path.EndpointB.ChannelConfig.PortID,
-		path.EndpointB.ChannelID,
-		clienttypes.NewHeight(0, 100),
-		0,
-	)
 
 	packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(expPacketData.GetBytes())
 	suite.Require().NoError(err)
 	suite.Require().Equal(expPacketData, packetData)
-
-	packetSender := controller.IBCMiddleware{}.GetPacketSender(packet)
-	suite.Require().Equal(TestOwnerAddress, packetSender)
-
-	packetReceiver := controller.IBCMiddleware{}.GetPacketReceiver(packet)
-	suite.Require().Equal("", packetReceiver)
-
-	// test invalid port data
-	packet.SourcePort = "invalid port"
-	packetSender = controller.IBCMiddleware{}.GetPacketSender(packet)
-	suite.Require().Equal("", packetSender)
 
 	// test invalid packet data
 	invalidPacketData := []byte("invalid packet data")

@@ -1097,9 +1097,6 @@ func (suite *FeeTestSuite) TestPacketInfoProviderInterface() {
 	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
 	suite.Require().NoError(err)
 	suite.Require().Equal(ibcmock.MockPacketData, packetData)
-
-	suite.Require().Equal(ibcmock.MockPacketSender, feeModule.GetPacketSender(nil))
-	suite.Require().Equal(ibcmock.MockPacketReceiver, feeModule.GetPacketReceiver(nil))
 }
 
 func (suite *FeeTestSuite) TestPacketInfoProviderInterfaceError() {
@@ -1108,7 +1105,4 @@ func (suite *FeeTestSuite) TestPacketInfoProviderInterfaceError() {
 
 	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
 	suite.Require().ErrorIs(err, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketInfoProvider)(nil)))
-
-	suite.Require().Equal("", mockFeeMiddleware.GetPacketSender(channeltypes.Packet{}))
-	suite.Require().Equal("", mockFeeMiddleware.GetPacketReceiver(channeltypes.Packet{}))
 }
