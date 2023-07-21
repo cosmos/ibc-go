@@ -9,7 +9,7 @@ var (
 	ErrChannelExists             = errorsmod.Register(SubModuleName, 2, "channel already exists")
 	ErrChannelNotFound           = errorsmod.Register(SubModuleName, 3, "channel not found")
 	ErrInvalidChannel            = errorsmod.Register(SubModuleName, 4, "invalid channel")
-	ErrInvalidChannelState       = errorsmod.Register(SubModuleName, 5, "invalid channel state")
+	ErrUnexpectedChannelState    = errorsmod.Register(SubModuleName, 5, "unexpected channel state")
 	ErrInvalidChannelOrdering    = errorsmod.Register(SubModuleName, 6, "invalid channel ordering")
 	ErrInvalidCounterparty       = errorsmod.Register(SubModuleName, 7, "invalid counterparty channel")
 	ErrInvalidChannelCapability  = errorsmod.Register(SubModuleName, 8, "invalid channel capability")
