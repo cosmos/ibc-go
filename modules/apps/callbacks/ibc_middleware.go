@@ -1,6 +1,7 @@
 package ibccallbacks
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -84,7 +85,13 @@ func (im IBCMiddleware) SendPacket(
 		)
 	}
 
-	return seq, im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackDataGetter, callbackExecutor)
+	err = im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackDataGetter, callbackExecutor)
+	// contract keeper is allowed to reject the packet send.
+	if err != nil {
+		return 0, err
+	}
+
+	return seq, nil
 }
 
 // OnAcknowledgementPacket implements source callbacks for acknowledgement packets.
@@ -110,7 +117,12 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackAddress, packetSenderAddress)
 	}
 
-	return im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackDataGetter, callbackExecutor)
+	err = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackDataGetter, callbackExecutor)
+	if errors.Is(err, types.ErrCallbackOutOfGas) {
+		return err
+	}
+
+	return nil
 }
 
 // OnTimeoutPacket implements timeout source callbacks for the ibc-callbacks middleware.
@@ -130,7 +142,12 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackAddress, packetSenderAddress)
 	}
 
-	return im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
+	err = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
+	if errors.Is(err, types.ErrCallbackOutOfGas) {
+		return err
+	}
+
+	return nil
 }
 
 // OnRecvPacket implements the WriteAcknowledgement destination callbacks for the ibc-callbacks middleware during
@@ -155,8 +172,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	}
 
 	err := im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
-	if err != nil {
-		// revert entire tx if processCallback returns an error, requiring the relayer to provide more gas on a retry
+	if errors.Is(err, types.ErrCallbackOutOfGas) {
+		// revert entire tx if processCallback returns ErrCallbackOutOfGas, requiring the relayer to provide more gas on a retry
 		panic(err)
 	}
 
@@ -186,7 +203,12 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress, packetReceiverAddress)
 	}
 
-	return im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
+	err = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
+	if errors.Is(err, types.ErrCallbackOutOfGas) {
+		return err
+	}
+
+	return nil
 }
 
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
@@ -223,6 +245,7 @@ func (im IBCMiddleware) processCallback(
 				}
 			}
 		}
+		types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
 	}()
 
@@ -231,8 +254,7 @@ func (im IBCMiddleware) processCallback(
 		writeFn()
 	}
 
-	types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
-	return nil
+	return err
 }
 
 // OnChanOpenInit defers to the underlying application
