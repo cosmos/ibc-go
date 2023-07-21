@@ -8,20 +8,21 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	dbm "github.com/cometbft/cometbft-db"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	"github.com/cometbft/cometbft/libs/log"
+	tmtypes "github.com/cometbft/cometbft/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	dbm "github.com/cometbft/cometbft-db"
-	tmjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
-	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
@@ -48,7 +49,7 @@ type TypesTestSuite struct {
 
 	ctx      sdk.Context
 	store    sdk.KVStore
-	codeID   []byte
+	codeHash []byte
 	testData map[string]string
 }
 
@@ -77,15 +78,15 @@ func (suite *TypesTestSuite) SetupWasmTendermint() {
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
 	response, err := suite.chainA.App.GetWasmKeeper().StoreCode(suite.chainA.GetContext(), msg)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(response.CodeId)
-	suite.codeID = response.CodeId
+	suite.Require().NotNil(response.Checksum)
+	suite.codeHash = response.Checksum
 
 	response, err = suite.chainB.App.GetWasmKeeper().StoreCode(suite.chainB.GetContext(), msg)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(response.CodeId)
-	suite.codeID = response.CodeId
+	suite.Require().NotNil(response.Checksum)
+	suite.codeHash = response.Checksum
 
-	suite.coordinator.SetCodeID(suite.codeID)
+	suite.coordinator.SetCodeHash(suite.codeHash)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
@@ -112,8 +113,8 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
 	response, err := suite.chainA.App.GetWasmKeeper().StoreCode(suite.ctx, msg)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(response.CodeId)
-	suite.codeID = response.CodeId
+	suite.Require().NotNil(response.Checksum)
+	suite.codeHash = response.Checksum
 }
 
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
