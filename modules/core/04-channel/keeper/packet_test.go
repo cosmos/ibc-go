@@ -397,7 +397,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		}, false},
 		{"connection not OPEN", func() {
-			expError = connectiontypes.ErrInvalidConnectionState
+			expError = connectiontypes.ErrUnexpectedConnectionState
 			suite.coordinator.SetupClients(path)
 
 			// connection on chainB is in INIT
@@ -761,7 +761,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
 		{"connection not OPEN", func() {
-			expError = connectiontypes.ErrInvalidConnectionState
+			expError = connectiontypes.ErrUnexpectedConnectionState
 			suite.coordinator.SetupClients(path)
 			// connection on chainA is in INIT
 			err := path.EndpointA.ConnOpenInit()

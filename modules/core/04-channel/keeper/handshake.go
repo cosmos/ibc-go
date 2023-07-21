@@ -133,7 +133,7 @@ func (k Keeper) ChanOpenTry(
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return "", nil, errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
+			connectiontypes.ErrUnexpectedConnectionState,
 			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
 		)
 	}
@@ -244,7 +244,7 @@ func (k Keeper) ChanOpenAck(
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
+			connectiontypes.ErrUnexpectedConnectionState,
 			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
 		)
 	}
@@ -323,7 +323,7 @@ func (k Keeper) ChanOpenConfirm(
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
+			connectiontypes.ErrUnexpectedConnectionState,
 			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
 		)
 	}
@@ -405,7 +405,7 @@ func (k Keeper) ChanCloseInit(
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
+			connectiontypes.ErrUnexpectedConnectionState,
 			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
 		)
 	}
@@ -452,7 +452,7 @@ func (k Keeper) ChanCloseConfirm(
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
+			connectiontypes.ErrUnexpectedConnectionState,
 			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
 		)
 	}

@@ -171,7 +171,7 @@ func (k Keeper) RecvPacket(
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
+			connectiontypes.ErrUnexpectedConnectionState,
 			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
 		)
 	}
@@ -409,7 +409,7 @@ func (k Keeper) AcknowledgePacket(
 
 	if connectionEnd.GetState() != int32(connectiontypes.OPEN) {
 		return errorsmod.Wrapf(
-			connectiontypes.ErrInvalidConnectionState,
+			connectiontypes.ErrUnexpectedConnectionState,
 			"connection state is not OPEN (got %s)", connectiontypes.State(connectionEnd.GetState()).String(),
 		)
 	}

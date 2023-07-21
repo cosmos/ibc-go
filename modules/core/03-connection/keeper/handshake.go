@@ -191,7 +191,7 @@ func (k Keeper) ConnOpenAck(
 	// verify the previously set connection state
 	if connection.State != types.INIT {
 		return errorsmod.Wrapf(
-			types.ErrInvalidConnectionState,
+			types.ErrUnexpectedConnectionState,
 			"connection state is not INIT (got %s)", connection.State.String(),
 		)
 	}
@@ -199,7 +199,7 @@ func (k Keeper) ConnOpenAck(
 	// ensure selected version is supported
 	if !types.IsSupportedVersion(types.ProtoVersionsToExported(connection.Versions), version) {
 		return errorsmod.Wrapf(
-			types.ErrInvalidConnectionState,
+			types.ErrUnexpectedConnectionState,
 			"the counterparty selected version %s is not supported by versions selected on INIT", version,
 		)
 	}
@@ -273,7 +273,7 @@ func (k Keeper) ConnOpenConfirm(
 	// Check that connection state on ChainB is on state: TRYOPEN
 	if connection.State != types.TRYOPEN {
 		return errorsmod.Wrapf(
-			types.ErrInvalidConnectionState,
+			types.ErrUnexpectedConnectionState,
 			"connection state is not TRYOPEN (got %s)", connection.State.String(),
 		)
 	}

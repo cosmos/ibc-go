@@ -10,7 +10,7 @@ var (
 	ErrConnectionNotFound            = errorsmod.Register(SubModuleName, 3, "connection not found")
 	ErrClientConnectionPathsNotFound = errorsmod.Register(SubModuleName, 4, "light client connection paths not found")
 	ErrConnectionPath                = errorsmod.Register(SubModuleName, 5, "connection path is not associated to the given light client")
-	ErrInvalidConnectionState        = errorsmod.Register(SubModuleName, 6, "invalid connection state")
+	ErrUnexpectedConnectionState     = errorsmod.Register(SubModuleName, 6, "unexpected connection state")
 	ErrInvalidCounterparty           = errorsmod.Register(SubModuleName, 7, "invalid counterparty connection")
 	ErrInvalidConnection             = errorsmod.Register(SubModuleName, 8, "invalid connection")
 	ErrInvalidVersion                = errorsmod.Register(SubModuleName, 9, "invalid connection version")
