@@ -27,9 +27,6 @@ func NewChannel(
 }
 
 // GetState implements Channel interface.
-func (ch Channel) GetState() int32 {
-	return int32(ch.State)
-}
 
 // GetOrdering implements Channel interface.
 func (ch Channel) GetOrdering() int32 {
