@@ -147,7 +147,7 @@ func (suite *CallbacksTestSuite) TestWriteAcknowledgement() {
 	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
 }
 
-func (suite *CallbacksTestSuite) TestWriteAcknowledgementGenericError() {
+func (suite *CallbacksTestSuite) TestWriteAcknowledgementError() {
 	suite.SetupICATest()
 
 	packet := channeltypes.NewPacket(
@@ -188,7 +188,7 @@ func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketError() {
 	suite.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet acknowledgement:")
 }
 
-func (suite *CallbacksTestSuite) TestOnTimeoutPacketGenericError() {
+func (suite *CallbacksTestSuite) TestOnTimeoutPacketError() {
 	// The successful cases are tested in transfer_test.go and ica_test.go.
 	// This test case tests the error case by passing an invalid packet data.
 	suite.SetupTransferTest()
@@ -329,9 +329,45 @@ func (suite *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
 	suite.Require().ErrorIs(err, types.ErrCallbackOutOfGas)
 }
 
+func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketOogError() {
+	suite.SetupTransferTest()
+
+	senderAddr := suite.chainA.SenderAccount.GetAddress()
+	amount := ibctesting.TestCoin
+	msg := transfertypes.NewMsgTransfer(
+		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		amount, suite.chainA.SenderAccount.GetAddress().String(),
+		senderAddr.String(), clienttypes.NewHeight(1, 100), 0,
+		fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
+	)
+
+	res, err := suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	suite.Require().NoError(err) // packet committed
+	suite.Require().NotNil(packet)
+
+	// relay to chainB
+	err = suite.path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+	res, err = suite.path.EndpointB.RecvPacketWithResult(packet)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
+
+	// relay ack to chainA
+	ack, err := ibctesting.ParseAckFromEvents(res.Events)
+	suite.Require().NoError(err)
+
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+	modifiedCtx := suite.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
+
+	err = transferStack.OnAcknowledgementPacket(modifiedCtx, packet, ack, senderAddr)
+	suite.Require().ErrorIs(err, types.ErrCallbackOutOfGas)
+}
+
 func (suite *CallbacksTestSuite) TestOnTimeoutPacketOogError() {
-	// The successful cases are tested in transfer_test.go and ica_test.go.
-	// This test case tests the error case by passing an invalid packet data.
 	suite.SetupTransferTest()
 
 	timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
