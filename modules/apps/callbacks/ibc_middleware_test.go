@@ -147,7 +147,7 @@ func (suite *CallbacksTestSuite) TestWriteAcknowledgement() {
 	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
 }
 
-func (suite *CallbacksTestSuite) TestWriteAcknowledgementError() {
+func (suite *CallbacksTestSuite) TestWriteAcknowledgementGenericError() {
 	suite.SetupICATest()
 
 	packet := channeltypes.NewPacket(
@@ -188,7 +188,7 @@ func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketError() {
 	suite.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet acknowledgement:")
 }
 
-func (suite *CallbacksTestSuite) TestOnTimeoutPacketError() {
+func (suite *CallbacksTestSuite) TestOnTimeoutPacketGenericError() {
 	// The successful cases are tested in transfer_test.go and ica_test.go.
 	// This test case tests the error case by passing an invalid packet data.
 	suite.SetupTransferTest()
@@ -291,6 +291,76 @@ func (suite *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
 	// check that it doesn't panic when gas is high enough
 	ack := transferStackMw.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainB.SenderAccount.GetAddress())
 	suite.Require().NotNil(ack)
+}
+
+func (suite *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
+	suite.SetupTransferTest()
+
+	// build packet
+	packetData := transfertypes.NewFungibleTokenPacketData(
+		ibctesting.TestCoin.Denom,
+		ibctesting.TestCoin.Amount.String(),
+		ibctesting.TestAccAddress,
+		ibctesting.TestAccAddress,
+		fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
+	)
+
+	packet := channeltypes.NewPacket(
+		packetData.GetBytes(),
+		1,
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(1, 100),
+		0,
+	)
+
+	transferStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+
+	transferStackMw := transferStack.(porttypes.Middleware)
+
+	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
+	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+
+	modifiedCtx := suite.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
+	err := transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
+	suite.Require().ErrorIs(err, types.ErrCallbackOutOfGas)
+}
+
+func (suite *CallbacksTestSuite) TestOnTimeoutPacketOogError() {
+	// The successful cases are tested in transfer_test.go and ica_test.go.
+	// This test case tests the error case by passing an invalid packet data.
+	suite.SetupTransferTest()
+
+	timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+
+	amount := ibctesting.TestCoin
+	msg := transfertypes.NewMsgTransfer(
+		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		amount, suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, timeoutTimestamp,
+		fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
+	)
+
+	res, err := suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	suite.Require().NoError(err) // packet committed
+	suite.Require().NotNil(packet)
+
+	// need to update chainA's client representing chainB to prove missing ack
+	err = suite.path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+	modifiedCtx := suite.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
+	err = transferStack.OnTimeoutPacket(modifiedCtx, packet, suite.chainA.SenderAccount.GetAddress())
+	suite.Require().ErrorIs(err, types.ErrCallbackOutOfGas)
 }
 
 func (suite *CallbacksTestSuite) TestSendPacketReject() {
