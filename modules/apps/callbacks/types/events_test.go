@@ -57,6 +57,33 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 			},
 		},
 		{
+			"success: send packet callback",
+			channeltypes.NewPacket(
+				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
+				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+			),
+			types.CallbackTypeSendPacket,
+			types.CallbackData{
+				ContractAddr:   ibctesting.TestAccAddress,
+				GasLimit:       100000,
+				CommitGasLimit: 200000,
+			},
+			nil,
+			ibctesting.EventsMap{
+				types.EventTypeSourceCallback: {
+					sdk.AttributeKeyModule:                    types.ModuleName,
+					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeSendPacket),
+					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
+					types.AttributeKeyCallbackGasLimit:        "100000",
+					types.AttributeKeyCallbackCommitGasLimit:  "200000",
+					types.AttributeKeyCallbackSourcePortID:    ibctesting.MockPort,
+					types.AttributeKeyCallbackSourceChannelID: ibctesting.FirstChannelID,
+					types.AttributeKeyCallbackSequence:        "1",
+					types.AttributeKeyCallbackResult:          types.AttributeValueCallbackSuccess,
+				},
+			},
+		},
+		{
 			"success: timeout callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
