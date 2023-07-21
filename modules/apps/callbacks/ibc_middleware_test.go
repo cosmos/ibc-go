@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -162,15 +161,15 @@ func (suite *CallbacksTestSuite) TestWriteAcknowledgementError() {
 		0,
 	)
 
-	icaHostStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(icahosttypes.SubModuleName)
+	icaControllerStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	suite.Require().True(ok)
 
-	hostStack := icaHostStack.(porttypes.Middleware)
+	callbackStack := icaControllerStack.(porttypes.Middleware)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
 	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
-	err := hostStack.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+	err := callbackStack.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
 	suite.Require().ErrorIs(err, errorsmod.Wrap(channeltypes.ErrChannelNotFound, packet.GetDestChannel()))
 }
 
