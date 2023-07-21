@@ -118,7 +118,7 @@ func (u *UpgradeError) GetErrorReceipt() ErrorReceipt {
 	}
 }
 
-// IsUpgradeError returns true if err is of type UpgradeErroe, otherwise false.
+// IsUpgradeError returns true if err is of type UpgradeError, otherwise false.
 func IsUpgradeError(err error) bool {
 	_, ok := err.(*UpgradeError)
 	return ok
