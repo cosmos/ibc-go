@@ -919,7 +919,7 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 	suite.Require().NoError(err)
 }
 
-func (suite *InterchainAccountsTestSuite) TestPacketInfoProviderInterface() {
+func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 	err := SetupICAPath(path, TestOwnerAddress)

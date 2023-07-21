@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	_ porttypes.Middleware         = (*IBCMiddleware)(nil)
-	_ porttypes.PacketInfoProvider = (*IBCMiddleware)(nil)
+	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
+	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
@@ -259,7 +259,7 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into an InterchainAccountPacketData. This function implements the optional
-// PacketInfoProvider interface required for ADR 008 support.
+// PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	var packetData icatypes.InterchainAccountPacketData
 	if err := icatypes.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {

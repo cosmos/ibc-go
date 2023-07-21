@@ -244,7 +244,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 	}
 }
 
-func (suite *TransferTestSuite) TestPacketInfoProviderInterface() {
+func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	var (
 		sender           = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		receiver         = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()

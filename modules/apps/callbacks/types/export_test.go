@@ -11,11 +11,11 @@ import (
 
 // GetCallbackData is a wrapper around getCallbackData to allow the function to be directly called in tests.
 func GetCallbackData(
-	packetInfoProvider porttypes.PacketInfoProvider,
+	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 	packetData []byte, remainingGas uint64, maxGas uint64,
 	addressGetter func(ibcexported.CallbackPacketData) string,
 	gasLimitGetter func(ibcexported.CallbackPacketData) uint64,
 	authGetter func(ibcexported.CallbackPacketData) string,
 ) (CallbackData, bool, error) {
-	return getCallbackData(packetInfoProvider, packetData, remainingGas, maxGas, addressGetter, gasLimitGetter, authGetter)
+	return getCallbackData(packetDataUnmarshaler, packetData, remainingGas, maxGas, addressGetter, gasLimitGetter, authGetter)
 }

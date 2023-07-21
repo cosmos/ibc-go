@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	_ porttypes.Middleware         = (*IBCMiddleware)(nil)
-	_ porttypes.PacketInfoProvider = (*IBCMiddleware)(nil)
+	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
+	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the ibc-callbacks middleware given
@@ -41,12 +41,12 @@ func NewIBCMiddleware(
 	app porttypes.IBCModule, ics4Wrapper porttypes.ICS4Wrapper,
 	contractKeeper types.ContractKeeper, maxCallbackGas uint64,
 ) IBCMiddleware {
-	packetInfoProviderApp, ok := app.(types.CallbacksCompatibleModule)
+	packetDataUnmarshalerApp, ok := app.(types.CallbacksCompatibleModule)
 	if !ok {
 		panic(fmt.Sprintf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)))
 	}
 	return IBCMiddleware{
-		app:            packetInfoProviderApp,
+		app:            packetDataUnmarshalerApp,
 		ics4Wrapper:    ics4Wrapper,
 		contractKeeper: contractKeeper,
 		maxCallbackGas: maxCallbackGas,
@@ -295,7 +295,7 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 }
 
 // UnmarshalPacketData defers to the underlying app to unmarshal the packet data.
-// This function implements the optional PacketInfoProvider interface.
+// This function implements the optional PacketDataUnmarshaler interface.
 func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	return im.app.UnmarshalPacketData(bz)
 }

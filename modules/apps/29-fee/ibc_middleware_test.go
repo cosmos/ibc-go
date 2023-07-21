@@ -1084,14 +1084,14 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 	}
 }
 
-func (suite *FeeTestSuite) TestPacketInfoProviderInterface() {
+func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
 	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 	suite.Require().NoError(err)
 
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	feeModule, ok := cbs.(porttypes.PacketInfoProvider)
+	feeModule, ok := cbs.(porttypes.PacketDataUnmarshaler)
 	suite.Require().True(ok)
 
 	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
@@ -1099,10 +1099,10 @@ func (suite *FeeTestSuite) TestPacketInfoProviderInterface() {
 	suite.Require().Equal(ibcmock.MockPacketData, packetData)
 }
 
-func (suite *FeeTestSuite) TestPacketInfoProviderInterfaceError() {
-	// test the case when the underlying application cannot be casted to a PacketInfoProvider
+func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
+	// test the case when the underlying application cannot be casted to a PacketDataUnmarshaler
 	mockFeeMiddleware := fee.NewIBCMiddleware(nil, feekeeper.Keeper{})
 
 	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
-	suite.Require().ErrorIs(err, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketInfoProvider)(nil)))
+	suite.Require().ErrorIs(err, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil)))
 }

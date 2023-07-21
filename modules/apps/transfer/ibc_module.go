@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	_ porttypes.IBCModule          = IBCModule{}
-	_ porttypes.PacketInfoProvider = IBCModule{}
+	_ porttypes.IBCModule             = IBCModule{}
+	_ porttypes.PacketDataUnmarshaler = IBCModule{}
 )
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
@@ -309,7 +309,7 @@ func (im IBCModule) OnTimeoutPacket(
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional
-// PacketInfoProvider interface required for ADR 008 support.
+// PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	var packetData types.FungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {

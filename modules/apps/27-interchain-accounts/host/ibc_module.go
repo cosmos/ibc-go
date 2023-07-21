@@ -152,15 +152,3 @@ func (im IBCModule) OnTimeoutPacket(
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
 }
-
-// UnmarshalPacketData attempts to unmarshal the provided packet data bytes
-// into an InterchainAccountPacketData. This function implements the optional
-// PacketInfoProvider interface required for ADR 008 support.
-func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	var packetData icatypes.InterchainAccountPacketData
-	if err := icatypes.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {
-		return nil, err
-	}
-
-	return packetData, nil
-}
