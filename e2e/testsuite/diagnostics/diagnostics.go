@@ -26,12 +26,7 @@ const (
 func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chainNames ...string) {
 	t.Helper()
 
-<<<<<<< HEAD
-	debugCfg := testconfig.LoadConfig().DebugConfig
-	if !debugCfg.DumpLogs {
-=======
 	if !debugModeEnabled {
->>>>>>> main
 		// when we are not forcing log collection, we only upload upon test failing.
 		if !t.Failed() {
 			t.Logf("test passed, not uploading logs")

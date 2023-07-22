@@ -88,11 +88,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
 
-<<<<<<< HEAD
-	r := relayer.New(s.T(), testconfig.LoadConfig().RelayerConfig, s.logger, s.DockerClient, s.network)
-=======
 	r := relayer.New(s.T(), LoadConfig().RelayerConfig, s.logger, s.DockerClient, s.network)
->>>>>>> main
 
 	pathName := s.generatePathName()
 
@@ -389,16 +385,9 @@ func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.
 // use less resources and allow the tests to run faster.
 // both the number of validators and full nodes can be overwritten in a config file.
 func getValidatorsAndFullNodes(chainIdx int) (int, int) {
-<<<<<<< HEAD
-	if testconfig.IsCI() {
-		return 4, 1
-	}
-	tc := testconfig.LoadConfig()
-=======
 	if IsCI() {
 		return 4, 1
 	}
 	tc := LoadConfig()
->>>>>>> main
 	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
 }

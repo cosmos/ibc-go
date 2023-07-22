@@ -60,12 +60,9 @@ const (
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
-<<<<<<< HEAD:e2e/testconfig/testconfig.go
-=======
 
 	// icadBinary is the binary for interchain-accounts-demo repository.
 	icadBinary = "icad"
->>>>>>> main:e2e/testsuite/testconfig.go
 )
 
 func getChainImage(binary string) string {
@@ -367,8 +364,6 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in ~/.ibc-go-e2e-config.json to increase cometbft logging.
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
-<<<<<<< HEAD:e2e/testconfig/testconfig.go
-=======
 	var useNewGenesisCommand bool
 	if cc.Binary == defaultBinary && testvalues.SimdNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
 		useNewGenesisCommand = true
@@ -378,7 +373,6 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 		useNewGenesisCommand = true
 	}
 
->>>>>>> main:e2e/testsuite/testconfig.go
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
@@ -389,18 +383,6 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 				Version:    cc.Tag,
 			},
 		},
-<<<<<<< HEAD:e2e/testconfig/testconfig.go
-		Bin:                 cc.Binary,
-		Bech32Prefix:        "cosmos",
-		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
-		Denom:               denom,
-		GasPrices:           fmt.Sprintf("0.00%s", denom),
-		GasAdjustment:       1.3,
-		TrustingPeriod:      "508h",
-		NoHostMount:         false,
-		ModifyGenesis:       getGenesisModificationFunction(cc),
-		ConfigFileOverrides: configFileOverrides,
-=======
 		Bin:                    cc.Binary,
 		Bech32Prefix:           "cosmos",
 		CoinType:               fmt.Sprint(sdk.GetConfig().GetCoinType()),
@@ -413,7 +395,6 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 		ModifyGenesis:          getGenesisModificationFunction(cc),
 		ConfigFileOverrides:    configFileOverrides,
 		UsingNewGenesisCommand: useNewGenesisCommand,
->>>>>>> main:e2e/testsuite/testconfig.go
 	}
 }
 

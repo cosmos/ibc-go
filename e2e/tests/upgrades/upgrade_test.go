@@ -37,15 +37,9 @@ const (
 )
 
 func TestUpgradeTestSuite(t *testing.T) {
-<<<<<<< HEAD
-	testCfg := testconfig.LoadConfig()
-	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
-		t.Fatalf("%s and %s must be set when running an upgrade test", testconfig.ChainUpgradeTagEnv, testconfig.ChainUpgradePlanEnv)
-=======
 	testCfg := testsuite.LoadConfig()
 	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
 		t.Fatalf("%s and %s must be set when running an upgrade test", testsuite.ChainUpgradeTagEnv, testsuite.ChainUpgradePlanEnv)
->>>>>>> main
 	}
 
 	suite.Run(t, new(UpgradeTestSuite))
@@ -102,11 +96,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 
 func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	t := s.T()
-<<<<<<< HEAD
-	testCfg := testconfig.LoadConfig()
-=======
 	testCfg := testsuite.LoadConfig()
->>>>>>> main
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -236,11 +226,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("upgrade chain", func(t *testing.T) {
-<<<<<<< HEAD
-		testCfg := testconfig.LoadConfig()
-=======
 		testCfg := testsuite.LoadConfig()
->>>>>>> main
 		proposerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 		s.UpgradeChain(ctx, chain, proposerWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
@@ -266,11 +252,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 
 func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	t := s.T()
-<<<<<<< HEAD
-	testCfg := testconfig.LoadConfig()
-=======
 	testCfg := testsuite.LoadConfig()
->>>>>>> main
 
 	ctx := context.Background()
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
@@ -470,11 +452,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 // can be sent before and after the upgrade without issue
 func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t := s.T()
-<<<<<<< HEAD
-	testCfg := testconfig.LoadConfig()
-=======
 	testCfg := testsuite.LoadConfig()
->>>>>>> main
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -620,11 +598,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 
 func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	t := s.T()
-<<<<<<< HEAD
-	testCfg := testconfig.LoadConfig()
-=======
 	testCfg := testsuite.LoadConfig()
->>>>>>> main
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -673,11 +647,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-<<<<<<< HEAD
-		s.UpgradeChain(ctx, chain, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
-=======
 		s.UpgradeChain(ctx, chainA, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
->>>>>>> main
 	})
 
 	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
@@ -735,11 +705,7 @@ func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, cli
 
 // getChainImage returns the image of a given chain.
 func getChainImage(chain *cosmos.CosmosChain) string {
-<<<<<<< HEAD
-	tc := testconfig.LoadConfig()
-=======
 	tc := testsuite.LoadConfig()
->>>>>>> main
 	for _, c := range tc.ChainConfigs {
 		if c.ChainID == chain.Config().ChainID {
 			return c.Image
