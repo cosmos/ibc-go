@@ -84,7 +84,7 @@ func (dt DenomTrace) IsNativeDenom() bool {
 
 // extractPathAndBaseFromFullDenom returns the trace path and the base denom from
 // the elements that constitute the complete denom.
-func extractPathAndBaseFromFullDenom(fullDenomItems []string) (path, basedenom string) {
+func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
 	var (
 		pathSlice      []string
 		baseDenomSlice []string
@@ -109,7 +109,10 @@ func extractPathAndBaseFromFullDenom(fullDenomItems []string) (path, basedenom s
 		}
 	}
 
-	return strings.Join(pathSlice, "/"), strings.Join(baseDenomSlice, "/")
+	path := strings.Join(pathSlice, "/")
+	baseDenom := strings.Join(baseDenomSlice, "/")
+
+	return path, baseDenom
 }
 
 func validateTraceIdentifiers(identifiers []string) error {
