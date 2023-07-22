@@ -57,7 +57,7 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -164,42 +164,6 @@ var (
 	_ servertypes.Application = (*SimApp)(nil)
 )
 
-// stdAccAddressCodec is a temporary address codec that we will use until we
-// can populate it with the correct bech32 prefixes without depending on the global.
-type stdAccAddressCodec struct{} //nolint:unused
-
-//nolint:unused
-func (g stdAccAddressCodec) StringToBytes(text string) ([]byte, error) {
-	if text == "" {
-		return nil, nil
-	}
-	return sdk.AccAddressFromBech32(text)
-}
-
-//nolint:unused
-func (g stdAccAddressCodec) BytesToString(bz []byte) (string, error) {
-	if bz == nil {
-		return "", nil
-	}
-	return sdk.AccAddress(bz).String(), nil
-}
-
-// stdValAddressCodec is a temporary address codec that we will use until we
-// can populate it with the correct bech32 prefixes without depending on the global.
-//
-//nolint:unused
-type stdValAddressCodec struct{}
-
-//nolint:unused
-func (g stdValAddressCodec) StringToBytes(text string) ([]byte, error) {
-	return sdk.ValAddressFromBech32(text)
-}
-
-//nolint:unused
-func (g stdValAddressCodec) BytesToString(bz []byte) (string, error) {
-	return sdk.ValAddress(bz).String(), nil
-}
-
 // SimApp extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
@@ -295,7 +259,7 @@ func NewSimApp(
 	})
 	appCodec := codec.NewProtoCodec(interfaceRegistry)
 	legacyAmino := codec.NewLegacyAmino()
-	txConfig := authtx.NewTxConfig(appCodec, authtx.DefaultSignModes)
+	txConfig := tx.NewTxConfig(appCodec, tx.DefaultSignModes)
 
 	std.RegisterLegacyAminoCodec(legacyAmino)
 	std.RegisterInterfaces(interfaceRegistry)
@@ -326,7 +290,8 @@ func NewSimApp(
 	// }
 	// baseAppOptions = append(baseAppOptions, prepareOpt)
 
-	// create and set dummy vote extension handler - NOTE: UNSURE IF THIS IS NEEDED FOR V50 UPGRADE
+	// ABOUT THIS HANDLER: Don't know yet if it is needed
+	// create and set dummy vote extension handler
 	//	voteExtOp := func(bApp *baseapp.BaseApp) {
 	//		voteExtHandler := NewVoteExtensionHandler()
 	//		voteExtHandler.SetHandlers(bApp)
@@ -354,11 +319,6 @@ func NewSimApp(
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, ibcmock.MemStoreKey)
-
-	// register streaming services
-	if err := bApp.RegisterStreamingServices(appOpts, keys); err != nil {
-		panic(err)
-	}
 
 	app := &SimApp{
 		BaseApp:           bApp,
@@ -877,11 +837,7 @@ func (app *SimApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*ab
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
-
-	if err := app.UpgradeKeeper.SetModuleVersionMap(ctx, app.ModuleManager.GetVersionMap()); err != nil {
-		panic(err)
-	}
-
+	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.ModuleManager.GetVersionMap())
 	return app.ModuleManager.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
@@ -952,8 +908,10 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 
 	return autocli.AppOptions{
 		Modules:               modules,
+		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.ModuleManager.Modules),
 		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
+		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 	}
 }
 
@@ -997,7 +955,7 @@ func (app *SimApp) SimulationManager() *module.SimulationManager {
 func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 	// Register new tx routes from grpc-gateway.
-	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	tx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register new CometBFT queries routes from grpc-gateway.
 	cmtservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
@@ -1016,7 +974,7 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *SimApp) RegisterTxService(clientCtx client.Context) {
-	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
+	tx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
