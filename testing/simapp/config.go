@@ -29,7 +29,7 @@ var (
 	FlagGenesisTimeValue int64
 )
 
-// GetSimulatorFlags gets the values of all the available simulation flags
+// SimulatorFlags gets the values of all the available simulation flags
 func SimulatorFlags() {
 	// config fields
 	flag.StringVar(&FlagGenesisFileValue, "Genesis", "", "custom simulation genesis file; cannot be used with params file")

@@ -131,7 +131,7 @@ func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes
 }
 
 // RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
+func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
 // RegisterServices registers module services
