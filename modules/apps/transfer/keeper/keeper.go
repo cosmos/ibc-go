@@ -7,7 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storeprefix "github.com/cosmos/cosmos-sdk/store/prefix"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -134,7 +134,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 
 // GetDenomTrace retreives the full identifiers trace and base denomination from the store.
 func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) (types.DenomTrace, bool) {
-	store := storeprefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 	bz := store.Get(denomTraceHash)
 	if len(bz) == 0 {
 		return types.DenomTrace{}, false
@@ -146,13 +146,13 @@ func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) 
 
 // HasDenomTrace checks if a the key with the given denomination trace hash exists on the store.
 func (k Keeper) HasDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) bool {
-	store := storeprefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 	return store.Has(denomTraceHash)
 }
 
 // SetDenomTrace sets a new {trace hash -> denom trace} pair to the store.
 func (k Keeper) SetDenomTrace(ctx sdk.Context, denomTrace types.DenomTrace) {
-	store := storeprefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 	bz := k.MustMarshalDenomTrace(denomTrace)
 	store.Set(denomTrace.Hash(), bz)
 }
@@ -235,9 +235,9 @@ func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 // IterateTokensInEscrow iterates over the denomination escrows in the store
 // and performs a callback function. Denominations for which an invalid value
 // (i.e. not integer) is stored, will be skipped.
-func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, prefix []byte, cb func(denomEscrow sdk.Coin) bool) {
+func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, storeprefix []byte, cb func(denomEscrow sdk.Coin) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, prefix)
+	iterator := storetypes.KVStorePrefixIterator(store, storeprefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
