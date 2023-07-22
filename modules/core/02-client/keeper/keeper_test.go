@@ -37,8 +37,6 @@ const (
 	testClientID2 = "tendermint-1"
 	testClientID3 = "tendermint-2"
 
-	height = 5
-
 	trustingPeriod time.Duration = time.Hour * 24 * 7 * 2
 	ubdPeriod      time.Duration = time.Hour * 24 * 7 * 3
 	maxClockDrift  time.Duration = time.Second * 10
