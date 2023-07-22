@@ -1,7 +1,7 @@
 package types
 
 import (
-	context "context"
+	"context"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
