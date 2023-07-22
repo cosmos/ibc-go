@@ -32,6 +32,7 @@ const (
 
 	DefaultChannelVersion = mock.Version
 	InvalidID             = "IDisInvalid"
+	InvalidVersion        = "invalid-version"
 
 	// Application Ports
 	TransferPort = ibctransfertypes.ModuleName

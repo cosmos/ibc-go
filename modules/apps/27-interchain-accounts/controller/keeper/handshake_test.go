@@ -193,7 +193,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid version",
 			func() {
-				metadata.Version = "invalid-version"
+				metadata.Version = ibctesting.InvalidVersion
 
 				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
@@ -358,7 +358,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		{
 			"invalid counterparty version",
 			func() {
-				metadata.Version = "invalid-version"
+				metadata.Version = ibctesting.InvalidVersion
 
 				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)

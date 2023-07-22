@@ -507,7 +507,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				path.EndpointA.SetChannel(channel)
 
 				upgrade := path.EndpointA.GetChannelUpgrade()
-				upgrade.Fields.Version = "invalid-version"
+				upgrade.Fields.Version = ibctesting.InvalidVersion
 
 				path.EndpointA.SetChannelUpgrade(upgrade)
 			},

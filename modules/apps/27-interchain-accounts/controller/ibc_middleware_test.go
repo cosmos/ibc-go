@@ -148,7 +148,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 					portID, channelID string, chanCap *capabilitytypes.Capability,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
-					return "invalid-version", nil
+					return ibctesting.InvalidVersion, nil
 				}
 			}, true,
 		},
