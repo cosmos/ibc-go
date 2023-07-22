@@ -128,7 +128,7 @@ func ConnectionKey(connectionID string) []byte {
 
 // ChannelPath defines the path under which channels are stored
 func ChannelPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyChannelEndPrefix, parseChannelPath(portID, channelID))
+	return fmt.Sprintf("%s/%s", KeyChannelEndPrefix, channelPath(portID, channelID))
 }
 
 // ChannelKey returns the store key for a particular channel
@@ -139,12 +139,12 @@ func ChannelKey(portID, channelID string) []byte {
 // ChannelCapabilityPath defines the path under which capability keys associated
 // with a channel are stored
 func ChannelCapabilityPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyChannelCapabilityPrefix, parseChannelPath(portID, channelID))
+	return fmt.Sprintf("%s/%s", KeyChannelCapabilityPrefix, channelPath(portID, channelID))
 }
 
 // NextSequenceSendPath defines the next send sequence counter store path
 func NextSequenceSendPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyNextSeqSendPrefix, parseChannelPath(portID, channelID))
+	return fmt.Sprintf("%s/%s", KeyNextSeqSendPrefix, channelPath(portID, channelID))
 }
 
 // NextSequenceSendKey returns the store key for the send sequence of a particular
@@ -155,7 +155,7 @@ func NextSequenceSendKey(portID, channelID string) []byte {
 
 // NextSequenceRecvPath defines the next receive sequence counter store path.
 func NextSequenceRecvPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyNextSeqRecvPrefix, parseChannelPath(portID, channelID))
+	return fmt.Sprintf("%s/%s", KeyNextSeqRecvPrefix, channelPath(portID, channelID))
 }
 
 // NextSequenceRecvKey returns the store key for the receive sequence of a particular
@@ -166,7 +166,7 @@ func NextSequenceRecvKey(portID, channelID string) []byte {
 
 // NextSequenceAckPath defines the next acknowledgement sequence counter store path
 func NextSequenceAckPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyNextSeqAckPrefix, parseChannelPath(portID, channelID))
+	return fmt.Sprintf("%s/%s", KeyNextSeqAckPrefix, channelPath(portID, channelID))
 }
 
 // NextSequenceAckKey returns the store key for the acknowledgement sequence of
@@ -188,7 +188,7 @@ func PacketCommitmentKey(portID, channelID string, sequence uint64) []byte {
 
 // PacketCommitmentPrefixPath defines the prefix for commitments to packet data fields store path.
 func PacketCommitmentPrefixPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyPacketCommitmentPrefix, parseChannelPath(portID, channelID), KeySequencePrefix)
+	return fmt.Sprintf("%s/%s/%s", KeyPacketCommitmentPrefix, channelPath(portID, channelID), KeySequencePrefix)
 }
 
 // PacketAcknowledgementPath defines the packet acknowledgement store path
@@ -204,12 +204,12 @@ func PacketAcknowledgementKey(portID, channelID string, sequence uint64) []byte 
 
 // PacketAcknowledgementPrefixPath defines the prefix for commitments to packet data fields store path.
 func PacketAcknowledgementPrefixPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyPacketAckPrefix, parseChannelPath(portID, channelID), KeySequencePrefix)
+	return fmt.Sprintf("%s/%s/%s", KeyPacketAckPrefix, channelPath(portID, channelID), KeySequencePrefix)
 }
 
 // PacketReceiptPath defines the packet receipt store path
 func PacketReceiptPath(portID, channelID string, sequence uint64) string {
-	return fmt.Sprintf("%s/%s/%s", KeyPacketReceiptPrefix, parseChannelPath(portID, channelID), sequencePath(sequence))
+	return fmt.Sprintf("%s/%s/%s", KeyPacketReceiptPrefix, channelPath(portID, channelID), sequencePath(sequence))
 }
 
 // PacketReceiptKey returns the store key of under which a packet
@@ -218,7 +218,7 @@ func PacketReceiptKey(portID, channelID string, sequence uint64) []byte {
 	return []byte(PacketReceiptPath(portID, channelID, sequence))
 }
 
-func parseChannelPath(portID, channelID string) string {
+func channelPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/%s/%s", KeyPortPrefix, portID, KeyChannelPrefix, channelID)
 }
 

@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
@@ -21,11 +21,11 @@ import (
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {
-	keeper transferkeeper.Keeper
+	keeper keeper.Keeper
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k transferkeeper.Keeper) IBCModule {
+func NewIBCModule(k keeper.Keeper) IBCModule {
 	return IBCModule{
 		keeper: k,
 	}
@@ -36,7 +36,7 @@ func NewIBCModule(k transferkeeper.Keeper) IBCModule {
 // supported version. Only 2^32 channels are allowed to be created.
 func ValidateTransferChannelParams(
 	ctx sdk.Context,
-	keeper transferkeeper.Keeper,
+	transferkeeper keeper.Keeper,
 	order channeltypes.Order,
 	portID string,
 	channelID string,
@@ -55,7 +55,7 @@ func ValidateTransferChannelParams(
 	}
 
 	// Require portID is the portID transfer module is bound to
-	boundPort := keeper.GetPort(ctx)
+	boundPort := transferkeeper.GetPort(ctx)
 	if boundPort != portID {
 		return errorsmod.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
 	}

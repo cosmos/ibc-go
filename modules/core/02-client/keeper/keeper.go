@@ -8,7 +8,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storeprefix "github.com/cosmos/cosmos-sdk/store/prefix"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -368,9 +368,9 @@ func (k Keeper) SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz 
 // IterateClientStates provides an iterator over all stored light client State
 // objects. For each State object, cb will be called. If the cb returns true,
 // the iterator will close and stop.
-func (k Keeper) IterateClientStates(ctx sdk.Context, prefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
+func (k Keeper) IterateClientStates(ctx sdk.Context, storeprefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(prefix))
+	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(storeprefix))
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -404,7 +404,7 @@ func (k Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 // namespace without being able to read/write other client's data
 func (k Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
-	return storeprefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
+	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }
 
 // GetClientStatus returns the status for a given clientState. If the client type is not in the allowed

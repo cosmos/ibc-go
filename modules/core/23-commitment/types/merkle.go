@@ -205,13 +205,13 @@ func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root expo
 
 // BatchVerifyMembership verifies a group of key value pairs against the given root
 // NOTE: Currently left unimplemented as it is unused
-func (MerkleProof) BatchVerifyMembership(_ []*ics23.ProofSpec, _ exported.Root, _ exported.Path, _ map[string][]byte) error {
+func (MerkleProof) BatchVerifyMembership(specs []*ics23.ProofSpec, _ exported.Root, _ exported.Path, _ map[string][]byte) error {
 	return errorsmod.Wrap(ErrInvalidProof, "batch proofs are currently unsupported")
 }
 
 // BatchVerifyNonMembership verifies absence of a group of keys against the given root
 // NOTE: Currently left unimplemented as it is unused
-func (MerkleProof) BatchVerifyNonMembership(_ []*ics23.ProofSpec, _ exported.Root, _ exported.Path, _ [][]byte) error {
+func (MerkleProof) BatchVerifyNonMembership(specs []*ics23.ProofSpec, _ exported.Root, _ exported.Path, _ [][]byte) error {
 	return errorsmod.Wrap(ErrInvalidProof, "batch proofs are currently unsupported")
 }
 

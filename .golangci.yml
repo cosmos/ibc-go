@@ -95,6 +95,8 @@ linters-settings:
         disabled: true
       - name: deep-exit
         disabled: true
+      - name: confusing-results
+        disabled: true
       - name: unused-parameter
         disabled: true
       - name: modifies-value-receiver
