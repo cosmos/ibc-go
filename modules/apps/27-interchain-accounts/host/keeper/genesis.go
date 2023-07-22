@@ -12,7 +12,7 @@ import (
 
 // InitGenesis initializes the interchain accounts host application state from a provided genesis state
 func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.HostGenesisState) {
-	if !keeper.HasCapability(ctx, state.Port) {
+	if !keeper.hasCapability(ctx, state.Port) {
 		capability := keeper.BindPort(ctx, state.Port)
 		if err := keeper.ClaimCapability(ctx, capability, host.PortPath(state.Port)); err != nil {
 			panic(fmt.Sprintf("could not claim port capability: %v", err))
@@ -27,6 +27,9 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.HostGenesisS
 		keeper.SetInterchainAccountAddress(ctx, acc.ConnectionId, acc.PortId, acc.AccountAddress)
 	}
 
+	if err := state.Params.Validate(); err != nil {
+		panic(fmt.Sprintf("could not set ica host params at genesis: %v", err))
+	}
 	keeper.SetParams(ctx, state.Params)
 }
 

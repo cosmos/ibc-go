@@ -4,6 +4,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ exported.ClientMessage = &Misbehaviour{}
+var _ exported.ClientMessage = (*Misbehaviour)(nil)
 
 // FrozenHeight is same for all misbehaviour
 var FrozenHeight = clienttypes.NewHeight(0, 1)

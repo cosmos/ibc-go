@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/std"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/stretchr/testify/require"
 )
 
 func makeCodec(bm module.BasicManager) *codec.LegacyAmino {
@@ -53,7 +55,7 @@ func TestGetSimulationLog(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.store, func(t *testing.T) {
-			require.Equal(t, tt.expectedLog, GetSimulationLog(tt.store, decoders, tt.kvPairs, tt.kvPairs), tt.store)
+			require.Equal(t, tt.expectedLog, sims.GetSimulationLog(tt.store, decoders, tt.kvPairs, tt.kvPairs), tt.store)
 		})
 	}
 }

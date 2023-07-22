@@ -4,15 +4,17 @@ import (
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -42,7 +44,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	_ sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
@@ -53,7 +55,7 @@ func (cs ClientState) GetTimestampAtHeight(
 // The client may be:
 // - Active: if frozen sequence is 0
 // - Frozen: otherwise solo machine is frozen
-func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) exported.Status {
+func (cs ClientState) Status(_ sdk.Context, _ storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
 	if cs.IsFrozen {
 		return exported.Frozen
 	}
@@ -79,7 +81,7 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 
 // Initialize checks that the initial consensus state is equal to the latest consensus state of the initial client and
 // sets the client state in the provided client store.
-func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
 	if !reflect.DeepEqual(cs.ConsensusState, consState) {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "consensus state in initial client does not equal initial consensus state. expected: %s, got: %s",
 			cs.ConsensusState, consState)
@@ -91,13 +93,13 @@ func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientSto
 }
 
 // ExportMetadata is a no-op since solomachine does not store any metadata in client store
-func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
+func (cs ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
 	return nil
 }
 
 // VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
 func (cs ClientState) VerifyUpgradeAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
+	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore,
 	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
 ) error {
 	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
@@ -107,7 +109,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyMembership(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	_ exported.Height,
 	delayTimePeriod uint64,
@@ -158,7 +160,7 @@ func (cs *ClientState) VerifyMembership(
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyNonMembership(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	_ exported.Height,
 	delayTimePeriod uint64,
@@ -241,7 +243,7 @@ func produceVerificationArgs(
 }
 
 // sets the client state to the store
-func setClientState(store sdk.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
+func setClientState(store storetypes.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
 	bz := clienttypes.MustMarshalClientState(cdc, clientState)
 	store.Set(host.ClientStateKey(), bz)
 }

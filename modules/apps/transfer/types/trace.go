@@ -8,9 +8,11 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -73,6 +75,11 @@ func (dt DenomTrace) GetFullDenomPath() string {
 		return dt.BaseDenom
 	}
 	return dt.GetPrefix() + dt.BaseDenom
+}
+
+// IsNativeDenom returns true if the denomination is native, thus containing no trace history.
+func (dt DenomTrace) IsNativeDenom() bool {
+	return dt.Path == ""
 }
 
 // extractPathAndBaseFromFullDenom returns the trace path and the base denom from
@@ -158,7 +165,7 @@ func (t Traces) Validate() error {
 	return nil
 }
 
-var _ sort.Interface = Traces{}
+var _ sort.Interface = (*Traces)(nil)
 
 // Len implements sort.Interface for Traces
 func (t Traces) Len() int { return len(t) }

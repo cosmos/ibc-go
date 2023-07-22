@@ -12,6 +12,8 @@ import "ibc/core/channel/v1/upgrade.proto";
 
 // Msg defines the ibc/channel Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+
   // ChannelOpenInit defines a rpc handler method for MsgChannelOpenInit.
   rpc ChannelOpenInit(MsgChannelOpenInit) returns (MsgChannelOpenInitResponse);
 
@@ -79,6 +81,8 @@ enum ResponseResultType {
 // MsgChannelOpenInit defines an sdk.Msg to initialize a channel handshake. It
 // is called by a relayer on Chain A.
 message MsgChannelOpenInit {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   string  port_id = 1;
@@ -88,6 +92,8 @@ message MsgChannelOpenInit {
 
 // MsgChannelOpenInitResponse defines the Msg/ChannelOpenInit response type.
 message MsgChannelOpenInitResponse {
+  option (gogoproto.goproto_getters) = false;
+
   string channel_id = 1;
   string version    = 2;
 }
@@ -96,6 +102,8 @@ message MsgChannelOpenInitResponse {
 // on Chain B. The version field within the Channel field has been deprecated. Its
 // value will be ignored by core IBC.
 message MsgChannelOpenTry {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   string port_id = 1;
@@ -111,6 +119,8 @@ message MsgChannelOpenTry {
 
 // MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
 message MsgChannelOpenTryResponse {
+  option (gogoproto.goproto_getters) = false;
+
   string version    = 1;
   string channel_id = 2;
 }
@@ -118,6 +128,8 @@ message MsgChannelOpenTryResponse {
 // MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge
 // the change of channel state to TRYOPEN on Chain B.
 message MsgChannelOpenAck {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id                 = 1;
@@ -135,6 +147,8 @@ message MsgChannelOpenAckResponse {}
 // MsgChannelOpenConfirm defines a msg sent by a Relayer to Chain B to
 // acknowledge the change of channel state to OPEN on Chain A.
 message MsgChannelOpenConfirm {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id      = 1;
@@ -151,6 +165,8 @@ message MsgChannelOpenConfirmResponse {}
 // MsgChannelCloseInit defines a msg sent by a Relayer to Chain A
 // to close a channel with Chain B.
 message MsgChannelCloseInit {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   string port_id    = 1;
@@ -164,6 +180,8 @@ message MsgChannelCloseInitResponse {}
 // MsgChannelCloseConfirm defines a msg sent by a Relayer to Chain B
 // to acknowledge the change of channel state to CLOSED on Chain A.
 message MsgChannelCloseConfirm {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   string                    port_id      = 1;
@@ -179,6 +197,8 @@ message MsgChannelCloseConfirmResponse {}
 
 // MsgRecvPacket receives incoming IBC packet
 message MsgRecvPacket {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet           = 1 [(gogoproto.nullable) = false];
@@ -196,6 +216,8 @@ message MsgRecvPacketResponse {
 
 // MsgTimeout receives timed-out packet
 message MsgTimeout {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet             = 1 [(gogoproto.nullable) = false];
@@ -214,6 +236,8 @@ message MsgTimeoutResponse {
 
 // MsgTimeoutOnClose timed-out packet upon counterparty channel closure.
 message MsgTimeoutOnClose {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet             = 1 [(gogoproto.nullable) = false];
@@ -233,6 +257,8 @@ message MsgTimeoutOnCloseResponse {
 
 // MsgAcknowledgement receives incoming IBC acknowledgement
 message MsgAcknowledgement {
+  option (cosmos.msg.v1.signer) = "signer";
+
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet          = 1 [(gogoproto.nullable) = false];
