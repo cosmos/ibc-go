@@ -3,8 +3,11 @@ package keeper_test
 import (
 	"fmt"
 
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -585,6 +588,109 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 				suite.Require().Equal(tc.expStatus, res.Status)
 			} else {
 				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryUpgradedClientStates() {
+	var (
+		req            *types.QueryUpgradedClientStateRequest
+		path           *ibctesting.Path
+		expClientState *ibctm.ClientState
+	)
+
+	upgradePlan := upgradetypes.Plan{
+		Name:   "upgrade IBC clients",
+		Height: 1000,
+	}
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+
+				// update trusting period
+				clientState := path.EndpointA.GetClientState()
+				clientState.(*ibctm.ClientState).TrustingPeriod += 100
+
+				msg, err := types.NewMsgIBCSoftwareUpgrade(
+					validAuthority,
+					upgradePlan,
+					clientState,
+				)
+				suite.Require().NoError(err)
+
+				_, err = suite.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+
+				expClientState = clientState.(*ibctm.ClientState)
+			},
+			nil,
+		},
+		{
+			"req is nil",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"no plan",
+			func() {
+				req = &types.QueryUpgradedClientStateRequest{}
+			},
+			status.Error(codes.NotFound, "upgrade plan not found"),
+		},
+		{
+			"no upgraded client set in store",
+			func() {
+				suite.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(suite.chainA.GetContext(), upgradePlan)
+			},
+			status.Error(codes.NotFound, "upgraded client not found"),
+		},
+		{
+			"invalid upgraded client state",
+			func() {
+				suite.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(suite.chainA.GetContext(), upgradePlan)
+
+				bz := []byte{1, 2, 3}
+				suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), upgradePlan.Height, bz)
+			},
+			status.Error(codes.Internal, "proto: Any: illegal tag 0 (wire type 1)"),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			req = &types.QueryUpgradedClientStateRequest{}
+
+			tc.malleate()
+
+			res, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.UpgradedClientState(suite.chainA.GetContext(), req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				upgradedClientState, err := types.UnpackClientState(res.UpgradedClientState)
+				suite.Require().NoError(err)
+				upgradedClientStateCmt, ok := upgradedClientState.(*ibctm.ClientState)
+				suite.Require().True(ok)
+
+				suite.Require().Equal(expClientState.ZeroCustomFields(), upgradedClientStateCmt)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
