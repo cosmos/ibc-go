@@ -775,11 +775,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterpartyStates() {
 				err = path.EndpointB.ChanUpgradeAck()
 				suite.Require().NoError(err)
 
-				// TODO: Remove when #4030 is closed. Channel will automatically
-				// move to OPEN in that case.
-				err = path.EndpointB.ChanUpgradeOpen()
-				suite.Require().NoError(err)
-
 				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
@@ -788,13 +783,24 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpenCounterpartyStates() {
 		{
 			"success, counterparty in TRYUPGRADE",
 			func() {
-				err := path.EndpointA.ChanUpgradeInit()
+				// Need to create a packet commitment on A so as to keep it from going to OPEN if no inflight packets exist.
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+				packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				err = path.EndpointB.RecvPacket(packet)
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeInit()
 				suite.Require().NoError(err)
 
 				err = path.EndpointB.ChanUpgradeTry()
 				suite.Require().NoError(err)
 
 				err = path.EndpointA.ChanUpgradeAck()
+				suite.Require().NoError(err)
+
+				// Ack packet to delete packet commitment before calling ChanUpgradeOpen
+				err = path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
 				suite.Require().NoError(err)
 			},
 			nil,
@@ -846,6 +852,13 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(path)
 
+	// Need to create a packet commitment on A so as to keep it from going to OPEN if no inflight packets exist.
+	sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+	suite.Require().NoError(err)
+	packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+	err = path.EndpointB.RecvPacket(packet)
+	suite.Require().NoError(err)
+
 	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Ordering = types.ORDERED
@@ -854,6 +867,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 	suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 	suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 	suite.Require().NoError(path.EndpointA.ChanUpgradeAck())
+
+	// Ack packet to delete packet commitment before calling WriteUpgradeOpenChannel
+	err = path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
+	suite.Require().NoError(err)
 
 	suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeOpenChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
