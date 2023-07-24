@@ -350,7 +350,7 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 }
 
 // GetUpgradePlan executes the upgrade keeper GetUpgradePlan function.
-func (k Keeper) GetUpgradePlan(ctx sdk.Context) (plan upgradetypes.Plan, err error) {
+func (k Keeper) GetUpgradePlan(ctx sdk.Context) (upgradetypes.Plan, error) {
 	return k.upgradeKeeper.GetUpgradePlan(ctx)
 }
 
