@@ -308,7 +308,7 @@ func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string,
 	}
 
 	if upgradeVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", upgradeVersion, types.Version)
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, upgradeVersion)
 	}
 
 	return upgradeVersion, nil
