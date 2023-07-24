@@ -303,12 +303,28 @@ func (im IBCModule) OnTimeoutPacket(
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, sequence uint64, version, previousVersion string) (string, error) {
-	return version, nil
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, upgradeSequence uint64, upgradeVersion, previousVersion string) (string, error) {
+	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+		return "", err
+	}
+
+	if upgradeVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, upgradeVersion)
+	}
+
+	return upgradeVersion, nil
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+		return "", err
+	}
+
+	if counterpartyVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
+	}
+
 	return counterpartyVersion, nil
 }
 
