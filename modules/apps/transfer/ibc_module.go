@@ -316,6 +316,14 @@ func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string,
 
 // OnChanUpgradeTry implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+		return "", err
+	}
+
+	if counterpartyVersion != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
+	}
+
 	return counterpartyVersion, nil
 }
 
