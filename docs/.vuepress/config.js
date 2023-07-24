@@ -280,6 +280,11 @@ module.exports = {
                   path: "/apps/interchain-accounts/messages.html",
                 },
                 {
+                  title: "Tx Encoding",
+                  directory: false,
+                  path: "/apps/interchain-accounts/tx-encoding.html",
+                },
+                {
                   title: "Parameters",
                   directory: false,
                   path: "/apps/interchain-accounts/parameters.html",
@@ -314,7 +319,7 @@ module.exports = {
                       directory: false,
                       path: "/apps/interchain-accounts/legacy/keeper-api.html",
                     },
-                  ]
+                  ],
                 },
               ],
             },
@@ -425,7 +430,7 @@ module.exports = {
                   directory: false,
                   path: "/ibc/light-clients/setup.html",
                 },
-              ]
+              ],
             },
             {
               title: "Localhost",
