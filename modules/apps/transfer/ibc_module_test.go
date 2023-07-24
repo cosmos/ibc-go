@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -235,6 +236,78 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {}, // successful happy path for a standalone transfer app is swapping out the underlying connection
+			nil,
+		},
+		{
+			"invalid upgrade connection",
+			func() {
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{"connection-100"}
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{"connection-100"}
+			},
+			connectiontypes.ErrConnectionNotFound,
+		},
+		{
+			"invalid upgrade ordering",
+			func() {
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Ordering = channeltypes.ORDERED
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Ordering = channeltypes.ORDERED
+			},
+			channeltypes.ErrInvalidChannelOrdering,
+		},
+		{
+			"invalid upgrade version",
+			func() {
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
+			},
+			types.ErrInvalidVersion,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade to modify the underlying connection
+			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(upgradePath)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
+
+			tc.malleate()
+
+			err := path.EndpointA.ChanUpgradeInit()
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				upgrade := path.EndpointA.GetChannelUpgrade()
+				suite.Require().Equal(upgradePath.EndpointA.ConnectionID, upgrade.Fields.ConnectionHops[0])
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
