@@ -230,7 +230,6 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 		suite.Run(tc.name, func() {
 			destCbAddr := tc.packetData.GetDestCallbackAddress()
 			suite.Require().Equal(tc.expAddress, destCbAddr)
-			suite.Require().Equal(receiver, tc.packetData.GetPacketReceiver("", ""))
 		})
 	}
 }

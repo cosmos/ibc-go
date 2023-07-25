@@ -153,11 +153,6 @@ func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID, srcChannelID 
 	return icaOwner
 }
 
-// GetPacketReceiver returns the empty string because destination callbacks are not supported for ICS 27.
-func (iapd InterchainAccountPacketData) GetPacketReceiver(dstPortID, dstChannelID string) string {
-	return ""
-}
-
 // getCallbackData returns the memo as `map[string]interface{}` so that it can be
 // interpreted as a json object with keys.
 func (iapd InterchainAccountPacketData) getCallbackData(callbackKey string) map[string]interface{} {

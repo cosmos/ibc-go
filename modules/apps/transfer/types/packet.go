@@ -160,11 +160,6 @@ func (ftpd FungibleTokenPacketData) GetPacketSender(srcPortID, srcChannelID stri
 	return ftpd.Sender
 }
 
-// GetPacketReceiver returns the receiver address of the packet.
-func (ftpd FungibleTokenPacketData) GetPacketReceiver(dstPortID, dstChannelID string) string {
-	return ftpd.Receiver
-}
-
 // getUserDefinedGasLimit returns the custom gas limit provided for callbacks
 // if it is specified in the packet data memo.
 // If no gas limit is specified or the gas limit is improperly formatted, 0 is returned.

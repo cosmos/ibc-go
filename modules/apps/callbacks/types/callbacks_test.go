@@ -198,7 +198,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			2_000_000,
 			types.CallbackData{
 				ContractAddr:   sender,
-				AuthAddr:       receiver,
+				AuthAddr:       "",
 				GasLimit:       1_000_000,
 				CommitGasLimit: 1_000_000,
 			},
@@ -220,7 +220,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			100000,
 			types.CallbackData{
 				ContractAddr:   sender,
-				AuthAddr:       receiver,
+				AuthAddr:       "",
 				GasLimit:       50000,
 				CommitGasLimit: 50000,
 			},
@@ -242,7 +242,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			100000,
 			types.CallbackData{
 				ContractAddr:   sender,
-				AuthAddr:       receiver,
+				AuthAddr:       "",
 				GasLimit:       100000,
 				CommitGasLimit: 200000,
 			},
@@ -264,7 +264,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			100000,
 			types.CallbackData{
 				ContractAddr:   sender,
-				AuthAddr:       receiver,
+				AuthAddr:       "",
 				GasLimit:       100000,
 				CommitGasLimit: 1_000_000,
 			},
@@ -286,7 +286,7 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			2_000_000,
 			types.CallbackData{
 				ContractAddr:   sender,
-				AuthAddr:       receiver,
+				AuthAddr:       "",
 				GasLimit:       1_000_000,
 				CommitGasLimit: 1_000_000,
 			},

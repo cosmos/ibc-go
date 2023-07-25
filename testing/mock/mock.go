@@ -39,8 +39,6 @@ var (
 	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement(fmt.Errorf("mock failed acknowledgement"))
 	ErrorMock                       = fmt.Errorf("mock failed acknowledgement")
 	MockPacketData                  = []byte("mock packet data")
-	MockPacketSender                = "mock packet sender"
-	MockPacketReceiver              = "mock packet receiver"
 	MockFailPacketData              = []byte("mock failed packet data")
 	MockAsyncPacketData             = []byte("mock async packet data")
 	MockRecvCanaryCapabilityName    = "mock receive canary capability name"

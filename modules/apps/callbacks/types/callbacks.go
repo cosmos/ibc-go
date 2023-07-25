@@ -59,7 +59,7 @@ func GetDestCallbackData(
 		return callbackData.GetDestUserDefinedGasLimit()
 	}
 	authGetter := func(callbackData ibcexported.CallbackPacketData) string {
-		return callbackData.GetPacketReceiver(packet.GetDestPort(), packet.GetDestChannel())
+		return ""
 	}
 	return getCallbackData(packetDataUnmarshaler, packet.GetData(), remainingGas, maxGas, addressGetter, gasLimitGetter, authGetter)
 }

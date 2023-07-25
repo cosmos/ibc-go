@@ -167,8 +167,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	callbackDataGetter := func() (types.CallbackData, bool, error) {
 		return types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetReceiverAddress string) error {
-		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress, packetReceiverAddress)
+	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, _ string) error {
+		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress)
 	}
 
 	err := im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
@@ -199,8 +199,8 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	callbackDataGetter := func() (types.CallbackData, bool, error) {
 		return types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetReceiverAddress string) error {
-		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress, packetReceiverAddress)
+	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, _ string) error {
+		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress)
 	}
 
 	err = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)

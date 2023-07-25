@@ -128,10 +128,9 @@ func (k MockKeeper) IBCWriteAcknowledgementCallback(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
-	contractAddress,
-	packetReceiverAddress string,
+	contractAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, k.WriteAcknowledgementCallbackCounter, packetReceiverAddress)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, k.WriteAcknowledgementCallbackCounter, "")
 }
 
 // processMockCallback returns nil if the gas meter has greater than or equal to 500000 gas remaining.

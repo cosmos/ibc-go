@@ -386,7 +386,7 @@ func (suite *TypesTestSuite) TestDestUserDefinedGasLimit() {
 	}
 }
 
-func (suite *TypesTestSuite) TestGetPacketSenderAndReceiver() {
+func (suite *TypesTestSuite) TestGetPacketSender() {
 	// dest user defined gas limits are not supported for ICS 27
 	testCases := []struct {
 		name      string
@@ -413,7 +413,5 @@ func (suite *TypesTestSuite) TestGetPacketSenderAndReceiver() {
 	for _, tc := range testCases {
 		packetData := types.InterchainAccountPacketData{}
 		suite.Require().Equal(tc.expSender, packetData.GetPacketSender(tc.srcPortID, ibctesting.InvalidID))
-		// GetPacketReceiver always returns empty string for ICS 27
-		suite.Require().Equal("", packetData.GetPacketReceiver(tc.srcPortID, tc.srcPortID))
 	}
 }
