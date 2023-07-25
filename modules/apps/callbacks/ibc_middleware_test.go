@@ -7,9 +7,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-  icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
+	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
