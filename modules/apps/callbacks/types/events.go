@@ -21,11 +21,11 @@ const (
 	//   "timeout": the callback is executed on the timeout of the packet
 	//   "recv_packet": the callback is executed on the reception of the packet
 	AttributeKeyCallbackTrigger = "callback_trigger"
-	// AttributeKeySourceCallbackAddress denotes the source callback contract address
+	// AttributeKeyCallbackAddress denotes the callback address
 	AttributeKeyCallbackAddress = "callback_address"
 	// AttributeKeyCallbackResult denotes the callback result:
-	//   "success": the callback is successfully executed
-	//   "failure": the callback is failed to execute
+	//   AttributeValueCallbackSuccess: the callback is successfully executed
+	//   AttributeValueCallbackFailure: the callback has failed to execute
 	AttributeKeyCallbackResult = "callback_result"
 	// AttributeKeyCallbackError denotes the callback error message
 	// if no error is returned, then this key will not be included in the event
@@ -33,12 +33,24 @@ const (
 	// AttributeKeyCallbackGasLimit denotes the custom gas limit for the callback execution
 	// if custom gas limit is not in effect, then this key will not be included in the event
 	AttributeKeyCallbackGasLimit = "callback_gas_limit"
-	// AttributeKeyCallbackPortID denotes the port ID of the packet
+	// AttributeKeyCallbackCommitGasLimit denotes the gas needed to commit the callback even
+	// if the callback execution fails due to out of gas.
+	AttributeKeyCallbackCommitGasLimit = "callback_commit_gas_limit"
+	// AttributeKeyCallbackSourcePortID denotes the source port ID of the packet
 	AttributeKeyCallbackSourcePortID = "callback_src_port"
-	// AttributeKeyCallbackChannelID denotes the channel ID of the packet
+	// AttributeKeyCallbackSourceChannelID denotes the source channel ID of the packet
 	AttributeKeyCallbackSourceChannelID = "callback_src_channel"
+	// AttributeKeyCallbackSourcePortID denotes the destination port ID of the packet
+	AttributeKeyCallbackDestPortID = "callback_dest_port"
+	// AttributeKeyCallbackSourceChannelID denotes the destination channel ID of the packet
+	AttributeKeyCallbackDestChannelID = "callback_dest_channel"
 	// AttributeKeyCallbackSequence denotes the sequence of the packet
 	AttributeKeyCallbackSequence = "callback_sequence"
+
+	// AttributeValueCallbackSuccess denotes that the callback is successfully executed
+	AttributeValueCallbackSuccess = "success"
+	// AttributeValueCallbackFailure denotes that the callback has failed to execute
+	AttributeValueCallbackFailure = "failure"
 )
 
 // Logger returns a module-specific logger.
@@ -46,7 +58,7 @@ func Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ModuleName)
 }
 
-// emitCallbackEvent emits an event for a callback
+// EmitCallbackEvent emits an event for a callback
 func EmitCallbackEvent(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
@@ -54,8 +66,28 @@ func EmitCallbackEvent(
 	callbackData CallbackData,
 	err error,
 ) {
+	attributes := []sdk.Attribute{
+		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
+		sdk.NewAttribute(AttributeKeyCallbackTrigger, string(callbackTrigger)),
+		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
+		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.GasLimit)),
+		sdk.NewAttribute(AttributeKeyCallbackCommitGasLimit, fmt.Sprintf("%d", callbackData.CommitGasLimit)),
+		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.GetSequence())),
+	}
+	if err == nil {
+		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, AttributeValueCallbackSuccess))
+	} else {
+		attributes = append(
+			attributes,
+			sdk.NewAttribute(AttributeKeyCallbackError, err.Error()),
+			sdk.NewAttribute(AttributeKeyCallbackResult, AttributeValueCallbackFailure),
+		)
+	}
+
 	var eventType string
 	switch callbackTrigger {
+	case CallbackTypeSendPacket:
+		eventType = EventTypeSourceCallback
 	case CallbackTypeAcknowledgement:
 		eventType = EventTypeSourceCallback
 	case CallbackTypeTimeoutPacket:
@@ -66,22 +98,16 @@ func EmitCallbackEvent(
 		eventType = "unknown"
 	}
 
-	attributes := []sdk.Attribute{
-		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
-		sdk.NewAttribute(AttributeKeyCallbackTrigger, string(callbackTrigger)),
-		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
-		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.GasLimit)),
-		sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourcePort()),
-		sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),
-		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.GetSequence())),
-	}
-	if err == nil {
-		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, "success"))
-	} else {
+	switch eventType {
+	case EventTypeDestinationCallback:
 		attributes = append(
-			attributes,
-			sdk.NewAttribute(AttributeKeyCallbackError, err.Error()),
-			sdk.NewAttribute(AttributeKeyCallbackResult, "failure"),
+			attributes, sdk.NewAttribute(AttributeKeyCallbackDestPortID, packet.GetDestPort()),
+			sdk.NewAttribute(AttributeKeyCallbackDestChannelID, packet.GetDestChannel()),
+		)
+	default:
+		attributes = append(
+			attributes, sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourcePort()),
+			sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),
 		)
 	}
 

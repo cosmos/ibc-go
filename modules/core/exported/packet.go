@@ -36,23 +36,19 @@ type CallbackPacketData interface {
 	// an empty string may be returned.
 	GetDestCallbackAddress() string
 
-	// GetSourceUserDefinedGasLimit allows the sender of the packet to define inside the packet data
-	// a gas limit for how much the ADR-8 source callbacks can consume. If defined, this will be passed
-	// in as the gas limit so that the callback is guaranteed to complete within a specific limit.
-	// On recvPacket, a gas-overflow will just fail the transaction allowing it to timeout on the sender side.
-	// On ackPacket and timeoutPacket, a gas-overflow will reject state changes made during callback but still
-	// commit the transaction. This ensures the packet lifecycle can always complete.
-	// If the packet data returns 0, the remaining gas limit will be passed in (modulo any chain-defined limit)
-	// Otherwise, we will set the gas limit passed into the callback to the `min(ctx.GasLimit, UserDefinedGasLimit())`
+	// GetSourceUserDefinedGasLimit allows the sender of the packet to define the minimum amount of gas that the
+	// relayer must set for the source callback executions. If this value is greater than the chain defined maximum
+	// gas limit, missing, 0, or improperly formatted, then the callbacks middleware will set it to the maximum gas
+	// limit. In other words, `min(ctx.GasLimit, UserDefinedGasLimit())`.
 	GetSourceUserDefinedGasLimit() uint64
 
-	// GetDestUserDefinedGasLimit allows the sender of the packet to define inside the packet data
-	// a gas limit for how much the ADR-8 destination callbacks can consume. If defined, this will be passed
-	// in as the gas limit so that the callback is guaranteed to complete within a specific limit.
-	// On recvPacket, a gas-overflow will just fail the transaction allowing it to timeout on the sender side.
-	// On ackPacket and timeoutPacket, a gas-overflow will reject state changes made during callback but still
-	// commit the transaction. This ensures the packet lifecycle can always complete.
-	// If the packet data returns 0, the remaining gas limit will be passed in (modulo any chain-defined limit)
-	// Otherwise, we will set the gas limit passed into the callback to the `min(ctx.GasLimit, UserDefinedGasLimit())`
+	// GetDestUserDefinedGasLimit allows the sender of the packet to define the minimum amount of gas that the
+	// relayer must set for the destination callback executions. If this value is greater than the chain defined
+	// maximum gas limit, missing, 0, or improperly formatted, then the callbacks middleware will set it to the
+	// maximum gas limit. In other words, `min(ctx.GasLimit, UserDefinedGasLimit())`.
 	GetDestUserDefinedGasLimit() uint64
+
+	// GetPacketSender returns the sender address of the packet.
+	// If the packet sender is unknown, or undefined, an empty string should be returned.
+	GetPacketSender(srcPortID string) string
 }

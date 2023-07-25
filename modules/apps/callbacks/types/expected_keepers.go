@@ -51,15 +51,13 @@ type ContractKeeper interface {
 		packetSenderAddress string,
 	) error
 	// IBCWriteAcknowledgementCallback is called in the destination chain when a packet acknowledgement is written.
-	// The packetReceiverAddress is determined by the underlying module, and may be empty if the sender
-	// is unknown or undefined. The contract is expected to handle the callback within the user defined
-	// gas limit, and handle any errors, out of gas, or panics gracefully.
+	// The contract is expected to handle the callback within the user defined gas limit, and handle any errors,
+	// out of gas, or panics gracefully.
 	// The state will be reverted by the middleware if an error is returned.
 	IBCWriteAcknowledgementCallback(
 		ctx sdk.Context,
 		packet ibcexported.PacketI,
 		ack ibcexported.Acknowledgement,
-		contractAddress,
-		packetReceiverAddress string,
+		contractAddress string,
 	) error
 }

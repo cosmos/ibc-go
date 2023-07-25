@@ -135,6 +135,7 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 		suite.Run(tc.name, func() {
 			srcCbAddr := tc.packetData.GetSourceCallbackAddress()
 			suite.Require().Equal(tc.expAddress, srcCbAddr)
+			suite.Require().Equal(sender, tc.packetData.GetPacketSender(""))
 		})
 	}
 }
@@ -152,9 +153,9 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
-				Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, receiver),
+				Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, sender),
 			},
-			receiver,
+			sender,
 		},
 		{
 			"success: valid dest_callback address specified in memo that matches receiver",
@@ -262,7 +263,7 @@ func (suite *TypesTestSuite) TestSourceUserDefinedGasLimit() {
 			100,
 		},
 		{
-			"failure: memo has user defined gas limit as number",
+			"failure: memo has user defined gas limit as json number",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
@@ -352,7 +353,7 @@ func (suite *TypesTestSuite) TestDestUserDefinedGasLimit() {
 			100,
 		},
 		{
-			"failure: memo has user defined gas limit as number",
+			"failure: memo has user defined gas limit as json number",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,

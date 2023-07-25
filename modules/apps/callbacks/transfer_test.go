@@ -199,7 +199,7 @@ func (suite *CallbacksTestSuite) ExecuteTransferTimeout(memo string, nextSeqRecv
 	timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
-	amount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+	amount := ibctesting.TestCoin
 	msg := transfertypes.NewMsgTransfer(
 		suite.path.EndpointA.ChannelConfig.PortID,
 		suite.path.EndpointA.ChannelID,

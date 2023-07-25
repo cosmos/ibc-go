@@ -7,16 +7,17 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *CallbacksTypesTestSuite) TestLogger() {
 	suite.SetupSuite()
 
-	ctx := suite.chain.GetContext()
+	mockLogger := ibcmock.NewMockLogger()
+	ctx := suite.chain.GetContext().WithLogger(mockLogger)
+	types.Logger(ctx)
 
-	suite.Require().Equal(
-		ctx.Logger().With("module", "x/"+types.ModuleName),
-		types.Logger(ctx))
+	suite.Require().Equal(mockLogger.WithRecord, []interface{}{"module", "x/" + types.ModuleName})
 }
 
 func (suite *CallbacksTypesTestSuite) TestEvents() {
@@ -36,8 +37,9 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeAcknowledgement,
 			types.CallbackData{
-				ContractAddr: ibctesting.TestAccAddress,
-				GasLimit:     100000,
+				ContractAddr:   ibctesting.TestAccAddress,
+				GasLimit:       100000,
+				CommitGasLimit: 200000,
 			},
 			nil,
 			ibctesting.EventsMap{
@@ -46,10 +48,38 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeAcknowledgement),
 					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
 					types.AttributeKeyCallbackGasLimit:        "100000",
+					types.AttributeKeyCallbackCommitGasLimit:  "200000",
 					types.AttributeKeyCallbackSourcePortID:    ibctesting.MockPort,
 					types.AttributeKeyCallbackSourceChannelID: ibctesting.FirstChannelID,
 					types.AttributeKeyCallbackSequence:        "1",
-					types.AttributeKeyCallbackResult:          "success",
+					types.AttributeKeyCallbackResult:          types.AttributeValueCallbackSuccess,
+				},
+			},
+		},
+		{
+			"success: send packet callback",
+			channeltypes.NewPacket(
+				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
+				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+			),
+			types.CallbackTypeSendPacket,
+			types.CallbackData{
+				ContractAddr:   ibctesting.TestAccAddress,
+				GasLimit:       100000,
+				CommitGasLimit: 200000,
+			},
+			nil,
+			ibctesting.EventsMap{
+				types.EventTypeSourceCallback: {
+					sdk.AttributeKeyModule:                    types.ModuleName,
+					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeSendPacket),
+					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
+					types.AttributeKeyCallbackGasLimit:        "100000",
+					types.AttributeKeyCallbackCommitGasLimit:  "200000",
+					types.AttributeKeyCallbackSourcePortID:    ibctesting.MockPort,
+					types.AttributeKeyCallbackSourceChannelID: ibctesting.FirstChannelID,
+					types.AttributeKeyCallbackSequence:        "1",
+					types.AttributeKeyCallbackResult:          types.AttributeValueCallbackSuccess,
 				},
 			},
 		},
@@ -61,8 +91,9 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeTimeoutPacket,
 			types.CallbackData{
-				ContractAddr: ibctesting.TestAccAddress,
-				GasLimit:     100000,
+				ContractAddr:   ibctesting.TestAccAddress,
+				GasLimit:       100000,
+				CommitGasLimit: 200000,
 			},
 			nil,
 			ibctesting.EventsMap{
@@ -71,10 +102,11 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeTimeoutPacket),
 					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
 					types.AttributeKeyCallbackGasLimit:        "100000",
+					types.AttributeKeyCallbackCommitGasLimit:  "200000",
 					types.AttributeKeyCallbackSourcePortID:    ibctesting.MockPort,
 					types.AttributeKeyCallbackSourceChannelID: ibctesting.FirstChannelID,
 					types.AttributeKeyCallbackSequence:        "1",
-					types.AttributeKeyCallbackResult:          "success",
+					types.AttributeKeyCallbackResult:          types.AttributeValueCallbackSuccess,
 				},
 			},
 		},
@@ -86,20 +118,22 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeWriteAcknowledgement,
 			types.CallbackData{
-				ContractAddr: ibctesting.TestAccAddress,
-				GasLimit:     100000,
+				ContractAddr:   ibctesting.TestAccAddress,
+				GasLimit:       100000,
+				CommitGasLimit: 200000,
 			},
 			nil,
 			ibctesting.EventsMap{
 				types.EventTypeDestinationCallback: {
-					sdk.AttributeKeyModule:                    types.ModuleName,
-					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeWriteAcknowledgement),
-					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
-					types.AttributeKeyCallbackGasLimit:        "100000",
-					types.AttributeKeyCallbackSourcePortID:    ibctesting.MockPort,
-					types.AttributeKeyCallbackSourceChannelID: ibctesting.FirstChannelID,
-					types.AttributeKeyCallbackSequence:        "1",
-					types.AttributeKeyCallbackResult:          "success",
+					sdk.AttributeKeyModule:                   types.ModuleName,
+					types.AttributeKeyCallbackTrigger:        string(types.CallbackTypeWriteAcknowledgement),
+					types.AttributeKeyCallbackAddress:        ibctesting.TestAccAddress,
+					types.AttributeKeyCallbackGasLimit:       "100000",
+					types.AttributeKeyCallbackCommitGasLimit: "200000",
+					types.AttributeKeyCallbackDestPortID:     ibctesting.MockFeePort,
+					types.AttributeKeyCallbackDestChannelID:  ibctesting.InvalidID,
+					types.AttributeKeyCallbackSequence:       "1",
+					types.AttributeKeyCallbackResult:         types.AttributeValueCallbackSuccess,
 				},
 			},
 		},
@@ -111,8 +145,9 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 			),
 			"something",
 			types.CallbackData{
-				ContractAddr: ibctesting.TestAccAddress,
-				GasLimit:     100000,
+				ContractAddr:   ibctesting.TestAccAddress,
+				GasLimit:       100000,
+				CommitGasLimit: 200000,
 			},
 			nil,
 			ibctesting.EventsMap{
@@ -121,10 +156,11 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 					types.AttributeKeyCallbackTrigger:         "something",
 					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
 					types.AttributeKeyCallbackGasLimit:        "100000",
+					types.AttributeKeyCallbackCommitGasLimit:  "200000",
 					types.AttributeKeyCallbackSourcePortID:    ibctesting.MockPort,
 					types.AttributeKeyCallbackSourceChannelID: ibctesting.FirstChannelID,
 					types.AttributeKeyCallbackSequence:        "1",
-					types.AttributeKeyCallbackResult:          "success",
+					types.AttributeKeyCallbackResult:          types.AttributeValueCallbackSuccess,
 				},
 			},
 		},
@@ -136,8 +172,9 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeAcknowledgement,
 			types.CallbackData{
-				ContractAddr: ibctesting.TestAccAddress,
-				GasLimit:     100000,
+				ContractAddr:   ibctesting.TestAccAddress,
+				GasLimit:       100000,
+				CommitGasLimit: 200000,
 			},
 			types.ErrNotCallbackPacketData,
 			ibctesting.EventsMap{
@@ -146,10 +183,11 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeAcknowledgement),
 					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
 					types.AttributeKeyCallbackGasLimit:        "100000",
+					types.AttributeKeyCallbackCommitGasLimit:  "200000",
 					types.AttributeKeyCallbackSourcePortID:    ibctesting.MockPort,
 					types.AttributeKeyCallbackSourceChannelID: ibctesting.FirstChannelID,
 					types.AttributeKeyCallbackSequence:        "1",
-					types.AttributeKeyCallbackResult:          "failure",
+					types.AttributeKeyCallbackResult:          types.AttributeValueCallbackFailure,
 					types.AttributeKeyCallbackError:           types.ErrNotCallbackPacketData.Error(),
 				},
 			},

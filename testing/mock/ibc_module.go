@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	_ porttypes.IBCModule          = IBCModule{}
-	_ porttypes.PacketInfoProvider = IBCModule{}
+	_ porttypes.IBCModule             = IBCModule{}
+	_ porttypes.PacketDataUnmarshaler = IBCModule{}
 )
 
 // IBCModule implements the ICS26 callbacks for testing/mock.
@@ -170,22 +170,12 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 }
 
 // UnmarshalPacketData returns the MockPacketData. This function implements the optional
-// PacketInfoProvider interface required for ADR 008 support.
+// PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	if reflect.DeepEqual(bz, []byte("no unmarshaler error")) {
+	if reflect.DeepEqual(bz, MockPacketData) {
 		return MockPacketData, nil
 	}
 	return nil, ErrorMock
-}
-
-// GetPacketSender returns MockPacketSender.
-func (im IBCModule) GetPacketSender(packet exported.PacketI) string {
-	return MockPacketSender
-}
-
-// GetPacketSender returns an MockPacketReceiver.
-func (im IBCModule) GetPacketReceiver(packet exported.PacketI) string {
-	return MockPacketReceiver
 }
 
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.

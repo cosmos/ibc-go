@@ -7,10 +7,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+  icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
+	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -40,7 +39,7 @@ func (suite *CallbacksTestSuite) TestUnmarshalPacketData() {
 	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 	suite.Require().True(ok)
 
-	unmarshalerStack, ok := transferStack.(types.PacketInfoProviderIBCModule)
+	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
 	suite.Require().True(ok)
 
 	expPacketData := transfertypes.FungibleTokenPacketData{
@@ -162,15 +161,15 @@ func (suite *CallbacksTestSuite) TestWriteAcknowledgementError() {
 		0,
 	)
 
-	icaHostStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(icahosttypes.SubModuleName)
+	icaControllerStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	suite.Require().True(ok)
 
-	hostStack := icaHostStack.(porttypes.Middleware)
+	callbackStack := icaControllerStack.(porttypes.Middleware)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
 	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
-	err := hostStack.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
+	err := callbackStack.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
 	suite.Require().ErrorIs(err, errorsmod.Wrap(channeltypes.ErrChannelNotFound, packet.GetDestChannel()))
 }
 
@@ -227,6 +226,33 @@ func (suite *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 
 	ack := mockFeeCallbackStack.OnRecvPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
 	suite.Require().Nil(ack)
+	suite.AssertHasExecutedExpectedCallback("none", true)
+}
+
+func (suite *CallbacksTestSuite) TestOnRecvPacketFailedAck() {
+	suite.SetupMockFeeTest()
+
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+	suite.Require().NoError(err)
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
+	suite.Require().True(ok)
+
+	packet := channeltypes.NewPacket(
+		nil,
+		suite.chainA.SenderAccount.GetSequence(),
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(0, 100),
+		0,
+	)
+
+	ack := mockFeeCallbackStack.OnRecvPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
+	suite.Require().Equal(ibcmock.MockFailAcknowledgement, ack)
+	suite.AssertHasExecutedExpectedCallback("none", true)
 }
 
 func (suite *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
@@ -258,11 +284,142 @@ func (suite *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
 	transferStackMw := transferStack.(porttypes.Middleware)
 
 	modifiedCtx := suite.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(400000))
-	suite.Require().Panics(func() {
+	suite.AssertPanicContains(func() {
 		transferStackMw.OnRecvPacket(modifiedCtx, packet, suite.chainB.SenderAccount.GetAddress())
-	})
+	}, "callback out of gas", "out of gas in location:")
 
 	// check that it doesn't panic when gas is high enough
+	ack := transferStackMw.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainB.SenderAccount.GetAddress())
+	suite.Require().NotNil(ack)
+}
+
+func (suite *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
+	suite.SetupTransferTest()
+
+	// build packet
+	packetData := transfertypes.NewFungibleTokenPacketData(
+		ibctesting.TestCoin.Denom,
+		ibctesting.TestCoin.Amount.String(),
+		ibctesting.TestAccAddress,
+		ibctesting.TestAccAddress,
+		fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
+	)
+
+	packet := channeltypes.NewPacket(
+		packetData.GetBytes(),
+		1,
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
+		clienttypes.NewHeight(1, 100),
+		0,
+	)
+
+	transferStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+
+	transferStackMw := transferStack.(porttypes.Middleware)
+
+	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
+	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+
+	modifiedCtx := suite.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
+	err := transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
+	suite.Require().ErrorIs(err, types.ErrCallbackOutOfGas)
+}
+
+func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketOogError() {
+	suite.SetupTransferTest()
+
+	senderAddr := suite.chainA.SenderAccount.GetAddress()
+	amount := ibctesting.TestCoin
+	msg := transfertypes.NewMsgTransfer(
+		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		amount, suite.chainA.SenderAccount.GetAddress().String(),
+		senderAddr.String(), clienttypes.NewHeight(1, 100), 0,
+		fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
+	)
+
+	res, err := suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	suite.Require().NoError(err) // packet committed
+	suite.Require().NotNil(packet)
+
+	// relay to chainB
+	err = suite.path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+	res, err = suite.path.EndpointB.RecvPacketWithResult(packet)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
+
+	// relay ack to chainA
+	ack, err := ibctesting.ParseAckFromEvents(res.Events)
+	suite.Require().NoError(err)
+
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+	modifiedCtx := suite.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
+
+	err = transferStack.OnAcknowledgementPacket(modifiedCtx, packet, ack, senderAddr)
+	suite.Require().ErrorIs(err, types.ErrCallbackOutOfGas)
+}
+
+func (suite *CallbacksTestSuite) TestOnTimeoutPacketOogError() {
+	suite.SetupTransferTest()
+
+	timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+
+	amount := ibctesting.TestCoin
+	msg := transfertypes.NewMsgTransfer(
+		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+		amount, suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, timeoutTimestamp,
+		fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
+	)
+
+	res, err := suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	suite.Require().NoError(err) // packet committed
+	suite.Require().NotNil(packet)
+
+	// need to update chainA's client representing chainB to prove missing ack
+	err = suite.path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+	modifiedCtx := suite.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
+	err = transferStack.OnTimeoutPacket(modifiedCtx, packet, suite.chainA.SenderAccount.GetAddress())
+	suite.Require().ErrorIs(err, types.ErrCallbackOutOfGas)
+}
+
+func (suite *CallbacksTestSuite) TestSendPacketReject() {
+	suite.SetupTransferTest()
+
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+	callbackStack, ok := transferStack.(porttypes.Middleware)
+	suite.Require().True(ok)
+
+	// We use the MockCallbackUnauthorizedAddress so that mock contract keeper knows to reject the packet
+	ftpd := transfertypes.NewFungibleTokenPacketData(
+		ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibcmock.MockCallbackUnauthorizedAddress,
+		ibctesting.TestAccAddress, fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+	)
+
+	channelCap := suite.path.EndpointA.Chain.GetChannelCapability(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	seq, err := callbackStack.SendPacket(
+		suite.chainA.GetContext(), channelCap, suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0, ftpd.GetBytes(),
+	)
+	suite.Require().ErrorIs(err, ibcmock.ErrorMock)
+	suite.Require().Equal(uint64(0), seq)
 }
 
 func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
@@ -277,20 +434,14 @@ func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	invalidDataGetter := func() (types.CallbackData, bool, error) {
 		return types.CallbackData{}, false, fmt.Errorf("invalid data getter")
 	}
-
-	ctx := suite.chainA.GetContext()
 	mockPacket := channeltypes.Packet{Sequence: 0}
+
+	mockLogger := ibcmock.NewMockLogger()
+	ctx := suite.chainA.GetContext().WithLogger(mockLogger)
+
 	err := callbackStack.ProcessCallback(ctx, mockPacket, types.CallbackTypeWriteAcknowledgement, invalidDataGetter, nil)
 	suite.Require().NoError(err)
-
-	// Verify events
-	events := ctx.EventManager().Events().ToABCIEvents()
-	suite.T().Log("test: ", events)
-
-	newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
-	expCallbackData, _, expError := invalidDataGetter()
-	types.EmitCallbackEvent(newCtx, mockPacket, types.CallbackTypeWriteAcknowledgement, expCallbackData, expError)
-	expEvents := newCtx.EventManager().Events().ToABCIEvents()
-
-	suite.Require().Equal(expEvents, events)
+	suite.Require().Equal(1, len(mockLogger.DebugLogs))
+	suite.Require().Equal("Failed to get callback data.", mockLogger.DebugLogs[0].Message)
+	suite.Require().Equal([]interface{}{"packet", mockPacket, "err", fmt.Errorf("invalid data getter")}, mockLogger.DebugLogs[0].Params)
 }

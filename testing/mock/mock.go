@@ -39,13 +39,12 @@ var (
 	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement(fmt.Errorf("mock failed acknowledgement"))
 	ErrorMock                       = fmt.Errorf("mock failed acknowledgement")
 	MockPacketData                  = []byte("mock packet data")
-	MockPacketSender                = "mock packet sender"
-	MockPacketReceiver              = "mock packet receiver"
 	MockFailPacketData              = []byte("mock failed packet data")
 	MockAsyncPacketData             = []byte("mock async packet data")
 	MockRecvCanaryCapabilityName    = "mock receive canary capability name"
 	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
 	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"
+	MockCallbackUnauthorizedAddress = "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk"
 )
 
 var _ porttypes.IBCModule = IBCModule{}

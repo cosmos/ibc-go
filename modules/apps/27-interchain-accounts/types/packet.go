@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -81,7 +82,7 @@ The Memo format is defined like so:
 */
 
 // GetSourceCallbackAddress returns the source callback address if it is specified in the packet data memo.
-// If no callback address is specified, an empty string is returned.
+// If no callback address is specified or the memo is improperly formatted, an empty string is returned.
 //
 // The memo is expected to contain the source callback address in the following format:
 // { "src_callback": { "address": {stringCallbackAddress}}
@@ -115,13 +116,15 @@ func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
 //
 // The memo is expected to specify the user defined gas limit in the following format:
 // { "src_callback": { ... , "gas_limit": {stringForGasLimit} }
+//
+// Note: the user defined gas limit must be set as a string and not a json number.
 func (iapd InterchainAccountPacketData) GetSourceUserDefinedGasLimit() uint64 {
 	callbackData := iapd.getCallbackData("src_callback")
 	if callbackData == nil {
 		return 0
 	}
 
-	// json number won't be unmarshaled as a uint64, so we a use string instead
+	// the gas limit must be specified as a string and not a json number
 	gasLimit, ok := callbackData["gas_limit"].(string)
 	if !ok {
 		return 0
@@ -139,6 +142,15 @@ func (iapd InterchainAccountPacketData) GetSourceUserDefinedGasLimit() uint64 {
 // This feature is natively supported by interchain accounts host submodule transaction execution.
 func (iapd InterchainAccountPacketData) GetDestUserDefinedGasLimit() uint64 {
 	return 0
+}
+
+// GetPacketSender returns the sender address of the packet.
+func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string {
+	icaOwner, found := strings.CutPrefix(srcPortID, ControllerPortPrefix)
+	if !found {
+		return ""
+	}
+	return icaOwner
 }
 
 // getCallbackData returns the memo as `map[string]interface{}` so that it can be

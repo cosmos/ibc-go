@@ -139,17 +139,9 @@ type Middleware interface {
 	ICS4Wrapper
 }
 
-// PacketInfoProvider defines an optional interface which allows a middleware to
+// PacketDataUnmarshaler defines an optional interface which allows a middleware to
 // request the packet data to be unmarshaled by the base application.
-type PacketInfoProvider interface {
+type PacketDataUnmarshaler interface {
 	// UnmarshalPacketData unmarshals the packet data into a concrete type
 	UnmarshalPacketData([]byte) (interface{}, error)
-
-	// GetPacketSender returns the sender address of the packet.
-	// If the packet sender is unknown, or undefined, an empty string should be returned.
-	GetPacketSender(packet exported.PacketI) string
-
-	// GetPacketReceiver returns the receiver address of the packet.
-	// If the packet receiver is unknown, or undefined, an empty string should be returned.
-	GetPacketReceiver(packet exported.PacketI) string
 }

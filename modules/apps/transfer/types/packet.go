@@ -79,7 +79,7 @@ to retrieve the desired callback addresses for the ICS20 packet on the source an
 
 The Memo is used to ensure that the callback is desired by the user. This allows a user to send an ICS20 packet
 to a contract with ADR-8 enabled without automatically triggering the callback logic which may lead to unexpected
-behaviour.
+behavior.
 
 The Memo format is defined like so:
 
@@ -101,15 +101,15 @@ The Memo format is defined like so:
 }
 ```
 
-For transfer, we will NOT enforce that the src_callback_address is the same as sender and dest_callback_address is the same as receiver.
+For transfer, we will NOT enforce that the source callback address is the same as sender and destination callback address is the same as receiver.
 
 */
 
 // GetSourceCallbackAddress returns the source callback address
 // if it is specified in the packet data memo.
-// If no callback address is specified, an empty string is returned.
+// If no callback address is specified or the memo is improperly formatted, an empty string is returned.
 //
-// The memo is expected to contain the destination callback address in the following format:
+// The memo is expected to contain the source callback address in the following format:
 // { "src_callback": { "address": {stringCallbackAddress}}
 //
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
@@ -120,7 +120,7 @@ func (ftpd FungibleTokenPacketData) GetSourceCallbackAddress() string {
 
 // GetDestCallbackAddress returns the destination callback address
 // if it is specified in the packet data memo.
-// If no callback address is specified, an empty string is returned.
+// If no callback address is specified or the memo is improperly formatted, an empty string is returned.
 //
 // The memo is expected to contain the destination callback address in the following format:
 // { "dest_callback": { "address": {stringCallbackAddress}}
@@ -133,37 +133,48 @@ func (ftpd FungibleTokenPacketData) GetDestCallbackAddress() string {
 
 // GetSourceUserDefinedGasLimit returns the custom gas limit provided for source callbacks
 // if it is specified in the packet data memo.
-// If no gas limit is specified, 0 is returned.
+// If no gas limit is specified or the gas limit is improperly formatted, 0 is returned.
 //
 // The memo is expected to specify the user defined gas limit in the following format:
 // { "src_callback": { ... , "gas_limit": {stringForCallback} }
+//
+// Note: the user defined gas limit must be set as a string and not a json number.
 func (ftpd FungibleTokenPacketData) GetSourceUserDefinedGasLimit() uint64 {
 	return ftpd.getUserDefinedGasLimit("src_callback")
 }
 
 // GetDestUserDefinedGasLimit returns the custom gas limit provided for destination callbacks
 // if it is specified in the packet data memo.
-// If no gas limit is specified, 0 is returned.
+// If no gas limit is specified or the gas limit is improperly formatted, 0 is returned.
 //
 // The memo is expected to specify the user defined gas limit in the following format:
 // { "dest_callback": { ... , "gas_limit": {stringForCallback} }
+//
+// Note: the user defined gas limit must be set as a string and not a json number.
 func (ftpd FungibleTokenPacketData) GetDestUserDefinedGasLimit() uint64 {
 	return ftpd.getUserDefinedGasLimit("dest_callback")
 }
 
+// GetPacketSender returns the sender address of the packet.
+func (ftpd FungibleTokenPacketData) GetPacketSender(srcPortID string) string {
+	return ftpd.Sender
+}
+
 // getUserDefinedGasLimit returns the custom gas limit provided for callbacks
 // if it is specified in the packet data memo.
-// If no gas limit is specified, 0 is returned.
+// If no gas limit is specified or the gas limit is improperly formatted, 0 is returned.
 //
 // The memo is expected to specify the user defined gas limit in the following format:
 // { "{callbackKey}": { ... , "gas_limit": {stringForCallback} }
+//
+// Note: the user defined gas limit must be set as a string and not a json number.
 func (ftpd FungibleTokenPacketData) getUserDefinedGasLimit(callbackKey string) uint64 {
 	callbackData := ftpd.getCallbackData(callbackKey)
 	if callbackData == nil {
 		return 0
 	}
 
-	// json number won't be unmarshaled as a uint64, so we a use string instead
+	// the gas limit must be specified as a string and not a json number
 	gasLimit, ok := callbackData["gas_limit"].(string)
 	if !ok {
 		return 0
@@ -178,9 +189,9 @@ func (ftpd FungibleTokenPacketData) getUserDefinedGasLimit(callbackKey string) u
 }
 
 // getCallbackAddress returns the callback address if it is specified in the packet data memo.
-// If no callback address is specified, an empty string is returned.
+// If no callback address is specified or the memo is improperly formatted, an empty string is returned.
 //
-// The memo is expected to contain the destination callback address in the following format:
+// The memo is expected to contain the callback address in the following format:
 // { "{callbackKey}": { "address": {stringCallbackAddress}}
 //
 // ADR-8 middleware should callback on the returned address if it is a PacketActor

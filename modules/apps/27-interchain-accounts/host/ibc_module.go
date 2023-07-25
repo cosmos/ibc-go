@@ -17,10 +17,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var (
-	_ porttypes.IBCModule          = &IBCModule{}
-	_ porttypes.PacketInfoProvider = &IBCModule{}
-)
+var _ porttypes.IBCModule = &IBCModule{}
 
 // IBCModule implements the ICS26 interface for interchain accounts host chains
 type IBCModule struct {
@@ -154,28 +151,4 @@ func (im IBCModule) OnTimeoutPacket(
 	relayer sdk.AccAddress,
 ) error {
 	return errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "cannot cause a packet timeout on a host channel end, a host chain does not send a packet over the channel")
-}
-
-// UnmarshalPacketData attempts to unmarshal the provided packet data bytes
-// into an InterchainAccountPacketData. This function implements the optional
-// PacketInfoProvider interface required for ADR 008 support.
-func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	var packetData icatypes.InterchainAccountPacketData
-	if err := icatypes.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {
-		return nil, err
-	}
-
-	return packetData, nil
-}
-
-// GetPacketSender returns the empty string because the sender is unknown.
-// There is no way to determine the sender of a packet using the counterparty portID
-// because the host submodule does not impose any restrictions on the counterparty portID.
-func (im IBCModule) GetPacketSender(packet ibcexported.PacketI) string {
-	return ""
-}
-
-// GetPacketReceiver returns the empty string because the receiver is undefined for ica packets.
-func (im IBCModule) GetPacketReceiver(packet ibcexported.PacketI) string {
-	return ""
 }

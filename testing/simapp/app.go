@@ -568,9 +568,6 @@ func NewSimApp(
 	var icaHostStack porttypes.IBCModule
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
 	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
-	icaHostStack = ibccallbacks.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper, app.MockKeeper, maxCallbackGas)
-	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the icahost keeper
-	app.ICAHostKeeper.WithICS4Wrapper(icaHostStack.(porttypes.Middleware))
 
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.

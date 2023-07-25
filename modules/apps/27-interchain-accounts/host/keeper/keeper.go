@@ -17,7 +17,6 @@ import (
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
@@ -73,13 +72,6 @@ func NewKeeper(
 		msgRouter:      msgRouter,
 		authority:      authority,
 	}
-}
-
-// WithICS4Wrapper sets the ICS4Wrapper.
-// This function is used to change this keeper's ics4wrapper to a
-// middleware's ics4wrapper after this keeper has been created.
-func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
-	k.ics4Wrapper = wrapper
 }
 
 // Logger returns the application logger, scoped to the associated module
@@ -153,7 +145,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 
-	if found && channel.State == channeltypes.OPEN {
+	if found && channel.IsOpen() {
 		return channelID, true
 	}
 

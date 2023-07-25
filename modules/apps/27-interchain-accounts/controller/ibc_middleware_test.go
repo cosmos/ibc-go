@@ -919,8 +919,7 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 	suite.Require().NoError(err)
 }
 
-func (suite *InterchainAccountsTestSuite) TestPacketInfoProviderInterface() {
-	suite.SetupTest() // reset
+func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 	path := NewICAPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupConnections(path)
 	err := SetupICAPath(path, TestOwnerAddress)
@@ -931,27 +930,12 @@ func (suite *InterchainAccountsTestSuite) TestPacketInfoProviderInterface() {
 		Data: []byte("data"),
 		Memo: `{"src_callback": {"address": "testAddr"}}`,
 	}
-	packet := channeltypes.NewPacket(
-		expPacketData.GetBytes(),
-		suite.chainA.SenderAccount.GetSequence(),
-		path.EndpointA.ChannelConfig.PortID,
-		path.EndpointA.ChannelID,
-		path.EndpointB.ChannelConfig.PortID,
-		path.EndpointB.ChannelID,
-		clienttypes.NewHeight(0, 100),
-		0,
-	)
 
 	packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(expPacketData.GetBytes())
 	suite.Require().NoError(err)
 	suite.Require().Equal(expPacketData, packetData)
 
-	packetSender := controller.IBCMiddleware{}.GetPacketSender(packet)
-	suite.Require().Equal(TestOwnerAddress, packetSender)
-
-	packetReceiver := controller.IBCMiddleware{}.GetPacketReceiver(packet)
-	suite.Require().Equal("", packetReceiver)
-
+	// test invalid packet data
 	invalidPacketData := []byte("invalid packet data")
 	packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(invalidPacketData)
 	suite.Require().Error(err)

@@ -70,7 +70,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -156,7 +156,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -220,7 +220,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path := NewTransferPath(suite.chainA, suite.chainB)
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			counterpartyVersion = types.Version
@@ -244,7 +244,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 	}
 }
 
-func (suite *TransferTestSuite) TestPacketInfoProviderInterface() {
+func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	var (
 		sender           = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		receiver         = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -290,10 +290,6 @@ func (suite *TransferTestSuite) TestPacketInfoProviderInterface() {
 
 		packetData, err := transfer.IBCModule{}.UnmarshalPacketData(data)
 
-		packet := channeltypes.Packet{Data: data}
-		senderAddress := transfer.IBCModule{}.GetPacketSender(packet)
-		receiverAddress := transfer.IBCModule{}.GetPacketReceiver(packet)
-
 		if tc.expPass {
 			suite.Require().NoError(err)
 			suite.Require().Equal(expPacketData, packetData)
@@ -302,13 +298,9 @@ func (suite *TransferTestSuite) TestPacketInfoProviderInterface() {
 			suite.Require().True(ok)
 			suite.Require().Equal(srcCallbackAddr, callbackPacketData.GetSourceCallbackAddress(), "incorrect source callback address")
 			suite.Require().Equal(destCallbackAddr, callbackPacketData.GetDestCallbackAddress(), "incorrect destination callback address")
-			suite.Require().Equal(sender, senderAddress, "incorrect sender address")
-			suite.Require().Equal(receiver, receiverAddress, "incorrect receiver address")
 		} else {
 			suite.Require().Error(err)
 			suite.Require().Nil(packetData)
-			suite.Require().Equal("", senderAddress)
-			suite.Require().Equal("", receiverAddress)
 		}
 	}
 }

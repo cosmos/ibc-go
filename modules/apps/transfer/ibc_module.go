@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	_ porttypes.IBCModule          = IBCModule{}
-	_ porttypes.PacketInfoProvider = IBCModule{}
+	_ porttypes.IBCModule             = IBCModule{}
+	_ porttypes.PacketDataUnmarshaler = IBCModule{}
 )
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
@@ -88,7 +88,7 @@ func (im IBCModule) OnChanOpenInit(
 	}
 
 	if version != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, version)
 	}
 
 	// Claim channel capability passed back by IBC module
@@ -115,7 +115,7 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	if counterpartyVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
@@ -135,7 +135,7 @@ func (im IBCModule) OnChanOpenAck(
 	counterpartyVersion string,
 ) error {
 	if counterpartyVersion != types.Version {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
 	}
 	return nil
 }
@@ -309,7 +309,7 @@ func (im IBCModule) OnTimeoutPacket(
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional
-// PacketInfoProvider interface required for ADR 008 support.
+// PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	var packetData types.FungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {
@@ -317,26 +317,4 @@ func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	}
 
 	return packetData, nil
-}
-
-// GetPacketSender returns the sender address stored in the packet data.
-func (im IBCModule) GetPacketSender(packet ibcexported.PacketI) string {
-	packetDataI, err := im.UnmarshalPacketData(packet.GetData())
-	if err != nil {
-		return ""
-	}
-
-	// This casting is safe because UnmarshalPacketData returns a FungibleTokenPacketData
-	return packetDataI.(types.FungibleTokenPacketData).Sender
-}
-
-// GetPacketReceiver returns the receiver address stored in the packet data.
-func (im IBCModule) GetPacketReceiver(packet ibcexported.PacketI) string {
-	packetDataI, err := im.UnmarshalPacketData(packet.GetData())
-	if err != nil {
-		return ""
-	}
-
-	// This casting is safe because UnmarshalPacketData returns a FungibleTokenPacketData
-	return packetDataI.(types.FungibleTokenPacketData).Receiver
 }
