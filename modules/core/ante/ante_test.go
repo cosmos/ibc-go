@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -17,7 +17,7 @@ import (
 )
 
 type AnteTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -42,7 +42,7 @@ func (s *AnteTestSuite) SetupTest() {
 
 // TestAnteTestSuite runs all the tests within this package.
 func TestAnteTestSuite(t *testing.T) {
-	suite.Run(t, new(AnteTestSuite))
+	testifysuite.Run(t, new(AnteTestSuite))
 }
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.

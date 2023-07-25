@@ -11,8 +11,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
-	"go.uber.org/zap"
+	testifysuite "github.com/stretchr/testify/suite"	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
