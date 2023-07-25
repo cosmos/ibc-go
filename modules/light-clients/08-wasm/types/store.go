@@ -109,7 +109,7 @@ func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensus
 }
 
 // hasConsensusState returns true if a consensus state at the given height exists in the store.
-func hasConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) bool {
+func hasConsensusState(clientStore sdk.KVStore, height exported.Height) bool {
 	return clientStore.Has(host.ConsensusStateKey(height))
 }
 

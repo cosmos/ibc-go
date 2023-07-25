@@ -176,7 +176,7 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	found := hasConsensusState(clientStore, cdc, height)
+	found := hasConsensusState(clientStore, height)
 	if !found {
 		return errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
 	}
@@ -233,7 +233,7 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	found := hasConsensusState(clientStore, cdc, height)
+	found := hasConsensusState(clientStore, height)
 	if !found {
 		return errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
 	}
