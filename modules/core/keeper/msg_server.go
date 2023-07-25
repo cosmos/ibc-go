@@ -770,8 +770,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	upgrade, err := k.ChannelKeeper.ChanUpgradeTry(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgradeConnectionHops, msg.UpgradeTimeout, msg.CounterpartyProposedUpgrade, msg.CounterpartyUpgradeSequence, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel upgrade try failed"))
-		if upgradeErr, ok := err.(*channeltypes.UpgradeError); ok {
-			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, upgradeErr)
+		if channeltypes.IsUpgradeError(err) {
+			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
 			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
@@ -825,8 +825,8 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	err = k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyFlushStatus, msg.CounterpartyUpgrade, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel upgrade ack failed"))
-		if upgradeErr, ok := err.(*channeltypes.UpgradeError); ok {
-			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, upgradeErr)
+		if channeltypes.IsUpgradeError(err) {
+			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
 			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
@@ -917,9 +917,9 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 		return nil, errorsmod.Wrapf(err, "could not timeout upgrade for channel: %s", msg.ChannelId)
 	}
 
-	cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
-
 	k.ChannelKeeper.WriteUpgradeTimeoutChannel(ctx, msg.PortId, msg.ChannelId)
+
+	cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 	ctx.Logger().Info("channel upgrade timeout callback succeeded: portID %s, channelID %s", msg.PortId, msg.ChannelId)
 
@@ -949,9 +949,9 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 		return nil, errorsmod.Wrap(err, "channel upgrade cancel failed")
 	}
 
-	cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
-
 	k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt.Sequence)
+
+	cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 	ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 

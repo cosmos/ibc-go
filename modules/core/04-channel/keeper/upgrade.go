@@ -446,8 +446,7 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	// delete state associated with upgrade which is no longer required.
-	k.deleteUpgrade(ctx, portID, channelID)
-	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
+	k.deleteUpgradeInfo(ctx, portID, channelID)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState.String(), "new-state", types.OPEN.String())
 	emitChannelUpgradeOpenEvent(ctx, portID, channelID, channel)
@@ -882,8 +881,7 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	k.SetChannel(ctx, portID, channelID, currentChannel)
 
 	// delete state associated with upgrade which is no longer required.
-	k.deleteUpgrade(ctx, portID, channelID)
-	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
+	k.deleteUpgradeInfo(ctx, portID, channelID)
 }
 
 // writeErrorReceipt will write an error receipt from the provided UpgradeError.
@@ -896,4 +894,10 @@ func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upg
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
 	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgrade, upgradeError)
 	return nil
+}
+
+// deleteUpgradeInfo deletes all auxiliary upgrade information.
+func (k Keeper) deleteUpgradeInfo(ctx sdk.Context, portID, channelID string) {
+	k.deleteUpgrade(ctx, portID, channelID)
+	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
 }
