@@ -768,8 +768,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	upgrade, err := k.ChannelKeeper.ChanUpgradeTry(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgradeConnectionHops, msg.UpgradeTimeout, msg.CounterpartyProposedUpgrade, msg.CounterpartyUpgradeSequence, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel upgrade try failed"))
-		if upgradeErr, ok := err.(*channeltypes.UpgradeError); ok {
-			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, upgradeErr)
+		if channeltypes.IsUpgradeError(err) {
+			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
 			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
@@ -823,8 +823,8 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	err = k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyFlushStatus, msg.CounterpartyUpgrade, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel upgrade ack failed"))
-		if upgradeErr, ok := err.(*channeltypes.UpgradeError); ok {
-			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, upgradeErr)
+		if channeltypes.IsUpgradeError(err) {
+			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
 			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
