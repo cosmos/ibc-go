@@ -156,7 +156,7 @@ func (ftpd FungibleTokenPacketData) GetDestUserDefinedGasLimit() uint64 {
 }
 
 // GetPacketSender returns the sender address of the packet.
-func (ftpd FungibleTokenPacketData) GetPacketSender(srcPortID, srcChannelID string) string {
+func (ftpd FungibleTokenPacketData) GetPacketSender(srcPortID string) string {
 	return ftpd.Sender
 }
 

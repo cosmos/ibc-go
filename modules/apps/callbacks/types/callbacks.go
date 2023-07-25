@@ -41,7 +41,7 @@ func GetSourceCallbackData(
 		return callbackData.GetSourceUserDefinedGasLimit()
 	}
 	authGetter := func(callbackData ibcexported.CallbackPacketData) string {
-		return callbackData.GetPacketSender(packet.GetSourcePort(), packet.GetSourceChannel())
+		return callbackData.GetPacketSender(packet.GetSourcePort())
 	}
 	return getCallbackData(packetDataUnmarshaler, packet.GetData(), remainingGas, maxGas, addressGetter, gasLimitGetter, authGetter)
 }

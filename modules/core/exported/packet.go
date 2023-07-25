@@ -50,5 +50,5 @@ type CallbackPacketData interface {
 
 	// GetPacketSender returns the sender address of the packet.
 	// If the packet sender is unknown, or undefined, an empty string should be returned.
-	GetPacketSender(srcPortID, srcChannelID string) string
+	GetPacketSender(srcPortID string) string
 }

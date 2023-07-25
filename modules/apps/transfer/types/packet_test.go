@@ -135,7 +135,7 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 		suite.Run(tc.name, func() {
 			srcCbAddr := tc.packetData.GetSourceCallbackAddress()
 			suite.Require().Equal(tc.expAddress, srcCbAddr)
-			suite.Require().Equal(sender, tc.packetData.GetPacketSender("", ""))
+			suite.Require().Equal(sender, tc.packetData.GetPacketSender(""))
 		})
 	}
 }

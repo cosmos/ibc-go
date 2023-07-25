@@ -145,7 +145,7 @@ func (iapd InterchainAccountPacketData) GetDestUserDefinedGasLimit() uint64 {
 }
 
 // GetPacketSender returns the sender address of the packet.
-func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID, srcChannelID string) string {
+func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string {
 	icaOwner, found := strings.CutPrefix(srcPortID, ControllerPortPrefix)
 	if !found {
 		return ""

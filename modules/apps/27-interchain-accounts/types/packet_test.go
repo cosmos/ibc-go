@@ -412,6 +412,6 @@ func (suite *TypesTestSuite) TestGetPacketSender() {
 
 	for _, tc := range testCases {
 		packetData := types.InterchainAccountPacketData{}
-		suite.Require().Equal(tc.expSender, packetData.GetPacketSender(tc.srcPortID, ibctesting.InvalidID))
+		suite.Require().Equal(tc.expSender, packetData.GetPacketSender(tc.srcPortID))
 	}
 }
