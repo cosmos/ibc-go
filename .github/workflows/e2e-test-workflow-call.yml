@@ -194,10 +194,10 @@ jobs:
           path: e2e/diagnostics
           retention-days: 5
 
-  # e2e-success is a dummy job that is used to tally the results of the e2e-tests job. The name of this job
+  # e2e-status is a dummy job that is used to tally the results of the e2e-tests job. The name of this job
   # can be used in the branch protection rules, as a single target, to make sure all tests pass before merging.
-  # If the tests are to be skipped, e2e-success will be skipped as well.
-  e2e-success:
+  # If the tests are to be skipped, e2e-status will be skipped as well.
+  e2e-status:
     needs: e2e-tests
     runs-on: ubuntu-latest
     steps:
