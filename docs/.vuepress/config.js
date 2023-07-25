@@ -285,6 +285,11 @@ module.exports = {
                   path: "/apps/interchain-accounts/parameters.html",
                 },
                 {
+                  title: "Tx Encoding",
+                  directory: false,
+                  path: "/apps/interchain-accounts/tx-encoding.html",
+                },
+                {
                   title: "Client",
                   directory: false,
                   path: "/apps/interchain-accounts/client.html",
@@ -293,11 +298,6 @@ module.exports = {
                   title: "Active Channels",
                   directory: false,
                   path: "/apps/interchain-accounts/active-channels.html",
-                },
-                {
-                  title: "Tx Encoding",
-                  directory: false,
-                  path: "/apps/interchain-accounts/tx-encoding.html",
                 },
                 {
                   title: "Legacy",
