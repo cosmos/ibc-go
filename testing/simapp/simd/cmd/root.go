@@ -11,7 +11,6 @@ import (
 
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -208,19 +207,17 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
 		genesisCommand(encodingConfig, basicManager),
-		txCommand(),
-		queryCommand(),
+		txCommand(basicManager),
+		queryCommand(basicManager),
 		keys.Commands(simapp.DefaultNodeHome),
 	)
-
-	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
 }
 
-func queryCommand() *cobra.Command {
+func queryCommand(basicManager module.BasicManager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",
 		Aliases:                    []string{"q"},
@@ -239,10 +236,12 @@ func queryCommand() *cobra.Command {
 		authcmd.GetSimulateCmd(),
 	)
 
+	basicManager.AddQueryCommands(cmd)
+
 	return cmd
 }
 
-func txCommand() *cobra.Command {
+func txCommand(basicManager module.BasicManager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
@@ -262,6 +261,8 @@ func txCommand() *cobra.Command {
 		authcmd.GetDecodeCommand(),
 		authcmd.GetAuxToFeeCommand(),
 	)
+
+	basicManager.AddTxCommands(cmd)
 
 	return cmd
 }
