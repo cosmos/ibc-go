@@ -597,6 +597,8 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		ibctm.AppModuleBasic{},
+		solomachine.AppModuleBasic{},
 		mockModule,
 	)
 
@@ -615,8 +617,6 @@ func NewSimApp(
 					ibcclientclient.UpgradeProposalHandler,
 				},
 			),
-			ibctm.ModuleName:       ibctm.AppModuleBasic{},
-			solomachine.ModuleName: solomachine.AppModuleBasic{},
 		})
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
@@ -883,7 +883,6 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 
 	return autocli.AppOptions{
 		Modules:               modules,
-		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.ModuleManager.Modules),
 		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),

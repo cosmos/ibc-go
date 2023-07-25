@@ -8,6 +8,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -171,10 +172,6 @@ func AssertEvents(
 	actual []abci.Event,
 ) {
 	foundEvents := make(map[int]bool)
-	// taking advantage that looping over a slice is deterministic
-	for i := range expected {
-		foundEvents[i] = false
-	}
 
 	for i, expectedEvent := range expected {
 		for _, actualEvent := range actual {
@@ -182,30 +179,23 @@ func AssertEvents(
 			// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
 			// with the number of attributes in the expected event.
 			if expectedEvent.Type == actualEvent.Type && (len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1) {
-				eventMatch := true
+				// multiple events with the same type may be emitted, only mark the expected event as found
+				// if all of the attributes match
+				attributeMatch := true
 				for _, expectedAttr := range expectedEvent.Attributes {
-					attributeMatch := false
-					for _, actualAttr := range actualEvent.Attributes {
-						attributeMatch = attributeMatch || actualAttr == expectedAttr
-
-						if attributeMatch {
-							break
-						}
-					}
-					eventMatch = eventMatch && attributeMatch
+					// any expected attributes that are not contained in the actual events will cause this event
+					// not to match
+					attributeMatch = attributeMatch && collections.Contains(expectedAttr, actualEvent.Attributes)
 				}
 
-				if eventMatch {
-					foundEvents[i] = eventMatch
-					continue
+				if attributeMatch {
+					foundEvents[i] = true
 				}
 			}
 		}
 	}
 
 	for i, expectedEvent := range expected {
-		if !foundEvents[i] {
-			suite.Require().True(foundEvents[i], "event: %s was not found in events", expectedEvent.Type)
-		}
+		suite.Require().True(foundEvents[i], "event: %s was not found in events", expectedEvent.Type)
 	}
 }
