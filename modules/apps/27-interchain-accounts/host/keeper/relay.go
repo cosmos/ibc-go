@@ -106,17 +106,21 @@ func (k Keeper) authenticateTx(ctx sdk.Context, msgs []sdk.Msg, connectionID, po
 			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "message type not allowed: %s", sdk.MsgTypeURL(msg))
 		}
 
+		// obtain the message signers using the proto signer annotations
+		// the msgv2 return value is discarded as it is not used
 		signers, _, err := k.cdc.GetMsgV1Signers(msg)
 		if err != nil {
-			return err
+			return errorsmod.Wrapf(err, "failed to obtain message signers for message type %s", sdk.MsgTypeURL(msg))
 		}
 
 		for _, signer := range signers {
+			// the interchain account address is stored as the string value of the sdk.AccAddress type
+			// thus we must cast the signer to a sdk.AccAddress to obtain the comparison value
+			// the stored interchain account address must match the signer for every message to be executed
 			if interchainAccountAddr != sdk.AccAddress(signer).String() {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", interchainAccountAddr, sdk.AccAddress(signer).String())
 			}
 		}
-
 	}
 
 	return nil
