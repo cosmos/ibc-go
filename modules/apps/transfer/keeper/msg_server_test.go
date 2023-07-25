@@ -86,7 +86,7 @@ func (s *KeeperTestSuite) TestMsgTransfer() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			path := NewTransferPath(s.chainA, s.chainB)
+			path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 			s.coordinator.Setup(path)
 
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))

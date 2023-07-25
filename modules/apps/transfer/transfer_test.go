@@ -32,16 +32,6 @@ func (s *TransferTestSuite) SetupTest() {
 	s.chainC = s.coordinator.GetChain(ibctesting.GetChainID(3))
 }
 
-func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
-	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
-
-	return path
-}
-
 // Constructs the following sends based on the established channels/connections
 // 1 - from chainA to chainB
 // 2 - from chainB to chainC
@@ -51,7 +41,7 @@ func (s *TransferTestSuite) TestHandleMsgTransfer() {
 	// NOTE:
 	// pathAtoB.EndpointA = endpoint on chainA
 	// pathAtoB.EndpointB = endpoint on chainB
-	pathAtoB := NewTransferPath(s.chainA, s.chainB)
+	pathAtoB := ibctesting.NewTransferPath(s.chainA, s.chainB)
 	s.coordinator.Setup(pathAtoB)
 
 	originalBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
@@ -88,7 +78,7 @@ func (s *TransferTestSuite) TestHandleMsgTransfer() {
 	// NOTE:
 	// pathBtoC.EndpointA = endpoint on chainB
 	// pathBtoC.EndpointB = endpoint on chainC
-	pathBtoC := NewTransferPath(s.chainB, s.chainC)
+	pathBtoC := ibctesting.NewTransferPath(s.chainB, s.chainC)
 	s.coordinator.Setup(pathBtoC)
 
 	// send from chainB to chainC

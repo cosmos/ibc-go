@@ -65,7 +65,7 @@ func (s *TransferTestSuite) TestOnChanOpenInit() {
 
 		s.Run(tc.name, func() {
 			s.SetupTest() // reset
-			path = NewTransferPath(s.chainA, s.chainB)
+			path = ibctesting.NewTransferPath(s.chainA, s.chainB)
 			s.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -151,7 +151,7 @@ func (s *TransferTestSuite) TestOnChanOpenTry() {
 		s.Run(tc.name, func() {
 			s.SetupTest() // reset
 
-			path = NewTransferPath(s.chainA, s.chainB)
+			path = ibctesting.NewTransferPath(s.chainA, s.chainB)
 			s.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -215,7 +215,7 @@ func (s *TransferTestSuite) TestOnChanOpenAck() {
 		s.Run(tc.name, func() {
 			s.SetupTest() // reset
 
-			path := NewTransferPath(s.chainA, s.chainB)
+			path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 			s.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			counterpartyVersion = types.Version
