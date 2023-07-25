@@ -6,6 +6,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
@@ -29,6 +30,18 @@ func NewPath(chainA, chainB *TestChain) *Path {
 		EndpointA: endpointA,
 		EndpointB: endpointB,
 	}
+}
+
+// NewTransferPath constructs a new path between each chain suitable for use with
+// the transfer module.
+func NewTransferPath(chainA, chainB *TestChain) *Path {
+	path := NewPath(chainA, chainB)
+	path.EndpointA.ChannelConfig.PortID = TransferPort
+	path.EndpointB.ChannelConfig.PortID = TransferPort
+	path.EndpointA.ChannelConfig.Version = transfertypes.Version
+	path.EndpointB.ChannelConfig.Version = transfertypes.Version
+
+	return path
 }
 
 // SetChannelOrdered sets the channel order for both endpoints to ORDERED.

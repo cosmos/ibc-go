@@ -301,8 +301,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		}
 
 		suite.SetupTest()
-		pathAtoB := NewTransferPath(suite.chainA, suite.chainB)
-		pathBtoC := NewTransferPath(suite.chainB, suite.chainC)
+		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 		suite.coordinator.Setup(pathAtoB)
 		suite.coordinator.Setup(pathBtoC)
 

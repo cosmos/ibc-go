@@ -302,11 +302,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"interchain account successfully executes transfertypes.MsgTransfer",
 			func(encoding string) {
-				transferPath := ibctesting.NewPath(suite.chainB, suite.chainC)
-				transferPath.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
-				transferPath.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-				transferPath.EndpointA.ChannelConfig.Version = transfertypes.Version
-				transferPath.EndpointB.ChannelConfig.Version = transfertypes.Version
+				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 
 				suite.coordinator.Setup(transferPath)
 
@@ -710,11 +706,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		{
 			"interchain account successfully executes transfertypes.MsgTransfer",
 			func(icaAddress string) {
-				transferPath := ibctesting.NewPath(suite.chainB, suite.chainC)
-				transferPath.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
-				transferPath.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-				transferPath.EndpointA.ChannelConfig.Version = transfertypes.Version
-				transferPath.EndpointB.ChannelConfig.Version = transfertypes.Version
+				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 
 				suite.coordinator.Setup(transferPath)
 
