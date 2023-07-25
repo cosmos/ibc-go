@@ -19,15 +19,41 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *CallbacksTestSuite) TestInvalidNewIBCMiddleware() {
+func (suite *CallbacksTestSuite) TestNilUnderlyingApp() {
 	suite.setupChains()
 
 	channelKeeper := suite.chainA.App.GetIBCKeeper().ChannelKeeper
 	mockContractKeeper := suite.chainA.GetSimApp().MockKeeper
 
 	// require panic
-	suite.Panics(func() {
+	suite.PanicsWithValue(fmt.Sprintf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)), func() {
 		_ = ibccallbacks.NewIBCMiddleware(nil, channelKeeper, mockContractKeeper, uint64(1000000))
+	})
+}
+
+func (suite *CallbacksTestSuite) TestNilContractKeeper() {
+	suite.setupChains()
+
+	channelKeeper := suite.chainA.App.GetIBCKeeper().ChannelKeeper
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+
+	// require panic
+	suite.PanicsWithValue("contract keeper cannot be nil", func() {
+		_ = ibccallbacks.NewIBCMiddleware(transferStack, channelKeeper, nil, uint64(1000000))
+	})
+}
+
+func (suite *CallbacksTestSuite) TestNilICS4Wrapper() {
+	suite.setupChains()
+
+	mockContractKeeper := suite.chainA.GetSimApp().MockKeeper
+	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	suite.Require().True(ok)
+
+	// require panic
+	suite.PanicsWithValue("ics4wrapper cannot be nil", func() {
+		_ = ibccallbacks.NewIBCMiddleware(transferStack, nil, mockContractKeeper, uint64(1000000))
 	})
 }
 
