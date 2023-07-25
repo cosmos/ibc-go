@@ -38,9 +38,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
-// NOTE: @alpe was massively helpful in determining how to solve the time problems in the SDK 50 upgrade.
-// see discussion here: https://github.com/cosmos/ibc-go/pull/3883
-
 var MaxAccounts = 10
 
 type SenderAccount struct {
@@ -133,7 +130,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 
 	app := SetupWithGenesisValSet(tb, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
-	// create current header and call begin block
+	// create genesis header
 	header := cmtproto.Header{
 		ChainID: chainID,
 		Height:  1,
@@ -160,7 +157,8 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		SenderAccounts: senderAccs,
 	}
 
-	coord.CommitBlock(chain)
+	// commit genesis block
+	chain.NextBlock()
 
 	return chain
 }
@@ -194,7 +192,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (chain *TestChain) GetContext() sdk.Context {
-	return chain.App.NewUncachedContext(false, chain.CurrentHeader)
+	return chain.App.GetBaseApp().NewUncachedContext(false, chain.CurrentHeader)
 }
 
 // GetSimApp returns the SimApp to allow usage ofnon-interface fields.
@@ -363,7 +361,6 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 		return nil, err
 	}
 
-	// NextBlock calls app.Commit()
 	chain.commitBlock(resp)
 
 	require.Len(chain.TB, resp.TxResults, 1)

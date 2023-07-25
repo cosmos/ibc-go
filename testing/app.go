@@ -25,7 +25,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -38,9 +37,6 @@ var DefaultTestingAppInit = SetupTestingApp
 
 type TestingApp interface {
 	servertypes.ABCI
-	GetContextForFinalizeBlock(txBytes []byte) sdk.Context
-	NewContextLegacy(isCheckTx bool, header cmtproto.Header) sdk.Context
-	NewUncachedContext(isCheckTx bool, header cmtproto.Header) sdk.Context
 
 	// ibc-go additions
 	GetBaseApp() *baseapp.BaseApp
@@ -138,13 +134,6 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *tmtypes.ValidatorSet, genAccs
 			ConsensusParams: simtestutil.DefaultConsensusParams,
 		},
 	)
-	require.NoError(tb, err)
-
-	_, err = app.FinalizeBlock(&abci.RequestFinalizeBlock{
-		Height:             app.LastBlockHeight() + 1,
-		Hash:               app.LastCommitID().Hash,
-		NextValidatorsHash: valSet.Hash(),
-	})
 	require.NoError(tb, err)
 
 	return app
