@@ -92,12 +92,9 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 }
 
 func (suite *TendermintTestSuite) TestGetProcessedTime() {
-	// setup
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-
 	suite.coordinator.UpdateTime()
 
-	// coordinator increments time before creating client
 	expectedTime := suite.chainA.CurrentHeader.Time
 
 	// Verify ProcessedTime on CreateClient
