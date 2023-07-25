@@ -8,7 +8,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
-	tmprotostate "github.com/cometbft/cometbft/proto/tendermint/state"
 	tmstate "github.com/cometbft/cometbft/state"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -109,31 +108,17 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	errDifferentABCICode := ibcerrors.ErrNotFound
 
 	deliverTx := sdkerrors.ResponseExecTxResultWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responses := tmprotostate.LegacyABCIResponses{
-		DeliverTxs: []*abcitypes.ExecTxResult{
-			deliverTx,
-		},
-	}
+	execTxResults := []*abcitypes.ExecTxResult{deliverTx}
 
 	deliverTxSameABCICode := sdkerrors.ResponseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responsesSameABCICode := tmprotostate.LegacyABCIResponses{
-		DeliverTxs: []*abcitypes.ExecTxResult{
-			deliverTxSameABCICode,
-		},
-	}
+	resultsSameABCICode := []*abcitypes.ExecTxResult{deliverTxSameABCICode}
 
 	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responsesDifferentABCICode := tmprotostate.ABCIResponsesInfo{
-		LegacyAbciResponses: &tmprotostate.LegacyABCIResponses{
-			DeliverTxs: []*abcitypes.ExecTxResult{
-				deliverTxDifferentABCICode,
-			},
-		},
-	}
+	resultsDifferentABCICode := []*abcitypes.ExecTxResult{deliverTxDifferentABCICode}
 
-	hash := tmstate.TxResultsHash(responses.DeliverTxs)
-	hashSameABCICode := tmstate.TxResultsHash(responsesSameABCICode.DeliverTxs)
-	hashDifferentABCICode := tmstate.TxResultsHash(responsesDifferentABCICode.LegacyAbciResponses.DeliverTxs)
+	hash := tmstate.TxResultsHash(execTxResults)
+	hashSameABCICode := tmstate.TxResultsHash(resultsSameABCICode)
+	hashDifferentABCICode := tmstate.TxResultsHash(resultsDifferentABCICode)
 
 	suite.Require().Equal(hash, hashSameABCICode)
 	suite.Require().NotEqual(hash, hashDifferentABCICode)
