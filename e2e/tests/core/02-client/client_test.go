@@ -20,7 +20,7 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/ccmtservice"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -204,7 +204,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("create validator set", func(t *testing.T) {
-		var validators []*ccmtservice.Validator
+		var validators []*cmtservice.Validator
 
 		t.Run("fetch block header at latest client state height", func(t *testing.T) {
 			header, err = s.GetBlockHeaderByHeight(ctx, chainB, latestHeight.GetRevisionHeight())

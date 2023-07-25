@@ -271,7 +271,7 @@ func (s *E2ETestSuite) QueryProposalV1(ctx context.Context, chain ibc.Chain, pro
 // GetBlockHeaderByHeight fetches the block header at a given height.
 func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Chain, height uint64) (Header, error) {
 	cmtservice := s.GetChainGRCPClients(chain).ConsensusServiceClient
-	res, err := cmtservice.GetBlockByHeight(ctx, &ccmtservice.GetBlockByHeightRequest{
+	res, err := cmtservice.GetBlockByHeight(ctx, &cmtservice.GetBlockByHeightRequest{
 		Height: int64(height),
 	})
 	if err != nil {
@@ -289,9 +289,9 @@ func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Cha
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
 // are sorted by address.
-func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*ccmtservice.Validator, error) {
+func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*cmtservice.Validator, error) {
 	cmtservice := s.GetChainGRCPClients(chain).ConsensusServiceClient
-	res, err := cmtservice.GetValidatorSetByHeight(ctx, &ccmtservice.GetValidatorSetByHeightRequest{
+	res, err := cmtservice.GetValidatorSetByHeight(ctx, &cmtservice.GetValidatorSetByHeightRequest{
 		Height: int64(height),
 	})
 	if err != nil {

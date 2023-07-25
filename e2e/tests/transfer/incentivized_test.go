@@ -106,9 +106,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
 
-			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
 		t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
@@ -219,9 +219,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
 
-			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
 		t.Run("balance should be lowered by sum of recv, ack and timeout", func(t *testing.T) {
@@ -319,9 +319,9 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		s.Require().Len(packets, 1)
 		actualFee := packets[0].PacketFees[0].Fee
 
-		s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-		s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-		s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+		s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+		s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+		s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 	})
 
 	t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
@@ -441,9 +441,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
 
-			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
 		t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
@@ -538,9 +538,9 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
 
-			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 	})
 
@@ -662,13 +662,13 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 			actualFee2 := packets[0].PacketFees[1].Fee
 			s.Require().Len(packets[0].PacketFees, 2)
 
-			s.Require().True(actualFee1.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee1.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee1.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee1.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee1.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee1.TimeoutFee.Equal(testFee.TimeoutFee))
 
-			s.Require().True(actualFee2.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee2.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee2.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee2.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee2.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee2.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
 		t.Run("balance of chainAWallet1 should be lowered by sum of recv ack and timeout", func(t *testing.T) {
