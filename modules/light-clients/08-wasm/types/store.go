@@ -6,8 +6,6 @@ import (
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
-	errorsmod "cosmossdk.io/errors"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/cachekv"
 	"github.com/cosmos/cosmos-sdk/store/listenkv"
@@ -110,25 +108,9 @@ func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensus
 	clientStore.Set(key, val)
 }
 
-// getConsensusState retrieves the consensus state from the client prefixed
-// store. An error is returned if the consensus state does not exist or it cannot be unmarshalled.
-func GetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
-	bz := clientStore.Get(host.ConsensusStateKey(height))
-	if len(bz) == 0 {
-		return nil, errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state does not exist for height %s", height)
-	}
-
-	consensusStateI, err := clienttypes.UnmarshalConsensusState(cdc, bz)
-	if err != nil {
-		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "unmarshal error: %v", err)
-	}
-
-	consensusState, ok := consensusStateI.(*ConsensusState)
-	if !ok {
-		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid consensus type. expected %T, got %T", &ConsensusState{}, consensusState)
-	}
-
-	return consensusState, nil
+// hasConsensusState returns true if a consensus state at the given height exists in the store.
+func hasConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) bool {
+	return clientStore.Has(host.ConsensusStateKey(height))
 }
 
 var _ wasmvmtypes.KVStore = &storeAdapter{}
