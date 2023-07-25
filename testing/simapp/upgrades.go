@@ -1,12 +1,16 @@
 package simapp
 
 import (
-	"context"
-
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	"github.com/cosmos/cosmos-sdk/types/module"
+	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
 )
 
 // UpgradeName defines the on-chain upgrade name for the sample SimApp upgrade
@@ -17,12 +21,50 @@ import (
 // v0.47.x to v0.50.x.
 const UpgradeName = "v047-to-v050"
 
-func (app SimApp) RegisterUpgradeHandlers() {
+func (app SimApp) registerUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		UpgradeName,
-		func(ctx context.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			return app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
-		},
+		upgrades.V5,
+		upgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
+	)
+
+	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
+	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
+	// See: https://github.com/cosmos/ibc-go/blob/v6.1.0/testing/simapp/app.go#L310
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V6,
+		upgrades.CreateV6UpgradeHandler(
+			app.ModuleManager,
+			app.configurator,
+			app.appCodec,
+			app.keys[capabilitytypes.ModuleName],
+			app.CapabilityKeeper,
+			ibcmock.ModuleName+icacontrollertypes.SubModuleName,
+		),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V7,
+		upgrades.CreateV7UpgradeHandler(
+			app.ModuleManager,
+			app.configurator,
+			app.appCodec,
+			app.IBCKeeper.ClientKeeper,
+			app.ConsensusParamsKeeper,
+			app.ParamsKeeper,
+		),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V7_1,
+		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, app.IBCKeeper.ClientKeeper),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V8,
+		upgrades.CreateV8UpgradeHandler(
+			app.ModuleManager,
+			app.configurator,
+		),
 	)
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -30,8 +72,13 @@ func (app SimApp) RegisterUpgradeHandlers() {
 		panic(err)
 	}
 
-	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{}
+	if upgradeInfo.Name == upgrades.V7 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{
+				consensusparamtypes.StoreKey,
+				crisistypes.StoreKey,
+			},
+		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))

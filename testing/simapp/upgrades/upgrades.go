@@ -30,6 +30,8 @@ const (
 	V7 = "v7"
 	// V7_1 defines the upgrade name for the ibc-go/v7.1 upgrade handler.
 	V7_1 = "v7.1"
+	// V8 defines the upgrade name for the ibc-go/v8 upgrade handler.
+	V8 = "v8"
 )
 
 // CreateDefaultUpgradeHandler creates an upgrade handler which can be used for regular upgrade tests
@@ -102,6 +104,13 @@ func CreateV7LocalhostUpgradeHandler(
 		params.AllowedClients = append(params.AllowedClients, exported.Localhost)
 		clientKeeper.SetParams(sdkCtx, params)
 
+		return mm.RunMigrations(ctx, configurator, vm)
+	}
+}
+
+// CreateV8UpgradeHandler creates an upgrade handler for the ibc-go/v8 SimApp upgrade.
+func CreateV8UpgradeHandler(mm *module.Manager, configurator module.Configurator) upgradetypes.UpgradeHandler {
+	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
 }
