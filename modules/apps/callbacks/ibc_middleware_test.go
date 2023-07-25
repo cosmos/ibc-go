@@ -284,9 +284,9 @@ func (suite *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
 	transferStackMw := transferStack.(porttypes.Middleware)
 
 	modifiedCtx := suite.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(400000))
-	suite.AssertPanicContains(func() {
+	suite.Require().PanicsWithValue(sdk.ErrorOutOfGas{Descriptor: "mock write_acknowledgement callback panic"}, func() {
 		transferStackMw.OnRecvPacket(modifiedCtx, packet, suite.chainB.SenderAccount.GetAddress())
-	}, "callback out of gas", "out of gas in location:")
+	})
 
 	// check that it doesn't panic when gas is high enough
 	ack := transferStackMw.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainB.SenderAccount.GetAddress())
@@ -325,11 +325,12 @@ func (suite *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
 	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
 	modifiedCtx := suite.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
-	err := transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
-	suite.Require().ErrorIs(err, types.ErrCallbackOutOfGas)
+	suite.Require().PanicsWithValue(sdk.ErrorOutOfGas{Descriptor: "mock write_acknowledgement callback panic"}, func() {
+		_ = transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
+	})
 }
 
-func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketOogError() {
+func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketLowRelayerGas() {
 	suite.SetupTransferTest()
 
 	senderAddr := suite.chainA.SenderAccount.GetAddress()
@@ -361,13 +362,14 @@ func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketOogError() {
 
 	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 	suite.Require().True(ok)
+	// Low Relayer gas
 	modifiedCtx := suite.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
-
-	err = transferStack.OnAcknowledgementPacket(modifiedCtx, packet, ack, senderAddr)
-	suite.Require().ErrorIs(err, types.ErrCallbackOutOfGas)
+	suite.Require().PanicsWithValue(sdk.ErrorOutOfGas{Descriptor: "mock acknowledgement callback panic"}, func() {
+		_ = transferStack.OnAcknowledgementPacket(modifiedCtx, packet, ack, senderAddr)
+	})
 }
 
-func (suite *CallbacksTestSuite) TestOnTimeoutPacketOogError() {
+func (suite *CallbacksTestSuite) TestOnTimeoutPacketLowRelayerGas() {
 	suite.SetupTransferTest()
 
 	timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
@@ -395,8 +397,9 @@ func (suite *CallbacksTestSuite) TestOnTimeoutPacketOogError() {
 	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 	suite.Require().True(ok)
 	modifiedCtx := suite.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
-	err = transferStack.OnTimeoutPacket(modifiedCtx, packet, suite.chainA.SenderAccount.GetAddress())
-	suite.Require().ErrorIs(err, types.ErrCallbackOutOfGas)
+	suite.Require().PanicsWithValue(sdk.ErrorOutOfGas{Descriptor: "mock timeout callback panic"}, func() {
+		_ = transferStack.OnTimeoutPacket(modifiedCtx, packet, suite.chainA.SenderAccount.GetAddress())
+	})
 }
 
 func (suite *CallbacksTestSuite) TestSendPacketReject() {

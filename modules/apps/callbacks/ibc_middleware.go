@@ -1,10 +1,7 @@
 package ibccallbacks
 
 import (
-	"errors"
 	"fmt"
-
-	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -117,10 +114,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackAddress, packetSenderAddress)
 	}
 
-	err = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackDataGetter, callbackExecutor)
-	if errors.Is(err, types.ErrCallbackOutOfGas) {
-		return err
-	}
+	_ = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackDataGetter, callbackExecutor)
 
 	return nil
 }
@@ -142,10 +136,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackAddress, packetSenderAddress)
 	}
 
-	err = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
-	if errors.Is(err, types.ErrCallbackOutOfGas) {
-		return err
-	}
+	_ = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
 
 	return nil
 }
@@ -171,11 +162,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress)
 	}
 
-	err := im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
-	if errors.Is(err, types.ErrCallbackOutOfGas) {
-		// revert entire tx if processCallback returns ErrCallbackOutOfGas, requiring the relayer to provide more gas on a retry
-		panic(err)
-	}
+	_ = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
 
 	return ack
 }
@@ -203,10 +190,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress)
 	}
 
-	err = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
-	if errors.Is(err, types.ErrCallbackOutOfGas) {
-		return err
-	}
+	_ = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
 
 	return nil
 }
@@ -232,21 +216,18 @@ func (im IBCMiddleware) processCallback(
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
 	defer func() {
+		types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
+		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
 		if r := recover(); r != nil {
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
 			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
 				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "packet", packet, "panic", oogError)
 				if allowRetry {
-					err = errorsmod.Wrapf(types.ErrCallbackOutOfGas,
-						"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
-						oogError.Descriptor, cachedCtx.GasMeter().Limit(), cachedCtx.GasMeter().GasConsumed(),
-					)
+					panic(r)
 				}
 			}
 		}
-		types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
-		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
 	}()
 
 	err = callbackExecutor(cachedCtx, callbackData.ContractAddr, callbackData.AuthAddr)

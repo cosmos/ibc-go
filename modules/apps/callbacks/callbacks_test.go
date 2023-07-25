@@ -1,8 +1,6 @@
 package ibccallbacks_test
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -252,19 +250,4 @@ func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 		)
 	}
 	suite.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
-}
-
-// AssertPanicContains checks if the panic message contains the expected string
-func (suite *CallbacksTestSuite) AssertPanicContains(f func(), panicMsgs ...string) {
-	defer func() {
-		if r := recover(); r != nil {
-			str := fmt.Sprint(r)
-			for _, msg := range panicMsgs {
-				suite.Require().True(strings.Contains(str, msg))
-			}
-		} else {
-			suite.FailNow("expected panic")
-		}
-	}()
-	f()
 }
