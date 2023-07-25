@@ -13,14 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
 )
 
-// UpgradeName defines the on-chain upgrade name for the sample SimApp upgrade
-// from v047 to v050.
-//
-// NOTE: This upgrade defines a reference implementation of what an upgrade
-// could look like when an application is migrating from Cosmos SDK version
-// v0.47.x to v0.50.x.
-const UpgradeName = "v047-to-v050"
-
+// registerUpgradeHandlers registers all supported upgrade handlers
 func (app SimApp) registerUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V5,

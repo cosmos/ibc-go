@@ -57,7 +57,7 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -127,7 +127,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	ibcslm "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
@@ -259,7 +259,7 @@ func NewSimApp(
 	})
 	appCodec := codec.NewProtoCodec(interfaceRegistry)
 	legacyAmino := codec.NewLegacyAmino()
-	txConfig := tx.NewTxConfig(appCodec, tx.DefaultSignModes)
+	txConfig := authtx.NewTxConfig(appCodec, authtx.DefaultSignModes)
 
 	std.RegisterLegacyAminoCodec(legacyAmino)
 	std.RegisterInterfaces(interfaceRegistry)
@@ -289,14 +289,6 @@ func NewSimApp(
 	// 	app.SetPrepareProposal(abciPropHandler.PrepareProposalHandler())
 	// }
 	// baseAppOptions = append(baseAppOptions, prepareOpt)
-
-	// ABOUT THIS HANDLER: Don't know yet if it is needed
-	// create and set dummy vote extension handler
-	//	voteExtOp := func(bApp *baseapp.BaseApp) {
-	//		voteExtHandler := NewVoteExtensionHandler()
-	//		voteExtHandler.SetHandlers(bApp)
-	//	}
-	//	baseAppOptions = append(baseAppOptions, voteExtOp)
 
 	bApp := baseapp.NewBaseApp(appName, logger, db, txConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
@@ -623,12 +615,11 @@ func NewSimApp(
 					ibcclientclient.UpgradeProposalHandler,
 				},
 			),
-			ibctm.ModuleName: ibctm.AppModuleBasic{},
+			ibctm.ModuleName:       ibctm.AppModuleBasic{},
+			solomachine.ModuleName: solomachine.AppModuleBasic{},
 		})
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
-	ibctm.RegisterInterfaces(interfaceRegistry)
-	ibcslm.RegisterInterfaces(interfaceRegistry)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
@@ -669,6 +660,9 @@ func NewSimApp(
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	// NOTE: The genutils module must also occur after auth so that it can access the params from auth.
+	// NOTE: Capability module must occur first so that it can initialize any capabilities
+	// so that other modules that want to create or claim capabilities afterwards in InitChain
+	// can do so safely.
 	genesisModuleOrder := []string{
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
@@ -748,7 +742,7 @@ func NewSimApp(
 	// upgrade.
 	app.setPostHandler()
 
-	// At startup, after all modules have been registered, check that all prot
+	// At startup, after all modules have been registered, check that all proto
 	// annotations are correct.
 	protoFiles, err := proto.MergedRegistry()
 	if err != nil {
@@ -827,6 +821,7 @@ func (app *SimApp) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 	return app.ModuleManager.EndBlock(ctx)
 }
 
+// Configurator returns the configurator for the app
 func (a *SimApp) Configurator() module.Configurator {
 	return a.configurator
 }
@@ -846,28 +841,6 @@ func (app *SimApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*ab
 // LoadHeight loads a particular height
 func (app *SimApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
-}
-
-// ModuleAccountAddrs returns all the app's module account addresses.
-func (app *SimApp) ModuleAccountAddrs() map[string]bool {
-	modAccAddrs := make(map[string]bool)
-	for acc := range maccPerms {
-		// do not add the following modules to blocked addresses
-		// this is only used for testing
-		if acc == ibcmock.ModuleName {
-			continue
-		}
-
-		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
-	}
-
-	return modAccAddrs
-}
-
-// GetModuleManager returns the app module manager
-// NOTE: used for testing purposes
-func (app *SimApp) GetModuleManager() *module.Manager {
-	return app.ModuleManager
 }
 
 // LegacyAmino returns SimApp's amino codec.
@@ -910,6 +883,7 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 
 	return autocli.AppOptions{
 		Modules:               modules,
+		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.ModuleManager.Modules),
 		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
@@ -956,7 +930,7 @@ func (app *SimApp) SimulationManager() *module.SimulationManager {
 func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 	// Register new tx routes from grpc-gateway.
-	tx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register new CometBFT queries routes from grpc-gateway.
 	cmtservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
@@ -975,7 +949,7 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *SimApp) RegisterTxService(clientCtx client.Context) {
-	tx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
+	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
