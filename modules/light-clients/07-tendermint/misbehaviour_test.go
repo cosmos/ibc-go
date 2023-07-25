@@ -178,8 +178,8 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 					return err
 				}
 
-				tmCommit, err := tmtypes.MakeCommit(*blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header1.Commit.Round, wrongVoteSet, altSignerArr, suite.now)
-				misbehaviour.Header1.Commit = tmCommit.ToProto()
+				extCommit, err := tmtypes.MakeExtCommit(*blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header1.Commit.Round, wrongVoteSet, altSignerArr, suite.now, false)
+				misbehaviour.Header1.Commit = extCommit.ToCommit().ToProto()
 				return err
 			},
 			false,
@@ -199,8 +199,8 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 					return err
 				}
 
-				tmCommit, err := tmtypes.MakeCommit(*blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header2.Commit.Round, wrongVoteSet, altSignerArr, suite.now)
-				misbehaviour.Header2.Commit = tmCommit.ToProto()
+				extCommit, err := tmtypes.MakeExtCommit(*blockID, int64(misbehaviour.Header2.GetHeight().GetRevisionHeight()), misbehaviour.Header2.Commit.Round, wrongVoteSet, altSignerArr, suite.now, false)
+				misbehaviour.Header2.Commit = extCommit.ToCommit().ToProto()
 				return err
 			},
 			false,

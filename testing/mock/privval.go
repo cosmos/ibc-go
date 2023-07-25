@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"errors"
+
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -35,6 +37,19 @@ func (pv PV) SignVote(chainID string, vote *tmproto.Vote) error {
 		return err
 	}
 	vote.Signature = sig
+
+	var extSig []byte
+	// We only sign vote extensions for non-nil precommits
+	if vote.Type == tmproto.PrecommitType && !tmtypes.ProtoBlockIDIsNil(&vote.BlockID) {
+		extSignBytes := tmtypes.VoteExtensionSignBytes(chainID, vote)
+		extSig, err = pv.PrivKey.Sign(extSignBytes)
+		if err != nil {
+			return err
+		}
+	} else if len(vote.Extension) > 0 {
+		return errors.New("unexpected vote extension - vote extensions are only allowed in non-nil precommits")
+	}
+	vote.ExtensionSignature = extSig
 	return nil
 }
 

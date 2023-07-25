@@ -7,9 +7,9 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/gogoproto/proto"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v7"

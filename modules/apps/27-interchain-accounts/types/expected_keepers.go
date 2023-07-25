@@ -1,8 +1,9 @@
 package types
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -11,10 +12,10 @@ import (
 
 // AccountKeeper defines the expected account keeper
 type AccountKeeper interface {
-	NewAccount(ctx sdk.Context, acc authtypes.AccountI) authtypes.AccountI
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
-	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
-	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
+	NewAccount(ctx context.Context, acc sdk.AccountI) sdk.AccountI
+	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	SetAccount(ctx context.Context, acc sdk.AccountI)
+	GetModuleAccount(ctx context.Context, name string) sdk.ModuleAccountI
 	GetModuleAddress(name string) sdk.AccAddress
 }
 

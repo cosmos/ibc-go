@@ -7,6 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -15,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -287,10 +288,6 @@ func NewCmdSubmitUpdateClientProposal() *cobra.Command {
 				return err
 			}
 
-			if err = msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -383,10 +380,6 @@ func NewCmdSubmitUpgradeProposal() *cobra.Command {
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
-				return err
-			}
-
-			if err = msg.ValidateBasic(); err != nil {
 				return err
 			}
 

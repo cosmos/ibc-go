@@ -165,7 +165,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 		),
 	}.ToABCIEvents()
 
-	for _, evt := range expectedEvents {
-		suite.Require().Contains(events, evt)
-	}
+	var indexSet map[string]struct{}
+	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
+	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
 }

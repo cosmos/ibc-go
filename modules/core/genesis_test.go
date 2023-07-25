@@ -8,8 +8,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -311,7 +309,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 		app := simapp.Setup(suite.T(), false)
 
 		suite.NotPanics(func() {
-			ibc.InitGenesis(app.BaseApp.NewContext(false, tmproto.Header{Height: 1}), *app.IBCKeeper, tc.genState)
+			ibc.InitGenesis(app.BaseApp.NewContext(false), *app.IBCKeeper, tc.genState)
 		})
 	}
 }

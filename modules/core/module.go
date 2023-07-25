@@ -173,14 +173,8 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 5 }
 
 // BeginBlock returns the begin blocker for the ibc module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+func (am AppModule) BeginBlock(ctx sdk.Context) {
 	ibcclient.BeginBlocker(ctx, am.keeper.ClientKeeper)
-}
-
-// EndBlock returns the end blocker for the ibc module. It returns no validator
-// updates.
-func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
 }
 
 // AppModuleSimulation functions
@@ -191,7 +185,7 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // RegisterStoreDecoder registers a decoder for ibc module's types
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	sdr[exported.StoreKey] = simulation.NewDecodeStore(*am.keeper)
 }
 

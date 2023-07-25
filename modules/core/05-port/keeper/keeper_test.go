@@ -8,8 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	"github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
@@ -30,7 +28,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	isCheckTx := false
 	app := simapp.Setup(suite.T(), isCheckTx)
 
-	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{})
+	suite.ctx = app.BaseApp.NewContext(isCheckTx)
 	suite.keeper = &app.IBCKeeper.PortKeeper
 }
 

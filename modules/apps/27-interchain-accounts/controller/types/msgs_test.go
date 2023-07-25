@@ -7,13 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
@@ -143,7 +144,9 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			Amount:      ibctesting.TestCoins,
 		}
 
-		data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
+		encodingConfig := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+
+		data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 		require.NoError(t, err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -179,7 +182,9 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 		Amount:      ibctesting.TestCoins,
 	}
 
-	data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
+	encodingConfig := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+
+	data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 	require.NoError(t, err)
 
 	packetData := icatypes.InterchainAccountPacketData{

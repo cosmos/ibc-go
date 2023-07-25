@@ -23,7 +23,7 @@ func RandomEnabled(r *rand.Rand) bool {
 func RandomizedGenState(simState *module.SimulationState) {
 	var controllerEnabled bool
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, string(controllertypes.KeyControllerEnabled), &controllerEnabled, simState.Rand,
+		string(controllertypes.KeyControllerEnabled), &controllerEnabled, simState.Rand,
 		func(r *rand.Rand) { controllerEnabled = RandomEnabled(r) },
 	)
 
@@ -40,7 +40,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	var hostEnabled bool
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, string(hosttypes.KeyHostEnabled), &hostEnabled, simState.Rand,
+		string(hosttypes.KeyHostEnabled), &hostEnabled, simState.Rand,
 		func(r *rand.Rand) { hostEnabled = RandomEnabled(r) },
 	)
 
