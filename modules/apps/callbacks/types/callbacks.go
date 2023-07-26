@@ -51,10 +51,10 @@ type CallbackData struct {
 	ContractAddr string
 	// GasLimit is the gas limit which will be used for the callback execution
 	GasLimit uint64
-	// AuthAddr is the sender of the packet in the case of a source callback
-	// or the empty string in the case of a destination callback.
+	// SenderAddr is the sender of the packet. This is passed to the contract keeper
+	// to verify that the packet sender is the same as the contract address if desired.
 	// This address may be empty if the sender is unknown or undefined.
-	AuthAddr string
+	SenderAddr string
 	// CommitGasLimit is the gas needed to commit the callback even if the
 	// callback execution fails due to out of gas. This parameter is only
 	// used to be emitted in the event.
@@ -128,7 +128,7 @@ func getCallbackData(
 	return CallbackData{
 		ContractAddr:   getCallbackAddress(callbackData),
 		GasLimit:       gasLimit,
-		AuthAddr:       additionalPacketDataProvider.GetPacketSender(packet.GetSourcePort()),
+		SenderAddr:     additionalPacketDataProvider.GetPacketSender(packet.GetSourcePort()),
 		CommitGasLimit: commitGasLimit,
 	}, allowRetry, nil
 }

@@ -237,7 +237,7 @@ func (im IBCMiddleware) processCallback(
 		}
 	}()
 
-	err = callbackExecutor(cachedCtx, callbackData.ContractAddr, callbackData.AuthAddr)
+	err = callbackExecutor(cachedCtx, callbackData.ContractAddr, callbackData.SenderAddr)
 	if err == nil {
 		writeFn()
 	}
