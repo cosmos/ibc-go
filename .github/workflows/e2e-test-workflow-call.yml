@@ -194,18 +194,18 @@ jobs:
           path: e2e/diagnostics
           retention-days: 5
 
-  # e2e-status is a dummy job that is used to tally the results of the e2e-tests job. The name of this job
+  # e2e-status is a dummy job that is used to check the results of the e2e-tests job. The name of this job
   # can be used in the branch protection rules, as a single target, to make sure all tests pass before merging.
-  # If the tests are to be skipped, e2e-status will be skipped as well.
+  #
+  # Two scenarios come into play:
+  # - If a PR is not from a fork, e2e-tests is executed and e2e-status will succeed if none of e2e-tests's jobs fail.
+  # - If a PR is from a fork, e2e-tests is skipped and e2e-status will be marked as skipped.
   e2e-status:
+    # based on the results of the e2e-fork job.
+    if: ${{ success() || failure() || cancelled() }}
     needs: e2e-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Check e2e-tests results
-        if: >-
-          ${{
-              contains(needs.*.result, 'failure')
-            || contains(needs.*.result, 'cancelled')
-            || contains(needs.*.result, 'skipped')
-          }}
+      - name: Check e2e-fork results
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
         run: exit 1
