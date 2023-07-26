@@ -28,8 +28,7 @@ type AdditionalPacketDataProvider interface {
 	// This function is used to retrieve json encoded data from the packet memo.
 	// If no additional data exists for the key, nil should be returned.
 	GetAdditionalData(key string) map[string]interface{}
-
 	// GetPacketSender returns the sender address of the packet.
-	// If the packet sender is unknown, or undefined, an empty string should be returned.
+	// If the packet sender is unknown or undefined, an empty string should be returned.
 	GetPacketSender(srcPortID string) string
 }

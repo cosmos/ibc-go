@@ -69,13 +69,16 @@ func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
 }
 
-// GetPacketSender returns the sender address of the packet.
+// GetPacketSender returns the sender address of the packet data.
+// NOTE: The sender address is set at the source chain and not validated by
+// a signature check in IBC.
 func (ftpd FungibleTokenPacketData) GetPacketSender(srcPortID string) string {
 	return ftpd.Sender
 }
 
 // GetAdditionalData returns a json object from the memo as `map[string]interface{}` so that
 // it can be interpreted as a json object with keys.
+// If the key is missing or the memo is not properly formatted, then nil is returned.
 func (ftpd FungibleTokenPacketData) GetAdditionalData(key string) map[string]interface{} {
 	if len(ftpd.Memo) == 0 {
 		return nil

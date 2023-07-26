@@ -54,7 +54,10 @@ func (iapd InterchainAccountPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&iapd))
 }
 
-// GetPacketSender returns the sender address of the packet.
+// GetPacketSender returns the sender address of the packet from the source port ID by cutting off
+// the ControllerPortPrefix.
+// If the source port ID does not have the ControllerPortPrefix, then an empty string is returned.
+// NOTE: The sender address is set at the source chain and not validated by a signature check in IBC.
 func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string {
 	icaOwner, found := strings.CutPrefix(srcPortID, ControllerPortPrefix)
 	if !found {
@@ -65,6 +68,7 @@ func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string
 
 // GetAdditionalData returns a json object from the memo as `map[string]interface{}` so that it
 // can be interpreted as a json object with keys.
+// If the key is missing or the memo is not properly formatted, then nil is returned.
 func (iapd InterchainAccountPacketData) GetAdditionalData(key string) map[string]interface{} {
 	if len(iapd.Memo) == 0 {
 		return nil
