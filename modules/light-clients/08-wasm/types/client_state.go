@@ -191,7 +191,7 @@ func (cs ClientState) VerifyMembership(
 			Value:            value,
 		},
 	}
-	_, err = call[contractResult](ctx, clientStore, &cs, payload)
+	_, err = wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
@@ -247,7 +247,7 @@ func (cs ClientState) VerifyNonMembership(
 			Path:             path,
 		},
 	}
-	_, err = call[contractResult](ctx, clientStore, &cs, payload)
+	_, err = wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
