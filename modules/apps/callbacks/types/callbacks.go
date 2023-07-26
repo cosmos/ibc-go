@@ -19,8 +19,8 @@ type CallbackData struct {
 	// GasLimit is the gas limit which will be used for the callback execution
 	GasLimit uint64
 	// AuthAddr is the sender of the packet in the case of a source callback
-	// or the receiver of the packet in the case of a destination callback
-	// This address may be empty if it is not provided in the packet data.
+	// or the empty string in the case of a destination callback.
+	// This address may be empty if the sender is unknown or undefined.
 	AuthAddr string
 	// CommitGasLimit is the gas needed to commit the callback even if the
 	// callback execution fails due to out of gas. This parameter is only

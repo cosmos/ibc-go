@@ -59,8 +59,8 @@ func NewIBCMiddleware(
 
 // SendPacket implements source callbacks for sending packets.
 // It defers to the underlying application and then calls the contract callback.
-// If the contract callback runs out of gas and may be retried with a higher gas limit
-// then the state changes are reverted.
+// If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
+// reverted via a panic.
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
@@ -99,8 +99,8 @@ func (im IBCMiddleware) SendPacket(
 
 // OnAcknowledgementPacket implements source callbacks for acknowledgement packets.
 // It defers to the underlying application and then calls the contract callback.
-// If the contract callback runs out of gas and may be retried with a higher gas limit
-// then the state changes are reverted.
+// If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
+// reverted via a panic.
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -127,8 +127,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 // OnTimeoutPacket implements timeout source callbacks for the ibc-callbacks middleware.
 // It defers to the underlying application and then calls the contract callback.
-// If the contract callback runs out of gas and may be retried with a higher gas limit
-// then the state changes are reverted.
+// If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
+// reverted via a panic.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	err := im.app.OnTimeoutPacket(ctx, packet, relayer)
 	if err != nil {
@@ -176,8 +176,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 // WriteAcknowledgement implements the WriteAcknowledgement destination callbacks for the ibc-callbacks middleware
 // during asynchronous packet acknowledgement.
 // It defers to the underlying application and then calls the contract callback.
-// If the contract callback runs out of gas and may be retried with a higher gas limit
-// then the state changes are reverted.
+// If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
+// reverted via a panic.
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
@@ -203,7 +203,8 @@ func (im IBCMiddleware) WriteAcknowledgement(
 
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
 //
-// An error is returned only if the callbackExecutor panics, and the relayer has not provided enough gas.
+// panics if the contractExecutor out of gas panics and the relayer has not reserved gas grater than or equal
+// to CommitGasLimit.
 func (im IBCMiddleware) processCallback(
 	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
 	callbackDataGetter func() (types.CallbackData, bool, error),
