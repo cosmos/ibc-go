@@ -50,6 +50,12 @@ func (suite *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 			true,
 		},
 		{
+			"success: dest callback with missing address",
+			`{"dest_callback": {"address": ""}}`,
+			"none",
+			true,
+		},
+		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
 			types.CallbackTypeAcknowledgement,
@@ -64,6 +70,12 @@ func (suite *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		{
 			"success: source callback with malformed json",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}, malformed}`, callbackAddr),
+			"none",
+			true,
+		},
+		{
+			"success: source callback with missing address",
+			`{"src_callback": {"address": ""}}`,
 			"none",
 			true,
 		},

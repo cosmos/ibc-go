@@ -1,6 +1,7 @@
 package ibccallbacks_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -194,7 +195,7 @@ func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType 
 		suite.Require().Equal(uint8(0), suite.chainA.GetSimApp().MockKeeper.GetStateCounter(suite.chainA.GetContext()))
 		suite.Require().Equal(uint8(0), suite.chainB.GetSimApp().MockKeeper.GetStateCounter(suite.chainB.GetContext()))
 	default:
-		suite.FailNow("invalid callback type")
+		suite.FailNow(fmt.Sprintf("invalid callback type %s", callbackType))
 	}
 	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
 	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
