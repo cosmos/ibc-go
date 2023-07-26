@@ -140,6 +140,23 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			true,
 		},
 		{
+			"failure: empty memo",
+			func() {
+				expPacketData := transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
+				}
+				packetData = expPacketData.GetBytes()
+			},
+			100000,
+			types.CallbackData{},
+			false,
+			false,
+		},
+		{
 			"failure: invalid packet data",
 			func() {
 				packetData = []byte("invalid packet data")
@@ -292,6 +309,23 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			},
 			false,
 			true,
+		},
+		{
+			"failure: empty memo",
+			func() {
+				expPacketData := transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
+				}
+				packetData = expPacketData.GetBytes()
+			},
+			100000,
+			types.CallbackData{},
+			false,
+			false,
 		},
 		{
 			"failure: invalid packet data",
