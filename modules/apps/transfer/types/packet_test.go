@@ -45,14 +45,15 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
+func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 	testCases := []struct {
-		name       string
-		packetData types.FungibleTokenPacketData
-		expAddress string
+		name              string
+		packetData        types.FungibleTokenPacketData
+		expAdditionalData map[string]interface{}
+		expPacketSender   string
 	}{
 		{
-			"success: memo has callbacks in json struct and properly formatted src_callback_address which does not match packet sender",
+			"success: src_callback key in memo",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
@@ -60,116 +61,28 @@ func (suite *TypesTestSuite) TestGetSourceCallbackAddress() {
 				Receiver: receiver,
 				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver),
 			},
-			receiver,
-		},
-		{
-			"success: valid src_callback address specified in memo that matches sender",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, sender),
+			map[string]interface{}{
+				"address": receiver,
 			},
 			sender,
 		},
 		{
-			"failure: memo is empty",
+			"success: src_callback key in memo with additional fields",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
-				Memo:     "",
+				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver),
 			},
-			"",
-		},
-		{
-			"failure: memo is not json string",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     "memo",
-			},
-			"",
-		},
-		{
-			"failure: memo does not have callbacks in json struct",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"Key": 10}`,
-			},
-			"",
-		},
-		{
-			"failure:  memo has src_callback in json struct but does not have address key",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"src_callback": {"Key": 10}}`,
-			},
-			"",
-		},
-		{
-			"failure: memo has src_callback in json struct but does not have string value for address key",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"src_callback": {"address": 10}}`,
-			},
-			"",
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			srcCbAddr := tc.packetData.GetSourceCallbackAddress()
-			suite.Require().Equal(tc.expAddress, srcCbAddr)
-			suite.Require().Equal(sender, tc.packetData.GetPacketSender(""))
-		})
-	}
-}
-
-func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
-	testCases := []struct {
-		name       string
-		packetData types.FungibleTokenPacketData
-		expAddress string
-	}{
-		{
-			"success: memo has dest_callback in json struct and properly formatted dest_callback_address which does not match packet receiver",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, sender),
+			map[string]interface{}{
+				"address":   receiver,
+				"gas_limit": "200000",
 			},
 			sender,
 		},
 		{
-			"success: valid dest_callback address specified in memo that matches receiver",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, receiver),
-			},
-			receiver,
-		},
-		{
-			"failure: memo is empty",
+			"failure: empty memo",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
@@ -177,239 +90,38 @@ func (suite *TypesTestSuite) TestGetDestCallbackAddress() {
 				Receiver: receiver,
 				Memo:     "",
 			},
-			"",
+			nil,
+			sender,
 		},
 		{
-			"failure: memo is not json string",
+			"failure: non-json memo",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
-				Memo:     "memo",
+				Memo:     "invalid",
 			},
-			"",
+			nil,
+			sender,
 		},
 		{
-			"failure: memo does not have callbacks in json struct",
+			"failure: invalid src_callback key",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
 				Amount:   amount,
 				Sender:   sender,
 				Receiver: receiver,
-				Memo:     `{"Key": 10}`,
+				Memo:     `{"src_callback": "invalid"}`,
 			},
-			"",
-		},
-		{
-			"failure: memo has dest_callback in json struct but does not have address key",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"dest_callback": {"Key": 10}}`,
-			},
-			"",
-		},
-		{
-			"failure: memo has dest_callback in json struct but does not have string value for address key",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"dest_callback": {"address": 10}}`,
-			},
-			"",
+			nil,
+			sender,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			destCbAddr := tc.packetData.GetDestCallbackAddress()
-			suite.Require().Equal(tc.expAddress, destCbAddr)
-		})
-	}
-}
-
-func (suite *TypesTestSuite) TestSourceUserDefinedGasLimit() {
-	testCases := []struct {
-		name       string
-		packetData types.FungibleTokenPacketData
-		expUserGas uint64
-	}{
-		{
-			"success: memo is empty",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     "",
-			},
-			0,
-		},
-		{
-			"success: memo has user defined gas limit",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"src_callback": {"gas_limit": "100"}}`,
-			},
-			100,
-		},
-		{
-			"failure: memo has user defined gas limit as json number",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"src_callback": {"gas_limit": 100}}`,
-			},
-			0,
-		},
-		{
-			"failure: memo has user defined gas limit as negative",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"src_callback": {"gas_limit": "-100"}}`,
-			},
-			0,
-		},
-		{
-			"failure: memo has user defined gas limit as string",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"src_callback": {"gas_limit": "invalid"}}`,
-			},
-			0,
-		},
-		{
-			"failure: memo has user defined gas limit as empty string",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"src_callback": {"gas_limit": ""}}`,
-			},
-			0,
-		},
-		{
-			"failure: malformed memo",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `invalid`,
-			},
-			0,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Require().Equal(tc.expUserGas, tc.packetData.GetSourceUserDefinedGasLimit())
-	}
-}
-
-func (suite *TypesTestSuite) TestDestUserDefinedGasLimit() {
-	testCases := []struct {
-		name       string
-		packetData types.FungibleTokenPacketData
-		expUserGas uint64
-	}{
-		{
-			"success: memo is empty",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     "",
-			},
-			0,
-		},
-		{
-			"success: memo has user defined gas limit",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"dest_callback": {"gas_limit": "100"}}`,
-			},
-			100,
-		},
-		{
-			"failure: memo has user defined gas limit as json number",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"dest_callback": {"gas_limit": 100}}`,
-			},
-			0,
-		},
-		{
-			"failure: memo has user defined gas limit as negative",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"dest_callback": {"gas_limit": "-100"}}`,
-			},
-			0,
-		},
-		{
-			"failure: memo has user defined gas limit as string",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"dest_callback": {"gas_limit": "invalid"}}`,
-			},
-			0,
-		},
-		{
-			"failure: memo has user defined gas limit as empty string",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"dest_callback": {"gas_limit": ""}}`,
-			},
-			0,
-		},
-		{
-			"failure: malformed memo",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `invalid`,
-			},
-			0,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Require().Equal(tc.expUserGas, tc.packetData.GetDestUserDefinedGasLimit())
+		additionalData := tc.packetData.GetAdditionalData("src_callback")
+		suite.Require().Equal(tc.expAdditionalData, additionalData)
+		suite.Require().Equal(tc.expPacketSender, tc.packetData.GetPacketSender(types.PortID))
 	}
 }

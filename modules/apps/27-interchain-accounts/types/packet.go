@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"strconv"
 	"strings"
 	"time"
 
@@ -30,7 +29,7 @@ var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
 
-var _ exported.CallbackPacketData = (*InterchainAccountPacketData)(nil)
+var _ exported.AdditionalPacketDataProvider = (*InterchainAccountPacketData)(nil)
 
 // ValidateBasic performs basic validation of the interchain account packet data.
 // The memo may be empty.
@@ -55,95 +54,6 @@ func (iapd InterchainAccountPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&iapd))
 }
 
-/*
-
-ADR-8 CallbackPacketData implementation
-
-InterchainAccountPacketData implements CallbackPacketData interface. This will allow middlewares targeting specific VMs
-to retrieve the desired callback address for the ICA packet on the source chain. Destination callback addresses are not
-supported for ICS 27.
-
-The Memo is used to set the desired callback addresses.
-
-The Memo format is defined like so:
-
-```json
-{
-	// ... other memo fields we don't care about
-	"src_callback": {
-		"address": {stringForContractAddress},
-
-		// optional fields
-		"gas_limit": {stringForGasLimit},
-	}
-}
-```
-
-*/
-
-// GetSourceCallbackAddress returns the source callback address if it is specified in the packet data memo.
-// If no callback address is specified or the memo is improperly formatted, an empty string is returned.
-//
-// The memo is expected to contain the source callback address in the following format:
-// { "src_callback": { "address": {stringCallbackAddress}}
-//
-// ADR-8 middleware should callback on the returned address if it is a PacketActor
-// (i.e. smart contract that accepts IBC callbacks).
-func (iapd InterchainAccountPacketData) GetSourceCallbackAddress() string {
-	callbackData := iapd.getCallbackData("src_callback")
-	if callbackData == nil {
-		return ""
-	}
-
-	callbackAddress, ok := callbackData["address"].(string)
-	if !ok {
-		return ""
-	}
-
-	return callbackAddress
-}
-
-// GetDestCallbackAddress returns an empty string. Destination callback addresses
-// are not supported for ICS 27. This feature is natively supported by
-// interchain accounts host submodule transaction execution.
-func (iapd InterchainAccountPacketData) GetDestCallbackAddress() string {
-	return ""
-}
-
-// GetSourceUserDefinedGasLimit returns the custom gas limit provided for source callbacks
-// if it is specified in the packet data memo.
-// If no gas limit is specified or the gas limit is improperly formatted, 0 is returned.
-//
-// The memo is expected to specify the user defined gas limit in the following format:
-// { "src_callback": { ... , "gas_limit": {stringForGasLimit} }
-//
-// Note: the user defined gas limit must be set as a string and not a json number.
-func (iapd InterchainAccountPacketData) GetSourceUserDefinedGasLimit() uint64 {
-	callbackData := iapd.getCallbackData("src_callback")
-	if callbackData == nil {
-		return 0
-	}
-
-	// the gas limit must be specified as a string and not a json number
-	gasLimit, ok := callbackData["gas_limit"].(string)
-	if !ok {
-		return 0
-	}
-
-	userGas, err := strconv.ParseUint(gasLimit, 10, 64)
-	if err != nil {
-		return 0
-	}
-
-	return userGas
-}
-
-// GetDestUserDefinedGasLimit returns 0. Destination callbacks are not supported for ICS 27.
-// This feature is natively supported by interchain accounts host submodule transaction execution.
-func (iapd InterchainAccountPacketData) GetDestUserDefinedGasLimit() uint64 {
-	return 0
-}
-
 // GetPacketSender returns the sender address of the packet.
 func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string {
 	icaOwner, found := strings.CutPrefix(srcPortID, ControllerPortPrefix)
@@ -153,9 +63,9 @@ func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string
 	return icaOwner
 }
 
-// getCallbackData returns the memo as `map[string]interface{}` so that it can be
-// interpreted as a json object with keys.
-func (iapd InterchainAccountPacketData) getCallbackData(callbackKey string) map[string]interface{} {
+// GetAdditionalData returns a json object from the memo as `map[string]interface{}` so that it
+// can be interpreted as a json object with keys.
+func (iapd InterchainAccountPacketData) GetAdditionalData(key string) map[string]interface{} {
 	if len(iapd.Memo) == 0 {
 		return nil
 	}
@@ -166,12 +76,12 @@ func (iapd InterchainAccountPacketData) getCallbackData(callbackKey string) map[
 		return nil
 	}
 
-	callbackData, ok := jsonObject[callbackKey].(map[string]interface{})
+	memoData, ok := jsonObject[key].(map[string]interface{})
 	if !ok {
 		return nil
 	}
 
-	return callbackData
+	return memoData
 }
 
 // GetBytes returns the JSON marshalled interchain account CosmosTx.

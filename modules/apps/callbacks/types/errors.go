@@ -5,6 +5,6 @@ import (
 )
 
 var (
-	ErrNotCallbackPacketData = errorsmod.Register(ModuleName, 2, "packet is not a CallbackPacketData")
-	ErrCallbackOutOfGas      = errorsmod.Register(ModuleName, 3, "callback out of gas")
+	ErrNotAdditionalPacketDataProvider = errorsmod.Register(ModuleName, 2, "packet is not a AdditionalPacketDataProvider")
+	ErrCallbackMemoKeyNotFound         = errorsmod.Register(ModuleName, 3, "callback memo key not found")
 )

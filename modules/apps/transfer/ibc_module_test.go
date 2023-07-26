@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -293,11 +292,6 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		if tc.expPass {
 			suite.Require().NoError(err)
 			suite.Require().Equal(expPacketData, packetData)
-
-			callbackPacketData, ok := packetData.(ibcexported.CallbackPacketData)
-			suite.Require().True(ok)
-			suite.Require().Equal(srcCallbackAddr, callbackPacketData.GetSourceCallbackAddress(), "incorrect source callback address")
-			suite.Require().Equal(destCallbackAddr, callbackPacketData.GetDestCallbackAddress(), "incorrect destination callback address")
 		} else {
 			suite.Require().Error(err)
 			suite.Require().Nil(packetData)

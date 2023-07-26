@@ -74,18 +74,18 @@ type PacketActor interface {
 }
 ```
 
-The `CallbackPacketData` interface will get created to add `GetSourceCallbackAddress` and `GetDestCallbackAddress` methods. These may return an address
+The `AdditionalPacketDataProvider` interface will get created to add `GetSourceCallbackAddress` and `GetDestCallbackAddress` methods. These may return an address
 or they may return the empty string. The address may reference an PacketActor or it may be a regular user address. If the address is not a PacketActor, the actor callback must continue processing (no-op). Any IBC application or middleware that uses these methods must handle these cases. In most cases, the `GetSourceCallbackAddress` will be the sender address and the `GetDestCallbackAddress` will be the receiver address. However, these are named generically so that implementors may choose a different contract address for the callback if they choose.
 
 The interface also defines a `UserDefinedGasLimit` method. Any middleware targeting this interface for callback handling should cap the gas that a callback is allowed to take (especially on AcknowledgePacket and TimeoutPacket) so that a custom callback does not prevent the packet lifecycle from completing. However, since this is a global cap it is likely to be very large. Thus, users may specify a smaller limit to cap the amount of fees a relayer must pay in order to complete the packet lifecycle on the user's behalf.
 
-IBC applications which provide the base packet data type must implement the `CallbackPacketData` interface to allow `PacketActor` callbacks.
+IBC applications which provide the base packet data type must implement the `AdditionalPacketDataProvider` interface to allow `PacketActor` callbacks.
 
 ```go
 // Implemented by any packet data type that wants to support PacketActor callbacks
 // PacketActor's will be unable to act on any packet data type that does not implement
 // this interface. 
-type CallbackPacketData interface {
+type AdditionalPacketDataProvider interface {
     // GetSourceCallbackAddress should return the callback address of a packet data on the source chain.
     // This may or may not be the sender of the packet. If no source callback address exists for the packet, 
     // an empty string may be returned. 
@@ -210,11 +210,11 @@ func OnRecvPacket(
     // returns a successful ack
 
     // unmarshal packet data into expected interface
-    var cbPacketData callbackPacketData
+    var cbPacketData additionalPacketDataProvider
     unmarshalInterface(packet.GetData(), cbPacketData)
 
     if cbPacketData == nil {
-        // the packet data does not implement the CallbackPacketData interface
+        // the packet data does not implement the AdditionalPacketDataProvider interface
         // continue processing (no-op)
         return
     }
@@ -267,11 +267,11 @@ func (im IBCModule) OnAcknowledgementPacket(
     // application-specific onAcknowledgmentPacket logic
 
     // unmarshal packet data into expected interface
-    var cbPacketData callbackPacketData
+    var cbPacketData additionalPacketDataProvider
     unmarshalInterface(packet.GetData(), cbPacketData)
 
     if cbPacketData == nil {
-        // the packet data does not implement the CallbackPacketData interface
+        // the packet data does not implement the AdditionalPacketDataProvider interface
         // continue processing (no-op)
         return
     }
@@ -333,11 +333,11 @@ func (im IBCModule) OnTimeoutPacket(
     // application-specific onTimeoutPacket logic
 
     // unmarshal packet data into expected interface
-    var cbPacketData callbackPacketData
+    var cbPacketData additionalPacketDataProvider
     unmarshalInterface(packet.GetData(), cbPacketData)
 
     if cbPacketData == nil {
-        // the packet data does not implement the CallbackPacketData interface
+        // the packet data does not implement the AdditionalPacketDataProvider interface
         // continue processing (no-op)
         return
     }
@@ -380,7 +380,7 @@ func (im IBCModule) OnTimeoutPacket(
     return nil
 }
 
-func getGasLimit(ctx sdk.Context, cbPacketData CallbackPacketData) uint64 {
+func getGasLimit(ctx sdk.Context, cbPacketData AdditionalPacketDataProvider) uint64 {
     // getGasLimit returns the gas limit to pass into the actor callback
     // this will be the minimum of the remaining gas limit in the tx
     // and the config defined gas limit. The config limit is itself
@@ -412,10 +412,10 @@ Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that
 
 ### Neutral
 
-- Application packets that want to support ADR-8 must additionally have their packet data implement the `CallbackPacketData` interface and register their implementation on the chain codec
+- Application packets that want to support ADR-8 must additionally have their packet data implement the `AdditionalPacketDataProvider` interface and register their implementation on the chain codec
 
 ## References
 
 - [Original issue](https://github.com/cosmos/ibc-go/issues/1660)
-- [CallbackPacketData interface implementation](https://github.com/cosmos/ibc-go/pull/3287) 
-- [ICS 20, ICS 27 implementations of the CallbackPacketData interface](https://github.com/cosmos/ibc-go/pull/3287)
+- [AdditionalPacketDataProvider interface implementation](https://github.com/cosmos/ibc-go/pull/3287) 
+- [ICS 20, ICS 27 implementations of the AdditionalPacketDataProvider interface](https://github.com/cosmos/ibc-go/pull/3287)
