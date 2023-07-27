@@ -24,7 +24,7 @@ message CosmosTx {
 }
 ```
 
-The encoding method for `CosmosTx` is determined during the channel handshake process. If the channel version [metadata's `encoding` field](https://github.com/cosmos/ibc-go/blob/v7.2.0/proto/ibc/applications/interchain_accounts/v1/metadata.proto#L22) is marked as `proto3`, `CosmosTx` undergoes protobuf encoding. Conversely, if the field is set to `proto3json`, jsonpb encoding takes place, which generates a JSON representation of the protobuf message.
+The encoding method for `CosmosTx` is determined during the channel handshake process. If the channel version [metadata's `encoding` field](https://github.com/cosmos/ibc-go/blob/v7.2.0/proto/ibc/applications/interchain_accounts/v1/metadata.proto#L22) is marked as `proto3`, then `CosmosTx` undergoes protobuf encoding. Conversely, if the field is set to `proto3json`, then [proto3 json](https://protobuf.dev/programming-guides/proto3/#json) encoding takes place, which generates a JSON representation of the protobuf message.
 
 ## Protobuf Encoding
 
@@ -32,7 +32,7 @@ Protobuf encoding serves as the standard encoding process for `CosmosTx`. This o
 
 ## (Protobuf) JSON Encoding
 
-Protojson encoding presents an alternative encoding technique for `CosmosTx`. It is selected if the channel handshake begins with the channel version metadata `encoding` field labeled as `proto3json`. In Golang, protojson encoding employs the `"github.com/cosmos/gogoproto/jsonpb"` package. Within Cosmos SDK, the `ProtoCodec` structure implements the `JSONCodec` interface, leveraging the `jsonpb` package. This method generates a JSON format as follows:
+The proto3 JSON encoding presents an alternative encoding technique for `CosmosTx`. It is selected if the channel handshake begins with the channel version metadata `encoding` field labeled as `proto3json`. In Golang, the Proto3 canonical encoding in JSON is implemented by the `"github.com/cosmos/gogoproto/jsonpb"` package. Within Cosmos SDK, the `ProtoCodec` structure implements the `JSONCodec` interface, leveraging the `jsonpb` package. This method generates a JSON format as follows:
 
 ```json
 {
