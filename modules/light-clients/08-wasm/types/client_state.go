@@ -122,6 +122,9 @@ func (cs ClientState) Initialize(ctx sdk.Context, marshaler codec.BinaryCodec, c
 	setClientState(clientStore, marshaler, &cs)
 	setConsensusState(clientStore, marshaler, consensusState, cs.GetLatestHeight())
 
+	// The global story key can be used here to implement #4085
+	// wasmStore := ctx.KVStore(WasmStoreKey)
+
 	_, err := initContract(ctx, clientStore, cs.CodeHash)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to initialize contract")

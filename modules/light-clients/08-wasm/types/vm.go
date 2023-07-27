@@ -4,6 +4,7 @@ import (
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -11,7 +12,11 @@ import (
 )
 
 var (
-	WasmVM        *cosmwasm.VM
+	WasmVM *cosmwasm.VM
+	// Store key for 08-wasm module, so that the KV store can be retrieve
+	// in ClientState Initialize function to check the code hash of the
+	// contract and determine if the light client is allowed to be instantiated.
+	WasmStoreKey  storetypes.StoreKey
 	VMGasRegister = NewDefaultWasmGasRegister()
 )
 
