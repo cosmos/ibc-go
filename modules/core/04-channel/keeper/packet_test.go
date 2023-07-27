@@ -862,11 +862,16 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
+			// Send a packet on B to disallow channel automatically moving to OPEN on UpgradeAck
+			sequence, err := path.EndpointB.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().Equal(uint64(1), sequence)
+			suite.Require().NoError(err)
+
 			// Move channel to correct state.
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-			err := path.EndpointA.ChanUpgradeInit()
+			err = path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.ChanUpgradeTry()
