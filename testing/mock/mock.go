@@ -35,6 +35,7 @@ const (
 var (
 	MockAcknowledgement             = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
 	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement(fmt.Errorf("mock failed acknowledgement"))
+	ErrorMock                       = fmt.Errorf("mock failed acknowledgement")
 	MockPacketData                  = []byte("mock packet data")
 	MockFailPacketData              = []byte("mock failed packet data")
 	MockAsyncPacketData             = []byte("mock async packet data")
