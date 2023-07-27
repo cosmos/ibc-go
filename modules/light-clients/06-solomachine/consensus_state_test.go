@@ -6,16 +6,16 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *SoloMachineTestSuite) TestConsensusState() {
-	consensusState := s.solomachine.ConsensusState()
+func (suite *SoloMachineTestSuite) TestConsensusState() {
+	consensusState := suite.solomachine.ConsensusState()
 
-	s.Require().Equal(exported.Solomachine, consensusState.ClientType())
-	s.Require().Equal(s.solomachine.Time, consensusState.GetTimestamp())
+	suite.Require().Equal(exported.Solomachine, consensusState.ClientType())
+	suite.Require().Equal(suite.solomachine.Time, consensusState.GetTimestamp())
 }
 
-func (s *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
+func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name           string
@@ -59,13 +59,13 @@ func (s *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 		for _, tc := range testCases {
 			tc := tc
 
-			s.Run(tc.name, func() {
+			suite.Run(tc.name, func() {
 				err := tc.consensusState.ValidateBasic()
 
 				if tc.expPass {
-					s.Require().NoError(err)
+					suite.Require().NoError(err)
 				} else {
-					s.Require().Error(err)
+					suite.Require().Error(err)
 				}
 			})
 		}

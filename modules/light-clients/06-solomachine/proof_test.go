@@ -7,17 +7,17 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 )
 
-func (s *SoloMachineTestSuite) TestVerifySignature() {
-	cdc := s.chainA.App.AppCodec()
+func (suite *SoloMachineTestSuite) TestVerifySignature() {
+	cdc := suite.chainA.App.AppCodec()
 	signBytes := []byte("sign bytes")
 
-	singleSignature := s.solomachine.GenerateSignature(signBytes)
+	singleSignature := suite.solomachine.GenerateSignature(signBytes)
 	singleSigData, err := solomachine.UnmarshalSignatureData(cdc, singleSignature)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
-	multiSignature := s.solomachineMulti.GenerateSignature(signBytes)
+	multiSignature := suite.solomachineMulti.GenerateSignature(signBytes)
 	multiSigData, err := solomachine.UnmarshalSignatureData(cdc, multiSignature)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	testCases := []struct {
 		name      string
@@ -27,25 +27,25 @@ func (s *SoloMachineTestSuite) TestVerifySignature() {
 	}{
 		{
 			"single signature with regular public key",
-			s.solomachine.PublicKey,
+			suite.solomachine.PublicKey,
 			singleSigData,
 			true,
 		},
 		{
 			"multi signature with multisig public key",
-			s.solomachineMulti.PublicKey,
+			suite.solomachineMulti.PublicKey,
 			multiSigData,
 			true,
 		},
 		{
 			"single signature with multisig public key",
-			s.solomachineMulti.PublicKey,
+			suite.solomachineMulti.PublicKey,
 			singleSigData,
 			false,
 		},
 		{
 			"multi signature with regular public key",
-			s.solomachine.PublicKey,
+			suite.solomachine.PublicKey,
 			multiSigData,
 			false,
 		},
@@ -54,13 +54,13 @@ func (s *SoloMachineTestSuite) TestVerifySignature() {
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
+		suite.Run(tc.name, func() {
 			err := solomachine.VerifySignature(tc.publicKey, signBytes, tc.sigData)
 
 			if tc.expPass {
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}

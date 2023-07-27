@@ -6,15 +6,15 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *SoloMachineTestSuite) TestMisbehaviour() {
-	misbehaviour := s.solomachine.CreateMisbehaviour()
+func (suite *SoloMachineTestSuite) TestMisbehaviour() {
+	misbehaviour := suite.solomachine.CreateMisbehaviour()
 
-	s.Require().Equal(exported.Solomachine, misbehaviour.ClientType())
+	suite.Require().Equal(exported.Solomachine, misbehaviour.ClientType())
 }
 
-func (s *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
+func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name                 string
@@ -112,16 +112,16 @@ func (s *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 		for _, tc := range testCases {
 			tc := tc
 
-			s.Run(tc.name, func() {
+			suite.Run(tc.name, func() {
 				misbehaviour := sm.CreateMisbehaviour()
 				tc.malleateMisbehaviour(misbehaviour)
 
 				err := misbehaviour.ValidateBasic()
 
 				if tc.expPass {
-					s.Require().NoError(err)
+					suite.Require().NoError(err)
 				} else {
-					s.Require().Error(err)
+					suite.Require().Error(err)
 				}
 			})
 		}

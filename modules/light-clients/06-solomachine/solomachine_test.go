@@ -39,45 +39,45 @@ type SoloMachineTestSuite struct {
 	store storetypes.KVStore
 }
 
-func (s *SoloMachineTestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+func (suite *SoloMachineTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
-	s.solomachine = ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachinesingle", "testing", 1)
-	s.solomachineMulti = ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachinemulti", "testing", 4)
+	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
+	suite.solomachineMulti = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinemulti", "testing", 4)
 
-	s.store = s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), exported.Solomachine)
+	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), exported.Solomachine)
 }
 
 func TestSoloMachineTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(SoloMachineTestSuite))
 }
 
-func (s *SoloMachineTestSuite) SetupSolomachine() string {
-	clientID := s.solomachine.CreateClient(s.chainA)
+func (suite *SoloMachineTestSuite) SetupSolomachine() string {
+	clientID := suite.solomachine.CreateClient(suite.chainA)
 
-	connectionID := s.solomachine.ConnOpenInit(s.chainA, clientID)
+	connectionID := suite.solomachine.ConnOpenInit(suite.chainA, clientID)
 
 	// open try is not necessary as the solo machine implementation is mocked
 
-	s.solomachine.ConnOpenAck(s.chainA, clientID, connectionID)
+	suite.solomachine.ConnOpenAck(suite.chainA, clientID, connectionID)
 
 	// open confirm is not necessary as the solo machine implementation is mocked
 
-	channelID := s.solomachine.ChanOpenInit(s.chainA, connectionID)
+	channelID := suite.solomachine.ChanOpenInit(suite.chainA, connectionID)
 
 	// open try is not necessary as the solo machine implementation is mocked
 
-	s.solomachine.ChanOpenAck(s.chainA, channelID)
+	suite.solomachine.ChanOpenAck(suite.chainA, channelID)
 
 	// open confirm is not necessary as the solo machine implementation is mocked
 
 	return channelID
 }
 
-func (s *SoloMachineTestSuite) TestRecvPacket() {
-	channelID := s.SetupSolomachine()
+func (suite *SoloMachineTestSuite) TestRecvPacket() {
+	channelID := suite.SetupSolomachine()
 	packet := channeltypes.NewPacket(
 		mock.MockPacketData,
 		1,
@@ -86,69 +86,69 @@ func (s *SoloMachineTestSuite) TestRecvPacket() {
 		transfertypes.PortID,
 		channelID,
 		clienttypes.ZeroHeight(),
-		uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano()),
+		uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano()),
 	)
 
 	// send packet is not necessary as the solo machine implementation is mocked
 
-	s.solomachine.RecvPacket(s.chainA, packet)
+	suite.solomachine.RecvPacket(suite.chainA, packet)
 
 	// close init is not necessary as the solomachine implementation is mocked
 
-	s.solomachine.ChanCloseConfirm(s.chainA, transfertypes.PortID, channelID)
+	suite.solomachine.ChanCloseConfirm(suite.chainA, transfertypes.PortID, channelID)
 }
 
-func (s *SoloMachineTestSuite) TestAcknowledgePacket() {
-	channelID := s.SetupSolomachine()
+func (suite *SoloMachineTestSuite) TestAcknowledgePacket() {
+	channelID := suite.SetupSolomachine()
 
-	packet := s.solomachine.SendTransfer(s.chainA, transfertypes.PortID, channelID)
+	packet := suite.solomachine.SendTransfer(suite.chainA, transfertypes.PortID, channelID)
 
 	// recv packet is not necessary as the solo machine implementation is mocked
 
-	s.solomachine.AcknowledgePacket(s.chainA, packet)
+	suite.solomachine.AcknowledgePacket(suite.chainA, packet)
 
 	// close init is not necessary as the solomachine implementation is mocked
 
-	s.solomachine.ChanCloseConfirm(s.chainA, transfertypes.PortID, channelID)
+	suite.solomachine.ChanCloseConfirm(suite.chainA, transfertypes.PortID, channelID)
 }
 
-func (s *SoloMachineTestSuite) TestTimeout() {
-	channelID := s.SetupSolomachine()
-	packet := s.solomachine.SendTransfer(s.chainA, transfertypes.PortID, channelID, func(msg *transfertypes.MsgTransfer) {
-		msg.TimeoutTimestamp = s.solomachine.Time + 1
+func (suite *SoloMachineTestSuite) TestTimeout() {
+	channelID := suite.SetupSolomachine()
+	packet := suite.solomachine.SendTransfer(suite.chainA, transfertypes.PortID, channelID, func(msg *transfertypes.MsgTransfer) {
+		msg.TimeoutTimestamp = suite.solomachine.Time + 1
 	})
 
 	// simulate solomachine time increment
-	s.solomachine.Time++
+	suite.solomachine.Time++
 
-	s.solomachine.UpdateClient(s.chainA, ibctesting.DefaultSolomachineClientID)
+	suite.solomachine.UpdateClient(suite.chainA, ibctesting.DefaultSolomachineClientID)
 
-	s.solomachine.TimeoutPacket(s.chainA, packet)
+	suite.solomachine.TimeoutPacket(suite.chainA, packet)
 
-	s.solomachine.ChanCloseConfirm(s.chainA, transfertypes.PortID, channelID)
+	suite.solomachine.ChanCloseConfirm(suite.chainA, transfertypes.PortID, channelID)
 }
 
-func (s *SoloMachineTestSuite) TestTimeoutOnClose() {
-	channelID := s.SetupSolomachine()
+func (suite *SoloMachineTestSuite) TestTimeoutOnClose() {
+	channelID := suite.SetupSolomachine()
 
-	packet := s.solomachine.SendTransfer(s.chainA, transfertypes.PortID, channelID)
+	packet := suite.solomachine.SendTransfer(suite.chainA, transfertypes.PortID, channelID)
 
-	s.solomachine.TimeoutPacketOnClose(s.chainA, packet, channelID)
+	suite.solomachine.TimeoutPacketOnClose(suite.chainA, packet, channelID)
 }
 
-func (s *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
-	bz := s.store.Get(host.ClientStateKey())
-	s.Require().NotNil(bz)
+func (suite *SoloMachineTestSuite) GetSequenceFromStore() uint64 {
+	bz := suite.store.Get(host.ClientStateKey())
+	suite.Require().NotNil(bz)
 
 	var clientState exported.ClientState
-	err := s.chainA.Codec.UnmarshalInterface(bz, &clientState)
-	s.Require().NoError(err)
+	err := suite.chainA.Codec.UnmarshalInterface(bz, &clientState)
+	suite.Require().NoError(err)
 	return clientState.GetLatestHeight().GetRevisionHeight()
 }
 
-func (s *SoloMachineTestSuite) GetInvalidProof() []byte {
-	invalidProof, err := s.chainA.Codec.Marshal(&solomachine.TimestampedSignatureData{Timestamp: s.solomachine.Time})
-	s.Require().NoError(err)
+func (suite *SoloMachineTestSuite) GetInvalidProof() []byte {
+	invalidProof, err := suite.chainA.Codec.Marshal(&solomachine.TimestampedSignatureData{Timestamp: suite.solomachine.Time})
+	suite.Require().NoError(err)
 
 	return invalidProof
 }

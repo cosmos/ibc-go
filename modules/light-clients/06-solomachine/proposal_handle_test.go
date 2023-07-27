@@ -9,14 +9,14 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
+func (suite *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 	var (
 		subjectClientState    *solomachine.ClientState
 		substituteClientState exported.ClientState
 	)
 
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
+	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
 
 		testCases := []struct {
 			name     string
@@ -49,33 +49,33 @@ func (s *SoloMachineTestSuite) TestCheckSubstituteAndUpdateState() {
 		for _, tc := range testCases {
 			tc := tc
 
-			s.Run(tc.name, func() {
-				s.SetupTest()
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
 
 				subjectClientState = sm.ClientState()
-				substitute := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "substitute", "testing", 5)
+				substitute := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "substitute", "testing", 5)
 				substituteClientState = substitute.ClientState()
 
 				tc.malleate()
 
-				subjectClientStore := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), sm.ClientID)
-				substituteClientStore := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), substitute.ClientID)
+				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
+				substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitute.ClientID)
 
-				err := subjectClientState.CheckSubstituteAndUpdateState(s.chainA.GetContext(), s.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
+				err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
 
 				if tc.expPass {
-					s.Require().NoError(err)
+					suite.Require().NoError(err)
 
 					// ensure updated client state is set in store
 					bz := subjectClientStore.Get(host.ClientStateKey())
-					updatedClient := clienttypes.MustUnmarshalClientState(s.chainA.App.AppCodec(), bz).(*solomachine.ClientState)
+					updatedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), bz).(*solomachine.ClientState)
 
-					s.Require().Equal(substituteClientState.(*solomachine.ClientState).ConsensusState, updatedClient.ConsensusState)
-					s.Require().Equal(substituteClientState.(*solomachine.ClientState).Sequence, updatedClient.Sequence)
-					s.Require().Equal(false, updatedClient.IsFrozen)
+					suite.Require().Equal(substituteClientState.(*solomachine.ClientState).ConsensusState, updatedClient.ConsensusState)
+					suite.Require().Equal(substituteClientState.(*solomachine.ClientState).Sequence, updatedClient.Sequence)
+					suite.Require().Equal(false, updatedClient.IsFrozen)
 
 				} else {
-					s.Require().Error(err)
+					suite.Require().Error(err)
 				}
 			})
 		}
