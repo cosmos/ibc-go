@@ -21,7 +21,7 @@ const (
 )
 
 // tests acknowledgement.ValidateBasic and acknowledgement.Acknowledgement
-func (s TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
 	testCases := []struct {
 		name         string
 		ack          types.Acknowledgement
@@ -71,25 +71,25 @@ func (s TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupTest()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
 			err := tc.ack.ValidateBasic()
 
 			if tc.expValidates {
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 
 				// expect all valid acks to be able to be marshaled
-				s.NotPanics(func() {
+				suite.NotPanics(func() {
 					bz := tc.ack.Acknowledgement()
-					s.Require().NotNil(bz)
-					s.Require().Equal(tc.expBytes, bz)
+					suite.Require().NotNil(bz)
+					suite.Require().Equal(tc.expBytes, bz)
 				})
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 
-			s.Require().Equal(tc.expSuccess, tc.ack.Success())
+			suite.Require().Equal(tc.expSuccess, tc.ack.Success())
 		})
 	}
 }
@@ -100,7 +100,7 @@ func (s TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test
 // in the packet acknowledgement.
 //
 // This test acts as an indicator that the ABCI error codes may no longer be deterministic.
-func (s *TypesTestSuite) TestABCICodeDeterminism() {
+func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// same ABCI error code used
 	err := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 1")
 	errSameABCICode := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 2")
@@ -133,13 +133,13 @@ func (s *TypesTestSuite) TestABCICodeDeterminism() {
 	hashSameABCICode := tmstate.ABCIResponsesResultsHash(&responsesSameABCICode)
 	hashDifferentABCICode := tmstate.ABCIResponsesResultsHash(&responsesDifferentABCICode)
 
-	s.Require().Equal(hash, hashSameABCICode)
-	s.Require().NotEqual(hash, hashDifferentABCICode)
+	suite.Require().Equal(hash, hashSameABCICode)
+	suite.Require().NotEqual(hash, hashDifferentABCICode)
 }
 
 // TestAcknowledgementError will verify that only a constant string and
 // ABCI error code are used in constructing the acknowledgement error string
-func (s *TypesTestSuite) TestAcknowledgementError() {
+func (suite *TypesTestSuite) TestAcknowledgementError() {
 	// same ABCI error code used
 	err := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 1")
 	errSameABCICode := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 2")
@@ -151,6 +151,6 @@ func (s *TypesTestSuite) TestAcknowledgementError() {
 	ackSameABCICode := types.NewErrorAcknowledgement(errSameABCICode)
 	ackDifferentABCICode := types.NewErrorAcknowledgement(errDifferentABCICode)
 
-	s.Require().Equal(ack, ackSameABCICode)
-	s.Require().NotEqual(ack, ackDifferentABCICode)
+	suite.Require().Equal(ack, ackSameABCICode)
+	suite.Require().NotEqual(ack, ackDifferentABCICode)
 }
