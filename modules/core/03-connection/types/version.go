@@ -113,12 +113,7 @@ func VerifySupportedFeature(version *Version, feature string) bool {
 // version should be first element and the set should descend to the oldest
 // supported version.
 func GetCompatibleVersions() []*Version {
-	return []*Version{
-		{
-			Identifier: DefaultIBCVersionIdentifier,
-			Features:   SupportedOrderings,
-		},
-	}
+	return []*Version{DefaultIBCVersion}
 }
 
 // IsSupportedVersion returns true if the proposed version has a matching version
@@ -147,7 +142,7 @@ func FindSupportedVersion(version *Version, supportedVersions []*Version) (*Vers
 		}
 	}
 
-	return &Version{}, false
+	return nil, false
 }
 
 // PickVersion iterates over the descending ordered set of compatible IBC
