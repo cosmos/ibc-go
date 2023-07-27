@@ -25,11 +25,11 @@ type TransferTestSuite struct {
 	chainC *ibctesting.TestChain
 }
 
-func (s *TransferTestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
-	s.chainC = s.coordinator.GetChain(ibctesting.GetChainID(3))
+func (suite *TransferTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 }
 
 // Constructs the following sends based on the established channels/connections

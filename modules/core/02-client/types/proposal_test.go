@@ -13,13 +13,13 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *TypesTestSuite) TestValidateBasic() {
-	subjectPath := ibctesting.NewPath(s.chainA, s.chainB)
-	s.coordinator.SetupClients(subjectPath)
+func (suite *TypesTestSuite) TestValidateBasic() {
+	subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(subjectPath)
 	subject := subjectPath.EndpointA.ClientID
 
-	substitutePath := ibctesting.NewPath(s.chainA, s.chainB)
-	s.coordinator.SetupClients(substitutePath)
+	substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(substitutePath)
 	substitute := substitutePath.EndpointA.ClientID
 
 	testCases := []struct {
@@ -59,15 +59,15 @@ func (s *TypesTestSuite) TestValidateBasic() {
 		err := tc.proposal.ValidateBasic()
 
 		if tc.expPass {
-			s.Require().NoError(err, tc.name)
+			suite.Require().NoError(err, tc.name)
 		} else {
-			s.Require().Error(err, tc.name)
+			suite.Require().Error(err, tc.name)
 		}
 	}
 }
 
 // tests a client update proposal can be marshaled and unmarshaled
-func (s *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
+func (suite *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
 	// create proposal
 	proposal := types.NewClientUpdateProposal("update IBC client", "description", "subject", "substitute")
 
@@ -80,23 +80,23 @@ func (s *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
 	// marshal message
 	content := proposal.(*types.ClientUpdateProposal)
 	bz, err := cdc.MarshalJSON(content)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	// unmarshal proposal
 	newProposal := &types.ClientUpdateProposal{}
 	err = cdc.UnmarshalJSON(bz, newProposal)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 }
 
-func (s *TypesTestSuite) TestUpgradeProposalValidateBasic() {
+func (suite *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 	var (
 		proposal govtypes.Content
 		err      error
 	)
 
-	path := ibctesting.NewPath(s.chainA, s.chainB)
-	s.coordinator.SetupClients(path)
-	cs := s.chainA.GetClientState(path.EndpointA.ClientID)
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path)
+	cs := suite.chainA.GetClientState(path.EndpointA.ClientID)
 	plan := upgradetypes.Plan{
 		Name:   "ibc upgrade",
 		Height: 1000,
@@ -110,13 +110,13 @@ func (s *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 		{
 			"success", func() {
 				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, plan, cs.ZeroCustomFields())
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			}, true,
 		},
 		{
 			"fails validate abstract - empty title", func() {
 				proposal, err = types.NewUpgradeProposal("", ibctesting.Description, plan, cs.ZeroCustomFields())
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			}, false,
 		},
 		{
@@ -126,14 +126,14 @@ func (s *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 						RevisionHeight: 10,
 					},
 				})
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			}, false,
 		},
 		{
 			"plan height is zero", func() {
 				invalidPlan := upgradetypes.Plan{Name: "ibc upgrade", Height: 0}
 				proposal, err = types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, invalidPlan, cs.ZeroCustomFields())
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			}, false,
 		},
 		{
@@ -149,7 +149,7 @@ func (s *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 		{
 			"failed to unpack client state", func() {
 				protoAny, err := types.PackConsensusState(&ibctm.ConsensusState{})
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 
 				proposal = &types.UpgradeProposal{
 					Title:               ibctesting.Title,
@@ -168,26 +168,26 @@ func (s *TypesTestSuite) TestUpgradeProposalValidateBasic() {
 		err := proposal.ValidateBasic()
 
 		if tc.expPass {
-			s.Require().NoError(err, tc.name)
+			suite.Require().NoError(err, tc.name)
 		} else {
-			s.Require().Error(err, tc.name)
+			suite.Require().Error(err, tc.name)
 		}
 	}
 }
 
 // tests an upgrade proposal can be marshaled and unmarshaled, and the
 // client state can be unpacked
-func (s *TypesTestSuite) TestMarshalUpgradeProposal() {
+func (suite *TypesTestSuite) TestMarshalUpgradeProposal() {
 	// create proposal
 	plan := upgradetypes.Plan{
 		Name:   "upgrade ibc",
 		Height: 1000,
 	}
 	content, err := types.NewUpgradeProposal("title", "description", plan, &ibctm.ClientState{})
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	up, ok := content.(*types.UpgradeProposal)
-	s.Require().True(ok)
+	suite.Require().True(ok)
 
 	// create codec
 	ir := codectypes.NewInterfaceRegistry()
@@ -198,19 +198,19 @@ func (s *TypesTestSuite) TestMarshalUpgradeProposal() {
 
 	// marshal message
 	bz, err := cdc.MarshalJSON(up)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	// unmarshal proposal
 	newUp := &types.UpgradeProposal{}
 	err = cdc.UnmarshalJSON(bz, newUp)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	// unpack client state
 	_, err = types.UnpackClientState(newUp.UpgradedClientState)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 }
 
-func (s *TypesTestSuite) TestUpgradeString() {
+func (suite *TypesTestSuite) TestUpgradeString() {
 	plan := upgradetypes.Plan{
 		Name:   "ibc upgrade",
 		Info:   "https://foo.bar/baz",
@@ -218,9 +218,9 @@ func (s *TypesTestSuite) TestUpgradeString() {
 	}
 
 	proposal, err := types.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, plan, &ibctm.ClientState{})
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	expect := fmt.Sprintf("IBC Upgrade Proposal\n  Title: title\n  Description: description\n  Upgrade Plan\n  Name: ibc upgrade\n  height: 1000\n  Info: https://foo.bar/baz.\n  Upgraded IBC Client: %s", &ibctm.ClientState{})
 
-	s.Require().Equal(expect, proposal.String())
+	suite.Require().Equal(expect, proposal.String())
 }
