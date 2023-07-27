@@ -9,43 +9,43 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability/types"
 )
 
-func (s *CapabilityTestSuite) TestGenesis() {
+func (suite *CapabilityTestSuite) TestGenesis() {
 	// InitGenesis must be called in order to set the intial index to 1.
-	capability.InitGenesis(s.ctx, *s.keeper, *types.DefaultGenesis())
+	capability.InitGenesis(suite.ctx, *suite.keeper, *types.DefaultGenesis())
 
-	sk1 := s.keeper.ScopeToModule(banktypes.ModuleName)
-	sk2 := s.keeper.ScopeToModule(stakingtypes.ModuleName)
+	sk1 := suite.keeper.ScopeToModule(banktypes.ModuleName)
+	sk2 := suite.keeper.ScopeToModule(stakingtypes.ModuleName)
 
-	cap1, err := sk1.NewCapability(s.ctx, "transfer")
-	s.Require().NoError(err)
-	s.Require().NotNil(cap1)
+	cap1, err := sk1.NewCapability(suite.ctx, "transfer")
+	suite.Require().NoError(err)
+	suite.Require().NotNil(cap1)
 
-	err = sk2.ClaimCapability(s.ctx, cap1, "transfer")
-	s.Require().NoError(err)
+	err = sk2.ClaimCapability(suite.ctx, cap1, "transfer")
+	suite.Require().NoError(err)
 
-	cap2, err := sk2.NewCapability(s.ctx, "ica")
-	s.Require().NoError(err)
-	s.Require().NotNil(cap2)
+	cap2, err := sk2.NewCapability(suite.ctx, "ica")
+	suite.Require().NoError(err)
+	suite.Require().NotNil(cap2)
 
-	genState := capability.ExportGenesis(s.ctx, *s.keeper)
+	genState := capability.ExportGenesis(suite.ctx, *suite.keeper)
 
-	newKeeper := keeper.NewKeeper(s.cdc, s.storeKey, s.memStoreKey)
+	newKeeper := keeper.NewKeeper(suite.cdc, suite.storeKey, suite.memStoreKey)
 	newSk1 := newKeeper.ScopeToModule(banktypes.ModuleName)
 	newSk2 := newKeeper.ScopeToModule(stakingtypes.ModuleName)
-	deliverCtx := s.NewTestContext()
+	deliverCtx := suite.NewTestContext()
 
 	capability.InitGenesis(deliverCtx, *newKeeper, *genState)
 
 	// check that all previous capabilities exist in new app after InitGenesis
 	sk1Cap1, ok := newSk1.GetCapability(deliverCtx, "transfer")
-	s.Require().True(ok, "could not get first capability after genesis on first ScopedKeeper")
-	s.Require().Equal(*cap1, *sk1Cap1, "capability values not equal on first ScopedKeeper")
+	suite.Require().True(ok, "could not get first capability after genesis on first ScopedKeeper")
+	suite.Require().Equal(*cap1, *sk1Cap1, "capability values not equal on first ScopedKeeper")
 
 	sk2Cap1, ok := newSk2.GetCapability(deliverCtx, "transfer")
-	s.Require().True(ok, "could not get first capability after genesis on first ScopedKeeper")
-	s.Require().Equal(*cap1, *sk2Cap1, "capability values not equal on first ScopedKeeper")
+	suite.Require().True(ok, "could not get first capability after genesis on first ScopedKeeper")
+	suite.Require().Equal(*cap1, *sk2Cap1, "capability values not equal on first ScopedKeeper")
 
 	sk2Cap2, ok := newSk2.GetCapability(deliverCtx, "ica")
-	s.Require().True(ok, "could not get second capability after genesis on second ScopedKeeper")
-	s.Require().Equal(*cap2, *sk2Cap2, "capability values not equal on second ScopedKeeper")
+	suite.Require().True(ok, "could not get second capability after genesis on second ScopedKeeper")
+	suite.Require().Equal(*cap2, *sk2Cap2, "capability values not equal on second ScopedKeeper")
 }

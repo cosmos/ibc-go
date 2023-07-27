@@ -177,12 +177,12 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 func (suite *AnteTestSuite) TestAnteDecorator() {
 	testCases := []struct {
 		name     string
-		malleate func(antesuite *AnteTestSuite) []sdk.Msg
+		malleate func(suite *AnteTestSuite) []sdk.Msg
 		expPass  bool
 	}{
 		{
 			"success on one new RecvPacket message",
-			func(anteantesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createRecvPacketMessage(false)}
 			},
@@ -190,7 +190,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on one new Acknowledgement message",
-			func(anteantesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createAcknowledgementMessage(false)}
 			},
@@ -198,7 +198,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on one new Timeout message",
-			func(anteantesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				// the Timeout message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createTimeoutMessage(false)}
 			},
@@ -206,7 +206,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on one new TimeoutOnClose message",
-			func(anteantesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				// the TimeoutOnClose message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createTimeoutOnCloseMessage(false)}
 			},
@@ -214,7 +214,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on three new messages of each type",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				// none of the messages of each type has been submitted to the chain yet,
@@ -243,7 +243,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on three redundant messages of RecvPacket, Acknowledgement and TimeoutOnClose, and one new Timeout message",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				// we pass three messages of RecvPacket, Acknowledgement and TimeoutOnClose that
@@ -273,7 +273,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on one new message and two redundant messages of each type",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				// For each type there is a new message and two messages that are redundant
@@ -303,21 +303,21 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on one new UpdateClient message",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createUpdateClientMessage()}
 			},
 			true,
 		},
 		{
 			"success on three new UpdateClient messages",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
 			},
 			true,
 		},
 		{
 			"success on three new Updateclient messages and one new RecvPacket message",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{
 					suite.createUpdateClientMessage(),
 					suite.createUpdateClientMessage(),
@@ -329,7 +329,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"success on three redundant RecvPacket messages and one SubmitMisbehaviour message",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{suite.createUpdateClientMessage()}
 
 				for i := 1; i <= 3; i++ {
@@ -344,14 +344,14 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on one redundant RecvPacket message",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createRecvPacketMessage(true)}
 			},
 			false,
 		},
 		{
 			"no success on three redundant messages of each type",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				var msgs []sdk.Msg
 
 				// from A to B
@@ -376,7 +376,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on one new UpdateClient message and three redundant RecvPacket messages",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{}}
 
 				for i := 1; i <= 3; i++ {
@@ -389,7 +389,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on three new UpdateClient messages and three redundant messages of each type",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
 
 				// from A to B
@@ -414,7 +414,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on one new message and one invalid message",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 2,
 					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
 					suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
@@ -429,7 +429,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 		},
 		{
 			"no success on one new message and one redundant message in the same block",
-			func(antesuite *AnteTestSuite) []sdk.Msg {
+			func(suite *AnteTestSuite) []sdk.Msg {
 				msg := suite.createRecvPacketMessage(false)
 
 				// We want to be able to run check tx with the non-redundant message without

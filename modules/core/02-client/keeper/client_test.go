@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		updateHeader *ibctm.Header
 	)
 
-	// Must create header creation functions since s.header gets recreated on each test case
+	// Must create header creation functions since suite.header gets recreated on each test case
 	createFutureUpdateFn := func(trustedHeight clienttypes.Height) *ibctm.Header {
 		header, err := suite.chainA.ConstructUpdateTMClientHeaderWithTrustedHeight(path.EndpointB.Chain, path.EndpointA.ClientID, trustedHeight)
 		suite.Require().NoError(err)
@@ -144,7 +144,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			_, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), path.EndpointA.ClientID, fillHeight)
 			suite.Require().False(found)
 
-			// updateHeader will fill in consensus state between prevConsState and s.consState
+			// updateHeader will fill in consensus state between prevConsState and suite.consState
 			// clientState should not be updated
 			updateHeader = createPastUpdateFn(fillHeight, trustedHeight)
 		}, true, false},
@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			path.EndpointA.SetClientState(clientState)
 
 			height3 := clienttypes.NewHeight(1, 3)
-			// updateHeader will fill in consensus state between prevConsState and s.consState
+			// updateHeader will fill in consensus state between prevConsState and suite.consState
 			// clientState should not be updated
 			updateHeader = createPastUpdateFn(height3, height1)
 			// set updateHeader's consensus state in store to create duplicate UpdateClient scenario
@@ -198,7 +198,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientID, height5, nextConsState)
 
 			height3 := clienttypes.NewHeight(1, 3)
-			// updateHeader will fill in consensus state between prevConsState and s.consState
+			// updateHeader will fill in consensus state between prevConsState and suite.consState
 			// clientState should not be updated
 			updateHeader = createPastUpdateFn(height3, height1)
 			// set conflicting consensus state in store to create misbehaviour scenario
