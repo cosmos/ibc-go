@@ -27,95 +27,95 @@ type ClientTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (s *ClientTestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+func (suite *ClientTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func TestClientTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(ClientTestSuite))
 }
 
-func (s *ClientTestSuite) TestBeginBlocker() {
+func (suite *ClientTestSuite) TestBeginBlocker() {
 	for i := 0; i < 10; i++ {
 		// increment height
-		s.coordinator.CommitBlock(s.chainA, s.chainB)
+		suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 
-		s.Require().NotPanics(func() {
-			client.BeginBlocker(s.chainA.GetContext(), s.chainA.App.GetIBCKeeper().ClientKeeper)
+		suite.Require().NotPanics(func() {
+			client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 		}, "BeginBlocker shouldn't panic")
 	}
 }
 
-func (s *ClientTestSuite) TestBeginBlockerConsensusState() {
+func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 	plan := &upgradetypes.Plan{
 		Name:   "test",
-		Height: s.chainA.GetContext().BlockHeight() + 1,
+		Height: suite.chainA.GetContext().BlockHeight() + 1,
 	}
 	// set upgrade plan in the upgrade store
-	store := s.chainA.GetContext().KVStore(s.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
-	bz := s.chainA.App.AppCodec().MustMarshal(plan)
+	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
+	bz := suite.chainA.App.AppCodec().MustMarshal(plan)
 	store.Set(upgradetypes.PlanKey(), bz)
 
 	nextValsHash := []byte("nextValsHash")
-	newCtx := s.chainA.GetContext().WithBlockHeader(tmproto.Header{
-		ChainID:            s.chainA.ChainID,
-		Height:             s.chainA.GetContext().BlockHeight(),
+	newCtx := suite.chainA.GetContext().WithBlockHeader(tmproto.Header{
+		ChainID:            suite.chainA.ChainID,
+		Height:             suite.chainA.GetContext().BlockHeight(),
 		NextValidatorsHash: nextValsHash,
 	})
 
-	err := s.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
-	s.Require().NoError(err)
+	err := suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
+	suite.Require().NoError(err)
 
 	req := abci.RequestBeginBlock{Header: newCtx.BlockHeader()}
-	s.chainA.App.BeginBlock(req)
+	suite.chainA.App.BeginBlock(req)
 
 	// plan Height is at ctx.BlockHeight+1
-	consState, found := s.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
-	s.Require().True(found)
-	bz, err = types.MarshalConsensusState(s.chainA.App.AppCodec(), &ibctm.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
-	s.Require().NoError(err)
-	s.Require().Equal(bz, consState)
+	consState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
+	suite.Require().True(found)
+	bz, err = types.MarshalConsensusState(suite.chainA.App.AppCodec(), &ibctm.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
+	suite.Require().NoError(err)
+	suite.Require().Equal(bz, consState)
 }
 
-func (s *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
+func (suite *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
 	plan := &upgradetypes.Plan{
 		Name:   "test",
-		Height: s.chainA.GetContext().BlockHeight() + 1,
+		Height: suite.chainA.GetContext().BlockHeight() + 1,
 	}
 	// set upgrade plan in the upgrade store
-	store := s.chainA.GetContext().KVStore(s.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
-	bz := s.chainA.App.AppCodec().MustMarshal(plan)
+	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
+	bz := suite.chainA.App.AppCodec().MustMarshal(plan)
 	store.Set(upgradetypes.PlanKey(), bz)
 
 	nextValsHash := []byte("nextValsHash")
-	newCtx := s.chainA.GetContext().WithBlockHeader(tmproto.Header{
-		Height:             s.chainA.GetContext().BlockHeight(),
+	newCtx := suite.chainA.GetContext().WithBlockHeader(tmproto.Header{
+		Height:             suite.chainA.GetContext().BlockHeight(),
 		NextValidatorsHash: nextValsHash,
 	})
 
-	err := s.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
-	s.Require().NoError(err)
+	err := suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
+	suite.Require().NoError(err)
 
-	cacheCtx, writeCache := s.chainA.GetContext().CacheContext()
+	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
 
-	client.BeginBlocker(cacheCtx, s.chainA.App.GetIBCKeeper().ClientKeeper)
+	client.BeginBlocker(cacheCtx, suite.chainA.App.GetIBCKeeper().ClientKeeper)
 	writeCache()
 
-	s.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, true)
+	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, true)
 }
 
-func (s *ClientTestSuite) TestBeginBlockerUpgradeEventsAbsence() {
-	cacheCtx, writeCache := s.chainA.GetContext().CacheContext()
-	client.BeginBlocker(s.chainA.GetContext(), s.chainA.App.GetIBCKeeper().ClientKeeper)
+func (suite *ClientTestSuite) TestBeginBlockerUpgradeEventsAbsence() {
+	cacheCtx, writeCache := suite.chainA.GetContext().CacheContext()
+	client.BeginBlocker(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 	writeCache()
-	s.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, false)
+	suite.requireContainsEvent(cacheCtx.EventManager().Events(), types.EventTypeUpgradeChain, false)
 }
 
 // requireContainsEvent verifies if an event of a specific type was emitted.
-func (s *ClientTestSuite) requireContainsEvent(events sdk.Events, eventType string, shouldContain bool) {
+func (suite *ClientTestSuite) requireContainsEvent(events sdk.Events, eventType string, shouldContain bool) {
 	found := false
 	var eventTypes []string
 	for _, e := range events {
@@ -126,8 +126,8 @@ func (s *ClientTestSuite) requireContainsEvent(events sdk.Events, eventType stri
 		}
 	}
 	if shouldContain {
-		s.Require().True(found, "event type %s was not found in %s", eventType, strings.Join(eventTypes, ","))
+		suite.Require().True(found, "event type %s was not found in %s", eventType, strings.Join(eventTypes, ","))
 	} else {
-		s.Require().False(found, "event type %s was found in %s", eventType, strings.Join(eventTypes, ","))
+		suite.Require().False(found, "event type %s was found in %s", eventType, strings.Join(eventTypes, ","))
 	}
 }
