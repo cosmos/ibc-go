@@ -17,7 +17,7 @@ import (
 )
 
 func TestInterchainAccountsParamsTestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsParamsTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsParamsTestSuite))
 }
 
 type InterchainAccountsParamsTestSuite struct {

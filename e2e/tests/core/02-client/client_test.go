@@ -39,7 +39,7 @@ const (
 )
 
 func TestClientTestSuite(t *testing.T) {
-	suite.Run(t, new(ClientTestSuite))
+	testifysuite.Run(t, new(ClientTestSuite))
 }
 
 type ClientTestSuite struct {

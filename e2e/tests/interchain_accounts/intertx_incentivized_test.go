@@ -17,7 +17,7 @@ import (
 )
 
 func TestIncentivizedInterTxTestSuite(t *testing.T) {
-	suite.Run(t, new(IncentivizedInterTxTestSuite))
+	testifysuite.Run(t, new(IncentivizedInterTxTestSuite))
 }
 
 type IncentivizedInterTxTestSuite struct {

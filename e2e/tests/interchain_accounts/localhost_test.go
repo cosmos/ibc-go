@@ -24,7 +24,7 @@ import (
 )
 
 func TestInterchainAccountsLocalhostTestSuite(t *testing.T) {
-	suite.Run(t, new(LocalhostInterchainAccountsTestSuite))
+	testifysuite.Run(t, new(LocalhostInterchainAccountsTestSuite))
 }
 
 type LocalhostInterchainAccountsTestSuite struct {

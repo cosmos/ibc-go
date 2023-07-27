@@ -22,7 +22,7 @@ import (
 )
 
 func TestInterTxTestSuite(t *testing.T) {
-	suite.Run(t, new(InterTxTestSuite))
+	testifysuite.Run(t, new(InterTxTestSuite))
 }
 
 type InterTxTestSuite struct {

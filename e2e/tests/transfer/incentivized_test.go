@@ -20,7 +20,7 @@ type IncentivizedTransferTestSuite struct {
 }
 
 func TestIncentivizedTransferTestSuite(t *testing.T) {
-	suite.Run(t, new(IncentivizedTransferTestSuite))
+	testifysuite.Run(t, new(IncentivizedTransferTestSuite))
 }
 
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {

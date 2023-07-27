@@ -41,7 +41,7 @@ func TestUpgradeTestSuite(t *testing.T) {
 		t.Fatalf("%s and %s must be set when running an upgrade test", testsuite.ChainUpgradeTagEnv, testsuite.ChainUpgradePlanEnv)
 	}
 
-	suite.Run(t, new(UpgradeTestSuite))
+	testifysuite.Run(t, new(UpgradeTestSuite))
 }
 
 type UpgradeTestSuite struct {

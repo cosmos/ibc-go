@@ -52,7 +52,7 @@ const (
 )
 
 func TestInterchainAccountsGroupsTestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsGroupsTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsGroupsTestSuite))
 }
 
 type InterchainAccountsGroupsTestSuite struct {

@@ -20,7 +20,7 @@ import (
 )
 
 func TestTransferTestSuite(t *testing.T) {
-	suite.Run(t, new(TransferTestSuite))
+	testifysuite.Run(t, new(TransferTestSuite))
 }
 
 type TransferTestSuite struct {

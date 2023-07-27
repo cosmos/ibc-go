@@ -18,7 +18,7 @@ import (
 )
 
 func TestTransferLocalhostTestSuite(t *testing.T) {
-	suite.Run(t, new(LocalhostTransferTestSuite))
+	testifysuite.Run(t, new(LocalhostTransferTestSuite))
 }
 
 type LocalhostTransferTestSuite struct {

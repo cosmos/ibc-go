@@ -11,7 +11,8 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	testifysuite "github.com/stretchr/testify/suite"	"go.uber.org/zap"
+	testifysuite "github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
@@ -31,7 +32,7 @@ const (
 
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
 type E2ETestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	grpcClients    map[string]GRPCClients
 	paths          map[string]pathPair
