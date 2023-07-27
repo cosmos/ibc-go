@@ -28,11 +28,11 @@ type MigrationsV7TestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (s *MigrationsV7TestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+func (suite *MigrationsV7TestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func TestIBCTestSuite(t *testing.T) {
@@ -42,55 +42,55 @@ func TestIBCTestSuite(t *testing.T) {
 // create multiple solo machine clients, tendermint and localhost clients
 // ensure that solo machine clients are migrated and their consensus states are removed
 // ensure the localhost is deleted entirely.
-func (s *MigrationsV7TestSuite) TestMigrateStore() {
+func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	paths := []*ibctesting.Path{
-		ibctesting.NewPath(s.chainA, s.chainB),
-		ibctesting.NewPath(s.chainA, s.chainB),
+		ibctesting.NewPath(suite.chainA, suite.chainB),
+		ibctesting.NewPath(suite.chainA, suite.chainB),
 	}
 
 	// create tendermint clients
 	for _, path := range paths {
-		s.coordinator.SetupClients(path)
+		suite.coordinator.SetupClients(path)
 	}
 
 	solomachines := []*ibctesting.Solomachine{
-		ibctesting.NewSolomachine(s.T(), s.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1),
-		ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "06-solomachine-1", "testing", 4),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),
 	}
 
-	s.createSolomachineClients(solomachines)
-	s.createLocalhostClients()
+	suite.createSolomachineClients(solomachines)
+	suite.createLocalhostClients()
 
-	err := v7.MigrateStore(s.chainA.GetContext(), s.chainA.GetSimApp().GetKey(ibcexported.StoreKey), s.chainA.App.AppCodec(), s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
-	s.Require().NoError(err)
+	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	suite.Require().NoError(err)
 
-	s.assertSolomachineClients(solomachines)
-	s.assertNoLocalhostClients()
+	suite.assertSolomachineClients(solomachines)
+	suite.assertNoLocalhostClients()
 }
 
-func (s *MigrationsV7TestSuite) TestMigrateStoreNoTendermintClients() {
+func (suite *MigrationsV7TestSuite) TestMigrateStoreNoTendermintClients() {
 	solomachines := []*ibctesting.Solomachine{
-		ibctesting.NewSolomachine(s.T(), s.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1),
-		ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "06-solomachine-1", "testing", 4),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),
 	}
 
-	s.createSolomachineClients(solomachines)
-	s.createLocalhostClients()
+	suite.createSolomachineClients(solomachines)
+	suite.createLocalhostClients()
 
-	err := v7.MigrateStore(s.chainA.GetContext(), s.chainA.GetSimApp().GetKey(ibcexported.StoreKey), s.chainA.App.AppCodec(), s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
-	s.Require().NoError(err)
+	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	suite.Require().NoError(err)
 
-	s.assertSolomachineClients(solomachines)
-	s.assertNoLocalhostClients()
+	suite.assertSolomachineClients(solomachines)
+	suite.assertNoLocalhostClients()
 }
 
-func (s *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibctesting.Solomachine) {
+func (suite *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibctesting.Solomachine) {
 	// manually generate old protobuf definitions and set in store
 	// NOTE: we cannot use 'CreateClient' and 'UpdateClient' functions since we are
 	// using client states and consensus states which do not implement the exported.ClientState
 	// and exported.ConsensusState interface
 	for _, sm := range solomachines {
-		clientStore := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), sm.ClientID)
+		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
 		clientState := sm.ClientState()
 
 		// generate old client state proto definition
@@ -104,15 +104,15 @@ func (s *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibctest
 			AllowUpdateAfterProposal: true,
 		}
 
-		cdc := s.chainA.App.AppCodec().(*codec.ProtoCodec)
+		cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
 		v7.RegisterInterfaces(cdc.InterfaceRegistry())
 
 		bz, err := cdc.MarshalInterface(legacyClientState)
-		s.Require().NoError(err)
+		suite.Require().NoError(err)
 		clientStore.Set(host.ClientStateKey(), bz)
 
 		bz, err = cdc.MarshalInterface(legacyClientState.ConsensusState)
-		s.Require().NoError(err)
+		suite.Require().NoError(err)
 
 		// set some consensus states
 		for i := uint64(0); i < numCreations; i++ {
@@ -123,28 +123,28 @@ func (s *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibctest
 	}
 }
 
-func (s *MigrationsV7TestSuite) assertSolomachineClients(solomachines []*ibctesting.Solomachine) {
+func (suite *MigrationsV7TestSuite) assertSolomachineClients(solomachines []*ibctesting.Solomachine) {
 	// verify client state has been migrated
 	for _, sm := range solomachines {
-		clientState, ok := s.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(s.chainA.GetContext(), sm.ClientID)
-		s.Require().True(ok)
-		s.Require().Equal(sm.ClientState(), clientState)
+		clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), sm.ClientID)
+		suite.Require().True(ok)
+		suite.Require().Equal(sm.ClientState(), clientState)
 
 		for i := uint64(0); i < numCreations; i++ {
 			height := types.NewHeight(1, i)
 
-			consState, ok := s.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(s.chainA.GetContext(), sm.ClientID, height)
-			s.Require().False(ok)
-			s.Require().Empty(consState)
+			consState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), sm.ClientID, height)
+			suite.Require().False(ok)
+			suite.Require().Empty(consState)
 		}
 	}
 }
 
 // createLocalhostClients clients creates multiple localhost clients and multiple consensus states for each
-func (s *MigrationsV7TestSuite) createLocalhostClients() {
+func (suite *MigrationsV7TestSuite) createLocalhostClients() {
 	for numClients := uint64(0); numClients < numCreations; numClients++ {
 		clientID := v7.Localhost + "-" + strconv.FormatUint(numClients, 10)
-		clientStore := s.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(s.chainA.GetContext(), clientID)
+		clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
 		clientStore.Set(host.ClientStateKey(), []byte("clientState"))
 
@@ -155,15 +155,15 @@ func (s *MigrationsV7TestSuite) createLocalhostClients() {
 }
 
 // assertLocalhostClients asserts that all localhost information has been deleted
-func (s *MigrationsV7TestSuite) assertNoLocalhostClients() {
+func (suite *MigrationsV7TestSuite) assertNoLocalhostClients() {
 	for numClients := uint64(0); numClients < numCreations; numClients++ {
 		clientID := v7.Localhost + "-" + strconv.FormatUint(numClients, 10)
-		clientStore := s.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(s.chainA.GetContext(), clientID)
+		clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
-		s.Require().False(clientStore.Has(host.ClientStateKey()))
+		suite.Require().False(clientStore.Has(host.ClientStateKey()))
 
 		for i := uint64(0); i < numCreations; i++ {
-			s.Require().False(clientStore.Has(host.ConsensusStateKey(types.NewHeight(1, i))))
+			suite.Require().False(clientStore.Has(host.ConsensusStateKey(types.NewHeight(1, i))))
 		}
 	}
 }

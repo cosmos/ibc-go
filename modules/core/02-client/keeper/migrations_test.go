@@ -7,7 +7,7 @@ import (
 )
 
 // TestMigrateParams tests the migration for the client params
-func (s *KeeperTestSuite) TestMigrateParams() {
+func (suite *KeeperTestSuite) TestMigrateParams() {
 	testCases := []struct {
 		name           string
 		malleate       func()
@@ -17,8 +17,8 @@ func (s *KeeperTestSuite) TestMigrateParams() {
 			"success: default params",
 			func() {
 				params := types.DefaultParams()
-				subspace := s.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName)
-				subspace.SetParamSet(s.chainA.GetContext(), &params)
+				subspace := suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName)
+				subspace.SetParamSet(suite.chainA.GetContext(), &params)
 			},
 			types.DefaultParams(),
 		},
@@ -26,18 +26,18 @@ func (s *KeeperTestSuite) TestMigrateParams() {
 
 	for _, tc := range testCases {
 		tc := tc
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
 
-			ctx := s.chainA.GetContext()
-			migrator := keeper.NewMigrator(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			ctx := suite.chainA.GetContext()
+			migrator := keeper.NewMigrator(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			err := migrator.MigrateParams(ctx)
-			s.Require().NoError(err)
+			suite.Require().NoError(err)
 
-			params := s.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
-			s.Require().Equal(tc.expectedParams, params)
+			params := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
+			suite.Require().Equal(tc.expectedParams, params)
 		})
 	}
 }

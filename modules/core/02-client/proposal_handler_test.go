@@ -13,7 +13,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *ClientTestSuite) TestNewClientUpdateProposalHandler() {
+func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 	var (
 		content govtypes.Content
 		err     error
@@ -26,31 +26,31 @@ func (s *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 	}{
 		{
 			"valid update client proposal", func() {
-				subjectPath := ibctesting.NewPath(s.chainA, s.chainB)
-				s.coordinator.SetupClients(subjectPath)
-				subjectClientState := s.chainA.GetClientState(subjectPath.EndpointA.ClientID)
+				subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupClients(subjectPath)
+				subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID)
 
-				substitutePath := ibctesting.NewPath(s.chainA, s.chainB)
-				s.coordinator.SetupClients(substitutePath)
+				substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupClients(substitutePath)
 
 				// update substitute twice
 				err = substitutePath.EndpointA.UpdateClient()
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 				err = substitutePath.EndpointA.UpdateClient()
-				s.Require().NoError(err)
-				substituteClientState := s.chainA.GetClientState(substitutePath.EndpointA.ClientID)
+				suite.Require().NoError(err)
+				substituteClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID)
 
 				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
-				s.Require().True(ok)
+				suite.Require().True(ok)
 				tmClientState.AllowUpdateAfterMisbehaviour = true
 				tmClientState.FrozenHeight = tmClientState.LatestHeight
-				s.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(s.chainA.GetContext(), subjectPath.EndpointA.ClientID, tmClientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID, tmClientState)
 
 				// replicate changes to substitute (they must match)
 				tmClientState, ok = substituteClientState.(*ibctm.ClientState)
-				s.Require().True(ok)
+				suite.Require().True(ok)
 				tmClientState.AllowUpdateAfterMisbehaviour = true
-				s.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(s.chainA.GetContext(), substitutePath.EndpointA.ClientID, tmClientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID, tmClientState)
 
 				content = clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectPath.EndpointA.ClientID, substitutePath.EndpointA.ClientID)
 			}, true,
@@ -65,7 +65,7 @@ func (s *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 				content = &distributiontypes.CommunityPoolSpendProposal{ //nolint:staticcheck
 					Title:       ibctesting.Title,
 					Description: ibctesting.Description,
-					Recipient:   s.chainA.SenderAccount.GetAddress().String(),
+					Recipient:   suite.chainA.SenderAccount.GetAddress().String(),
 					Amount:      sdk.NewCoins(sdk.NewCoin("communityfunds", sdkmath.NewInt(10))),
 				}
 			}, false,
@@ -75,19 +75,19 @@ func (s *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
 
-			proposalHandler := client.NewClientProposalHandler(s.chainA.App.GetIBCKeeper().ClientKeeper)
+			proposalHandler := client.NewClientProposalHandler(suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
-			err = proposalHandler(s.chainA.GetContext(), content)
+			err = proposalHandler(suite.chainA.GetContext(), content)
 
 			if tc.expPass {
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
