@@ -74,13 +74,6 @@ func NewKeeper(
 	}
 }
 
-// WithICS4Wrapper sets the ICS4Wrapper.
-// This function is used to change this keeper's ics4wrapper to a
-// middleware's ics4wrapper after this keeper has been created.
-func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
-	k.ics4Wrapper = wrapper
-}
-
 // Logger returns the application logger, scoped to the associated module
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
