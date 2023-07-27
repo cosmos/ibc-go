@@ -27,16 +27,16 @@ type KeeperTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (s *KeeperTestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+func (suite *KeeperTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	// TODO: remove
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	s.coordinator.CommitNBlocks(s.chainA, 2)
-	s.coordinator.CommitNBlocks(s.chainB, 2)
+	suite.coordinator.CommitNBlocks(suite.chainA, 2)
+	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -58,20 +58,20 @@ func (MockStakingKeeper) UnbondingTime(_ sdk.Context) time.Duration {
 
 // Test ibckeeper.NewKeeper used to initialize IBCKeeper when creating an app instance.
 // It verifies if ibckeeper.NewKeeper panic when any of the keepers passed in is empty.
-func (s *KeeperTestSuite) TestNewKeeper() {
+func (suite *KeeperTestSuite) TestNewKeeper() {
 	var (
 		stakingKeeper  clienttypes.StakingKeeper
 		upgradeKeeper  clienttypes.UpgradeKeeper
 		scopedKeeper   capabilitykeeper.ScopedKeeper
 		newIBCKeeperFn = func() {
 			ibckeeper.NewKeeper(
-				s.chainA.GetSimApp().AppCodec(),
-				s.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
-				s.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 				stakingKeeper,
 				upgradeKeeper,
 				scopedKeeper,
-				s.chainA.App.GetIBCKeeper().GetAuthority(),
+				suite.chainA.App.GetIBCKeeper().GetAuthority(),
 			)
 		}
 	)
@@ -122,21 +122,21 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 
 	for _, tc := range testCases {
 		tc := tc
-		s.SetupTest()
+		suite.SetupTest()
 
-		s.Run(tc.name, func() {
-			stakingKeeper = s.chainA.GetSimApp().StakingKeeper
-			upgradeKeeper = s.chainA.GetSimApp().UpgradeKeeper
-			scopedKeeper = s.chainA.GetSimApp().ScopedIBCKeeper
+		suite.Run(tc.name, func() {
+			stakingKeeper = suite.chainA.GetSimApp().StakingKeeper
+			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
+			scopedKeeper = suite.chainA.GetSimApp().ScopedIBCKeeper
 
 			tc.malleate()
 
 			if tc.expPass {
-				s.Require().NotPanics(
+				suite.Require().NotPanics(
 					newIBCKeeperFn,
 				)
 			} else {
-				s.Require().Panics(
+				suite.Require().Panics(
 					newIBCKeeperFn,
 				)
 			}
