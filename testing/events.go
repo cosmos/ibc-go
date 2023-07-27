@@ -137,7 +137,7 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 // AssertEvents asserts that expected events are present in the actual events.
 // Expected map needs to be a subset of actual events to pass.
 func AssertEvents(
-	s *testifysuite.Suite,
+	suite *testifysuite.Suite,
 	expected EventsMap,
 	actual []abci.Event,
 ) {
@@ -150,16 +150,16 @@ func AssertEvents(
 		expEvent, eventFound := expected[event.Type]
 		if eventFound {
 			hasEvents[event.Type] = true
-			s.Require().Len(event.Attributes, len(expEvent))
+			suite.Require().Len(event.Attributes, len(expEvent))
 			for _, attr := range event.Attributes {
 				expValue, found := expEvent[attr.Key]
-				s.Require().True(found)
-				s.Require().Equal(expValue, attr.Value)
+				suite.Require().True(found)
+				suite.Require().Equal(expValue, attr.Value)
 			}
 		}
 	}
 
 	for eventName, hasEvent := range hasEvents {
-		s.Require().True(hasEvent, "event: %s was not found in events", eventName)
+		suite.Require().True(hasEvent, "event: %s was not found in events", eventName)
 	}
 }

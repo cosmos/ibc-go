@@ -152,7 +152,7 @@ Here is an example of how to setup your testing environment in every package you
 ```go
 // KeeperTestSuite is a testing suite to test keeper functions.
 type KeeperTestSuite struct {
-  suite.Suite
+  testifysuite.Suite
 
   coordinator *ibctesting.Coordinator
 
@@ -163,14 +163,14 @@ type KeeperTestSuite struct {
 
 // TestKeeperTestSuite runs all the tests within this package.
 func TestKeeperTestSuite(t *testing.T) {
-  s.Run(t, new(KeeperTestSuite))
+  testifysuite.Run(t, new(KeeperTestSuite))
 }
 
 // SetupTest creates a coordinator with 2 test chains.
-func (s *KeeperTestSuite) SetupTest() {
-  s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes 2 test chains
-  s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1)) // convenience and readability
-  s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
+func (suite *KeeperTestSuite) SetupTest() {
+  suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2) // initializes 2 test chains
+  suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1)) // convenience and readability
+  suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
 }
 
 ```
@@ -228,11 +228,11 @@ To initialize the clients, connections, and channels for a path we can call the 
 Here is a basic example of the testing package being used to simulate IBC functionality:
 
 ```go
-  path := ibctesting.NewPath(s.chainA, s.chainB) // clientID, connectionID, channelID empty
-  s.coordinator.Setup(path) // clientID, connectionID, channelID filled
-  s.Require().Equal("07-tendermint-0", path.EndpointA.ClientID)
-  s.Require().Equal("connection-0", path.EndpointA.ClientID)
-  s.Require().Equal("channel-0", path.EndpointA.ClientID)
+  path := ibctesting.NewPath(suite.chainA, suite.chainB) // clientID, connectionID, channelID empty
+  suite.coordinator.Setup(path) // clientID, connectionID, channelID filled
+  suite.Require().Equal("07-tendermint-0", path.EndpointA.ClientID)
+  suite.Require().Equal("connection-0", path.EndpointA.ClientID)
+  suite.Require().Equal("channel-0", path.EndpointA.ClientID)
 
   // send on endpointA
   sequence, err := path.EndpointA.SendPacket(timeoutHeight1, timeoutTimestamp1, packet1Data)
@@ -338,7 +338,7 @@ sits at the top of middleware stack will need to be accessed via a public field 
 This might look like:
 
 ```go
-s.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(
+suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(
   ctx sdk.Context, order channeltypes.Order, connectionHops []string,
   portID, channelID string, chanCap *capabilitytypes.Capability,
   counterparty channeltypes.Counterparty, version string,
