@@ -8,7 +8,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
-func (s *TendermintTestSuite) TestConsensusStateValidateBasic() {
+func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 	testCases := []struct {
 		msg            string
 		consensusState *ibctm.ConsensusState
@@ -17,43 +17,43 @@ func (s *TendermintTestSuite) TestConsensusStateValidateBasic() {
 		{
 			"success",
 			&ibctm.ConsensusState{
-				Timestamp:          s.now,
+				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
-				NextValidatorsHash: s.valsHash,
+				NextValidatorsHash: suite.valsHash,
 			},
 			true,
 		},
 		{
 			"success with sentinel",
 			&ibctm.ConsensusState{
-				Timestamp:          s.now,
+				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)),
-				NextValidatorsHash: s.valsHash,
+				NextValidatorsHash: suite.valsHash,
 			},
 			true,
 		},
 		{
 			"root is nil",
 			&ibctm.ConsensusState{
-				Timestamp:          s.now,
+				Timestamp:          suite.now,
 				Root:               commitmenttypes.MerkleRoot{},
-				NextValidatorsHash: s.valsHash,
+				NextValidatorsHash: suite.valsHash,
 			},
 			false,
 		},
 		{
 			"root is empty",
 			&ibctm.ConsensusState{
-				Timestamp:          s.now,
+				Timestamp:          suite.now,
 				Root:               commitmenttypes.MerkleRoot{},
-				NextValidatorsHash: s.valsHash,
+				NextValidatorsHash: suite.valsHash,
 			},
 			false,
 		},
 		{
 			"nextvalshash is invalid",
 			&ibctm.ConsensusState{
-				Timestamp:          s.now,
+				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: []byte("hi"),
 			},
@@ -65,7 +65,7 @@ func (s *TendermintTestSuite) TestConsensusStateValidateBasic() {
 			&ibctm.ConsensusState{
 				Timestamp:          time.Time{},
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
-				NextValidatorsHash: s.valsHash,
+				NextValidatorsHash: suite.valsHash,
 			},
 			false,
 		},
@@ -75,14 +75,14 @@ func (s *TendermintTestSuite) TestConsensusStateValidateBasic() {
 		tc := tc
 
 		// check just to increase coverage
-		s.Require().Equal(exported.Tendermint, tc.consensusState.ClientType())
-		s.Require().Equal(tc.consensusState.GetRoot(), tc.consensusState.Root)
+		suite.Require().Equal(exported.Tendermint, tc.consensusState.ClientType())
+		suite.Require().Equal(tc.consensusState.GetRoot(), tc.consensusState.Root)
 
 		err := tc.consensusState.ValidateBasic()
 		if tc.expectPass {
-			s.Require().NoError(err, "valid test case %d failed: %s", i, tc.msg)
+			suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.msg)
 		} else {
-			s.Require().Error(err, "invalid test case %d passed: %s", i, tc.msg)
+			suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.msg)
 		}
 	}
 }

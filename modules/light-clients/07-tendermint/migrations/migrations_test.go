@@ -24,10 +24,10 @@ type MigrationsTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (s *MigrationsTestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+func (suite *MigrationsTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func TestTendermintTestSuite(t *testing.T) {
@@ -35,7 +35,7 @@ func TestTendermintTestSuite(t *testing.T) {
 }
 
 // test pruning of multiple expired tendermint consensus states
-func (s *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
+func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 	// create multiple tendermint clients and a solo machine client
 	// the solo machine is used to verify this pruning function only modifies
 	// the tendermint store.
@@ -44,22 +44,22 @@ func (s *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 	paths := make([]*ibctesting.Path, numTMClients)
 
 	for i := 0; i < numTMClients; i++ {
-		path := ibctesting.NewPath(s.chainA, s.chainB)
-		s.coordinator.SetupClients(path)
+		path := ibctesting.NewPath(suite.chainA, suite.chainB)
+		suite.coordinator.SetupClients(path)
 
 		paths[i] = path
 	}
 
-	solomachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1)
-	smClientStore := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), solomachine.ClientID)
+	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1)
+	smClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), solomachine.ClientID)
 
 	// set client state
-	bz, err := s.chainA.App.AppCodec().MarshalInterface(solomachine.ClientState())
-	s.Require().NoError(err)
+	bz, err := suite.chainA.App.AppCodec().MarshalInterface(solomachine.ClientState())
+	suite.Require().NoError(err)
 	smClientStore.Set(host.ClientStateKey(), bz)
 
-	bz, err = s.chainA.App.AppCodec().MarshalInterface(solomachine.ConsensusState())
-	s.Require().NoError(err)
+	bz, err = suite.chainA.App.AppCodec().MarshalInterface(solomachine.ConsensusState())
+	suite.Require().NoError(err)
 	smHeight := clienttypes.NewHeight(0, 1)
 	smClientStore.Set(host.ConsensusStateKey(smHeight), bz)
 
@@ -74,46 +74,46 @@ func (s *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 		// these heights will be expired and also pruned
 		for i := 0; i < 3; i++ {
 			err := path.EndpointA.UpdateClient()
-			s.Require().NoError(err)
+			suite.Require().NoError(err)
 
 			pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight())
 		}
 
 		// double chedck all information is currently stored
 		for _, pruneHeight := range pruneHeights {
-			consState, ok := s.chainA.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
-			s.Require().True(ok)
-			s.Require().NotNil(consState)
+			consState, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+			suite.Require().True(ok)
+			suite.Require().NotNil(consState)
 
-			ctx := s.chainA.GetContext()
-			clientStore := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+			ctx := suite.chainA.GetContext()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
 
 			processedTime, ok := ibctm.GetProcessedTime(clientStore, pruneHeight)
-			s.Require().True(ok)
-			s.Require().NotNil(processedTime)
+			suite.Require().True(ok)
+			suite.Require().NotNil(processedTime)
 
 			processedHeight, ok := ibctm.GetProcessedHeight(clientStore, pruneHeight)
-			s.Require().True(ok)
-			s.Require().NotNil(processedHeight)
+			suite.Require().True(ok)
+			suite.Require().NotNil(processedHeight)
 
 			expectedConsKey := ibctm.GetIterationKey(clientStore, pruneHeight)
-			s.Require().NotNil(expectedConsKey)
+			suite.Require().NotNil(expectedConsKey)
 		}
 		pruneHeightMap[path] = pruneHeights
 	}
 
 	// Increment the time by a week
-	s.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
 
 	for _, path := range paths {
 		// create the consensus state that can be used as trusted height for next update
 		var unexpiredHeights []exported.Height
 		err := path.EndpointA.UpdateClient()
-		s.Require().NoError(err)
+		suite.Require().NoError(err)
 		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientState().GetLatestHeight())
 
 		err = path.EndpointA.UpdateClient()
-		s.Require().NoError(err)
+		suite.Require().NoError(err)
 		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientState().GetLatestHeight())
 
 		unexpiredHeightMap[path] = unexpiredHeights
@@ -122,57 +122,57 @@ func (s *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 	// Increment the time by another week, then update the client.
 	// This will cause the consensus states created before the first time increment
 	// to be expired
-	s.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-	totalPruned, err := ibctmmigrations.PruneExpiredConsensusStates(s.chainA.GetContext(), s.chainA.App.AppCodec(), s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
-	s.Require().NoError(err)
-	s.Require().NotZero(totalPruned)
+	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
+	totalPruned, err := ibctmmigrations.PruneExpiredConsensusStates(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	suite.Require().NoError(err)
+	suite.Require().NotZero(totalPruned)
 
 	for _, path := range paths {
-		ctx := s.chainA.GetContext()
-		clientStore := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
+		ctx := suite.chainA.GetContext()
+		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(ctx, path.EndpointA.ClientID)
 
 		// ensure everything has been pruned
 		for i, pruneHeight := range pruneHeightMap[path] {
-			consState, ok := s.chainA.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
-			s.Require().False(ok, i)
-			s.Require().Nil(consState, i)
+			consState, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
+			suite.Require().False(ok, i)
+			suite.Require().Nil(consState, i)
 
 			processedTime, ok := ibctm.GetProcessedTime(clientStore, pruneHeight)
-			s.Require().False(ok, i)
-			s.Require().Equal(uint64(0), processedTime, i)
+			suite.Require().False(ok, i)
+			suite.Require().Equal(uint64(0), processedTime, i)
 
 			processedHeight, ok := ibctm.GetProcessedHeight(clientStore, pruneHeight)
-			s.Require().False(ok, i)
-			s.Require().Nil(processedHeight, i)
+			suite.Require().False(ok, i)
+			suite.Require().Nil(processedHeight, i)
 
 			expectedConsKey := ibctm.GetIterationKey(clientStore, pruneHeight)
-			s.Require().Nil(expectedConsKey, i)
+			suite.Require().Nil(expectedConsKey, i)
 		}
 
 		// ensure metadata is set for unexpired consensus state
 		for _, height := range unexpiredHeightMap[path] {
-			consState, ok := s.chainA.GetConsensusState(path.EndpointA.ClientID, height)
-			s.Require().True(ok)
-			s.Require().NotNil(consState)
+			consState, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, height)
+			suite.Require().True(ok)
+			suite.Require().NotNil(consState)
 
 			processedTime, ok := ibctm.GetProcessedTime(clientStore, height)
-			s.Require().True(ok)
-			s.Require().NotEqual(uint64(0), processedTime)
+			suite.Require().True(ok)
+			suite.Require().NotEqual(uint64(0), processedTime)
 
 			processedHeight, ok := ibctm.GetProcessedHeight(clientStore, height)
-			s.Require().True(ok)
-			s.Require().NotEqual(clienttypes.ZeroHeight(), processedHeight)
+			suite.Require().True(ok)
+			suite.Require().NotEqual(clienttypes.ZeroHeight(), processedHeight)
 
 			consKey := ibctm.GetIterationKey(clientStore, height)
-			s.Require().Equal(host.ConsensusStateKey(height), consKey)
+			suite.Require().Equal(host.ConsensusStateKey(height), consKey)
 		}
 	}
 
 	// verify that solomachine client and consensus state were not removed
-	smClientStore = s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), solomachine.ClientID)
+	smClientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), solomachine.ClientID)
 	bz = smClientStore.Get(host.ClientStateKey())
-	s.Require().NotEmpty(bz)
+	suite.Require().NotEmpty(bz)
 
 	bz = smClientStore.Get(host.ConsensusStateKey(smHeight))
-	s.Require().NotEmpty(bz)
+	suite.Require().NotEmpty(bz)
 }

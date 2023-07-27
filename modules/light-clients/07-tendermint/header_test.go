@@ -10,17 +10,17 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
-func (s *TendermintTestSuite) TestGetHeight() {
-	header := s.chainA.LastHeader
-	s.Require().NotEqual(uint64(0), header.GetHeight())
+func (suite *TendermintTestSuite) TestGetHeight() {
+	header := suite.chainA.LastHeader
+	suite.Require().NotEqual(uint64(0), header.GetHeight())
 }
 
-func (s *TendermintTestSuite) TestGetTime() {
-	header := s.chainA.LastHeader
-	s.Require().NotEqual(time.Time{}, header.GetTime())
+func (suite *TendermintTestSuite) TestGetTime() {
+	header := suite.chainA.LastHeader
+	suite.Require().NotEqual(time.Time{}, header.GetTime())
 }
 
-func (s *TendermintTestSuite) TestHeaderValidateBasic() {
+func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 	var header *ibctm.Header
 	testCases := []struct {
 		name     string
@@ -38,7 +38,7 @@ func (s *TendermintTestSuite) TestHeaderValidateBasic() {
 			header.SignedHeader.Commit.Height = -1
 		}, false},
 		{"signed header failed tendermint ValidateBasic", func() {
-			header = s.chainA.LastHeader
+			header = suite.chainA.LastHeader
 			header.SignedHeader.Commit = nil
 		}, false},
 		{"trusted height is equal to header height", func() {
@@ -52,28 +52,28 @@ func (s *TendermintTestSuite) TestHeaderValidateBasic() {
 		}, false},
 		{"header validator hash does not equal hash of validator set", func() {
 			// use chainB's randomly generated validator set
-			header.ValidatorSet = s.chainB.LastHeader.ValidatorSet
+			header.ValidatorSet = suite.chainB.LastHeader.ValidatorSet
 		}, false},
 	}
 
-	s.Require().Equal(exported.Tendermint, s.header.ClientType())
+	suite.Require().Equal(exported.Tendermint, suite.header.ClientType())
 
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupTest()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-			header = s.chainA.LastHeader // must be explicitly changed in malleate
+			header = suite.chainA.LastHeader // must be explicitly changed in malleate
 
 			tc.malleate()
 
 			err := header.ValidateBasic()
 
 			if tc.expPass {
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
