@@ -15,37 +15,37 @@ import (
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (s *LocalhostTestSuite) TestStatus() {
+func (suite *LocalhostTestSuite) TestStatus() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
-	s.Require().Equal(exported.Active, clientState.Status(s.chain.GetContext(), nil, nil))
+	suite.Require().Equal(exported.Active, clientState.Status(suite.chain.GetContext(), nil, nil))
 }
 
-func (s *LocalhostTestSuite) TestClientType() {
+func (suite *LocalhostTestSuite) TestClientType() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
-	s.Require().Equal(exported.Localhost, clientState.ClientType())
+	suite.Require().Equal(exported.Localhost, clientState.ClientType())
 }
 
-func (s *LocalhostTestSuite) TestGetLatestHeight() {
+func (suite *LocalhostTestSuite) TestGetLatestHeight() {
 	expectedHeight := clienttypes.NewHeight(3, 10)
 	clientState := localhost.NewClientState(expectedHeight)
-	s.Require().Equal(expectedHeight, clientState.GetLatestHeight())
+	suite.Require().Equal(expectedHeight, clientState.GetLatestHeight())
 }
 
-func (s *LocalhostTestSuite) TestZeroCustomFields() {
+func (suite *LocalhostTestSuite) TestZeroCustomFields() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	s.Require().Equal(clientState, clientState.ZeroCustomFields())
+	suite.Require().Equal(clientState, clientState.ZeroCustomFields())
 }
 
-func (s *LocalhostTestSuite) TestGetTimestampAtHeight() {
-	ctx := s.chain.GetContext()
+func (suite *LocalhostTestSuite) TestGetTimestampAtHeight() {
+	ctx := suite.chain.GetContext()
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
 
 	timestamp, err := clientState.GetTimestampAtHeight(ctx, nil, nil, nil)
-	s.Require().NoError(err)
-	s.Require().Equal(uint64(ctx.BlockTime().UnixNano()), timestamp)
+	suite.Require().NoError(err)
+	suite.Require().Equal(uint64(ctx.BlockTime().UnixNano()), timestamp)
 }
 
-func (s *LocalhostTestSuite) TestValidate() {
+func (suite *LocalhostTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
 		clientState exported.ClientState
@@ -66,14 +66,14 @@ func (s *LocalhostTestSuite) TestValidate() {
 	for _, tc := range testCases {
 		err := tc.clientState.Validate()
 		if tc.expPass {
-			s.Require().NoError(err, tc.name)
+			suite.Require().NoError(err, tc.name)
 		} else {
-			s.Require().Error(err, tc.name)
+			suite.Require().Error(err, tc.name)
 		}
 	}
 }
 
-func (s *LocalhostTestSuite) TestInitialize() {
+func (suite *LocalhostTestSuite) TestInitialize() {
 	testCases := []struct {
 		name      string
 		consState exported.ConsensusState
@@ -92,22 +92,22 @@ func (s *LocalhostTestSuite) TestInitialize() {
 	}
 
 	for _, tc := range testCases {
-		s.SetupTest()
+		suite.SetupTest()
 
 		clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
-		clientStore := s.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(s.chain.GetContext(), exported.LocalhostClientID)
+		clientStore := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.LocalhostClientID)
 
-		err := clientState.Initialize(s.chain.GetContext(), s.chain.Codec, clientStore, tc.consState)
+		err := clientState.Initialize(suite.chain.GetContext(), suite.chain.Codec, clientStore, tc.consState)
 
 		if tc.expPass {
-			s.Require().NoError(err, "valid testcase: %s failed", tc.name)
+			suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
 		} else {
-			s.Require().Error(err, "invalid testcase: %s passed", tc.name)
+			suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
 		}
 	}
 }
 
-func (s *LocalhostTestSuite) TestVerifyMembership() {
+func (suite *LocalhostTestSuite) TestVerifyMembership() {
 	var (
 		path  exported.Path
 		value []byte
@@ -121,14 +121,14 @@ func (s *LocalhostTestSuite) TestVerifyMembership() {
 		{
 			"success: client state verification",
 			func() {
-				clientState := s.chain.GetClientState(exported.LocalhostClientID)
+				clientState := suite.chain.GetClientState(exported.LocalhostClientID)
 
 				merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(exported.LocalhostClientID))
-				merklePath, err := commitmenttypes.ApplyPrefix(s.chain.GetPrefix(), merklePath)
-				s.Require().NoError(err)
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
 				path = merklePath
-				value = clienttypes.MustMarshalClientState(s.chain.Codec, clientState)
+				value = clienttypes.MustMarshalClientState(suite.chain.Codec, clientState)
 			},
 			true,
 		},
@@ -138,18 +138,18 @@ func (s *LocalhostTestSuite) TestVerifyMembership() {
 				connectionEnd := connectiontypes.NewConnectionEnd(
 					connectiontypes.OPEN,
 					exported.LocalhostClientID,
-					connectiontypes.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, s.chain.GetPrefix()),
+					connectiontypes.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, suite.chain.GetPrefix()),
 					connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions()), 0,
 				)
 
-				s.chain.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(s.chain.GetContext(), exported.LocalhostConnectionID, connectionEnd)
+				suite.chain.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chain.GetContext(), exported.LocalhostConnectionID, connectionEnd)
 
 				merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(exported.LocalhostConnectionID))
-				merklePath, err := commitmenttypes.ApplyPrefix(s.chain.GetPrefix(), merklePath)
-				s.Require().NoError(err)
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
 				path = merklePath
-				value = s.chain.Codec.MustMarshal(&connectionEnd)
+				value = suite.chain.Codec.MustMarshal(&connectionEnd)
 			},
 			true,
 		},
@@ -164,14 +164,14 @@ func (s *LocalhostTestSuite) TestVerifyMembership() {
 					mock.Version,
 				)
 
-				s.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(s.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, channel)
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, channel)
 
 				merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(mock.PortID, ibctesting.FirstChannelID))
-				merklePath, err := commitmenttypes.ApplyPrefix(s.chain.GetPrefix(), merklePath)
-				s.Require().NoError(err)
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
 				path = merklePath
-				value = s.chain.Codec.MustMarshal(&channel)
+				value = suite.chain.Codec.MustMarshal(&channel)
 			},
 			true,
 		},
@@ -179,11 +179,11 @@ func (s *LocalhostTestSuite) TestVerifyMembership() {
 			"success: next sequence recv verification",
 			func() {
 				nextSeqRecv := uint64(100)
-				s.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(s.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, nextSeqRecv)
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetNextSequenceRecv(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, nextSeqRecv)
 
 				merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(mock.PortID, ibctesting.FirstChannelID))
-				merklePath, err := commitmenttypes.ApplyPrefix(s.chain.GetPrefix(), merklePath)
-				s.Require().NoError(err)
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
 				path = merklePath
 				value = sdk.Uint64ToBigEndian(nextSeqRecv)
@@ -204,12 +204,12 @@ func (s *LocalhostTestSuite) TestVerifyMembership() {
 					0,
 				)
 
-				commitmentBz := channeltypes.CommitPacket(s.chain.Codec, packet)
-				s.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketCommitment(s.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1, commitmentBz)
+				commitmentBz := channeltypes.CommitPacket(suite.chain.Codec, packet)
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1, commitmentBz)
 
 				merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence()))
-				merklePath, err := commitmenttypes.ApplyPrefix(s.chain.GetPrefix(), merklePath)
-				s.Require().NoError(err)
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
 				path = merklePath
 				value = commitmentBz
@@ -219,11 +219,11 @@ func (s *LocalhostTestSuite) TestVerifyMembership() {
 		{
 			"success: packet acknowledgement verification",
 			func() {
-				s.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(s.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1, ibctesting.MockAcknowledgement)
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1, ibctesting.MockAcknowledgement)
 
 				merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(mock.PortID, ibctesting.FirstChannelID, 1))
-				merklePath, err := commitmenttypes.ApplyPrefix(s.chain.GetPrefix(), merklePath)
-				s.Require().NoError(err)
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
 				path = merklePath
 				value = ibctesting.MockAcknowledgement
@@ -248,8 +248,8 @@ func (s *LocalhostTestSuite) TestVerifyMembership() {
 			"no value found at provided key path",
 			func() {
 				merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(mock.PortID, ibctesting.FirstChannelID, 100))
-				merklePath, err := commitmenttypes.ApplyPrefix(s.chain.GetPrefix(), merklePath)
-				s.Require().NoError(err)
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
 				path = merklePath
 				value = ibctesting.MockAcknowledgement
@@ -267,16 +267,16 @@ func (s *LocalhostTestSuite) TestVerifyMembership() {
 					mock.Version,
 				)
 
-				s.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(s.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, channel)
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, channel)
 
 				merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(mock.PortID, ibctesting.FirstChannelID))
-				merklePath, err := commitmenttypes.ApplyPrefix(s.chain.GetPrefix(), merklePath)
-				s.Require().NoError(err)
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
 				path = merklePath
 
 				channel.State = channeltypes.CLOSED // modify the channel before marshalling to value bz
-				value = s.chain.Codec.MustMarshal(&channel)
+				value = suite.chain.Codec.MustMarshal(&channel)
 			},
 			false,
 		},
@@ -285,18 +285,18 @@ func (s *LocalhostTestSuite) TestVerifyMembership() {
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupTest()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
 			tc.malleate()
 
-			clientState := s.chain.GetClientState(exported.LocalhostClientID)
-			store := s.chain.GetContext().KVStore(s.chain.GetSimApp().GetKey(exported.StoreKey))
+			clientState := suite.chain.GetClientState(exported.LocalhostClientID)
+			store := suite.chain.GetContext().KVStore(suite.chain.GetSimApp().GetKey(exported.StoreKey))
 
 			err := clientState.VerifyMembership(
-				s.chain.GetContext(),
+				suite.chain.GetContext(),
 				store,
-				s.chain.Codec,
+				suite.chain.Codec,
 				clienttypes.ZeroHeight(),
 				0, 0, // use zero values for delay periods
 				localhost.SentinelProof,
@@ -305,15 +305,15 @@ func (s *LocalhostTestSuite) TestVerifyMembership() {
 			)
 
 			if tc.expPass {
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *LocalhostTestSuite) TestVerifyNonMembership() {
+func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 	var path exported.Path
 
 	testCases := []struct {
@@ -325,8 +325,8 @@ func (s *LocalhostTestSuite) TestVerifyNonMembership() {
 			"success: packet receipt absence verification",
 			func() {
 				merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(mock.PortID, ibctesting.FirstChannelID, 1))
-				merklePath, err := commitmenttypes.ApplyPrefix(s.chain.GetPrefix(), merklePath)
-				s.Require().NoError(err)
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
 				path = merklePath
 			},
@@ -335,11 +335,11 @@ func (s *LocalhostTestSuite) TestVerifyNonMembership() {
 		{
 			"packet receipt absence verification fails",
 			func() {
-				s.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketReceipt(s.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1)
+				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1)
 
 				merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(mock.PortID, ibctesting.FirstChannelID, 1))
-				merklePath, err := commitmenttypes.ApplyPrefix(s.chain.GetPrefix(), merklePath)
-				s.Require().NoError(err)
+				merklePath, err := commitmenttypes.ApplyPrefix(suite.chain.GetPrefix(), merklePath)
+				suite.Require().NoError(err)
 
 				path = merklePath
 			},
@@ -364,18 +364,18 @@ func (s *LocalhostTestSuite) TestVerifyNonMembership() {
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupTest()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
 			tc.malleate()
 
-			clientState := s.chain.GetClientState(exported.LocalhostClientID)
-			store := s.chain.GetContext().KVStore(s.chain.GetSimApp().GetKey(exported.StoreKey))
+			clientState := suite.chain.GetClientState(exported.LocalhostClientID)
+			store := suite.chain.GetContext().KVStore(suite.chain.GetSimApp().GetKey(exported.StoreKey))
 
 			err := clientState.VerifyNonMembership(
-				s.chain.GetContext(),
+				suite.chain.GetContext(),
 				store,
-				s.chain.Codec,
+				suite.chain.Codec,
 				clienttypes.ZeroHeight(),
 				0, 0, // use zero values for delay periods
 				localhost.SentinelProof,
@@ -383,52 +383,52 @@ func (s *LocalhostTestSuite) TestVerifyNonMembership() {
 			)
 
 			if tc.expPass {
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *LocalhostTestSuite) TestVerifyClientMessage() {
+func (suite *LocalhostTestSuite) TestVerifyClientMessage() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	s.Require().Error(clientState.VerifyClientMessage(s.chain.GetContext(), nil, nil, nil))
+	suite.Require().Error(clientState.VerifyClientMessage(suite.chain.GetContext(), nil, nil, nil))
 }
 
-func (s *LocalhostTestSuite) TestVerifyCheckForMisbehaviour() {
+func (suite *LocalhostTestSuite) TestVerifyCheckForMisbehaviour() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	s.Require().False(clientState.CheckForMisbehaviour(s.chain.GetContext(), nil, nil, nil))
+	suite.Require().False(clientState.CheckForMisbehaviour(suite.chain.GetContext(), nil, nil, nil))
 }
 
-func (s *LocalhostTestSuite) TestUpdateState() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(1, uint64(s.chain.GetContext().BlockHeight())))
-	store := s.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(s.chain.GetContext(), exported.LocalhostClientID)
+func (suite *LocalhostTestSuite) TestUpdateState() {
+	clientState := localhost.NewClientState(clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight())))
+	store := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.LocalhostClientID)
 
-	s.coordinator.CommitBlock(s.chain)
+	suite.coordinator.CommitBlock(suite.chain)
 
-	heights := clientState.UpdateState(s.chain.GetContext(), s.chain.Codec, store, nil)
+	heights := clientState.UpdateState(suite.chain.GetContext(), suite.chain.Codec, store, nil)
 
-	expHeight := clienttypes.NewHeight(1, uint64(s.chain.GetContext().BlockHeight()))
-	s.Require().True(heights[0].EQ(expHeight))
+	expHeight := clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight()))
+	suite.Require().True(heights[0].EQ(expHeight))
 
-	clientState = s.chain.GetClientState(exported.LocalhostClientID)
-	s.Require().True(heights[0].EQ(clientState.GetLatestHeight()))
+	clientState = suite.chain.GetClientState(exported.LocalhostClientID)
+	suite.Require().True(heights[0].EQ(clientState.GetLatestHeight()))
 }
 
-func (s *LocalhostTestSuite) TestExportMetadata() {
+func (suite *LocalhostTestSuite) TestExportMetadata() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	s.Require().Nil(clientState.ExportMetadata(nil))
+	suite.Require().Nil(clientState.ExportMetadata(nil))
 }
 
-func (s *LocalhostTestSuite) TestCheckSubstituteAndUpdateState() {
+func (suite *LocalhostTestSuite) TestCheckSubstituteAndUpdateState() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	err := clientState.CheckSubstituteAndUpdateState(s.chain.GetContext(), s.chain.Codec, nil, nil, nil)
-	s.Require().Error(err)
+	err := clientState.CheckSubstituteAndUpdateState(suite.chain.GetContext(), suite.chain.Codec, nil, nil, nil)
+	suite.Require().Error(err)
 }
 
-func (s *LocalhostTestSuite) TestVerifyUpgradeAndUpdateState() {
+func (suite *LocalhostTestSuite) TestVerifyUpgradeAndUpdateState() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(1, 10))
-	err := clientState.VerifyUpgradeAndUpdateState(s.chain.GetContext(), s.chain.Codec, nil, nil, nil, nil, nil)
-	s.Require().Error(err)
+	err := clientState.VerifyUpgradeAndUpdateState(suite.chain.GetContext(), suite.chain.Codec, nil, nil, nil, nil, nil)
+	suite.Require().Error(err)
 }
