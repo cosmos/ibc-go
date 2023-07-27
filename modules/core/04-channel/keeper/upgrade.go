@@ -147,7 +147,7 @@ func (k Keeper) ChanUpgradeTry(
 
 		if !reflect.DeepEqual(upgrade.Fields, proposedUpgradeFields) {
 			return types.Upgrade{}, errorsmod.Wrapf(
-				types.ErrInvalidUpgrade, "upgrade fields are not equal to current upgrade fields in crossing hellos case, expected %s", upgrade.Fields)
+				types.ErrInvalidUpgrade, "upgrade fields are not equal to current upgrade fields in crossing hellos case; expected %s, got %s", upgrade.Fields, proposedUpgradeFields)
 		}
 
 	default:
@@ -303,7 +303,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgra
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("cound not find existing upgrade when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Sprintf("could not find existing upgrade when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	upgrade.Fields.Version = upgradeVersion
@@ -406,7 +406,7 @@ func (k Keeper) ChanUpgradeOpen(
 		}
 
 	default:
-		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s, %s]; got %s", types.TRYUPGRADE, types.ACKUPGRADE, types.OPEN, counterpartyChannelState))
+		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s, %s], got %s", types.TRYUPGRADE, types.ACKUPGRADE, types.OPEN, counterpartyChannelState))
 	}
 
 	if err := k.connectionKeeper.VerifyChannelState(
@@ -417,7 +417,7 @@ func (k Keeper) ChanUpgradeOpen(
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed to verify counterparty channel, expected counterparty channel state: %s", counterpartyChannel.String())
+		return errorsmod.Wrap(err, "failed to verify counterparty channel")
 	}
 
 	return nil
@@ -820,7 +820,7 @@ func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
 func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
 	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
 	if !found {
-		return types.Upgrade{}, types.ErrSequenceSendNotFound
+		return types.Upgrade{}, errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	return types.Upgrade{
