@@ -11,7 +11,7 @@ import (
 )
 
 // TestMsgTransfer tests Transfer rpc handler
-func (s *KeeperTestSuite) TestMsgTransfer() {
+func (suite *KeeperTestSuite) TestMsgTransfer() {
 	var msg *types.MsgTransfer
 
 	testCases := []struct {
@@ -27,19 +27,19 @@ func (s *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"bank send enabled for denom",
 			func() {
-				err := s.chainA.GetSimApp().BankKeeper.SetParams(s.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
 					},
 				)
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			},
 			true,
 		},
 		{
 			"send transfers disabled",
 			func() {
-				s.chainA.GetSimApp().TransferKeeper.SetParams(s.chainA.GetContext(),
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(suite.chainA.GetContext(),
 					types.Params{
 						SendEnabled: false,
 					},
@@ -57,19 +57,19 @@ func (s *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"sender is a blocked address",
 			func() {
-				msg.Sender = s.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
 			},
 			false,
 		},
 		{
 			"bank send disabled for denom",
 			func() {
-				err := s.chainA.GetSimApp().BankKeeper.SetParams(s.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
 					},
 				)
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			},
 			false,
 		},
@@ -83,32 +83,32 @@ func (s *KeeperTestSuite) TestMsgTransfer() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.SetupTest()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-			path := ibctesting.NewTransferPath(s.chainA, s.chainB)
-			s.coordinator.Setup(path)
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
 
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 			msg = types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
-				coin, s.chainA.SenderAccount.GetAddress().String(), s.chainB.SenderAccount.GetAddress().String(),
-				s.chainB.GetTimeoutHeight(), 0, // only use timeout height
+				coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
+				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 				"memo",
 			)
 
 			tc.malleate()
 
-			ctx := s.chainA.GetContext()
-			res, err := s.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
+			ctx := suite.chainA.GetContext()
+			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
 
 			// Verify events
 			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{
 				"ibc_transfer": {
-					"sender":   s.chainA.SenderAccount.GetAddress().String(),
-					"receiver": s.chainB.SenderAccount.GetAddress().String(),
+					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
+					"receiver": suite.chainB.SenderAccount.GetAddress().String(),
 					"amount":   coin.Amount.String(),
 					"denom":    coin.Denom,
 					"memo":     "memo",
@@ -116,22 +116,22 @@ func (s *KeeperTestSuite) TestMsgTransfer() {
 			}
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().NotNil(res)
-				s.Require().NotEqual(res.Sequence, uint64(0))
-				ibctesting.AssertEvents(&s.Suite, expEvents, events)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().NotEqual(res.Sequence, uint64(0))
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
-				s.Require().Error(err)
-				s.Require().Nil(res)
-				s.Require().Len(events, 0)
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+				suite.Require().Len(events, 0)
 			}
 		})
 	}
 }
 
 // TestUpdateParams tests UpdateParams rpc handler
-func (s *KeeperTestSuite) TestUpdateParams() {
-	validAuthority := s.chainA.GetSimApp().TransferKeeper.GetAuthority()
+func (suite *KeeperTestSuite) TestUpdateParams() {
+	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
@@ -166,13 +166,13 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 
 	for _, tc := range testCases {
 		tc := tc
-		s.Run(tc.name, func() {
-			s.SetupTest()
-			_, err := s.chainA.GetSimApp().TransferKeeper.UpdateParams(s.chainA.GetContext(), tc.msg)
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			_, err := suite.chainA.GetSimApp().TransferKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)
 			if tc.expPass {
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}

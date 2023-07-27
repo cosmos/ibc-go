@@ -28,21 +28,21 @@ type KeeperTestSuite struct {
 	chainC *ibctesting.TestChain
 }
 
-func (s *KeeperTestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
-	s.chainC = s.coordinator.GetChain(ibctesting.GetChainID(3))
+func (suite *KeeperTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
-	queryHelper := baseapp.NewQueryServerTestHelper(s.chainA.GetContext(), s.chainA.GetSimApp().InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, s.chainA.GetSimApp().TransferKeeper)
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().TransferKeeper)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
-func (s *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
+func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 	const denom = "atom"
 	var expAmount sdkmath.Int
 
@@ -82,38 +82,38 @@ func (s *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 			expAmount = sdkmath.NewInt(100)
-			ctx := s.chainA.GetContext()
+			ctx := suite.chainA.GetContext()
 
 			tc.malleate()
 
 			if tc.expPass {
-				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
-				total := s.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
-				s.Require().Equal(expAmount, total.Amount)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
+				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
+				suite.Require().Equal(expAmount, total.Amount)
 
-				storeKey := s.chainA.GetSimApp().GetKey(types.ModuleName)
+				storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
 				store := ctx.KVStore(storeKey)
 				key := types.TotalEscrowForDenomKey(denom)
 				if expAmount.IsZero() {
-					s.Require().False(store.Has(key))
+					suite.Require().False(store.Has(key))
 				} else {
-					s.Require().True(store.Has(key))
+					suite.Require().True(store.Has(key))
 				}
 			} else {
-				s.Require().PanicsWithError("negative coin amount: -1", func() {
-					s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
+				suite.Require().PanicsWithError("negative coin amount: -1", func() {
+					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
 				})
-				total := s.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
-				s.Require().Equal(sdkmath.ZeroInt(), total.Amount)
+				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
+				suite.Require().Equal(sdkmath.ZeroInt(), total.Amount)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestGetAllDenomEscrows() {
+func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 	var (
 		store           storetypes.KVStore
 		cdc             codec.Codec
@@ -195,31 +195,31 @@ func (s *KeeperTestSuite) TestGetAllDenomEscrows() {
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 
 			expDenomEscrows = sdk.Coins{}
-			ctx := s.chainA.GetContext()
+			ctx := suite.chainA.GetContext()
 
-			storeKey := s.chainA.GetSimApp().GetKey(types.ModuleName)
+			storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
 			store = ctx.KVStore(storeKey)
-			cdc = s.chainA.App.AppCodec()
+			cdc = suite.chainA.App.AppCodec()
 
 			tc.malleate()
 
-			denomEscrows := s.chainA.GetSimApp().TransferKeeper.GetAllTotalEscrowed(ctx)
+			denomEscrows := suite.chainA.GetSimApp().TransferKeeper.GetAllTotalEscrowed(ctx)
 
 			if tc.expPass {
-				s.Require().Len(expDenomEscrows, len(denomEscrows))
-				s.Require().ElementsMatch(expDenomEscrows, denomEscrows)
+				suite.Require().Len(expDenomEscrows, len(denomEscrows))
+				suite.Require().ElementsMatch(expDenomEscrows, denomEscrows)
 			} else {
-				s.Require().Empty(denomEscrows)
+				suite.Require().Empty(denomEscrows)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestParams() {
+func (suite *KeeperTestSuite) TestParams() {
 	testCases := []struct {
 		name    string
 		input   types.Params
@@ -235,31 +235,31 @@ func (s *KeeperTestSuite) TestParams() {
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
-			ctx := s.chainA.GetContext()
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
 			if tc.expPass {
-				s.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
+				suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
 				expected := tc.input
-				p := s.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
-				s.Require().Equal(expected, p)
+				p := suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
+				suite.Require().Equal(expected, p)
 			} else {
-				s.Require().Panics(func() {
-					s.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
+				suite.Require().Panics(func() {
+					suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
 				})
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestUnsetParams() {
-	s.SetupTest()
+func (suite *KeeperTestSuite) TestUnsetParams() {
+	suite.SetupTest()
 
-	ctx := s.chainA.GetContext()
-	store := s.chainA.GetContext().KVStore(s.chainA.GetSimApp().GetKey(types.ModuleName))
+	ctx := suite.chainA.GetContext()
+	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.ModuleName))
 	store.Delete([]byte(types.ParamsKey))
 
-	s.Require().Panics(func() {
-		s.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
+	suite.Require().Panics(func() {
+		suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
 	})
 }

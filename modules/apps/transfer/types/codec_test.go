@@ -9,17 +9,17 @@ import (
 )
 
 // TestMustMarshalProtoJSON tests that the memo field is only emitted (marshalled) if it is populated
-func (s *TypesTestSuite) TestMustMarshalProtoJSON() {
+func (suite *TypesTestSuite) TestMustMarshalProtoJSON() {
 	memo := "memo"
-	packetData := types.NewFungibleTokenPacketData(sdk.DefaultBondDenom, "1", s.chainA.SenderAccount.GetAddress().String(), s.chainB.SenderAccount.GetAddress().String(), memo)
+	packetData := types.NewFungibleTokenPacketData(sdk.DefaultBondDenom, "1", suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), memo)
 
 	bz := packetData.GetBytes()
 	exists := strings.Contains(string(bz), memo)
-	s.Require().True(exists)
+	suite.Require().True(exists)
 
 	packetData.Memo = ""
 
 	bz = packetData.GetBytes()
 	exists = strings.Contains(string(bz), memo)
-	s.Require().False(exists)
+	suite.Require().False(exists)
 }

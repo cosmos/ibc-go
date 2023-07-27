@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
-func (s *KeeperTestSuite) TestGenesis() {
+func (suite *KeeperTestSuite) TestGenesis() {
 	getTrace := func(index uint) string {
 		return fmt.Sprintf("transfer/channelToChain%d", index)
 	}
@@ -36,22 +36,22 @@ func (s *KeeperTestSuite) TestGenesis() {
 			Path:      pathAndEscrowAmount.path,
 		}
 		traces = append(types.Traces{denomTrace}, traces...)
-		s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(s.chainA.GetContext(), denomTrace)
+		suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
 
 		denom := denomTrace.IBCDenom()
 		amount, ok := sdkmath.NewIntFromString(pathAndEscrowAmount.escrow)
-		s.Require().True(ok)
+		suite.Require().True(ok)
 		escrows = append(sdk.NewCoins(sdk.NewCoin(denom, amount)), escrows...)
-		s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(denom, amount))
+		suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(denom, amount))
 	}
 
-	genesis := s.chainA.GetSimApp().TransferKeeper.ExportGenesis(s.chainA.GetContext())
+	genesis := suite.chainA.GetSimApp().TransferKeeper.ExportGenesis(suite.chainA.GetContext())
 
-	s.Require().Equal(types.PortID, genesis.PortId)
-	s.Require().Equal(traces.Sort(), genesis.DenomTraces)
-	s.Require().Equal(escrows.Sort(), genesis.TotalEscrowed)
+	suite.Require().Equal(types.PortID, genesis.PortId)
+	suite.Require().Equal(traces.Sort(), genesis.DenomTraces)
+	suite.Require().Equal(escrows.Sort(), genesis.TotalEscrowed)
 
-	s.Require().NotPanics(func() {
-		s.chainA.GetSimApp().TransferKeeper.InitGenesis(s.chainA.GetContext(), *genesis)
+	suite.Require().NotPanics(func() {
+		suite.chainA.GetSimApp().TransferKeeper.InitGenesis(suite.chainA.GetContext(), *genesis)
 	})
 }

@@ -12,7 +12,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *KeeperTestSuite) TestQueryDenomTrace() {
+func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 	var (
 		req      *types.QueryDenomTraceRequest
 		expTrace types.DenomTrace
@@ -28,7 +28,7 @@ func (s *KeeperTestSuite) TestQueryDenomTrace() {
 			func() {
 				expTrace.Path = "transfer/channelToA/transfer/channelToB" //nolint:goconst
 				expTrace.BaseDenom = "uatom"                              //nolint:goconst
-				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(s.chainA.GetContext(), expTrace)
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
 
 				req = &types.QueryDenomTraceRequest{
 					Hash: expTrace.IBCDenom(),
@@ -41,7 +41,7 @@ func (s *KeeperTestSuite) TestQueryDenomTrace() {
 			func() {
 				expTrace.Path = "transfer/channelToA/transfer/channelToB"
 				expTrace.BaseDenom = "uatom"
-				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(s.chainA.GetContext(), expTrace)
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), expTrace)
 
 				req = &types.QueryDenomTraceRequest{
 					Hash: expTrace.Hash().String(),
@@ -72,26 +72,26 @@ func (s *KeeperTestSuite) TestQueryDenomTrace() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := s.chainA.GetSimApp().TransferKeeper.DenomTrace(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomTrace(ctx, req)
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().NotNil(res)
-				s.Require().Equal(&expTrace, res.DenomTrace)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(&expTrace, res.DenomTrace)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestQueryDenomTraces() {
+func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 	var (
 		req       *types.QueryDenomTracesRequest
 		expTraces = types.Traces(nil)
@@ -117,7 +117,7 @@ func (s *KeeperTestSuite) TestQueryDenomTraces() {
 				expTraces = append(expTraces, types.DenomTrace{Path: "transfer/channelToA/transfer/channelToB", BaseDenom: "uatom"})
 
 				for _, trace := range expTraces {
-					s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(s.chainA.GetContext(), trace)
+					suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), trace)
 				}
 
 				req = &types.QueryDenomTracesRequest{
@@ -132,33 +132,33 @@ func (s *KeeperTestSuite) TestQueryDenomTraces() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := s.chainA.GetSimApp().TransferKeeper.DenomTraces(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomTraces(ctx, req)
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().NotNil(res)
-				s.Require().Equal(expTraces.Sort(), res.DenomTraces)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expTraces.Sort(), res.DenomTraces)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestQueryParams() {
-	ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+func (suite *KeeperTestSuite) TestQueryParams() {
+	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 	expParams := types.DefaultParams()
-	res, _ := s.chainA.GetSimApp().TransferKeeper.Params(ctx, &types.QueryParamsRequest{})
-	s.Require().Equal(&expParams, res.Params)
+	res, _ := suite.chainA.GetSimApp().TransferKeeper.Params(ctx, &types.QueryParamsRequest{})
+	suite.Require().Equal(&expParams, res.Params)
 }
 
-func (s *KeeperTestSuite) TestQueryDenomHash() {
+func (suite *KeeperTestSuite) TestQueryDenomHash() {
 	reqTrace := types.DenomTrace{
 		Path:      "transfer/channelToA/transfer/channelToB",
 		BaseDenom: "uatom",
@@ -200,31 +200,31 @@ func (s *KeeperTestSuite) TestQueryDenomHash() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			req = &types.QueryDenomHashRequest{
 				Trace: reqTrace.GetFullDenomPath(),
 			}
-			s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(s.chainA.GetContext(), reqTrace)
+			suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), reqTrace)
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := s.chainA.GetSimApp().TransferKeeper.DenomHash(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomHash(ctx, req)
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().NotNil(res)
-				s.Require().Equal(expHash, res.Hash)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expHash, res.Hash)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestEscrowAddress() {
+func (suite *KeeperTestSuite) TestEscrowAddress() {
 	var req *types.QueryEscrowAddressRequest
 
 	testCases := []struct {
@@ -245,26 +245,26 @@ func (s *KeeperTestSuite) TestEscrowAddress() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := s.chainA.GetSimApp().TransferKeeper.EscrowAddress(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.EscrowAddress(ctx, req)
 
 			if tc.expPass {
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 				expected := types.GetEscrowAddress(ibctesting.TransferPort, ibctesting.FirstChannelID).String()
-				s.Require().Equal(expected, res.EscrowAddress)
+				suite.Require().Equal(expected, res.EscrowAddress)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestTotalEscrowForDenom() {
+func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 	var (
 		req             *types.QueryTotalEscrowForDenomRequest
 		expEscrowAmount sdkmath.Int
@@ -283,7 +283,7 @@ func (s *KeeperTestSuite) TestTotalEscrowForDenom() {
 				}
 
 				expEscrowAmount = sdkmath.NewInt(100)
-				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, expEscrowAmount))
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, expEscrowAmount))
 			},
 			true,
 		},
@@ -295,10 +295,10 @@ func (s *KeeperTestSuite) TestTotalEscrowForDenom() {
 					BaseDenom: sdk.DefaultBondDenom,
 				}
 
-				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(s.chainA.GetContext(), denomTrace)
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
 				expEscrowAmount, ok := sdkmath.NewIntFromString("100000000000000000000")
-				s.Require().True(ok)
-				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, expEscrowAmount))
+				suite.Require().True(ok)
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, expEscrowAmount))
 
 				req = &types.QueryTotalEscrowForDenomRequest{
 					Denom: denomTrace.IBCDenom(),
@@ -341,20 +341,20 @@ func (s *KeeperTestSuite) TestTotalEscrowForDenom() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			expEscrowAmount = sdkmath.ZeroInt()
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := s.chainA.GetSimApp().TransferKeeper.TotalEscrowForDenom(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.TotalEscrowForDenom(ctx, req)
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().Equal(expEscrowAmount, res.Amount.Amount)
+				suite.Require().NoError(err)
+				suite.Require().Equal(expEscrowAmount, res.Amount.Amount)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}

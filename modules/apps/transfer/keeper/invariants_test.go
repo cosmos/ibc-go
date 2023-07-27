@@ -10,7 +10,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
+func (suite *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -26,7 +26,7 @@ func (s *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 			func() {
 				// set amount for denom higher than actual value in escrow
 				amount := sdkmath.NewInt(200)
-				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
 			},
 			false,
 		},
@@ -35,10 +35,10 @@ func (s *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
-			path := ibctesting.NewTransferPath(s.chainA, s.chainB)
-			s.coordinator.Setup(path)
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
 
 			amount := sdkmath.NewInt(100)
 
@@ -48,25 +48,25 @@ func (s *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				coin,
-				s.chainA.SenderAccount.GetAddress().String(),
-				s.chainB.SenderAccount.GetAddress().String(),
-				s.chainA.GetTimeoutHeight(), 0, "",
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				suite.chainA.GetTimeoutHeight(), 0, "",
 			)
 
-			res, err := s.chainA.SendMsgs(msg)
-			s.Require().NoError(err)
-			s.Require().NotNil(res)
+			res, err := suite.chainA.SendMsgs(msg)
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
 
 			tc.malleate()
 
-			out, broken := keeper.TotalEscrowPerDenomInvariants(&s.chainA.GetSimApp().TransferKeeper)(s.chainA.GetContext())
+			out, broken := keeper.TotalEscrowPerDenomInvariants(&suite.chainA.GetSimApp().TransferKeeper)(suite.chainA.GetContext())
 
 			if tc.expPass {
-				s.Require().False(broken)
-				s.Require().Empty(out)
+				suite.Require().False(broken)
+				suite.Require().Empty(out)
 			} else {
-				s.Require().True(broken)
-				s.Require().NotEmpty(out)
+				suite.Require().True(broken)
+				suite.Require().NotEmpty(out)
 			}
 		})
 	}
