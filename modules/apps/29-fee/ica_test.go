@@ -90,64 +90,64 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 }
 
 // TestFeeInterchainAccounts Integration test to ensure ics29 works with ics27
-func (s *FeeTestSuite) TestFeeInterchainAccounts() {
-	path := NewIncentivizedICAPath(s.chainA, s.chainB)
-	s.coordinator.SetupConnections(path)
+func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
+	path := NewIncentivizedICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
 
 	err := SetupPath(path, defaultOwnerAddress)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	// assert the newly established channel is fee enabled on both ends
-	s.Require().True(s.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-	s.Require().True(s.chainB.GetSimApp().IBCFeeKeeper.IsFeeEnabled(s.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+	suite.Require().True(suite.chainB.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 
 	// register counterparty address on destination chainB as chainA.SenderAccounts[1] for recv fee distribution
-	s.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress().String(), s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), path.EndpointB.ChannelID)
+	suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), path.EndpointB.ChannelID)
 
 	// escrow a packet fee for the next send sequence
 	expectedFee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
-	msgPayPacketFee := types.NewMsgPayPacketFee(expectedFee, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, s.chainA.SenderAccount.GetAddress().String(), nil)
+	msgPayPacketFee := types.NewMsgPayPacketFee(expectedFee, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetAddress().String(), nil)
 
 	// fetch the account balance before fees are escrowed and assert the difference below
-	preEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+	preEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
-	res, err := s.chainA.SendMsgs(msgPayPacketFee)
-	s.Require().NotNil(res)
-	s.Require().NoError(err)
+	res, err := suite.chainA.SendMsgs(msgPayPacketFee)
+	suite.Require().NotNil(res)
+	suite.Require().NoError(err)
 
-	postEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
-	s.Require().Equal(postEscrowBalance.AddAmount(expectedFee.Total().AmountOf(sdk.DefaultBondDenom)), preEscrowBalance)
+	postEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+	suite.Require().Equal(postEscrowBalance.AddAmount(expectedFee.Total().AmountOf(sdk.DefaultBondDenom)), preEscrowBalance)
 
 	packetID := channeltypes.NewPacketID(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
-	packetFees, found := s.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(s.chainA.GetContext(), packetID)
-	s.Require().True(found)
-	s.Require().Equal(expectedFee, packetFees.PacketFees[0].Fee)
+	packetFees, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
+	suite.Require().True(found)
+	suite.Require().Equal(expectedFee, packetFees.PacketFees[0].Fee)
 
-	interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-	s.Require().True(found)
+	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+	suite.Require().True(found)
 
 	// fund the interchain account on chainB
 	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000)))
 	msgBankSend := &banktypes.MsgSend{
-		FromAddress: s.chainB.SenderAccount.GetAddress().String(),
+		FromAddress: suite.chainB.SenderAccount.GetAddress().String(),
 		ToAddress:   interchainAccountAddr,
 		Amount:      coins,
 	}
 
-	res, err = s.chainB.SendMsgs(msgBankSend)
-	s.Require().NotEmpty(res)
-	s.Require().NoError(err)
+	res, err = suite.chainB.SendMsgs(msgBankSend)
+	suite.Require().NotEmpty(res)
+	suite.Require().NoError(err)
 
 	// prepare a simple stakingtypes.MsgDelegate to be used as the interchain account msg executed on chainB
-	validatorAddr := (sdk.ValAddress)(s.chainB.Vals.Validators[0].Address)
+	validatorAddr := (sdk.ValAddress)(suite.chainB.Vals.Validators[0].Address)
 	msgDelegate := &stakingtypes.MsgDelegate{
 		DelegatorAddress: interchainAccountAddr,
 		ValidatorAddress: validatorAddr.String(),
 		Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
 	}
 
-	data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate}, icatypes.EncodingProtobuf)
-	s.Require().NoError(err)
+	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate}, icatypes.EncodingProtobuf)
+	suite.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{
 		Type: icatypes.EXECUTE_TX,
@@ -156,29 +156,29 @@ func (s *FeeTestSuite) TestFeeInterchainAccounts() {
 
 	// ensure chainB is allowed to execute stakingtypes.MsgDelegate
 	params := icahosttypes.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate)})
-	s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
+	suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 
 	// build the interchain accounts packet
 	packet := buildInterchainAccountsPacket(path, icaPacketData.GetBytes(), 1)
 
 	// write packet commitment to state on chainA and commit state
-	commitment := channeltypes.CommitPacket(s.chainA.GetSimApp().AppCodec(), packet)
-	s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1, commitment)
-	s.chainA.NextBlock()
+	commitment := channeltypes.CommitPacket(suite.chainA.GetSimApp().AppCodec(), packet)
+	suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1, commitment)
+	suite.chainA.NextBlock()
 
 	err = path.RelayPacket(packet)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	// ensure escrowed fees are cleaned up
-	packetFees, found = s.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(s.chainA.GetContext(), packetID)
-	s.Require().False(found)
-	s.Require().Empty(packetFees)
+	packetFees, found = suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
+	suite.Require().False(found)
+	suite.Require().Empty(packetFees)
 
 	// assert the value of the account balance after fee distribution
 	// NOTE: the balance after fee distribution should be equal to the pre-escrow balance minus the recv fee
 	// as chainA.SenderAccount is used as the msg signer and refund address for msgPayPacketFee above as well as the relyer account for acknowledgements in path.RelayPacket()
-	postDistBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
-	s.Require().Equal(preEscrowBalance.SubAmount(defaultRecvFee.AmountOf(sdk.DefaultBondDenom)), postDistBalance)
+	postDistBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+	suite.Require().Equal(preEscrowBalance.SubAmount(defaultRecvFee.AmountOf(sdk.DefaultBondDenom)), postDistBalance)
 }
 
 func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, seq uint64) channeltypes.Packet {

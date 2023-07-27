@@ -32,26 +32,26 @@ type TypesTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (s *TypesTestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+func (suite *TypesTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func TestTypesTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TypesTestSuite))
 }
 
-func (s *TypesTestSuite) TestGenerateAddress() {
-	addr := types.GenerateAddress(s.chainA.GetContext(), "test-connection-id", "test-port-id")
+func (suite *TypesTestSuite) TestGenerateAddress() {
+	addr := types.GenerateAddress(suite.chainA.GetContext(), "test-connection-id", "test-port-id")
 	accAddr, err := sdk.AccAddressFromBech32(addr.String())
 
-	s.Require().NoError(err, "TestGenerateAddress failed")
-	s.Require().NotEmpty(accAddr)
+	suite.Require().NoError(err, "TestGenerateAddress failed")
+	suite.Require().NotEmpty(accAddr)
 }
 
-func (s *TypesTestSuite) TestValidateAccountAddress() {
+func (suite *TypesTestSuite) TestValidateAccountAddress() {
 	testCases := []struct {
 		name    string
 		address string
@@ -85,19 +85,19 @@ func (s *TypesTestSuite) TestValidateAccountAddress() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(tc.name, func() {
+		suite.Run(tc.name, func() {
 			err := types.ValidateAccountAddress(tc.address)
 
 			if tc.expPass {
-				s.Require().NoError(err, tc.name)
+				suite.Require().NoError(err, tc.name)
 			} else {
-				s.Require().Error(err, tc.name)
+				suite.Require().Error(err, tc.name)
 			}
 		})
 	}
 }
 
-func (s *TypesTestSuite) TestInterchainAccount() {
+func (suite *TypesTestSuite) TestInterchainAccount() {
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	baseAcc := authtypes.NewBaseAccountWithAddress(addr)
@@ -105,12 +105,12 @@ func (s *TypesTestSuite) TestInterchainAccount() {
 
 	// should fail when trying to set the public key or sequence of an interchain account
 	err := interchainAcc.SetPubKey(pubkey)
-	s.Require().Error(err)
+	suite.Require().Error(err)
 	err = interchainAcc.SetSequence(1)
-	s.Require().Error(err)
+	suite.Require().Error(err)
 }
 
-func (s *TypesTestSuite) TestGenesisAccountValidate() {
+func (suite *TypesTestSuite) TestGenesisAccountValidate() {
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	baseAcc := authtypes.NewBaseAccountWithAddress(addr)
@@ -138,39 +138,39 @@ func (s *TypesTestSuite) TestGenesisAccountValidate() {
 		err := tc.acc.Validate()
 
 		if tc.expPass {
-			s.Require().NoError(err)
+			suite.Require().NoError(err)
 		} else {
-			s.Require().Error(err)
+			suite.Require().Error(err)
 		}
 	}
 }
 
-func (s *TypesTestSuite) TestInterchainAccountMarshalYAML() {
-	addr := s.chainA.SenderAccount.GetAddress()
+func (suite *TypesTestSuite) TestInterchainAccountMarshalYAML() {
+	addr := suite.chainA.SenderAccount.GetAddress()
 	baseAcc := authtypes.NewBaseAccountWithAddress(addr)
 
-	interchainAcc := types.NewInterchainAccount(baseAcc, s.chainB.SenderAccount.GetAddress().String())
+	interchainAcc := types.NewInterchainAccount(baseAcc, suite.chainB.SenderAccount.GetAddress().String())
 	bz, err := interchainAcc.MarshalYAML()
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
-	expected := fmt.Sprintf("address: %s\npublic_key: \"\"\naccount_number: 0\nsequence: 0\naccount_owner: %s\n", s.chainA.SenderAccount.GetAddress(), s.chainB.SenderAccount.GetAddress())
-	s.Require().Equal(expected, string(bz))
+	expected := fmt.Sprintf("address: %s\npublic_key: \"\"\naccount_number: 0\nsequence: 0\naccount_owner: %s\n", suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress())
+	suite.Require().Equal(expected, string(bz))
 }
 
-func (s *TypesTestSuite) TestInterchainAccountJSON() {
-	addr := s.chainA.SenderAccount.GetAddress()
+func (suite *TypesTestSuite) TestInterchainAccountJSON() {
+	addr := suite.chainA.SenderAccount.GetAddress()
 	ba := authtypes.NewBaseAccountWithAddress(addr)
 
-	interchainAcc := types.NewInterchainAccount(ba, s.chainB.SenderAccount.GetAddress().String())
+	interchainAcc := types.NewInterchainAccount(ba, suite.chainB.SenderAccount.GetAddress().String())
 
 	bz, err := json.Marshal(interchainAcc)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	bz1, err := interchainAcc.MarshalJSON()
-	s.Require().NoError(err)
-	s.Require().Equal(string(bz), string(bz1))
+	suite.Require().NoError(err)
+	suite.Require().Equal(string(bz), string(bz1))
 
 	var a types.InterchainAccount
-	s.Require().NoError(json.Unmarshal(bz, &a))
-	s.Require().Equal(a.String(), interchainAcc.String())
+	suite.Require().NoError(json.Unmarshal(bz, &a))
+	suite.Require().Equal(a.String(), interchainAcc.String())
 }

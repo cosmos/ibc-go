@@ -6,9 +6,9 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 )
 
-func (s *KeeperTestSuite) TestQueryParams() {
-	ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+func (suite *KeeperTestSuite) TestQueryParams() {
+	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 	expParams := types.DefaultParams()
-	res, _ := s.chainA.GetSimApp().ICAHostKeeper.Params(ctx, &types.QueryParamsRequest{})
-	s.Require().Equal(&expParams, res.Params)
+	res, _ := suite.chainA.GetSimApp().ICAHostKeeper.Params(ctx, &types.QueryParamsRequest{})
+	suite.Require().Equal(&expParams, res.Params)
 }

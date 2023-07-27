@@ -15,21 +15,21 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *KeeperTestSuite) TestIncentivizePacketEvent() {
+func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 	var (
 		expRecvFees    sdk.Coins
 		expAckFees     sdk.Coins
 		expTimeoutFees sdk.Coins
 	)
 
-	s.coordinator.Setup(s.path)
+	suite.coordinator.Setup(suite.path)
 
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	msg := types.NewMsgPayPacketFee(
 		fee,
-		s.path.EndpointA.ChannelConfig.PortID,
-		s.path.EndpointA.ChannelID,
-		s.chainA.SenderAccount.GetAddress().String(),
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.chainA.SenderAccount.GetAddress().String(),
 		nil,
 	)
 
@@ -37,8 +37,8 @@ func (s *KeeperTestSuite) TestIncentivizePacketEvent() {
 	expAckFees = expAckFees.Add(fee.AckFee...)
 	expTimeoutFees = expTimeoutFees.Add(fee.TimeoutFee...)
 
-	result, err := s.chainA.SendMsgs(msg)
-	s.Require().NoError(err)
+	result, err := suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err)
 
 	var incentivizedPacketEvent abcitypes.Event
 	for _, event := range result.Events {
@@ -50,13 +50,13 @@ func (s *KeeperTestSuite) TestIncentivizePacketEvent() {
 	for _, attr := range incentivizedPacketEvent.Attributes {
 		switch attr.Key {
 		case types.AttributeKeyRecvFee:
-			s.Require().Equal(expRecvFees.String(), attr.Value)
+			suite.Require().Equal(expRecvFees.String(), attr.Value)
 
 		case types.AttributeKeyAckFee:
-			s.Require().Equal(expAckFees.String(), attr.Value)
+			suite.Require().Equal(expAckFees.String(), attr.Value)
 
 		case types.AttributeKeyTimeoutFee:
-			s.Require().Equal(expTimeoutFees.String(), attr.Value)
+			suite.Require().Equal(expTimeoutFees.String(), attr.Value)
 		}
 	}
 
@@ -66,8 +66,8 @@ func (s *KeeperTestSuite) TestIncentivizePacketEvent() {
 		expAckFees = expAckFees.Add(fee.AckFee...)
 		expTimeoutFees = expTimeoutFees.Add(fee.TimeoutFee...)
 
-		result, err = s.chainA.SendMsgs(msg)
-		s.Require().NoError(err)
+		result, err = suite.chainA.SendMsgs(msg)
+		suite.Require().NoError(err)
 	}
 
 	for _, event := range result.Events {
@@ -79,27 +79,27 @@ func (s *KeeperTestSuite) TestIncentivizePacketEvent() {
 	for _, attr := range incentivizedPacketEvent.Attributes {
 		switch attr.Key {
 		case types.AttributeKeyRecvFee:
-			s.Require().Equal(expRecvFees.String(), attr.Value)
+			suite.Require().Equal(expRecvFees.String(), attr.Value)
 
 		case types.AttributeKeyAckFee:
-			s.Require().Equal(expAckFees.String(), attr.Value)
+			suite.Require().Equal(expAckFees.String(), attr.Value)
 
 		case types.AttributeKeyTimeoutFee:
-			s.Require().Equal(expTimeoutFees.String(), attr.Value)
+			suite.Require().Equal(expTimeoutFees.String(), attr.Value)
 		}
 	}
 }
 
-func (s *KeeperTestSuite) TestDistributeFeeEvent() {
+func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	// create an incentivized transfer path
-	path := ibctesting.NewPath(s.chainA, s.chainB)
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
 	path.EndpointA.ChannelConfig.Version = feeTransferVersion
 	path.EndpointB.ChannelConfig.Version = feeTransferVersion
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	s.coordinator.Setup(path)
+	suite.coordinator.Setup(path)
 
 	// send a new MsgPayPacketFee and MsgTransfer to chainA
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
@@ -107,65 +107,65 @@ func (s *KeeperTestSuite) TestDistributeFeeEvent() {
 		fee,
 		path.EndpointA.ChannelConfig.PortID,
 		path.EndpointA.ChannelID,
-		s.chainA.SenderAccount.GetAddress().String(),
+		suite.chainA.SenderAccount.GetAddress().String(),
 		nil,
 	)
 
 	msgTransfer := transfertypes.NewMsgTransfer(
 		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-		sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)), s.chainA.SenderAccount.GetAddress().String(), s.chainB.SenderAccount.GetAddress().String(),
+		sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, "",
 	)
 
-	res, err := s.chainA.SendMsgs(msgPayPacketFee, msgTransfer)
-	s.Require().NoError(err)
-	s.Require().NotNil(res)
+	res, err := suite.chainA.SendMsgs(msgPayPacketFee, msgTransfer)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
 
 	// parse the packet from result events and recv packet on chainB
 	packet, err := ibctesting.ParsePacketFromEvents(res.Events)
-	s.Require().NoError(err)
-	s.Require().NotNil(packet)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packet)
 
 	err = path.EndpointB.UpdateClient()
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
 	res, err = path.EndpointB.RecvPacketWithResult(packet)
-	s.Require().NoError(err)
-	s.Require().NotNil(res)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
 
 	// parse the acknowledgement from result events and acknowledge packet on chainA
 	ack, err := ibctesting.ParseAckFromEvents(res.Events)
-	s.Require().NoError(err)
-	s.Require().NotNil(ack)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(ack)
 
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	proof, proofHeight := path.EndpointA.Counterparty.QueryProof(packetKey)
 
 	msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, path.EndpointA.Chain.SenderAccount.GetAddress().String())
-	res, err = s.chainA.SendMsgs(msgAcknowledgement)
-	s.Require().NoError(err)
-	s.Require().NotNil(res)
+	res, err = suite.chainA.SendMsgs(msgAcknowledgement)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
 
 	events := res.Events
 	expectedEvents := sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDistributeFee,
-			sdk.NewAttribute(types.AttributeKeyReceiver, s.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyFee, defaultRecvFee.String()),
 		),
 		sdk.NewEvent(
 			types.EventTypeDistributeFee,
-			sdk.NewAttribute(types.AttributeKeyReceiver, s.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyFee, defaultAckFee.String()),
 		),
 		sdk.NewEvent(
 			types.EventTypeDistributeFee,
-			sdk.NewAttribute(types.AttributeKeyReceiver, s.chainA.SenderAccount.GetAddress().String()),
+			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyFee, defaultTimeoutFee.String()),
 		),
 	}.ToABCIEvents()
 
 	for _, evt := range expectedEvents {
-		s.Require().Contains(events, evt)
+		suite.Require().Contains(events, evt)
 	}
 }

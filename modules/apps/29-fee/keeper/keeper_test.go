@@ -37,26 +37,26 @@ type KeeperTestSuite struct {
 	pathAToC *ibctesting.Path
 }
 
-func (s *KeeperTestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
-	s.chainC = s.coordinator.GetChain(ibctesting.GetChainID(3))
+func (suite *KeeperTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
-	path := ibctesting.NewPath(s.chainA, s.chainB)
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
 	path.EndpointA.ChannelConfig.Version = mockFeeVersion
 	path.EndpointB.ChannelConfig.Version = mockFeeVersion
 	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-	s.path = path
+	suite.path = path
 
-	path = ibctesting.NewPath(s.chainA, s.chainC)
+	path = ibctesting.NewPath(suite.chainA, suite.chainC)
 	path.EndpointA.ChannelConfig.Version = mockFeeVersion
 	path.EndpointB.ChannelConfig.Version = mockFeeVersion
 	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-	s.pathAToC = path
+	suite.pathAToC = path
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -71,98 +71,98 @@ func lockFeeModule(chain *ibctesting.TestChain) {
 	store.Set(types.KeyLocked(), []byte{1})
 }
 
-func (s *KeeperTestSuite) TestEscrowAccountHasBalance() {
+func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
-	s.Require().False(s.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(s.chainA.GetContext(), fee.Total()))
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
 
 	// set fee in escrow account
-	err := s.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), types.ModuleName, fee.Total())
-	s.Require().Nil(err)
+	err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), types.ModuleName, fee.Total())
+	suite.Require().Nil(err)
 
-	s.Require().True(s.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(s.chainA.GetContext(), fee.Total()))
+	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
 
 	// increase ack fee
 	fee.AckFee = fee.AckFee.Add(defaultAckFee...)
-	s.Require().False(s.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(s.chainA.GetContext(), fee.Total()))
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.EscrowAccountHasBalance(suite.chainA.GetContext(), fee.Total()))
 }
 
-func (s *KeeperTestSuite) TestGetSetPayeeAddress() {
-	s.coordinator.Setup(s.path)
+func (suite *KeeperTestSuite) TestGetSetPayeeAddress() {
+	suite.coordinator.Setup(suite.path)
 
-	payeeAddr, found := s.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress().String(), s.path.EndpointA.ChannelID)
-	s.Require().False(found)
-	s.Require().Empty(payeeAddr)
+	payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
+	suite.Require().False(found)
+	suite.Require().Empty(payeeAddr)
 
-	s.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
-		s.chainA.GetContext(),
-		s.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
-		s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(),
-		s.path.EndpointA.ChannelID,
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
+		suite.chainA.GetContext(),
+		suite.chainA.SenderAccounts[0].SenderAccount.GetAddress().String(),
+		suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(),
+		suite.path.EndpointA.ChannelID,
 	)
 
-	payeeAddr, found = s.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress().String(), s.path.EndpointA.ChannelID)
-	s.Require().True(found)
-	s.Require().Equal(s.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), payeeAddr)
+	payeeAddr, found = suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
+	suite.Require().True(found)
+	suite.Require().Equal(suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String(), payeeAddr)
 }
 
-func (s *KeeperTestSuite) TestFeesInEscrow() {
-	s.coordinator.Setup(s.path)
+func (suite *KeeperTestSuite) TestFeesInEscrow() {
+	suite.coordinator.Setup(suite.path)
 
 	// escrow five fees for packet sequence 1
-	packetID := channeltypes.NewPacketID(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 1)
+	packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
-	packetFee := types.NewPacketFee(fee, s.chainA.SenderAccount.GetAddress().String(), nil)
+	packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 	packetFees := []types.PacketFee{packetFee, packetFee, packetFee, packetFee, packetFee}
 
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(s.chainA.GetContext(), packetID, types.NewPacketFees(packetFees))
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees(packetFees))
 
 	// retrieve the fees in escrow and assert the length of PacketFees
-	feesInEscrow, found := s.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(s.chainA.GetContext(), packetID)
-	s.Require().True(found)
-	s.Require().Len(feesInEscrow.PacketFees, 5, fmt.Sprintf("expected length 5, but got %d", len(feesInEscrow.PacketFees)))
+	feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
+	suite.Require().True(found)
+	suite.Require().Len(feesInEscrow.PacketFees, 5, fmt.Sprintf("expected length 5, but got %d", len(feesInEscrow.PacketFees)))
 
 	// delete fees for packet sequence 1
-	s.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(s.chainA.GetContext(), packetID)
-	hasFeesInEscrow := s.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(s.chainA.GetContext(), packetID)
-	s.Require().False(hasFeesInEscrow)
+	suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
+	hasFeesInEscrow := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
+	suite.Require().False(hasFeesInEscrow)
 }
 
-func (s *KeeperTestSuite) TestIsLocked() {
-	ctx := s.chainA.GetContext()
-	s.Require().False(s.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
+func (suite *KeeperTestSuite) TestIsLocked() {
+	ctx := suite.chainA.GetContext()
+	suite.Require().False(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
 
-	lockFeeModule(s.chainA)
+	lockFeeModule(suite.chainA)
 
-	s.Require().True(s.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
+	suite.Require().True(suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(ctx))
 }
 
-func (s *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
-	s.coordinator.Setup(s.path)
+func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
+	suite.coordinator.Setup(suite.path)
 
 	// escrow a fee
-	refundAcc := s.chainA.SenderAccount.GetAddress()
-	packetID1 := channeltypes.NewPacketID(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 1)
-	packetID2 := channeltypes.NewPacketID(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 2)
-	packetID5 := channeltypes.NewPacketID(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 51)
+	refundAcc := suite.chainA.SenderAccount.GetAddress()
+	packetID1 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
+	packetID2 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 2)
+	packetID5 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 51)
 
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	// escrow the packet fee
 	packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(s.chainA.GetContext(), packetID1, types.NewPacketFees([]types.PacketFee{packetFee}))
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(s.chainA.GetContext(), packetID2, types.NewPacketFees([]types.PacketFee{packetFee}))
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(s.chainA.GetContext(), packetID5, types.NewPacketFees([]types.PacketFee{packetFee}))
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID1, types.NewPacketFees([]types.PacketFee{packetFee}))
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID2, types.NewPacketFees([]types.PacketFee{packetFee}))
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID5, types.NewPacketFees([]types.PacketFee{packetFee}))
 
 	// set fees in escrow for packetIDs on different channel
 	diffChannel := "channel-1"
-	diffPacketID1 := channeltypes.NewPacketID(s.path.EndpointA.ChannelConfig.PortID, diffChannel, 1)
-	diffPacketID2 := channeltypes.NewPacketID(s.path.EndpointA.ChannelConfig.PortID, diffChannel, 2)
-	diffPacketID5 := channeltypes.NewPacketID(s.path.EndpointA.ChannelConfig.PortID, diffChannel, 5)
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(s.chainA.GetContext(), diffPacketID1, types.NewPacketFees([]types.PacketFee{packetFee}))
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(s.chainA.GetContext(), diffPacketID2, types.NewPacketFees([]types.PacketFee{packetFee}))
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(s.chainA.GetContext(), diffPacketID5, types.NewPacketFees([]types.PacketFee{packetFee}))
+	diffPacketID1 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, diffChannel, 1)
+	diffPacketID2 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, diffChannel, 2)
+	diffPacketID5 := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, diffChannel, 5)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), diffPacketID1, types.NewPacketFees([]types.PacketFee{packetFee}))
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), diffPacketID2, types.NewPacketFees([]types.PacketFee{packetFee}))
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), diffPacketID5, types.NewPacketFees([]types.PacketFee{packetFee}))
 
 	expectedFees := []types.IdentifiedPacketFees{
 		{
@@ -197,22 +197,22 @@ func (s *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
 		},
 	}
 
-	identifiedFees := s.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
-	s.Require().Len(identifiedFees, len(expectedFees))
-	s.Require().Equal(identifiedFees, expectedFees)
+	identifiedFees := suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	suite.Require().Len(identifiedFees, len(expectedFees))
+	suite.Require().Equal(identifiedFees, expectedFees)
 }
 
-func (s *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
-	s.coordinator.Setup(s.path)
+func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
+	suite.coordinator.Setup(suite.path)
 
 	// escrow a fee
-	refundAcc := s.chainA.SenderAccount.GetAddress()
-	packetID := channeltypes.NewPacketID(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, 1)
+	refundAcc := suite.chainA.SenderAccount.GetAddress()
+	packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	// escrow the packet fee
 	packetFee := types.NewPacketFee(fee, refundAcc.String(), []string{})
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(s.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, types.NewPacketFees([]types.PacketFee{packetFee}))
 
 	expectedFees := []types.IdentifiedPacketFees{
 		{
@@ -227,16 +227,16 @@ func (s *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 		},
 	}
 
-	identifiedFees := s.chainA.GetSimApp().IBCFeeKeeper.GetAllIdentifiedPacketFees(s.chainA.GetContext())
-	s.Require().Len(identifiedFees, len(expectedFees))
-	s.Require().Equal(identifiedFees, expectedFees)
+	identifiedFees := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllIdentifiedPacketFees(suite.chainA.GetContext())
+	suite.Require().Len(identifiedFees, len(expectedFees))
+	suite.Require().Equal(identifiedFees, expectedFees)
 }
 
-func (s *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
+func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
 	validPortID := "ibcmoduleport"
 	// set two channels enabled
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(s.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(s.chainA.GetContext(), validPortID, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), validPortID, ibctesting.FirstChannelID)
 
 	expectedCh := []types.FeeEnabledChannel{
 		{
@@ -249,41 +249,41 @@ func (s *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
 		},
 	}
 
-	ch := s.chainA.GetSimApp().IBCFeeKeeper.GetAllFeeEnabledChannels(s.chainA.GetContext())
-	s.Require().Len(ch, len(expectedCh))
-	s.Require().Equal(ch, expectedCh)
+	ch := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllFeeEnabledChannels(suite.chainA.GetContext())
+	suite.Require().Len(ch, len(expectedCh))
+	suite.Require().Equal(ch, expectedCh)
 }
 
-func (s *KeeperTestSuite) TestGetAllPayees() {
+func (suite *KeeperTestSuite) TestGetAllPayees() {
 	var expectedPayees []types.RegisteredPayee
 
 	for i := 0; i < 3; i++ {
-		s.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
-			s.chainA.GetContext(),
-			s.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
-			s.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
+		suite.chainA.GetSimApp().IBCFeeKeeper.SetPayeeAddress(
+			suite.chainA.GetContext(),
+			suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
 			ibctesting.FirstChannelID,
 		)
 
 		registeredPayee := types.RegisteredPayee{
-			Relayer:   s.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
-			Payee:     s.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			Relayer:   suite.chainA.SenderAccounts[i].SenderAccount.GetAddress().String(),
+			Payee:     suite.chainB.SenderAccounts[i].SenderAccount.GetAddress().String(),
 			ChannelId: ibctesting.FirstChannelID,
 		}
 
 		expectedPayees = append(expectedPayees, registeredPayee)
 	}
 
-	registeredPayees := s.chainA.GetSimApp().IBCFeeKeeper.GetAllPayees(s.chainA.GetContext())
-	s.Require().Len(registeredPayees, len(expectedPayees))
-	s.Require().ElementsMatch(expectedPayees, registeredPayees)
+	registeredPayees := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllPayees(suite.chainA.GetContext())
+	suite.Require().Len(registeredPayees, len(expectedPayees))
+	suite.Require().ElementsMatch(expectedPayees, registeredPayees)
 }
 
-func (s *KeeperTestSuite) TestGetAllCounterpartyPayees() {
-	relayerAddr := s.chainA.SenderAccount.GetAddress().String()
-	counterpartyPayee := s.chainB.SenderAccount.GetAddress().String()
+func (suite *KeeperTestSuite) TestGetAllCounterpartyPayees() {
+	relayerAddr := suite.chainA.SenderAccount.GetAddress().String()
+	counterpartyPayee := suite.chainB.SenderAccount.GetAddress().String()
 
-	s.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(s.chainA.GetContext(), relayerAddr, counterpartyPayee, ibctesting.FirstChannelID)
+	suite.chainA.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainA.GetContext(), relayerAddr, counterpartyPayee, ibctesting.FirstChannelID)
 
 	expectedCounterpartyPayee := []types.RegisteredCounterpartyPayee{
 		{
@@ -293,7 +293,7 @@ func (s *KeeperTestSuite) TestGetAllCounterpartyPayees() {
 		},
 	}
 
-	counterpartyPayeeAddr := s.chainA.GetSimApp().IBCFeeKeeper.GetAllCounterpartyPayees(s.chainA.GetContext())
-	s.Require().Len(counterpartyPayeeAddr, len(expectedCounterpartyPayee))
-	s.Require().Equal(counterpartyPayeeAddr, expectedCounterpartyPayee)
+	counterpartyPayeeAddr := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllCounterpartyPayees(suite.chainA.GetContext())
+	suite.Require().Len(counterpartyPayeeAddr, len(expectedCounterpartyPayee))
+	suite.Require().Equal(counterpartyPayeeAddr, expectedCounterpartyPayee)
 }

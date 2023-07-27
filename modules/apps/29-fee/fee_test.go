@@ -25,40 +25,40 @@ type FeeTestSuite struct {
 	pathAToC *ibctesting.Path
 }
 
-func (s *FeeTestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
-	s.chainC = s.coordinator.GetChain(ibctesting.GetChainID(3))
+func (suite *FeeTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
-	path := ibctesting.NewPath(s.chainA, s.chainB)
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
 	path.EndpointA.ChannelConfig.Version = mockFeeVersion
 	path.EndpointB.ChannelConfig.Version = mockFeeVersion
 	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-	s.path = path
+	suite.path = path
 
-	path = ibctesting.NewPath(s.chainA, s.chainC)
+	path = ibctesting.NewPath(suite.chainA, suite.chainC)
 	path.EndpointA.ChannelConfig.Version = mockFeeVersion
 	path.EndpointB.ChannelConfig.Version = mockFeeVersion
 	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-	s.pathAToC = path
+	suite.pathAToC = path
 }
 
 func TestIBCFeeTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(FeeTestSuite))
 }
 
-func (s *FeeTestSuite) CreateMockPacket() channeltypes.Packet {
+func (suite *FeeTestSuite) CreateMockPacket() channeltypes.Packet {
 	return channeltypes.NewPacket(
 		ibcmock.MockPacketData,
-		s.chainA.SenderAccount.GetSequence(),
-		s.path.EndpointA.ChannelConfig.PortID,
-		s.path.EndpointA.ChannelID,
-		s.path.EndpointB.ChannelConfig.PortID,
-		s.path.EndpointB.ChannelID,
+		suite.chainA.SenderAccount.GetSequence(),
+		suite.path.EndpointA.ChannelConfig.PortID,
+		suite.path.EndpointA.ChannelID,
+		suite.path.EndpointB.ChannelConfig.PortID,
+		suite.path.EndpointB.ChannelID,
 		clienttypes.NewHeight(0, 100),
 		0,
 	)
