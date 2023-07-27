@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
 
 			// Verify events
 			events := ctx.EventManager().Events().ToABCIEvents()
