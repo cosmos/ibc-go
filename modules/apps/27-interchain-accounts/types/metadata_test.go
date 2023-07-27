@@ -6,7 +6,7 @@ import (
 )
 
 // use TestVersion as metadata being compared against
-func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
+func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 	var (
 		metadata        types.Metadata
 		previousVersion string
@@ -21,7 +21,7 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 			"success",
 			func() {
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			true,
@@ -32,7 +32,7 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.Address = ""
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			true,
@@ -50,7 +50,7 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.Encoding = "invalid-encoding-format"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -61,7 +61,7 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.Encoding = types.EncodingProto3JSON
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -72,7 +72,7 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.TxType = "invalid-tx-type"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -83,7 +83,7 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.ControllerConnectionId = "connection-10"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -94,7 +94,7 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.HostConnectionId = "connection-10"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -105,7 +105,7 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 				metadata.Version = "invalid version"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 				previousVersion = string(versionBytes)
 			},
 			false,
@@ -114,11 +114,11 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 
 	for _, tc := range testCases {
 		tc := tc
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 
-			path := ibctesting.NewPath(s.chainA, s.chainB)
-			s.coordinator.SetupConnections(path)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
 			expectedMetadata := types.NewMetadata(types.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestOwnerAddress, types.EncodingProtobuf, types.TxTypeSDKMultiMsg)
 			metadata = expectedMetadata // default success case
@@ -128,15 +128,15 @@ func (s *TypesTestSuite) TestIsPreviousMetadataEqual() {
 			equal := types.IsPreviousMetadataEqual(previousVersion, expectedMetadata)
 
 			if tc.expEqual {
-				s.Require().True(equal)
+				suite.Require().True(equal)
 			} else {
-				s.Require().False(equal)
+				suite.Require().False(equal)
 			}
 		})
 	}
 }
 
-func (s *TypesTestSuite) TestValidateControllerMetadata() {
+func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 	var metadata types.Metadata
 
 	testCases := []struct {
@@ -265,33 +265,33 @@ func (s *TypesTestSuite) TestValidateControllerMetadata() {
 
 	for _, tc := range testCases {
 		tc := tc
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 
-			path := ibctesting.NewPath(s.chainA, s.chainB)
-			s.coordinator.SetupConnections(path)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
 			metadata = types.NewMetadata(types.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestOwnerAddress, types.EncodingProtobuf, types.TxTypeSDKMultiMsg)
 
 			tc.malleate() // malleate mutates test data
 
 			err := types.ValidateControllerMetadata(
-				s.chainA.GetContext(),
-				s.chainA.App.GetIBCKeeper().ChannelKeeper,
+				suite.chainA.GetContext(),
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper,
 				[]string{ibctesting.FirstConnectionID},
 				metadata,
 			)
 
 			if tc.expPass {
-				s.Require().NoError(err, tc.name)
+				suite.Require().NoError(err, tc.name)
 			} else {
-				s.Require().Error(err, tc.name)
+				suite.Require().Error(err, tc.name)
 			}
 		})
 	}
 }
 
-func (s *TypesTestSuite) TestValidateHostMetadata() {
+func (suite *TypesTestSuite) TestValidateHostMetadata() {
 	var metadata types.Metadata
 
 	testCases := []struct {
@@ -420,27 +420,27 @@ func (s *TypesTestSuite) TestValidateHostMetadata() {
 
 	for _, tc := range testCases {
 		tc := tc
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 
-			path := ibctesting.NewPath(s.chainA, s.chainB)
-			s.coordinator.SetupConnections(path)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
 			metadata = types.NewMetadata(types.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestOwnerAddress, types.EncodingProtobuf, types.TxTypeSDKMultiMsg)
 
 			tc.malleate() // malleate mutates test data
 
 			err := types.ValidateHostMetadata(
-				s.chainA.GetContext(),
-				s.chainA.App.GetIBCKeeper().ChannelKeeper,
+				suite.chainA.GetContext(),
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper,
 				[]string{ibctesting.FirstConnectionID},
 				metadata,
 			)
 
 			if tc.expPass {
-				s.Require().NoError(err, tc.name)
+				suite.Require().NoError(err, tc.name)
 			} else {
-				s.Require().Error(err, tc.name)
+				suite.Require().Error(err, tc.name)
 			}
 		})
 	}

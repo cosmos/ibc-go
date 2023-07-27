@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 )
 
-func (s *KeeperTestSuite) TestUpdateParams() {
+func (suite *KeeperTestSuite) TestUpdateParams() {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
@@ -13,7 +13,7 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 	}{
 		{
 			"success",
-			types.NewMsgUpdateParams(s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), types.DefaultParams()),
+			types.NewMsgUpdateParams(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), types.DefaultParams()),
 			true,
 		},
 		{
@@ -26,19 +26,19 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupTest()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-			ctx := s.chainA.GetContext()
-			msgServer := keeper.NewMsgServerImpl(&s.chainA.GetSimApp().ICAHostKeeper)
+			ctx := suite.chainA.GetContext()
+			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAHostKeeper)
 			res, err := msgServer.UpdateParams(ctx, tc.msg)
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().NotNil(res)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
 			} else {
-				s.Require().Error(err)
-				s.Require().Nil(res)
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
 			}
 		})
 	}

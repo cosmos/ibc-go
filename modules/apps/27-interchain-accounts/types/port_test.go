@@ -7,7 +7,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *TypesTestSuite) TestNewControllerPortID() {
+func (suite *TypesTestSuite) TestNewControllerPortID() {
 	var (
 		path  *ibctesting.Path
 		owner = TestOwnerAddress
@@ -37,22 +37,22 @@ func (s *TypesTestSuite) TestNewControllerPortID() {
 
 	for _, tc := range testCases {
 		tc := tc
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 
-			path = ibctesting.NewPath(s.chainA, s.chainB)
-			s.coordinator.Setup(path)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
 
 			tc.malleate() // malleate mutates test data
 
 			portID, err := types.NewControllerPortID(owner)
 
 			if tc.expPass {
-				s.Require().NoError(err, tc.name)
-				s.Require().Equal(tc.expValue, portID)
+				suite.Require().NoError(err, tc.name)
+				suite.Require().Equal(tc.expValue, portID)
 			} else {
-				s.Require().Error(err, tc.name)
-				s.Require().Empty(portID)
+				suite.Require().Error(err, tc.name)
+				suite.Require().Empty(portID)
 			}
 		})
 	}
