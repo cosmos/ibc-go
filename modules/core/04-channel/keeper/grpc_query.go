@@ -502,6 +502,14 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	found := q.HasChannel(ctx, req.PortId, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+		)
+	}
+
 	receipt, found := q.GetUpgradeErrorReceipt(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
@@ -525,6 +533,14 @@ func (q Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
+	found := q.HasChannel(ctx, req.PortId, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+		)
+	}
+
 	upgrade, found := q.GetUpgrade(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
