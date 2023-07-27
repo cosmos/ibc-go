@@ -7,7 +7,7 @@ import (
 )
 
 // TestMigrateParams tests that the params for the connection are properly migrated
-func (s *KeeperTestSuite) TestMigrateParams() {
+func (suite *KeeperTestSuite) TestMigrateParams() {
 	testCases := []struct {
 		name           string
 		malleate       func()
@@ -17,8 +17,8 @@ func (s *KeeperTestSuite) TestMigrateParams() {
 			"success: default params",
 			func() {
 				params := types.DefaultParams()
-				subspace := s.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName)
-				subspace.SetParamSet(s.chainA.GetContext(), &params) // set params
+				subspace := suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName)
+				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
 			},
 			types.DefaultParams(),
 		},
@@ -26,18 +26,18 @@ func (s *KeeperTestSuite) TestMigrateParams() {
 
 	for _, tc := range testCases {
 		tc := tc
-		s.Run(tc.name, func() {
-			s.SetupTest() // reset
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
 
-			ctx := s.chainA.GetContext()
-			migrator := keeper.NewMigrator(s.chainA.GetSimApp().IBCKeeper.ConnectionKeeper)
+			ctx := suite.chainA.GetContext()
+			migrator := keeper.NewMigrator(suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper)
 			err := migrator.MigrateParams(ctx)
-			s.Require().NoError(err)
+			suite.Require().NoError(err)
 
-			params := s.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetParams(ctx)
-			s.Require().Equal(tc.expectedParams, params)
+			params := suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetParams(ctx)
+			suite.Require().Equal(tc.expectedParams, params)
 		})
 	}
 }

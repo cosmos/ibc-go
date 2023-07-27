@@ -12,7 +12,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *KeeperTestSuite) TestQueryConnection() {
+func (suite *KeeperTestSuite) TestQueryConnection() {
 	var (
 		req           *types.QueryConnectionRequest
 		expConnection types.ConnectionEnd
@@ -49,14 +49,14 @@ func (s *KeeperTestSuite) TestQueryConnection() {
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(s.chainA, s.chainB)
-				s.coordinator.SetupClients(path)
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupClients(path)
 				err := path.EndpointA.ConnOpenInit()
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 
-				counterparty := types.NewCounterparty(path.EndpointB.ClientID, "", s.chainB.GetPrefix())
+				counterparty := types.NewCounterparty(path.EndpointB.ClientID, "", suite.chainB.GetPrefix())
 				expConnection = types.NewConnectionEnd(types.INIT, path.EndpointA.ClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 500)
-				s.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(s.chainA.GetContext(), path.EndpointA.ConnectionID, expConnection)
+				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, expConnection)
 
 				req = &types.QueryConnectionRequest{
 					ConnectionId: path.EndpointA.ConnectionID,
@@ -67,29 +67,29 @@ func (s *KeeperTestSuite) TestQueryConnection() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := s.chainA.QueryServer.Connection(ctx, req)
+			res, err := suite.chainA.QueryServer.Connection(ctx, req)
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().NotNil(res)
-				s.Require().Equal(&expConnection, res.Connection)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(&expConnection, res.Connection)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestQueryConnections() {
-	s.chainA.App.GetIBCKeeper().ConnectionKeeper.CreateSentinelLocalhostConnection(s.chainA.GetContext())
-	localhostConn, found := s.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(s.chainA.GetContext(), exported.LocalhostConnectionID)
-	s.Require().True(found)
+func (suite *KeeperTestSuite) TestQueryConnections() {
+	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.CreateSentinelLocalhostConnection(suite.chainA.GetContext())
+	localhostConn, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), exported.LocalhostConnectionID)
+	suite.Require().True(found)
 
 	identifiedConn := types.NewIdentifiedConnection(exported.LocalhostConnectionID, localhostConn)
 
@@ -120,20 +120,20 @@ func (s *KeeperTestSuite) TestQueryConnections() {
 		{
 			"success",
 			func() {
-				path1 := ibctesting.NewPath(s.chainA, s.chainB)
-				path2 := ibctesting.NewPath(s.chainA, s.chainB)
-				path3 := ibctesting.NewPath(s.chainA, s.chainB)
-				s.coordinator.SetupConnections(path1)
-				s.coordinator.SetupConnections(path2)
-				s.coordinator.SetupClients(path3)
+				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path3 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupConnections(path1)
+				suite.coordinator.SetupConnections(path2)
+				suite.coordinator.SetupClients(path3)
 
 				err := path3.EndpointA.ConnOpenInit()
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 
-				counterparty1 := types.NewCounterparty(path1.EndpointB.ClientID, path1.EndpointB.ConnectionID, s.chainB.GetPrefix())
-				counterparty2 := types.NewCounterparty(path2.EndpointB.ClientID, path2.EndpointB.ConnectionID, s.chainB.GetPrefix())
+				counterparty1 := types.NewCounterparty(path1.EndpointB.ClientID, path1.EndpointB.ConnectionID, suite.chainB.GetPrefix())
+				counterparty2 := types.NewCounterparty(path2.EndpointB.ClientID, path2.EndpointB.ConnectionID, suite.chainB.GetPrefix())
 				// counterparty connection id is blank after open init
-				counterparty3 := types.NewCounterparty(path3.EndpointB.ClientID, "", s.chainB.GetPrefix())
+				counterparty3 := types.NewCounterparty(path3.EndpointB.ClientID, "", suite.chainB.GetPrefix())
 
 				conn1 := types.NewConnectionEnd(types.OPEN, path1.EndpointA.ClientID, counterparty1, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
 				conn2 := types.NewConnectionEnd(types.OPEN, path2.EndpointA.ClientID, counterparty2, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
@@ -157,26 +157,26 @@ func (s *KeeperTestSuite) TestQueryConnections() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := s.chainA.QueryServer.Connections(ctx, req)
+			res, err := suite.chainA.QueryServer.Connections(ctx, req)
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().NotNil(res)
-				s.Require().Equal(expConnections, res.Connections)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expConnections, res.Connections)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestQueryClientConnections() {
+func (suite *KeeperTestSuite) TestQueryClientConnections() {
 	var (
 		req      *types.QueryClientConnectionsRequest
 		expPaths []string
@@ -213,18 +213,18 @@ func (s *KeeperTestSuite) TestQueryClientConnections() {
 		{
 			"success",
 			func() {
-				path1 := ibctesting.NewPath(s.chainA, s.chainB)
-				s.coordinator.SetupConnections(path1)
+				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupConnections(path1)
 
 				// create another connection using same underlying clients
-				path2 := ibctesting.NewPath(s.chainA, s.chainB)
+				path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path2.EndpointA.ClientID = path1.EndpointA.ClientID
 				path2.EndpointB.ClientID = path1.EndpointB.ClientID
 
-				s.coordinator.CreateConnections(path2)
+				suite.coordinator.CreateConnections(path2)
 
 				expPaths = []string{path1.EndpointA.ConnectionID, path2.EndpointA.ConnectionID}
-				s.chainA.App.GetIBCKeeper().ConnectionKeeper.SetClientConnectionPaths(s.chainA.GetContext(), path1.EndpointA.ClientID, expPaths)
+				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetClientConnectionPaths(suite.chainA.GetContext(), path1.EndpointA.ClientID, expPaths)
 
 				req = &types.QueryClientConnectionsRequest{
 					ClientId: path1.EndpointA.ClientID,
@@ -235,26 +235,26 @@ func (s *KeeperTestSuite) TestQueryClientConnections() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := s.chainA.QueryServer.ClientConnections(ctx, req)
+			res, err := suite.chainA.QueryServer.ClientConnections(ctx, req)
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().NotNil(res)
-				s.Require().Equal(expPaths, res.ConnectionPaths)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expPaths, res.ConnectionPaths)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestQueryConnectionClientState() {
+func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 	var (
 		req                      *types.QueryConnectionClientStateRequest
 		expIdentifiedClientState clienttypes.IdentifiedClientState
@@ -293,11 +293,11 @@ func (s *KeeperTestSuite) TestQueryConnectionClientState() {
 		{
 			"client state not found",
 			func() {
-				path := ibctesting.NewPath(s.chainA, s.chainB)
-				s.coordinator.Setup(path)
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
 
 				// set connection to empty so clientID is empty
-				s.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(s.chainA.GetContext(), path.EndpointA.ConnectionID, types.ConnectionEnd{})
+				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, types.ConnectionEnd{})
 
 				req = &types.QueryConnectionClientStateRequest{
 					ConnectionId: path.EndpointA.ConnectionID,
@@ -307,10 +307,10 @@ func (s *KeeperTestSuite) TestQueryConnectionClientState() {
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(s.chainA, s.chainB)
-				s.coordinator.SetupConnections(path)
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupConnections(path)
 
-				expClientState := s.chainA.GetClientState(path.EndpointA.ClientID)
+				expClientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
 				expIdentifiedClientState = clienttypes.NewIdentifiedClientState(path.EndpointA.ClientID, expClientState)
 
 				req = &types.QueryConnectionClientStateRequest{
@@ -322,30 +322,30 @@ func (s *KeeperTestSuite) TestQueryConnectionClientState() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := s.chainA.QueryServer.ConnectionClientState(ctx, req)
+			res, err := suite.chainA.QueryServer.ConnectionClientState(ctx, req)
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().NotNil(res)
-				s.Require().Equal(&expIdentifiedClientState, res.IdentifiedClientState)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(&expIdentifiedClientState, res.IdentifiedClientState)
 
 				// ensure UnpackInterfaces is defined
 				cachedValue := res.IdentifiedClientState.ClientState.GetCachedValue()
-				s.Require().NotNil(cachedValue)
+				suite.Require().NotNil(cachedValue)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestQueryConnectionConsensusState() {
+func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 	var (
 		req               *types.QueryConnectionConsensusStateRequest
 		expConsensusState exported.ConsensusState
@@ -389,25 +389,25 @@ func (s *KeeperTestSuite) TestQueryConnectionConsensusState() {
 		{
 			"consensus state not found",
 			func() {
-				path := ibctesting.NewPath(s.chainA, s.chainB)
-				s.coordinator.Setup(path)
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
 
 				req = &types.QueryConnectionConsensusStateRequest{
 					ConnectionId:   path.EndpointA.ConnectionID,
 					RevisionNumber: 0,
-					RevisionHeight: uint64(s.chainA.GetContext().BlockHeight()), // use current height
+					RevisionHeight: uint64(suite.chainA.GetContext().BlockHeight()), // use current height
 				}
 			}, false,
 		},
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(s.chainA, s.chainB)
-				s.coordinator.SetupConnections(path)
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupConnections(path)
 
-				clientState := s.chainA.GetClientState(path.EndpointA.ClientID)
-				expConsensusState, _ = s.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
-				s.Require().NotNil(expConsensusState)
+				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
+				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())
+				suite.Require().NotNil(expConsensusState)
 				expClientID = path.EndpointA.ClientID
 
 				req = &types.QueryConnectionConsensusStateRequest{
@@ -421,35 +421,35 @@ func (s *KeeperTestSuite) TestQueryConnectionConsensusState() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 
-			res, err := s.chainA.QueryServer.ConnectionConsensusState(ctx, req)
+			res, err := suite.chainA.QueryServer.ConnectionConsensusState(ctx, req)
 
 			if tc.expPass {
-				s.Require().NoError(err)
-				s.Require().NotNil(res)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
 				consensusState, err := clienttypes.UnpackConsensusState(res.ConsensusState)
-				s.Require().NoError(err)
-				s.Require().Equal(expConsensusState, consensusState)
-				s.Require().Equal(expClientID, res.ClientId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(expConsensusState, consensusState)
+				suite.Require().Equal(expClientID, res.ClientId)
 
 				// ensure UnpackInterfaces is defined
 				cachedValue := res.ConsensusState.GetCachedValue()
-				s.Require().NotNil(cachedValue)
+				suite.Require().NotNil(cachedValue)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestQueryConnectionParams() {
-	ctx := sdk.WrapSDKContext(s.chainA.GetContext())
+func (suite *KeeperTestSuite) TestQueryConnectionParams() {
+	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
 	expParams := types.DefaultParams()
-	res, _ := s.chainA.QueryServer.ConnectionParams(ctx, &types.QueryConnectionParamsRequest{})
-	s.Require().Equal(&expParams, res.Params)
+	res, _ := suite.chainA.QueryServer.ConnectionParams(ctx, &types.QueryConnectionParamsRequest{})
+	suite.Require().Equal(&expParams, res.Params)
 }
