@@ -8,10 +8,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *KeeperTestSuite) TestInitGenesis() {
-	s.SetupTest()
+func (suite *KeeperTestSuite) TestInitGenesis() {
+	suite.SetupTest()
 
-	interchainAccAddr := icatypes.GenerateAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 	genesisState := genesistypes.ControllerGenesisState{
 		ActiveChannels: []genesistypes.ActiveChannel{
 			{
@@ -37,50 +37,50 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 		Ports: []string{TestPortID},
 	}
 
-	keeper.InitGenesis(s.chainA.GetContext(), s.chainA.GetSimApp().ICAControllerKeeper, genesisState)
+	keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAControllerKeeper, genesisState)
 
-	channelID, found := s.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(s.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
-	s.Require().True(found)
-	s.Require().Equal(ibctesting.FirstChannelID, channelID)
+	channelID, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+	suite.Require().True(found)
+	suite.Require().Equal(ibctesting.FirstChannelID, channelID)
 
-	isMiddlewareEnabled := s.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(s.chainA.GetContext(), TestPortID, ibctesting.FirstConnectionID)
-	s.Require().True(isMiddlewareEnabled)
+	isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(suite.chainA.GetContext(), TestPortID, ibctesting.FirstConnectionID)
+	suite.Require().True(isMiddlewareEnabled)
 
-	isMiddlewareDisabled := s.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareDisabled(s.chainA.GetContext(), "test-port-1", "connection-1")
-	s.Require().True(isMiddlewareDisabled)
+	isMiddlewareDisabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareDisabled(suite.chainA.GetContext(), "test-port-1", "connection-1")
+	suite.Require().True(isMiddlewareDisabled)
 
-	accountAdrr, found := s.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
-	s.Require().True(found)
-	s.Require().Equal(interchainAccAddr.String(), accountAdrr)
+	accountAdrr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+	suite.Require().True(found)
+	suite.Require().Equal(interchainAccAddr.String(), accountAdrr)
 
 	expParams := types.NewParams(false)
-	params := s.chainA.GetSimApp().ICAControllerKeeper.GetParams(s.chainA.GetContext())
-	s.Require().Equal(expParams, params)
+	params := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
+	suite.Require().Equal(expParams, params)
 }
 
-func (s *KeeperTestSuite) TestExportGenesis() {
-	s.SetupTest()
+func (suite *KeeperTestSuite) TestExportGenesis() {
+	suite.SetupTest()
 
-	path := NewICAPath(s.chainA, s.chainB)
-	s.coordinator.SetupConnections(path)
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
 
 	err := SetupICAPath(path, TestOwnerAddress)
-	s.Require().NoError(err)
+	suite.Require().NoError(err)
 
-	interchainAccAddr, exists := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-	s.Require().True(exists)
+	interchainAccAddr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+	suite.Require().True(exists)
 
-	genesisState := keeper.ExportGenesis(s.chainA.GetContext(), s.chainA.GetSimApp().ICAControllerKeeper)
+	genesisState := keeper.ExportGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAControllerKeeper)
 
-	s.Require().Equal(path.EndpointA.ChannelID, genesisState.ActiveChannels[0].ChannelId)
-	s.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.ActiveChannels[0].PortId)
-	s.Require().True(genesisState.ActiveChannels[0].IsMiddlewareEnabled)
+	suite.Require().Equal(path.EndpointA.ChannelID, genesisState.ActiveChannels[0].ChannelId)
+	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.ActiveChannels[0].PortId)
+	suite.Require().True(genesisState.ActiveChannels[0].IsMiddlewareEnabled)
 
-	s.Require().Equal(interchainAccAddr, genesisState.InterchainAccounts[0].AccountAddress)
-	s.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.InterchainAccounts[0].PortId)
+	suite.Require().Equal(interchainAccAddr, genesisState.InterchainAccounts[0].AccountAddress)
+	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.InterchainAccounts[0].PortId)
 
-	s.Require().Equal([]string{TestPortID}, genesisState.GetPorts())
+	suite.Require().Equal([]string{TestPortID}, genesisState.GetPorts())
 
 	expParams := types.DefaultParams()
-	s.Require().Equal(expParams, genesisState.GetParams())
+	suite.Require().Equal(expParams, genesisState.GetParams())
 }

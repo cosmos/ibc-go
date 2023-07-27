@@ -10,7 +10,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (s *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
+func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -25,7 +25,7 @@ func (s *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			"channel with different port is filtered out",
 			func() {
 				portIDWithOutPrefix := ibctesting.MockPort
-				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), portIDWithOutPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIDWithOutPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
 					ConnectionHops: []string{ibctesting.FirstConnectionID},
 				})
 			},
@@ -35,7 +35,7 @@ func (s *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			"capability not found",
 			func() {
 				portIDWithPrefix := fmt.Sprintf("%s%s", icatypes.ControllerPortPrefix, "port-without-capability")
-				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), portIDWithPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portIDWithPrefix, ibctesting.FirstChannelID, channeltypes.Channel{
 					ConnectionHops: []string{ibctesting.FirstConnectionID},
 				})
 			},
@@ -44,38 +44,38 @@ func (s *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 	}
 
 	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.SetupTest()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-			path := NewICAPath(s.chainA, s.chainB)
-			s.coordinator.SetupConnections(path)
+			path := NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
 			err := SetupICAPath(path, ibctesting.TestAccAddress)
-			s.Require().NoError(err)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
-			migrator := icacontrollerkeeper.NewMigrator(&s.chainA.GetSimApp().ICAControllerKeeper)
-			err = migrator.AssertChannelCapabilityMigrations(s.chainA.GetContext())
+			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
+			err = migrator.AssertChannelCapabilityMigrations(suite.chainA.GetContext())
 
 			if tc.expPass {
-				s.Require().NoError(err)
+				suite.Require().NoError(err)
 
-				isMiddlewareEnabled := s.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(
-					s.chainA.GetContext(),
+				isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(
+					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ConnectionID,
 				)
 
-				s.Require().True(isMiddlewareEnabled)
+				suite.Require().True(isMiddlewareEnabled)
 			} else {
-				s.Require().Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-func (s *KeeperTestSuite) TestMigratorMigrateParams() {
+func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	testCases := []struct {
 		msg            string
 		malleate       func()
@@ -85,25 +85,25 @@ func (s *KeeperTestSuite) TestMigratorMigrateParams() {
 			"success: default params",
 			func() {
 				params := icacontrollertypes.DefaultParams()
-				subspace := s.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
-				subspace.SetParamSet(s.chainA.GetContext(), &params)                           // set params
+				subspace := suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
+				subspace.SetParamSet(suite.chainA.GetContext(), &params)                           // set params
 			},
 			icacontrollertypes.DefaultParams(),
 		},
 	}
 
 	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("case %s", tc.msg), func() {
-			s.SetupTest() // reset
+		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
 			tc.malleate() // explicitly set params
 
-			migrator := icacontrollerkeeper.NewMigrator(&s.chainA.GetSimApp().ICAControllerKeeper)
-			err := migrator.MigrateParams(s.chainA.GetContext())
-			s.Require().NoError(err)
+			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
+			err := migrator.MigrateParams(suite.chainA.GetContext())
+			suite.Require().NoError(err)
 
-			params := s.chainA.GetSimApp().ICAControllerKeeper.GetParams(s.chainA.GetContext())
-			s.Require().Equal(tc.expectedParams, params)
+			params := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
+			suite.Require().Equal(tc.expectedParams, params)
 		})
 	}
 }
