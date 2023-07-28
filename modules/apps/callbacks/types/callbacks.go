@@ -47,17 +47,18 @@ type CallbacksCompatibleModule interface {
 
 // CallbackData is the callback data parsed from the packet.
 type CallbackData struct {
-	// ContractAddr is the address of the callback contract
+	// ContractAddr is the address of the callback contract.
 	ContractAddr string
-	// GasLimit is the gas limit which will be used for the callback execution
+	// GasLimit is the gas limit which will be used for the callback execution.
 	GasLimit uint64
 	// SenderAddr is the sender of the packet. This is passed to the contract keeper
 	// to verify that the packet sender is the same as the contract address if desired.
+	// This address is empty during destination callback execution.
 	// This address may be empty if the sender is unknown or undefined.
 	SenderAddr string
-	// CommitGasLimit is the gas needed to commit the callback even if the
-	// callback execution fails due to out of gas. This parameter is only
-	// used to be emitted in the event.
+	// CommitGasLimit is the gas needed to commit the callback even if the callback
+	// execution fails due to out of gas.
+	// This parameter is only used in event emissions, or logging.
 	CommitGasLimit uint64
 }
 
@@ -94,12 +95,12 @@ func getCallbackData(
 		return CallbackData{}, false, err
 	}
 
-	additionalPacketDataProvider, ok := unmarshaledData.(ibcexported.AdditionalPacketDataProvider)
+	packetDataProvider, ok := unmarshaledData.(ibcexported.PacketDataProvider)
 	if !ok {
 		return CallbackData{}, false, ErrNotAdditionalPacketDataProvider
 	}
 
-	callbackData, ok := additionalPacketDataProvider.GetAdditionalData(callbackKey).(map[string]interface{})
+	callbackData, ok := packetDataProvider.GetCustomPacketData(callbackKey).(map[string]interface{})
 	if callbackData == nil || !ok {
 		return CallbackData{}, false, ErrCallbackMemoKeyNotFound
 	}
@@ -125,10 +126,19 @@ func getCallbackData(
 		allowRetry = true
 	}
 
+	// retrieve packet sender from packet data if possible and if needed
+	var packetSender string
+	if callbackKey == SourceCallbackMemoKey {
+		packetSenderRetriever, ok := unmarshaledData.(ibcexported.PacketSenderRetriever)
+		if ok {
+			packetSender = packetSenderRetriever.GetPacketSender(packet.GetSourcePort())
+		}
+	}
+
 	return CallbackData{
 		ContractAddr:   getCallbackAddress(callbackData),
 		GasLimit:       gasLimit,
-		SenderAddr:     additionalPacketDataProvider.GetPacketSender(packet.GetSourcePort()),
+		SenderAddr:     packetSender,
 		CommitGasLimit: commitGasLimit,
 	}, allowRetry, nil
 }

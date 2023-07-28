@@ -27,7 +27,10 @@ var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
 
-var _ exported.AdditionalPacketDataProvider = (*FungibleTokenPacketData)(nil)
+var (
+	_ exported.PacketSenderRetriever = (*FungibleTokenPacketData)(nil)
+	_ exported.PacketDataProvider    = (*FungibleTokenPacketData)(nil)
+)
 
 // NewFungibleTokenPacketData contructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(
@@ -76,10 +79,10 @@ func (ftpd FungibleTokenPacketData) GetPacketSender(srcPortID string) string {
 	return ftpd.Sender
 }
 
-// GetAdditionalData returns a json object from the memo as `map[string]interface{}` so that
+// GetCustomPacketData returns a json object from the memo as `map[string]interface{}` so that
 // it can be interpreted as a json object with keys.
 // If the key is missing or the memo is not properly formatted, then nil is returned.
-func (ftpd FungibleTokenPacketData) GetAdditionalData(key string) interface{} {
+func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} {
 	if len(ftpd.Memo) == 0 {
 		return nil
 	}

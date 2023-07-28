@@ -20,14 +20,19 @@ type Acknowledgement interface {
 	Acknowledgement() []byte
 }
 
-// AdditionalPacketDataProvider defines the standard interface for retrieving additional packet data.
-// The interface is used to retrieve json encoded data from the packet memo.
-// The interface is also used to retrieve the sender address of the packet.
-type AdditionalPacketDataProvider interface {
-	// GetAdditionalData returns additional packet data keyed by a string.
-	// This function is used to retrieve json encoded data from the packet memo.
-	// If no additional data exists for the key, nil should be returned.
-	GetAdditionalData(key string) interface{}
+// PacketDataProvider defines an optional interfaces for retrieving custom packet data stored on behalf of another application.
+// An existing problem in the IBC middleware design is the inability for a middleware to define its own packet data type and insert packet sender provided information.
+// A short term hack was introduced into several packet data's to utilize a memo to carry this information on behalf of another application.
+// This interfaces standardizes that behaviour. Upon realization of the ability for middleware's to define their own packet data types, this interface will be deprecated and removed with time.
+type PacketDataProvider interface {
+	// GetCustomPacketData returns the packet data held on behalf of another application.
+	// The name the information is stored under should be provided as the key
+	// If no custom packet data exists for the key, nil is returned.
+	GetCustomPacketData(key string) interface{}
+}
+
+// PacketSenderRetriever defines an optional interface for retrieving the packet sender from packet data.
+type PacketSenderRetriever interface {
 	// GetPacketSender returns the sender address of the packet.
 	// If the packet sender is unknown or undefined, an empty string should be returned.
 	GetPacketSender(srcPortID string) string

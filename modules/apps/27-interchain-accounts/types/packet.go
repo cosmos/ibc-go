@@ -29,7 +29,10 @@ var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
 
-var _ exported.AdditionalPacketDataProvider = (*InterchainAccountPacketData)(nil)
+var (
+	_ exported.PacketSenderRetriever = (*InterchainAccountPacketData)(nil)
+	_ exported.PacketDataProvider    = (*InterchainAccountPacketData)(nil)
+)
 
 // ValidateBasic performs basic validation of the interchain account packet data.
 // The memo may be empty.
@@ -66,10 +69,10 @@ func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string
 	return icaOwner
 }
 
-// GetAdditionalData returns a json object from the memo as `map[string]interface{}` so that it
+// GetCustomPacketData returns a json object from the memo as `map[string]interface{}` so that it
 // can be interpreted as a json object with keys.
 // If the key is missing or the memo is not properly formatted, then nil is returned.
-func (iapd InterchainAccountPacketData) GetAdditionalData(key string) interface{} {
+func (iapd InterchainAccountPacketData) GetCustomPacketData(key string) interface{} {
 	if len(iapd.Memo) == 0 {
 		return nil
 	}

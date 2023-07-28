@@ -120,7 +120,8 @@ func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 	}
 
 	for _, tc := range testCases {
-		additionalData := tc.packetData.GetAdditionalData("src_callback")
+		additionalData, ok := tc.packetData.GetCustomPacketData("src_callback").(map[string]interface{})
+		suite.Require().Equal(ok, additionalData != nil)
 		suite.Require().Equal(tc.expAdditionalData, additionalData)
 		suite.Require().Equal(tc.expPacketSender, tc.packetData.GetPacketSender(types.PortID))
 	}

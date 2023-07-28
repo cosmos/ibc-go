@@ -3,9 +3,6 @@ package types_test
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -89,15 +86,13 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 	}
 }
 
-func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
+func (suite *TypesTestSuite) TestGetCustomPacketData() {
 	expCallbackAddr := ibctesting.TestAccAddress
-	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
 	testCases := []struct {
 		name              string
 		packetData        types.InterchainAccountPacketData
 		expAdditionalData map[string]interface{}
-		expPacketSender   string
 	}{
 		{
 			"success: src_callback key in memo",
@@ -109,7 +104,6 @@ func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 			map[string]interface{}{
 				"address": expCallbackAddr,
 			},
-			sender,
 		},
 		{
 			"success: src_callback key in memo with additional fields",
@@ -122,7 +116,6 @@ func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 				"address":   expCallbackAddr,
 				"gas_limit": "200000",
 			},
-			sender,
 		},
 		{
 			"failure: empty memo",
@@ -132,7 +125,6 @@ func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 				Memo: "",
 			},
 			nil,
-			sender,
 		},
 		{
 			"failure: non-json memo",
@@ -142,7 +134,6 @@ func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 				Memo: "invalid",
 			},
 			nil,
-			sender,
 		},
 		{
 			"failure: invalid src_callback key",
@@ -152,14 +143,13 @@ func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 				Memo: `{"src_callback": "invalid"}`,
 			},
 			nil,
-			sender,
 		},
 	}
 
 	for _, tc := range testCases {
-		additionalData := tc.packetData.GetAdditionalData("src_callback")
+		additionalData, ok := tc.packetData.GetCustomPacketData("src_callback").(map[string]interface{})
+		suite.Require().Equal(ok, additionalData != nil)
 		suite.Require().Equal(tc.expAdditionalData, additionalData)
-		suite.Require().Equal(tc.expPacketSender, tc.packetData.GetPacketSender(types.ControllerPortPrefix+sender))
 	}
 }
 
