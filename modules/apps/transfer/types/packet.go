@@ -28,8 +28,8 @@ var (
 )
 
 var (
-	_ exported.PacketSenderRetriever = (*FungibleTokenPacketData)(nil)
-	_ exported.PacketDataProvider    = (*FungibleTokenPacketData)(nil)
+	_ exported.PacketData         = (*FungibleTokenPacketData)(nil)
+	_ exported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
 )
 
 // NewFungibleTokenPacketData contructs a new FungibleTokenPacketData instance

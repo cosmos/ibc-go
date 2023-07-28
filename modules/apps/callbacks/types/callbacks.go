@@ -129,9 +129,9 @@ func getCallbackData(
 	// retrieve packet sender from packet data if possible and if needed
 	var packetSender string
 	if callbackKey == SourceCallbackMemoKey {
-		packetSenderRetriever, ok := unmarshaledData.(ibcexported.PacketSenderRetriever)
+		packetData, ok := unmarshaledData.(ibcexported.PacketData)
 		if ok {
-			packetSender = packetSenderRetriever.GetPacketSender(packet.GetSourcePort())
+			packetSender = packetData.GetPacketSender(packet.GetSourcePort())
 		}
 	}
 

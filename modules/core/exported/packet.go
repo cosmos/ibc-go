@@ -31,8 +31,8 @@ type PacketDataProvider interface {
 	GetCustomPacketData(key string) interface{}
 }
 
-// PacketSenderRetriever defines an optional interface for retrieving the packet sender from packet data.
-type PacketSenderRetriever interface {
+// PacketData defines an optional interface which PacketData's may implement.
+type PacketData interface {
 	// GetPacketSender returns the sender address of the packet.
 	// If the packet sender is unknown or undefined, an empty string should be returned.
 	GetPacketSender(srcPortID string) string

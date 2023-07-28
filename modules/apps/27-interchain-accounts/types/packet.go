@@ -30,8 +30,8 @@ var (
 )
 
 var (
-	_ exported.PacketSenderRetriever = (*InterchainAccountPacketData)(nil)
-	_ exported.PacketDataProvider    = (*InterchainAccountPacketData)(nil)
+	_ exported.PacketData         = (*InterchainAccountPacketData)(nil)
+	_ exported.PacketDataProvider = (*InterchainAccountPacketData)(nil)
 )
 
 // ValidateBasic performs basic validation of the interchain account packet data.
