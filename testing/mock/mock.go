@@ -50,7 +50,7 @@ var (
 	MockApplicationCallbackError error = &applicationCallbackError{}
 )
 
-var _ porttypes.IBCModule = IBCModule{}
+var _ porttypes.IBCModule = (*IBCModule)(nil)
 
 // Expected Interface
 // PortKeeper defines the expected IBC port keeper
