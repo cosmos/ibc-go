@@ -103,12 +103,7 @@ func (version Version) VerifyProposedVersion(proposedVersion exported.Version) e
 // VerifySupportedFeature takes in a version and feature string and returns
 // true if the feature is supported by the version and false otherwise.
 func VerifySupportedFeature(version exported.Version, feature string) bool {
-	for _, f := range version.GetFeatures() {
-		if f == feature {
-			return true
-		}
-	}
-	return false
+	return collections.Contains(feature, version.GetFeatures())
 }
 
 // GetCompatibleVersions returns a descending ordered set of compatible IBC
