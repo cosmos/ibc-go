@@ -2,7 +2,7 @@ package types_test
 
 import (
 	"testing"
-  
+
 	testifysuite "github.com/stretchr/testify/suite"
 
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -25,7 +25,7 @@ type GenesisTypesTestSuite struct {
 }
 
 func TestGenesisTypesTestSuite(t *testing.T) {
-	suite.Run(t, new(GenesisTypesTestSuite))
+	testifysuite.Run(t, new(GenesisTypesTestSuite))
 }
 
 func (suite *GenesisTypesTestSuite) TestValidateGenesisState() {
