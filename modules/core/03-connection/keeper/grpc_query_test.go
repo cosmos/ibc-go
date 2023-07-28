@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -71,7 +70,7 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.Connection(ctx, req)
 
@@ -161,7 +160,7 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.Connections(ctx, req)
 
@@ -239,7 +238,7 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.ClientConnections(ctx, req)
 
@@ -326,7 +325,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.ConnectionClientState(ctx, req)
 
@@ -425,7 +424,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.ConnectionConsensusState(ctx, req)
 
@@ -448,7 +447,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 }
 
 func (suite *KeeperTestSuite) TestQueryConnectionParams() {
-	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+	ctx := suite.chainA.GetContext()
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.QueryServer.ConnectionParams(ctx, &types.QueryConnectionParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
