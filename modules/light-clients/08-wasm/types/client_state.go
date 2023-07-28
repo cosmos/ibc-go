@@ -176,9 +176,9 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	_, err := GetConsensusState(clientStore, cdc, height)
-	if err != nil {
-		return errorsmod.Wrap(err, "please ensure the proof was constructed against a height that exists on the client")
+	found := hasConsensusState(clientStore, height)
+	if !found {
+		return errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
 	payload := verifyMembershipPayload{
@@ -191,6 +191,7 @@ func (cs ClientState) VerifyMembership(
 			Value:            value,
 		},
 	}
+
 	_, err = wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
@@ -233,9 +234,9 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	_, err := GetConsensusState(clientStore, cdc, height)
-	if err != nil {
-		return errorsmod.Wrap(err, "please ensure the proof was constructed against a height that exists on the client")
+	found := hasConsensusState(clientStore, height)
+	if !found {
+		return errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
 	payload := verifyNonMembershipPayload{
@@ -247,6 +248,7 @@ func (cs ClientState) VerifyNonMembership(
 			Path:             path,
 		},
 	}
+
 	_, err = wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
