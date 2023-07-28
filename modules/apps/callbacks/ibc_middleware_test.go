@@ -447,7 +447,7 @@ func (suite *CallbacksTestSuite) TestSendPacketReject() {
 		suite.chainA.GetContext(), channelCap, suite.path.EndpointA.ChannelConfig.PortID,
 		suite.path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0, ftpd.GetBytes(),
 	)
-	suite.Require().ErrorIs(err, ibcmock.ErrorMock)
+	suite.Require().ErrorIs(err, ibcmock.MockApplicationCallbackError)
 	suite.Require().Equal(uint64(0), seq)
 }
 

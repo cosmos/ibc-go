@@ -182,7 +182,7 @@ func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	if reflect.DeepEqual(bz, MockPacketData) {
 		return MockPacketData, nil
 	}
-	return nil, ErrorMock
+	return nil, MockApplicationCallbackError
 }
 
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.

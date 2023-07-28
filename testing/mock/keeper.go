@@ -152,13 +152,13 @@ func (k MockKeeper) processMockCallback(
 	} else if gasRemaining < 500000 {
 		callbackCounter.IncrementFailure()
 		ctx.GasMeter().ConsumeGas(gasRemaining, fmt.Sprintf("mock %s callback failure", callbackType))
-		return ErrorMock
+		return MockApplicationCallbackError
 	}
 
 	if authAddress == MockCallbackUnauthorizedAddress {
 		callbackCounter.IncrementFailure()
 		ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback unauthorized", callbackType))
-		return ErrorMock
+		return MockApplicationCallbackError
 	}
 
 	callbackCounter.IncrementSuccess()
