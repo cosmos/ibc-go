@@ -413,6 +413,17 @@ func (suite *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 			"",
 		},
 		{
+			"failure: memo has empty src_callback object",
+			transfertypes.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {}}`,
+			},
+			"",
+		},
+		{
 			"failure: memo does not have callbacks in json struct",
 			transfertypes.FungibleTokenPacketData{
 				Denom:    denom,
@@ -450,7 +461,8 @@ func (suite *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			callbackData := tc.packetData.GetAdditionalData(types.SourceCallbackMemoKey)
+			callbackData, ok := tc.packetData.GetAdditionalData(types.SourceCallbackMemoKey).(map[string]interface{})
+			suite.Require().Equal(ok, callbackData != nil)
 			suite.Require().Equal(tc.expAddress, types.GetCallbackAddress(callbackData), tc.name)
 		})
 	}
@@ -488,6 +500,17 @@ func (suite *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     `{"src_callback": {"gas_limit": "100"}}`,
 			},
 			100,
+		},
+		{
+			"failure: memo has empty src_callback object",
+			transfertypes.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {}}`,
+			},
+			0,
 		},
 		{
 			"failure: memo has user defined gas limit as json number",
@@ -547,7 +570,8 @@ func (suite *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 	}
 
 	for _, tc := range testCases {
-		callbackData := tc.packetData.GetAdditionalData(types.SourceCallbackMemoKey)
+		callbackData, ok := tc.packetData.GetAdditionalData(types.SourceCallbackMemoKey).(map[string]interface{})
+		suite.Require().Equal(ok, callbackData != nil)
 		suite.Require().Equal(tc.expUserGas, types.GetUserDefinedGasLimit(callbackData), tc.name)
 	}
 }

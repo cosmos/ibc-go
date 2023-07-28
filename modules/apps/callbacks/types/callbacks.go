@@ -99,8 +99,8 @@ func getCallbackData(
 		return CallbackData{}, false, ErrNotAdditionalPacketDataProvider
 	}
 
-	callbackData := additionalPacketDataProvider.GetAdditionalData(callbackKey)
-	if callbackData == nil {
+	callbackData, ok := additionalPacketDataProvider.GetAdditionalData(callbackKey).(map[string]interface{})
+	if callbackData == nil || !ok {
 		return CallbackData{}, false, ErrCallbackMemoKeyNotFound
 	}
 

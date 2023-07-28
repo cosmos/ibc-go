@@ -69,7 +69,7 @@ func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string
 // GetAdditionalData returns a json object from the memo as `map[string]interface{}` so that it
 // can be interpreted as a json object with keys.
 // If the key is missing or the memo is not properly formatted, then nil is returned.
-func (iapd InterchainAccountPacketData) GetAdditionalData(key string) map[string]interface{} {
+func (iapd InterchainAccountPacketData) GetAdditionalData(key string) interface{} {
 	if len(iapd.Memo) == 0 {
 		return nil
 	}
