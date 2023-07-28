@@ -246,8 +246,6 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	var (
 		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		denom    = "transfer/channel-0/atom"
-		amount   = "100"
 
 		data          []byte
 		expPacketData types.FungibleTokenPacketData
@@ -259,14 +257,28 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		expPass  bool
 	}{
 		{
-			"success: both callbacks",
+			"success: valid packet data with memo",
 			func() {
 				expPacketData = types.FungibleTokenPacketData{
-					Denom:    denom,
-					Amount:   amount,
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
 					Sender:   sender,
 					Receiver: receiver,
 					Memo:     "some memo",
+				}
+				data = expPacketData.GetBytes()
+			},
+			true,
+		},
+		{
+			"success: valid packet data without memo",
+			func() {
+				expPacketData = types.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
 				}
 				data = expPacketData.GetBytes()
 			},
