@@ -86,7 +86,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 	}
 }
 
-func (suite *TypesTestSuite) TestGetCustomPacketData() {
+func (suite *TypesTestSuite) TestPacketDataProvider() {
 	expCallbackAddr := ibctesting.TestAccAddress
 
 	testCases := []struct {

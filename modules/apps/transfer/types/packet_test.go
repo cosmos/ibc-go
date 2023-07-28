@@ -45,7 +45,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
+func (suite *TypesTestSuite) TestPacketDataProvider() {
 	testCases := []struct {
 		name              string
 		packetData        types.FungibleTokenPacketData
