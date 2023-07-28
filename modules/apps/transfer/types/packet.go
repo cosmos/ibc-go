@@ -10,7 +10,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
+
+var _ ibcexported.PacketData = (*FungibleTokenPacketData)(nil)
 
 var (
 	// DefaultRelativePacketTimeoutHeight is the default packet timeout height (in blocks) relative
@@ -63,4 +66,11 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 // GetBytes is a helper for serialising
 func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
+}
+
+// GetPacketSender returns the sender address of the packet data.
+// NOTE: The sender address is set at the source chain and not validated by
+// a signature check in IBC.
+func (ftpd FungibleTokenPacketData) GetPacketSender(srcPortID string) string {
+	return ftpd.Sender
 }
