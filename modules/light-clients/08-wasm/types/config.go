@@ -1,8 +1,15 @@
 package types
 
-// contractMemoryLimit is the memory limit of each contract execution (in MiB)
-// constant value so all nodes run with the same limit.
-const ContractMemoryLimit = 32
+const (
+	// contractMemoryLimit is the memory limit of each contract execution (in MiB)
+	// constant value so all nodes run with the same limit.
+	ContractMemoryLimit = 32
+
+	defaultDataDir           string = "ibc_08-wasm_client_data"
+	defaultSupportedFeatures string = "iterator"
+	defaultMemoryCacheSize   uint32 = 256 // in MiB
+	defaultContractDebugMode        = false
+)
 
 type WasmConfig struct {
 	// DataDir is the directory for Wasm blobs and various caches
@@ -17,4 +24,14 @@ type WasmConfig struct {
 	// ContractDebugMode is a flag to log what contracts print. It must be false on all
 	// production nodes, and only enabled in test environments or debug non-validating nodes.
 	ContractDebugMode bool
+}
+
+// DefaultWasmConfig returns the default settings for WasmConfig
+func DefaultWasmConfig() WasmConfig {
+	return WasmConfig{
+		DataDir:           defaultDataDir,
+		SupportedFeatures: defaultSupportedFeatures,
+		MemoryCacheSize:   defaultMemoryCacheSize,
+		ContractDebugMode: defaultContractDebugMode,
+	}
 }
