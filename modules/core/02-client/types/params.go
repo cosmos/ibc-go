@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -29,12 +30,7 @@ func (p Params) Validate() error {
 
 // IsAllowedClient checks if the given client type is registered on the allowlist.
 func (p Params) IsAllowedClient(clientType string) bool {
-	for _, allowedClient := range p.AllowedClients {
-		if allowedClient == clientType {
-			return true
-		}
-	}
-	return false
+	return collections.Contains(clientType, p.AllowedClients)
 }
 
 // validateClients checks that the given clients are not blank.
