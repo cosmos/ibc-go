@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -41,5 +42,86 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		} else {
 			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
 		}
+	}
+}
+
+func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
+	testCases := []struct {
+		name              string
+		packetData        types.FungibleTokenPacketData
+		expAdditionalData map[string]interface{}
+		expPacketSender   string
+	}{
+		{
+			"success: src_callback key in memo",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver),
+			},
+			map[string]interface{}{
+				"address": receiver,
+			},
+			sender,
+		},
+		{
+			"success: src_callback key in memo with additional fields",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver),
+			},
+			map[string]interface{}{
+				"address":   receiver,
+				"gas_limit": "200000",
+			},
+			sender,
+		},
+		{
+			"failure: empty memo",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "",
+			},
+			nil,
+			sender,
+		},
+		{
+			"failure: non-json memo",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "invalid",
+			},
+			nil,
+			sender,
+		},
+		{
+			"failure: invalid src_callback key",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": "invalid"}`,
+			},
+			nil,
+			sender,
+		},
+	}
+
+	for _, tc := range testCases {
+		additionalData, ok := tc.packetData.GetCustomPacketData("src_callback").(map[string]interface{})
+		suite.Require().Equal(ok, additionalData != nil)
+		suite.Require().Equal(tc.expAdditionalData, additionalData)
 	}
 }
