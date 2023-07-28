@@ -121,7 +121,7 @@ func (suite *CallbacksTestSuite) TestOnChanCloseConfirm() {
 	suite.Require().NoError(err)
 }
 
-func (suite *CallbacksTestSuite) TestSendPacket() {
+func (suite *CallbacksTestSuite) TestSendPacketError() {
 	suite.SetupICATest()
 	// We will pass the function call down the icacontroller stack to the channel keeper
 	// icacontroller stack SendPacket call order: callbacks -> fee -> channel
