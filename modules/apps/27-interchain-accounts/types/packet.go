@@ -1,13 +1,18 @@
 package types
 
 import (
+	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
+
+var _ ibcexported.PacketData = (*InterchainAccountPacketData)(nil)
 
 // MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
 const MaxMemoCharLength = 256
@@ -63,4 +68,16 @@ func (ct CosmosTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	}
 
 	return nil
+}
+
+// GetPacketSender returns the sender address of the packet from the source port ID by cutting off
+// the ControllerPortPrefix.
+// If the source port ID does not have the ControllerPortPrefix, then an empty string is returned.
+// NOTE: The sender address is set at the source chain and not validated by a signature check in IBC.
+func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string {
+	icaOwner, found := strings.CutPrefix(srcPortID, ControllerPortPrefix)
+	if !found {
+		return ""
+	}
+	return icaOwner
 }
