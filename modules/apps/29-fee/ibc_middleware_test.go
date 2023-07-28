@@ -1104,5 +1104,6 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
 	mockFeeMiddleware := fee.NewIBCMiddleware(nil, feekeeper.Keeper{})
 
 	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
-	suite.Require().ErrorIs(err, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil)))
+	expError := errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
+	suite.Require().ErrorIs(err, expError)
 }
