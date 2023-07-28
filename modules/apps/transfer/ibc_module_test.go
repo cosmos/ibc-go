@@ -244,10 +244,10 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 
 func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	var (
-		sender           = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		receiver         = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		denom            = "transfer/channel-0/atom"
-		amount           = "100"
+		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		denom    = "transfer/channel-0/atom"
+		amount   = "100"
 
 		data          []byte
 		expPacketData types.FungibleTokenPacketData
