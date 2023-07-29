@@ -486,6 +486,48 @@ module.exports = {
                 },
               ],
             },
+            {
+              title: "Wasm",
+              directory: true,
+              path: "/ibc/light-clients/wasm",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/overview.html",
+                },
+                {
+                  title: "Concepts",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/concepts.html",
+                },
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/integration.html",
+                },
+                {
+                  title: "Messages",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/messages.html",
+                },
+                {
+                  title: "Deployment",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/deployment.html",
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/events.html",
+                },
+                {
+                  title: "Client",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/client.html",
+                },
+              ],
+            },
           ],
         },
         {
