@@ -38,16 +38,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().TransferKeeper)
 }
 
-func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
-	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
-
-	return path
-}
-
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }

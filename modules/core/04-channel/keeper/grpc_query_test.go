@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -90,7 +89,7 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.Channel(ctx, req)
 
@@ -186,7 +185,7 @@ func (suite *KeeperTestSuite) TestQueryChannels() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.Channels(ctx, req)
 
@@ -303,7 +302,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionChannels() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.ConnectionChannels(ctx, req)
 
@@ -428,7 +427,7 @@ func (suite *KeeperTestSuite) TestQueryChannelClientState() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.ChannelClientState(ctx, req)
 
@@ -569,7 +568,7 @@ func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.ChannelConsensusState(ctx, req)
 
@@ -676,7 +675,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.PacketCommitment(ctx, req)
 
@@ -769,7 +768,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.PacketCommitments(ctx, req)
 
@@ -874,7 +873,7 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.PacketReceipt(ctx, req)
 
@@ -974,7 +973,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.PacketAcknowledgement(ctx, req)
 
@@ -1094,7 +1093,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.PacketAcknowledgements(ctx, req)
 
@@ -1323,7 +1322,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.UnreceivedPackets(ctx, req)
 
@@ -1455,7 +1454,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.UnreceivedAcks(ctx, req)
 
@@ -1557,7 +1556,7 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.NextSequenceReceive(ctx, req)
 
@@ -1659,7 +1658,7 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.QueryServer.NextSequenceSend(ctx, req)
 
 			if tc.expPass {
