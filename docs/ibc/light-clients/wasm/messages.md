@@ -10,9 +10,9 @@ Uploading to the Wasm VM storage the bytecode of a Wasm light client contract is
 
 ```go
 type MsgStoreCode struct {
-	Signer string
-	// wasm byte code of light client contract. It can be raw or gzip compressed
-	WasmByteCode []byte
+  Signer string
+  // wasm byte code of light client contract. It can be raw or gzip compressed
+  WasmByteCode []byte
 }
 ```
 

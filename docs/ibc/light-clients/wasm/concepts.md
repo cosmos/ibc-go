@@ -20,13 +20,13 @@ The `08-wasm`'s `ClientState` data structure maintains three fields:
 
 ```go
 type ClientState struct {
-	// bytes encoding the client state of the underlying 
+  // bytes encoding the client state of the underlying 
   // light client implemented as a Wasm contract
-	Data         []byte
+  Data         []byte
   // sha256 hash of Wasm contract bytecode
-	CodeHash     []byte
+  CodeHash     []byte
   // latest height of the counterparty ledger
-	LatestHeight types.Height
+  LatestHeight types.Height
 }
 ```
 
@@ -38,11 +38,11 @@ The `08-wasm`'s `ConsensusState` data structure maintains one field:
 
 - `Data` contains the bytes of the Protobuf-encoded consensus state of the underlying light client implemented as a Wasm contract. For example, if the light client Wasm contract implements the Tendermint light client algorithm, then `Data` will contain the bytes for a [Tendermint consensus state](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/light-clients/07-tendermint/tendermint.pb.go#L101-L109).
 
-```golang
+```go
 type ConsensusState struct {
-	// bytes encoding the consensus state of the underlying light client
-	// implemented as a Wasm contract.
-	Data []byte
+  // bytes encoding the consensus state of the underlying light client
+  // implemented as a Wasm contract.
+  Data []byte
 }
 ```
 
@@ -54,10 +54,10 @@ See section [`ConsensusState` of the light client module developer guide](../ove
 
 - `Data` contains the bytes of the Protobuf-encoded header(s) or misbehaviour for the underlying light client implemented as a Wasm contract. For example, if the light client Wasm contract implements the Tendermint light client algorithm, then `Data` will contain the bytes of either [header](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/light-clients/07-tendermint/tendermint.pb.go#L186-L203) or [misbehaviour](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/light-clients/07-tendermint/tendermint.pb.go#L144-L151) for a Tendermint light client.
 
-```golang
+```go
 type ClientMessage struct {
   // bytes encoding the header(s) or misbehaviour for the underlying light client
-	// implemented as a Wasm contract.
+  // implemented as a Wasm contract.
   Data []byte
 }
 ```

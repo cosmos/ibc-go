@@ -10,13 +10,13 @@ Learn how to integrate the `08-wasm` module in a chain binary and about the reco
 
 The sample code below shows the relevant integration points in `app.go` required to setup the `08-wasm` module in a chain binary. Since `08-wasm` is a light client module itself, please check out as well the section [Integrating light clients](../../integration.md#integrating-light-clients) for more information:
 
-```golang
+```go
 // app.go
 import (
-	...
-	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  ...
+  wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+  wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+  wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
   ...
 )
 
@@ -24,71 +24,66 @@ import (
 
 // Register the AppModule for the 08-wasm module
 ModuleBasics = module.NewBasicManager(
-	...
-	wasm.AppModuleBasic{},
-	...
+  ...
+  wasm.AppModuleBasic{},
+  ...
 )
 
 // Add 08-wasm Keeper
 type SimApp struct {
-	...
-	WasmClientKeeper wasmkeeper.Keeper
-	...
+  ...
+  WasmClientKeeper wasmkeeper.Keeper
+  ...
 }
 
 func NewSimApp(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	loadLatest bool,
-	appOpts servertypes.AppOptions,
-	baseAppOptions ...func(*baseapp.BaseApp),
+  logger log.Logger,
+  db dbm.DB,
+  traceStore io.Writer,
+  loadLatest bool,
+  appOpts servertypes.AppOptions,
+  baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
-	...
-	keys := sdk.NewKVStoreKeys(
-		...
+  ...
+  keys := sdk.NewKVStoreKeys(
+    ...
     wasmtypes.StoreKey,
-	)
-
-  // Instantiate 08-wasm's keeper
-  // This sample code uses a constructor function that
-  // accepts a pointer to an existing instance of Wasm VM.
-  // This is the recommended approach when the chain
-  // also uses `x/wasm`, and then the Wasm VM instance
-  // can be shared.
-  // See the section below for more information.
-	app.WasmClientKeeper = wasmkeeper.NewKeeper(
+  ) 
+   // Instantiate 08-wasm's keeper
+   // This sample code uses a constructor function that
+   // accepts a pointer to an existing instance of Wasm VM.
+   // This is the recommended approach when the chain
+   // also uses `x/wasm`, and then the Wasm VM instance
+   // can be shared.
+   // See the section below for more information.
+  app.WasmClientKeeper = wasmkeeper.NewKeeper(
     appCodec,
     keys[wasmtypes.StoreKey],
     authtypes.NewModuleAddress(govtypes.ModuleName).String(),
     wasmVM,
-  )
-
-	app.ModuleManager = module.NewManager(
-		// SDK app modules
-		...
-		wasm.NewAppModule(app.WasmClientKeeper),
-	)
-
-	app.ModuleManager.SetOrderBeginBlockers(
-		...
+  )  
+  app.ModuleManager = module.NewManager(
+    // SDK app modules
+    ...
+    wasm.NewAppModule(app.WasmClientKeeper),
+  ) 
+  app.ModuleManager.SetOrderBeginBlockers(
+    ...
     wasmtypes.ModuleName,
     ...
-	)
-
-	app.ModuleManager.SetOrderEndBlockers(
-		...
+  ) 
+  app.ModuleManager.SetOrderEndBlockers(
+    ...
     wasmtypes.ModuleName,
     ...
-	)
-
-	genesisModuleOrder := []string{
+  ) 
+  genesisModuleOrder := []string{
     ...
-		wasmtypes.ModuleName,
+    wasmtypes.ModuleName,
     ...
-	}
+  }
   app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
-	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
+  app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
   ...
 }
 ```
@@ -110,7 +105,7 @@ In order to share the Wasm VM instance please follow the guideline below. Please
 
 The code to set this up would look something like this:
 
-```golang
+```go
 // app.go
 import (
   ...
@@ -174,9 +169,9 @@ app.WasmClientKeeper = wasmkeeper.NewKeeper(
 ### If `x/wasm` is not present
 
 If the chain does not use [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm), even though it is still possible to use the method above from the previous section
-(e.g. instantiating a Wasm VM in app.go an pass it to 08-wasm's [`NewKeeper` constructor function](https://github.com/cosmos/ibc-go/blob/c95c22f45cb217d27aca2665af9ac60b0d2f3a0c/modules/light-clients/08-wasm/keeper/keeper.go#L33-L38), since there would be bi need in this case to share the Wasm VM instance with another module, you can use the [`NewKeeperWithConfig`` constructor function](https://github.com/cosmos/ibc-go/blob/c95c22f45cb217d27aca2665af9ac60b0d2f3a0c/modules/light-clients/08-wasm/keeper/keeper.go#L52-L57) and provide the Wasm VM configuration parameters of your choice instead. A Wasm VM instance will be created in `NewKeeperWithConfig`. The parameters that can set are:
+(e.g. instantiating a Wasm VM in app.go an pass it to 08-wasm's [`NewKeeper` constructor function](https://github.com/cosmos/ibc-go/blob/c95c22f45cb217d27aca2665af9ac60b0d2f3a0c/modules/light-clients/08-wasm/keeper/keeper.go#L33-L38), since there would be bi need in this case to share the Wasm VM instance with another module, you can use the [`NewKeeperWithConfig`` constructor function](https://github.com/cosmos/ibc-go/blob/c95c22f45cb217d27aca2665af9ac60b0d2f3a0c/modules/light-clients/08-wasm/keeper/keeper.go#L52-L57) and provide the Wasm VM configuration parameters of your choice instead. A Wasm VM instance will be created in`NewKeeperWithConfig`. The parameters that can set are:
 
--	`DataDir` is the [directory for Wasm blobs and various caches](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L25). In `wasmd` this is set to the [`wasm` folder under the home directory](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/app/app.go#L578).
+- `DataDir` is the [directory for Wasm blobs and various caches](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L25). In `wasmd` this is set to the [`wasm` folder under the home directory](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/app/app.go#L578).
 - `SupportedFeatures` is a comma separated [list of capabilities supported by the chain](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L26). [`wasmd` sets this to all the available capabilities](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/app/app.go#L586), but 08-wasm only requires `iterator`.
 - `MemoryCacheSize` sets [the size in MiB of an in-memory cache for e.g. module caching](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L29C16-L29C104). It is not consensus-critical and should be defined on a per-node basis, often in the range 100 to 1000 MB. [`wasmd` reads this value of](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/app/app.go#L579). Default value is 256.
 - `ContractDebugMode` is a [flag to enable/disable printing debug logs from the contract to STDOUT](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L28). This should be false in production environments. Default value is false.
@@ -185,7 +180,7 @@ Another configuration parameter of the Wasm VM is the contract memory limit (in 
 
 The following sample code shows how the keeper would be constructed using this method:
 
-```golang
+```go
 // app.go
 import (
   ...
@@ -195,10 +190,10 @@ import (
 )
 ...
 wasmConfig := wasmtypes.WasmConfig{
-	DataDir:           "ibc_08-wasm_client_data",
-	SupportedFeatures: "iterator",
-	MemoryCacheSize:   uint32(math.Pow(2, 8)),
-	ContractDebugMode: false,
+  DataDir:           "ibc_08-wasm_client_data",
+  SupportedFeatures: "iterator",
+  MemoryCacheSize:   uint32(math.Pow(2, 8)),
+  ContractDebugMode: false,
 }
 app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
   appCodec,
@@ -214,10 +209,10 @@ Check out also the [`WasmConfig` type definition](https://github.com/cosmos/ibc-
 
 In order to use the `08-wasm` module chains must update the [`AllowedClients` parameter in the 02-client submodule](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/client/v1/client.proto#L103) of core IBC. This can be configured directly in the application upgrade handler with the sample code below:
 
-```golang
+```go
 params := clientKeeper.GetParams(ctx)
 params.AllowedClients = append(params.AllowedClients, exported.Wasm)
 clientKeeper.SetParams(ctx, params)
 ```
 
-Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients` ](../setup.md#creating-clients) for an example of how to do this).
+Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients`](../setup.md#creating-clients) for an example of how to do this).

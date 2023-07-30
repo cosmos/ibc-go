@@ -16,7 +16,7 @@ The `tx` commands allow users to interact with the `08-wasm` submodule.
 simd tx ibc-wasm --help
 ```
 
-##### `store-code`
+#### `store-code`
 
 TODO: document CLI to submit gov v1 proposal with `MsgStoreCode`.
 
