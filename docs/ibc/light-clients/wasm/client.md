@@ -30,7 +30,7 @@ simd query ibc-wasm --help
 
 #### `code-hashes`
 
-The `code-hashes` command allows users to query the list of code hashes of Wasm light client contracts in the Wasm VM via the `MsgStoreCode`.
+The `code-hashes` command allows users to query the list of code hashes of Wasm light client contracts stored in the Wasm VM via the `MsgStoreCode`.
 
 ```shell
 simd query ibc-wasm code-hashes [flags]
@@ -45,12 +45,16 @@ simd query ibc-wasm code-hashes
 Example Output:
 
 ```shell
-amount: "100"
+code_hashes:
+- c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64
+pagination:
+  next_key: null
+  total: "1"
 ```
 
 #### `code`
 
-The `code` command allows users to query the list of code hashes of Wasm light client contracts in the Wasm VM via the `MsgStoreCode`.
+The `code` command allows users to query the Wasm byte code of a light client contract given the provided input code hash.
 
 ```shell
 ./simd q ibc-wasm code
@@ -59,13 +63,13 @@ The `code` command allows users to query the list of code hashes of Wasm light c
 Example:
 
 ```shell
-simd query ibc-wasm code <TODO: code-hash>
+simd query ibc-wasm code c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64
 ```
 
 Example Output:
 
 ```shell
-amount: "100"
+code: AGFzb...AqBBE=
 ```
 
 ## gRPC
@@ -74,7 +78,7 @@ A user can query the `08-wasm` module using gRPC endpoints.
 
 ### `CodeHashes`
 
-The `CodeHashes` endpoint allows users to query the total amount in escrow for a particular coin denomination regardless of the transfer channel from where the coins were sent out.
+The `CodeHashes` endpoint allows users to query the list of code hashes of Wasm light client contracts stored in the Wasm VM via the `MsgStoreCode`.
 
 ```shell
 ibc.lightclients.wasm.v1.Query/CodeHashes
@@ -93,12 +97,36 @@ Example output:
 
 ```shell
 {
-  "amount": "100"
+  "codeIds": [
+    "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"
+  ],
+  "pagination": {
+    "total": "1"
+  }
 }
 ```
 
 ### `Code`
 
+The `Code` endpoint allows users to query the Wasm byte code of a light client contract given the provided input code hash.
+
 ```shell
 ibc.lightclients.wasm.v1.Query/Code
+```
+
+Example:
+
+```shell
+grpcurl -plaintext \
+  -d '{"code_hash":"c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"}' \
+  localhost:9090 \
+  ibc.lightclients.wasm.v1.Query/Code
+```
+
+Example output:
+
+```shell
+{
+  "code": AGFzb...AqBBE=
+}
 ```
