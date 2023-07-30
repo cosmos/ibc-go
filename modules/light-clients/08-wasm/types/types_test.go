@@ -61,9 +61,7 @@ func (suite *TypesTestSuite) SetupTest() {
 func (suite *TypesTestSuite) SetupWasmTendermint() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainA.SetWasm(true)
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.chainB.SetWasm(true)
 
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
@@ -86,7 +84,6 @@ func (suite *TypesTestSuite) SetupWasmTendermint() {
 	suite.Require().NotNil(response.Checksum)
 	suite.codeHash = response.Checksum
 
-	suite.coordinator.SetCodeHash(suite.codeHash)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
@@ -159,4 +156,16 @@ func TestWasmTestSuite(t *testing.T) {
 
 func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) map[string]tmtypes.PrivValidator {
 	return map[string]tmtypes.PrivValidator{altVal.Address.String(): altPrivVal}
+}
+
+// NewPathWithWasmTendermint constructs an endpoint for each chain using
+// the default values for the endpoints, expect for the client config, for
+// which it uses the Wasm Tendermint config, so that both endpoints use the
+// Tendermint Wasm light client contract.
+// Each endpoint is updated to have a pointer to the counterparty endpoint.
+func NewPathWithWasmTendermint(chainA, chainB *ibctesting.TestChain, codeHash []byte) *ibctesting.Path {
+	path := ibctesting.NewPath(chainA, chainB)
+	path.EndpointA.WithClientConfig(ibctesting.NewWasmTendermintConfig(codeHash))
+	path.EndpointB.WithClientConfig(ibctesting.NewWasmTendermintConfig(codeHash))
+	return path
 }

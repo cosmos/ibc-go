@@ -54,10 +54,16 @@ func NewEndpoint(
 func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 	return &Endpoint{
 		Chain:            chain,
-		ClientConfig:     NewTendermintConfig(chain.UseWasmClient),
+		ClientConfig:     NewTendermintConfig(),
 		ConnectionConfig: NewConnectionConfig(),
 		ChannelConfig:    NewChannelConfig(),
 	}
+}
+
+// WithClientConfig sets the client config on the associated Endpoint and returns it.
+func (endpoint *Endpoint) WithClientConfig(clientCfg ClientConfig) *Endpoint {
+	endpoint.ClientConfig = clientCfg
+	return endpoint
 }
 
 // QueryProof queries proof associated with this endpoint using the lastest client state
@@ -117,7 +123,12 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		if err != nil {
 			return err
 		}
-		clientState = wasmtypes.NewClientState(wasmClientState, endpoint.Chain.Coordinator.CodeHash, height)
+
+		wasmTendermintConfig, ok := endpoint.ClientConfig.(*WasmTendermintConfig)
+		if !ok {
+			return fmt.Errorf("invalid client config type, expected %T, got: %T", (*WasmTendermintConfig)(nil), endpoint.ClientConfig)
+		}
+		clientState = wasmtypes.NewClientState(wasmClientState, wasmTendermintConfig.CodeHash, height)
 
 		wasmConsensusState, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
 		if err != nil {

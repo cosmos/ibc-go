@@ -133,8 +133,8 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateBasicTendermint() 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint() // reset
-			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			substitutePath = ibctesting.NewPath(suite.chainA, suite.chainB)
+			subjectPath := NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			substitutePath = NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
 
 			suite.coordinator.SetupClients(subjectPath)
 			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
@@ -182,7 +182,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 			suite.SetupWasmTendermint() // reset
 
 			// construct subject using test case parameters
-			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			subjectPath := NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
 			suite.coordinator.SetupClients(subjectPath)
 			subjectWasmClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*types.ClientState)
 
@@ -202,7 +202,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 
 			// construct the substitute to match the subject client
 
-			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			substitutePath := NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
 			suite.coordinator.SetupClients(substitutePath)
 			substituteWasmClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*types.ClientState)
 

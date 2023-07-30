@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
@@ -30,7 +29,7 @@ func (suite *TypesTestSuite) TestExportMetadataTendermint() {
 	suite.SetupWasmTendermint()
 
 	// test intializing client and exporting metadata
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
 	suite.coordinator.SetupClients(path)
 	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	clientState := path.EndpointA.GetClientState()

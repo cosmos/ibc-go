@@ -19,24 +19,40 @@ type TendermintConfig struct {
 	TrustingPeriod  time.Duration
 	UnbondingPeriod time.Duration
 	MaxClockDrift   time.Duration
-	IsWasmClient    bool
 }
 
-func NewTendermintConfig(isWasmClient bool) *TendermintConfig {
+func NewTendermintConfig() *TendermintConfig {
 	return &TendermintConfig{
 		TrustLevel:      DefaultTrustLevel,
 		TrustingPeriod:  TrustingPeriod,
 		UnbondingPeriod: UnbondingPeriod,
 		MaxClockDrift:   MaxClockDrift,
-		IsWasmClient:    isWasmClient,
 	}
 }
 
 func (tmcfg *TendermintConfig) GetClientType() string {
-	if tmcfg.IsWasmClient {
-		return exported.Wasm
-	}
 	return exported.Tendermint
+}
+
+type WasmTendermintConfig struct {
+	TendermintConfig
+	CodeHash []byte
+}
+
+func NewWasmTendermintConfig(codeHash []byte) *WasmTendermintConfig {
+	return &WasmTendermintConfig{
+		CodeHash: codeHash,
+		TendermintConfig: TendermintConfig{
+			TrustLevel:      DefaultTrustLevel,
+			TrustingPeriod:  TrustingPeriod,
+			UnbondingPeriod: UnbondingPeriod,
+			MaxClockDrift:   MaxClockDrift,
+		},
+	}
+}
+
+func (wasmcfg *WasmTendermintConfig) GetClientType() string {
+	return exported.Wasm
 }
 
 type ConnectionConfig struct {

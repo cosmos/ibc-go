@@ -47,11 +47,6 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 	return coord
 }
 
-// SetCodeHash sets the code hash of a wasm ligh client contract
-func (coord *Coordinator) SetCodeHash(codeHash []byte) {
-	coord.CodeHash = codeHash
-}
-
 // IncrementTime iterates through all the TestChain's and increments their current header time
 // by 5 seconds.
 //
