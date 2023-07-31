@@ -62,6 +62,21 @@ func NewKeeper(
 	}
 }
 
+<<<<<<< HEAD
+=======
+// WithICS4Wrapper sets the ICS4Wrapper. This function may be used after
+// the keepers creation to set the middleware which is above this module
+// in the IBC application stack.
+func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = wrapper
+}
+
+// GetAuthority returns the transfer module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
+}
+
+>>>>>>> 561eb36f (imp(apps): added 'WithICS4Wrapper' function to keepers (#4187))
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)

@@ -7,6 +7,8 @@ import (
 
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
+	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -255,3 +257,77 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	suite.Require().True(found)
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
 }
+<<<<<<< HEAD
+=======
+
+func (suite *KeeperTestSuite) TestSetAndGetParams() {
+	testCases := []struct {
+		name    string
+		input   types.Params
+		expPass bool
+	}{
+		// it is not possible to set invalid booleans
+		{"success: set params false", types.NewParams(false), true},
+		{"success: set params true", types.NewParams(true), true},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
+			if tc.expPass {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
+				expected := tc.input
+				p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
+				suite.Require().Equal(expected, p)
+			} else { // currently not possible to set invalid params
+				suite.Require().Panics(func() {
+					suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
+				})
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestUnsetParams() {
+	suite.SetupTest()
+
+	ctx := suite.chainA.GetContext()
+	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.SubModuleName))
+	store.Delete([]byte(types.ParamsKey))
+
+	suite.Require().Panics(func() {
+		suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
+	})
+}
+
+func (suite *KeeperTestSuite) TestGetAuthority() {
+	suite.SetupTest()
+
+	authority := suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority()
+	expectedAuth := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	suite.Require().Equal(expectedAuth, authority)
+}
+
+func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
+	suite.SetupTest()
+
+	// test if the ics4 wrapper is the fee keeper initially
+	ics4Wrapper := suite.chainA.GetSimApp().ICAControllerKeeper.GetICS4Wrapper()
+
+	_, isFeeKeeper := ics4Wrapper.(ibcfeekeeper.Keeper)
+	suite.Require().True(isFeeKeeper)
+	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
+	suite.Require().False(isChannelKeeper)
+
+	// set the ics4 wrapper to the channel keeper
+	suite.chainA.GetSimApp().ICAControllerKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
+	ics4Wrapper = suite.chainA.GetSimApp().ICAControllerKeeper.GetICS4Wrapper()
+
+	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
+	suite.Require().True(isChannelKeeper)
+	_, isFeeKeeper = ics4Wrapper.(ibcfeekeeper.Keeper)
+	suite.Require().False(isFeeKeeper)
+}
+>>>>>>> 561eb36f (imp(apps): added 'WithICS4Wrapper' function to keepers (#4187))
