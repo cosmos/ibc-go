@@ -6,8 +6,23 @@ on:
       - '.github/workflows/wasm-client.yml'
       - 'modules/light-clients/08-wasm/**'
       - 'proto/ibc/lightclients/wasm/**'
+permissions:
+  contents: read
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - uses: actions/checkout@v3
+      - uses: golangci/golangci-lint-action@v3.6.0
+        with:
+          version: v1.53.1
+          args: --timeout 5m
+          working-directory: modules/light-clients/08-wasm
+
   build:
     runs-on: ubuntu-latest
     strategy:
