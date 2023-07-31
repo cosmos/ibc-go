@@ -310,7 +310,7 @@ func (im IBCModule) OnTimeoutPacket(
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
+func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	var packetData types.FungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {
 		return nil, err
