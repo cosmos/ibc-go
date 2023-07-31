@@ -74,8 +74,8 @@ func (ct CosmosTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 // the ControllerPortPrefix.
 // If the source port ID does not have the ControllerPortPrefix, then an empty string is returned.
 // NOTE: The sender address is set at the source chain and not validated by a signature check in IBC.
-func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string {
-	icaOwner, found := strings.CutPrefix(srcPortID, ControllerPortPrefix)
+func (iapd InterchainAccountPacketData) GetPacketSender(sourcePortID string) string {
+	icaOwner, found := strings.CutPrefix(sourcePortID, ControllerPortPrefix)
 	if !found {
 		return ""
 	}
