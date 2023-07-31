@@ -6,7 +6,7 @@ order: 6
 
 The `08-wasm` module emits the following events:
 
-## `MsgStoreCodee`
+## `MsgStoreCode`
 
 | Type            | Attribute Key  | Attribute Value        |
 |-----------------|----------------|------------------------|
