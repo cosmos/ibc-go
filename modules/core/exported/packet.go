@@ -33,7 +33,7 @@ type Acknowledgement interface {
 	Acknowledgement() []byte
 }
 
-// PacketData defines an optional interface which application's packet data may implement.
+// PacketData defines an optional interface which application's packet data structure may implement.
 type PacketData interface {
 	// GetPacketSender returns the sender address of the packet.
 	// If the packet sender is unknown or undefined, an empty string should be returned.
