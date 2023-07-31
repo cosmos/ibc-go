@@ -74,8 +74,8 @@ func (suite KeeperTestSuite) TestGetAllConnections() { //nolint:govet // this is
 	counterpartyB0 := types.NewCounterparty(path1.EndpointB.ClientID, path1.EndpointB.ConnectionID, suite.chainB.GetPrefix()) // connection B0
 	counterpartyB1 := types.NewCounterparty(path2.EndpointB.ClientID, path2.EndpointB.ConnectionID, suite.chainB.GetPrefix()) // connection B1
 
-	conn1 := types.NewConnectionEnd(types.OPEN, path1.EndpointA.ClientID, counterpartyB0, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0) // A0 - B0
-	conn2 := types.NewConnectionEnd(types.OPEN, path2.EndpointA.ClientID, counterpartyB1, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0) // A1 - B1
+	conn1 := types.NewConnectionEnd(types.OPEN, path1.EndpointA.ClientID, counterpartyB0, types.GetCompatibleVersions(), 0) // A0 - B0
+	conn2 := types.NewConnectionEnd(types.OPEN, path2.EndpointA.ClientID, counterpartyB1, types.GetCompatibleVersions(), 0) // A1 - B1
 
 	iconn1 := types.NewIdentifiedConnection(path1.EndpointA.ConnectionID, conn1)
 	iconn2 := types.NewIdentifiedConnection(path2.EndpointA.ConnectionID, conn2)
@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
 	suite.Require().True(found)
 	suite.Require().Equal(types.OPEN, connectionEnd.State)
 	suite.Require().Equal(exported.LocalhostClientID, connectionEnd.ClientId)
-	suite.Require().Equal(types.ExportedVersionsToProto(types.GetCompatibleVersions()), connectionEnd.Versions)
+	suite.Require().Equal(types.GetCompatibleVersions(), connectionEnd.Versions)
 	expectedCounterParty := types.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, commitmenttypes.NewMerklePrefix(connectionKeeper.GetCommitmentPrefix().Bytes()))
 	suite.Require().Equal(expectedCounterParty, connectionEnd.Counterparty)
 }
