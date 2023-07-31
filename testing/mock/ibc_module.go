@@ -17,7 +17,7 @@ import (
 // applicationCallbackError is a custom error type that will be unique for testing purposes.
 type applicationCallbackError struct{}
 
-func (e applicationCallbackError) Error() string {
+func (applicationCallbackError) Error() string {
 	return "mock application callback failed"
 }
 
