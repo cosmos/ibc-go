@@ -102,7 +102,7 @@ func (k Keeper) GetAuthority() string {
 
 // isEmpty checks if the interface is an empty struct or a pointer pointing
 // to an empty struct
-func isEmpty(keeper any) bool {
+func isEmpty(keeper interface{}) bool {
 	switch reflect.TypeOf(keeper).Kind() {
 	case reflect.Ptr:
 		if reflect.ValueOf(keeper).Elem().IsZero() {

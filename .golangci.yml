@@ -66,7 +66,11 @@ linters-settings:
     require-specific: false
   revive:
     enable-all-rules: true
+    # Do NOT whine about the following, full explanation found in:
+    # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#description-of-available-rules
     rules:
+      - name: use-any
+        disabled: true
       - name: if-return
         disabled: true
       - name: max-public-structs

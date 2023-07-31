@@ -34,7 +34,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
-func validateEnabledType(i any) error {
+func validateEnabledType(i interface{}) error {
 	_, ok := i.(bool)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -43,7 +43,7 @@ func validateEnabledType(i any) error {
 	return nil
 }
 
-func validateAllowlistLegacy(i any) error {
+func validateAllowlistLegacy(i interface{}) error {
 	allowMsgs, ok := i.([]string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
