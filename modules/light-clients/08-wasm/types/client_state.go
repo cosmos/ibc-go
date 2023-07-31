@@ -132,7 +132,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
+		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
 	}
 
 	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
