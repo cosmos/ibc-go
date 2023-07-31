@@ -69,8 +69,11 @@ func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 }
 
 // GetPacketSender returns the sender address of the packet data.
-// NOTE: The sender address is set at the source chain and not validated by
-// a signature check in IBC.
-func (ftpd FungibleTokenPacketData) GetPacketSender(srcPortID string) string {
+//
+// NOTES:
+//   - The sender address is set at the source chain and not validated by
+//     a signature check in IBC.
+//   - sourcePortID is not used in this implementation.
+func (ftpd FungibleTokenPacketData) GetPacketSender(sourcePortID string) string {
 	return ftpd.Sender
 }
