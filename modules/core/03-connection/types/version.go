@@ -6,7 +6,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v7/internal/collections"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var (
@@ -100,7 +99,7 @@ func (version Version) VerifyProposedVersion(proposedVersion *Version) error {
 
 // VerifySupportedFeature takes in a version and feature string and returns
 // true if the feature is supported by the version and false otherwise.
-func VerifySupportedFeature(version exported.Version, feature string) bool {
+func VerifySupportedFeature(version *Version, feature string) bool {
 	return collections.Contains(feature, version.GetFeatures())
 }
 
