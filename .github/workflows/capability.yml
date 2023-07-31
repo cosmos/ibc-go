@@ -46,4 +46,7 @@ jobs:
         with:
           version: v1.53.1
           args: --timeout 5m
-          working-directory: modules/capability
+      - name: Lint
+        run: |
+          cd modules/capability
+          golangci-lint run ./... -c ../../../.golangci.yml
