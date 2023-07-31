@@ -31,8 +31,6 @@ var (
 	}
 )
 
-var _ exported.Version = (*Version)(nil)
-
 // NewVersion returns a new instance of Version.
 func NewVersion(identifier string, features []string) *Version {
 	return &Version{
@@ -73,7 +71,7 @@ func ValidateVersion(version *Version) error {
 // proposed version is supported by this chain. If the feature set is
 // empty it verifies that this is allowed for the specified version
 // identifier.
-func (version Version) VerifyProposedVersion(proposedVersion exported.Version) error {
+func (version Version) VerifyProposedVersion(proposedVersion *Version) error {
 	if proposedVersion.GetIdentifier() != version.GetIdentifier() {
 		return errorsmod.Wrapf(
 			ErrVersionNegotiationFailed,
@@ -110,14 +108,14 @@ func VerifySupportedFeature(version exported.Version, feature string) bool {
 // versions for the caller chain's connection end. The latest supported
 // version should be first element and the set should descend to the oldest
 // supported version.
-func GetCompatibleVersions() []exported.Version {
-	return []exported.Version{DefaultIBCVersion}
+func GetCompatibleVersions() []*Version {
+	return []*Version{DefaultIBCVersion}
 }
 
 // IsSupportedVersion returns true if the proposed version has a matching version
 // identifier and its entire feature set is supported or the version identifier
 // supports an empty feature set.
-func IsSupportedVersion(supportedVersions []exported.Version, proposedVersion *Version) bool {
+func IsSupportedVersion(supportedVersions []*Version, proposedVersion *Version) bool {
 	supportedVersion, found := FindSupportedVersion(proposedVersion, supportedVersions)
 	if !found {
 		return false
@@ -133,12 +131,13 @@ func IsSupportedVersion(supportedVersions []exported.Version, proposedVersion *V
 // FindSupportedVersion returns the version with a matching version identifier
 // if it exists. The returned boolean is true if the version is found and
 // false otherwise.
-func FindSupportedVersion(version exported.Version, supportedVersions []exported.Version) (exported.Version, bool) {
+func FindSupportedVersion(version *Version, supportedVersions []*Version) (*Version, bool) {
 	for _, supportedVersion := range supportedVersions {
 		if version.GetIdentifier() == supportedVersion.GetIdentifier() {
 			return supportedVersion, true
 		}
 	}
+
 	return nil, false
 }
 
@@ -153,7 +152,7 @@ func FindSupportedVersion(version exported.Version, supportedVersions []exported
 //
 // CONTRACT: PickVersion must only provide a version that is in the
 // intersection of the supported versions and the counterparty versions.
-func PickVersion(supportedVersions, counterpartyVersions []exported.Version) (*Version, error) {
+func PickVersion(supportedVersions, counterpartyVersions []*Version) (*Version, error) {
 	for _, supportedVersion := range supportedVersions {
 		// check if the source version is supported by the counterparty
 		if counterpartyVersion, found := FindSupportedVersion(supportedVersion, counterpartyVersions); found {
@@ -184,26 +183,4 @@ func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string
 	}
 
 	return featureSet
-}
-
-// ExportedVersionsToProto casts a slice of the Version interface to a slice
-// of the Version proto definition.
-func ExportedVersionsToProto(exportedVersions []exported.Version) []*Version {
-	versions := make([]*Version, len(exportedVersions))
-	for i := range exportedVersions {
-		versions[i] = exportedVersions[i].(*Version)
-	}
-
-	return versions
-}
-
-// ProtoVersionsToExported converts a slice of the Version proto definition to
-// the Version interface.
-func ProtoVersionsToExported(versions []*Version) []exported.Version {
-	exportedVersions := make([]exported.Version, len(versions))
-	for i := range versions {
-		exportedVersions[i] = versions[i]
-	}
-
-	return exportedVersions
 }
