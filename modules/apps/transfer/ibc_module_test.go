@@ -420,7 +420,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 		{
 			"invalid upgrade version",
 			func() {
-				// NOTE: counterpartyUpgrade is queried by Endpoint.ChanUpgradeTry() so retrieve and mutate fields here appropriately to force failure
+				// NOTE: counterpartyUpgrade is queried by Endpoint.ChanUpgradeAck() so retrieve and mutate fields here appropriately to force failure
 				counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
 				counterpartyUpgrade.Fields.Version = "invalid-version"
 				path.EndpointB.SetChannelUpgrade(counterpartyUpgrade)
