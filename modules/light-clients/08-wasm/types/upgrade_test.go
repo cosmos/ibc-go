@@ -5,6 +5,7 @@ import (
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -12,8 +13,6 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 // TestVerifyUpgrade currently only tests the interface into the contract.
@@ -157,7 +156,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeHash, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -216,7 +215,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeHash, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -258,7 +257,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeHash, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
@@ -286,7 +285,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeHash, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 
 				suite.coordinator.CommitBlock(suite.chainB)
 				err = path.EndpointA.UpdateClient()
@@ -320,8 +319,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				suite.Require().NoError(err)
 
 				upgradedConsState = &types.ConsensusState{
-					Data:      tmUpgradedConsStateBz,
-					Timestamp: tmUpgradedConsState.GetTimestamp(),
+					Data: tmUpgradedConsStateBz,
 				}
 
 				// commit upgrade store changes and update clients
@@ -540,7 +538,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 				suite.Require().NoError(err)
 
-				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeID, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
+				upgradedClient = types.NewClientState(tmUpgradedClientBz, suite.codeHash, clienttypes.NewHeight(tmUpgradedClient.GetLatestHeight().GetRevisionNumber(), tmUpgradedClient.GetLatestHeight().GetRevisionHeight()))
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
 
@@ -592,7 +590,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 			tmUpgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), tmUpgradedClient)
 			suite.Require().NoError(err)
 
-			upgradedClient = types.NewClientState(tmUpgradedClientBz, clientState.CodeId, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1))
+			upgradedClient = types.NewClientState(tmUpgradedClientBz, clientState.CodeHash, clienttypes.NewHeight(revisionNumber+1, clientState.GetLatestHeight().GetRevisionHeight()+1))
 			upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 			suite.Require().NoError(err)
 
@@ -606,8 +604,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 			suite.Require().NoError(err)
 
 			upgradedConsState = &types.ConsensusState{
-				Data:      tmUpgradedConsStateBz,
-				Timestamp: tmUpgradedConsState.GetTimestamp(),
+				Data: tmUpgradedConsStateBz,
 			}
 			upgradedConsStateBz, err = clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState)
 			suite.Require().NoError(err)

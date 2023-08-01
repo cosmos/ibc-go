@@ -7,41 +7,19 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-type (
-	checkForMisbehaviourInnerPayload struct {
-		ClientMessage clientMessage `json:"client_message"`
-	}
-	checkForMisbehaviourPayload struct {
-		CheckForMisbehaviour checkForMisbehaviourInnerPayload `json:"check_for_misbehaviour"`
-	}
-)
-
 // CheckForMisbehaviour detects misbehaviour in a submitted Header message and verifies
 // the correctness of a submitted Misbehaviour ClientMessage
-func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
-	clientMsgConcrete := clientMessage{
-		Header:       nil,
-		Misbehaviour: nil,
-	}
-	switch clientMsg := msg.(type) {
-	case *Header:
-		clientMsgConcrete.Header = clientMsg
-	case *Misbehaviour:
-		clientMsgConcrete.Misbehaviour = clientMsg
-	}
-
-	if clientMsgConcrete.Header == nil && clientMsgConcrete.Misbehaviour == nil {
+func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) bool {
+	clientMessage, ok := clientMsg.(*ClientMessage)
+	if !ok {
 		return false
 	}
 
-	inner := checkForMisbehaviourInnerPayload{
-		ClientMessage: clientMsgConcrete,
-	}
-	payload := checkForMisbehaviourPayload{
-		CheckForMisbehaviour: inner,
+	payload := queryMsg{
+		CheckForMisbehaviour: &checkForMisbehaviourMsg{ClientMessage: clientMessage},
 	}
 
-	result, err := call[contractResult](ctx, clientStore, &cs, payload)
+	result, err := wasmQuery[checkForMisbehaviourResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}

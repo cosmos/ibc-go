@@ -37,6 +37,7 @@ func NewKeeperWithVM(
 	vm *cosmwasm.VM,
 ) Keeper {
 	types.WasmVM = vm
+	types.WasmStoreKey = key
 
 	return Keeper{
 		cdc:       cdc,
@@ -86,8 +87,8 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// Check to see if the store has a code with the same code it
 	expectedHash := generateWasmCodeHash(code)
-	codeIDKey := types.CodeIDKey(expectedHash)
-	if store.Has(codeIDKey) {
+	codeHashKey := types.CodeHashKey(expectedHash)
+	if store.Has(codeHashKey) {
 		return nil, types.ErrWasmCodeExists
 	}
 
@@ -103,11 +104,16 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}
 
-	// safety check to assert that code ID returned by WasmVM equals to code hash
-	if !bytes.Equal(codeHash, expectedHash) {
-		return nil, errorsmod.Wrapf(types.ErrInvalidCodeID, "expected %s, got %s", hex.EncodeToString(expectedHash), hex.EncodeToString(codeHash))
+	// pin the code to the vm in-memory cache
+	if err := k.wasmVM.Pin(codeHash); err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to pin contract with code hash (%s) to vm cache", codeHash)
 	}
 
-	store.Set(codeIDKey, code)
+	// safety check to assert that code hash returned by WasmVM equals to code hash
+	if !bytes.Equal(codeHash, expectedHash) {
+		return nil, errorsmod.Wrapf(types.ErrInvalidCodeHash, "expected %s, got %s", hex.EncodeToString(expectedHash), hex.EncodeToString(codeHash))
+	}
+
+	store.Set(codeHashKey, code)
 	return codeHash, nil
 }
