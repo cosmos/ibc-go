@@ -135,7 +135,10 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
 	}
 
-	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
+	// The global store key can be used here to implement #4085
+	// wasmStore := ctx.KVStore(WasmStoreKey)
+
+	_, err := initContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to initialize contract")
 	}
