@@ -3,7 +3,7 @@ package v7_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -20,7 +20,7 @@ import (
 )
 
 type MigrationsV7TestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -31,7 +31,7 @@ type MigrationsV7TestSuite struct {
 
 // TestMigrationsV7TestSuite runs all the tests within this package.
 func TestMigrationsV7TestSuite(t *testing.T) {
-	suite.Run(t, new(MigrationsV7TestSuite))
+	testifysuite.Run(t, new(MigrationsV7TestSuite))
 }
 
 // SetupTest creates a coordinator with 2 test chains.

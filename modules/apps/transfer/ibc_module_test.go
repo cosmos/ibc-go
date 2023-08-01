@@ -1,7 +1,6 @@
 package transfer_test
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -245,12 +244,8 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 
 func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	var (
-		sender           = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		receiver         = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		srcCallbackAddr  = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		destCallbackAddr = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		denom            = "transfer/channel-0/atom"
-		amount           = "100"
+		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
 		data          []byte
 		expPacketData types.FungibleTokenPacketData
@@ -262,14 +257,28 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		expPass  bool
 	}{
 		{
-			"success: both callbacks",
+			"success: valid packet data with memo",
 			func() {
 				expPacketData = types.FungibleTokenPacketData{
-					Denom:    denom,
-					Amount:   amount,
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
 					Sender:   sender,
 					Receiver: receiver,
-					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, srcCallbackAddr, destCallbackAddr),
+					Memo:     "some memo",
+				}
+				data = expPacketData.GetBytes()
+			},
+			true,
+		},
+		{
+			"success: valid packet data without memo",
+			func() {
+				expPacketData = types.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
 				}
 				data = expPacketData.GetBytes()
 			},
