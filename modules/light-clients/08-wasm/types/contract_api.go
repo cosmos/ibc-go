@@ -24,11 +24,13 @@ type queryMsg struct {
 	CheckForMisbehaviour *checkForMisbehaviourMsg `json:"check_for_misbehaviour,omitempty"`
 }
 
-type statusMsg struct{}
-type exportMetadataMsg struct{}
-type timestampAtHeightMsg struct {
-	Height exported.Height `json:"height"`
-}
+type (
+	statusMsg            struct{}
+	exportMetadataMsg    struct{}
+	timestampAtHeightMsg struct {
+		Height exported.Height `json:"height"`
+	}
+)
 type verifyClientMessageMsg struct {
 	ClientMessage *ClientMessage `json:"client_message"`
 }
