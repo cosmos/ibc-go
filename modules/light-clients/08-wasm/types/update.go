@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -20,13 +21,13 @@ var _ exported.ClientState = (*ClientState)(nil)
 func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
 	clientMessage, ok := clientMsg.(*ClientMessage)
 	if !ok {
-		return errorsmod.Wrapf(ErrInvalidClientMessage, "expected type %T, got %T", &ClientMessage{}, clientMsg)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T", &ClientMessage{}, clientMsg)
 	}
 
 	payload := QueryMsg{
 		VerifyClientMessage: &verifyClientMessageMsg{ClientMessage: clientMessage},
 	}
-	_, err := call[contractResult](ctx, clientStore, &cs, payload)
+	_, err := wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
@@ -41,12 +42,12 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		UpdateState: &updateStateMsg{ClientMessage: clientMessage},
 	}
 
-	_, err := call[contractResult](ctx, clientStore, &cs, payload)
+	result, err := call[updateStateResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}
 
-	return []exported.Height{clientMsg.(*Header).Height}
+	return result.Heights
 }
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified

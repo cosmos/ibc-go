@@ -42,14 +42,6 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 			upgradedClient.GetLatestHeight(), lastHeight)
 	}
 
-	// Must prove against latest consensus state to ensure we are verifying against latest upgrade plan
-	// This verifies that upgrade is intended for the provided revision, since committed client must exist
-	// at this consensus state
-	_, err := GetConsensusState(clientStore, cdc, lastHeight)
-	if err != nil {
-		return errorsmod.Wrapf(err, "could not retrieve consensus state for height %s", lastHeight)
-	}
-
 	payload := SudoMsg{
 		VerifyUpgradeAndUpdateState: &verifyUpgradeAndUpdateStateMsg{
 			UpgradeClientState:         upgradedClient,
@@ -59,6 +51,6 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		},
 	}
 
-	_, err = call[contractResult](ctx, clientStore, &cs, payload)
+	_, err := call[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }

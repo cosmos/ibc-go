@@ -4,6 +4,7 @@ import (
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -11,14 +12,14 @@ import (
 )
 
 var (
-	WasmVM        *cosmwasm.VM
+	WasmVM *cosmwasm.VM
+	// Store key for 08-wasm module, required as a global so that the KV store can be retrieved
+	// in the ClientState Initialize function which doesn't have access to the keeper.
+	// The storeKey is used to check the code hash of the contract and determine if the light client
+	// is allowed to be instantiated.
+	WasmStoreKey  storetypes.StoreKey
 	VMGasRegister = NewDefaultWasmGasRegister()
 )
-
-type queryResponse struct {
-	Status          exported.Status               `json:"status,omitempty"`
-	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
-}
 
 type ContractResult interface {
 	Validate() bool
@@ -26,10 +27,9 @@ type ContractResult interface {
 }
 
 type contractResult struct {
-	IsValid           bool   `json:"is_valid,omitempty"`
-	ErrorMsg          string `json:"error_msg,omitempty"`
-	Data              []byte `json:"data,omitempty"`
-	FoundMisbehaviour bool   `json:"found_misbehaviour"`
+	IsValid  bool   `json:"is_valid,omitempty"`
+	ErrorMsg string `json:"error_msg,omitempty"`
+	Data     []byte `json:"data,omitempty"`
 }
 
 func (r contractResult) Validate() bool {
@@ -40,8 +40,33 @@ func (r contractResult) Error() string {
 	return r.ErrorMsg
 }
 
+type statusResult struct {
+	contractResult
+	Status exported.Status `json:"status"`
+}
+
+type metadataResult struct {
+	contractResult
+	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
+}
+
+type timestampAtHeightResult struct {
+	contractResult
+	Timestamp uint64 `json:"timestamp"`
+}
+
+type checkForMisbehaviourResult struct {
+	contractResult
+	FoundMisbehaviour bool `json:"found_misbehaviour"`
+}
+
+type updateStateResult struct {
+	contractResult
+	Heights []exported.Height `json:"heights"`
+}
+
 // initContract calls vm.Init with appropriate arguments.
-func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte) (*wasmvmtypes.Response, error) {
+func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -53,9 +78,8 @@ func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte) (*w
 		Funds:  nil,
 	}
 
-	initMsg := []byte("{}")
-	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(len(initMsg)), "Loading CosmWasm module: instantiate")
-	response, gasUsed, err := WasmVM.Instantiate(codeHash, env, msgInfo, initMsg, newStoreAdapter(clientStore), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(len(msg)), "Loading CosmWasm module: instantiate")
+	response, gasUsed, err := WasmVM.Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return response, err
 }

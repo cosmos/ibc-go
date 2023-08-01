@@ -43,6 +43,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string)
 		panic(err)
 	}
 	types.WasmVM = vm
+	types.WasmStoreKey = key
 
 	return Keeper{
 		cdc:       cdc,
@@ -95,7 +96,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// pin the code to the vm in-memory cache
 	if err := k.wasmVM.Pin(codeHash); err != nil {
-    return nil, errorsmod.Wrapf(err, "failed to pin contract with code hash (%) to vm cache", codeHash)
+		return nil, errorsmod.Wrapf(err, "failed to pin contract with code hash (%s) to vm cache", codeHash)
 	}
 
 	// safety check to assert that code hash returned by WasmVM equals to code hash

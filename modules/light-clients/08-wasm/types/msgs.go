@@ -36,6 +36,11 @@ func (m MsgStoreCode) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
+type instantiateMessage struct {
+	ClientState    *ClientState    `json:"client_state"`
+	ConsensusState *ConsensusState `json:"consensus_state"`
+}
+
 type QueryMsg struct {
 	Status               *statusMsg               `json:"status,omitempty"`
 	ExportMetadata       *exportMetadataMsg       `json:"export_metadata,omitempty"`

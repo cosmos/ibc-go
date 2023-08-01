@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -70,7 +69,7 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.QueryServer.ClientState(ctx, req)
 
 			if tc.expPass {
@@ -164,7 +163,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 
 			tc.malleate()
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.QueryServer.ClientStates(ctx, req)
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -274,7 +273,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.QueryServer.ConsensusState(ctx, req)
 
 			if tc.expPass {
@@ -374,7 +373,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.QueryServer.ConsensusStates(ctx, req)
 
 			if tc.expPass {
@@ -465,7 +464,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.QueryServer.ConsensusStateHeights(ctx, req)
 
 			if tc.expPass {
@@ -566,7 +565,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.QueryServer.ClientStatus(ctx, req)
 
 			if tc.expPass {
@@ -641,7 +640,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 }
 
 func (suite *KeeperTestSuite) TestQueryClientParams() {
-	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+	ctx := suite.chainA.GetContext()
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.QueryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)

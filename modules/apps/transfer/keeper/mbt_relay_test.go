@@ -301,8 +301,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		}
 
 		suite.SetupTest()
-		pathAtoB := NewTransferPath(suite.chainA, suite.chainB)
-		pathBtoC := NewTransferPath(suite.chainB, suite.chainC)
+		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 		suite.coordinator.Setup(pathAtoB)
 		suite.coordinator.Setup(pathBtoC)
 
@@ -354,7 +354,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							"",
 						)
 
-						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
+						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
 
 					}
 				case "OnRecvPacket":

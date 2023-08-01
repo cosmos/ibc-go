@@ -19,7 +19,7 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec,
 		CheckForMisbehaviour: &checkForMisbehaviourMsg{ClientMessage: clientMessage},
 	}
 
-	result, err := call[contractResult](ctx, clientStore, &cs, payload)
+	result, err := wasmQuery[checkForMisbehaviourResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}
