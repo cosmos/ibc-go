@@ -15,7 +15,7 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
+func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
@@ -176,17 +176,17 @@ func (suite *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 		testPacket := channeltypes.Packet{Data: packetData}
 		callbackData, hasEnoughGas, err := types.GetSourceCallbackData(packetUnmarshaler, testPacket, tc.remainingGas, uint64(1_000_000))
 
-		suite.Require().Equal(tc.expAllowRetry, hasEnoughGas, tc.name)
+		s.Require().Equal(tc.expAllowRetry, hasEnoughGas, tc.name)
 		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-			suite.Require().Equal(tc.expCallbackData, callbackData, tc.name)
+			s.Require().NoError(err, tc.name)
+			s.Require().Equal(tc.expCallbackData, callbackData, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 	}
 }
 
-func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
+func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
@@ -347,17 +347,17 @@ func (suite *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 		testPacket := channeltypes.Packet{Data: packetData}
 		callbackData, hasEnoughGas, err := types.GetDestCallbackData(packetUnmarshaler, testPacket, tc.remainingGas, uint64(1_000_000))
 
-		suite.Require().Equal(tc.expAllowRetry, hasEnoughGas, tc.name)
+		s.Require().Equal(tc.expAllowRetry, hasEnoughGas, tc.name)
 		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-			suite.Require().Equal(tc.expCallbackData, callbackData, tc.name)
+			s.Require().NoError(err, tc.name)
+			s.Require().Equal(tc.expCallbackData, callbackData, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 	}
 }
 
-func (suite *CallbacksTypesTestSuite) TestGetCallbackAddress() {
+func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 	denom := ibctesting.TestCoin.Denom
 	amount := ibctesting.TestCoin.Amount.String()
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -460,15 +460,15 @@ func (suite *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackMemoKey).(map[string]interface{})
-			suite.Require().Equal(ok, callbackData != nil)
-			suite.Require().Equal(tc.expAddress, types.GetCallbackAddress(callbackData), tc.name)
+			s.Require().Equal(ok, callbackData != nil)
+			s.Require().Equal(tc.expAddress, types.GetCallbackAddress(callbackData), tc.name)
 		})
 	}
 }
 
-func (suite *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
+func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 	denom := ibctesting.TestCoin.Denom
 	amount := ibctesting.TestCoin.Amount.String()
 	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -571,12 +571,12 @@ func (suite *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 
 	for _, tc := range testCases {
 		callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackMemoKey).(map[string]interface{})
-		suite.Require().Equal(ok, callbackData != nil)
-		suite.Require().Equal(tc.expUserGas, types.GetUserDefinedGasLimit(callbackData), tc.name)
+		s.Require().Equal(ok, callbackData != nil)
+		s.Require().Equal(tc.expUserGas, types.GetUserDefinedGasLimit(callbackData), tc.name)
 	}
 }
 
-func (suite *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
+func (s *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
 	// Success cases are tested above. This test case tests extra error case where
 	// the packet data can be unmarshaled but the resulting packet data cannot be
 	// casted to a AdditionalPacketDataProvider.
@@ -586,7 +586,7 @@ func (suite *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
 	// ibcmock.MockPacketData instructs the MockPacketDataUnmarshaler to return ibcmock.MockPacketData, nil
 	mockPacket := channeltypes.Packet{Data: ibcmock.MockPacketData}
 	callbackData, allowRetry, err := types.GetCallbackData(packetUnmarshaler, mockPacket, 100000, uint64(1_000_000), types.SourceCallbackMemoKey)
-	suite.Require().False(allowRetry)
-	suite.Require().Equal(types.CallbackData{}, callbackData)
-	suite.Require().ErrorIs(err, types.ErrNotAdditionalPacketDataProvider)
+	s.Require().False(allowRetry)
+	s.Require().Equal(types.CallbackData{}, callbackData)
+	s.Require().ErrorIs(err, types.ErrNotAdditionalPacketDataProvider)
 }

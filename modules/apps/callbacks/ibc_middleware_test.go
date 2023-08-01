@@ -19,54 +19,54 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *CallbacksTestSuite) TestNilUnderlyingApp() {
-	suite.setupChains()
+func (s *CallbacksTestSuite) TestNilUnderlyingApp() {
+	s.setupChains()
 
-	channelKeeper := suite.chainA.App.GetIBCKeeper().ChannelKeeper
-	mockContractKeeper := suite.chainA.GetSimApp().MockKeeper
+	channelKeeper := s.chainA.App.GetIBCKeeper().ChannelKeeper
+	mockContractKeeper := s.chainA.GetSimApp().MockKeeper
 
 	// require panic
-	suite.PanicsWithValue(fmt.Sprintf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)), func() {
+	s.PanicsWithValue(fmt.Sprintf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)), func() {
 		_ = ibccallbacks.NewIBCMiddleware(nil, channelKeeper, mockContractKeeper, uint64(1000000))
 	})
 }
 
-func (suite *CallbacksTestSuite) TestNilContractKeeper() {
-	suite.setupChains()
+func (s *CallbacksTestSuite) TestNilContractKeeper() {
+	s.setupChains()
 
-	channelKeeper := suite.chainA.App.GetIBCKeeper().ChannelKeeper
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	channelKeeper := s.chainA.App.GetIBCKeeper().ChannelKeeper
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 
 	// require panic
-	suite.PanicsWithValue("contract keeper cannot be nil", func() {
+	s.PanicsWithValue("contract keeper cannot be nil", func() {
 		_ = ibccallbacks.NewIBCMiddleware(transferStack, channelKeeper, nil, uint64(1000000))
 	})
 }
 
-func (suite *CallbacksTestSuite) TestNilICS4Wrapper() {
-	suite.setupChains()
+func (s *CallbacksTestSuite) TestNilICS4Wrapper() {
+	s.setupChains()
 
-	mockContractKeeper := suite.chainA.GetSimApp().MockKeeper
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	mockContractKeeper := s.chainA.GetSimApp().MockKeeper
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 
 	// require panic
-	suite.PanicsWithValue("ics4wrapper cannot be nil", func() {
+	s.PanicsWithValue("ics4wrapper cannot be nil", func() {
 		_ = ibccallbacks.NewIBCMiddleware(transferStack, nil, mockContractKeeper, uint64(1000000))
 	})
 }
 
-func (suite *CallbacksTestSuite) TestUnmarshalPacketData() {
-	suite.setupChains()
+func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
+	s.setupChains()
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 
 	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	expPacketData := transfertypes.FungibleTokenPacketData{
 		Denom:    ibctesting.TestCoin.Denom,
@@ -78,65 +78,65 @@ func (suite *CallbacksTestSuite) TestUnmarshalPacketData() {
 	data := expPacketData.GetBytes()
 
 	packetData, err := unmarshalerStack.UnmarshalPacketData(data)
-	suite.Require().NoError(err)
-	suite.Require().Equal(expPacketData, packetData)
+	s.Require().NoError(err)
+	s.Require().Equal(expPacketData, packetData)
 }
 
-func (suite *CallbacksTestSuite) TestGetAppVersion() {
-	suite.SetupICATest()
+func (s *CallbacksTestSuite) TestGetAppVersion() {
+	s.SetupICATest()
 	// We will pass the function call down the icacontroller stack to the icacontroller module
 	// icacontroller stack GetAppVersion call order: callbacks -> fee -> icacontroller
-	icaControllerStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
-	suite.Require().True(ok)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	s.Require().True(ok)
 
 	controllerStack := icaControllerStack.(porttypes.Middleware)
-	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-	suite.Require().True(found)
-	suite.Require().Equal(suite.path.EndpointA.ChannelConfig.Version, appVersion)
+	appVersion, found := controllerStack.GetAppVersion(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
+	s.Require().True(found)
+	s.Require().Equal(s.path.EndpointA.ChannelConfig.Version, appVersion)
 }
 
-func (suite *CallbacksTestSuite) TestOnChanCloseInit() {
-	suite.SetupICATest()
+func (s *CallbacksTestSuite) TestOnChanCloseInit() {
+	s.SetupICATest()
 	// We will pass the function call down the icacontroller stack to the icacontroller module
 	// icacontroller stack OnChanCloseInit call order: callbacks -> fee -> icacontroller
-	icaControllerStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
-	suite.Require().True(ok)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	s.Require().True(ok)
 
 	controllerStack := icaControllerStack.(porttypes.Middleware)
-	err := controllerStack.OnChanCloseInit(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	err := controllerStack.OnChanCloseInit(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller to return an error
-	suite.Require().ErrorIs(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"), err)
+	s.Require().ErrorIs(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"), err)
 }
 
-func (suite *CallbacksTestSuite) TestOnChanCloseConfirm() {
-	suite.SetupICATest()
+func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
+	s.SetupICATest()
 	// We will pass the function call down the icacontroller stack to the icacontroller module
 	// icacontroller stack OnChanCloseConfirm call order: callbacks -> fee -> icacontroller
-	icaControllerStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
-	suite.Require().True(ok)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	s.Require().True(ok)
 
 	controllerStack := icaControllerStack.(porttypes.Middleware)
-	err := controllerStack.OnChanCloseConfirm(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	err := controllerStack.OnChanCloseConfirm(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 }
 
-func (suite *CallbacksTestSuite) TestSendPacketError() {
-	suite.SetupICATest()
+func (s *CallbacksTestSuite) TestSendPacketError() {
+	s.SetupICATest()
 	// We will pass the function call down the icacontroller stack to the channel keeper
 	// icacontroller stack SendPacket call order: callbacks -> fee -> channel
-	icaControllerStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
-	suite.Require().True(ok)
+	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	s.Require().True(ok)
 
 	controllerStack := icaControllerStack.(porttypes.Middleware)
-	seq, err := controllerStack.SendPacket(suite.chainA.GetContext(), nil, "invalid_port", "invalid_channel", clienttypes.NewHeight(1, 100), 0, nil)
+	seq, err := controllerStack.SendPacket(s.chainA.GetContext(), nil, "invalid_port", "invalid_channel", clienttypes.NewHeight(1, 100), 0, nil)
 	// we just check that this call is passed down to the channel keeper to return an error
-	suite.Require().Equal(uint64(0), seq)
-	suite.Require().ErrorIs(errorsmod.Wrap(channeltypes.ErrChannelNotFound, "invalid_channel"), err)
+	s.Require().Equal(uint64(0), seq)
+	s.Require().ErrorIs(errorsmod.Wrap(channeltypes.ErrChannelNotFound, "invalid_channel"), err)
 }
 
-func (suite *CallbacksTestSuite) TestWriteAcknowledgement() {
-	suite.SetupTransferTest()
+func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
+	s.SetupTransferTest()
 
 	// build packet
 	packetData := transfertypes.NewFungibleTokenPacketData(
@@ -150,139 +150,139 @@ func (suite *CallbacksTestSuite) TestWriteAcknowledgement() {
 	packet := channeltypes.NewPacket(
 		packetData.GetBytes(),
 		1,
-		suite.path.EndpointA.ChannelConfig.PortID,
-		suite.path.EndpointA.ChannelID,
-		suite.path.EndpointB.ChannelConfig.PortID,
-		suite.path.EndpointB.ChannelID,
+		s.path.EndpointA.ChannelConfig.PortID,
+		s.path.EndpointA.ChannelID,
+		s.path.EndpointB.ChannelConfig.PortID,
+		s.path.EndpointB.ChannelID,
 		clienttypes.NewHeight(1, 100),
 		0,
 	)
 
-	transferStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 
 	transferStackMw := transferStack.(porttypes.Middleware)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
-	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+	chanCap := s.chainB.GetChannelCapability(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
 
-	err := transferStackMw.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
-	suite.Require().NoError(err)
+	err := transferStackMw.WriteAcknowledgement(s.chainB.GetContext(), chanCap, packet, ack)
+	s.Require().NoError(err)
 
-	packetAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
-	suite.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
+	packetAck, _ := s.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(s.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
+	s.Require().Equal(packetAck, channeltypes.CommitAcknowledgement(ack.Acknowledgement()))
 }
 
-func (suite *CallbacksTestSuite) TestWriteAcknowledgementError() {
-	suite.SetupICATest()
+func (s *CallbacksTestSuite) TestWriteAcknowledgementError() {
+	s.SetupICATest()
 
 	packet := channeltypes.NewPacket(
 		[]byte("invalid packet data"),
 		1,
-		suite.path.EndpointA.ChannelConfig.PortID,
-		suite.path.EndpointA.ChannelID,
+		s.path.EndpointA.ChannelConfig.PortID,
+		s.path.EndpointA.ChannelID,
 		"invalid_port",
 		"invalid_channel",
 		clienttypes.NewHeight(1, 100),
 		0,
 	)
 
-	icaControllerStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
-	suite.Require().True(ok)
+	icaControllerStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
+	s.Require().True(ok)
 
 	callbackStack := icaControllerStack.(porttypes.Middleware)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
-	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+	chanCap := s.chainB.GetChannelCapability(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
 
-	err := callbackStack.WriteAcknowledgement(suite.chainB.GetContext(), chanCap, packet, ack)
-	suite.Require().ErrorIs(err, errorsmod.Wrap(channeltypes.ErrChannelNotFound, packet.GetDestChannel()))
+	err := callbackStack.WriteAcknowledgement(s.chainB.GetContext(), chanCap, packet, ack)
+	s.Require().ErrorIs(err, errorsmod.Wrap(channeltypes.ErrChannelNotFound, packet.GetDestChannel()))
 }
 
-func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketError() {
+func (s *CallbacksTestSuite) TestOnAcknowledgementPacketError() {
 	// The successful cases are tested in transfer_test.go and ica_test.go.
 	// This test case tests the error case by passing an invalid packet data.
-	suite.SetupTransferTest()
+	s.SetupTransferTest()
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack OnAcknowledgementPacket call order: callbacks -> fee -> transfer
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 
-	err := transferStack.OnAcknowledgementPacket(suite.chainA.GetContext(), channeltypes.Packet{}, []byte("invalid"), suite.chainA.SenderAccount.GetAddress())
-	suite.Require().ErrorIs(ibcerrors.ErrUnknownRequest, err)
-	suite.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet acknowledgement:")
+	err := transferStack.OnAcknowledgementPacket(s.chainA.GetContext(), channeltypes.Packet{}, []byte("invalid"), s.chainA.SenderAccount.GetAddress())
+	s.Require().ErrorIs(ibcerrors.ErrUnknownRequest, err)
+	s.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet acknowledgement:")
 }
 
-func (suite *CallbacksTestSuite) TestOnTimeoutPacketError() {
+func (s *CallbacksTestSuite) TestOnTimeoutPacketError() {
 	// The successful cases are tested in transfer_test.go and ica_test.go.
 	// This test case tests the error case by passing an invalid packet data.
-	suite.SetupTransferTest()
+	s.SetupTransferTest()
 
 	// We will pass the function call down the transfer stack to the transfer module
 	// transfer stack OnTimeoutPacket call order: callbacks -> fee -> transfer
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 
-	err := transferStack.OnTimeoutPacket(suite.chainA.GetContext(), channeltypes.Packet{}, suite.chainA.SenderAccount.GetAddress())
-	suite.Require().ErrorIs(ibcerrors.ErrUnknownRequest, err)
-	suite.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet data:")
+	err := transferStack.OnTimeoutPacket(s.chainA.GetContext(), channeltypes.Packet{}, s.chainA.SenderAccount.GetAddress())
+	s.Require().ErrorIs(ibcerrors.ErrUnknownRequest, err)
+	s.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet data:")
 }
 
-func (suite *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
-	suite.SetupMockFeeTest()
+func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
+	s.SetupMockFeeTest()
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-	suite.Require().NoError(err)
-	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-	suite.Require().True(ok)
+	module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
+	s.Require().NoError(err)
+	cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	s.Require().True(ok)
 	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	packet := channeltypes.NewPacket(
 		ibcmock.MockAsyncPacketData,
-		suite.chainA.SenderAccount.GetSequence(),
-		suite.path.EndpointA.ChannelConfig.PortID,
-		suite.path.EndpointA.ChannelID,
-		suite.path.EndpointB.ChannelConfig.PortID,
-		suite.path.EndpointB.ChannelID,
+		s.chainA.SenderAccount.GetSequence(),
+		s.path.EndpointA.ChannelConfig.PortID,
+		s.path.EndpointA.ChannelID,
+		s.path.EndpointB.ChannelConfig.PortID,
+		s.path.EndpointB.ChannelID,
 		clienttypes.NewHeight(0, 100),
 		0,
 	)
 
-	ack := mockFeeCallbackStack.OnRecvPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
-	suite.Require().Nil(ack)
-	suite.AssertHasExecutedExpectedCallback("none", true)
+	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), packet, s.chainA.SenderAccount.GetAddress())
+	s.Require().Nil(ack)
+	s.AssertHasExecutedExpectedCallback("none", true)
 }
 
-func (suite *CallbacksTestSuite) TestOnRecvPacketFailedAck() {
-	suite.SetupMockFeeTest()
+func (s *CallbacksTestSuite) TestOnRecvPacketFailedAck() {
+	s.SetupMockFeeTest()
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-	suite.Require().NoError(err)
-	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-	suite.Require().True(ok)
+	module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
+	s.Require().NoError(err)
+	cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	s.Require().True(ok)
 	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	packet := channeltypes.NewPacket(
 		nil,
-		suite.chainA.SenderAccount.GetSequence(),
-		suite.path.EndpointA.ChannelConfig.PortID,
-		suite.path.EndpointA.ChannelID,
-		suite.path.EndpointB.ChannelConfig.PortID,
-		suite.path.EndpointB.ChannelID,
+		s.chainA.SenderAccount.GetSequence(),
+		s.path.EndpointA.ChannelConfig.PortID,
+		s.path.EndpointA.ChannelID,
+		s.path.EndpointB.ChannelConfig.PortID,
+		s.path.EndpointB.ChannelID,
 		clienttypes.NewHeight(0, 100),
 		0,
 	)
 
-	ack := mockFeeCallbackStack.OnRecvPacket(suite.chainA.GetContext(), packet, suite.chainA.SenderAccount.GetAddress())
-	suite.Require().Equal(ibcmock.MockFailAcknowledgement, ack)
-	suite.AssertHasExecutedExpectedCallback("none", true)
+	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), packet, s.chainA.SenderAccount.GetAddress())
+	s.Require().Equal(ibcmock.MockFailAcknowledgement, ack)
+	s.AssertHasExecutedExpectedCallback("none", true)
 }
 
-func (suite *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
-	suite.SetupTransferTest()
+func (s *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
+	s.SetupTransferTest()
 
 	// build packet
 	packetData := transfertypes.NewFungibleTokenPacketData(
@@ -296,33 +296,33 @@ func (suite *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
 	packet := channeltypes.NewPacket(
 		packetData.GetBytes(),
 		1,
-		suite.path.EndpointA.ChannelConfig.PortID,
-		suite.path.EndpointA.ChannelID,
-		suite.path.EndpointB.ChannelConfig.PortID,
-		suite.path.EndpointB.ChannelID,
+		s.path.EndpointA.ChannelConfig.PortID,
+		s.path.EndpointA.ChannelID,
+		s.path.EndpointB.ChannelConfig.PortID,
+		s.path.EndpointB.ChannelID,
 		clienttypes.NewHeight(1, 100),
 		0,
 	)
 
-	transferStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 
 	transferStackMw := transferStack.(porttypes.Middleware)
 
-	modifiedCtx := suite.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(400000))
-	suite.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+	modifiedCtx := s.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(400000))
+	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
 		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeWriteAcknowledgement),
 	}, func() {
-		transferStackMw.OnRecvPacket(modifiedCtx, packet, suite.chainB.SenderAccount.GetAddress())
+		transferStackMw.OnRecvPacket(modifiedCtx, packet, s.chainB.SenderAccount.GetAddress())
 	})
 
 	// check that it doesn't panic when gas is high enough
-	ack := transferStackMw.OnRecvPacket(suite.chainB.GetContext(), packet, suite.chainB.SenderAccount.GetAddress())
-	suite.Require().NotNil(ack)
+	ack := transferStackMw.OnRecvPacket(s.chainB.GetContext(), packet, s.chainB.SenderAccount.GetAddress())
+	s.Require().NotNil(ack)
 }
 
-func (suite *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
-	suite.SetupTransferTest()
+func (s *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
+	s.SetupTransferTest()
 
 	// build packet
 	packetData := transfertypes.NewFungibleTokenPacketData(
@@ -336,113 +336,113 @@ func (suite *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
 	packet := channeltypes.NewPacket(
 		packetData.GetBytes(),
 		1,
-		suite.path.EndpointA.ChannelConfig.PortID,
-		suite.path.EndpointA.ChannelID,
-		suite.path.EndpointB.ChannelConfig.PortID,
-		suite.path.EndpointB.ChannelID,
+		s.path.EndpointA.ChannelConfig.PortID,
+		s.path.EndpointA.ChannelID,
+		s.path.EndpointB.ChannelConfig.PortID,
+		s.path.EndpointB.ChannelID,
 		clienttypes.NewHeight(1, 100),
 		0,
 	)
 
-	transferStack, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 
 	transferStackMw := transferStack.(porttypes.Middleware)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
-	chanCap := suite.chainB.GetChannelCapability(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
+	chanCap := s.chainB.GetChannelCapability(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
 
-	modifiedCtx := suite.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
-	suite.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+	modifiedCtx := s.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
+	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
 		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeWriteAcknowledgement),
 	}, func() {
 		_ = transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
 	})
 }
 
-func (suite *CallbacksTestSuite) TestOnAcknowledgementPacketLowRelayerGas() {
-	suite.SetupTransferTest()
+func (s *CallbacksTestSuite) TestOnAcknowledgementPacketLowRelayerGas() {
+	s.SetupTransferTest()
 
-	senderAddr := suite.chainA.SenderAccount.GetAddress()
+	senderAddr := s.chainA.SenderAccount.GetAddress()
 	amount := ibctesting.TestCoin
 	msg := transfertypes.NewMsgTransfer(
-		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-		amount, suite.chainA.SenderAccount.GetAddress().String(),
+		s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
+		amount, s.chainA.SenderAccount.GetAddress().String(),
 		senderAddr.String(), clienttypes.NewHeight(1, 100), 0,
 		fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
 	)
 
-	res, err := suite.chainA.SendMsgs(msg)
-	suite.Require().NoError(err) // message committed
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NoError(err) // message committed
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
-	suite.Require().NoError(err) // packet committed
-	suite.Require().NotNil(packet)
+	s.Require().NoError(err) // packet committed
+	s.Require().NotNil(packet)
 
 	// relay to chainB
-	err = suite.path.EndpointB.UpdateClient()
-	suite.Require().NoError(err)
-	res, err = suite.path.EndpointB.RecvPacketWithResult(packet)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
+	err = s.path.EndpointB.UpdateClient()
+	s.Require().NoError(err)
+	res, err = s.path.EndpointB.RecvPacketWithResult(packet)
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
 
 	// relay ack to chainA
 	ack, err := ibctesting.ParseAckFromEvents(res.Events)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 	// Low Relayer gas
-	modifiedCtx := suite.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
-	suite.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+	modifiedCtx := s.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
+	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
 		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeAcknowledgement),
 	}, func() {
 		_ = transferStack.OnAcknowledgementPacket(modifiedCtx, packet, ack, senderAddr)
 	})
 }
 
-func (suite *CallbacksTestSuite) TestOnTimeoutPacketLowRelayerGas() {
-	suite.SetupTransferTest()
+func (s *CallbacksTestSuite) TestOnTimeoutPacketLowRelayerGas() {
+	s.SetupTransferTest()
 
-	timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+	timeoutHeight := clienttypes.GetSelfHeight(s.chainB.GetContext())
+	timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
 
 	amount := ibctesting.TestCoin
 	msg := transfertypes.NewMsgTransfer(
-		suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-		amount, suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, timeoutTimestamp,
+		s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
+		amount, s.chainA.SenderAccount.GetAddress().String(),
+		s.chainB.SenderAccount.GetAddress().String(), timeoutHeight, timeoutTimestamp,
 		fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
 	)
 
-	res, err := suite.chainA.SendMsgs(msg)
-	suite.Require().NoError(err) // message committed
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NoError(err) // message committed
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
-	suite.Require().NoError(err) // packet committed
-	suite.Require().NotNil(packet)
+	s.Require().NoError(err) // packet committed
+	s.Require().NotNil(packet)
 
 	// need to update chainA's client representing chainB to prove missing ack
-	err = suite.path.EndpointA.UpdateClient()
-	suite.Require().NoError(err)
+	err = s.path.EndpointA.UpdateClient()
+	s.Require().NoError(err)
 
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
-	modifiedCtx := suite.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
-	suite.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
+	modifiedCtx := s.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
+	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
 		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeTimeoutPacket),
 	}, func() {
-		_ = transferStack.OnTimeoutPacket(modifiedCtx, packet, suite.chainA.SenderAccount.GetAddress())
+		_ = transferStack.OnTimeoutPacket(modifiedCtx, packet, s.chainA.SenderAccount.GetAddress())
 	})
 }
 
-func (suite *CallbacksTestSuite) TestSendPacketReject() {
-	suite.SetupTransferTest()
+func (s *CallbacksTestSuite) TestSendPacketReject() {
+	s.SetupTransferTest()
 
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 	callbackStack, ok := transferStack.(porttypes.Middleware)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	// We use the MockCallbackUnauthorizedAddress so that mock contract keeper knows to reject the packet
 	ftpd := transfertypes.NewFungibleTokenPacketData(
@@ -450,23 +450,23 @@ func (suite *CallbacksTestSuite) TestSendPacketReject() {
 		ibctesting.TestAccAddress, fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
 	)
 
-	channelCap := suite.path.EndpointA.Chain.GetChannelCapability(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	channelCap := s.path.EndpointA.Chain.GetChannelCapability(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	seq, err := callbackStack.SendPacket(
-		suite.chainA.GetContext(), channelCap, suite.path.EndpointA.ChannelConfig.PortID,
-		suite.path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0, ftpd.GetBytes(),
+		s.chainA.GetContext(), channelCap, s.path.EndpointA.ChannelConfig.PortID,
+		s.path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0, ftpd.GetBytes(),
 	)
-	suite.Require().ErrorIs(err, ibcmock.MockApplicationCallbackError)
-	suite.Require().Equal(uint64(0), seq)
+	s.Require().ErrorIs(err, ibcmock.MockApplicationCallbackError)
+	s.Require().Equal(uint64(0), seq)
 }
 
-func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
+func (s *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	// The successful cases, other errors, and panics are tested in transfer_test.go and ica_test.go.
-	suite.SetupTransferTest()
+	s.SetupTransferTest()
 
-	transferStack, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	suite.Require().True(ok)
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
 	callbackStack, ok := transferStack.(ibccallbacks.IBCMiddleware)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	invalidDataGetter := func() (types.CallbackData, bool, error) {
 		return types.CallbackData{}, false, fmt.Errorf("invalid data getter")
@@ -474,11 +474,11 @@ func (suite *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	mockPacket := channeltypes.Packet{Sequence: 0}
 
 	mockLogger := ibcmock.NewMockLogger()
-	ctx := suite.chainA.GetContext().WithLogger(mockLogger)
+	ctx := s.chainA.GetContext().WithLogger(mockLogger)
 
 	err := callbackStack.ProcessCallback(ctx, mockPacket, types.CallbackTypeWriteAcknowledgement, invalidDataGetter, nil)
-	suite.Require().NoError(err)
-	suite.Require().Equal(1, len(mockLogger.DebugLogs))
-	suite.Require().Equal("Failed to get callback data.", mockLogger.DebugLogs[0].Message)
-	suite.Require().Equal([]interface{}{"packet", mockPacket, "err", fmt.Errorf("invalid data getter")}, mockLogger.DebugLogs[0].Params)
+	s.Require().NoError(err)
+	s.Require().Equal(1, len(mockLogger.DebugLogs))
+	s.Require().Equal("Failed to get callback data.", mockLogger.DebugLogs[0].Message)
+	s.Require().Equal([]interface{}{"packet", mockPacket, "err", fmt.Errorf("invalid data getter")}, mockLogger.DebugLogs[0].Params)
 }

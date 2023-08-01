@@ -18,9 +18,9 @@ type CallbacksTypesTestSuite struct {
 }
 
 // SetupTest creates a coordinator with 1 test chain.
-func (suite *CallbacksTypesTestSuite) SetupSuite() {
-	suite.coord = ibctesting.NewCoordinator(suite.T(), 1)
-	suite.chain = suite.coord.GetChain(ibctesting.GetChainID(1))
+func (s *CallbacksTypesTestSuite) SetupSuite() {
+	s.coord = ibctesting.NewCoordinator(s.T(), 1)
+	s.chain = s.coord.GetChain(ibctesting.GetChainID(1))
 }
 
 func TestCallbacksTypesTestSuite(t *testing.T) {

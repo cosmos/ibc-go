@@ -2,9 +2,9 @@ package mock
 
 import "github.com/cometbft/cometbft/libs/log"
 
-var _ log.Logger = (*MockLogger)(nil)
+var _ log.Logger = (*Logger)(nil)
 
-// MockLogger implements the Logger interface and records the messages and params passed
+// Logger implements the Logger interface and records the messages and params passed
 // to the logger methods. It is used for testing.
 //
 // # Example:
@@ -13,7 +13,7 @@ var _ log.Logger = (*MockLogger)(nil)
 //	ctx := suite.chainA.GetContext().WithLogger(mockLogger)
 //	// ...
 //	suite.Require().Equal("Expected debug log.", mockLogger.DebugLogs[0].Message)
-type MockLogger struct {
+type Logger struct {
 	DebugLogs  []LogEntry
 	InfoLogs   []LogEntry
 	ErrorLogs  []LogEntry
@@ -27,27 +27,27 @@ type LogEntry struct {
 }
 
 // NewMockLogger returns a new MockLogger
-func NewMockLogger() *MockLogger {
-	return &MockLogger{}
+func NewMockLogger() *Logger {
+	return &Logger{}
 }
 
 // Debug appends the passed message and params to the debug logs
-func (l *MockLogger) Debug(msg string, params ...interface{}) {
+func (l *Logger) Debug(msg string, params ...interface{}) {
 	l.DebugLogs = append(l.DebugLogs, LogEntry{Message: msg, Params: params})
 }
 
 // Info appends the passed message and params to the info logs
-func (l *MockLogger) Info(msg string, params ...interface{}) {
+func (l *Logger) Info(msg string, params ...interface{}) {
 	l.InfoLogs = append(l.InfoLogs, LogEntry{Message: msg, Params: params})
 }
 
 // Error appends the passed message and params to the error logs
-func (l *MockLogger) Error(msg string, params ...interface{}) {
+func (l *Logger) Error(msg string, params ...interface{}) {
 	l.ErrorLogs = append(l.ErrorLogs, LogEntry{Message: msg, Params: params})
 }
 
 // With sets the WithRecord field to the passed params and returns the logger
-func (l *MockLogger) With(params ...interface{}) log.Logger {
+func (l *Logger) With(params ...interface{}) log.Logger {
 	l.WithRecord = params
 	return l
 }

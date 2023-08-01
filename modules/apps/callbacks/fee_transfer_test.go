@@ -18,7 +18,7 @@ var (
 	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(300)}}
 )
 
-func (suite *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
+func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 	testCases := []struct {
 		name            string
 		transferMemo    string
@@ -106,23 +106,23 @@ func (suite *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupFeeTransferTest()
+		s.SetupFeeTransferTest()
 
 		fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
-		suite.ExecutePayPacketFeeMsg(fee)
-		preRelaySenderBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-		suite.ExecuteTransfer(tc.transferMemo)
+		s.ExecutePayPacketFeeMsg(fee)
+		preRelaySenderBalance := sdk.NewCoins(s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+		s.ExecuteTransfer(tc.transferMemo)
 		// we manually subtract the transfer amount from the preRelaySenderBalance because ExecuteTransfer
 		// also relays the packet, which will trigger the fee payments.
 		preRelaySenderBalance = preRelaySenderBalance.Sub(ibctesting.TestCoin)
 
 		// after incentivizing the packets
-		suite.AssertHasExecutedExpectedCallbackWithFee(tc.expCallbackType, tc.expSuccess, false, preRelaySenderBalance, fee)
+		s.AssertHasExecutedExpectedCallbackWithFee(tc.expCallbackType, tc.expSuccess, false, preRelaySenderBalance, fee)
 	}
 }
 
-func (suite *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
+func (s *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 	testCases := []struct {
 		name            string
 		transferMemo    string
@@ -174,44 +174,44 @@ func (suite *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupFeeTransferTest()
+		s.SetupFeeTransferTest()
 
 		fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
-		suite.ExecutePayPacketFeeMsg(fee)
-		preRelaySenderBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-		suite.ExecuteTransferTimeout(tc.transferMemo, 1)
+		s.ExecutePayPacketFeeMsg(fee)
+		preRelaySenderBalance := sdk.NewCoins(s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
+		s.ExecuteTransferTimeout(tc.transferMemo, 1)
 
 		// after incentivizing the packets
-		suite.AssertHasExecutedExpectedCallbackWithFee(tc.expCallbackType, tc.expSuccess, true, preRelaySenderBalance, fee)
+		s.AssertHasExecutedExpectedCallbackWithFee(tc.expCallbackType, tc.expSuccess, true, preRelaySenderBalance, fee)
 	}
 }
 
-func (suite *CallbacksTestSuite) ExecutePayPacketFeeMsg(fee feetypes.Fee) {
+func (s *CallbacksTestSuite) ExecutePayPacketFeeMsg(fee feetypes.Fee) {
 	msg := feetypes.NewMsgPayPacketFee(
-		fee, suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-		suite.chainA.SenderAccount.GetAddress().String(), nil,
+		fee, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
+		s.chainA.SenderAccount.GetAddress().String(), nil,
 	)
 
 	// fetch the account balance before fees are escrowed and assert the difference below
-	preEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+	preEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
-	res, err := suite.chainA.SendMsgs(msg)
-	suite.Require().NotNil(res)
-	suite.Require().NoError(err) // message committed
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NotNil(res)
+	s.Require().NoError(err) // message committed
 
-	postEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
-	suite.Require().Equal(postEscrowBalance.AddAmount(fee.Total().AmountOf(sdk.DefaultBondDenom)), preEscrowBalance)
+	postEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+	s.Require().Equal(postEscrowBalance.AddAmount(fee.Total().AmountOf(sdk.DefaultBondDenom)), preEscrowBalance)
 
 	// register counterparty address on chainB
 	// relayerAddress is address of sender account on chainB, but we will use it on chainA
 	// to differentiate from the chainA.SenderAccount for checking successful relay payouts
-	relayerAddress := suite.chainB.SenderAccount.GetAddress()
+	relayerAddress := s.chainB.SenderAccount.GetAddress()
 
 	msgRegister := feetypes.NewMsgRegisterCounterpartyPayee(
-		suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-		suite.chainB.SenderAccount.GetAddress().String(), relayerAddress.String(),
+		s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID,
+		s.chainB.SenderAccount.GetAddress().String(), relayerAddress.String(),
 	)
-	_, err = suite.chainB.SendMsgs(msgRegister)
-	suite.Require().NoError(err) // message committed
+	_, err = s.chainB.SendMsgs(msgRegister)
+	s.Require().NoError(err) // message committed
 }

@@ -18,7 +18,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *CallbacksTestSuite) TestICACallbacks() {
+func (s *CallbacksTestSuite) TestICACallbacks() {
 	// Destination callbacks are not supported for ICA packets
 	testCases := []struct {
 		name            string
@@ -107,14 +107,14 @@ func (suite *CallbacksTestSuite) TestICACallbacks() {
 	}
 
 	for _, tc := range testCases {
-		icaAddr := suite.SetupICATest()
+		icaAddr := s.SetupICATest()
 
-		suite.ExecuteICATx(icaAddr, tc.icaMemo, 1)
-		suite.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+		s.ExecuteICATx(icaAddr, tc.icaMemo, 1)
+		s.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
 	}
 }
 
-func (suite *CallbacksTestSuite) TestICATimeoutCallbacks() {
+func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 	// ICA channels are closed after a timeout packet is executed
 	testCases := []struct {
 		name            string
@@ -167,59 +167,59 @@ func (suite *CallbacksTestSuite) TestICATimeoutCallbacks() {
 	}
 
 	for _, tc := range testCases {
-		icaAddr := suite.SetupICATest()
+		icaAddr := s.SetupICATest()
 
-		suite.ExecuteICATimeout(icaAddr, tc.icaMemo, 1)
-		suite.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+		s.ExecuteICATimeout(icaAddr, tc.icaMemo, 1)
+		s.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
 	}
 }
 
 // ExecuteICATx executes a stakingtypes.MsgDelegate on chainB by sending a packet containing the msg to chainB
-func (suite *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint64) {
-	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
-	icaOwner := suite.chainA.SenderAccount.GetAddress().String()
-	connectionID := suite.path.EndpointA.ConnectionID
+func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint64) {
+	timeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
+	icaOwner := s.chainA.SenderAccount.GetAddress().String()
+	connectionID := s.path.EndpointA.ConnectionID
 	// build the interchain accounts packet data
-	packetData := suite.buildICAMsgDelegatePacketData(icaAddress, memo)
+	packetData := s.buildICAMsgDelegatePacketData(icaAddress, memo)
 	msg := icacontrollertypes.NewMsgSendTx(icaOwner, connectionID, timeoutTimestamp, packetData)
 
-	res, err := suite.chainA.SendMsgs(msg)
-	suite.Require().NoError(err) // message committed
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NoError(err) // message committed
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	err = suite.path.RelayPacket(packet)
-	suite.Require().NoError(err)
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err)
 }
 
 // ExecuteICATx executes a stakingtypes.MsgDelegate on chainB by sending a packet containing the msg to chainB
-func (suite *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, seq uint64) {
-	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-	icaOwner := suite.chainA.SenderAccount.GetAddress().String()
-	connectionID := suite.path.EndpointA.ConnectionID
+func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, seq uint64) {
+	timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
+	icaOwner := s.chainA.SenderAccount.GetAddress().String()
+	connectionID := s.path.EndpointA.ConnectionID
 	// build the interchain accounts packet data
-	packetData := suite.buildICAMsgDelegatePacketData(icaAddress, memo)
+	packetData := s.buildICAMsgDelegatePacketData(icaAddress, memo)
 	msg := icacontrollertypes.NewMsgSendTx(icaOwner, connectionID, timeoutTimestamp, packetData)
 
-	res, err := suite.chainA.SendMsgs(msg)
-	suite.Require().NoError(err) // message committed
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NoError(err) // message committed
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID)
-	suite.Require().NoError(err)
+	module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID)
+	s.Require().NoError(err)
 
-	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-	suite.Require().True(ok)
+	cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	s.Require().True(ok)
 
-	err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
-	suite.Require().NoError(err)
+	err = cbs.OnTimeoutPacket(s.chainA.GetContext(), packet, nil)
+	s.Require().NoError(err)
 }
 
 // buildICAMsgDelegatePacketData builds a packetData containing a stakingtypes.MsgDelegate to be executed on chainB
-func (suite *CallbacksTestSuite) buildICAMsgDelegatePacketData(icaAddress string, memo string) icatypes.InterchainAccountPacketData {
+func (s *CallbacksTestSuite) buildICAMsgDelegatePacketData(icaAddress string, memo string) icatypes.InterchainAccountPacketData {
 	// prepare a simple stakingtypes.MsgDelegate to be used as the interchain account msg executed on chainB
-	validatorAddr := (sdk.ValAddress)(suite.chainB.Vals.Validators[0].Address)
+	validatorAddr := (sdk.ValAddress)(s.chainB.Vals.Validators[0].Address)
 	msgDelegate := &stakingtypes.MsgDelegate{
 		DelegatorAddress: icaAddress,
 		ValidatorAddress: validatorAddr.String(),
@@ -228,10 +228,10 @@ func (suite *CallbacksTestSuite) buildICAMsgDelegatePacketData(icaAddress string
 
 	// ensure chainB is allowed to execute stakingtypes.MsgDelegate
 	params := icahosttypes.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate)})
-	suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+	s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 
-	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate}, icatypes.EncodingProtobuf)
-	suite.Require().NoError(err)
+	data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate}, icatypes.EncodingProtobuf)
+	s.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{
 		Type: icatypes.EXECUTE_TX,

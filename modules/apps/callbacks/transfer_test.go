@@ -15,7 +15,7 @@ const (
 	callbackAddr = "cosmos1q4hx350dh0843y34n0vm4lfj6eh5qz4sqfrnq0"
 )
 
-func (suite *CallbacksTestSuite) TestTransferCallbacks() {
+func (s *CallbacksTestSuite) TestTransferCallbacks() {
 	testCases := []struct {
 		name            string
 		transferMemo    string
@@ -103,14 +103,14 @@ func (suite *CallbacksTestSuite) TestTransferCallbacks() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTransferTest()
+		s.SetupTransferTest()
 
-		suite.ExecuteTransfer(tc.transferMemo)
-		suite.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+		s.ExecuteTransfer(tc.transferMemo)
+		s.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
 	}
 }
 
-func (suite *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
+func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 	testCases := []struct {
 		name            string
 		transferMemo    string
@@ -162,76 +162,76 @@ func (suite *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTransferTest()
+		s.SetupTransferTest()
 
-		suite.ExecuteTransferTimeout(tc.transferMemo, 1)
-		suite.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+		s.ExecuteTransferTimeout(tc.transferMemo, 1)
+		s.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
 	}
 }
 
 // ExecuteTransfer executes a transfer message on chainA for ibctesting.TestCoin (100 "stake").
 // It checks that the transfer is successful and that the packet is relayed to chainB.
-func (suite *CallbacksTestSuite) ExecuteTransfer(memo string) {
-	escrowAddress := transfertypes.GetEscrowAddress(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
+	escrowAddress := transfertypes.GetEscrowAddress(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// record the balance of the escrow address before the transfer
-	escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
+	escrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
 	// record the balance of the receiving address before the transfer
-	voucherDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID, sdk.DefaultBondDenom))
-	receiverBalance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
+	voucherDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, sdk.DefaultBondDenom))
+	receiverBalance := s.chainB.GetSimApp().BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
 
 	amount := ibctesting.TestCoin
 	msg := transfertypes.NewMsgTransfer(
-		suite.path.EndpointA.ChannelConfig.PortID,
-		suite.path.EndpointA.ChannelID,
+		s.path.EndpointA.ChannelConfig.PortID,
+		s.path.EndpointA.ChannelID,
 		amount,
-		suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainB.SenderAccount.GetAddress().String(),
+		s.chainA.SenderAccount.GetAddress().String(),
+		s.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, memo,
 	)
 
-	res, err := suite.chainA.SendMsgs(msg)
-	suite.Require().NoError(err) // message committed
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NoError(err) // message committed
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// relay send
-	err = suite.path.RelayPacket(packet)
-	suite.Require().NoError(err) // relay committed
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err) // relay committed
 
 	// check that the escrow address balance increased by 100
-	suite.Require().Equal(escrowBalance.Add(amount), suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
+	s.Require().Equal(escrowBalance.Add(amount), s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
 	// check that the receiving address balance increased by 100
-	suite.Require().Equal(receiverBalance.AddAmount(sdk.NewInt(100)), suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom()))
+	s.Require().Equal(receiverBalance.AddAmount(sdk.NewInt(100)), s.chainB.GetSimApp().BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom()))
 }
 
 // ExecuteTransferTimeout executes a transfer message on chainA for 100 denom.
 // This message is not relayed to chainB, and it times out on chainA.
-func (suite *CallbacksTestSuite) ExecuteTransferTimeout(memo string, nextSeqRecv uint64) {
-	timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string, nextSeqRecv uint64) {
+	timeoutHeight := clienttypes.GetSelfHeight(s.chainB.GetContext())
+	timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
 
 	amount := ibctesting.TestCoin
 	msg := transfertypes.NewMsgTransfer(
-		suite.path.EndpointA.ChannelConfig.PortID,
-		suite.path.EndpointA.ChannelID,
+		s.path.EndpointA.ChannelConfig.PortID,
+		s.path.EndpointA.ChannelID,
 		amount,
-		suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainB.SenderAccount.GetAddress().String(),
+		s.chainA.SenderAccount.GetAddress().String(),
+		s.chainB.SenderAccount.GetAddress().String(),
 		timeoutHeight, timeoutTimestamp, memo,
 	)
 
-	res, err := suite.chainA.SendMsgs(msg)
-	suite.Require().NoError(err) // message committed
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NoError(err) // message committed
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
-	suite.Require().NoError(err) // packet committed
-	suite.Require().NotNil(packet)
+	s.Require().NoError(err) // packet committed
+	s.Require().NotNil(packet)
 
 	// need to update chainA's client representing chainB to prove missing ack
-	err = suite.path.EndpointA.UpdateClient()
-	suite.Require().NoError(err)
+	err = s.path.EndpointA.UpdateClient()
+	s.Require().NoError(err)
 
-	err = suite.path.EndpointA.TimeoutPacket(packet)
-	suite.Require().NoError(err) // timeout committed
+	err = s.path.EndpointA.TimeoutPacket(packet)
+	s.Require().NoError(err) // timeout committed
 }

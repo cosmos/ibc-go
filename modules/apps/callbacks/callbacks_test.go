@@ -33,118 +33,118 @@ type CallbacksTestSuite struct {
 }
 
 // setupChains sets up a coordinator with 2 test chains.
-func (suite *CallbacksTestSuite) setupChains() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+func (s *CallbacksTestSuite) setupChains() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 // SetupTransferTest sets up a transfer channel between chainA and chainB
-func (suite *CallbacksTestSuite) SetupTransferTest() {
-	suite.setupChains()
+func (s *CallbacksTestSuite) SetupTransferTest() {
+	s.setupChains()
 
-	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
-	suite.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-	suite.path.EndpointA.ChannelConfig.Version = transfertypes.Version
-	suite.path.EndpointB.ChannelConfig.Version = transfertypes.Version
+	s.path = ibctesting.NewPath(s.chainA, s.chainB)
+	s.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
+	s.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
+	s.path.EndpointA.ChannelConfig.Version = transfertypes.Version
+	s.path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
-	suite.coordinator.Setup(suite.path)
+	s.coordinator.Setup(s.path)
 }
 
 // SetupFeeTransferTest sets up a fee middleware enabled transfer channel between chainA and chainB
-func (suite *CallbacksTestSuite) SetupFeeTransferTest() {
-	suite.setupChains()
+func (s *CallbacksTestSuite) SetupFeeTransferTest() {
+	s.setupChains()
 
-	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
+	s.path = ibctesting.NewPath(s.chainA, s.chainB)
 	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.Version}))
-	suite.path.EndpointA.ChannelConfig.Version = feeTransferVersion
-	suite.path.EndpointB.ChannelConfig.Version = feeTransferVersion
-	suite.path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
-	suite.path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
+	s.path.EndpointA.ChannelConfig.Version = feeTransferVersion
+	s.path.EndpointB.ChannelConfig.Version = feeTransferVersion
+	s.path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
+	s.path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	suite.coordinator.Setup(suite.path)
+	s.coordinator.Setup(s.path)
 
-	suite.chainB.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
-	suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+	s.chainB.GetSimApp().IBCFeeKeeper.SetFeeEnabled(s.chainB.GetContext(), s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
+	s.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 }
 
-func (suite *CallbacksTestSuite) SetupMockFeeTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+func (s *CallbacksTestSuite) SetupMockFeeTest() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	mockFeeVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: ibcmock.Version}))
 	path.EndpointA.ChannelConfig.Version = mockFeeVersion
 	path.EndpointB.ChannelConfig.Version = mockFeeVersion
 	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-	suite.path = path
+	s.path = path
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
 // It funds and returns the interchain account address owned by chainA's SenderAccount.
-func (suite *CallbacksTestSuite) SetupICATest() string {
-	suite.setupChains()
+func (s *CallbacksTestSuite) SetupICATest() string {
+	s.setupChains()
 
-	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(suite.path)
+	s.path = ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.SetupConnections(s.path)
 
-	icaOwner := suite.chainA.SenderAccount.GetAddress().String()
+	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	// ICAVersion defines a interchain accounts version string
-	ICAVersion := icatypes.NewDefaultMetadataString(suite.path.EndpointA.ConnectionID, suite.path.EndpointB.ConnectionID)
-	ICAControllerPortID, err := icatypes.NewControllerPortID(icaOwner)
-	suite.Require().NoError(err)
+	icaVersion := icatypes.NewDefaultMetadataString(s.path.EndpointA.ConnectionID, s.path.EndpointB.ConnectionID)
+	icaControllerPortID, err := icatypes.NewControllerPortID(icaOwner)
+	s.Require().NoError(err)
 
-	suite.path.SetChannelOrdered()
-	suite.path.EndpointA.ChannelConfig.PortID = ICAControllerPortID
-	suite.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
-	suite.path.EndpointA.ChannelConfig.Version = ICAVersion
-	suite.path.EndpointB.ChannelConfig.Version = ICAVersion
+	s.path.SetChannelOrdered()
+	s.path.EndpointA.ChannelConfig.PortID = icaControllerPortID
+	s.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
+	s.path.EndpointA.ChannelConfig.Version = icaVersion
+	s.path.EndpointB.ChannelConfig.Version = icaVersion
 
-	suite.RegisterInterchainAccount(icaOwner)
+	s.RegisterInterchainAccount(icaOwner)
 	// open chan init must be skipped. So we cannot use .CreateChannels()
-	err = suite.path.EndpointB.ChanOpenTry()
-	suite.Require().NoError(err)
-	err = suite.path.EndpointA.ChanOpenAck()
-	suite.Require().NoError(err)
-	err = suite.path.EndpointB.ChanOpenConfirm()
-	suite.Require().NoError(err)
+	err = s.path.EndpointB.ChanOpenTry()
+	s.Require().NoError(err)
+	err = s.path.EndpointA.ChanOpenAck()
+	s.Require().NoError(err)
+	err = s.path.EndpointB.ChanOpenConfirm()
+	s.Require().NoError(err)
 
-	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), suite.path.EndpointA.ConnectionID, suite.path.EndpointA.ChannelConfig.PortID)
-	suite.Require().True(found)
+	interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), s.path.EndpointA.ConnectionID, s.path.EndpointA.ChannelConfig.PortID)
+	s.Require().True(found)
 
 	// fund the interchain account on chainB
 	msgBankSend := &banktypes.MsgSend{
-		FromAddress: suite.chainB.SenderAccount.GetAddress().String(),
+		FromAddress: s.chainB.SenderAccount.GetAddress().String(),
 		ToAddress:   interchainAccountAddr,
 		Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
 	}
-	res, err := suite.chainB.SendMsgs(msgBankSend)
-	suite.Require().NotEmpty(res)
-	suite.Require().NoError(err)
+	res, err := s.chainB.SendMsgs(msgBankSend)
+	s.Require().NotEmpty(res)
+	s.Require().NoError(err)
 
 	return interchainAccountAddr
 }
 
 // RegisterInterchainAccount invokes the the InterchainAccounts entrypoint, routes a new MsgChannelOpenInit to the appropriate handler,
 // commits state changes and updates the testing endpoint accordingly on chainA.
-func (suite *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
+func (s *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 	portID, err := icatypes.NewControllerPortID(owner)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	channelSequence := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
+	channelSequence := s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(s.chainA.GetContext())
 
-	err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), suite.path.EndpointA.ConnectionID, owner, suite.path.EndpointA.ChannelConfig.Version)
-	suite.Require().NoError(err)
+	err = s.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(s.chainA.GetContext(), s.path.EndpointA.ConnectionID, owner, s.path.EndpointA.ChannelConfig.Version)
+	s.Require().NoError(err)
 
 	// commit state changes for proof verification
-	suite.chainA.NextBlock()
+	s.chainA.NextBlock()
 
 	// update port/channel ids
-	suite.path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
-	suite.path.EndpointA.ChannelConfig.PortID = portID
+	s.path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
+	s.path.EndpointA.ChannelConfig.PortID = portID
 }
 
 // AssertHasExecutedExpectedCallback checks if only the expected type of callback has been executed.
@@ -155,51 +155,51 @@ func (suite *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 //   - types.CallbackTypeWriteAcknowledgement
 //   - types.CallbackTypeTimeout
 //   - "none" (no callback should be executed)
-func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType types.CallbackType, isSuccessful bool) {
+func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType types.CallbackType, isSuccessful bool) {
 	successCount := uint64(0)
 	if isSuccessful {
 		successCount = 1
 	}
 	switch callbackType {
 	case types.CallbackTypeAcknowledgement:
-		suite.Require().Equal(successCount, suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Success)
-		suite.Require().Equal(1-successCount, suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Failure)
-		suite.Require().Equal(successCount, suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Success)
-		suite.Require().Equal(1-successCount, suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Failure)
-		suite.Require().Equal(uint8(2*successCount), suite.chainA.GetSimApp().MockKeeper.GetStateCounter(suite.chainA.GetContext()))
-		suite.Require().Equal(uint8(0), suite.chainB.GetSimApp().MockKeeper.GetStateCounter(suite.chainB.GetContext()))
-		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
+		s.Require().Equal(successCount, s.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Success)
+		s.Require().Equal(1-successCount, s.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Failure)
+		s.Require().Equal(successCount, s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Success)
+		s.Require().Equal(1-successCount, s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Failure)
+		s.Require().Equal(uint8(2*successCount), s.chainA.GetSimApp().MockKeeper.GetStateCounter(s.chainA.GetContext()))
+		s.Require().Equal(uint8(0), s.chainB.GetSimApp().MockKeeper.GetStateCounter(s.chainB.GetContext()))
+		s.Require().True(s.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+		s.Require().True(s.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
 	case types.CallbackTypeWriteAcknowledgement:
-		suite.Require().Equal(successCount, suite.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.Success)
-		suite.Require().Equal(1-successCount, suite.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.Failure)
-		suite.Require().Equal(uint8(successCount), suite.chainB.GetSimApp().MockKeeper.GetStateCounter(suite.chainB.GetContext()))
-		suite.Require().Equal(uint8(0), suite.chainA.GetSimApp().MockKeeper.GetStateCounter(suite.chainA.GetContext()))
-		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.IsZero())
-		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+		s.Require().Equal(successCount, s.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.Success)
+		s.Require().Equal(1-successCount, s.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.Failure)
+		s.Require().Equal(uint8(successCount), s.chainB.GetSimApp().MockKeeper.GetStateCounter(s.chainB.GetContext()))
+		s.Require().Equal(uint8(0), s.chainA.GetSimApp().MockKeeper.GetStateCounter(s.chainA.GetContext()))
+		s.Require().True(s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.IsZero())
+		s.Require().True(s.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+		s.Require().True(s.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
 	case types.CallbackTypeTimeoutPacket:
-		suite.Require().Equal(successCount, suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.Success)
-		suite.Require().Equal(1-successCount, suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.Failure)
-		suite.Require().Equal(successCount, suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Success)
-		suite.Require().Equal(1-successCount, suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Failure)
-		suite.Require().Equal(uint8(2*successCount), suite.chainA.GetSimApp().MockKeeper.GetStateCounter(suite.chainA.GetContext()))
-		suite.Require().Equal(uint8(0), suite.chainB.GetSimApp().MockKeeper.GetStateCounter(suite.chainB.GetContext()))
-		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
+		s.Require().Equal(successCount, s.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.Success)
+		s.Require().Equal(1-successCount, s.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.Failure)
+		s.Require().Equal(successCount, s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Success)
+		s.Require().Equal(1-successCount, s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Failure)
+		s.Require().Equal(uint8(2*successCount), s.chainA.GetSimApp().MockKeeper.GetStateCounter(s.chainA.GetContext()))
+		s.Require().Equal(uint8(0), s.chainB.GetSimApp().MockKeeper.GetStateCounter(s.chainB.GetContext()))
+		s.Require().True(s.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+		s.Require().True(s.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
 	case "none":
-		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-		suite.Require().True(suite.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
-		suite.Require().True(suite.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.IsZero())
-		suite.Require().Equal(uint8(0), suite.chainA.GetSimApp().MockKeeper.GetStateCounter(suite.chainA.GetContext()))
-		suite.Require().Equal(uint8(0), suite.chainB.GetSimApp().MockKeeper.GetStateCounter(suite.chainB.GetContext()))
+		s.Require().True(s.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+		s.Require().True(s.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+		s.Require().True(s.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
+		s.Require().True(s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.IsZero())
+		s.Require().Equal(uint8(0), s.chainA.GetSimApp().MockKeeper.GetStateCounter(s.chainA.GetContext()))
+		s.Require().Equal(uint8(0), s.chainB.GetSimApp().MockKeeper.GetStateCounter(s.chainB.GetContext()))
 	default:
-		suite.FailNow(fmt.Sprintf("invalid callback type %s", callbackType))
+		s.FailNow(fmt.Sprintf("invalid callback type %s", callbackType))
 	}
-	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-	suite.Require().True(suite.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-	suite.Require().True(suite.chainA.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
+	s.Require().True(s.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
+	s.Require().True(s.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
+	s.Require().True(s.chainA.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
 }
 
 func TestIBCCallbacksTestSuite(t *testing.T) {
@@ -208,7 +208,7 @@ func TestIBCCallbacksTestSuite(t *testing.T) {
 
 // AssertHasExecutedExpectedCallbackWithFee checks if only the expected type of callback has been executed
 // and that the expected ics-29 fee has been paid.
-func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
+func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 	callbackType types.CallbackType, isSuccessful bool, isTimeout bool,
 	originalSenderBalance sdk.Coins, fee feetypes.Fee,
 ) {
@@ -220,35 +220,35 @@ func (suite *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 
 	if !isTimeout {
 		// check forward relay balance
-		suite.Require().Equal(
+		s.Require().Equal(
 			fee.RecvFee,
-			sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+			sdk.NewCoins(s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
 		)
 
-		suite.Require().Equal(
+		s.Require().Equal(
 			fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
 			sdk.NewCoins(
-				suite.chainA.GetSimApp().BankKeeper.GetBalance(
-					suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(),
+				s.chainA.GetSimApp().BankKeeper.GetBalance(
+					s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(),
 					ibctesting.TestCoin.Denom),
 			).Sub(originalSenderBalance[0]),
 		)
 	} else {
 		// forwad relay balance should be 0
-		suite.Require().Equal(
+		s.Require().Equal(
 			sdk.NewCoin(ibctesting.TestCoin.Denom, sdkmath.ZeroInt()),
-			suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom),
+			s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom),
 		)
 
 		// all fees should be returned as sender is the reverse relayer
-		suite.Require().Equal(
+		s.Require().Equal(
 			fee.Total(),
 			sdk.NewCoins(
-				suite.chainA.GetSimApp().BankKeeper.GetBalance(
-					suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(),
+				s.chainA.GetSimApp().BankKeeper.GetBalance(
+					s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(),
 					ibctesting.TestCoin.Denom),
 			).Sub(originalSenderBalance[0]),
 		)
 	}
-	suite.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
+	s.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
 }

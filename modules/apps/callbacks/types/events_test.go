@@ -10,17 +10,17 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *CallbacksTypesTestSuite) TestLogger() {
-	suite.SetupSuite()
+func (s *CallbacksTypesTestSuite) TestLogger() {
+	s.SetupSuite()
 
 	mockLogger := ibcmock.NewMockLogger()
-	ctx := suite.chain.GetContext().WithLogger(mockLogger)
+	ctx := s.chain.GetContext().WithLogger(mockLogger)
 	types.Logger(ctx)
 
-	suite.Require().Equal(mockLogger.WithRecord, []interface{}{"module", "x/" + types.ModuleName})
+	s.Require().Equal(mockLogger.WithRecord, []interface{}{"module", "x/" + types.ModuleName})
 }
 
-func (suite *CallbacksTypesTestSuite) TestEvents() {
+func (s *CallbacksTypesTestSuite) TestEvents() {
 	testCases := []struct {
 		name          string
 		packet        channeltypes.Packet
@@ -199,6 +199,6 @@ func (suite *CallbacksTypesTestSuite) TestEvents() {
 
 		types.EmitCallbackEvent(newCtx, tc.packet, tc.callbackType, tc.callbackData, tc.callbackError)
 		events := newCtx.EventManager().Events().ToABCIEvents()
-		ibctesting.AssertEvents(&suite.Suite, tc.expEvents, events)
+		ibctesting.AssertEvents(&s.Suite, tc.expEvents, events)
 	}
 }

@@ -16,12 +16,12 @@ import (
 // MockKeeper implements callbacktypes.ContractKeeper
 var _ callbacktypes.ContractKeeper = (*Keeper)(nil)
 
-// MockKeeper can be used to mock the expected keepers needed for testing.
+// Keeper can be used to mock the expected keepers needed for testing.
 //
-// MockKeeper currently mocks the following interfaces:
+// Keeper currently mocks the following interfaces:
 //   - callbacktypes.ContractKeeper
 type Keeper struct {
-	MockContractKeeper
+	ContractKeeper
 
 	key storetypes.StoreKey
 }
@@ -29,7 +29,7 @@ type Keeper struct {
 // This is a mock keeper used for testing. It is not wired up to any modules.
 // It implements the interface functions expected by the ibccallbacks middleware
 // so that it can be tested with simapp.
-type MockContractKeeper struct {
+type ContractKeeper struct {
 	SendPacketCallbackCounter           *types.CallbackCounter
 	AckCallbackCounter                  *types.CallbackCounter
 	TimeoutCallbackCounter              *types.CallbackCounter
@@ -65,7 +65,7 @@ func (k Keeper) IncrementStatefulCounter(ctx sdk.Context) {
 func NewMockKeeper(key storetypes.StoreKey) Keeper {
 	return Keeper{
 		key: key,
-		MockContractKeeper: MockContractKeeper{
+		ContractKeeper: ContractKeeper{
 			SendPacketCallbackCounter:           types.NewCallbackCounter(),
 			AckCallbackCounter:                  types.NewCallbackCounter(),
 			TimeoutCallbackCounter:              types.NewCallbackCounter(),
