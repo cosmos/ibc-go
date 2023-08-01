@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	"fmt"
+
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -110,5 +112,71 @@ func (suite *TypesTestSuite) TestGetPacketSender() {
 	for _, tc := range testCases {
 		packetData := types.InterchainAccountPacketData{}
 		suite.Require().Equal(tc.expSender, packetData.GetPacketSender(tc.srcPortID))
+	}
+}
+
+func (suite *TypesTestSuite) TestPacketDataProvider() {
+	expCallbackAddr := ibctesting.TestAccAddress
+
+	testCases := []struct {
+		name          string
+		packetData    types.InterchainAccountPacketData
+		expCustomData interface{}
+	}{
+		{
+			"success: src_callback key in memo",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, expCallbackAddr),
+			},
+			map[string]interface{}{
+				"address": expCallbackAddr,
+			},
+		},
+		{
+			"success: src_callback key in memo with additional fields",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, expCallbackAddr),
+			},
+			map[string]interface{}{
+				"address":   expCallbackAddr,
+				"gas_limit": "200000",
+			},
+		},
+		{
+			"success: src_callback has string valu",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"src_callback": "string"}`,
+			},
+			"string",
+		},
+		{
+			"failure: empty memo",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "",
+			},
+			nil,
+		},
+		{
+			"failure: non-json memo",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: "invalid",
+			},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		customData := tc.packetData.GetCustomPacketData("src_callback")
+		suite.Require().Equal(tc.expCustomData, customData)
 	}
 }

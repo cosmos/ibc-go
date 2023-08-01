@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -12,7 +13,10 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ ibcexported.PacketData = (*InterchainAccountPacketData)(nil)
+var (
+	_ ibcexported.PacketData = (*InterchainAccountPacketData)(nil)
+	_ ibcexported.PacketDataProvider = (*InterchainAccountPacketData)(nil)
+)
 
 // MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
 const MaxMemoCharLength = 256
@@ -84,4 +88,26 @@ func (InterchainAccountPacketData) GetPacketSender(sourcePortID string) string {
 		return ""
 	}
 	return icaOwner
+}
+
+// GetCustomPacketData interprets the memo field of the packet data as a JSON object
+// and returns the value associated with the given key.
+// If the key is missing or the memo is not properly formatted, then nil is returned.
+func (iapd InterchainAccountPacketData) GetCustomPacketData(key string) interface{} {
+	if len(iapd.Memo) == 0 {
+		return nil
+	}
+
+	jsonObject := make(map[string]interface{})
+	err := json.Unmarshal([]byte(iapd.Memo), &jsonObject)
+	if err != nil {
+		return nil
+	}
+
+	memoData, found := jsonObject[key]
+	if !found {
+		return nil
+	}
+
+	return memoData
 }
