@@ -249,7 +249,7 @@ type SimApp struct {
 	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
 
 	// mock keepers used for testing
-	MockKeeper ibcmock.MockKeeper
+	MockKeeper ibcmock.Keeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router

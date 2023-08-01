@@ -14,13 +14,13 @@ import (
 )
 
 // MockKeeper implements callbacktypes.ContractKeeper
-var _ callbacktypes.ContractKeeper = (*MockKeeper)(nil)
+var _ callbacktypes.ContractKeeper = (*Keeper)(nil)
 
 // MockKeeper can be used to mock the expected keepers needed for testing.
 //
 // MockKeeper currently mocks the following interfaces:
 //   - callbacktypes.ContractKeeper
-type MockKeeper struct {
+type Keeper struct {
 	MockContractKeeper
 
 	key storetypes.StoreKey
@@ -40,13 +40,13 @@ type MockContractKeeper struct {
 // This function is used to test state reversals. The callback counters
 // directly listed under MockContractKeeper will not be reversed if the
 // state is reversed.
-func (k MockKeeper) SetStateCounter(ctx sdk.Context, count uint8) {
+func (k Keeper) SetStateCounter(ctx sdk.Context, count uint8) {
 	store := ctx.KVStore(k.key)
 	store.Set([]byte(StatefulCounterKey), []byte{count})
 }
 
 // GetStateCounter returns the stateful callback counter from state.
-func (k MockKeeper) GetStateCounter(ctx sdk.Context) uint8 {
+func (k Keeper) GetStateCounter(ctx sdk.Context) uint8 {
 	store := ctx.KVStore(k.key)
 	bz := store.Get([]byte(StatefulCounterKey))
 	if bz == nil {
@@ -56,14 +56,14 @@ func (k MockKeeper) GetStateCounter(ctx sdk.Context) uint8 {
 }
 
 // IncrementStatefulCounter increments the stateful callback counter in state.
-func (k MockKeeper) IncrementStatefulCounter(ctx sdk.Context) {
+func (k Keeper) IncrementStatefulCounter(ctx sdk.Context) {
 	count := k.GetStateCounter(ctx)
 	k.SetStateCounter(ctx, count+1)
 }
 
 // NewKeeper creates a new mock Keeper.
-func NewMockKeeper(key storetypes.StoreKey) MockKeeper {
-	return MockKeeper{
+func NewMockKeeper(key storetypes.StoreKey) Keeper {
+	return Keeper{
 		key: key,
 		MockContractKeeper: MockContractKeeper{
 			SendPacketCallbackCounter:           types.NewCallbackCounter(),
@@ -78,7 +78,7 @@ func NewMockKeeper(key storetypes.StoreKey) MockKeeper {
 // or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k MockKeeper) IBCSendPacketCallback(
+func (k Keeper) IBCSendPacketCallback(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
@@ -95,7 +95,7 @@ func (k MockKeeper) IBCSendPacketCallback(
 // or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k MockKeeper) IBCOnAcknowledgementPacketCallback(
+func (k Keeper) IBCOnAcknowledgementPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -110,7 +110,7 @@ func (k MockKeeper) IBCOnAcknowledgementPacketCallback(
 // or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k MockKeeper) IBCOnTimeoutPacketCallback(
+func (k Keeper) IBCOnTimeoutPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -124,7 +124,7 @@ func (k MockKeeper) IBCOnTimeoutPacketCallback(
 // or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k MockKeeper) IBCWriteAcknowledgementCallback(
+func (k Keeper) IBCWriteAcknowledgementCallback(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
@@ -136,7 +136,7 @@ func (k MockKeeper) IBCWriteAcknowledgementCallback(
 // processMockCallback returns nil if the gas meter has greater than or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k MockKeeper) processMockCallback(
+func (k Keeper) processMockCallback(
 	ctx sdk.Context,
 	callbackType callbacktypes.CallbackType,
 	callbackCounter *types.CallbackCounter,

@@ -61,7 +61,7 @@ func (iapd InterchainAccountPacketData) GetBytes() []byte {
 // the ControllerPortPrefix.
 // If the source port ID does not have the ControllerPortPrefix, then an empty string is returned.
 // NOTE: The sender address is set at the source chain and not validated by a signature check in IBC.
-func (iapd InterchainAccountPacketData) GetPacketSender(srcPortID string) string {
+func (InterchainAccountPacketData) GetPacketSender(srcPortID string) string {
 	icaOwner, found := strings.CutPrefix(srcPortID, ControllerPortPrefix)
 	if !found {
 		return ""

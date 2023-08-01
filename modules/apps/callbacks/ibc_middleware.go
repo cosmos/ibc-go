@@ -205,7 +205,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 //
 // panics if the contractExecutor out of gas panics and the relayer has not reserved gas grater than or equal
 // to CommitGasLimit.
-func (im IBCMiddleware) processCallback(
+func (IBCMiddleware) processCallback(
 	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
 	callbackDataGetter func() (types.CallbackData, bool, error),
 	callbackExecutor func(sdk.Context, string, string) error,
