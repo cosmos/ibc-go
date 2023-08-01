@@ -24,7 +24,7 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, 
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T", &ClientMessage{}, clientMsg)
 	}
 
-	payload := QueryMsg{
+	payload := queryMsg{
 		VerifyClientMessage: &verifyClientMessageMsg{ClientMessage: clientMessage},
 	}
 	_, err := wasmQuery[contractResult](ctx, clientStore, &cs, payload)
@@ -38,7 +38,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		panic(fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
 	}
 
-	payload := SudoMsg{
+	payload := sudoMsg{
 		UpdateState: &updateStateMsg{ClientMessage: clientMessage},
 	}
 
@@ -58,7 +58,7 @@ func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryC
 		panic(fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
 	}
 
-	payload := SudoMsg{
+	payload := sudoMsg{
 		UpdateStateOnMisbehaviour: &updateStateOnMisbehaviourMsg{ClientMessage: clientMessage},
 	}
 

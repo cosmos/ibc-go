@@ -35,7 +35,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, SubjectPrefix, SubstitutePrefix)
 
-	payload := SudoMsg{
+	payload := sudoMsg{
 		CheckSubstituteAndUpdateState: &checkSubstituteAndUpdateStateMsg{},
 	}
 

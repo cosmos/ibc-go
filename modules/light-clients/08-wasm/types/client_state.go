@@ -64,7 +64,7 @@ func (cs ClientState) Validate() error {
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
 func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.BinaryCodec) exported.Status {
-	payload := QueryMsg{Status: &statusMsg{}}
+	payload := queryMsg{Status: &statusMsg{}}
 
 	result, err := wasmQuery[statusResult](ctx, clientStore, &cs, payload)
 	if err != nil {
@@ -87,7 +87,7 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	payload := QueryMsg{
+	payload := queryMsg{
 		TimestampAtHeight: &timestampAtHeightMsg{
 			Height: height,
 		},
@@ -157,7 +157,7 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	payload := QueryMsg{
+	payload := queryMsg{
 		VerifyMembership: &verifyMembershipMsg{
 			Height:           height,
 			DelayTimePeriod:  delayTimePeriod,
@@ -196,7 +196,7 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	payload := QueryMsg{
+	payload := queryMsg{
 		VerifyNonMembership: &verifyNonMembershipMsg{
 			Height:           height,
 			DelayTimePeriod:  delayTimePeriod,

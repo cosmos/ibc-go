@@ -42,7 +42,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 			upgradedClient.GetLatestHeight(), lastHeight)
 	}
 
-	payload := SudoMsg{
+	payload := sudoMsg{
 		VerifyUpgradeAndUpdateState: &verifyUpgradeAndUpdateStateMsg{
 			UpgradeClientState:         upgradedClient,
 			UpgradeConsensusState:      upgradedConsState,
