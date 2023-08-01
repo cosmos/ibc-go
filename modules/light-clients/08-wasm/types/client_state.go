@@ -122,11 +122,6 @@ type instantiateMessage struct {
 	ConsensusState *ConsensusState `json:"consensus_state"`
 }
 
-type instantiateMessage struct {
-	ClientState    *ClientState    `json:"client_state"`
-	ConsensusState *ConsensusState `json:"consensus_state"`
-}
-
 // Initialize checks that the initial consensus state is an 08-wasm consensus state and
 // sets the client state, consensus state in the provided client store.
 // It also initializes the wasm contract for the client.
