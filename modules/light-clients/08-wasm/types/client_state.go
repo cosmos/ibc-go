@@ -150,7 +150,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 	// The global store key can be used here to implement #4085
 	// wasmStore := ctx.KVStore(WasmStoreKey)
 
-	_, err := initContract(ctx, clientStore, cs.CodeHash, encodedData)
+	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to initialize contract")
 	}
@@ -262,45 +262,45 @@ func (cs ClientState) VerifyNonMembership(
 	return err
 }
 
-// call calls the contract with the given payload and writes the result to output.
+// call calls the contract with the given payload and returns the result.
 func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload any) (T, error) {
-	var output T
+	var result T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return output, errorsmod.Wrapf(err, "failed to marshal payload for wasm execution")
+		return result, errorsmod.Wrapf(err, "failed to marshal payload for wasm execution")
 	}
-	out, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
+	resp, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
-		return output, errorsmod.Wrapf(err, "call to wasm contract failed")
+		return result, errorsmod.Wrapf(err, "call to wasm contract failed")
 	}
-	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return output, errorsmod.Wrapf(err, "failed to unmarshal result of wasm execution")
+	if err := json.Unmarshal(resp.Data, &result); err != nil {
+		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm execution")
 	}
-	if !output.Validate() {
-		return output, errorsmod.Wrapf(errors.New(output.Error()), "error occurred while executing contract with code hash %s", hex.EncodeToString(cs.CodeHash))
+	if !result.Validate() {
+		return result, errorsmod.Wrapf(errors.New(result.Error()), "error occurred while executing contract with code hash %s", hex.EncodeToString(cs.CodeHash))
 	}
-	if len(out.Messages) > 0 {
-		return output, errorsmod.Wrapf(ErrWasmSubMessagesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+	if len(resp.Messages) > 0 {
+		return result, errorsmod.Wrapf(ErrWasmSubMessagesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
 	}
-	return output, nil
+	return result, nil
 }
 
-// wasmQuery queries the contract with the given payload and writes the result to output.
+// wasmQuery queries the contract with the given payload and returns the result.
 func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload any) (T, error) {
-	var output T
+	var result T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return output, errorsmod.Wrapf(err, "failed to marshal payload for wasm query")
+		return result, errorsmod.Wrapf(err, "failed to marshal payload for wasm query")
 	}
-	out, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
+	resp, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
-		return output, errorsmod.Wrapf(err, "query to wasm contract failed")
+		return result, errorsmod.Wrapf(err, "query to wasm contract failed")
 	}
-	if err := json.Unmarshal(out, &output); err != nil {
-		return output, errorsmod.Wrapf(err, "failed to unmarshal result of wasm query")
+	if err := json.Unmarshal(resp, &result); err != nil {
+		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm query")
 	}
-	if !output.Validate() {
-		return output, errorsmod.Wrapf(errors.New(output.Error()), "error occurred while querying contract with code hash %s", hex.EncodeToString(cs.CodeHash))
+	if !result.Validate() {
+		return result, errorsmod.Wrapf(errors.New(result.Error()), "error occurred while querying contract with code hash %s", hex.EncodeToString(cs.CodeHash))
 	}
-	return output, nil
+	return result, nil
 }
