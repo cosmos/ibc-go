@@ -1,7 +1,7 @@
 package types
 
 import (
-	cosmwasm "github.com/CosmWasm/wasmvm"
+	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	WasmVM *cosmwasm.VM
+	WasmVM *wasmvm.VM
 	// Store key for 08-wasm module, required as a global so that the KV store can be retrieved
 	// in the ClientState Initialize function which doesn't have access to the keeper.
 	// The storeKey is used to check the code hash of the contract and determine if the light client
@@ -32,7 +32,7 @@ func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg
 	}
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(len(msg)), "Loading CosmWasm module: instantiate")
-	response, gasUsed, err := WasmVM.Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	response, gasUsed, err := WasmVM.Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return response, err
 }
@@ -45,7 +45,7 @@ func callContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg
 	env := getEnv(ctx)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: sudo")
-	resp, gasUsed, err := WasmVM.Sudo(codeHash, env, msg, newStoreAdapter(clientStore), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := WasmVM.Sudo(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -59,7 +59,7 @@ func queryContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, ms
 	env := getEnv(ctx)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: query")
-	resp, gasUsed, err := WasmVM.Query(codeHash, env, msg, newStoreAdapter(clientStore), cosmwasm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := WasmVM.Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
