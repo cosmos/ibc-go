@@ -49,7 +49,7 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 	testCases := []struct {
 		name              string
 		packetData        types.FungibleTokenPacketData
-		expAdditionalData map[string]interface{}
+		expAdditionalData interface{}
 	}{
 		{
 			"success: src_callback key in memo",
@@ -79,6 +79,17 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 			},
 		},
 		{
+			"success: src_callback has string value",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": "string"}`,
+			},
+			"string",
+		},
+		{
 			"failure: empty memo",
 			types.FungibleTokenPacketData{
 				Denom:    denom,
@@ -100,22 +111,10 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 			},
 			nil,
 		},
-		{
-			"failure: invalid src_callback key",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"src_callback": "invalid"}`,
-			},
-			nil,
-		},
 	}
 
 	for _, tc := range testCases {
-		additionalData, ok := tc.packetData.GetCustomPacketData("src_callback").(map[string]interface{})
-		suite.Require().Equal(ok, additionalData != nil)
-		suite.Require().Equal(tc.expAdditionalData, additionalData)
+		customData := tc.packetData.GetCustomPacketData("src_callback")
+		suite.Require().Equal(tc.expAdditionalData, customData)
 	}
 }
