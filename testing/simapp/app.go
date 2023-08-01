@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -465,7 +466,32 @@ func NewSimApp(
 		),
 	)
 
-	app.WasmClientKeeper = wasmkeeper.NewKeeper(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	// 08-wasm's Keeper can be instantiated in two different ways:
+	// 1. If the chain uses x/wasm:
+	// Both x/wasm's Keeper and 08-wasm Keeper should share the same Wasm VM instance.
+	// - Instantiate the Wasm VM in app.go with the parameters of your choice.
+	// - Create an Option with this Wasm VM instance (see https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/options.go#L26-L32).
+	// - Pass the option to the x/wasm NewKeeper contructor function (https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/keeper_cgo.go#L36).
+	// - Pass a pointer to the Wasm VM instance to 08-wasm NewKeeperWithVM constructor function.
+	//
+	// 2. If the chain does not use x/wasm:
+	// Even though it is still possible to use method 1 above
+	// (e.g. instantiating a Wasm VM in app.go an pass it in 08-wasm NewKeeper),
+	// since there is no need to share the Wasm VM instance with another module
+	// you can use NewKeeperWithConfig constructor function and provide
+	// the Wasm VM configuration parameters of your choice.
+	// Check out the WasmConfig type definition for more information on
+	// each parameter. Some parameters allow node-leve configurations.
+	// Function DefaultWasmConfig can also be used to use default values.
+	//
+	// In the code below we use the second method because we are not using x/wasm in this app.go.
+	wasmConfig := wasmtypes.WasmConfig{
+		DataDir:           "ibc_08-wasm_client_data",
+		SupportedFeatures: "iterator",
+		MemoryCacheSize:   uint32(math.Pow(2, 8)),
+		ContractDebugMode: false,
+	}
+	app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig)
 
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
