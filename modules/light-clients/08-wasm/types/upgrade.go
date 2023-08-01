@@ -54,14 +54,6 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 			upgradedClient.GetLatestHeight(), lastHeight)
 	}
 
-	// Must prove against latest consensus state to ensure we are verifying against latest upgrade plan
-	// This verifies that upgrade is intended for the provided revision, since committed client must exist
-	// at this consensus state
-	found := hasConsensusState(clientStore, lastHeight)
-	if !found {
-		return errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not retrieve consensus state for height %s", lastHeight)
-	}
-
 	payload := verifyUpgradeAndUpdateStatePayload{
 		VerifyUpgradeAndUpdateState: verifyUpgradeAndUpdateStateInnerPayload{
 			UpgradeClientState:         upgradedClient,

@@ -108,11 +108,6 @@ func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensus
 	clientStore.Set(key, val)
 }
 
-// hasConsensusState returns true if a consensus state at the given height exists in the store.
-func hasConsensusState(clientStore sdk.KVStore, height exported.Height) bool {
-	return clientStore.Has(host.ConsensusStateKey(height))
-}
-
 var _ wasmvmtypes.KVStore = &storeAdapter{}
 
 // storeAdapter adapter to bridge SDK store impl to wasmvm
