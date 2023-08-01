@@ -16,12 +16,11 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	tmversion "github.com/cometbft/cometbft/version"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -40,7 +39,7 @@ const (
 )
 
 func TestClientTestSuite(t *testing.T) {
-	suite.Run(t, new(ClientTestSuite))
+	testifysuite.Run(t, new(ClientTestSuite))
 }
 
 type ClientTestSuite struct {

@@ -3,13 +3,13 @@ package localhost_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 type LocalhostTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator ibctesting.Coordinator
 	chain       *ibctesting.TestChain
@@ -21,5 +21,5 @@ func (suite *LocalhostTestSuite) SetupTest() {
 }
 
 func TestLocalhostTestSuite(t *testing.T) {
-	suite.Run(t, new(LocalhostTestSuite))
+	testifysuite.Run(t, new(LocalhostTestSuite))
 }
