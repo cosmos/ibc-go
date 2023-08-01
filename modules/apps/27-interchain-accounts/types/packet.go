@@ -70,10 +70,14 @@ func (ct CosmosTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return nil
 }
 
-// GetPacketSender returns the sender address of the packet from the source port ID by cutting off
-// the ControllerPortPrefix.
+// GetPacketSender returns the sender address of the interchain accounts packet data.
+// It is obtained from the source port ID by cutting off the ControllerPortPrefix.
 // If the source port ID does not have the ControllerPortPrefix, then an empty string is returned.
-// NOTE: The sender address is set at the source chain and not validated by a signature check in IBC.
+//
+// NOTE:
+//   - The sender address is set by the packet sender and may not have been validated a signature
+//     check if the packet sender isn't the interchain accounts module.
+//   - The sender address must only be used by modules on the sending chain.
 func (iapd InterchainAccountPacketData) GetPacketSender(sourcePortID string) string {
 	icaOwner, found := strings.CutPrefix(sourcePortID, ControllerPortPrefix)
 	if !found {
