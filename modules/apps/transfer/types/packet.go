@@ -69,8 +69,8 @@ func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
 }
 
-// GetCustomPacketData returns a json object from the memo as `map[string]interface{}` so that
-// it can be interpreted as a json object with keys.
+// GetCustomPacketData interprets the memo field of the packet data as a JSON object
+// and returns the value associated with the given key.
 // If the key is missing or the memo is not properly formatted, then nil is returned.
 func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} {
 	if len(ftpd.Memo) == 0 {
