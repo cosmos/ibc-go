@@ -54,13 +54,6 @@ func (cs ClientState) Validate() error {
 	return nil
 }
 
-type (
-	statusInnerPayload struct{}
-	statusPayload      struct {
-		Status statusInnerPayload `json:"status"`
-	}
-)
-
 // Status returns the status of the wasm client.
 // The client may be:
 // - Active: frozen height is zero and client is not expired
@@ -71,7 +64,7 @@ type (
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
 func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.BinaryCodec) exported.Status {
-	payload := statusPayload{Status: statusInnerPayload{}}
+	payload := queryMsg{Status: &statusMsg{}}
 
 	result, err := wasmQuery[statusResult](ctx, clientStore, &cs, payload)
 	if err != nil {
@@ -87,15 +80,6 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	return &cs
 }
 
-type (
-	timestampAtHeightInnerPayload struct {
-		Height exported.Height `json:"height"`
-	}
-	timestampAtHeightPayload struct {
-		TimestampAtHeight timestampAtHeightInnerPayload `json:"timestamp_at_height"`
-	}
-)
-
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	ctx sdk.Context,
@@ -103,8 +87,8 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	payload := timestampAtHeightPayload{
-		TimestampAtHeight: timestampAtHeightInnerPayload{
+	payload := queryMsg{
+		TimestampAtHeight: &timestampAtHeightMsg{
 			Height: height,
 		},
 	}
@@ -115,11 +99,6 @@ func (cs ClientState) GetTimestampAtHeight(
 	}
 
 	return result.Timestamp, nil
-}
-
-type instantiateMessage struct {
-	ClientState    *ClientState    `json:"client_state"`
-	ConsensusState *ConsensusState `json:"consensus_state"`
 }
 
 // Initialize checks that the initial consensus state is an 08-wasm consensus state and
@@ -152,20 +131,6 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 	return nil
 }
 
-type (
-	verifyMembershipInnerPayload struct {
-		Height           exported.Height `json:"height"`
-		DelayTimePeriod  uint64          `json:"delay_time_period"`
-		DelayBlockPeriod uint64          `json:"delay_block_period"`
-		Proof            []byte          `json:"proof"`
-		Path             exported.Path   `json:"path"`
-		Value            []byte          `json:"value"`
-	}
-	verifyMembershipPayload struct {
-		VerifyMembership verifyMembershipInnerPayload `json:"verify_membership"`
-	}
-)
-
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
@@ -192,8 +157,8 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	payload := verifyMembershipPayload{
-		VerifyMembership: verifyMembershipInnerPayload{
+	payload := queryMsg{
+		VerifyMembership: &verifyMembershipMsg{
 			Height:           height,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
@@ -205,19 +170,6 @@ func (cs ClientState) VerifyMembership(
 	_, err := wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
-
-type (
-	verifyNonMembershipInnerPayload struct {
-		Height           exported.Height `json:"height"`
-		DelayTimePeriod  uint64          `json:"delay_time_period"`
-		DelayBlockPeriod uint64          `json:"delay_block_period"`
-		Proof            []byte          `json:"proof"`
-		Path             exported.Path   `json:"path"`
-	}
-	verifyNonMembershipPayload struct {
-		VerifyNonMembership verifyNonMembershipInnerPayload `json:"verify_non_membership"`
-	}
-)
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
@@ -244,8 +196,8 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	payload := verifyNonMembershipPayload{
-		VerifyNonMembership: verifyNonMembershipInnerPayload{
+	payload := queryMsg{
+		VerifyNonMembership: &verifyNonMembershipMsg{
 			Height:           height,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
