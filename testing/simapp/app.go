@@ -470,8 +470,8 @@ func NewSimApp(
 	// 1. If the chain uses x/wasm:
 	// Both x/wasm's Keeper and 08-wasm Keeper should share the same Wasm VM instance.
 	// - Instantiate the Wasm VM in app.go with the parameters of your choice.
-	// - Create an Option with this Wasm VM instance (see https: //github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/options.go#L21-L25).
-	// - Pass the option to the x/wasm NewKeeper contructor function (https://github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/keeper_cgo.go#L36).
+	// - Create an Option with this Wasm VM instance (see https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/options.go#L26-L32).
+	// - Pass the option to the x/wasm NewKeeper contructor function (https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/keeper_cgo.go#L36).
 	// - Pass a pointer to the Wasm VM instance to 08-wasm NewKeeper constructor function.
 	//
 	// 2. If the chain does not use x/wasm:
@@ -482,6 +482,7 @@ func NewSimApp(
 	// the Wasm VM configuration parameters of your choice.
 	// Check out the WasmConfig type definition for more information on
 	// each parameter. Some parameters allow node-leve configurations.
+	// Function DefaultWasmConfig can also be used to use default values.
 	//
 	// In the code below we use the second method because we are not using x/wasm in this app.go.
 	wasmConfig := wasmtypes.WasmConfig{
