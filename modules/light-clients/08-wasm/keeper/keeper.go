@@ -43,6 +43,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string)
 		panic(err)
 	}
 	types.WasmVM = vm
+	types.WasmStoreKey = key
 
 	return Keeper{
 		cdc:       cdc,
