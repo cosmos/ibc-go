@@ -3,7 +3,7 @@ package transfer_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -15,7 +15,7 @@ import (
 )
 
 type TransferTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -32,16 +32,6 @@ func (suite *TransferTestSuite) SetupTest() {
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 }
 
-func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
-	path := ibctesting.NewPath(chainA, chainB)
-	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
-
-	return path
-}
-
 // Constructs the following sends based on the established channels/connections
 // 1 - from chainA to chainB
 // 2 - from chainB to chainC
@@ -51,7 +41,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// NOTE:
 	// pathAtoB.EndpointA = endpoint on chainA
 	// pathAtoB.EndpointB = endpoint on chainB
-	pathAtoB := NewTransferPath(suite.chainA, suite.chainB)
+	pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 	suite.coordinator.Setup(pathAtoB)
 
 	originalBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
@@ -88,7 +78,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// NOTE:
 	// pathBtoC.EndpointA = endpoint on chainB
 	// pathBtoC.EndpointB = endpoint on chainC
-	pathBtoC := NewTransferPath(suite.chainB, suite.chainC)
+	pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 	suite.coordinator.Setup(pathBtoC)
 
 	// send from chainB to chainC
@@ -144,5 +134,5 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 }
 
 func TestTransferTestSuite(t *testing.T) {
-	suite.Run(t, new(TransferTestSuite))
+	testifysuite.Run(t, new(TransferTestSuite))
 }

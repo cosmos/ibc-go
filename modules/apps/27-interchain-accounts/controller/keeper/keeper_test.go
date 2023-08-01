@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -11,6 +11,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
+	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -33,7 +35,7 @@ var (
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -103,7 +105,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
 func (suite *KeeperTestSuite) TestGetAllPorts() {
@@ -291,4 +293,25 @@ func (suite *KeeperTestSuite) TestGetAuthority() {
 	authority := suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority()
 	expectedAuth := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	suite.Require().Equal(expectedAuth, authority)
+}
+
+func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
+	suite.SetupTest()
+
+	// test if the ics4 wrapper is the fee keeper initially
+	ics4Wrapper := suite.chainA.GetSimApp().ICAControllerKeeper.GetICS4Wrapper()
+
+	_, isFeeKeeper := ics4Wrapper.(ibcfeekeeper.Keeper)
+	suite.Require().True(isFeeKeeper)
+	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
+	suite.Require().False(isChannelKeeper)
+
+	// set the ics4 wrapper to the channel keeper
+	suite.chainA.GetSimApp().ICAControllerKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
+	ics4Wrapper = suite.chainA.GetSimApp().ICAControllerKeeper.GetICS4Wrapper()
+
+	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
+	suite.Require().True(isChannelKeeper)
+	_, isFeeKeeper = ics4Wrapper.(ibcfeekeeper.Keeper)
+	suite.Require().False(isFeeKeeper)
 }
