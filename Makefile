@@ -104,12 +104,12 @@ include contrib/devtools/Makefile
 
 BUILD_TARGETS := build install
 
-build: BUILD_ARGS=-o $(BUILDDIR)/
+build: BUILD_ARGS=-o $(BUILDDIR)/simd
 build-linux:
 	GOOS=linux GOARCH=amd64 LEDGER_ENABLED=false $(MAKE) build
 
 $(BUILD_TARGETS): go.sum $(BUILDDIR)/
-	go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) ./...
+	go $@ -mod=readonly $(BUILD_FLAGS) $(BUILD_ARGS) testing/simapp/simd/main.go
 
 $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
