@@ -8,6 +8,8 @@ import (
 
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
+	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -267,4 +269,25 @@ func (suite *KeeperTestSuite) TestMetadataNotFound() {
 	_, err := suite.chainB.GetSimApp().ICAHostKeeper.GetAppMetadata(suite.chainB.GetContext(), invalidPortID, invalidChannelID)
 	suite.Require().ErrorIs(err, ibcerrors.ErrNotFound)
 	suite.Require().Contains(err.Error(), fmt.Sprintf("app version not found for port %s and channel %s", invalidPortID, invalidChannelID))
+}
+
+func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
+	suite.SetupTest()
+
+	// test if the ics4 wrapper is the fee keeper initially
+	ics4Wrapper := suite.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
+
+	_, isFeeKeeper := ics4Wrapper.(ibcfeekeeper.Keeper)
+	suite.Require().True(isFeeKeeper)
+	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
+	suite.Require().False(isChannelKeeper)
+
+	// set the ics4 wrapper to the channel keeper
+	suite.chainA.GetSimApp().ICAHostKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
+	ics4Wrapper = suite.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
+
+	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
+	suite.Require().True(isChannelKeeper)
+	_, isFeeKeeper = ics4Wrapper.(ibcfeekeeper.Keeper)
+	suite.Require().False(isFeeKeeper)
 }
