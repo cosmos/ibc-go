@@ -24,7 +24,7 @@ var (
 // applicationCallbackError is a custom error type that will be unique for testing purposes.
 type applicationCallbackError struct{}
 
-func (e applicationCallbackError) Error() string {
+func (applicationCallbackError) Error() string {
 	return "mock application callback failed"
 }
 
@@ -178,7 +178,7 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 
 // UnmarshalPacketData returns the MockPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (im IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
+func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	if reflect.DeepEqual(bz, MockPacketData) {
 		return MockPacketData, nil
 	}

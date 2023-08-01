@@ -90,7 +90,7 @@ func (k Keeper) GetAuthority() string {
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }
 
@@ -242,9 +242,9 @@ func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 // IterateTokensInEscrow iterates over the denomination escrows in the store
 // and performs a callback function. Denominations for which an invalid value
 // (i.e. not integer) is stored, will be skipped.
-func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, prefix []byte, cb func(denomEscrow sdk.Coin) bool) {
+func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, storeprefix []byte, cb func(denomEscrow sdk.Coin) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, prefix)
+	iterator := storetypes.KVStorePrefixIterator(store, storeprefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {

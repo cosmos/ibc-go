@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -35,7 +35,7 @@ var (
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -105,7 +105,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
 func (suite *KeeperTestSuite) TestGetAllPorts() {
