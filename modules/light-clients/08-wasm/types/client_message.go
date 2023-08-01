@@ -8,7 +8,7 @@ import (
 
 var _ exported.ClientMessage = &ClientMessage{}
 
-// ClientType defines that the client message is a Wasm client consensus algorithm
+// ClientType is a Wasm light client.
 func (c ClientMessage) ClientType() string {
 	return exported.Wasm
 }
