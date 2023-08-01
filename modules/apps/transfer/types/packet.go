@@ -68,11 +68,11 @@ func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
 }
 
-// GetPacketSender returns the sender address of the packet data.
+// GetPacketSender returns the sender address embedded in the packet data.
 //
 // NOTE:
-//   - The sender address is set by the packet sender and may not have been
-//     validated a signature check if the packet sender isn't the transfer module.
+//   - The sender address is set by the module which requested the packet to be sent,
+//     and this module may not have validated the sender address by a signature check.
 //   - The sender address must only be used by modules on the sending chain.
 //   - sourcePortID is not used in this implementation.
 func (ftpd FungibleTokenPacketData) GetPacketSender(sourcePortID string) string {
