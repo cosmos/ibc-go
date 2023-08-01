@@ -70,8 +70,8 @@ func (ct CosmosTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return nil
 }
 
-// GetCustomPacketData returns a json object from the memo as `map[string]interface{}` so that it
-// can be interpreted as a json object with keys.
+// GetCustomPacketData interprets the memo field of the packet data as a JSON object
+// and returns the value associated with the given key.
 // If the key is missing or the memo is not properly formatted, then nil is returned.
 func (iapd InterchainAccountPacketData) GetCustomPacketData(key string) interface{} {
 	if len(iapd.Memo) == 0 {
@@ -84,8 +84,8 @@ func (iapd InterchainAccountPacketData) GetCustomPacketData(key string) interfac
 		return nil
 	}
 
-	memoData, ok := jsonObject[key].(map[string]interface{})
-	if !ok {
+	memoData, found := jsonObject[key]
+	if !found {
 		return nil
 	}
 
