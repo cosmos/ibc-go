@@ -90,9 +90,9 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 	expCallbackAddr := ibctesting.TestAccAddress
 
 	testCases := []struct {
-		name              string
-		packetData        types.InterchainAccountPacketData
-		expAdditionalData map[string]interface{}
+		name          string
+		packetData    types.InterchainAccountPacketData
+		expCustomData map[string]interface{}
 	}{
 		{
 			"success: src_callback key in memo",
@@ -149,6 +149,6 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 	for _, tc := range testCases {
 		additionalData, ok := tc.packetData.GetCustomPacketData("src_callback").(map[string]interface{})
 		suite.Require().Equal(ok, additionalData != nil)
-		suite.Require().Equal(tc.expAdditionalData, additionalData)
+		suite.Require().Equal(tc.expCustomData, additionalData)
 	}
 }
