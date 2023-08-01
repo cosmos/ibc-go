@@ -31,6 +31,7 @@ type (
 		Height exported.Height `json:"height"`
 	}
 )
+
 type verifyClientMessageMsg struct {
 	ClientMessage *ClientMessage `json:"client_message"`
 }
