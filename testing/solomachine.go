@@ -323,11 +323,10 @@ func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) str
 	require.NoError(solo.t, err)
 	require.NotNil(solo.t, res)
 
-	if res, ok := res.MsgResponses[0].GetCachedValue().(*channeltypes.MsgChannelOpenInitResponse); ok {
-		return res.ChannelId
-	}
+	channelID, err := ParseChannelIDFromEvents(res.Events)
+	require.NoError(solo.t, err)
 
-	return ""
+	return channelID
 }
 
 // ChanOpenAck performs the channel open ack handshake step on the tendermint chain for the associated
