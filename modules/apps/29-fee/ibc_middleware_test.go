@@ -3,13 +3,8 @@ package fee_test
 import (
 	"fmt"
 
-<<<<<<< HEAD
-=======
-	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
-
->>>>>>> 2ac55069 (feat(core, apps): 'PacketDataUnmarshaler' interface added and implemented (#4188))
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
@@ -1107,6 +1102,6 @@ func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
 	mockFeeMiddleware := fee.NewIBCMiddleware(nil, feekeeper.Keeper{})
 
 	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
-	expError := errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
+	expError := sdkerrors.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
 	suite.Require().ErrorIs(err, expError)
 }

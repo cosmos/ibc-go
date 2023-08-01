@@ -15,14 +15,10 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-<<<<<<< HEAD
-var _ porttypes.Middleware = &IBCMiddleware{}
-=======
 var (
 	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 )
->>>>>>> 2ac55069 (feat(core, apps): 'PacketDataUnmarshaler' interface added and implemented (#4188))
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
 // fee keeper and the underlying application.
@@ -375,7 +371,7 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 func (im IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
 	unmarshaler, ok := im.app.(porttypes.PacketDataUnmarshaler)
 	if !ok {
-		return nil, errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
+		return nil, sdkerrors.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
 	}
 
 	return unmarshaler.UnmarshalPacketData(bz)

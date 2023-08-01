@@ -15,14 +15,10 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-<<<<<<< HEAD
-var _ porttypes.Middleware = &IBCMiddleware{}
-=======
 var (
 	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 )
->>>>>>> 2ac55069 (feat(core, apps): 'PacketDataUnmarshaler' interface added and implemented (#4188))
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
 // ICA controller keeper and the underlying application.

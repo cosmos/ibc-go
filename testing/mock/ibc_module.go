@@ -16,8 +16,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-<<<<<<< HEAD
-=======
 var (
 	_ porttypes.IBCModule             = (*IBCModule)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
@@ -30,7 +28,6 @@ func (e applicationCallbackError) Error() string {
 	return "mock application callback failed"
 }
 
->>>>>>> 2ac55069 (feat(core, apps): 'PacketDataUnmarshaler' interface added and implemented (#4188))
 // IBCModule implements the ICS26 callbacks for testing/mock.
 type IBCModule struct {
 	appModule *AppModule
