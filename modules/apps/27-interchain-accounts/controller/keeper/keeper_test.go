@@ -257,58 +257,6 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	suite.Require().True(found)
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
 }
-<<<<<<< HEAD
-=======
-
-func (suite *KeeperTestSuite) TestSetAndGetParams() {
-	testCases := []struct {
-		name    string
-		input   types.Params
-		expPass bool
-	}{
-		// it is not possible to set invalid booleans
-		{"success: set params false", types.NewParams(false), true},
-		{"success: set params true", types.NewParams(true), true},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			ctx := suite.chainA.GetContext()
-			if tc.expPass {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
-				expected := tc.input
-				p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
-				suite.Require().Equal(expected, p)
-			} else { // currently not possible to set invalid params
-				suite.Require().Panics(func() {
-					suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
-				})
-			}
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestUnsetParams() {
-	suite.SetupTest()
-
-	ctx := suite.chainA.GetContext()
-	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.SubModuleName))
-	store.Delete([]byte(types.ParamsKey))
-
-	suite.Require().Panics(func() {
-		suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
-	})
-}
-
-func (suite *KeeperTestSuite) TestGetAuthority() {
-	suite.SetupTest()
-
-	authority := suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority()
-	expectedAuth := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-	suite.Require().Equal(expectedAuth, authority)
-}
 
 func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	suite.SetupTest()
@@ -330,4 +278,3 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	_, isFeeKeeper = ics4Wrapper.(ibcfeekeeper.Keeper)
 	suite.Require().False(isFeeKeeper)
 }
->>>>>>> 561eb36f (imp(apps): added 'WithICS4Wrapper' function to keepers (#4187))

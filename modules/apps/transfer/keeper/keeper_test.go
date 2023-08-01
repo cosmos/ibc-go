@@ -231,53 +231,6 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 		})
 	}
 }
-<<<<<<< HEAD
-=======
-
-func (suite *KeeperTestSuite) TestParams() {
-	testCases := []struct {
-		name    string
-		input   types.Params
-		expPass bool
-	}{
-		// it is not possible to set invalid booleans
-		{"success: set params false-false", types.NewParams(false, false), true},
-		{"success: set params false-true", types.NewParams(false, true), true},
-		{"success: set params true-false", types.NewParams(true, false), true},
-		{"success: set params true-true", types.NewParams(true, true), true},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			ctx := suite.chainA.GetContext()
-			if tc.expPass {
-				suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
-				expected := tc.input
-				p := suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
-				suite.Require().Equal(expected, p)
-			} else {
-				suite.Require().Panics(func() {
-					suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
-				})
-			}
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestUnsetParams() {
-	suite.SetupTest()
-
-	ctx := suite.chainA.GetContext()
-	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.ModuleName))
-	store.Delete([]byte(types.ParamsKey))
-
-	suite.Require().Panics(func() {
-		suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
-	})
-}
 
 func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	suite.SetupTest()
@@ -299,4 +252,3 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	_, isFeeKeeper = ics4Wrapper.(ibcfeekeeper.Keeper)
 	suite.Require().False(isFeeKeeper)
 }
->>>>>>> 561eb36f (imp(apps): added 'WithICS4Wrapper' function to keepers (#4187))
