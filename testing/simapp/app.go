@@ -489,7 +489,7 @@ func NewSimApp(
 		DataDir:           "ibc_08-wasm_client_data",
 		SupportedFeatures: "iterator",
 		MemoryCacheSize:   uint32(math.Pow(2, 8)),
-		ContractDebugMode: true,
+		ContractDebugMode: false,
 	}
 	app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig)
 
