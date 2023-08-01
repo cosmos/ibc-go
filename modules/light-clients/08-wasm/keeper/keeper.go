@@ -27,10 +27,10 @@ type Keeper struct {
 	authority string
 }
 
-// NewKeeper creates a new Keeper instance with the provided Wasm VM.
+// NewKeeperWithVM creates a new Keeper instance with the provided Wasm VM.
 // This constructor function is meant to be used when the chain uses x/wasm
 // and the same Wasm VM instance should be shared with it.
-func NewKeeper(
+func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
 	authority string,
@@ -46,7 +46,7 @@ func NewKeeper(
 	}
 }
 
-// NewKeeper creates a new NewKeeper instance with the provided Wasm configuration.
+// NewKeeperWithConfig creates a new Keeper instance with the provided Wasm configuration.
 // This constructor function is meant to be used when the chain does not use x/wasm
 // and a Wasm VM needs to be instantiated using the provided parameters.
 func NewKeeperWithConfig(
@@ -59,7 +59,7 @@ func NewKeeperWithConfig(
 	if err != nil {
 		panic(err)
 	}
-	return NewKeeper(cdc, key, authority, vm)
+	return NewKeeperWithVM(cdc, key, authority, vm)
 }
 
 // GetAuthority returns the 08-wasm module's authority.

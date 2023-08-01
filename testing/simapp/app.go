@@ -472,7 +472,7 @@ func NewSimApp(
 	// - Instantiate the Wasm VM in app.go with the parameters of your choice.
 	// - Create an Option with this Wasm VM instance (see https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/options.go#L26-L32).
 	// - Pass the option to the x/wasm NewKeeper contructor function (https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/keeper_cgo.go#L36).
-	// - Pass a pointer to the Wasm VM instance to 08-wasm NewKeeper constructor function.
+	// - Pass a pointer to the Wasm VM instance to 08-wasm NewKeeperWithVM constructor function.
 	//
 	// 2. If the chain does not use x/wasm:
 	// Even though it is still possible to use method 1 above
