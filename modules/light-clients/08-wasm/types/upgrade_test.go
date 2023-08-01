@@ -319,8 +319,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 				suite.Require().NoError(err)
 
 				upgradedConsState = &types.ConsensusState{
-					Data:      tmUpgradedConsStateBz,
-					Timestamp: tmUpgradedConsState.GetTimestamp(),
+					Data: tmUpgradedConsStateBz,
 				}
 
 				// commit upgrade store changes and update clients
@@ -605,8 +604,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 			suite.Require().NoError(err)
 
 			upgradedConsState = &types.ConsensusState{
-				Data:      tmUpgradedConsStateBz,
-				Timestamp: tmUpgradedConsState.GetTimestamp(),
+				Data: tmUpgradedConsStateBz,
 			}
 			upgradedConsStateBz, err = clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState)
 			suite.Require().NoError(err)

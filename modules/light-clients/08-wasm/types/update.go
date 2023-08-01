@@ -45,7 +45,7 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, 
 	payload := verifyClientMessagePayload{
 		VerifyClientMessage: inner,
 	}
-	_, err := call[contractResult](ctx, clientStore, &cs, payload)
+	_, err := wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
 

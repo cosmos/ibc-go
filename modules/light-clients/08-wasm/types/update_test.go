@@ -663,8 +663,7 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 				wasmData, err := suite.chainA.Codec.MarshalInterface(expTmConsensusState)
 				suite.Require().NoError(err)
 				expWasmConsensusState := &types.ConsensusState{
-					Data:      wasmData,
-					Timestamp: expTmConsensusState.GetTimestamp(),
+					Data: wasmData,
 				}
 
 				bz := clientStore.Get(host.ConsensusStateKey(header.Height))

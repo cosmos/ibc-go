@@ -14,17 +14,12 @@ import (
 var (
 	WasmVM *cosmwasm.VM
 	// Store key for 08-wasm module, required as a global so that the KV store can be retrieved
-	// in the ClientState Initialize function which doesn't have access to the keeper. 
+	// in the ClientState Initialize function which doesn't have access to the keeper.
 	// The storeKey is used to check the code hash of the contract and determine if the light client
 	// is allowed to be instantiated.
 	WasmStoreKey  storetypes.StoreKey
 	VMGasRegister = NewDefaultWasmGasRegister()
 )
-
-type queryResponse struct {
-	Status          exported.Status               `json:"status,omitempty"`
-	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
-}
 
 type ContractResult interface {
 	Validate() bool
@@ -32,10 +27,9 @@ type ContractResult interface {
 }
 
 type contractResult struct {
-	IsValid           bool   `json:"is_valid,omitempty"`
-	ErrorMsg          string `json:"error_msg,omitempty"`
-	Data              []byte `json:"data,omitempty"`
-	FoundMisbehaviour bool   `json:"found_misbehaviour"`
+	IsValid  bool   `json:"is_valid,omitempty"`
+	ErrorMsg string `json:"error_msg,omitempty"`
+	Data     []byte `json:"data,omitempty"`
 }
 
 func (r contractResult) Validate() bool {
@@ -44,6 +38,26 @@ func (r contractResult) Validate() bool {
 
 func (r contractResult) Error() string {
 	return r.ErrorMsg
+}
+
+type statusQueryResponse struct {
+	contractResult
+	Status exported.Status `json:"status"`
+}
+
+type metadataQueryResponse struct {
+	contractResult
+	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
+}
+
+type timestampAtHeightQueryResponse struct {
+	contractResult
+	Timestamp uint64 `json:"timestamp"`
+}
+
+type checkForMisbehaviourQueryResponse struct {
+	contractResult
+	FoundMisbehaviour bool `json:"found_misbehaviour"`
 }
 
 // initContract calls vm.Init with appropriate arguments.
