@@ -403,3 +403,76 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 		})
 	}
 }
+
+func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {}, // successful happy path for a standalone transfer app is swapping out the underlying connection
+			nil,
+		},
+		{
+			"invalid upgrade version",
+			func() {
+				// NOTE: counterpartyUpgrade is queried by Endpoint.ChanUpgradeTry() so retrieve and mutate fields here appropriately to force failure
+				counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
+				counterpartyUpgrade.Fields.Version = "invalid-version"
+				path.EndpointB.SetChannelUpgrade(counterpartyUpgrade)
+
+				suite.coordinator.CommitBlock(suite.chainB)
+			},
+			channeltypes.NewUpgradeError(1, types.ErrInvalidVersion),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade to modify the underlying connection
+			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(upgradePath)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			err = path.EndpointA.ChanUpgradeAck()
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				suite.Require().Equal(upgradePath.EndpointA.ConnectionID, channel.ConnectionHops[0])
+				suite.Require().Equal(channeltypes.UNORDERED, channel.Ordering)
+				suite.Require().Equal(types.Version, channel.Version)
+			} else {
+				// NOTE: application callback failure in OnChanUpgradeAck results in an ErrorReceipt being written to state signaling for cancellation
+				if expUpgradeError, ok := tc.expError.(*channeltypes.UpgradeError); ok {
+					errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+					suite.Require().True(found)
+					suite.Require().Equal(expUpgradeError.GetErrorReceipt(), errorReceipt)
+				}
+			}
+		})
+	}
+}
