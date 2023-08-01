@@ -272,8 +272,8 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 		{
 			"invalid upgrade version",
 			func() {
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidVersion
 			},
 			types.ErrInvalidVersion,
 		},
@@ -350,7 +350,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			func() {
 				// NOTE: counterpartyUpgrade is queried by Endpoint.ChanUpgradeTry() so retrieve and mutate fields here appropriately to force failure
 				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
-				counterpartyUpgrade.Fields.Version = "invalid-version"
+				counterpartyUpgrade.Fields.Version = ibctesting.InvalidVersion
 				path.EndpointA.SetChannelUpgrade(counterpartyUpgrade)
 
 				suite.coordinator.CommitBlock(suite.chainA)
