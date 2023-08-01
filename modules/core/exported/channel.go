@@ -17,6 +17,7 @@ type CounterpartyChannelI interface {
 	GetChannelID() string
 	ValidateBasic() error
 }
+<<<<<<< HEAD
 
 // PacketI defines the standard interface for IBC packets
 type PacketI interface {
@@ -37,3 +38,5 @@ type Acknowledgement interface {
 	Success() bool
 	Acknowledgement() []byte
 }
+=======
+>>>>>>> a0a65263 (feat(core, apps): 'PacketDataProvider' interface added and implemented (#4199))

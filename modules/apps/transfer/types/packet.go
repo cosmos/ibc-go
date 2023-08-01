@@ -1,12 +1,21 @@
 package types
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+<<<<<<< HEAD
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+=======
+
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+>>>>>>> a0a65263 (feat(core, apps): 'PacketDataProvider' interface added and implemented (#4199))
 )
+
+var _ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
 
 var (
 	// DefaultRelativePacketTimeoutHeight is the default packet timeout height (in blocks) relative
@@ -59,4 +68,26 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 // GetBytes is a helper for serialising
 func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
+}
+
+// GetCustomPacketData interprets the memo field of the packet data as a JSON object
+// and returns the value associated with the given key.
+// If the key is missing or the memo is not properly formatted, then nil is returned.
+func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} {
+	if len(ftpd.Memo) == 0 {
+		return nil
+	}
+
+	jsonObject := make(map[string]interface{})
+	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
+	if err != nil {
+		return nil
+	}
+
+	memoData, found := jsonObject[key]
+	if !found {
+		return nil
+	}
+
+	return memoData
 }
