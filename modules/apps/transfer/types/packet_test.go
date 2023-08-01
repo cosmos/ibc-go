@@ -45,6 +45,18 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	}
 }
 
+func (suite *TypesTestSuite) TestGetPacketSender() {
+	packetData := types.FungibleTokenPacketData{
+		Denom:    denom,
+		Amount:   amount,
+		Sender:   sender,
+		Receiver: receiver,
+		Memo:     "",
+	}
+
+	suite.Require().Equal(sender, packetData.GetPacketSender(types.PortID))
+}
+
 func (suite *TypesTestSuite) TestPacketDataProvider() {
 	testCases := []struct {
 		name          string
