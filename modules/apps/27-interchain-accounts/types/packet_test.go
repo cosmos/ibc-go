@@ -85,7 +85,6 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 }
 
 func (suite *TypesTestSuite) TestGetPacketSender() {
-	// dest user defined gas limits are not supported for ICS 27
 	testCases := []struct {
 		name      string
 		srcPortID string
