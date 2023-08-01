@@ -94,20 +94,6 @@ func (ws updateProposalWrappedStore) getStore(key []byte) sdk.KVStore {
 	return ws.substituteStore
 }
 
-// setClientState stores the client state.
-func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ClientState) {
-	key := host.ClientStateKey()
-	val := clienttypes.MustMarshalClientState(cdc, clientState)
-	clientStore.Set(key, val)
-}
-
-// setConsensusState stores the consensus state at the given height.
-func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensusState *ConsensusState, height exported.Height) {
-	key := host.ConsensusStateKey(height)
-	val := clienttypes.MustMarshalConsensusState(cdc, consensusState)
-	clientStore.Set(key, val)
-}
-
 var _ wasmvmtypes.KVStore = &storeAdapter{}
 
 // storeAdapter adapter to bridge SDK store impl to wasmvm
