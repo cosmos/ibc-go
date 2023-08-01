@@ -70,7 +70,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the capability module.
-func (a AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, mux *gwruntime.ServeMux) {
+func (a AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *gwruntime.ServeMux) {
 }
 
 // GetTxCmd returns the capability module's root tx command.

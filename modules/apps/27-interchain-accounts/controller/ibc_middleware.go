@@ -171,7 +171,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 func (IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	address sdk.AccAddress,
+	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	err := errorsmod.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
 	ack := channeltypes.NewErrorAcknowledgement(err)

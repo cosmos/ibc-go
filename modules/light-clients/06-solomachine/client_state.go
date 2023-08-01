@@ -43,7 +43,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
-	ctx sdk.Context,
+	_ sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
@@ -112,8 +112,8 @@ func (cs *ClientState) VerifyMembership(
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	_ exported.Height,
-	_ uint64,
-	_ uint64,
+	delayTimePeriod uint64,
+	delayBlockPeriod uint64,
 	proof []byte,
 	path exported.Path,
 	value []byte,
@@ -163,8 +163,8 @@ func (cs *ClientState) VerifyNonMembership(
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	_ exported.Height,
-	_ uint64,
-	_ uint64,
+	delayTimePeriod uint64,
+	delayBlockPeriod uint64,
 	proof []byte,
 	path exported.Path,
 ) error {

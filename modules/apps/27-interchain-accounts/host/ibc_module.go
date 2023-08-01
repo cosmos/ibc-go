@@ -107,7 +107,7 @@ func (im IBCModule) OnChanCloseConfirm(
 func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
+	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	logger := im.keeper.Logger(ctx)
 	if !im.keeper.GetParams(ctx).HostEnabled {

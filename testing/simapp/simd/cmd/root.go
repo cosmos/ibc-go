@@ -59,7 +59,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "simd",
 		Short: "simulation app",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())

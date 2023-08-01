@@ -72,7 +72,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 	/* Handle fee distribution state. */
 
 	// withdraw all validator commission
-	app.StakingKeeper.IterateValidators(ctx, func(index int64, val stakingtypes.ValidatorI) (stop bool) {
+	app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		_, _ = app.DistrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
 		return false
 	})
@@ -103,7 +103,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 	ctx = ctx.WithBlockHeight(0)
 
 	// reinitialize all validators
-	app.StakingKeeper.IterateValidators(ctx, func(index int64, val stakingtypes.ValidatorI) (stop bool) {
+	app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
 		scraps := app.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, val.GetOperator())
 		feePool := app.DistrKeeper.GetFeePool(ctx)
@@ -149,7 +149,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 	})
 
 	// iterate through unbonding delegations, reset creation height
-	app.StakingKeeper.IterateUnbondingDelegations(ctx, func(index int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
+	app.StakingKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
 		for i := range ubd.Entries {
 			ubd.Entries[i].CreationHeight = 0
 		}

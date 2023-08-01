@@ -179,7 +179,7 @@ func (k Keeper) ConnectionConsensusState(c context.Context, req *types.QueryConn
 }
 
 // ConnectionParams implements the Query/ConnectionParams gRPC method.
-func (k Keeper) ConnectionParams(c context.Context, _ *types.QueryConnectionParamsRequest) (*types.QueryConnectionParamsResponse, error) {
+func (k Keeper) ConnectionParams(c context.Context, req *types.QueryConnectionParamsRequest) (*types.QueryConnectionParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	params := k.GetParams(ctx)
 

@@ -39,12 +39,12 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 }
 
 // ValidateGenesis performs a no-op. Genesis is not supported for solo machine.
-func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConfig, _ json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return nil
 }
 
 // RegisterGRPCGatewayRoutes performs a no-op.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
 
 // GetTxCmd performs a no-op. Please see the 02-client cli commands.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {

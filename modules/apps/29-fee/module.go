@@ -131,14 +131,14 @@ func (AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.Vali
 // AppModuleSimulation functions
 
 // GenerateGenesisState creates a randomized GenState of the 29-fee module.
-func (AppModule) GenerateGenesisState(state *module.SimulationState) {
+func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
 }
 
 // RegisterStoreDecoder registers a decoder for 29-fee module's types
-func (AppModule) RegisterStoreDecoder(registry sdk.StoreDecoderRegistry) {
+func (AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
 }
 
 // WeightedOperations returns the all the 29-fee module operations with their respective weights.
-func (AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }

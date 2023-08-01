@@ -36,7 +36,7 @@ func (qccsr QueryChannelClientStateResponse) UnpackInterfaces(unpacker codectype
 }
 
 // NewQueryChannelConsensusStateResponse creates a newQueryChannelConsensusStateResponse instance
-func NewQueryChannelConsensusStateResponse(clientID string, anyConsensusState *codectypes.Any, _ exported.Height, proof []byte, height clienttypes.Height) *QueryChannelConsensusStateResponse {
+func NewQueryChannelConsensusStateResponse(clientID string, anyConsensusState *codectypes.Any, consensusStateHeight exported.Height, proof []byte, height clienttypes.Height) *QueryChannelConsensusStateResponse {
 	return &QueryChannelConsensusStateResponse{
 		ConsensusState: anyConsensusState,
 		ClientId:       clientID,
