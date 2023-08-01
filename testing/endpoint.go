@@ -159,7 +159,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	case exported.Tendermint:
 		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 	case exported.Wasm:
-		header, err = endpoint.Chain.ConstructUpdateWasmClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		header, _, err = endpoint.Chain.ConstructUpdateWasmClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}

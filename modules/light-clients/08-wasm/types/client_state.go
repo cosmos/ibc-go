@@ -73,7 +73,7 @@ type (
 func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.BinaryCodec) exported.Status {
 	payload := statusPayload{Status: statusInnerPayload{}}
 
-	result, err := wasmQuery[statusQueryResponse](ctx, clientStore, &cs, payload)
+	result, err := wasmQuery[statusResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		return exported.Unknown
 	}
@@ -109,7 +109,7 @@ func (cs ClientState) GetTimestampAtHeight(
 		},
 	}
 
-	result, err := wasmQuery[timestampAtHeightQueryResponse](ctx, clientStore, &cs, payload)
+	result, err := wasmQuery[timestampAtHeightResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		return 0, errorsmod.Wrapf(err, "height (%s)", height)
 	}

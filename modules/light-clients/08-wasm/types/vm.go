@@ -40,24 +40,29 @@ func (r contractResult) Error() string {
 	return r.ErrorMsg
 }
 
-type statusQueryResponse struct {
+type statusResult struct {
 	contractResult
 	Status exported.Status `json:"status"`
 }
 
-type metadataQueryResponse struct {
+type metadataResult struct {
 	contractResult
 	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
 }
 
-type timestampAtHeightQueryResponse struct {
+type timestampAtHeightResult struct {
 	contractResult
 	Timestamp uint64 `json:"timestamp"`
 }
 
-type checkForMisbehaviourQueryResponse struct {
+type checkForMisbehaviourResult struct {
 	contractResult
 	FoundMisbehaviour bool `json:"found_misbehaviour"`
+}
+
+type updateStateResult struct {
+	contractResult
+	Heights []exported.Height `json:"heights"`
 }
 
 // initContract calls vm.Init with appropriate arguments.

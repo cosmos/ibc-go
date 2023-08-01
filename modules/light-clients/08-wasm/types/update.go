@@ -3,9 +3,12 @@ package types
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -13,11 +16,7 @@ var _ exported.ClientState = (*ClientState)(nil)
 
 type (
 	verifyClientMessageInnerPayload struct {
-		ClientMessage clientMessage `json:"client_message"`
-	}
-	clientMessage struct {
-		Header       *Header       `json:"header,omitempty"`
-		Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
+		ClientMessage *ClientMessage `json:"client_message"`
 	}
 	verifyClientMessagePayload struct {
 		VerifyClientMessage verifyClientMessageInnerPayload `json:"verify_client_message"`
@@ -29,21 +28,15 @@ type (
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
 func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
-	clientMsgConcrete := clientMessage{
-		Header:       nil,
-		Misbehaviour: nil,
+	clientMessage, ok := clientMsg.(*ClientMessage)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T", &ClientMessage{}, clientMsg)
 	}
-	switch clientMsg := clientMsg.(type) {
-	case *Header:
-		clientMsgConcrete.Header = clientMsg
-	case *Misbehaviour:
-		clientMsgConcrete.Misbehaviour = clientMsg
-	}
-	inner := verifyClientMessageInnerPayload{
-		ClientMessage: clientMsgConcrete,
-	}
+
 	payload := verifyClientMessagePayload{
-		VerifyClientMessage: inner,
+		VerifyClientMessage: verifyClientMessageInnerPayload{
+			ClientMessage: clientMessage,
+		},
 	}
 	_, err := wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
@@ -51,7 +44,7 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, 
 
 type (
 	updateStateInnerPayload struct {
-		ClientMessage clientMessage `json:"client_message"`
+		ClientMessage *ClientMessage `json:"client_message"`
 	}
 	updateStatePayload struct {
 		UpdateState updateStateInnerPayload `json:"update_state"`
@@ -60,30 +53,28 @@ type (
 
 // Client state and new consensus states are updated in the store by the contract
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	header, ok := clientMsg.(*Header)
+	clientMessage, ok := clientMsg.(*ClientMessage)
 	if !ok {
-		panic(fmt.Errorf("expected type %T, got %T", &Header{}, clientMsg))
+		panic(fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
 	}
 
 	payload := updateStatePayload{
 		UpdateState: updateStateInnerPayload{
-			ClientMessage: clientMessage{
-				Header: header,
-			},
+			ClientMessage: clientMessage,
 		},
 	}
 
-	_, err := call[contractResult](ctx, clientStore, &cs, payload)
+	result, err := call[updateStateResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}
 
-	return []exported.Height{clientMsg.(*Header).Height}
+	return result.Heights
 }
 
 type (
 	updateStateOnMisbehaviourInnerPayload struct {
-		ClientMessage clientMessage `json:"client_message"`
+		ClientMessage *ClientMessage `json:"client_message"`
 	}
 	updateStateOnMisbehaviourPayload struct {
 		UpdateStateOnMisbehaviour updateStateOnMisbehaviourInnerPayload `json:"update_state_on_misbehaviour"`
@@ -93,20 +84,15 @@ type (
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 // Client state is updated in the store by contract.
 func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) {
-	var clientMsgConcrete clientMessage
-	switch clientMsg := clientMsg.(type) {
-	case *Header:
-		clientMsgConcrete.Header = clientMsg
-	case *Misbehaviour:
-		clientMsgConcrete.Misbehaviour = clientMsg
-	}
-
-	inner := updateStateOnMisbehaviourInnerPayload{
-		ClientMessage: clientMsgConcrete,
+	clientMessage, ok := clientMsg.(*ClientMessage)
+	if !ok {
+		panic(fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
 	}
 
 	payload := updateStateOnMisbehaviourPayload{
-		UpdateStateOnMisbehaviour: inner,
+		UpdateStateOnMisbehaviour: updateStateOnMisbehaviourInnerPayload{
+			ClientMessage: clientMessage,
+		},
 	}
 
 	_, err := call[contractResult](ctx, clientStore, &cs, payload)

@@ -25,16 +25,8 @@ message ConsensusState {
   bytes data = 1;
 }
 
-// Wasm light client Header
-message Header {
-  option (gogoproto.goproto_getters) = false;
-
-  bytes                     data   = 1;
-  ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
-}
-
-// Wasm light client Misbehaviour
-message Misbehaviour {
+// Wasm light client message (either header(s) or misbehaviour)
+message ClientMessage {
   option (gogoproto.goproto_getters) = false;
 
   bytes data = 1;
