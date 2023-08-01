@@ -110,22 +110,35 @@ func (cs ClientState) GetTimestampAtHeight(
 	return consState.GetTimestamp(), nil
 }
 
+type instantiateMessage struct {
+	ClientState    *ClientState    `json:"client_state"`
+	ConsensusState *ConsensusState `json:"consensus_state"`
+}
+
 // Initialize checks that the initial consensus state is an 08-wasm consensus state and
 // sets the client state, consensus state in the provided client store.
 // It also initializes the wasm contract for the client.
-func (cs ClientState) Initialize(ctx sdk.Context, marshaler codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
+func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
 	consensusState, ok := state.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, state)
 	}
-	setClientState(clientStore, marshaler, &cs)
-	setConsensusState(clientStore, marshaler, consensusState, cs.GetLatestHeight())
+
+	payload := instantiateMessage{
+		ClientState:    &cs,
+		ConsensusState: consensusState,
+	}
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
+	}
 
 	// The global store key can be used here to implement #4085
 	// wasmStore := ctx.KVStore(WasmStoreKey)
 
-	_, err := initContract(ctx, clientStore, cs.CodeHash)
+	_, err := initContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to initialize contract")
 	}

@@ -96,20 +96,6 @@ func (ws updateProposalWrappedStore) getStore(key []byte) sdk.KVStore {
 	return ws.substituteStore
 }
 
-// setClientState stores the client state.
-func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ClientState) {
-	key := host.ClientStateKey()
-	val := clienttypes.MustMarshalClientState(cdc, clientState)
-	clientStore.Set(key, val)
-}
-
-// setConsensusState stores the consensus state at the given height.
-func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensusState *ConsensusState, height exported.Height) {
-	key := host.ConsensusStateKey(height)
-	val := clienttypes.MustMarshalConsensusState(cdc, consensusState)
-	clientStore.Set(key, val)
-}
-
 // getConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist or it cannot be unmarshalled.
 func GetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
