@@ -47,9 +47,9 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 
 func (suite *TypesTestSuite) TestPacketDataProvider() {
 	testCases := []struct {
-		name              string
-		packetData        types.FungibleTokenPacketData
-		expAdditionalData interface{}
+		name          string
+		packetData    types.FungibleTokenPacketData
+		expCustomData interface{}
 	}{
 		{
 			"success: src_callback key in memo",
@@ -115,6 +115,6 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 
 	for _, tc := range testCases {
 		customData := tc.packetData.GetCustomPacketData("src_callback")
-		suite.Require().Equal(tc.expAdditionalData, customData)
+		suite.Require().Equal(tc.expCustomData, customData)
 	}
 }
