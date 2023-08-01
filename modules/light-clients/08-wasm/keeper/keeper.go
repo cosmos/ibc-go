@@ -59,14 +59,7 @@ func NewKeeperWithConfig(
 	if err != nil {
 		panic(err)
 	}
-	types.WasmVM = vm
-
-	return Keeper{
-		cdc:       cdc,
-		storeKey:  key,
-		wasmVM:    vm,
-		authority: authority,
-	}
+	return NewKeeper(cdc, key, authority, vm)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
