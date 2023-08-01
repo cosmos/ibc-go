@@ -4,18 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/kv"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	"github.com/stretchr/testify/require"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/kv"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
+	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/simulation"
 	"github.com/cosmos/ibc-go/modules/capability/types"
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(t, false)
-	dec := simulation.NewDecodeStore(app.AppCodec())
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
+	dec := simulation.NewDecodeStore(encodingCfg.Codec)
 
 	capOwners := types.CapabilityOwners{
 		Owners: []types.Owner{{Module: "transfer", Name: "ports/transfer"}},
@@ -29,7 +31,7 @@ func TestDecodeStore(t *testing.T) {
 			},
 			{
 				Key:   types.KeyPrefixIndexCapability,
-				Value: app.AppCodec().MustMarshal(&capOwners),
+				Value: encodingCfg.Codec.MustMarshal(&capOwners),
 			},
 			{
 				Key:   []byte{0x99},
