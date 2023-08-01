@@ -40,3 +40,4 @@ LABEL "org.cosmos.ibc-go" "${IBC_GO_VERSION}"
 COPY --from=builder /go/build/simd /bin/simd
 
 ENTRYPOINT ["simd"]
+
