@@ -50,7 +50,6 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 		name              string
 		packetData        types.FungibleTokenPacketData
 		expAdditionalData map[string]interface{}
-		expPacketSender   string
 	}{
 		{
 			"success: src_callback key in memo",
@@ -64,7 +63,6 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 			map[string]interface{}{
 				"address": receiver,
 			},
-			sender,
 		},
 		{
 			"success: src_callback key in memo with additional fields",
@@ -79,7 +77,6 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 				"address":   receiver,
 				"gas_limit": "200000",
 			},
-			sender,
 		},
 		{
 			"failure: empty memo",
@@ -91,7 +88,6 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 				Memo:     "",
 			},
 			nil,
-			sender,
 		},
 		{
 			"failure: non-json memo",
@@ -103,7 +99,6 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 				Memo:     "invalid",
 			},
 			nil,
-			sender,
 		},
 		{
 			"failure: invalid src_callback key",
@@ -115,7 +110,6 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 				Memo:     `{"src_callback": "invalid"}`,
 			},
 			nil,
-			sender,
 		},
 	}
 
