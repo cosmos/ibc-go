@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		{
 			"success",
 			func() {
-				codeHash := "9b18dc4aa6a4dc6183f148bdcadbf7d3de2fdc7aac59394f1589b81e77de5e3c" //nolint:gosec // these are not hard-coded credentials
+				codeHash := "561715ea6ee1dce8f78499914e6c7853dc315a5e6ecf01da09a9054a160e5d1d"
 				contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
 				suite.Require().NoError(err)
 
@@ -56,12 +56,15 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			err := suite.chainA.GetSimApp().WasmClientKeeper.InitGenesis(ctx, genesisState)
 			suite.Require().NoError(err)
 
-			req := &types.QueryCodeHashesRequest{}
-			res, err := suite.chainA.GetSimApp().WasmClientKeeper.CodeHashes(ctx, req)
+			res := types.GetCodeHashes(suite.chainA.GetContext(), suite.chainA.GetSimApp().AppCodec())
+			for idx, codeHash := range res {
+				res[idx] = hex.EncodeToString([]byte(codeHash))
+			}
+
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
-			suite.Require().Equal(len(expCodeHashes), len(res.CodeHashes))
-			suite.Require().ElementsMatch(expCodeHashes, res.CodeHashes)
+			suite.Require().Equal(len(expCodeHashes), len(res))
+			suite.Require().ElementsMatch(expCodeHashes, res)
 		})
 	}
 }
@@ -70,7 +73,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.SetupTest()
 	ctx := suite.chainA.GetContext()
 
-	expCodeHash := "9b18dc4aa6a4dc6183f148bdcadbf7d3de2fdc7aac59394f1589b81e77de5e3c" //nolint:gosec // these are not hard-coded credentials
+	expCodeHash := "561715ea6ee1dce8f78499914e6c7853dc315a5e6ecf01da09a9054a160e5d1d"
 
 	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")

@@ -195,3 +195,38 @@ func (cs ClientState) VerifyNonMembership(
 	_, err := wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }
+
+// GetCodeHashes returns all the code hashes stored.
+func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) []string {
+	store := ctx.KVStore(WasmStoreKey)
+	bz := store.Get([]byte(KeyCodeHashes))
+	if len(bz) == 0 {
+		return []string{}
+	}
+	var hashes CodeHashes
+	cdc.MustUnmarshal(bz, &hashes)
+	return hashes.CodeHashes
+}
+
+// AddCodeHash adds a new code hash to the list of stored code hashes.
+func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) {
+	hashes := GetCodeHashes(ctx, cdc)
+	hashes = append(hashes, string(codeHash))
+
+	store := ctx.KVStore(WasmStoreKey)
+	bz := cdc.MustMarshal(&CodeHashes{CodeHashes: hashes})
+	store.Set([]byte(KeyCodeHashes), bz)
+}
+
+// HasCodeHash returns true if the given code hash exists in the store and
+// false otherwise.
+func HasCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) bool {
+	hashes := GetCodeHashes(ctx, cdc)
+
+	for _, hash := range hashes {
+		if hash == string(codeHash) {
+			return true
+		}
+	}
+	return false
+}
