@@ -83,8 +83,8 @@ func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} 
 		return nil
 	}
 
-	memoData, ok := jsonObject[key].(map[string]interface{})
-	if !ok {
+	memoData, found := jsonObject[key]
+	if !found {
 		return nil
 	}
 
