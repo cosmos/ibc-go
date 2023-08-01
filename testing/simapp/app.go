@@ -468,7 +468,7 @@ func NewSimApp(
 
 	// 08-wasm's Keeper can be instantiated in two different ways:
 	// 1. If the chain uses x/wasm:
-	// Both x/wasm's Keeper and 08-wasm Keeper should share the same Wasm VM instante.
+	// Both x/wasm's Keeper and 08-wasm Keeper should share the same Wasm VM instance.
 	// - Instantiate the Wasm VM in app.go with the parameters of your choice.
 	// - Create an Option with this Wasm VM instance (see https: //github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/options.go#L21-L25).
 	// - Pass the option to the x/wasm NewKeeper contructor function (https://github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/keeper_cgo.go#L36).
