@@ -39,7 +39,7 @@ type Acknowledgement interface {
 // This interfaces standardizes that behaviour. Upon realization of the ability for middleware's to define their own packet data types, this interface will be deprecated and removed with time.
 type PacketDataProvider interface {
 	// GetCustomPacketData returns the packet data held on behalf of another application.
-	// The name the information is stored under should be provided as the key
+	// The name the information is stored under should be provided as the key.
 	// If no custom packet data exists for the key, nil should be returned.
 	GetCustomPacketData(key string) interface{}
 }
