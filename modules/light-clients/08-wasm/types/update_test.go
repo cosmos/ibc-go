@@ -4,12 +4,11 @@ import (
 	"encoding/base64"
 	"time"
 
-	tmtypes "github.com/cometbft/cometbft/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -642,8 +641,7 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 				wasmData, err := suite.chainA.Codec.MarshalInterface(expTmConsensusState)
 				suite.Require().NoError(err)
 				expWasmConsensusState := &types.ConsensusState{
-					Data:      wasmData,
-					Timestamp: expTmConsensusState.GetTimestamp(),
+					Data: wasmData,
 				}
 
 				bz := clientStore.Get(host.ConsensusStateKey(height))

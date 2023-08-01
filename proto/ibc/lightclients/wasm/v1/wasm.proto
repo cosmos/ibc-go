@@ -23,10 +23,6 @@ message ConsensusState {
   // bytes encoding the consensus state of the underlying light client
   // implemented as a Wasm contract.
   bytes data = 1;
-
-  // timestamp that corresponds to the block height in which the ConsensusState
-  // was stored.
-  uint64 timestamp = 2;
 }
 
 // Wasm light client message (either header(s) or misbehaviour)

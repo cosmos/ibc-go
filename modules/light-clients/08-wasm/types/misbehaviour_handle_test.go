@@ -9,7 +9,6 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-  
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -633,8 +632,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
 				wasmConsensusState := &types.ConsensusState{
-					Data:      tmConsensusStateData,
-					Timestamp: tmConsensusState.GetTimestamp(),
+					Data: tmConsensusStateData,
 				}
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(
@@ -713,8 +711,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
 				wasmConsensusState := &types.ConsensusState{
-					Data:      tmConsensusStateData,
-					Timestamp: tmConsensusState.GetTimestamp(),
+					Data: tmConsensusStateData,
 				}
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(

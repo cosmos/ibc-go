@@ -286,8 +286,7 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height, c
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot marshal tendermint consensus state")
 		}
 		consensusState = &wasmtypes.ConsensusState{
-			Data:      wasmData,
-			Timestamp: tmConsensusState.GetTimestamp(),
+			Data: wasmData,
 		}
 	}
 

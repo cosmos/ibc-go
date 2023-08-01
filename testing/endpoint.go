@@ -239,8 +239,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		wasmData, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
 		require.NoError(endpoint.Chain.TB, err)
 		consensusState = &wasmtypes.ConsensusState{
-			Data:      wasmData,
-			Timestamp: tmConsensusState.GetTimestamp(),
+			Data: wasmData,
 		}
 	}
 	endpoint.Counterparty.SetConsensusState(consensusState, clientState.GetLatestHeight())
