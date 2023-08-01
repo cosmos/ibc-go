@@ -283,7 +283,7 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *C
 	}
 	out, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
-		return output, errorsmod.Wrapf(err, "call to wasm contract failed")
+		return output, errorsmod.Wrapf(err, "query to wasm contract failed")
 	}
 	if err := json.Unmarshal(out, &output); err != nil {
 		return output, errorsmod.Wrapf(err, "failed to unmarshal result of wasm query")

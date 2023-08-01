@@ -49,7 +49,7 @@ type timestampAtHeightQueryResponse struct {
 	Timestamp uint64 `json:"timestamp"`
 }
 
-type CheckForMisbehaviourExecuteResult struct {
+type checkForMisbehaviourExecuteResult struct {
 	contractResult
 	FoundMisbehaviour bool `json:"found_misbehaviour"`
 }
