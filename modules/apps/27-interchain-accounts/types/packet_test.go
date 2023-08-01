@@ -92,7 +92,7 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 	testCases := []struct {
 		name          string
 		packetData    types.InterchainAccountPacketData
-		expCustomData map[string]interface{}
+		expCustomData interface{}
 	}{
 		{
 			"success: src_callback key in memo",
@@ -118,6 +118,15 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 			},
 		},
 		{
+			"success: src_callback has string valu",
+			types.InterchainAccountPacketData{
+				Type: types.EXECUTE_TX,
+				Data: []byte("data"),
+				Memo: `{"src_callback": "string"}`,
+			},
+			"string",
+		},
+		{
 			"failure: empty memo",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
@@ -135,20 +144,10 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 			},
 			nil,
 		},
-		{
-			"failure: invalid src_callback key",
-			types.InterchainAccountPacketData{
-				Type: types.EXECUTE_TX,
-				Data: []byte("data"),
-				Memo: `{"src_callback": "invalid"}`,
-			},
-			nil,
-		},
 	}
 
 	for _, tc := range testCases {
-		additionalData, ok := tc.packetData.GetCustomPacketData("src_callback").(map[string]interface{})
-		suite.Require().Equal(ok, additionalData != nil)
-		suite.Require().Equal(tc.expCustomData, additionalData)
+		customData := tc.packetData.GetCustomPacketData("src_callback")
+		suite.Require().Equal(tc.expCustomData, customData)
 	}
 }
