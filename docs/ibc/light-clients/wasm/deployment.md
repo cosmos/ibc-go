@@ -8,11 +8,11 @@ Learn how to upload a Wasm light client contract on a chain. {synopsis}
 
 ## Storing a new Wasm light client
 
-Storage of Wasm light client contracts is permissioned (i.e. only allowed to an authority such as governance). The designated authority is specified when instantiating `08-wasm`'s keeper: both [`NewKeeper`](https://github.com/cosmos/ibc-go/blob/c95c22f45cb217d27aca2665af9ac60b0d2f3a0c/modules/light-clients/08-wasm/keeper/keeper.go#L33-L38) and [`NewKeeperWithConfig`](https://github.com/cosmos/ibc-go/blob/c95c22f45cb217d27aca2665af9ac60b0d2f3a0c/modules/light-clients/08-wasm/keeper/keeper.go#L52-L57) constructor functions accept an `authority` argument that must be the address of the authorized actor. For example, in `app.go`, when instantiating the keeper, you can pass the address of the governance module:
+Storage of Wasm light client contracts is permissioned (i.e. only allowed to an authority such as governance). The designated authority is specified when instantiating `08-wasm`'s keeper: both [`NewKeeperWithVM`](https://github.com/cosmos/ibc-go/blob/c95c22f45cb217d27aca2665af9ac60b0d2f3a0c/modules/light-clients/08-wasm/keeper/keeper.go#L33-L38) and [`NewKeeperWithConfig`](https://github.com/cosmos/ibc-go/blob/c95c22f45cb217d27aca2665af9ac60b0d2f3a0c/modules/light-clients/08-wasm/keeper/keeper.go#L52-L57) constructor functions accept an `authority` argument that must be the address of the authorized actor. For example, in `app.go`, when instantiating the keeper, you can pass the address of the governance module:
 
 ```go
 // app.go
-app.WasmClientKeeper = wasmkeeper.NewKeeper(
+app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
   appCodec,
   keys[wasmtypes.StoreKey],
   authtypes.NewModuleAddress(govtypes.ModuleName).String(), // authority
