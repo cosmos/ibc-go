@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	_ ibcexported.PacketData = (*InterchainAccountPacketData)(nil)
+	_ ibcexported.PacketData         = (*InterchainAccountPacketData)(nil)
 	_ ibcexported.PacketDataProvider = (*InterchainAccountPacketData)(nil)
 )
 

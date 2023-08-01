@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ ibcexported.PacketData = (*FungibleTokenPacketData)(nil)
+	_ ibcexported.PacketData         = (*FungibleTokenPacketData)(nil)
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
 )
 
