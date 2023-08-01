@@ -36,6 +36,9 @@ var (
 	MockRecvCanaryCapabilityName    = "mock receive canary capability name"
 	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
 	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"
+	// MockApplicationCallbackError should be returned when an application callback should fail. It is possible to
+	// test that this error was returned using ErrorIs.
+	MockApplicationCallbackError error = &applicationCallbackError{}
 )
 
 var _ porttypes.IBCModule = IBCModule{}

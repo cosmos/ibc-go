@@ -4,12 +4,15 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
+	feekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -1077,4 +1080,28 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			}
 		})
 	}
+}
+
+func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	feeModule, ok := cbs.(porttypes.PacketDataUnmarshaler)
+	suite.Require().True(ok)
+
+	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
+	suite.Require().NoError(err)
+	suite.Require().Equal(ibcmock.MockPacketData, packetData)
+}
+
+func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
+	// test the case when the underlying application cannot be casted to a PacketDataUnmarshaler
+	mockFeeMiddleware := fee.NewIBCMiddleware(nil, feekeeper.Keeper{})
+
+	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
+	expError := sdkerrors.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
+	suite.Require().ErrorIs(err, expError)
 }
