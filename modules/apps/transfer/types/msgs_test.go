@@ -27,8 +27,8 @@ const (
 )
 
 var (
-	sender     = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	receiver     = sdk.AccAddress("testreceiver").String()
+	sender    = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	receiver  = sdk.AccAddress("testreceiver").String()
 	emptyAddr string
 
 	coin             = sdk.NewCoin("atom", sdk.NewInt(100))
