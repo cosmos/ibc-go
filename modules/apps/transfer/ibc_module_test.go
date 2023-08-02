@@ -333,7 +333,6 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			"invalid upgrade ordering",
 			func() {
 				counterpartyUpgrade.Fields.Ordering = channeltypes.ORDERED
-
 			},
 			channeltypes.ErrInvalidChannelOrdering,
 		},
