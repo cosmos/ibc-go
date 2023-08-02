@@ -6,12 +6,9 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-<<<<<<< HEAD
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-=======
 
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
->>>>>>> a0a65263 (feat(core, apps): 'PacketDataProvider' interface added and implemented (#4199))
 )
 
 var _ ibcexported.PacketDataProvider = (*InterchainAccountPacketData)(nil)
