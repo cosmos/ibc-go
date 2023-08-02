@@ -4,22 +4,40 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
+	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/core/simulation"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
+type testClientUnmarshaller struct {
+	cdc codec.Codec
+}
+
+func (c *testClientUnmarshaller) MustUnmarshalClientState(bz []byte) exported.ClientState {
+	return clienttypes.MustUnmarshalClientState(c.cdc, bz)
+}
+func (c *testClientUnmarshaller) MustUnmarshalConsensusState(bz []byte) exported.ConsensusState {
+	return clienttypes.MustUnmarshalConsensusState(c.cdc, bz)
+}
+
+func (c *testClientUnmarshaller) Codec() codec.BinaryCodec {
+	return c.cdc
+}
+
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(t, false)
-	dec := simulation.NewDecodeStore(*app.IBCKeeper)
+	cdc := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{}, ibctm.AppModuleBasic{}).Codec
+	dec := simulation.NewDecodeStore(&testClientUnmarshaller{cdc: cdc})
 
 	clientID := "clientidone"
 	connectionID := "connectionidone"
@@ -42,15 +60,15 @@ func TestDecodeStore(t *testing.T) {
 		Pairs: []kv.Pair{
 			{
 				Key:   host.FullClientStateKey(clientID),
-				Value: app.IBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
+				Value: clienttypes.MustMarshalClientState(cdc, clientState),
 			},
 			{
 				Key:   host.ConnectionKey(connectionID),
-				Value: app.IBCKeeper.Codec().MustMarshal(&connection),
+				Value: cdc.MustMarshal(&connection),
 			},
 			{
 				Key:   host.ChannelKey(portID, channelID),
-				Value: app.IBCKeeper.Codec().MustMarshal(&channel),
+				Value: cdc.MustMarshal(&channel),
 			},
 			{
 				Key:   []byte{0x99},

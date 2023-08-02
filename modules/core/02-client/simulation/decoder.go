@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
@@ -17,6 +18,7 @@ var _ ClientUnmarshaler = (*keeper.Keeper)(nil)
 type ClientUnmarshaler interface {
 	MustUnmarshalClientState([]byte) exported.ClientState
 	MustUnmarshalConsensusState([]byte) exported.ConsensusState
+	Codec() codec.BinaryCodec
 }
 
 // NewDecodeStore returns a decoder function closure that unmarshals the KVPair's

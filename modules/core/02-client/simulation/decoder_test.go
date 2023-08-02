@@ -30,6 +30,10 @@ func (c *testClientUnmarshaller) MustUnmarshalConsensusState(bz []byte) exported
 	return types.MustUnmarshalConsensusState(c.cdc, bz)
 }
 
+func (c *testClientUnmarshaller) Codec() codec.BinaryCodec {
+	return c.cdc
+}
+
 func TestDecodeStore(t *testing.T) {
 	cdc := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{}, ibctm.AppModuleBasic{}).Codec
 	clientID := "clientidone"
