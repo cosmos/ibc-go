@@ -529,10 +529,12 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
 
-				suite.Require().ErrorIs(tc.expErr, err)
-				if tc.expErr == nil {
+				expPass := tc.expErr == nil
+				if expPass {
+					suite.Require().Nil(err)
 					suite.Require().NotNil(txResponse)
 				} else {
+					suite.Require().ErrorIs(err, tc.expErr)
 					suite.Require().Nil(txResponse)
 				}
 			})
@@ -866,10 +868,12 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 			txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
 
-			suite.Require().ErrorIs(tc.expErr, err)
-			if tc.expErr == nil {
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().Nil(err)
 				suite.Require().NotNil(txResponse)
 			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
 				suite.Require().Nil(txResponse)
 			}
 		})
