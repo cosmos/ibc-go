@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,16 +23,16 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		packetData types.FungibleTokenPacketData
 		expPass    bool
 	}{
-		{"valid packet", types.NewFungibleTokenPacketData(denom, amount, addr1, addr2, ""), true},
-		{"valid packet with memo", types.NewFungibleTokenPacketData(denom, amount, addr1, addr2, "memo"), true},
-		{"valid packet with large amount", types.NewFungibleTokenPacketData(denom, largeAmount, addr1, addr2, ""), true},
-		{"invalid denom", types.NewFungibleTokenPacketData("", amount, addr1, addr2, ""), false},
-		{"invalid empty amount", types.NewFungibleTokenPacketData(denom, "", addr1, addr2, ""), false},
-		{"invalid zero amount", types.NewFungibleTokenPacketData(denom, "0", addr1, addr2, ""), false},
-		{"invalid negative amount", types.NewFungibleTokenPacketData(denom, "-1", addr1, addr2, ""), false},
-		{"invalid large amount", types.NewFungibleTokenPacketData(denom, invalidLargeAmount, addr1, addr2, ""), false},
-		{"missing sender address", types.NewFungibleTokenPacketData(denom, amount, emptyAddr, addr2, ""), false},
-		{"missing recipient address", types.NewFungibleTokenPacketData(denom, amount, addr1, emptyAddr, ""), false},
+		{"valid packet", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, ""), true},
+		{"valid packet with memo", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, "memo"), true},
+		{"valid packet with large amount", types.NewFungibleTokenPacketData(denom, largeAmount, sender, receiver, ""), true},
+		{"invalid denom", types.NewFungibleTokenPacketData("", amount, sender, receiver, ""), false},
+		{"invalid empty amount", types.NewFungibleTokenPacketData(denom, "", sender, receiver, ""), false},
+		{"invalid zero amount", types.NewFungibleTokenPacketData(denom, "0", sender, receiver, ""), false},
+		{"invalid negative amount", types.NewFungibleTokenPacketData(denom, "-1", sender, receiver, ""), false},
+		{"invalid large amount", types.NewFungibleTokenPacketData(denom, invalidLargeAmount, sender, receiver, ""), false},
+		{"missing sender address", types.NewFungibleTokenPacketData(denom, amount, emptyAddr, receiver, ""), false},
+		{"missing recipient address", types.NewFungibleTokenPacketData(denom, amount, sender, emptyAddr, ""), false},
 	}
 
 	for i, tc := range testCases {
@@ -43,8 +44,6 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		}
 	}
 }
-<<<<<<< HEAD
-=======
 
 func (suite *TypesTestSuite) TestGetPacketSender() {
 	packetData := types.FungibleTokenPacketData{
@@ -131,4 +130,3 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 		suite.Require().Equal(tc.expCustomData, customData)
 	}
 }
->>>>>>> ec684384 (feat(core, apps): 'PacketData' interface added and implemented (#4200))

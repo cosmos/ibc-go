@@ -1,26 +1,22 @@
 package types
 
 import (
-<<<<<<< HEAD
-=======
 	"encoding/json"
 	"strings"
->>>>>>> ec684384 (feat(core, apps): 'PacketData' interface added and implemented (#4200))
 	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-<<<<<<< HEAD
-=======
 var (
 	_ ibcexported.PacketData         = (*InterchainAccountPacketData)(nil)
 	_ ibcexported.PacketDataProvider = (*InterchainAccountPacketData)(nil)
 )
 
->>>>>>> ec684384 (feat(core, apps): 'PacketData' interface added and implemented (#4200))
 // MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
 const MaxMemoCharLength = 256
 
@@ -76,8 +72,6 @@ func (ct CosmosTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 
 	return nil
 }
-<<<<<<< HEAD
-=======
 
 // GetPacketSender returns the sender address of the interchain accounts packet data.
 // It is obtained from the source port ID by cutting off the ControllerPortPrefix.
@@ -116,4 +110,3 @@ func (iapd InterchainAccountPacketData) GetCustomPacketData(key string) interfac
 
 	return memoData
 }
->>>>>>> ec684384 (feat(core, apps): 'PacketData' interface added and implemented (#4200))

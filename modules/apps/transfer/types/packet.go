@@ -1,21 +1,21 @@
 package types
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-<<<<<<< HEAD
-=======
 var (
 	_ ibcexported.PacketData         = (*FungibleTokenPacketData)(nil)
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
 )
 
->>>>>>> ec684384 (feat(core, apps): 'PacketData' interface added and implemented (#4200))
 var (
 	// DefaultRelativePacketTimeoutHeight is the default packet timeout height (in blocks) relative
 	// to the current block height of the counterparty chain provided by the client state. The
@@ -68,8 +68,6 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
 }
-<<<<<<< HEAD
-=======
 
 // GetPacketSender returns the sender address embedded in the packet data.
 //
@@ -103,4 +101,3 @@ func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} 
 
 	return memoData
 }
->>>>>>> ec684384 (feat(core, apps): 'PacketData' interface added and implemented (#4200))
