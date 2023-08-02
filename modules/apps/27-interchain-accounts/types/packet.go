@@ -82,11 +82,11 @@ func (ct CosmosTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 //     check if the packet sender isn't the interchain accounts module.
 //   - The sender address must only be used by modules on the sending chain.
 func (InterchainAccountPacketData) GetPacketSender(sourcePortID string) string {
-	icaOwner, found := strings.CutPrefix(sourcePortID, ControllerPortPrefix)
+	found := strings.HasPrefix(sourcePortID, ControllerPortPrefix)
 	if !found {
 		return ""
 	}
-	return icaOwner
+	return strings.TrimPrefix(sourcePortID, ControllerPortPrefix)
 }
 
 // GetCustomPacketData interprets the memo field of the packet data as a JSON object
