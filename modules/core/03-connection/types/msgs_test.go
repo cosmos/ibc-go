@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -17,13 +18,13 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	log "github.com/cometbft/cometbft/libs/log"
 
+	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 var (
@@ -50,7 +51,7 @@ func (suite *MsgTestSuite) SetupTest() {
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
-	app := simapp.Setup(suite.T(), false)
+	cdc := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{}).Codec
 	db := dbm.NewMemDB()
 	dblog := log.TestingLogger()
 	store := rootmulti.NewStore(db, dblog)
@@ -72,7 +73,7 @@ func (suite *MsgTestSuite) SetupTest() {
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	suite.Require().NoError(err)
-	proof, err := app.AppCodec().Marshal(&merkleProof)
+	proof, err := cdc.Marshal(&merkleProof)
 	suite.Require().NoError(err)
 
 	suite.proof = proof

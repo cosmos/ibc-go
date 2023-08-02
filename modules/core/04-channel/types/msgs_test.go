@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/store/iavl"
@@ -15,10 +16,10 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	log "github.com/cometbft/cometbft/libs/log"
 
+	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 const (
@@ -75,7 +76,7 @@ type TypesTestSuite struct {
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	app := simapp.Setup(suite.T(), false)
+	cdc := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{}).Codec
 	db := dbm.NewMemDB()
 	dblog := log.TestingLogger()
 	store := rootmulti.NewStore(db, dblog)
@@ -97,7 +98,7 @@ func (suite *TypesTestSuite) SetupTest() {
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	suite.Require().NoError(err)
-	proof, err := app.AppCodec().Marshal(&merkleProof)
+	proof, err := cdc.Marshal(&merkleProof)
 	suite.Require().NoError(err)
 
 	suite.proof = proof

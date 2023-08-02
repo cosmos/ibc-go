@@ -5,19 +5,33 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
+	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
+type testClientUnmarshaller struct {
+	cdc codec.Codec
+}
+
+func (c *testClientUnmarshaller) MustUnmarshalClientState(bz []byte) exported.ClientState {
+	return types.MustUnmarshalClientState(c.cdc, bz)
+}
+func (c *testClientUnmarshaller) MustUnmarshalConsensusState(bz []byte) exported.ConsensusState {
+	return types.MustUnmarshalConsensusState(c.cdc, bz)
+}
+
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(t, false)
+	cdc := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{}, ibctm.AppModuleBasic{}).Codec
 	clientID := "clientidone"
 
 	height := types.NewHeight(0, 10)
@@ -34,11 +48,11 @@ func TestDecodeStore(t *testing.T) {
 		Pairs: []kv.Pair{
 			{
 				Key:   host.FullClientStateKey(clientID),
-				Value: app.IBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
+				Value: types.MustMarshalClientState(cdc, clientState),
 			},
 			{
 				Key:   host.FullConsensusStateKey(clientID, height),
-				Value: app.IBCKeeper.ClientKeeper.MustMarshalConsensusState(consState),
+				Value: types.MustMarshalConsensusState(cdc, consState),
 			},
 			{
 				Key:   []byte{0x99},
@@ -58,7 +72,7 @@ func TestDecodeStore(t *testing.T) {
 	for i, tt := range tests {
 		i, tt := i, tt
 		t.Run(tt.name, func(t *testing.T) {
-			res, found := simulation.NewDecodeStore(app.IBCKeeper.ClientKeeper, kvPairs.Pairs[i], kvPairs.Pairs[i])
+			res, found := simulation.NewDecodeStore(&testClientUnmarshaller{cdc: cdc}, kvPairs.Pairs[i], kvPairs.Pairs[i])
 			if i == len(tests)-1 {
 				require.False(t, found, string(kvPairs.Pairs[i].Key))
 				require.Empty(t, res, string(kvPairs.Pairs[i].Key))
