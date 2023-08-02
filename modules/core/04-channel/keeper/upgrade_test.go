@@ -632,7 +632,10 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, mock.UpgradeVersion, proposedUpgrade.LatestSequenceSend)
+			ctx := suite.chainA.GetContext()
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, mock.UpgradeVersion, proposedUpgrade.LatestSequenceSend)
+
+
 
 			channel := path.EndpointA.GetChannel()
 			upgrade := path.EndpointA.GetChannelUpgrade()
@@ -641,6 +644,27 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			actualCounterpartyLastSequenceSend, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(ok)
 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
+
+
+			events := ctx.EventManager().Events()
+			expEvents := ibctesting.EventsMap{
+				types.EventTypeChannelUpgradeAck: {
+					types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
+					types.AttributeKeyChannelID:                 path.EndpointA.ChannelID,
+					types.AttributeCounterpartyPortID:           path.EndpointB.ChannelConfig.PortID,
+					types.AttributeCounterpartyChannelID:        path.EndpointB.ChannelID,
+					types.AttributeKeyUpgradeConnectionHops:     upgrade.Fields.ConnectionHops[0],
+					types.AttributeKeyUpgradeVersion:            upgrade.Fields.Version,
+					types.AttributeKeyUpgradeOrdering:           upgrade.Fields.Ordering.String(),
+					types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
+					types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
+				},
+				sdk.EventTypeMessage: {
+					sdk.AttributeKeyModule: types.AttributeValueCategory,
+				},
+			}
+
+			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 
 			if tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
