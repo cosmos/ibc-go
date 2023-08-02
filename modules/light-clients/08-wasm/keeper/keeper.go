@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"reflect"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
@@ -37,8 +38,8 @@ func NewKeeperWithVM(
 	authority string,
 	vm *wasmvm.VM,
 ) Keeper {
-	if types.WasmVM != nil {
-		panic("global Wasm VM instance should not be already set before calling this function")
+	if types.WasmVM != nil && !reflect.DeepEqual(types.WasmVM, vm) {
+		panic("global Wasm VM instance should not be set to a different instance")
 	}
 
 	types.WasmVM = vm
