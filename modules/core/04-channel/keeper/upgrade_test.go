@@ -118,13 +118,33 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 			)
 
 			if tc.expPass {
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
+				ctx := suite.chainA.GetContext()
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
 				channel := path.EndpointA.GetChannel()
+
+				events := ctx.EventManager().Events()
+				expEvents := ibctesting.EventsMap{
+					types.EventTypeChannelUpgradeInit: {
+						types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
+						types.AttributeKeyChannelID:                 path.EndpointA.ChannelID,
+						types.AttributeCounterpartyPortID:           path.EndpointB.ChannelConfig.PortID,
+						types.AttributeCounterpartyChannelID:        path.EndpointB.ChannelID,
+						types.AttributeKeyUpgradeConnectionHops:     upgrade.Fields.ConnectionHops[0],
+						types.AttributeKeyUpgradeVersion:            upgrade.Fields.Version,
+						types.AttributeKeyUpgradeOrdering:           upgrade.Fields.Ordering.String(),
+						types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
+						types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: types.AttributeValueCategory,
+					},
+				}
 
 				suite.Require().NoError(err)
 				suite.Require().Equal(expSequence, channel.UpgradeSequence)
 				suite.Require().Equal(mock.Version, channel.Version)
 				suite.Require().Equal(types.INITUPGRADE, channel.State)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Error(err)
 			}
