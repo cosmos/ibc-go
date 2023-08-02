@@ -45,12 +45,23 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
+func (suite *TypesTestSuite) TestGetPacketSender() {
+	packetData := types.FungibleTokenPacketData{
+		Denom:    denom,
+		Amount:   amount,
+		Sender:   sender,
+		Receiver: receiver,
+		Memo:     "",
+	}
+
+	suite.Require().Equal(sender, packetData.GetPacketSender(types.PortID))
+}
+
+func (suite *TypesTestSuite) TestPacketDataProvider() {
 	testCases := []struct {
-		name              string
-		packetData        types.FungibleTokenPacketData
-		expAdditionalData map[string]interface{}
-		expPacketSender   string
+		name          string
+		packetData    types.FungibleTokenPacketData
+		expCustomData interface{}
 	}{
 		{
 			"success: src_callback key in memo",
@@ -64,7 +75,6 @@ func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 			map[string]interface{}{
 				"address": receiver,
 			},
-			sender,
 		},
 		{
 			"success: src_callback key in memo with additional fields",
@@ -79,7 +89,17 @@ func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 				"address":   receiver,
 				"gas_limit": "200000",
 			},
-			sender,
+		},
+		{
+			"success: src_callback has string value",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": "string"}`,
+			},
+			"string",
 		},
 		{
 			"failure: empty memo",
@@ -91,7 +111,6 @@ func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 				Memo:     "",
 			},
 			nil,
-			sender,
 		},
 		{
 			"failure: non-json memo",
@@ -103,26 +122,11 @@ func (suite *TypesTestSuite) TestAdditionalPacketDataProvider() {
 				Memo:     "invalid",
 			},
 			nil,
-			sender,
-		},
-		{
-			"failure: invalid src_callback key",
-			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
-				Sender:   sender,
-				Receiver: receiver,
-				Memo:     `{"src_callback": "invalid"}`,
-			},
-			nil,
-			sender,
 		},
 	}
 
 	for _, tc := range testCases {
-		additionalData, ok := tc.packetData.GetCustomPacketData("src_callback").(map[string]interface{})
-		suite.Require().Equal(ok, additionalData != nil)
-		suite.Require().Equal(tc.expAdditionalData, additionalData)
-		suite.Require().Equal(tc.expPacketSender, tc.packetData.GetPacketSender(types.PortID))
+		customData := tc.packetData.GetCustomPacketData("src_callback")
+		suite.Require().Equal(tc.expCustomData, customData)
 	}
 }

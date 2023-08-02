@@ -11,7 +11,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+)
+
+var (
+	_ ibcexported.PacketData         = (*FungibleTokenPacketData)(nil)
+	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
 )
 
 var (
@@ -25,11 +30,6 @@ var (
 	// state. The timeout is disabled when set to 0. The default is currently set to a 10 minute
 	// timeout.
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
-)
-
-var (
-	_ exported.PacketData         = (*FungibleTokenPacketData)(nil)
-	_ exported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
 )
 
 // NewFungibleTokenPacketData contructs a new FungibleTokenPacketData instance
@@ -72,15 +72,19 @@ func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
 }
 
-// GetPacketSender returns the sender address of the packet data.
-// NOTE: The sender address is set at the source chain and not validated by
-// a signature check in IBC.
-func (ftpd FungibleTokenPacketData) GetPacketSender(srcPortID string) string {
+// GetPacketSender returns the sender address embedded in the packet data.
+//
+// NOTE:
+//   - The sender address is set by the module which requested the packet to be sent,
+//     and this module may not have validated the sender address by a signature check.
+//   - The sender address must only be used by modules on the sending chain.
+//   - sourcePortID is not used in this implementation.
+func (ftpd FungibleTokenPacketData) GetPacketSender(sourcePortID string) string {
 	return ftpd.Sender
 }
 
-// GetCustomPacketData returns a json object from the memo as `map[string]interface{}` so that
-// it can be interpreted as a json object with keys.
+// GetCustomPacketData interprets the memo field of the packet data as a JSON object
+// and returns the value associated with the given key.
 // If the key is missing or the memo is not properly formatted, then nil is returned.
 func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} {
 	if len(ftpd.Memo) == 0 {
@@ -93,8 +97,8 @@ func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} 
 		return nil
 	}
 
-	memoData, ok := jsonObject[key].(map[string]interface{})
-	if !ok {
+	memoData, found := jsonObject[key]
+	if !found {
 		return nil
 	}
 
