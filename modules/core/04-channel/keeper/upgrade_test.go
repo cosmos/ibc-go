@@ -635,8 +635,6 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			ctx := suite.chainA.GetContext()
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, mock.UpgradeVersion, proposedUpgrade.LatestSequenceSend)
 
-
-
 			channel := path.EndpointA.GetChannel()
 			upgrade := path.EndpointA.GetChannelUpgrade()
 			suite.Require().Equal(mock.UpgradeVersion, upgrade.Fields.Version)
@@ -644,7 +642,6 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			actualCounterpartyLastSequenceSend, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(ok)
 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
-
 
 			events := ctx.EventManager().Events()
 			expEvents := ibctesting.EventsMap{
