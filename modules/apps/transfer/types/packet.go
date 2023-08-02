@@ -16,6 +16,8 @@ var (
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
 )
 
+var _ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
+
 var (
 	// DefaultRelativePacketTimeoutHeight is the default packet timeout height (in blocks) relative
 	// to the current block height of the counterparty chain provided by the client state. The

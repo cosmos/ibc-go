@@ -17,6 +17,8 @@ var (
 	_ ibcexported.PacketDataProvider = (*InterchainAccountPacketData)(nil)
 )
 
+var _ ibcexported.PacketDataProvider = (*InterchainAccountPacketData)(nil)
+
 // MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
 const MaxMemoCharLength = 256
 
