@@ -57,6 +57,16 @@ func (iapd InterchainAccountPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&iapd))
 }
 
+// PacketDataFromBytes returns the interchain account packet data from a JSON marshalled byte slice.
+func PacketDataFromBytes(bz []byte) (InterchainAccountPacketData, error) {
+	var iapd InterchainAccountPacketData
+	err := ModuleCdc.UnmarshalJSON(bz, &iapd)
+	if err != nil {
+		return InterchainAccountPacketData{}, err
+	}
+	return iapd, nil
+}
+
 // GetBytes returns the JSON marshalled interchain account CosmosTx.
 func (ct CosmosTx) GetBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&ct))
