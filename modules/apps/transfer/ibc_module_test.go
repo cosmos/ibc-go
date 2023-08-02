@@ -420,14 +420,9 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 		{
 			"invalid upgrade version",
 			func() {
-				// NOTE: counterpartyUpgrade is queried by Endpoint.ChanUpgradeAck() so retrieve and mutate fields here appropriately to force failure
-				counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
-				counterpartyUpgrade.Fields.Version = "invalid-version"
-				path.EndpointB.SetChannelUpgrade(counterpartyUpgrade)
-
-				suite.coordinator.CommitBlock(suite.chainB)
+				path.EndpointB.ChannelConfig.Version = "invalid-version"
 			},
-			channeltypes.NewUpgradeError(1, types.ErrInvalidVersion),
+			types.ErrInvalidVersion,
 		},
 	}
 
@@ -454,24 +449,20 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 
 			tc.malleate()
 
-			err = path.EndpointA.ChanUpgradeAck()
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanUpgradeAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.Version)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-
-				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(channeltypes.OPEN, channel.State)
-				suite.Require().Equal(upgradePath.EndpointA.ConnectionID, channel.ConnectionHops[0])
-				suite.Require().Equal(channeltypes.UNORDERED, channel.Ordering)
-				suite.Require().Equal(types.Version, channel.Version)
 			} else {
-				// NOTE: application callback failure in OnChanUpgradeAck results in an ErrorReceipt being written to state signaling for cancellation
-				if expUpgradeError, ok := tc.expError.(*channeltypes.UpgradeError); ok {
-					errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-					suite.Require().True(found)
-					suite.Require().Equal(expUpgradeError.GetErrorReceipt(), errorReceipt)
-				}
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
