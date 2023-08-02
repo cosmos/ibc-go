@@ -12,12 +12,9 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
-
-var _ porttypes.IBCModule = &IBCModule{}
 
 // IBCModule implements the ICS26 interface for interchain accounts host chains
 type IBCModule struct {
