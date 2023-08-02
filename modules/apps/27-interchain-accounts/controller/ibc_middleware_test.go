@@ -939,5 +939,5 @@ func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 	invalidPacketData := []byte("invalid packet data")
 	packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(invalidPacketData)
 	suite.Require().Error(err)
-	suite.Require().Nil(packetData)
+	suite.Require().Equal(icatypes.InterchainAccountPacketData{}, packetData)
 }
