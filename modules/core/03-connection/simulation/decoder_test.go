@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"testing"
 
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
+	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(t, false)
-	cdc := app.AppCodec()
+	cdc := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{}).Codec
 
 	connectionID := "connectionidone"
 
