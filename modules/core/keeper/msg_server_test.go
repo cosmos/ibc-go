@@ -1432,13 +1432,35 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 			tc.malleate()
 
-			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeTimeout(suite.chainA.GetContext(), msg)
+			ctx := suite.chainA.GetContext()
+			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeTimeout(ctx, msg)
+
+			events := ctx.EventManager().Events()
 
 			expPass := tc.expErr == nil
 			if expPass {
 				suite.Require().NoError(err)
 
 				channel := path.EndpointA.GetChannel()
+				upgrade := path.EndpointA.GetProposedUpgrade()
+
+				expEvents := ibctesting.EventsMap{
+					channeltypes.EventTypeChannelUpgradeTimeout: {
+						channeltypes.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+						channeltypes.AttributeKeyUpgradeConnectionHops: upgrade.Fields.ConnectionHops[0],
+						channeltypes.AttributeKeyUpgradeVersion:        upgrade.Fields.Version,
+						channeltypes.AttributeKeyUpgradeOrdering:       upgrade.Fields.Ordering.String(),
+						channeltypes.AttributeKeyUpgradeTimeout:        upgrade.Timeout.String(),
+						channeltypes.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
+					},
+				}
+
 				suite.Require().Equalf(channeltypes.OPEN, channel.State, "channel state should be %s", channeltypes.OPEN.String())
 				suite.Require().Equalf(channeltypes.NOTINFLUSH, channel.FlushStatus, "channel flush status should be %s", channeltypes.NOTINFLUSH.String())
 
@@ -1447,6 +1469,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Nil(res)
 				suite.Require().ErrorIs(err, tc.expErr)
@@ -1458,6 +1481,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 				_, found := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "channel upgrade should not be nil")
+				ibctesting.AssertEvents(&suite.Suite, ibctesting.EventsMap{}, events)
 			}
 		})
 	}
