@@ -130,7 +130,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 
 	app := SetupWithGenesisValSet(tb, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
-	// create genesis header
+	// create current header and call begin block
 	header := cmtproto.Header{
 		ChainID: chainID,
 		Height:  1,
