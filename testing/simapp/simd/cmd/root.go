@@ -209,7 +209,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 		genesisCommand(encodingConfig, basicManager),
 		txCommand(basicManager),
 		queryCommand(basicManager),
-		keys.Commands(simapp.DefaultNodeHome),
+		keys.Commands(),
 	)
 }
 
