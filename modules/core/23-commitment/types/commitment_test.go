@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	dbm "github.com/cosmos/cosmos-db"
-
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log"

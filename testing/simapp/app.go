@@ -752,7 +752,10 @@ func NewSimApp(
 	if err != nil {
 		// Once we switch to using protoreflect-based antehandlers, we might
 		// want to panic here instead of logging a warning.
-		fmt.Fprintln(os.Stderr, err.Error())
+		_, err := fmt.Fprintln(os.Stderr, err.Error())
+		if err != nil {
+			fmt.Println("could not write to stderr")
+		}
 	}
 
 	if loadLatest {
@@ -890,8 +893,8 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 }
 
 // DefaultGenesis returns a default genesis from the registered AppModuleBasic's.
-func (a *SimApp) DefaultGenesis() map[string]json.RawMessage {
-	return a.BasicModuleManager.DefaultGenesis(a.appCodec)
+func (app *SimApp) DefaultGenesis() map[string]json.RawMessage {
+	return app.BasicModuleManager.DefaultGenesis(app.appCodec)
 }
 
 // GetKey returns the KVStoreKey for the provided store key.

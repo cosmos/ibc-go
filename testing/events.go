@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/stretchr/testify/suite"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -168,7 +167,7 @@ func AssertEventsLegacy(
 
 // AssertEvents asserts that expected events are present in the actual events.
 func AssertEvents(
-	suite *suite.Suite,
+	suite *testifysuite.Suite,
 	expected []abci.Event,
 	actual []abci.Event,
 ) {
