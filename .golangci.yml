@@ -5,7 +5,6 @@ run:
 linters:
   disable-all: true
   enable:
-    - dogsled
     - exportloopref
     - errcheck
     - gci
@@ -53,16 +52,6 @@ linters-settings:
       - prefix(github.com/cometbft/cometbft)
       - prefix(github.com/cosmos/ibc-go)
     custom-order: true
-  dogsled:
-    max-blank-identifiers: 3
-  maligned:
-    # print struct with more effective memory layout or not, false by default
-    suggest-new: true
-  nolintlint:
-    allow-unused: false
-    allow-leading-space: true
-    require-explanation: false
-    require-specific: false
   revive:
     enable-all-rules: true
     # Do NOT whine about the following, full explanation found in:
