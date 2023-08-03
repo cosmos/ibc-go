@@ -97,7 +97,7 @@ func getCallbackData(
 
 	packetDataProvider, ok := unmarshaledData.(ibcexported.PacketDataProvider)
 	if !ok {
-		return CallbackData{}, false, ErrNotAdditionalPacketDataProvider
+		return CallbackData{}, false, ErrNotPacketDataProvider
 	}
 
 	callbackData, ok := packetDataProvider.GetCustomPacketData(callbackKey).(map[string]interface{})

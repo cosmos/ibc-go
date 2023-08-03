@@ -176,7 +176,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 				GasLimit:       100000,
 				CommitGasLimit: 200000,
 			},
-			types.ErrNotAdditionalPacketDataProvider,
+			types.ErrNotPacketDataProvider,
 			ibctesting.EventsMap{
 				types.EventTypeSourceCallback: {
 					sdk.AttributeKeyModule:                    types.ModuleName,
@@ -188,7 +188,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 					types.AttributeKeyCallbackSourceChannelID: ibctesting.FirstChannelID,
 					types.AttributeKeyCallbackSequence:        "1",
 					types.AttributeKeyCallbackResult:          types.AttributeValueCallbackFailure,
-					types.AttributeKeyCallbackError:           types.ErrNotAdditionalPacketDataProvider.Error(),
+					types.AttributeKeyCallbackError:           types.ErrNotPacketDataProvider.Error(),
 				},
 			},
 		},

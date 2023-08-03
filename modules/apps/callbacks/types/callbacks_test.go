@@ -588,5 +588,5 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
 	callbackData, allowRetry, err := types.GetCallbackData(packetUnmarshaler, mockPacket, 100000, uint64(1_000_000), types.SourceCallbackMemoKey)
 	s.Require().False(allowRetry)
 	s.Require().Equal(types.CallbackData{}, callbackData)
-	s.Require().ErrorIs(err, types.ErrNotAdditionalPacketDataProvider)
+	s.Require().ErrorIs(err, types.ErrNotPacketDataProvider)
 }
