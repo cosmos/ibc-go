@@ -13,7 +13,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -262,4 +264,25 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	suite.Require().Panics(func() {
 		suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
 	})
+}
+
+func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
+	suite.SetupTest()
+
+	// test if the ics4 wrapper is the fee keeper initially
+	ics4Wrapper := suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
+	_, isFeeKeeper := ics4Wrapper.(ibcfeekeeper.Keeper)
+
+	suite.Require().True(isFeeKeeper)
+	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
+	suite.Require().False(isChannelKeeper)
+
+	// set the ics4 wrapper to the channel keeper
+	suite.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
+	ics4Wrapper = suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
+
+	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
+	suite.Require().True(isChannelKeeper)
+	_, isFeeKeeper = ics4Wrapper.(ibcfeekeeper.Keeper)
+	suite.Require().False(isFeeKeeper)
 }
