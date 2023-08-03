@@ -4,7 +4,8 @@ import (
 	"testing"
 
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/stretchr/testify/suite"
+
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/store/iavl"
@@ -14,7 +15,7 @@ import (
 )
 
 type MerkleTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	store     *rootmulti.Store
 	storeKey  *storetypes.KVStoreKey
@@ -35,5 +36,5 @@ func (suite *MerkleTestSuite) SetupTest() {
 }
 
 func TestMerkleTestSuite(t *testing.T) {
-	suite.Run(t, new(MerkleTestSuite))
+	testifysuite.Run(t, new(MerkleTestSuite))
 }

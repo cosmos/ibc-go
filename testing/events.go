@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
@@ -70,7 +71,7 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 			packet := channeltypes.Packet{}
 			for _, attr := range ev.Attributes {
 				switch attr.Key {
-				case channeltypes.AttributeKeyData: // DEPRECATED
+				case channeltypes.AttributeKeyData: //nolint:staticcheck // DEPRECATED
 					packet.Data = []byte(attr.Value)
 
 				case channeltypes.AttributeKeySequence:
@@ -126,7 +127,7 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
 			for _, attr := range ev.Attributes {
-				if attr.Key == channeltypes.AttributeKeyAck { // DEPRECATED
+				if attr.Key == channeltypes.AttributeKeyAck { //nolint:staticcheck // DEPRECATED
 					return []byte(attr.Value), nil
 				}
 			}
@@ -138,7 +139,7 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 // AssertEventsLegacy asserts that expected events are present in the actual events.
 // Expected map needs to be a subset of actual events to pass.
 func AssertEventsLegacy(
-	suite *suite.Suite,
+	suite *testifysuite.Suite,
 	expected EventsMap,
 	actual []abci.Event,
 ) {
