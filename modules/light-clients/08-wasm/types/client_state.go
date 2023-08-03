@@ -209,8 +209,8 @@ func (cs ClientState) VerifyNonMembership(
 	return err
 }
 
-// call calls the contract with the given payload and returns the result.
-func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload any) (T, error) {
+// wasmCall calls the contract with the given payload and returns the result.
+func wasmCall[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload any) (T, error) {
 	var result T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
