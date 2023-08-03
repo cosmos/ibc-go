@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 
-	errorsmod "cosmossdk.io/errors"
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	errorsmod "cosmossdk.io/errors"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -67,6 +68,19 @@ func queryContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, ms
 	resp, gasUsed, err := WasmVM.Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
+}
+
+// wasmInit accepts a message to instantiate a wasm contract, JSON encodes it and calls initContract.
+func wasmInit(ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload instantiateMessage) error {
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
+	}
+	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
+	if err != nil {
+		return errorsmod.Wrapf(err, "call to wasm contract failed")
+	}
+	return nil
 }
 
 // wasmCall calls the contract with the given payload and returns the result.

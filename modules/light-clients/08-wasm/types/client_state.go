@@ -1,8 +1,6 @@
 package types
 
 import (
-	"encoding/json"
-
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -114,19 +112,11 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 		ConsensusState: consensusState,
 	}
 
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
-	}
-
 	// The global store key can be used here to implement #4085
 	// wasmStore := ctx.KVStore(WasmStoreKey)
 
-	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
-	if err != nil {
-		return errorsmod.Wrapf(err, "failed to initialize contract")
-	}
-	return nil
+	err := wasmInit(ctx, clientStore, &cs, payload)
+	return err
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
