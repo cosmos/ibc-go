@@ -47,15 +47,15 @@ type CallbacksCompatibleModule interface {
 
 // CallbackData is the callback data parsed from the packet.
 type CallbackData struct {
-	// ContractAddr is the address of the callback contract.
-	ContractAddr string
+	// ContractAddress is the address of the callback contract.
+	ContractAddress string
 	// ExecutionGasLimit is the gas limit which will be used for the callback execution.
 	ExecutionGasLimit uint64
-	// SenderAddr is the sender of the packet. This is passed to the contract keeper
+	// SenderAddress is the sender of the packet. This is passed to the contract keeper
 	// to verify that the packet sender is the same as the contract address if desired.
 	// This address is empty during destination callback execution.
 	// This address may be empty if the sender is unknown or undefined.
-	SenderAddr string
+	SenderAddress string
 	// CommitGasLimit is the gas needed to commit the callback even if the callback
 	// execution fails due to out of gas.
 	// This parameter is only used in event emissions, or logging.
@@ -128,9 +128,9 @@ func getCallbackData(
 	}
 
 	return CallbackData{
-		ContractAddr:      getCallbackAddress(callbackData),
+		ContractAddress:   getCallbackAddress(callbackData),
 		ExecutionGasLimit: executionGasLimit,
-		SenderAddr:        packetSender,
+		SenderAddress:     packetSender,
 		CommitGasLimit:    commitGasLimit,
 	}, nil
 }

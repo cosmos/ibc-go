@@ -222,7 +222,7 @@ func (IBCMiddleware) processCallback(
 		types.Logger(ctx).Debug("Failed to get callback data.", "packet", packet, "err", err)
 		return nil
 	}
-	if callbackData.ContractAddr == "" {
+	if callbackData.ContractAddress == "" {
 		types.Logger(ctx).Debug(fmt.Sprintf("No %s callback found for packet.", callbackType), "packet", packet)
 		return nil
 	}
@@ -245,7 +245,7 @@ func (IBCMiddleware) processCallback(
 		}
 	}()
 
-	err = callbackExecutor(cachedCtx, callbackData.ContractAddr, callbackData.SenderAddr)
+	err = callbackExecutor(cachedCtx, callbackData.ContractAddress, callbackData.SenderAddress)
 	if err == nil {
 		writeFn()
 	}

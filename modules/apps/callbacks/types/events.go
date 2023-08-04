@@ -69,7 +69,7 @@ func EmitCallbackEvent(
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
 		sdk.NewAttribute(AttributeKeyCallbackTrigger, string(callbackTrigger)),
-		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddr),
+		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.ContractAddress),
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.ExecutionGasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackCommitGasLimit, fmt.Sprintf("%d", callbackData.CommitGasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.GetSequence())),
