@@ -14,7 +14,8 @@ type ContractKeeper interface {
 	// packetSenderAddress is determined by the underlying module, and may be empty if the sender is
 	// unknown or undefined. The contract is expected to handle the callback within the user defined
 	// gas limit, and handle any errors, or panics gracefully.
-	// If an error is returned, state will be reverted by the callbacks middleware.
+	// If an error is returned, the transaction will be reverted by the callbacks middleware, and the
+	// packet will not be sent.
 	IBCSendPacketCallback(
 		ctx sdk.Context,
 		sourcePort string,
@@ -29,7 +30,7 @@ type ContractKeeper interface {
 	// is received. The packetSenderAddress is determined by the underlying module, and may be empty if
 	// the sender is unknown or undefined. The contract is expected to handle the callback within the
 	// user defined gas limit, and handle any errors, or panics gracefully.
-	// If an error is returned, it will be ignored.
+	// If an error is returned, state will be reverted by the callbacks middleware.
 	IBCOnAcknowledgementPacketCallback(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
@@ -42,7 +43,7 @@ type ContractKeeper interface {
 	// the timeout height. The packetSenderAddress is determined by the underlying module, and may be
 	// empty if the sender is unknown or undefined. The contract is expected to handle the callback
 	// within the user defined gas limit, and handle any error, out of gas, or panics gracefully.
-	// If an error is returned, it will be ignored.
+	// If an error is returned, state will be reverted by the callbacks middleware.
 	IBCOnTimeoutPacketCallback(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
@@ -53,7 +54,7 @@ type ContractKeeper interface {
 	// IBCWriteAcknowledgementCallback is called in the destination chain when a packet acknowledgement is written.
 	// The contract is expected to handle the callback within the user defined gas limit, and handle any errors,
 	// out of gas, or panics gracefully.
-	// If an error is returned, it will be ignored.
+	// If an error is returned, state will be reverted by the callbacks middleware.
 	IBCWriteAcknowledgementCallback(
 		ctx sdk.Context,
 		packet ibcexported.PacketI,
