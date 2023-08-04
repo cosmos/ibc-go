@@ -103,6 +103,15 @@ func getCallbackData(
 		return CallbackData{}, ErrCallbackMemoKeyNotFound
 	}
 
+	// retrieve packet sender from packet data if possible and if needed
+	var packetSender string
+	if callbackKey == SourceCallbackMemoKey {
+		packetData, ok := unmarshaledData.(ibcexported.PacketData)
+		if ok {
+			packetSender = packetData.GetPacketSender(packet.GetSourcePort())
+		}
+	}
+
 	// get the gas limit from the callback data
 	commitGasLimit := getUserDefinedGasLimit(callbackData)
 
@@ -116,15 +125,6 @@ func getCallbackData(
 	executionGasLimit := commitGasLimit
 	if remainingGas < executionGasLimit {
 		executionGasLimit = remainingGas
-	}
-
-	// retrieve packet sender from packet data if possible and if needed
-	var packetSender string
-	if callbackKey == SourceCallbackMemoKey {
-		packetData, ok := unmarshaledData.(ibcexported.PacketData)
-		if ok {
-			packetSender = packetData.GetPacketSender(packet.GetSourcePort())
-		}
 	}
 
 	return CallbackData{
