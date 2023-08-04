@@ -67,7 +67,7 @@ func GetSourceCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 	packet ibcexported.PacketI, remainingGas uint64, maxGas uint64,
 ) (CallbackData, error) {
-	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, maxGas, SourceCallbackMemoKey)
+	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, maxGas, SourceCallbackKey)
 }
 
 // GetDestCallbackData parses the packet data and returns the destination callback data.
@@ -75,7 +75,7 @@ func GetDestCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 	packet ibcexported.PacketI, remainingGas uint64, maxGas uint64,
 ) (CallbackData, error) {
-	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, maxGas, DestCallbackMemoKey)
+	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, maxGas, DestinationCallbackKey)
 }
 
 // getCallbackData parses the packet data and returns the callback data.
@@ -100,12 +100,12 @@ func getCallbackData(
 
 	callbackData, ok := packetDataProvider.GetCustomPacketData(callbackKey).(map[string]interface{})
 	if callbackData == nil || !ok {
-		return CallbackData{}, ErrCallbackMemoKeyNotFound
+		return CallbackData{}, ErrCallbackKeyNotFound
 	}
 
 	// retrieve packet sender from packet data if possible and if needed
 	var packetSender string
-	if callbackKey == SourceCallbackMemoKey {
+	if callbackKey == SourceCallbackKey {
 		packetData, ok := unmarshaledData.(ibcexported.PacketData)
 		if ok {
 			packetSender = packetData.GetPacketSender(packet.GetSourcePort())

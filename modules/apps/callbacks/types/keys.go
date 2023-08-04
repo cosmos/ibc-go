@@ -10,18 +10,22 @@ const (
 	CallbackTypeTimeoutPacket        CallbackType = "timeout"
 	CallbackTypeWriteAcknowledgement CallbackType = "write_acknowledgement"
 
-	// Additional packet data is expected to specify the source callback in the following format
-	// under this key:
+	// Source callback packet data is set inside the underlying packet data using the this key.
+	// ICS20 and ICS27 will store the callback packet data in the memo field as a json object.
+	// The expected format is as follows:
 	// {"src_callback": { ... }}
-	SourceCallbackMemoKey = "src_callback"
-	// Additional packet data is expected to specify the destination callback in the following format
-	// under this key:
+	SourceCallbackKey = "src_callback"
+	// Destination callback packet data is set inside the underlying packet data using the this key.
+	// ICS20 and ICS27 will store the callback packet data in the memo field as a json object.
+	// The expected format is as follows:
 	// {"dest_callback": { ... }}
-	DestCallbackMemoKey = "dest_callback"
-	// Additional packet data is expected to contain the callback address in the following format:
+	DestinationCallbackKey = "dest_callback"
+	// Callbacks' packet data is expected to contain the callback address under this key.
+	// The expected format for ICS20 and ICS27 memo field is as follows:
 	// { "{callbackKey}": { "address": {stringCallbackAddress}}
 	CallbackAddressKey = "address"
-	// Additional packet data is expected to specify the user defined gas limit in the following format:
+	// Callbacks' packet data is expected to specify the user defined gas limit under this key.
+	// The expected format for ICS20 and ICS27 memo field is as follows:
 	// { "{callbackKey}": { ... , "gas_limit": {stringForCallback} }
 	UserDefinedGasLimitKey = "gas_limit"
 )

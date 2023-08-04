@@ -459,7 +459,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 	for _, tc := range testCases {
 		tc := tc
 		s.Run(tc.name, func() {
-			callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackMemoKey).(map[string]interface{})
+			callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackKey).(map[string]interface{})
 			s.Require().Equal(ok, callbackData != nil)
 			s.Require().Equal(tc.expAddress, types.GetCallbackAddress(callbackData), tc.name)
 		})
@@ -568,7 +568,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 	}
 
 	for _, tc := range testCases {
-		callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackMemoKey).(map[string]interface{})
+		callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackKey).(map[string]interface{})
 		s.Require().Equal(ok, callbackData != nil)
 		s.Require().Equal(tc.expUserGas, types.GetUserDefinedGasLimit(callbackData), tc.name)
 	}
@@ -583,7 +583,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
 
 	// ibcmock.MockPacketData instructs the MockPacketDataUnmarshaler to return ibcmock.MockPacketData, nil
 	mockPacket := channeltypes.Packet{Data: ibcmock.MockPacketData}
-	callbackData, err := types.GetCallbackData(packetUnmarshaler, mockPacket, 100000, uint64(1_000_000), types.SourceCallbackMemoKey)
+	callbackData, err := types.GetCallbackData(packetUnmarshaler, mockPacket, 100000, uint64(1_000_000), types.SourceCallbackKey)
 	s.Require().Equal(types.CallbackData{}, callbackData)
 	s.Require().ErrorIs(err, types.ErrNotPacketDataProvider)
 }
