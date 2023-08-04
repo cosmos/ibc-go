@@ -86,7 +86,7 @@ func (im IBCMiddleware) SendPacket(
 	// is only derived from the source packet information in `GetSourceCallbackData`.
 	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
-	callbackDataGetter := func() (types.CallbackData, bool, error) {
+	callbackDataGetter := func() (types.CallbackData, error) {
 		return types.GetSourceCallbackData(im.app, reconstructedPacket, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetSenderAddress string) error {
@@ -120,7 +120,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	callbackDataGetter := func() (types.CallbackData, bool, error) {
+	callbackDataGetter := func() (types.CallbackData, error) {
 		return types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetSenderAddress string) error {
@@ -142,7 +142,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return err
 	}
 
-	callbackDataGetter := func() (types.CallbackData, bool, error) {
+	callbackDataGetter := func() (types.CallbackData, error) {
 		return types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetSenderAddress string) error {
@@ -168,7 +168,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return ack
 	}
 
-	callbackDataGetter := func() (types.CallbackData, bool, error) {
+	callbackDataGetter := func() (types.CallbackData, error) {
 		return types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, _ string) error {
@@ -196,7 +196,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	callbackDataGetter := func() (types.CallbackData, bool, error) {
+	callbackDataGetter := func() (types.CallbackData, error) {
 		return types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	}
 	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, _ string) error {
@@ -214,10 +214,10 @@ func (im IBCMiddleware) WriteAcknowledgement(
 // to CommitGasLimit.
 func (IBCMiddleware) processCallback(
 	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
-	callbackDataGetter func() (types.CallbackData, bool, error),
+	callbackDataGetter func() (types.CallbackData, error),
 	callbackExecutor func(sdk.Context, string, string) error,
 ) (err error) {
-	callbackData, allowRetry, err := callbackDataGetter()
+	callbackData, err := callbackDataGetter()
 	if err != nil {
 		types.Logger(ctx).Debug("Failed to get callback data.", "packet", packet, "err", err)
 		return nil
@@ -237,7 +237,8 @@ func (IBCMiddleware) processCallback(
 			// and out of gas panics are handled.
 			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
 				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "packet", packet, "panic", oogError)
-				if allowRetry {
+				// If execution gas limit was less than the commit gas limit, allow retry.
+				if callbackData.ExecutionGasLimit < callbackData.CommitGasLimit {
 					panic(r)
 				}
 			}

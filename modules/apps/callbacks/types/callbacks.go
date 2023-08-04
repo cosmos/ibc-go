@@ -63,20 +63,18 @@ type CallbackData struct {
 }
 
 // GetSourceCallbackData parses the packet data and returns the source callback data.
-// It also checks that the remaining gas is greater than the gas limit specified in the packet data.
 func GetSourceCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 	packet ibcexported.PacketI, remainingGas uint64, maxGas uint64,
-) (CallbackData, bool, error) {
+) (CallbackData, error) {
 	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, maxGas, SourceCallbackMemoKey)
 }
 
 // GetDestCallbackData parses the packet data and returns the destination callback data.
-// It also checks that the remaining gas is greater than the gas limit specified in the packet data.
 func GetDestCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 	packet ibcexported.PacketI, remainingGas uint64, maxGas uint64,
-) (CallbackData, bool, error) {
+) (CallbackData, error) {
 	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, maxGas, DestCallbackMemoKey)
 }
 
@@ -88,27 +86,22 @@ func getCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 	packet ibcexported.PacketI, remainingGas uint64,
 	maxGas uint64, callbackKey string,
-) (CallbackData, bool, error) {
+) (CallbackData, error) {
 	// unmarshal packet data
 	unmarshaledData, err := packetDataUnmarshaler.UnmarshalPacketData(packet.GetData())
 	if err != nil {
-		return CallbackData{}, false, err
+		return CallbackData{}, err
 	}
 
 	packetDataProvider, ok := unmarshaledData.(ibcexported.PacketDataProvider)
 	if !ok {
-		return CallbackData{}, false, ErrNotPacketDataProvider
+		return CallbackData{}, ErrNotPacketDataProvider
 	}
 
 	callbackData, ok := packetDataProvider.GetCustomPacketData(callbackKey).(map[string]interface{})
 	if callbackData == nil || !ok {
-		return CallbackData{}, false, ErrCallbackMemoKeyNotFound
+		return CallbackData{}, ErrCallbackMemoKeyNotFound
 	}
-
-	// if the relayer did not specify enough gas to meet the minimum of the
-	// user defined gas limit and the max allowed gas limit, the callback execution
-	// may be retried
-	var allowRetry bool
 
 	// get the gas limit from the callback data
 	commitGasLimit := getUserDefinedGasLimit(callbackData)
@@ -123,7 +116,6 @@ func getCallbackData(
 	executionGasLimit := commitGasLimit
 	if remainingGas < executionGasLimit {
 		executionGasLimit = remainingGas
-		allowRetry = true
 	}
 
 	// retrieve packet sender from packet data if possible and if needed
@@ -140,7 +132,7 @@ func getCallbackData(
 		ExecutionGasLimit: executionGasLimit,
 		SenderAddr:        packetSender,
 		CommitGasLimit:    commitGasLimit,
-	}, allowRetry, nil
+	}, nil
 }
 
 // getUserDefinedGasLimit returns the custom gas limit provided for callbacks if it is

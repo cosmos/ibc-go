@@ -14,7 +14,7 @@ func GetCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 	packet ibcexported.PacketI, remainingGas uint64,
 	maxGas uint64, callbackKey string,
-) (CallbackData, bool, error) {
+) (CallbackData, error) {
 	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, maxGas, callbackKey)
 }
 

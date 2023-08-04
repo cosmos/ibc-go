@@ -174,9 +174,8 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 		packetUnmarshaler := transfer.IBCModule{}
 
 		testPacket := channeltypes.Packet{Data: packetData}
-		callbackData, hasEnoughGas, err := types.GetSourceCallbackData(packetUnmarshaler, testPacket, tc.remainingGas, uint64(1_000_000))
+		callbackData, err := types.GetSourceCallbackData(packetUnmarshaler, testPacket, tc.remainingGas, uint64(1_000_000))
 
-		s.Require().Equal(tc.expAllowRetry, hasEnoughGas, tc.name)
 		if tc.expPass {
 			s.Require().NoError(err, tc.name)
 			s.Require().Equal(tc.expCallbackData, callbackData, tc.name)
@@ -345,9 +344,8 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 		packetUnmarshaler := transfer.IBCModule{}
 
 		testPacket := channeltypes.Packet{Data: packetData}
-		callbackData, hasEnoughGas, err := types.GetDestCallbackData(packetUnmarshaler, testPacket, tc.remainingGas, uint64(1_000_000))
+		callbackData, err := types.GetDestCallbackData(packetUnmarshaler, testPacket, tc.remainingGas, uint64(1_000_000))
 
-		s.Require().Equal(tc.expAllowRetry, hasEnoughGas, tc.name)
 		if tc.expPass {
 			s.Require().NoError(err, tc.name)
 			s.Require().Equal(tc.expCallbackData, callbackData, tc.name)
@@ -585,8 +583,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
 
 	// ibcmock.MockPacketData instructs the MockPacketDataUnmarshaler to return ibcmock.MockPacketData, nil
 	mockPacket := channeltypes.Packet{Data: ibcmock.MockPacketData}
-	callbackData, allowRetry, err := types.GetCallbackData(packetUnmarshaler, mockPacket, 100000, uint64(1_000_000), types.SourceCallbackMemoKey)
-	s.Require().False(allowRetry)
+	callbackData, err := types.GetCallbackData(packetUnmarshaler, mockPacket, 100000, uint64(1_000_000), types.SourceCallbackMemoKey)
 	s.Require().Equal(types.CallbackData{}, callbackData)
 	s.Require().ErrorIs(err, types.ErrNotPacketDataProvider)
 }

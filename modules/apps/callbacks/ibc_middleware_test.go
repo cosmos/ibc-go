@@ -494,8 +494,8 @@ func (s *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	callbackStack, ok := transferStack.(ibccallbacks.IBCMiddleware)
 	s.Require().True(ok)
 
-	invalidDataGetter := func() (types.CallbackData, bool, error) {
-		return types.CallbackData{}, false, fmt.Errorf("invalid data getter")
+	invalidDataGetter := func() (types.CallbackData, error) {
+		return types.CallbackData{}, fmt.Errorf("invalid data getter")
 	}
 	mockPacket := channeltypes.Packet{Sequence: 0}
 
