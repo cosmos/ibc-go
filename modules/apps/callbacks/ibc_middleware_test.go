@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
@@ -55,6 +56,31 @@ func (s *CallbacksTestSuite) TestNilICS4Wrapper() {
 	s.PanicsWithValue("ics4wrapper cannot be nil", func() {
 		_ = ibccallbacks.NewIBCMiddleware(transferStack, nil, mockContractKeeper, uint64(1000000))
 	})
+}
+
+func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
+	s.setupChains()
+
+	channelKeeper := s.chainA.App.GetIBCKeeper().ChannelKeeper
+	feeKeeper := s.chainA.GetSimApp().IBCFeeKeeper
+	mockContractKeeper := s.chainA.GetSimApp().MockKeeper
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
+
+	middleware := ibccallbacks.NewIBCMiddleware(transferStack, feeKeeper, mockContractKeeper, uint64(1000000))
+
+	// test if the ics4 wrapper is the channel keeper initially
+	ics4Wrapper := middleware.GetICS4Wrapper()
+
+	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
+	s.Require().False(isChannelKeeper)
+
+	// set the ics4 wrapper to the channel keeper
+	middleware.WithICS4Wrapper(channelKeeper)
+	ics4Wrapper = middleware.GetICS4Wrapper()
+
+	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
+	s.Require().True(isChannelKeeper)
 }
 
 func (s *CallbacksTestSuite) TestUnmarshalPacketData() {

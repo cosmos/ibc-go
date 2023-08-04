@@ -57,6 +57,13 @@ func NewIBCMiddleware(
 	}
 }
 
+// WithICS4Wrapper sets the ICS4Wrapper. This function may be used after the
+// middleware's creation to set the middleware which is above this module in
+// the IBC application stack.
+func (im *IBCMiddleware) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	im.ics4Wrapper = wrapper
+}
+
 // SendPacket implements source callbacks for sending packets.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
