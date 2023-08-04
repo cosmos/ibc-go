@@ -33,6 +33,13 @@ type Acknowledgement interface {
 	Acknowledgement() []byte
 }
 
+// PacketData defines an optional interface which an application's packet data structure may implement.
+type PacketData interface {
+	// GetPacketSender returns the sender address of the packet data.
+	// If the packet sender is unknown or undefined, an empty string should be returned.
+	GetPacketSender(sourcePortID string) string
+}
+
 // PacketDataProvider defines an optional interfaces for retrieving custom packet data stored on behalf of another application.
 // An existing problem in the IBC middleware design is the inability for a middleware to define its own packet data type and insert packet sender provided information.
 // A short term solution was introduced into several application's packet data to utilize a memo field to carry this information on behalf of another application.

@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -9,6 +10,11 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+)
+
+var (
+	_ ibcexported.PacketData         = (*InterchainAccountPacketData)(nil)
+	_ ibcexported.PacketDataProvider = (*InterchainAccountPacketData)(nil)
 )
 
 var _ ibcexported.PacketDataProvider = (*InterchainAccountPacketData)(nil)
@@ -67,6 +73,22 @@ func (ct CosmosTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	}
 
 	return nil
+}
+
+// GetPacketSender returns the sender address of the interchain accounts packet data.
+// It is obtained from the source port ID by cutting off the ControllerPortPrefix.
+// If the source port ID does not have the ControllerPortPrefix, then an empty string is returned.
+//
+// NOTE:
+//   - The sender address is set by the packet sender and may not have been validated a signature
+//     check if the packet sender isn't the interchain accounts module.
+//   - The sender address must only be used by modules on the sending chain.
+func (InterchainAccountPacketData) GetPacketSender(sourcePortID string) string {
+	found := strings.HasPrefix(sourcePortID, ControllerPortPrefix)
+	if !found {
+		return ""
+	}
+	return strings.TrimPrefix(sourcePortID, ControllerPortPrefix)
 }
 
 // GetCustomPacketData interprets the memo field of the packet data as a JSON object

@@ -86,6 +86,35 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestGetPacketSender() {
+	testCases := []struct {
+		name      string
+		srcPortID string
+		expSender string
+	}{
+		{
+			"success: port id has prefix",
+			types.ControllerPortPrefix + ibctesting.TestAccAddress,
+			ibctesting.TestAccAddress,
+		},
+		{
+			"failure: missing prefix",
+			ibctesting.TestAccAddress,
+			"",
+		},
+		{
+			"failure: empty port id",
+			"",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		packetData := types.InterchainAccountPacketData{}
+		suite.Require().Equal(tc.expSender, packetData.GetPacketSender(tc.srcPortID))
+	}
+}
+
 func (suite *TypesTestSuite) TestPacketDataProvider() {
 	expCallbackAddr := ibctesting.TestAccAddress
 
