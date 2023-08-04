@@ -228,7 +228,7 @@ func (IBCMiddleware) processCallback(
 	}
 
 	cachedCtx, writeFn := ctx.CacheContext()
-	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.GasLimit))
+	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.ExecutionGasLimit))
 	defer func() {
 		types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))

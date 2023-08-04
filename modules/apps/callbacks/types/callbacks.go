@@ -49,8 +49,8 @@ type CallbacksCompatibleModule interface {
 type CallbackData struct {
 	// ContractAddr is the address of the callback contract.
 	ContractAddr string
-	// GasLimit is the gas limit which will be used for the callback execution.
-	GasLimit uint64
+	// ExecutionGasLimit is the gas limit which will be used for the callback execution.
+	ExecutionGasLimit uint64
 	// SenderAddr is the sender of the packet. This is passed to the contract keeper
 	// to verify that the packet sender is the same as the contract address if desired.
 	// This address is empty during destination callback execution.
@@ -111,18 +111,18 @@ func getCallbackData(
 	var allowRetry bool
 
 	// get the gas limit from the callback data
-	gasLimit := getUserDefinedGasLimit(callbackData)
+	commitGasLimit := getUserDefinedGasLimit(callbackData)
 
 	// ensure user defined gas limit does not exceed the max gas limit
-	if gasLimit == 0 || gasLimit > maxGas {
-		gasLimit = maxGas
+	if commitGasLimit == 0 || commitGasLimit > maxGas {
+		commitGasLimit = maxGas
 	}
 
 	// account for the remaining gas in the context being less than the desired gas limit for the callback execution
 	// in this case, the callback execution may be retried upon failure
-	commitGasLimit := gasLimit
-	if remainingGas < gasLimit {
-		gasLimit = remainingGas
+	executionGasLimit := commitGasLimit
+	if remainingGas < executionGasLimit {
+		executionGasLimit = remainingGas
 		allowRetry = true
 	}
 
@@ -136,10 +136,10 @@ func getCallbackData(
 	}
 
 	return CallbackData{
-		ContractAddr:   getCallbackAddress(callbackData),
-		GasLimit:       gasLimit,
-		SenderAddr:     packetSender,
-		CommitGasLimit: commitGasLimit,
+		ContractAddr:      getCallbackAddress(callbackData),
+		ExecutionGasLimit: executionGasLimit,
+		SenderAddr:        packetSender,
+		CommitGasLimit:    commitGasLimit,
 	}, allowRetry, nil
 }
 

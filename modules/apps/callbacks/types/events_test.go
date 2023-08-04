@@ -37,9 +37,9 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeAcknowledgement,
 			types.CallbackData{
-				ContractAddr:   ibctesting.TestAccAddress,
-				GasLimit:       100000,
-				CommitGasLimit: 200000,
+				ContractAddr:      ibctesting.TestAccAddress,
+				ExecutionGasLimit: 100000,
+				CommitGasLimit:    200000,
 			},
 			nil,
 			ibctesting.EventsMap{
@@ -64,9 +64,9 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeSendPacket,
 			types.CallbackData{
-				ContractAddr:   ibctesting.TestAccAddress,
-				GasLimit:       100000,
-				CommitGasLimit: 200000,
+				ContractAddr:      ibctesting.TestAccAddress,
+				ExecutionGasLimit: 100000,
+				CommitGasLimit:    200000,
 			},
 			nil,
 			ibctesting.EventsMap{
@@ -91,9 +91,9 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeTimeoutPacket,
 			types.CallbackData{
-				ContractAddr:   ibctesting.TestAccAddress,
-				GasLimit:       100000,
-				CommitGasLimit: 200000,
+				ContractAddr:      ibctesting.TestAccAddress,
+				ExecutionGasLimit: 100000,
+				CommitGasLimit:    200000,
 			},
 			nil,
 			ibctesting.EventsMap{
@@ -118,9 +118,9 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeWriteAcknowledgement,
 			types.CallbackData{
-				ContractAddr:   ibctesting.TestAccAddress,
-				GasLimit:       100000,
-				CommitGasLimit: 200000,
+				ContractAddr:      ibctesting.TestAccAddress,
+				ExecutionGasLimit: 100000,
+				CommitGasLimit:    200000,
 			},
 			nil,
 			ibctesting.EventsMap{
@@ -145,9 +145,9 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			"something",
 			types.CallbackData{
-				ContractAddr:   ibctesting.TestAccAddress,
-				GasLimit:       100000,
-				CommitGasLimit: 200000,
+				ContractAddr:      ibctesting.TestAccAddress,
+				ExecutionGasLimit: 100000,
+				CommitGasLimit:    200000,
 			},
 			nil,
 			ibctesting.EventsMap{
@@ -172,9 +172,9 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeAcknowledgement,
 			types.CallbackData{
-				ContractAddr:   ibctesting.TestAccAddress,
-				GasLimit:       100000,
-				CommitGasLimit: 200000,
+				ContractAddr:      ibctesting.TestAccAddress,
+				ExecutionGasLimit: 100000,
+				CommitGasLimit:    200000,
 			},
 			types.ErrNotPacketDataProvider,
 			ibctesting.EventsMap{
