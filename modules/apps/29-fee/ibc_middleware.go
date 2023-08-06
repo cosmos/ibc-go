@@ -56,13 +56,15 @@ func (im IBCMiddleware) OnChanOpenInit(
 			AppVersion: "",
 		}
 	} else {
-		if _, err := types.MetadataFromVersion(version); err != nil {
+		metadata, err := types.MetadataFromVersion(version)
+		if err != nil {
 			// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
 			// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
 			// application.
 			return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
 				chanCap, counterparty, version)
 		}
+		versionMetadata = metadata
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
