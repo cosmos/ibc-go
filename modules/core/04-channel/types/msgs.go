@@ -659,6 +659,71 @@ func (msg MsgChannelUpgradeAck) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
+var _ sdk.Msg = &MsgChannelUpgradeConfirm{}
+
+// NewMsgChannelUpgradeConfirm constructs a new MsgChannelUpgradeConfirm
+func NewMsgChannelUpgradeConfirm(
+	portID,
+	channelID string,
+	counterpartyChannelState State,
+	counterpartyUpgrade Upgrade,
+	proofChannel,
+	proofUpgrade []byte,
+	proofHeight clienttypes.Height,
+	signer string,
+) *MsgChannelUpgradeConfirm {
+	return &MsgChannelUpgradeConfirm{
+		PortId:                   portID,
+		ChannelId:                channelID,
+		CounterpartyChannelState: counterpartyChannelState,
+		CounterpartyUpgrade:      counterpartyUpgrade,
+		ProofChannel:             proofChannel,
+		ProofUpgrade:             proofUpgrade,
+		ProofHeight:              proofHeight,
+		Signer:                   signer,
+	}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return errorsmod.Wrap(err, "invalid port ID")
+	}
+
+	if !IsValidChannelID(msg.ChannelId) {
+		return ErrInvalidChannelIdentifier
+	}
+
+	if !collections.Contains(msg.CounterpartyChannelState, []State{STATE_FLUSHING, STATE_FLUSHCOMPLETE}) {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: %s or %s, got: %s", STATE_FLUSHING, STATE_FLUSHCOMPLETE, msg.CounterpartyChannelState)
+	}
+
+	if len(msg.ProofChannel) == 0 {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
+	}
+
+	if len(msg.ProofUpgrade) == 0 {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade proof")
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return msg.CounterpartyUpgrade.ValidateBasic()
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgChannelUpgradeConfirm) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{signer}
+}
+
 var _ sdk.Msg = &MsgChannelUpgradeOpen{}
 
 // NewMsgChannelUpgradeOpen constructs a new MsgChannelUpgradeOpen

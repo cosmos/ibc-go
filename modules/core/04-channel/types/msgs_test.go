@@ -695,6 +695,105 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
+	var msg *types.MsgChannelUpgradeConfirm
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"success: counterparty state set to FLUSHCOMPLETE",
+			func() {
+				msg.CounterpartyChannelState = types.STATE_FLUSHCOMPLETE
+			},
+			true,
+		},
+		{
+			"invalid port identifier",
+			func() {
+				msg.PortId = invalidPort
+			},
+			false,
+		},
+		{
+			"invalid channel identifier",
+			func() {
+				msg.ChannelId = invalidChannel
+			},
+			false,
+		},
+		{
+			"invalid counterparty channel state",
+			func() {
+				msg.CounterpartyChannelState = types.CLOSED
+			},
+			false,
+		},
+		{
+			"cannot submit an empty channel proof",
+			func() {
+				msg.ProofChannel = emptyProof
+			},
+			false,
+		},
+		{
+			"cannot submit an empty upgrade proof",
+			func() {
+				msg.ProofUpgrade = emptyProof
+			},
+			false,
+		},
+		{
+			"missing signer address",
+			func() {
+				msg.Signer = emptyAddr
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			counterpartyUpgrade := types.NewUpgrade(
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
+				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
+				1,
+			)
+
+			msg = types.NewMsgChannelUpgradeConfirm(
+				ibctesting.MockPort, ibctesting.FirstChannelID,
+				types.STATE_FLUSHING, counterpartyUpgrade, suite.proof, suite.proof,
+				height, addr,
+			)
+
+			tc.malleate()
+			err := msg.ValidateBasic()
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+
+	msg := &types.MsgChannelUpgradeConfirm{Signer: addr}
+	suite.Require().Equal([]sdk.AccAddress{expSigner}, msg.GetSigners())
+}
+
 func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 	var msg *types.MsgChannelUpgradeOpen
 
