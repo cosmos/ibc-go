@@ -816,22 +816,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			},
 		},
 		{
-			"elapsed upgrade timeout returns error",
-			func() {
-				msg.UpgradeTimeout = channeltypes.NewTimeout(clienttypes.NewHeight(1, 10), 0)
-				suite.coordinator.CommitNBlocks(suite.chainB, 100)
-			},
-			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-				suite.Require().ErrorIs(err, channeltypes.ErrInvalidUpgrade)
-
-				errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().Empty(errorReceipt)
-				suite.Require().False(found)
-			},
-		},
-		{
 			"unsynchronized upgrade sequence writes upgrade error receipt",
 			func() {
 				channel := path.EndpointB.GetChannel()
@@ -907,9 +891,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				PortId:                        path.EndpointB.ChannelConfig.PortID,
 				ChannelId:                     path.EndpointB.ChannelID,
 				ProposedUpgradeConnectionHops: []string{ibctesting.FirstConnectionID},
-				UpgradeTimeout:                channeltypes.NewTimeout(path.EndpointA.Chain.GetTimeoutHeight(), 0),
 				CounterpartyUpgradeSequence:   counterpartySequence,
-				CounterpartyProposedUpgrade:   counterpartyUpgrade,
+				CounterpartyUpgradeFields:     counterpartyUpgrade.Fields,
 				ProofChannel:                  proofChannel,
 				ProofUpgrade:                  proofUpgrade,
 				ProofHeight:                   proofHeight,

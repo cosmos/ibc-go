@@ -23,7 +23,6 @@ func (k Keeper) ChanUpgradeInit(
 	portID string,
 	channelID string,
 	upgradeFields types.UpgradeFields,
-	upgradeTimeout types.Timeout,
 ) (types.Upgrade, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
@@ -38,15 +37,10 @@ func (k Keeper) ChanUpgradeInit(
 		return types.Upgrade{}, err
 	}
 
-	proposedUpgrade, err := k.constructProposedUpgrade(ctx, portID, channelID, upgradeFields, upgradeTimeout)
-	if err != nil {
-		return types.Upgrade{}, errorsmod.Wrap(err, "failed to construct proposed upgrade")
-	}
-
 	channel.UpgradeSequence++
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	return proposedUpgrade, nil
+	return types.Upgrade{Fields: upgradeFields}, nil
 }
 
 // WriteUpgradeInitChannel writes a channel which has successfully passed the UpgradeInit handshake step.
@@ -76,8 +70,7 @@ func (k Keeper) ChanUpgradeTry(
 	portID,
 	channelID string,
 	proposedConnectionHops []string,
-	upgradeTimeout types.Timeout,
-	counterpartyUpgrade types.Upgrade,
+	counterpartyUpgradeFields types.UpgradeFields,
 	counterpartyUpgradeSequence uint64,
 	proofCounterpartyChannel,
 	proofCounterpartyUpgrade []byte,
@@ -104,17 +97,12 @@ func (k Keeper) ChanUpgradeTry(
 		)
 	}
 
-	if hasPassed, err := counterpartyUpgrade.Timeout.HasPassed(ctx); hasPassed {
-		// abort here and let counterparty timeout the upgrade
-		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
-	}
-
 	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
 	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
 	proposedUpgradeFields := types.UpgradeFields{
-		Ordering:       counterpartyUpgrade.Fields.Ordering,
+		Ordering:       counterpartyUpgradeFields.Ordering,
 		ConnectionHops: proposedConnectionHops,
-		Version:        counterpartyUpgrade.Fields.Version,
+		Version:        counterpartyUpgradeFields.Version,
 	}
 
 	var (
@@ -125,7 +113,7 @@ func (k Keeper) ChanUpgradeTry(
 	switch channel.State {
 	case types.OPEN:
 		// initialize handshake with upgrade fields
-		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields, upgradeTimeout)
+		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields)
 		if err != nil {
 			return types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
@@ -172,7 +160,7 @@ func (k Keeper) ChanUpgradeTry(
 		portID, channelID,
 		proposedUpgradeFields,
 		counterpartyChannel,
-		counterpartyUpgrade,
+		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
 		proofCounterpartyChannel, proofCounterpartyUpgrade,
 		proofHeight,
 	); err != nil {
