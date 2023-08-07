@@ -531,7 +531,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				expPass := tc.expErr == nil
 				if expPass {
-					suite.Require().Nil(err)
+					suite.Require().NoError(err)
 					suite.Require().NotNil(txResponse)
 				} else {
 					suite.Require().ErrorIs(err, tc.expErr)
@@ -870,7 +870,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 			expPass := tc.expErr == nil
 			if expPass {
-				suite.Require().Nil(err)
+				suite.Require().NoError(err)
 				suite.Require().NotNil(txResponse)
 			} else {
 				suite.Require().ErrorIs(err, tc.expErr)
