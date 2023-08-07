@@ -501,14 +501,8 @@ func (s *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
 	invalidDataGetter := func() (types.CallbackData, error) {
 		return types.CallbackData{}, fmt.Errorf("invalid data getter")
 	}
+
 	mockPacket := channeltypes.Packet{Sequence: 0}
-
-	mockLogger := ibcmock.NewMockLogger()
-	ctx := s.chainA.GetContext().WithLogger(mockLogger)
-
-	err := callbackStack.ProcessCallback(ctx, mockPacket, types.CallbackTypeWriteAcknowledgement, invalidDataGetter, nil)
+	err := callbackStack.ProcessCallback(s.chainA.GetContext(), mockPacket, types.CallbackTypeWriteAcknowledgement, invalidDataGetter, nil)
 	s.Require().NoError(err)
-	s.Require().Equal(1, len(mockLogger.DebugLogs))
-	s.Require().Equal("Failed to get callback data.", mockLogger.DebugLogs[0].Message)
-	s.Require().Equal([]interface{}{"packet", mockPacket, "err", fmt.Errorf("invalid data getter")}, mockLogger.DebugLogs[0].Params)
 }

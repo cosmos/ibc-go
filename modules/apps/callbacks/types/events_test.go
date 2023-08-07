@@ -7,18 +7,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
-
-func (s *CallbacksTypesTestSuite) TestLogger() {
-	s.SetupSuite()
-
-	mockLogger := ibcmock.NewMockLogger()
-	ctx := s.chain.GetContext().WithLogger(mockLogger)
-	types.Logger(ctx)
-
-	s.Require().Equal(mockLogger.WithRecord, []interface{}{"module", "x/" + types.ModuleName})
-}
 
 func (s *CallbacksTypesTestSuite) TestEvents() {
 	testCases := []struct {
