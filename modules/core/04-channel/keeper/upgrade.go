@@ -368,6 +368,27 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, upgrade)
 }
 
+func (k Keeper) WriteUpgradeConfirmChannel(ctx sdk.Context, portID, channelID string, counterpartyUpgrade types.Upgrade) {
+	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-confirm")
+
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	if !k.HasInflightPackets(ctx, portID, channelID) {
+		previousState := channel.State
+		channel.State = types.STATE_FLUSHCOMPLETE
+		k.SetChannel(ctx, portID, channelID, channel)
+
+		k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
+	} else {
+		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
+	}
+
+	emitChannelUpgradeConfirmEvent(ctx, portID, channelID, channel)
+}
+
 // ChanUpgradeOpen is called by a module to complete the channel upgrade handshake and move the channel back to an OPEN state.
 // This method should only be called after both channels have flushed any in-flight packets.
 // This method should only be called directly by the core IBC message server.

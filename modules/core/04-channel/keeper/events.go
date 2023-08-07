@@ -337,6 +337,28 @@ func emitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string
 	})
 }
 
+// emitChannelUpgradeConfirmEvent emits a channel upgrade confirm event
+func emitChannelUpgradeConfirmEvent(ctx sdk.Context, portID, channelID string, currentChannel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeChannelUpgradeConfirm,
+			sdk.NewAttribute(types.AttributeKeyPortID, portID),
+			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+			sdk.NewAttribute(types.AttributeKeyChannelState, currentChannel.State.String()),
+			sdk.NewAttribute(types.AttributeCounterpartyPortID, currentChannel.Counterparty.PortId),
+			sdk.NewAttribute(types.AttributeCounterpartyChannelID, currentChannel.Counterparty.ChannelId),
+			sdk.NewAttribute(types.AttributeKeyUpgradeConnectionHops, currentChannel.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeKeyUpgradeVersion, currentChannel.Version),
+			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, currentChannel.Ordering.String()),
+			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
+
 // emitChannelUpgradeOpenEvent emits a channel upgrade open event
 func emitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
