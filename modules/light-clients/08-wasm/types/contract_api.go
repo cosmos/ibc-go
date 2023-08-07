@@ -120,5 +120,5 @@ type checkForMisbehaviourResult struct {
 
 type updateStateResult struct {
 	contractResult
-	Heights []exported.Height `json:"heights"`
+	Heights []clienttypes.Height `json:"heights"`
 }

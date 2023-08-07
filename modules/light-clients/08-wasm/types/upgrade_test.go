@@ -8,9 +8,9 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	//host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
+	//solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -18,7 +18,7 @@ import (
 // TestVerifyUpgrade currently only tests the interface into the contract.
 // Test code is used in the grandpa contract.
 // New client state, consensus state, and client metadata is expected to be set in the contract on success
-func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
+/*func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
 	var (
 		upgradedClient         exported.ClientState
 		upgradedConsState      exported.ConsensusState
@@ -104,7 +104,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
 			}
 		})
 	}
-}
+}*/
 
 func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 	var (

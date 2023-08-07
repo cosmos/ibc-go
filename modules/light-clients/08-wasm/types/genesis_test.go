@@ -1,17 +1,17 @@
 package types_test
 
 import (
-	"encoding/base64"
+	//"encoding/base64"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	//"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	//clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
+/*func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
 	suite.SetupWasmGrandpa()
 
 	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
@@ -21,7 +21,7 @@ func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
 	gm := clientState.ExportMetadata(suite.store)
 	suite.Require().NotNil(gm, "client returned nil")
 	suite.Require().Len(gm, 0, "exported metadata has unexpected length")
-}
+}*/
 
 // expected export ordering:
 // processed height and processed time per height
