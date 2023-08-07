@@ -82,7 +82,7 @@ func (im IBCMiddleware) SendPacket(
 ) (uint64, error) {
 	seq, err := im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	if err != nil {
-		return seq, err
+		return 0, err
 	}
 
 	// Reconstruct the sent packet. The destination portID and channelID are intentionally left empty as the sender information
