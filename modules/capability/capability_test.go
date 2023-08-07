@@ -3,12 +3,11 @@ package capability_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -26,7 +25,7 @@ import (
 const mockMemStoreKey = "memory:mock"
 
 type CapabilityTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	cdc codec.Codec
 	ctx sdk.Context
@@ -125,5 +124,5 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 }
 
 func TestCapabilityTestSuite(t *testing.T) {
-	suite.Run(t, new(CapabilityTestSuite))
+	testifysuite.Run(t, new(CapabilityTestSuite))
 }

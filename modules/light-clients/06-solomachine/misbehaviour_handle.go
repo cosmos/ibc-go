@@ -12,7 +12,7 @@ import (
 )
 
 // CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false
-func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, clientMsg exported.ClientMessage) bool {
+func (ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, clientMsg exported.ClientMessage) bool {
 	if _, ok := clientMsg.(*Misbehaviour); ok {
 		return true
 	}

@@ -85,7 +85,7 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 // Warning: DEPRECATED
 // This handler is redudant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
-func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) {
+func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) { //nolint:staticcheck // for now, we're using msgsubmitmisbehaviour.
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	misbehaviour, err := clienttypes.UnpackClientMessage(msg.Misbehaviour)
@@ -122,7 +122,7 @@ func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.Ms
 
 	if _, err := k.ConnectionKeeper.ConnOpenTry(
 		ctx, msg.Counterparty, msg.DelayPeriod, msg.ClientId, targetClient,
-		connectiontypes.ProtoVersionsToExported(msg.CounterpartyVersions), msg.ProofInit, msg.ProofClient, msg.ProofConsensus,
+		msg.CounterpartyVersions, msg.ProofInit, msg.ProofClient, msg.ProofConsensus,
 		msg.ProofHeight, msg.ConsensusHeight,
 	); err != nil {
 		return nil, errorsmod.Wrap(err, "connection handshake open try failed")

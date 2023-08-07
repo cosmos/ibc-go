@@ -7,9 +7,9 @@ require (
 	cosmossdk.io/client/v2 v2.0.0-20230722073756-0fa85b7a424d
 	cosmossdk.io/core v0.9.0
 	cosmossdk.io/errors v1.0.0
-	cosmossdk.io/log v1.1.1-0.20230704160919-88f2c830b0ca
+	cosmossdk.io/log v1.2.0
 	cosmossdk.io/math v1.0.1
-	cosmossdk.io/store v1.0.0-alpha.1
+	cosmossdk.io/store v1.0.0-alpha.1.0.20230728080422-54ed7dab3982
 	cosmossdk.io/tools/confix v0.0.0-20230722073756-0fa85b7a424d
 	cosmossdk.io/x/circuit v0.0.0-20230722073756-0fa85b7a424d
 	cosmossdk.io/x/evidence v0.0.0-20230722073756-0fa85b7a424d
@@ -19,7 +19,7 @@ require (
 	github.com/cometbft/cometbft v0.38.0-rc3
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.50.0-beta.0.0.20230723220119-d68a1231a44b
+	github.com/cosmos/cosmos-sdk v0.50.0-beta.0.0.20230802171422-ee5b2e3afc4f
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc3
 	github.com/cosmos/ics23/go v0.10.0
@@ -31,7 +31,7 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/genproto/googleapis/api v0.0.0-20230629202037-9506855d4529
-	google.golang.org/grpc v1.56.2
+	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -157,7 +157,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
-	github.com/rs/zerolog v1.29.1 // indirect
+	github.com/rs/zerolog v1.30.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -184,7 +184,7 @@ require (
 	google.golang.org/api v0.126.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230706204954-ccb25ca9f130 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230726155614-23370e0ffb3e // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.0 // indirect

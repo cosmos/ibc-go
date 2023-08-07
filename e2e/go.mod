@@ -13,9 +13,9 @@ require (
 	github.com/docker/docker v24.0.1+incompatible
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230622193330-220ce33823c0
 	github.com/stretchr/testify v1.8.4
-	go.uber.org/zap v1.24.0
+	go.uber.org/zap v1.25.0
 	golang.org/x/mod v0.12.0
-	google.golang.org/grpc v1.56.2
+	google.golang.org/grpc v1.57.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -193,7 +193,6 @@ require (
 	github.com/zondax/ledger-go v0.14.1 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc // indirect

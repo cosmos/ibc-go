@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	storetypes "cosmossdk.io/store/types"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,7 +22,7 @@ var (
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	ctx    sdk.Context
 	keeper *keeper.Keeper
@@ -308,5 +307,5 @@ func (suite *KeeperTestSuite) TestRevertCapability() {
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	testifysuite.Run(t, new(KeeperTestSuite))
 }

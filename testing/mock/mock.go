@@ -41,6 +41,9 @@ var (
 	MockRecvCanaryCapabilityName    = "mock receive canary capability name"
 	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
 	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"
+	// MockApplicationCallbackError should be returned when an application callback should fail. It is possible to
+	// test that this error was returned using ErrorIs.
+	MockApplicationCallbackError error = &applicationCallbackError{}
 )
 
 var _ porttypes.IBCModule = IBCModule{}
@@ -77,7 +80,7 @@ func (AppModuleBasic) ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, 
 }
 
 // RegisterGRPCGatewayRoutes implements AppModuleBasic interface.
-func (a AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // GetTxCmd implements AppModuleBasic interface.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
@@ -107,7 +110,7 @@ func NewAppModule(pk PortKeeper) AppModule {
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // RegisterServices implements the AppModule interface.
-func (am AppModule) RegisterServices(module.Configurator) {}
+func (AppModule) RegisterServices(module.Configurator) {}
 
 // InitGenesis implements the AppModule interface.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
@@ -126,7 +129,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 }
 
 // ExportGenesis implements the AppModule interface.
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+func (AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 

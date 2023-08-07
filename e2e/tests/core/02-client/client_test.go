@@ -18,7 +18,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/ccmtservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -40,7 +40,7 @@ const (
 )
 
 func TestClientTestSuite(t *testing.T) {
-	suite.Run(t, new(ClientTestSuite))
+	testifysuite.Run(t, new(ClientTestSuite))
 }
 
 type ClientTestSuite struct {

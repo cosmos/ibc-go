@@ -126,10 +126,10 @@ func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
 }
 
 // RegisterStoreDecoder registers a decoder for 29-fee module's types
-func (am AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {
+func (AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {
 }
 
 // WeightedOperations returns the all the 29-fee module operations with their respective weights.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
+func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }

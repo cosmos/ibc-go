@@ -560,7 +560,7 @@ func NewSimApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
-	/****  Module Options ****/
+	// ****  Module Options ****
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
 	// we prefer to be more strict in what arguments the modules expect.
@@ -752,7 +752,10 @@ func NewSimApp(
 	if err != nil {
 		// Once we switch to using protoreflect-based antehandlers, we might
 		// want to panic here instead of logging a warning.
-		fmt.Fprintln(os.Stderr, err.Error())
+		_, err := fmt.Fprintln(os.Stderr, err.Error())
+		if err != nil {
+			fmt.Println("could not write to stderr")
+		}
 	}
 
 	if loadLatest {
@@ -822,8 +825,8 @@ func (app *SimApp) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 }
 
 // Configurator returns the configurator for the app
-func (a *SimApp) Configurator() module.Configurator {
-	return a.configurator
+func (app *SimApp) Configurator() module.Configurator {
+	return app.configurator
 }
 
 // InitChainer application update at chain initialization
@@ -890,8 +893,8 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 }
 
 // DefaultGenesis returns a default genesis from the registered AppModuleBasic's.
-func (a *SimApp) DefaultGenesis() map[string]json.RawMessage {
-	return a.BasicModuleManager.DefaultGenesis(a.appCodec)
+func (app *SimApp) DefaultGenesis() map[string]json.RawMessage {
+	return app.BasicModuleManager.DefaultGenesis(app.appCodec)
 }
 
 // GetKey returns the KVStoreKey for the provided store key.

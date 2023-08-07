@@ -113,7 +113,7 @@ func (AppModule) Name() string {
 }
 
 // RegisterInvariants registers the ibc module invariants.
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	// TODO:
 }
 
@@ -190,6 +190,6 @@ func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 }
 
 // WeightedOperations returns the all the ibc module operations with their respective weights.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
+func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }

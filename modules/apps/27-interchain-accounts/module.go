@@ -210,11 +210,11 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // WeightedOperations is unimplemented.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
+func (AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }
 
 // RegisterStoreDecoder registers a decoder for interchain accounts module's types
-func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
+func (AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore()
 }

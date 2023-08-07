@@ -16,12 +16,12 @@ import (
 func MakeTestEncodingConfig() EncodingConfig {
 	cdc := codec.NewLegacyAmino()
 	interfaceRegistry := types.NewInterfaceRegistry()
-	codec := codec.NewProtoCodec(interfaceRegistry)
+	protoCdc := codec.NewProtoCodec(interfaceRegistry)
 
 	return EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
-		Codec:             codec,
-		TxConfig:          tx.NewTxConfig(codec, tx.DefaultSignModes),
+		Codec:             protoCdc,
+		TxConfig:          tx.NewTxConfig(protoCdc, tx.DefaultSignModes),
 		Amino:             cdc,
 	}
 }

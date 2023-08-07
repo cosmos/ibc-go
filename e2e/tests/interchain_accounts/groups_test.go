@@ -9,16 +9,15 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	"github.com/cosmos/gogoproto/proto"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 )
 
 const (
@@ -53,7 +52,7 @@ const (
 )
 
 func TestInterchainAccountsGroupsTestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsGroupsTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsGroupsTestSuite))
 }
 
 type InterchainAccountsGroupsTestSuite struct {

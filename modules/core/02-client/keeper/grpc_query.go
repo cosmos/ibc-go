@@ -247,10 +247,10 @@ func (k Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequ
 		)
 	}
 
-	status := k.GetClientStatus(ctx, clientState, req.ClientId)
+	clientStatus := k.GetClientStatus(ctx, clientState, req.ClientId)
 
 	return &types.QueryClientStatusResponse{
-		Status: status.String(),
+		Status: clientStatus.String(),
 	}, nil
 }
 

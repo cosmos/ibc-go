@@ -3,6 +3,9 @@ package transfer_test
 import (
 	"math"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -236,5 +239,71 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 				suite.Require().Error(err)
 			}
 		})
+	}
+}
+
+func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
+	var (
+		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+
+		data          []byte
+		expPacketData types.FungibleTokenPacketData
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success: valid packet data with memo",
+			func() {
+				expPacketData = types.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "some memo",
+				}
+				data = expPacketData.GetBytes()
+			},
+			true,
+		},
+		{
+			"success: valid packet data without memo",
+			func() {
+				expPacketData = types.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
+				}
+				data = expPacketData.GetBytes()
+			},
+			true,
+		},
+		{
+			"failure: invalid packet data",
+			func() {
+				data = []byte("invalid packet data")
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc.malleate()
+
+		packetData, err := transfer.IBCModule{}.UnmarshalPacketData(data)
+
+		if tc.expPass {
+			suite.Require().NoError(err)
+			suite.Require().Equal(expPacketData, packetData)
+		} else {
+			suite.Require().Error(err)
+			suite.Require().Nil(packetData)
+		}
 	}
 }

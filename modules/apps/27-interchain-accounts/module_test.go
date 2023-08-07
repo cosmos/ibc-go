@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log"
 
@@ -20,13 +20,13 @@ import (
 )
 
 type InterchainAccountsTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 }
 
 func TestICATestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }
 
 func (suite *InterchainAccountsTestSuite) SetupTest() {

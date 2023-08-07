@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 
@@ -20,7 +20,7 @@ import (
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
 // MockStakingKeeper implements clienttypes.StakingKeeper used in ibckeeper.NewKeeper
@@ -49,11 +49,11 @@ type MockStakingKeeper struct {
 	mockField string
 }
 
-func (d MockStakingKeeper) GetHistoricalInfo(ctx context.Context, height int64) (stakingtypes.HistoricalInfo, error) {
+func (MockStakingKeeper) GetHistoricalInfo(_ context.Context, height int64) (stakingtypes.HistoricalInfo, error) {
 	return stakingtypes.HistoricalInfo{}, nil
 }
 
-func (d MockStakingKeeper) UnbondingTime(ctx context.Context) (time.Duration, error) {
+func (MockStakingKeeper) UnbondingTime(_ context.Context) (time.Duration, error) {
 	return 0, nil
 }
 
