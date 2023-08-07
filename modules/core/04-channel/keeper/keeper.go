@@ -565,14 +565,14 @@ func (k Keeper) GetCounterpartyUpgrade(ctx sdk.Context, portID, channelID string
 	return upgrade, true
 }
 
-// SetUpgrade sets the counterparty upgrade in the store.
+// SetCounterpartyUpgrade sets the counterparty upgrade in the store.
 func (k Keeper) SetCounterpartyUpgrade(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&upgrade)
 	store.Set(host.ChannelCounterpartyUpgradeKey(portID, channelID), bz)
 }
 
-// deleteUpgrade deletes the counterparty upgrade in the store.
+// deleteCounterpartyUpgrade deletes the counterparty upgrade in the store.
 func (k Keeper) deleteCounterpartyUpgrade(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.ChannelCounterpartyUpgradeKey(portID, channelID))
