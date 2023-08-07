@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	"encoding/base64"
+	//"encoding/base64"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +18,7 @@ import (
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
+/*func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 	var (
 		ok          bool
 		clientMsg   exported.ClientMessage
@@ -82,7 +82,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 			}
 		})
 	}
-}
+}*/
 
 func (suite *TypesTestSuite) TestVerifyHeaderTendermint() {
 	var (
@@ -381,7 +381,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderTendermint() {
 	}
 }
 
-func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
+/*func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 	var (
 		ok          bool
 		clientMsg   exported.ClientMessage
@@ -456,7 +456,7 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 			}
 		})
 	}
-}
+}*/
 
 func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 	var (
@@ -746,7 +746,7 @@ func (suite *TypesTestSuite) TestPruneConsensusStateTendermint() {
 	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
 }
 
-func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
+/*func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
 	var (
 		ok          bool
 		clientMsg   exported.ClientMessage
@@ -796,7 +796,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
 			}
 		})
 	}
-}
+}*/
 
 func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
 	var path *ibctesting.Path

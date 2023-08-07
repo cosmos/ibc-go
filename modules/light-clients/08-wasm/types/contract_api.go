@@ -146,5 +146,5 @@ type checkForMisbehaviourResult struct {
 // updateStateResult is the expected return type of the updateStateMsg sudo call. It returns the updated consensus heights.
 type updateStateResult struct {
 	contractResult
-	Heights []exported.Height `json:"heights"`
+	Heights []clienttypes.Height `json:"heights"`
 }

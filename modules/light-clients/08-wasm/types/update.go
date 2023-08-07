@@ -47,7 +47,12 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		panic(err)
 	}
 
-	return result.Heights
+	heights := []exported.Height{}
+	for _, height := range result.Heights {
+		heights = append(heights, height)
+	}
+
+	return heights
 }
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
