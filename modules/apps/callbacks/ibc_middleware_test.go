@@ -74,26 +74,13 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
 	s.setupChains()
 
-	channelKeeper := s.chainA.App.GetIBCKeeper().ChannelKeeper
-	feeKeeper := s.chainA.GetSimApp().IBCFeeKeeper
-	mockContractKeeper := s.chainA.GetSimApp().MockKeeper
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
+	cbsMiddleware := ibccallbacks.IBCMiddleware{}
+	s.Require().Nil(cbsMiddleware.GetICS4Wrapper())
 
-	middleware := ibccallbacks.NewIBCMiddleware(transferStack, feeKeeper, mockContractKeeper, maxCallbackGas)
+	cbsMiddleware.WithICS4Wrapper(s.chainA.App.GetIBCKeeper().ChannelKeeper)
+	ics4Wrapper := cbsMiddleware.GetICS4Wrapper()
 
-	// test if the ics4 wrapper is the channel keeper initially
-	ics4Wrapper := middleware.GetICS4Wrapper()
-
-	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
-	s.Require().False(isChannelKeeper)
-
-	// set the ics4 wrapper to the channel keeper
-	middleware.WithICS4Wrapper(channelKeeper)
-	ics4Wrapper = middleware.GetICS4Wrapper()
-
-	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
-	s.Require().True(isChannelKeeper)
+	s.Require().IsType(channelkeeper.Keeper{}, ics4Wrapper)
 }
 
 func (s *CallbacksTestSuite) TestSendPacketError() {
