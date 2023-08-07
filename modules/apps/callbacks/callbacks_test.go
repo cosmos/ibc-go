@@ -64,9 +64,6 @@ func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 	s.path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
 	s.coordinator.Setup(s.path)
-
-	s.chainB.GetSimApp().IBCFeeKeeper.SetFeeEnabled(s.chainB.GetContext(), s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
-	s.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 }
 
 func (s *CallbacksTestSuite) SetupMockFeeTest() {
