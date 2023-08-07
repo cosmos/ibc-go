@@ -11,14 +11,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
+
+const maxCallbackGas = uint64(1000000)
 
 // CallbacksTestSuite defines the needed instances and methods to test callbacks
 type CallbacksTestSuite struct {
@@ -37,13 +39,13 @@ func (s *CallbacksTestSuite) setupChains() {
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
 	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
 	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.path = ibctesting.NewPath(s.chainA, s.chainB)
 }
 
 // SetupTransferTest sets up a transfer channel between chainA and chainB
 func (s *CallbacksTestSuite) SetupTransferTest() {
 	s.setupChains()
 
-	s.path = ibctesting.NewPath(s.chainA, s.chainB)
 	s.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
 	s.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
 	s.path.EndpointA.ChannelConfig.Version = transfertypes.Version
@@ -56,7 +58,6 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 	s.setupChains()
 
-	s.path = ibctesting.NewPath(s.chainA, s.chainB)
 	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.Version}))
 	s.path.EndpointA.ChannelConfig.Version = feeTransferVersion
 	s.path.EndpointB.ChannelConfig.Version = feeTransferVersion
@@ -67,25 +68,19 @@ func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 }
 
 func (s *CallbacksTestSuite) SetupMockFeeTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.setupChains()
 
-	path := ibctesting.NewPath(s.chainA, s.chainB)
 	mockFeeVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: ibcmock.Version}))
-	path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	path.EndpointB.ChannelConfig.Version = mockFeeVersion
-	path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-	path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-	s.path = path
+	s.path.EndpointA.ChannelConfig.Version = mockFeeVersion
+	s.path.EndpointB.ChannelConfig.Version = mockFeeVersion
+	s.path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+	s.path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
 // It funds and returns the interchain account address owned by chainA's SenderAccount.
 func (s *CallbacksTestSuite) SetupICATest() string {
 	s.setupChains()
-
-	s.path = ibctesting.NewPath(s.chainA, s.chainB)
 	s.coordinator.SetupConnections(s.path)
 
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
@@ -125,23 +120,19 @@ func (s *CallbacksTestSuite) SetupICATest() string {
 	return interchainAccountAddr
 }
 
-// RegisterInterchainAccount invokes the the InterchainAccounts entrypoint, routes a new MsgChannelOpenInit to the appropriate handler,
-// commits state changes and updates the testing endpoint accordingly on chainA.
+// RegisterInterchainAccount submits a MsgRegisterInterchainAccount and updates the controller endpoint with the
+// channel created.
 func (s *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
-	portID, err := icatypes.NewControllerPortID(owner)
+	msgRegister := icacontrollertypes.NewMsgRegisterInterchainAccount(s.path.EndpointA.ConnectionID, owner, s.path.EndpointA.ChannelConfig.Version)
+
+	res, err := s.chainA.SendMsgs(msgRegister)
+	s.Require().NotEmpty(res)
 	s.Require().NoError(err)
 
-	channelSequence := s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(s.chainA.GetContext())
-
-	err = s.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(s.chainA.GetContext(), s.path.EndpointA.ConnectionID, owner, s.path.EndpointA.ChannelConfig.Version)
+	channelID, err := ibctesting.ParseChannelIDFromEvents(res.Events)
 	s.Require().NoError(err)
 
-	// commit state changes for proof verification
-	s.chainA.NextBlock()
-
-	// update port/channel ids
-	s.path.EndpointA.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
-	s.path.EndpointA.ChannelConfig.PortID = portID
+	s.path.EndpointA.ChannelID = channelID
 }
 
 // AssertHasExecutedExpectedCallback checks if only the expected type of callback has been executed.

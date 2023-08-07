@@ -28,20 +28,7 @@ func (s *CallbacksTestSuite) TestNilUnderlyingApp() {
 
 	// require panic
 	s.PanicsWithValue(fmt.Sprintf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)), func() {
-		_ = ibccallbacks.NewIBCMiddleware(nil, channelKeeper, mockContractKeeper, uint64(1000000))
-	})
-}
-
-func (s *CallbacksTestSuite) TestNilContractKeeper() {
-	s.setupChains()
-
-	channelKeeper := s.chainA.App.GetIBCKeeper().ChannelKeeper
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	// require panic
-	s.PanicsWithValue("contract keeper cannot be nil", func() {
-		_ = ibccallbacks.NewIBCMiddleware(transferStack, channelKeeper, nil, uint64(1000000))
+		_ = ibccallbacks.NewIBCMiddleware(nil, channelKeeper, mockContractKeeper, maxCallbackGas)
 	})
 }
 
@@ -54,7 +41,20 @@ func (s *CallbacksTestSuite) TestNilICS4Wrapper() {
 
 	// require panic
 	s.PanicsWithValue("ics4wrapper cannot be nil", func() {
-		_ = ibccallbacks.NewIBCMiddleware(transferStack, nil, mockContractKeeper, uint64(1000000))
+		_ = ibccallbacks.NewIBCMiddleware(transferStack, nil, mockContractKeeper, maxCallbackGas)
+	})
+}
+
+func (s *CallbacksTestSuite) TestNilContractKeeper() {
+	s.setupChains()
+
+	channelKeeper := s.chainA.App.GetIBCKeeper().ChannelKeeper
+	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+	s.Require().True(ok)
+
+	// require panic
+	s.PanicsWithValue("contract keeper cannot be nil", func() {
+		_ = ibccallbacks.NewIBCMiddleware(transferStack, channelKeeper, nil, maxCallbackGas)
 	})
 }
 
@@ -67,7 +67,7 @@ func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
 	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 	s.Require().True(ok)
 
-	middleware := ibccallbacks.NewIBCMiddleware(transferStack, feeKeeper, mockContractKeeper, uint64(1000000))
+	middleware := ibccallbacks.NewIBCMiddleware(transferStack, feeKeeper, mockContractKeeper, maxCallbackGas)
 
 	// test if the ics4 wrapper is the channel keeper initially
 	ics4Wrapper := middleware.GetICS4Wrapper()
@@ -110,8 +110,10 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 
 func (s *CallbacksTestSuite) TestGetAppVersion() {
 	s.SetupICATest()
-	// We will pass the function call down the icacontroller stack to the icacontroller module
-	// icacontroller stack GetAppVersion call order: callbacks -> fee -> icacontroller
+
+	// Obtain an IBC stack for testing. The function call will use the top of the stack which calls
+	// directly to the channel keeper. Calling from a further down module in the stack is not necessary
+	// for this test.
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
@@ -123,6 +125,7 @@ func (s *CallbacksTestSuite) TestGetAppVersion() {
 
 func (s *CallbacksTestSuite) TestOnChanCloseInit() {
 	s.SetupICATest()
+
 	// We will pass the function call down the icacontroller stack to the icacontroller module
 	// icacontroller stack OnChanCloseInit call order: callbacks -> fee -> icacontroller
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
@@ -136,6 +139,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseInit() {
 
 func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 	s.SetupICATest()
+
 	// We will pass the function call down the icacontroller stack to the icacontroller module
 	// icacontroller stack OnChanCloseConfirm call order: callbacks -> fee -> icacontroller
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
@@ -149,14 +153,14 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 
 func (s *CallbacksTestSuite) TestSendPacketError() {
 	s.SetupICATest()
-	// We will pass the function call down the icacontroller stack to the channel keeper
-	// icacontroller stack SendPacket call order: callbacks -> fee -> channel
+
+	// We will pass the function call up from the top of icacontroller stack to the channel keeper
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
 	controllerStack := icaControllerStack.(porttypes.Middleware)
 	seq, err := controllerStack.SendPacket(s.chainA.GetContext(), nil, "invalid_port", "invalid_channel", clienttypes.NewHeight(1, 100), 0, nil)
-	// we just check that this call is passed down to the channel keeper to return an error
+	// we just check that this call is passed up to the channel keeper to return an error
 	s.Require().Equal(uint64(0), seq)
 	s.Require().ErrorIs(errorsmod.Wrap(channeltypes.ErrChannelNotFound, "invalid_channel"), err)
 }
