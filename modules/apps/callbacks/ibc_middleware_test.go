@@ -20,42 +20,55 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (s *CallbacksTestSuite) TestNilUnderlyingApp() {
-	s.setupChains()
+func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
+	testCases := []struct {
+		name          string
+		instantiateFn func()
+		expError      error
+	}{
+		{
+			"success",
+			func() {
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper, s.chainA.GetSimApp().MockKeeper, uint64(10000))
+			},
+			nil,
+		},
+		{
+			"panics with nil underlying app",
+			func() {
+				_ = ibccallbacks.NewIBCMiddleware(nil, s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper, s.chainA.GetSimApp().MockKeeper, uint64(10000))
+			},
+			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
+		},
+		{
+			"panics with nil contract keeper",
+			func() {
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper, nil, uint64(10000))
+			},
+			fmt.Errorf("contract keeper cannot be nil"),
+		},
+		{
+			"panics with nil ics4Wrapper",
+			func() {
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, nil, s.chainA.GetSimApp().MockKeeper, uint64(10000))
+			},
+			fmt.Errorf("ICS4Wrapper cannot be nil"),
+		},
+	}
 
-	channelKeeper := s.chainA.App.GetIBCKeeper().ChannelKeeper
-	mockContractKeeper := s.chainA.GetSimApp().MockKeeper
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			s.setupChains()
 
-	// require panic
-	s.PanicsWithValue(fmt.Sprintf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)), func() {
-		_ = ibccallbacks.NewIBCMiddleware(nil, channelKeeper, mockContractKeeper, maxCallbackGas)
-	})
-}
-
-func (s *CallbacksTestSuite) TestNilICS4Wrapper() {
-	s.setupChains()
-
-	mockContractKeeper := s.chainA.GetSimApp().MockKeeper
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	// require panic
-	s.PanicsWithValue("ics4wrapper cannot be nil", func() {
-		_ = ibccallbacks.NewIBCMiddleware(transferStack, nil, mockContractKeeper, maxCallbackGas)
-	})
-}
-
-func (s *CallbacksTestSuite) TestNilContractKeeper() {
-	s.setupChains()
-
-	channelKeeper := s.chainA.App.GetIBCKeeper().ChannelKeeper
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	// require panic
-	s.PanicsWithValue("contract keeper cannot be nil", func() {
-		_ = ibccallbacks.NewIBCMiddleware(transferStack, channelKeeper, nil, maxCallbackGas)
-	})
+			expPass := tc.expError == nil
+			if expPass {
+				s.Require().NotPanics(tc.instantiateFn, "unexpected panic: NewIBCMiddleware")
+			} else {
+				s.Require().PanicsWithError(tc.expError.Error(), tc.instantiateFn, "expected panic with error: ", tc.expError.Error())
+			}
+		})
+	}
 }
 
 func (s *CallbacksTestSuite) TestWithICS4Wrapper() {

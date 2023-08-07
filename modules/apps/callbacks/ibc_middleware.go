@@ -41,14 +41,17 @@ func NewIBCMiddleware(
 ) IBCMiddleware {
 	packetDataUnmarshalerApp, ok := app.(types.CallbacksCompatibleModule)
 	if !ok {
-		panic(fmt.Sprintf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)))
+		panic(fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)))
 	}
+
 	if ics4Wrapper == nil {
-		panic("ics4wrapper cannot be nil")
+		panic(fmt.Errorf("ICS4Wrapper cannot be nil"))
 	}
+
 	if contractKeeper == nil {
-		panic("contract keeper cannot be nil")
+		panic(fmt.Errorf("contract keeper cannot be nil"))
 	}
+
 	return IBCMiddleware{
 		app:            packetDataUnmarshalerApp,
 		ics4Wrapper:    ics4Wrapper,
