@@ -279,7 +279,7 @@ message MsgChannelUpgradeTry {
   string                    port_id                          = 1;
   string                    channel_id                       = 2;
   repeated string           proposed_upgrade_connection_hops = 3;
-  UpgradeFields                   counterparty_upgrade_fields    = 5 [(gogoproto.nullable) = false];
+  UpgradeFields             counterparty_upgrade_fields      = 5 [(gogoproto.nullable) = false];
   uint64                    counterparty_upgrade_sequence    = 6;
   bytes                     proof_channel                    = 7;
   bytes                     proof_upgrade                    = 8;
