@@ -10,7 +10,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/testing/mock/types"
 )
 
 // MockKeeper implements callbacktypes.ContractKeeper
@@ -28,12 +27,16 @@ type Keeper struct {
 
 // This is a mock keeper used for testing. It is not wired up to any modules.
 // It implements the interface functions expected by the ibccallbacks middleware
-// so that it can be tested with simapp.
+// so that it can be tested with simapp. The keeper is responsible for tracking
+// two metrics:
+// - number of callbacks called per callback type
+// - stateful entry attempts
+//
+// The counter for callbacks allows us to ensure the correct callbacks were routed to
+// and the stateful entries allows us to track state reversals or reverted state upon
+// contract execution failure or out of gas errors.
 type ContractKeeper struct {
-	SendPacketCallbackCounter           *types.CallbackCounter
-	AckCallbackCounter                  *types.CallbackCounter
-	TimeoutCallbackCounter              *types.CallbackCounter
-	WriteAcknowledgementCallbackCounter *types.CallbackCounter
+	Counters map[callbacktypes.CallbackType]int
 }
 
 // SetStateCounter sets the stateful callback counter in state.
@@ -66,11 +69,7 @@ func NewMockKeeper(key storetypes.StoreKey) Keeper {
 	return Keeper{
 		key: key,
 		ContractKeeper: ContractKeeper{
-			SendPacketCallbackCounter:           types.NewCallbackCounter(),
-			AckCallbackCounter:                  types.NewCallbackCounter(),
-			TimeoutCallbackCounter:              types.NewCallbackCounter(),
-			WriteAcknowledgementCallbackCounter: types.NewCallbackCounter(),
-		},
+			Counters: make(map[callbacktypes.CallbackType]int)},
 	}
 }
 
@@ -88,7 +87,7 @@ func (k Keeper) IBCSendPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeSendPacket, k.SendPacketCallbackCounter, packetSenderAddress)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeSendPacket, packetSenderAddress)
 }
 
 // IBCOnAcknowledgementPacketCallback returns nil if the gas meter has greater than
@@ -103,7 +102,7 @@ func (k Keeper) IBCOnAcknowledgementPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeAcknowledgement, k.AckCallbackCounter, packetSenderAddress)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeAcknowledgement, packetSenderAddress)
 }
 
 // IBCOnTimeoutPacketCallback returns nil if the gas meter has greater than
@@ -117,7 +116,7 @@ func (k Keeper) IBCOnTimeoutPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeTimeoutPacket, k.TimeoutCallbackCounter, packetSenderAddress)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeTimeoutPacket, packetSenderAddress)
 }
 
 // IBCWriteAcknowledgementCallback returns nil if the gas meter has greater than
@@ -130,7 +129,7 @@ func (k Keeper) IBCWriteAcknowledgementCallback(
 	ack ibcexported.Acknowledgement,
 	contractAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, k.WriteAcknowledgementCallbackCounter, "")
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, "")
 }
 
 // processMockCallback returns nil if the gas meter has greater than or equal to 500000 gas remaining.
@@ -139,29 +138,31 @@ func (k Keeper) IBCWriteAcknowledgementCallback(
 func (k Keeper) processMockCallback(
 	ctx sdk.Context,
 	callbackType callbacktypes.CallbackType,
-	callbackCounter *types.CallbackCounter,
 	authAddress string,
 ) error {
 	gasRemaining := ctx.GasMeter().GasRemaining()
+
+	// increment stateful entries, if the callbacks module handler
+	// reverts state, we can check by querying for the counter
+	// currently stored.
 	k.IncrementStatefulCounter(ctx)
 
+	// increment callback execution attempts
+	k.Counters[callbackType]++
+
 	if gasRemaining < 400000 {
-		callbackCounter.IncrementFailure()
 		// consume gas will panic since we attempt to consume 500_000 gas, for tests
 		ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback panic", callbackType))
 	} else if gasRemaining < 500000 {
-		callbackCounter.IncrementFailure()
 		ctx.GasMeter().ConsumeGas(gasRemaining, fmt.Sprintf("mock %s callback failure", callbackType))
 		return MockApplicationCallbackError
 	}
 
 	if authAddress == MockCallbackUnauthorizedAddress {
-		callbackCounter.IncrementFailure()
 		ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback unauthorized", callbackType))
 		return MockApplicationCallbackError
 	}
 
-	callbackCounter.IncrementSuccess()
 	ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback success", callbackType))
 	return nil
 }

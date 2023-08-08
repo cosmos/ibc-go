@@ -107,10 +107,12 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 	}
 
 	for _, tc := range testCases {
-		icaAddr := s.SetupICATest()
+		s.Run(tc.name, func() {
+			icaAddr := s.SetupICATest()
 
-		s.ExecuteICATx(icaAddr, tc.icaMemo, 1)
-		s.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+			s.ExecuteICATx(icaAddr, tc.icaMemo, 1)
+			s.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+		})
 	}
 }
 
@@ -167,10 +169,12 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 	}
 
 	for _, tc := range testCases {
-		icaAddr := s.SetupICATest()
+		s.Run(tc.name, func() {
+			icaAddr := s.SetupICATest()
 
-		s.ExecuteICATimeout(icaAddr, tc.icaMemo, 1)
-		s.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+			s.ExecuteICATimeout(icaAddr, tc.icaMemo, 1)
+			s.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+		})
 	}
 }
 
