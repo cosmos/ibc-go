@@ -31,15 +31,15 @@ type ContractKeeper struct {
 	Counters map[callbacktypes.CallbackType]int
 }
 
-// SetStateCounter sets stateful entries to state. The number of stateful
+// SetStateEntryCounter sets state entry counter. The number of stateful
 // entries is tracked as a uint8. This function is used to test state reversals.
-func (k ContractKeeper) SetStateCounter(ctx sdk.Context, count uint8) {
+func (k ContractKeeper) SetStateEntryCounter(ctx sdk.Context, count uint8) {
 	store := ctx.KVStore(k.key)
 	store.Set([]byte(StatefulCounterKey), []byte{count})
 }
 
-// GetStateCounter returns the stateful callback counter from state.
-func (k ContractKeeper) GetStateCounter(ctx sdk.Context) uint8 {
+// GetStateEntryCounter returns the state entry counter stored in state.
+func (k ContractKeeper) GetStateEntryCounter(ctx sdk.Context) uint8 {
 	store := ctx.KVStore(k.key)
 	bz := store.Get([]byte(StatefulCounterKey))
 	if bz == nil {
@@ -49,9 +49,9 @@ func (k ContractKeeper) GetStateCounter(ctx sdk.Context) uint8 {
 }
 
 // IncrementStatefulCounter increments the stateful callback counter in state.
-func (k ContractKeeper) IncrementStatefulCounter(ctx sdk.Context) {
-	count := k.GetStateCounter(ctx)
-	k.SetStateCounter(ctx, count+1)
+func (k ContractKeeper) IncrementStateEntryCounter(ctx sdk.Context) {
+	count := k.GetStateEntryCounter(ctx)
+	k.SetStateEntryCounter(ctx, count+1)
 }
 
 // NewKeeper creates a new mock ContractKeeper.
@@ -134,7 +134,7 @@ func (k ContractKeeper) processMockCallback(
 	// increment stateful entries, if the callbacks module handler
 	// reverts state, we can check by querying for the counter
 	// currently stored.
-	k.IncrementStatefulCounter(ctx)
+	k.IncrementStateEntryCounter(ctx)
 
 	// increment callback execution attempts
 	k.Counters[callbackType]++
