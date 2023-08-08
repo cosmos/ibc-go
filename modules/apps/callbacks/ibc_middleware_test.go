@@ -29,14 +29,14 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"success",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper, s.chainA.GetSimApp().MockKeeper, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper, s.chainA.GetSimApp().MockContractKeeper, maxCallbackGas)
 			},
 			nil,
 		},
 		{
 			"panics with nil underlying app",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(nil, s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper, s.chainA.GetSimApp().MockKeeper, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(nil, s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper, s.chainA.GetSimApp().MockContractKeeper, maxCallbackGas)
 			},
 			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
 		},
@@ -50,7 +50,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"panics with nil ics4Wrapper",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, nil, s.chainA.GetSimApp().MockKeeper, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, nil, s.chainA.GetSimApp().MockContractKeeper, maxCallbackGas)
 			},
 			fmt.Errorf("ICS4Wrapper cannot be nil"),
 		},

@@ -248,8 +248,8 @@ type SimApp struct {
 	ScopedIBCMockKeeper       capabilitykeeper.ScopedKeeper
 	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
 
-	// mock keepers used for testing
-	MockKeeper ibcmock.Keeper
+	// mock contract keeper used for testing
+	MockContractKeeper ibcmock.ContractKeeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -441,9 +441,9 @@ func NewSimApp(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	// Mock Keepers
-	// real applications should not use these
-	app.MockKeeper = ibcmock.NewMockKeeper(memKeys[ibcmock.MemStoreKey])
+	// NOTE: The mock ContractKeeper is only created for testing.
+	// Real applications should not use the mock ContractKeeper
+	app.MockContractKeeper = ibcmock.NewContractKeeper(memKeys[ibcmock.MemStoreKey])
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
@@ -541,7 +541,7 @@ func NewSimApp(
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
-	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockKeeper, maxCallbackGas)
+	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
 	app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.Middleware))
 
@@ -558,7 +558,7 @@ func NewSimApp(
 	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
-	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockKeeper, maxCallbackGas)
+	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
 	app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.Middleware))
 
@@ -592,7 +592,7 @@ func NewSimApp(
 	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
 	var feeWithMockModule porttypes.Middleware = ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
-	feeWithMockModule = ibccallbacks.NewIBCMiddleware(feeWithMockModule, app.IBCFeeKeeper, app.MockKeeper, maxCallbackGas)
+	feeWithMockModule = ibccallbacks.NewIBCMiddleware(feeWithMockModule, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// Seal the IBC Router

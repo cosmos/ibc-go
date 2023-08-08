@@ -135,59 +135,79 @@ func (s *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 	s.path.EndpointA.ChannelID = channelID
 }
 
-// AssertHasExecutedExpectedCallback checks if only the expected type of callback has been executed.
+// AssertHasExecutedExpectedCallback checks the stateful entries and counters based on callbacktype.
 // It assumes that the source chain is chainA and the destination chain is chainB.
-//
-// The callbackType can be one of the following:
-//   - types.CallbackTypeAcknowledgement
-//   - types.CallbackTypeWriteAcknowledgement
-//   - types.CallbackTypeTimeout
-//   - "none" (no callback should be executed)
-func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType types.CallbackType, isSuccessful bool) {
-	successCount := uint64(0)
-	if isSuccessful {
-		successCount = 1
+func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType types.CallbackType, expSuccess bool) {
+	var expStatefulEntries uint8
+	if expSuccess {
+		// if the callback is expected to be successful,
+		// we expect at least one state entry
+		expStatefulEntries = 1
 	}
+
+	sourceStatefulCounter := s.chainA.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+	destStatefulCounter := s.chainB.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainB.GetContext())
+
 	switch callbackType {
-	case types.CallbackTypeAcknowledgement:
-		s.Require().Equal(successCount, s.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Success)
-		s.Require().Equal(1-successCount, s.chainA.GetSimApp().MockKeeper.AckCallbackCounter.Failure)
-		s.Require().Equal(successCount, s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Success)
-		s.Require().Equal(1-successCount, s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Failure)
-		s.Require().Equal(uint8(2*successCount), s.chainA.GetSimApp().MockKeeper.GetStateCounter(s.chainA.GetContext()))
-		s.Require().Equal(uint8(0), s.chainB.GetSimApp().MockKeeper.GetStateCounter(s.chainB.GetContext()))
-		s.Require().True(s.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-		s.Require().True(s.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
-	case types.CallbackTypeWriteAcknowledgement:
-		s.Require().Equal(successCount, s.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.Success)
-		s.Require().Equal(1-successCount, s.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.Failure)
-		s.Require().Equal(uint8(successCount), s.chainB.GetSimApp().MockKeeper.GetStateCounter(s.chainB.GetContext()))
-		s.Require().Equal(uint8(0), s.chainA.GetSimApp().MockKeeper.GetStateCounter(s.chainA.GetContext()))
-		s.Require().True(s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.IsZero())
-		s.Require().True(s.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-		s.Require().True(s.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-	case types.CallbackTypeTimeoutPacket:
-		s.Require().Equal(successCount, s.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.Success)
-		s.Require().Equal(1-successCount, s.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.Failure)
-		s.Require().Equal(successCount, s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Success)
-		s.Require().Equal(1-successCount, s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.Failure)
-		s.Require().Equal(uint8(2*successCount), s.chainA.GetSimApp().MockKeeper.GetStateCounter(s.chainA.GetContext()))
-		s.Require().Equal(uint8(0), s.chainB.GetSimApp().MockKeeper.GetStateCounter(s.chainB.GetContext()))
-		s.Require().True(s.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-		s.Require().True(s.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
 	case "none":
-		s.Require().True(s.chainA.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-		s.Require().True(s.chainA.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-		s.Require().True(s.chainB.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
-		s.Require().True(s.chainA.GetSimApp().MockKeeper.SendPacketCallbackCounter.IsZero())
-		s.Require().Equal(uint8(0), s.chainA.GetSimApp().MockKeeper.GetStateCounter(s.chainA.GetContext()))
-		s.Require().Equal(uint8(0), s.chainB.GetSimApp().MockKeeper.GetStateCounter(s.chainB.GetContext()))
+		s.Require().Equal(uint8(0), sourceStatefulCounter)
+		s.Require().Equal(uint8(0), destStatefulCounter)
+
+	case types.CallbackTypeSendPacket:
+		s.Require().Equal(expStatefulEntries, sourceStatefulCounter)
+		s.Require().Equal(uint8(0), destStatefulCounter)
+
+	case types.CallbackTypeAcknowledgement, types.CallbackTypeTimeoutPacket:
+		expStatefulEntries *= 2 // expect OnAcknowledgement/OnTimeout to be successful as well
+		s.Require().Equal(expStatefulEntries, sourceStatefulCounter)
+		s.Require().Equal(uint8(0), destStatefulCounter)
+
+	case types.CallbackTypeWriteAcknowledgement:
+		s.Require().Equal(uint8(0), sourceStatefulCounter)
+		s.Require().Equal(expStatefulEntries, destStatefulCounter)
+
 	default:
 		s.FailNow(fmt.Sprintf("invalid callback type %s", callbackType))
 	}
-	s.Require().True(s.chainB.GetSimApp().MockKeeper.AckCallbackCounter.IsZero())
-	s.Require().True(s.chainB.GetSimApp().MockKeeper.TimeoutCallbackCounter.IsZero())
-	s.Require().True(s.chainA.GetSimApp().MockKeeper.WriteAcknowledgementCallbackCounter.IsZero())
+
+	s.AssertCallbackCounters(callbackType)
+}
+
+func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackType) {
+	sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
+	destCounters := s.chainB.GetSimApp().MockContractKeeper.Counters
+
+	switch callbackType {
+	case "none":
+		s.Require().Len(sourceCounters, 0)
+		s.Require().Len(destCounters, 0)
+
+	case types.CallbackTypeSendPacket:
+		s.Require().Len(sourceCounters, 1)
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
+
+	case types.CallbackTypeAcknowledgement:
+		s.Require().Len(sourceCounters, 2)
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgement])
+
+		s.Require().Len(destCounters, 0)
+
+	case types.CallbackTypeWriteAcknowledgement:
+		s.Require().Len(sourceCounters, 0)
+		s.Require().Len(destCounters, 1)
+		s.Require().Equal(1, destCounters[types.CallbackTypeWriteAcknowledgement])
+
+	case types.CallbackTypeTimeoutPacket:
+		s.Require().Len(sourceCounters, 2)
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeTimeoutPacket])
+
+		s.Require().Len(destCounters, 0)
+
+	default:
+		s.FailNow(fmt.Sprintf("invalid callback type %s", callbackType))
+	}
 }
 
 func TestIBCCallbacksTestSuite(t *testing.T) {
