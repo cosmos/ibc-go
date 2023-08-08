@@ -111,7 +111,18 @@ func getCallbackData(
 			packetSender = packetData.GetPacketSender(packet.GetSourcePort())
 		}
 	}
+	// get the gas limit from the callback data
+	executionGasLimit, commitGasLimit := computeExecAndCommitGasLimit(remainingGas, maxGas, callbackData)
 
+	return CallbackData{
+		ContractAddress:   getCallbackAddress(callbackData),
+		ExecutionGasLimit: executionGasLimit,
+		SenderAddress:     packetSender,
+		CommitGasLimit:    commitGasLimit,
+	}, nil
+}
+
+func computeExecAndCommitGasLimit(remainingGas uint64, maxGas uint64, callbackData map[string]interface{}) (uint64, uint64) {
 	// get the gas limit from the callback data
 	commitGasLimit := getUserDefinedGasLimit(callbackData)
 
@@ -127,12 +138,7 @@ func getCallbackData(
 		executionGasLimit = remainingGas
 	}
 
-	return CallbackData{
-		ContractAddress:   getCallbackAddress(callbackData),
-		ExecutionGasLimit: executionGasLimit,
-		SenderAddress:     packetSender,
-		CommitGasLimit:    commitGasLimit,
-	}, nil
+	return executionGasLimit, commitGasLimit
 }
 
 // getUserDefinedGasLimit returns the custom gas limit provided for callbacks if it is
