@@ -100,14 +100,10 @@ Within the `02-client` submodule, the [`ClientState` is then initialized](https:
 
 In order to successfully create an IBC client using a new client type, it [must be supported](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/client.go#L19-L25). Light client support in IBC is gated by on-chain governance. The allow list may be updated by submitting a new governance proposal to update the `02-client` parameter `AllowedClients`.
 
-<!-- 
-- TODO: update when params are managed by ibc-go 
-- https://github.com/cosmos/ibc-go/issues/2010
--->
 See below for example:
 
 ```shell
-%s tx gov submit-proposal param-change <path/to/proposal.json> --from=<key_or_address>
+%s tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
 ```
 
 where `proposal.json` contains:
@@ -115,14 +111,17 @@ where `proposal.json` contains:
 ```json
 {
   "title": "IBC Clients Param Change",
-  "description": "Update allowed clients",
-  "changes": [
+  "summary": "Update allowed clients",
+  "messages": [
     {
-      "subspace": "ibc",
-      "key": "AllowedClients",
-      "value": ["06-solomachine", "07-tendermint", "0x-new-client"]
+      "@type": "/ibc.core.client.v1.MsgUpdateParams",
+      "authority": "cosmos1...", // The gov module account address
+      "params": {
+        "allowed_clients": ["06-solomachine", "07-tendermint", "0x-new-client"]
+      }
     }
   ],
-  "deposit": "1000stake"
+  "metadata": "AQ==",
+  "deposit": "100stake"
 }
 ```

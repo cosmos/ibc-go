@@ -4,7 +4,9 @@ import (
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -20,7 +22,7 @@ import (
 // the new public key.
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
-	_ sdk.KVStore, substituteClient exported.ClientState,
+	_ storetypes.KVStore, substituteClient exported.ClientState,
 ) error {
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {

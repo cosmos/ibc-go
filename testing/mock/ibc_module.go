@@ -3,21 +3,28 @@ package mock
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+)
+
+var (
+	_ porttypes.IBCModule             = (*IBCModule)(nil)
+	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
 )
 
 // applicationCallbackError is a custom error type that will be unique for testing purposes.
 type applicationCallbackError struct{}
 
-func (e applicationCallbackError) Error() string {
+func (applicationCallbackError) Error() string {
 	return "mock application callback failed"
 }
 
@@ -208,6 +215,15 @@ func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID stri
 	if im.IBCApp.OnChanUpgradeRestore != nil {
 		im.IBCApp.OnChanUpgradeRestore(ctx, portID, channelID)
 	}
+}
+
+// UnmarshalPacketData returns the MockPacketData. This function implements the optional
+// PacketDataUnmarshaler interface required for ADR 008 support.
+func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
+	if reflect.DeepEqual(bz, MockPacketData) {
+		return MockPacketData, nil
+	}
+	return nil, MockApplicationCallbackError
 }
 
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.

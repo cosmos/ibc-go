@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -121,7 +122,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
 				channel := path.EndpointA.GetChannel()
 
-				events := ctx.EventManager().Events()
+				events := ctx.EventManager().Events().ToABCIEvents()
 				expEvents := ibctesting.EventsMap{
 					types.EventTypeChannelUpgradeInit: {
 						types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
@@ -402,7 +403,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			suite.Require().True(ok)
 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
 
-			events := ctx.EventManager().Events()
+			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{
 				types.EventTypeChannelUpgradeTry: {
 					types.AttributeKeyPortID:                    path.EndpointB.ChannelConfig.PortID,
@@ -515,11 +516,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			types.ErrUpgradeNotFound,
 		},
 		{
-			"startFlushUpgradeHandshake fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			"fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
 			func() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 			},
-			commitmenttypes.ErrInvalidProof,
+			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
 		},
 		{
 			"startFlushUpgradeHandshake fails due to mismatch in upgrade ordering",
@@ -920,8 +921,13 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 	upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().Equal(types.Upgrade{}, upgrade)
 	suite.Require().False(found)
+
 	lastPacketSequence, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().Equal(uint64(0), lastPacketSequence)
+	suite.Require().False(found)
+
+	counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
 	suite.Require().False(found)
 }
 
@@ -1079,6 +1085,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 
 	lastPacketSequence, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().Equal(uint64(0), lastPacketSequence)
+	suite.Require().False(found)
+
+	counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
 	suite.Require().False(found)
 }
 

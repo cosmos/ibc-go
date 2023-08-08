@@ -4,16 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -23,7 +25,10 @@ import (
 const (
 	ModuleName = "mock"
 
-	PortID  = ModuleName
+	MemStoreKey = "memory:mock"
+
+	PortID = ModuleName
+
 	Version = "mock-version"
 )
 
@@ -76,7 +81,7 @@ func (AppModuleBasic) ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, 
 }
 
 // RegisterGRPCGatewayRoutes implements AppModuleBasic interface.
-func (a AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // GetTxCmd implements AppModuleBasic interface.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
@@ -106,7 +111,7 @@ func NewAppModule(pk PortKeeper) AppModule {
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // RegisterServices implements the AppModule interface.
-func (am AppModule) RegisterServices(module.Configurator) {}
+func (AppModule) RegisterServices(module.Configurator) {}
 
 // InitGenesis implements the AppModule interface.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
@@ -125,7 +130,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 }
 
 // ExportGenesis implements the AppModule interface.
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+func (AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 
@@ -133,11 +138,11 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock implements the AppModule interface
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+func (AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 }
 
 // EndBlock implements the AppModule interface
-func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 

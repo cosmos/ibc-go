@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	dbm "github.com/cometbft/cometbft-db"
-	abci "github.com/cometbft/cometbft/abci/types"
-	log "github.com/cometbft/cometbft/libs/log"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
+
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	log "github.com/cometbft/cometbft/libs/log"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -69,13 +71,13 @@ var (
 )
 
 type TypesTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	proof []byte
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	app := simapp.Setup(false)
+	app := simapp.Setup(suite.T(), false)
 	db := dbm.NewMemDB()
 	dblog := log.TestingLogger()
 	store := rootmulti.NewStore(db, dblog)
@@ -104,7 +106,7 @@ func (suite *TypesTestSuite) SetupTest() {
 }
 
 func TestTypesTestSuite(t *testing.T) {
-	suite.Run(t, new(TypesTestSuite))
+	testifysuite.Run(t, new(TypesTestSuite))
 }
 
 func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
