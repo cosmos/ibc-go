@@ -32,20 +32,20 @@ const (
 	AttributeKeyCallbackError = "callback_error"
 	// AttributeKeyCallbackGasLimit denotes the custom gas limit for the callback execution
 	// if custom gas limit is not in effect, then this key will not be included in the event
-	AttributeKeyCallbackGasLimit = "callback_gas_limit"
+	AttributeKeyCallbackGasLimit = "callback_exec_gas_limit"
 	// AttributeKeyCallbackCommitGasLimit denotes the gas needed to commit the callback even
 	// if the callback execution fails due to out of gas.
 	AttributeKeyCallbackCommitGasLimit = "callback_commit_gas_limit"
 	// AttributeKeyCallbackSourcePortID denotes the source port ID of the packet
-	AttributeKeyCallbackSourcePortID = "callback_src_port"
+	AttributeKeyCallbackSourcePortID = "packet_src_port"
 	// AttributeKeyCallbackSourceChannelID denotes the source channel ID of the packet
-	AttributeKeyCallbackSourceChannelID = "callback_src_channel"
+	AttributeKeyCallbackSourceChannelID = "packet_src_channel"
 	// AttributeKeyCallbackSourcePortID denotes the destination port ID of the packet
-	AttributeKeyCallbackDestPortID = "callback_dest_port"
+	AttributeKeyCallbackDestPortID = "packet_dest_port"
 	// AttributeKeyCallbackSourceChannelID denotes the destination channel ID of the packet
-	AttributeKeyCallbackDestChannelID = "callback_dest_channel"
+	AttributeKeyCallbackDestChannelID = "packet_dest_channel"
 	// AttributeKeyCallbackSequence denotes the sequence of the packet
-	AttributeKeyCallbackSequence = "callback_sequence"
+	AttributeKeyCallbackSequence = "packet_sequence"
 
 	// AttributeValueCallbackSuccess denotes that the callback is successfully executed
 	AttributeValueCallbackSuccess = "success"
@@ -86,25 +86,14 @@ func EmitCallbackEvent(
 
 	var eventType string
 	switch callbackTrigger {
-	case CallbackTypeSendPacket:
-		eventType = EventTypeSourceCallback
-	case CallbackTypeAcknowledgement:
-		eventType = EventTypeSourceCallback
-	case CallbackTypeTimeoutPacket:
-		eventType = EventTypeSourceCallback
 	case CallbackTypeWriteAcknowledgement:
 		eventType = EventTypeDestinationCallback
-	default:
-		eventType = "unknown"
-	}
-
-	switch eventType {
-	case EventTypeDestinationCallback:
 		attributes = append(
 			attributes, sdk.NewAttribute(AttributeKeyCallbackDestPortID, packet.GetDestPort()),
 			sdk.NewAttribute(AttributeKeyCallbackDestChannelID, packet.GetDestChannel()),
 		)
 	default:
+		eventType = EventTypeSourceCallback
 		attributes = append(
 			attributes, sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourcePort()),
 			sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),

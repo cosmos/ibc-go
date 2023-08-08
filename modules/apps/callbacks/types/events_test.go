@@ -127,7 +127,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			},
 		},
 		{
-			"success: unknown callback, unreachable code",
+			"success: unknown callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
 				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
@@ -140,7 +140,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			},
 			nil,
 			ibctesting.EventsMap{
-				"unknown": {
+				types.EventTypeSourceCallback: {
 					sdk.AttributeKeyModule:                    types.ModuleName,
 					types.AttributeKeyCallbackTrigger:         "something",
 					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
