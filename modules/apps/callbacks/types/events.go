@@ -86,25 +86,14 @@ func EmitCallbackEvent(
 
 	var eventType string
 	switch callbackTrigger {
-	case CallbackTypeSendPacket:
-		eventType = EventTypeSourceCallback
-	case CallbackTypeAcknowledgement:
-		eventType = EventTypeSourceCallback
-	case CallbackTypeTimeoutPacket:
-		eventType = EventTypeSourceCallback
 	case CallbackTypeWriteAcknowledgement:
 		eventType = EventTypeDestinationCallback
-	default:
-		eventType = "unknown"
-	}
-
-	switch eventType {
-	case EventTypeDestinationCallback:
 		attributes = append(
 			attributes, sdk.NewAttribute(AttributeKeyCallbackDestPortID, packet.GetDestPort()),
 			sdk.NewAttribute(AttributeKeyCallbackDestChannelID, packet.GetDestChannel()),
 		)
 	default:
+		eventType = EventTypeSourceCallback
 		attributes = append(
 			attributes, sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourcePort()),
 			sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),
