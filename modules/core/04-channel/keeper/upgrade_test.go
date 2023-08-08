@@ -258,7 +258,16 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			types.ErrInvalidUpgrade,
 		},
 		{
-			"startFlushUpgradeHandshake fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.Ordering = types.ORDERED
+				path.EndpointB.SetChannel(channel)
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
 			func() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 			},
