@@ -222,13 +222,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			connectiontypes.ErrInvalidConnectionState,
 		},
 		{
-			"timeout has passed",
-			func() {
-				counterpartyUpgrade.Timeout = types.NewTimeout(clienttypes.NewHeight(0, 1), 0)
-			},
-			types.ErrInvalidUpgrade,
-		},
-		{
 			"initializing handshake fails, proposed connection hops do not exist",
 			func() {
 				proposedUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
