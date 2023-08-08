@@ -523,11 +523,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			types.ErrUpgradeNotFound,
 		},
 		{
-			"startFlushUpgradeHandshake fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			"fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
 			func() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 			},
-			commitmenttypes.ErrInvalidProof,
+			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
 		},
 		{
 			"startFlushUpgradeHandshake fails due to mismatch in upgrade ordering",
