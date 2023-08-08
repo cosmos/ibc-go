@@ -145,8 +145,8 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType type
 		expStatefulEntries = 1
 	}
 
-	sourceStatefulCounter := s.chainA.GetSimApp().MockKeeper.GetStateCounter(s.chainA.GetContext())
-	destStatefulCounter := s.chainB.GetSimApp().MockKeeper.GetStateCounter(s.chainB.GetContext())
+	sourceStatefulCounter := s.chainA.GetSimApp().MockContractKeeper.GetStateCounter(s.chainA.GetContext())
+	destStatefulCounter := s.chainB.GetSimApp().MockContractKeeper.GetStateCounter(s.chainB.GetContext())
 
 	switch callbackType {
 	case "none":
@@ -174,8 +174,8 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType type
 }
 
 func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackType) {
-	sourceCounters := s.chainA.GetSimApp().MockKeeper.Counters
-	destCounters := s.chainB.GetSimApp().MockKeeper.Counters
+	sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
+	destCounters := s.chainB.GetSimApp().MockContractKeeper.Counters
 
 	switch callbackType {
 	case "none":

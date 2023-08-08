@@ -13,19 +13,9 @@ import (
 )
 
 // MockKeeper implements callbacktypes.ContractKeeper
-var _ callbacktypes.ContractKeeper = (*Keeper)(nil)
+var _ callbacktypes.ContractKeeper = (*ContractKeeper)(nil)
 
-// Keeper can be used to mock the expected keepers needed for testing.
-//
-// Keeper currently mocks the following interfaces:
-//   - callbacktypes.ContractKeeper
-type Keeper struct {
-	ContractKeeper
-
-	key storetypes.StoreKey
-}
-
-// This is a mock keeper used for testing. It is not wired up to any modules.
+// This is a mock contract keeper used for testing. It is not wired up to any modules.
 // It implements the interface functions expected by the ibccallbacks middleware
 // so that it can be tested with simapp. The keeper is responsible for tracking
 // two metrics:
@@ -36,20 +26,20 @@ type Keeper struct {
 // and the stateful entries allows us to track state reversals or reverted state upon
 // contract execution failure or out of gas errors.
 type ContractKeeper struct {
+	key storetypes.StoreKey
+
 	Counters map[callbacktypes.CallbackType]int
 }
 
-// SetStateCounter sets the stateful callback counter in state.
-// This function is used to test state reversals. The callback counters
-// directly listed under MockContractKeeper will not be reversed if the
-// state is reversed.
-func (k Keeper) SetStateCounter(ctx sdk.Context, count uint8) {
+// SetStateCounter sets stateful entries to state. The number of stateful
+// entries is tracked as a uint8. This function is used to test state reversals.
+func (k ContractKeeper) SetStateCounter(ctx sdk.Context, count uint8) {
 	store := ctx.KVStore(k.key)
 	store.Set([]byte(StatefulCounterKey), []byte{count})
 }
 
 // GetStateCounter returns the stateful callback counter from state.
-func (k Keeper) GetStateCounter(ctx sdk.Context) uint8 {
+func (k ContractKeeper) GetStateCounter(ctx sdk.Context) uint8 {
 	store := ctx.KVStore(k.key)
 	bz := store.Get([]byte(StatefulCounterKey))
 	if bz == nil {
@@ -59,17 +49,16 @@ func (k Keeper) GetStateCounter(ctx sdk.Context) uint8 {
 }
 
 // IncrementStatefulCounter increments the stateful callback counter in state.
-func (k Keeper) IncrementStatefulCounter(ctx sdk.Context) {
+func (k ContractKeeper) IncrementStatefulCounter(ctx sdk.Context) {
 	count := k.GetStateCounter(ctx)
 	k.SetStateCounter(ctx, count+1)
 }
 
-// NewKeeper creates a new mock Keeper.
-func NewMockKeeper(key storetypes.StoreKey) Keeper {
-	return Keeper{
-		key: key,
-		ContractKeeper: ContractKeeper{
-			Counters: make(map[callbacktypes.CallbackType]int)},
+// NewKeeper creates a new mock ContractKeeper.
+func NewContractKeeper(key storetypes.StoreKey) ContractKeeper {
+	return ContractKeeper{
+		key:      key,
+		Counters: make(map[callbacktypes.CallbackType]int),
 	}
 }
 
@@ -77,7 +66,7 @@ func NewMockKeeper(key storetypes.StoreKey) Keeper {
 // or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k Keeper) IBCSendPacketCallback(
+func (k ContractKeeper) IBCSendPacketCallback(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
@@ -94,7 +83,7 @@ func (k Keeper) IBCSendPacketCallback(
 // or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k Keeper) IBCOnAcknowledgementPacketCallback(
+func (k ContractKeeper) IBCOnAcknowledgementPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -109,7 +98,7 @@ func (k Keeper) IBCOnAcknowledgementPacketCallback(
 // or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k Keeper) IBCOnTimeoutPacketCallback(
+func (k ContractKeeper) IBCOnTimeoutPacketCallback(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -123,7 +112,7 @@ func (k Keeper) IBCOnTimeoutPacketCallback(
 // or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k Keeper) IBCWriteAcknowledgementCallback(
+func (k ContractKeeper) IBCWriteAcknowledgementCallback(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
@@ -135,7 +124,7 @@ func (k Keeper) IBCWriteAcknowledgementCallback(
 // processMockCallback returns nil if the gas meter has greater than or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k Keeper) processMockCallback(
+func (k ContractKeeper) processMockCallback(
 	ctx sdk.Context,
 	callbackType callbacktypes.CallbackType,
 	authAddress string,
