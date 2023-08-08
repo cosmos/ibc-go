@@ -907,8 +907,13 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 	upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().Equal(types.Upgrade{}, upgrade)
 	suite.Require().False(found)
+
 	lastPacketSequence, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().Equal(uint64(0), lastPacketSequence)
+	suite.Require().False(found)
+
+	counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
 	suite.Require().False(found)
 }
 
@@ -1066,6 +1071,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 
 	lastPacketSequence, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().Equal(uint64(0), lastPacketSequence)
+	suite.Require().False(found)
+
+	counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
 	suite.Require().False(found)
 }
 

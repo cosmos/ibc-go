@@ -891,9 +891,3 @@ func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upg
 	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgrade, upgradeError)
 	return nil
 }
-
-// deleteUpgradeInfo deletes all auxiliary upgrade information.
-func (k Keeper) deleteUpgradeInfo(ctx sdk.Context, portID, channelID string) {
-	k.deleteUpgrade(ctx, portID, channelID)
-	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
-}
