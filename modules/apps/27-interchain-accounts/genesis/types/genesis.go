@@ -77,7 +77,7 @@ func (gs ControllerGenesisState) Validate() error {
 		}
 	}
 
-	return nil
+	return gs.Params.Validate()
 }
 
 // DefaultHostGenesis creates and returns the default interchain accounts HostGenesisState

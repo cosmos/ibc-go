@@ -4,55 +4,16 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	legacytx "github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
-
-// msg types
-const (
-	TypeMsgTransfer = "transfer"
-)
-
-var (
-	_ sdk.Msg            = (*MsgUpdateParams)(nil)
-	_ sdk.Msg            = (*MsgTransfer)(nil)
-	_ legacytx.LegacyMsg = (*MsgTransfer)(nil)
-)
-
-// NewMsgUpdateParams creates a new MsgUpdateParams instance
-func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
-	return &MsgUpdateParams{
-		Authority: authority,
-		Params:    params,
-	}
-}
-
-// ValidateBasic implements sdk.Msg
-func (msg MsgUpdateParams) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
-}
 
 // NewMsgTransfer creates a new MsgTransfer instance
+//
+//nolint:interfacer
 func NewMsgTransfer(
 	sourcePort, sourceChannel string,
 	token sdk.Coin, sender, receiver string,
@@ -71,12 +32,7 @@ func NewMsgTransfer(
 	}
 }
 
-// Type implements legacytx.LegacyMsg
-func (MsgTransfer) Type() string {
-	return TypeMsgTransfer
-}
-
-// Route implements legacytx.LegacyMsg
+// Route implements sdk.Msg
 func (MsgTransfer) Route() string {
 	return RouterKey
 }
@@ -109,7 +65,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 	return ValidateIBCDenom(msg.Token.Denom)
 }
 
-// GetSignBytes implements legacytx.LegacyMsg
+// GetSignBytes implements sdk.Msg.
 func (msg MsgTransfer) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }

@@ -5,23 +5,18 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	collections "github.com/cosmos/ibc-go/v7/internal/collections"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var (
 	// DefaultIBCVersion represents the latest supported version of IBC used
-	// in connection version negotiation. The current version supports the list
-	// of orderings defined in SupportedOrderings and requires at least one channel type
+	// in connection version negotiation. The current version supports only
+	// ORDERED and UNORDERED channels and requires at least one channel type
 	// to be agreed upon.
-	DefaultIBCVersion = NewVersion(DefaultIBCVersionIdentifier, SupportedOrderings)
+	DefaultIBCVersion = NewVersion(DefaultIBCVersionIdentifier, []string{"ORDER_ORDERED", "ORDER_UNORDERED"})
 
 	// DefaultIBCVersionIdentifier is the IBC v1.0.0 protocol version identifier
 	DefaultIBCVersionIdentifier = "1"
-
-	// SupportedOrderings is the list of orderings supported by IBC. The current
-	// version supports only ORDERED and UNORDERED channels.
-	SupportedOrderings = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
 
 	// AllowNilFeatureSet is a helper map to indicate if a specified version
 	// identifier is allowed to have a nil feature set. Any versions supported,
@@ -31,7 +26,7 @@ var (
 	}
 )
 
-var _ exported.Version = (*Version)(nil)
+var _ exported.Version = &Version{}
 
 // NewVersion returns a new instance of Version.
 func NewVersion(identifier string, features []string) *Version {
@@ -89,7 +84,7 @@ func (version Version) VerifyProposedVersion(proposedVersion exported.Version) e
 	}
 
 	for _, proposedFeature := range proposedVersion.GetFeatures() {
-		if !collections.Contains(proposedFeature, version.GetFeatures()) {
+		if !contains(proposedFeature, version.GetFeatures()) {
 			return errorsmod.Wrapf(
 				ErrVersionNegotiationFailed,
 				"proposed feature (%s) is not a supported feature set (%s)", proposedFeature, version.GetFeatures(),
@@ -183,7 +178,7 @@ func PickVersion(supportedVersions, counterpartyVersions []exported.Version) (*V
 // set for the counterparty version.
 func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string) (featureSet []string) {
 	for _, feature := range sourceFeatureSet {
-		if collections.Contains(feature, counterpartyFeatureSet) {
+		if contains(feature, counterpartyFeatureSet) {
 			featureSet = append(featureSet, feature)
 		}
 	}
@@ -211,4 +206,16 @@ func ProtoVersionsToExported(versions []*Version) []exported.Version {
 	}
 
 	return exportedVersions
+}
+
+// contains returns true if the provided string element exists within the
+// string set.
+func contains(elem string, set []string) bool {
+	for _, element := range set {
+		if elem == element {
+			return true
+		}
+	}
+
+	return false
 }

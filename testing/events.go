@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -17,7 +16,7 @@ type EventsMap map[string]map[string]string
 
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
 // client identifier.
-func ParseClientIDFromEvents(events []abci.Event) (string, error) {
+func ParseClientIDFromEvents(events sdk.Events) (string, error) {
 	for _, ev := range events {
 		if ev.Type == clienttypes.EventTypeCreateClient {
 			for _, attr := range ev.Attributes {
@@ -32,7 +31,7 @@ func ParseClientIDFromEvents(events []abci.Event) (string, error) {
 
 // ParseConnectionIDFromEvents parses events emitted from a MsgConnectionOpenInit or
 // MsgConnectionOpenTry and returns the connection identifier.
-func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
+func ParseConnectionIDFromEvents(events sdk.Events) (string, error) {
 	for _, ev := range events {
 		if ev.Type == connectiontypes.EventTypeConnectionOpenInit ||
 			ev.Type == connectiontypes.EventTypeConnectionOpenTry {
@@ -48,7 +47,7 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 
 // ParseChannelIDFromEvents parses events emitted from a MsgChannelOpenInit or
 // MsgChannelOpenTry and returns the channel identifier.
-func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
+func ParseChannelIDFromEvents(events sdk.Events) (string, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
 			for _, attr := range ev.Attributes {
@@ -63,7 +62,7 @@ func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 
 // ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns the
 // acknowledgement.
-func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
+func ParsePacketFromEvents(events sdk.Events) (channeltypes.Packet, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeSendPacket {
 			packet := channeltypes.Packet{}
@@ -121,7 +120,7 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 
 // ParseAckFromEvents parses events emitted from a MsgRecvPacket and returns the
 // acknowledgement.
-func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
+func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
 			for _, attr := range ev.Attributes {
@@ -139,7 +138,7 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 func AssertEvents(
 	suite *suite.Suite,
 	expected EventsMap,
-	actual []abci.Event,
+	actual sdk.Events,
 ) {
 	hasEvents := make(map[string]bool)
 	for eventType := range expected {

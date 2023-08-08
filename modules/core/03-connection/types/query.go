@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	_ codectypes.UnpackInterfacesMessage = (*QueryConnectionClientStateResponse)(nil)
-	_ codectypes.UnpackInterfacesMessage = (*QueryConnectionConsensusStateResponse)(nil)
+	_ codectypes.UnpackInterfacesMessage = QueryConnectionClientStateResponse{}
+	_ codectypes.UnpackInterfacesMessage = QueryConnectionConsensusStateResponse{}
 )
 
 // NewQueryConnectionResponse creates a new QueryConnectionResponse instance

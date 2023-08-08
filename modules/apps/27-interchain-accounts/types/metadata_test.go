@@ -45,20 +45,9 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 			false,
 		},
 		{
-			"unequal and invalid encoding format",
-			func() {
-				metadata.Encoding = "invalid-encoding-format"
-
-				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
-				previousVersion = string(versionBytes)
-			},
-			false,
-		},
-		{
 			"unequal encoding format",
 			func() {
-				metadata.Encoding = types.EncodingProto3JSON
+				metadata.Encoding = "invalid-encoding-format"
 
 				versionBytes, err := types.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
@@ -158,20 +147,6 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                "",
 					Encoding:               types.EncodingProtobuf,
-					TxType:                 types.TxTypeSDKMultiMsg,
-				}
-			},
-			true,
-		},
-		{
-			"success with EncodingProto3JSON",
-			func() {
-				metadata = types.Metadata{
-					Version:                types.Version,
-					ControllerConnectionId: ibctesting.FirstConnectionID,
-					HostConnectionId:       ibctesting.FirstConnectionID,
-					Address:                TestOwnerAddress,
-					Encoding:               types.EncodingProto3JSON,
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
@@ -313,20 +288,6 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					HostConnectionId:       ibctesting.FirstConnectionID,
 					Address:                "",
 					Encoding:               types.EncodingProtobuf,
-					TxType:                 types.TxTypeSDKMultiMsg,
-				}
-			},
-			true,
-		},
-		{
-			"success with EncodingProto3JSON",
-			func() {
-				metadata = types.Metadata{
-					Version:                types.Version,
-					ControllerConnectionId: ibctesting.FirstConnectionID,
-					HostConnectionId:       ibctesting.FirstConnectionID,
-					Address:                TestOwnerAddress,
-					Encoding:               types.EncodingProto3JSON,
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},

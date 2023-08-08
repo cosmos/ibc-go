@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cosmos/gogoproto/proto"
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/spf13/cobra"
 
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
@@ -130,7 +129,7 @@ func convertBytesIntoProtoMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]pr
 
 // generateIcaPacketDataFromProtoMessages generates ica packet data as bytes from a given set of proto encoded sdk messages and a memo.
 func generateIcaPacketDataFromProtoMessages(cdc *codec.ProtoCodec, sdkMessages []proto.Message, memo string) ([]byte, error) {
-	icaPacketDataBytes, err := icatypes.SerializeCosmosTx(cdc, sdkMessages, icatypes.EncodingProtobuf)
+	icaPacketDataBytes, err := icatypes.SerializeCosmosTx(cdc, sdkMessages)
 	if err != nil {
 		return nil, err
 	}

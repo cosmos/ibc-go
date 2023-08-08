@@ -3,11 +3,9 @@ package fee_test
 import (
 	"fmt"
 
-	sdkmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -19,10 +17,10 @@ import (
 )
 
 var (
-	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}}
-	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(200)}}
-	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(300)}}
-	smallAmount       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(50)}}
+	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
+	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
+	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
+	smallAmount       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(50)}}
 )
 
 // Tests OnChanOpenInit on ChainA
@@ -253,7 +251,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"invalid version fails to unmarshal metadata",
-			ibctesting.InvalidVersion,
+			"invalid-version",
 			func(suite *FeeTestSuite) {},
 			false,
 		},
@@ -1047,8 +1045,8 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 			"invalid upgrade version",
 			func() {
 				expFeeEnabled = false
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidVersion
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidVersion
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
 
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ uint64, _, _ string) (string, error) {
 					// intentionally force the error here so we can assert that a passthrough occurs when fees should not be enabled for this channel
@@ -1061,7 +1059,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 			"invalid fee version",
 			func() {
 				expFeeEnabled = false
-				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: ibctesting.InvalidVersion, AppVersion: ibcmock.Version}))
+				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-version", AppVersion: ibcmock.Version}))
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 			},
@@ -1162,7 +1160,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 			func() {
 				expFeeEnabled = false
 				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
-				counterpartyUpgrade.Fields.Version = ibctesting.InvalidVersion
+				counterpartyUpgrade.Fields.Version = "invalid-version"
 				path.EndpointA.SetChannelUpgrade(counterpartyUpgrade)
 
 				suite.coordinator.CommitBlock(suite.chainA)
@@ -1178,7 +1176,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 			"invalid fee version",
 			func() {
 				expFeeEnabled = false
-				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: ibctesting.InvalidVersion, AppVersion: ibcmock.Version}))
+				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-version", AppVersion: ibcmock.Version}))
 
 				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
 				counterpartyUpgrade.Fields.Version = upgradeVersion
@@ -1273,7 +1271,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 			func() {
 				expFeeEnabled = true
 				counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
-				counterpartyUpgrade.Fields.Version = ibctesting.InvalidVersion
+				counterpartyUpgrade.Fields.Version = "invalid-version"
 				path.EndpointB.SetChannelUpgrade(counterpartyUpgrade)
 
 				suite.coordinator.CommitBlock(suite.chainB)
@@ -1284,7 +1282,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 			"invalid fee version",
 			func() {
 				expFeeEnabled = true
-				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: ibctesting.InvalidVersion, AppVersion: ibcmock.Version}))
+				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-version", AppVersion: ibcmock.Version}))
 
 				counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
 				counterpartyUpgrade.Fields.Version = upgradeVersion

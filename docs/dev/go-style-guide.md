@@ -69,7 +69,7 @@ type middleware struct {
 ## Importing libraries
 
 - Use [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports).
-- Separate imports into blocks. For example:
+- Separate imports into blocks: one for the standard lib, one for external libs and one for application libs. For example:
 
 ```go
 import (
@@ -79,16 +79,12 @@ import (
       
   // external library imports
   "github.com/stretchr/testify/require"
-
-  // Cosmos-SDK imports
   abci "github.com/cometbft/cometbft/abci/types"
       
   // ibc-go library imports
   "github.com/cosmos/ibc-go/modules/core/23-commitment/types"
 )
 ```
-
-Run `make lint-fix` to get the imports ordered and grouped automatically. 
 
 ## Dependencies
 

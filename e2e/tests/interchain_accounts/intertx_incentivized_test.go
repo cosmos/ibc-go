@@ -63,8 +63,8 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 	t.Run("register interchain account", func(t *testing.T) {
 		version := "" // allow app to handle the version as appropriate.
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.AssertTxSuccess(txResp)
+		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.Require().NoError(err)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -98,8 +98,9 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 		})
 
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
-			s.AssertTxSuccess(resp)
+			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
@@ -135,8 +136,9 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 			msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(msgSend, ibctesting.FirstConnectionID, controllerAccount.FormattedAddress())
 			s.Require().NoError(err)
 
-			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSubmitTx)
-			s.AssertTxSuccess(resp)
+			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSubmitTx)
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
 		})
@@ -229,8 +231,8 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 	t.Run("register interchain account", func(t *testing.T) {
 		version := "" // allow app to handle the version as appropriate.
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.AssertTxSuccess(txResp)
+		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.Require().NoError(err)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -256,8 +258,9 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 
 	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
-			s.AssertTxSuccess(resp)
+			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
@@ -294,8 +297,9 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 			msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(msgSend, ibctesting.FirstConnectionID, controllerAccount.FormattedAddress())
 			s.Require().NoError(err)
 
-			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSubmitTx)
-			s.AssertTxSuccess(resp)
+			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSubmitTx)
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
 		})

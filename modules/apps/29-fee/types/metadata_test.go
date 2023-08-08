@@ -3,10 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMetadataFromVersion(t *testing.T) {

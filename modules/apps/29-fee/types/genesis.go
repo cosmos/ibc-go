@@ -4,11 +4,10 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 // NewGenesisState creates a 29-fee GenesisState instance.

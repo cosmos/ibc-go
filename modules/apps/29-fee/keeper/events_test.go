@@ -1,11 +1,8 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	abcitypes "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -113,7 +110,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 
 	msgTransfer := transfertypes.NewMsgTransfer(
 		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-		sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
+		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100)), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, "",
 	)
 
@@ -122,7 +119,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	suite.Require().NotNil(res)
 
 	// parse the packet from result events and recv packet on chainB
-	packet, err := ibctesting.ParsePacketFromEvents(res.Events)
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	suite.Require().NoError(err)
 	suite.Require().NotNil(packet)
 
@@ -134,7 +131,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	suite.Require().NotNil(res)
 
 	// parse the acknowledgement from result events and acknowledge packet on chainA
-	ack, err := ibctesting.ParseAckFromEvents(res.Events)
+	ack, err := ibctesting.ParseAckFromEvents(res.GetEvents())
 	suite.Require().NoError(err)
 	suite.Require().NotNil(ack)
 
@@ -146,7 +143,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res)
 
-	events := res.Events
+	events := res.GetEvents()
 	expectedEvents := sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDistributeFee,
@@ -163,7 +160,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyFee, defaultTimeoutFee.String()),
 		),
-	}.ToABCIEvents()
+	}
 
 	for _, evt := range expectedEvents {
 		suite.Require().Contains(events, evt)

@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
 
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
@@ -40,7 +39,6 @@ const bankSendMessage = `{
 var multiMsg = fmt.Sprintf("[ %s, %s ]", msgDelegateMessage, bankSendMessage)
 
 func TestGeneratePacketData(t *testing.T) {
-	t.Helper()
 	tests := []struct {
 		name                string
 		memo                string
@@ -59,7 +57,6 @@ func TestGeneratePacketData(t *testing.T) {
 				banktypes.RegisterInterfaces(registry)
 			},
 			assertionFn: func(t *testing.T, msgs []sdk.Msg) {
-				t.Helper()
 				assertMsgDelegate(t, msgs[0])
 				assertMsgBankSend(t, msgs[1])
 			},
@@ -71,7 +68,6 @@ func TestGeneratePacketData(t *testing.T) {
 			message:             msgDelegateMessage,
 			registerInterfaceFn: stakingtypes.RegisterInterfaces,
 			assertionFn: func(t *testing.T, msgs []sdk.Msg) {
-				t.Helper()
 				assertMsgDelegate(t, msgs[0])
 			},
 		},
@@ -82,7 +78,6 @@ func TestGeneratePacketData(t *testing.T) {
 			message:             bankSendMessage,
 			registerInterfaceFn: banktypes.RegisterInterfaces,
 			assertionFn: func(t *testing.T, msgs []sdk.Msg) {
-				t.Helper()
 				assertMsgBankSend(t, msgs[0])
 			},
 		},
@@ -125,8 +120,7 @@ func TestGeneratePacketData(t *testing.T) {
 				require.Equal(t, tc.memo, packetData.Memo)
 
 				data := packetData.Data
-				// cli tx commands always use protobuf encoding
-				messages, err := icatypes.DeserializeCosmosTx(cdc, data, icatypes.EncodingProtobuf)
+				messages, err := icatypes.DeserializeCosmosTx(cdc, data)
 
 				require.NoError(t, err)
 				require.NotNil(t, messages)
@@ -142,7 +136,7 @@ func TestGeneratePacketData(t *testing.T) {
 	}
 }
 
-func assertMsgBankSend(t *testing.T, msg sdk.Msg) { //nolint:thelper
+func assertMsgBankSend(t *testing.T, msg sdk.Msg) {
 	bankSendMsg, ok := msg.(*banktypes.MsgSend)
 	require.True(t, ok)
 	require.Equal(t, "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz", bankSendMsg.FromAddress)
@@ -151,7 +145,7 @@ func assertMsgBankSend(t *testing.T, msg sdk.Msg) { //nolint:thelper
 	require.Equal(t, uint64(1000), bankSendMsg.Amount[0].Amount.Uint64())
 }
 
-func assertMsgDelegate(t *testing.T, msg sdk.Msg) { //nolint:thelper
+func assertMsgDelegate(t *testing.T, msg sdk.Msg) {
 	msgDelegate, ok := msg.(*stakingtypes.MsgDelegate)
 	require.True(t, ok)
 	require.Equal(t, "cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz", msgDelegate.DelegatorAddress)

@@ -5,17 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-
-	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/client/cli"
 	controllerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
@@ -31,11 +29,11 @@ import (
 )
 
 var (
-	_ module.AppModule           = (*AppModule)(nil)
-	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
-	_ module.AppModuleSimulation = (*AppModule)(nil)
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
 
-	_ porttypes.IBCModule = (*host.IBCModule)(nil)
+	_ porttypes.IBCModule = host.IBCModule{}
 )
 
 // AppModuleBasic is the IBC interchain accounts AppModuleBasic
@@ -52,7 +50,6 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 // RegisterInterfaces registers module concrete types into protobuf Any
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	controllertypes.RegisterInterfaces(registry)
-	hosttypes.RegisterInterfaces(registry)
 	types.RegisterInterfaces(registry)
 }
 
@@ -110,7 +107,7 @@ func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 	}
 }
 
-// InitModule will initialize the interchain accounts module. It should only be
+// InitModule will initialize the interchain accounts moudule. It should only be
 // called once and as an alternative to InitGenesis.
 func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes.Params, hostParams hosttypes.Params) {
 	if am.controllerKeeper != nil {
@@ -118,9 +115,6 @@ func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes
 	}
 
 	if am.hostKeeper != nil {
-		if err := hostParams.Validate(); err != nil {
-			panic(fmt.Sprintf("could not set ica host params at initialization: %v", err))
-		}
 		am.hostKeeper.SetParams(ctx, hostParams)
 
 		capability := am.hostKeeper.BindPort(ctx, types.HostPortID)
@@ -142,23 +136,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	if am.hostKeeper != nil {
-		hosttypes.RegisterMsgServer(cfg.MsgServer(), hostkeeper.NewMsgServerImpl(am.hostKeeper))
 		hosttypes.RegisterQueryServer(cfg.QueryServer(), am.hostKeeper)
 	}
 
-	controllerMigrator := controllerkeeper.NewMigrator(am.controllerKeeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, controllerMigrator.AssertChannelCapabilityMigrations); err != nil {
-		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2 (channel capabilities owned by controller submodule check): %v", err))
-	}
-
-	hostMigrator := hostkeeper.NewMigrator(am.hostKeeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 2, func(ctx sdk.Context) error {
-		if err := hostMigrator.MigrateParams(ctx); err != nil {
-			return err
-		}
-		return controllerMigrator.MigrateParams(ctx)
-	}); err != nil {
-		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 2 to 3 (self-managed params migration): %v", err))
+	m := controllerkeeper.NewMigrator(am.controllerKeeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.AssertChannelCapabilityMigrations); err != nil {
+		panic(fmt.Sprintf("failed to migrate interchainaccounts app from version 1 to 2: %v", err))
 	}
 }
 
@@ -200,7 +183,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 3 }
+func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {

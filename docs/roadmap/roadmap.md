@@ -4,15 +4,25 @@ order: 1
 
 # Roadmap ibc-go
 
-_Lastest update: June 23th, 2023_
+_Lastest update: March 19th, 2023_
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
 This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans. For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
-## v7.3.0
+## v7.1.0
 
-Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/37).
+Because it is so important to have an ibc-go release compatible with the latest Cosmos SDK release, a couple of features will take a little longer and be released in [v7.1.0](https://github.com/cosmos/ibc-go/milestone/37).
+
+### Localhost connection
+
+This feature will add support for applications on a chain to communicate with applications on the same chain using the existing standard interface to communicate with applications on remote chains. This is a powerful UX improvement, particularly for those users interested in interacting with multiple smart contracts on a single chain through one interface.
+
+For more details, see the new [ICS 09 specification](https://github.com/cosmos/ibc/pull/936).
+
+A special shout out to Strangelove Ventures and Polymer Labs for their substantial contribution on this feature.
+
+## v7.2.0
 
 ### Support for Wasm light clients
 
@@ -22,13 +32,17 @@ This feature was developed by Composable and Strangelove but will be upstreamed 
 
 ## v8.0.0
 
-Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/38).
-
 ### Channel upgradability
 
-Channel upgradability will allow chains to renegotiate an existing channel to take advantage of new features without having to create a new channel, thus preserving all existing packet state processed on the channel. This feature will enable, for example, the adoption on existing channels of features like [path unwinding](https://github.com/cosmos/ibc/discussions/824) or fee middlware.
+Channel upgradability will allow chains to renegotiate an existing channel to take advantage of new features without having to create a new channel, thus preserving all existing packet state processed on the channel.
 
 Follow the progress with the [alpha milestone](https://github.com/cosmos/ibc-go/milestone/29) or the [project board](https://github.com/orgs/cosmos/projects/7/views/17).
+
+### Path unwinding
+
+This feature will allow tokens with non-native denoms to be sent back automatically to their native chains before being sent to a final destination chain. This will allow tokens to reach a final destination with the least amount possible of hops from their native chain.
+
+For more details, see this [discussion](https://github.com/cosmos/ibc/discussions/824).
 
 ---
 
@@ -36,7 +50,7 @@ This roadmap is also available as a [project board](https://github.com/orgs/cosm
 
 For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
-For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow the [Annoucements](https://github.com/cosmos/ibc-go/discussions/categories/announcements) category in the Discussions tab of the repository.
+For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow our [engineering updates](https://github.com/cosmos/ibc-go/wiki/Engineering-updates).
 
 ---
 

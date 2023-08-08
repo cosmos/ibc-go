@@ -5,17 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
-
-	"github.com/cosmos/cosmos-sdk/store/iavl"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	log "github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/store/iavl"
+	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -50,7 +46,7 @@ func (suite *MsgTestSuite) SetupTest() {
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
-	app := simapp.Setup(suite.T(), false)
+	app := simapp.Setup(false)
 	db := dbm.NewMemDB()
 	dblog := log.TestingLogger()
 	store := rootmulti.NewStore(db, dblog)
@@ -232,67 +228,6 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
-		}
-	}
-}
-
-// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
-func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
-	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
-	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
-	}{
-		{
-			"success: valid authority and params",
-			types.NewMsgUpdateParams(authority, types.DefaultParams()),
-			true,
-		},
-		{
-			"failure: invalid authority address",
-			types.NewMsgUpdateParams("invalid", types.DefaultParams()),
-			false,
-		},
-		{
-			"failure: invalid time per block",
-			types.NewMsgUpdateParams(authority, types.NewParams(0)),
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		err := tc.msg.ValidateBasic()
-		if tc.expPass {
-			suite.Require().NoError(err, "valid case %s failed", tc.name)
-		} else {
-			suite.Require().Error(err, "invalid case %s passed", tc.name)
-		}
-	}
-}
-
-// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
-func TestMsgUpdateParamsGetSigners(t *testing.T) {
-	testCases := []struct {
-		name    string
-		address sdk.AccAddress
-		expPass bool
-	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
-	}
-
-	for _, tc := range testCases {
-		msg := types.MsgUpdateParams{
-			Authority: tc.address.String(),
-			Params:    types.DefaultParams(),
-		}
-		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
-		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
 		}
 	}
 }

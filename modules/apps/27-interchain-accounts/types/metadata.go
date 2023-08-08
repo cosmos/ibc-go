@@ -2,7 +2,6 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -11,8 +10,6 @@ import (
 const (
 	// EncodingProtobuf defines the protocol buffers proto3 encoding format
 	EncodingProtobuf = "proto3"
-	// EncodingProto3JSON defines the proto3 JSON encoding format
-	EncodingProto3JSON = "proto3json"
 
 	// TxTypeSDKMultiMsg defines the multi message transaction type supported by the Cosmos SDK
 	TxTypeSDKMultiMsg = "sdk_multi_msg"
@@ -144,7 +141,7 @@ func isSupportedEncoding(encoding string) bool {
 
 // getSupportedEncoding returns a string slice of supported encoding formats
 func getSupportedEncoding() []string {
-	return []string{EncodingProtobuf, EncodingProto3JSON}
+	return []string{EncodingProtobuf}
 }
 
 // isSupportedTxType returns true if the provided transaction type is supported, otherwise false

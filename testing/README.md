@@ -212,7 +212,7 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
   path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
   path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
 
-  return path
+  return pa``th
 }
 
 ```
@@ -251,7 +251,7 @@ Here is a basic example of the testing package being used to simulate IBC functi
 
   packet2 := NewPacket()
 
-  path.RelayPacket(packet2)
+  path.Relay(packet2, expectedAck)
 
   // if needed we can update our clients
   path.EndpointB.UpdateClient()    

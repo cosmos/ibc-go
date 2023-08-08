@@ -18,9 +18,8 @@ message GenesisState {
   // metadata from each client
   repeated IdentifiedGenesisMetadata clients_metadata = 3 [(gogoproto.nullable) = false];
   Params                             params           = 4 [(gogoproto.nullable) = false];
-  // Deprecated: create_localhost has been deprecated.
-  // The localhost client is automatically created at genesis.
-  bool create_localhost = 5 [deprecated = true];
+  // create localhost on initialization
+  bool create_localhost = 5;
   // the sequence for the next generated client identifier
   uint64 next_client_sequence = 6;
 }

@@ -2,13 +2,11 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
-
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	"github.com/cometbft/cometbft/libs/log"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -22,24 +20,24 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	storeKey       storetypes.StoreKey
-	legacySubspace paramtypes.Subspace
-	cdc            codec.BinaryCodec
-	clientKeeper   types.ClientKeeper
+	storeKey     storetypes.StoreKey
+	paramSpace   paramtypes.Subspace
+	cdc          codec.BinaryCodec
+	clientKeeper types.ClientKeeper
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace, ck types.ClientKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace, ck types.ClientKeeper) Keeper {
 	// set KeyTable if it has not already been set
-	if !legacySubspace.HasKeyTable() {
-		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
+	if !paramSpace.HasKeyTable() {
+		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		storeKey:       key,
-		cdc:            cdc,
-		legacySubspace: legacySubspace,
-		clientKeeper:   ck,
+		storeKey:     key,
+		cdc:          cdc,
+		paramSpace:   paramSpace,
+		clientKeeper: ck,
 	}
 }
 
@@ -174,7 +172,7 @@ func (k Keeper) GetAllClientConnectionPaths(ctx sdk.Context) []types.ConnectionP
 // iterator will close and stop.
 func (k Keeper) IterateConnections(ctx sdk.Context, cb func(types.IdentifiedConnection) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyConnectionPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyConnectionPrefix))
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -222,24 +220,4 @@ func (k Keeper) addConnectionToClient(ctx sdk.Context, clientID, connectionID st
 	conns = append(conns, connectionID)
 	k.SetClientConnectionPaths(ctx, clientID, conns)
 	return nil
-}
-
-// GetParams returns the total set of ibc-connection parameters.
-func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get([]byte(types.ParamsKey))
-	if bz == nil { // only panic on unset params and not on empty params
-		panic("connection params are not set in store")
-	}
-
-	var params types.Params
-	k.cdc.MustUnmarshal(bz, &params)
-	return params
-}
-
-// SetParams sets the total set of ibc-connection parameters.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&params)
-	store.Set([]byte(types.ParamsKey), bz)
 }

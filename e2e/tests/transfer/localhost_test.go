@@ -33,7 +33,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
 	chainA, _ := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -60,8 +60,9 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 		s.Require().NoError(msgChanOpenInit.ValidateBasic())
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenInit)
-		s.AssertTxSuccess(txResp)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenInit)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenInitRes))
 	})
@@ -70,43 +71,46 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			transfertypes.PortID, transfertypes.Version,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
-			transfertypes.PortID, msgChanOpenInitRes.ChannelId,
+			transfertypes.PortID, msgChanOpenInitRes.GetChannelId(),
 			transfertypes.Version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
-		s.AssertTxSuccess(txResp)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenTryRes))
 	})
 
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
-			transfertypes.PortID, msgChanOpenInitRes.ChannelId,
-			msgChanOpenTryRes.ChannelId, transfertypes.Version,
+			transfertypes.PortID, msgChanOpenInitRes.GetChannelId(),
+			msgChanOpenTryRes.GetChannelId(), transfertypes.Version,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
-		s.AssertTxSuccess(txResp)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 	})
 
 	t.Run("channel open confirm localhost", func(t *testing.T) {
 		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
-			transfertypes.PortID, msgChanOpenTryRes.ChannelId,
+			transfertypes.PortID, msgChanOpenTryRes.GetChannelId(),
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenConfirm)
-		s.AssertTxSuccess(txResp)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenConfirm)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 	})
 
 	t.Run("query localhost transfer channel ends", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.ChannelId)
+		channelEndA, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.GetChannelId())
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, msgChanOpenTryRes.ChannelId)
+		channelEndB, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, msgChanOpenTryRes.GetChannelId())
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
@@ -114,11 +118,12 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("send packet localhost ibc transfer", func(t *testing.T) {
-		var err error
-		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
-		s.AssertTxSuccess(txResp)
+		txResp, err := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.GetChannelId(), testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 
-		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
+		packet, err = ibctesting.ParsePacketFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
@@ -132,13 +137,14 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("recv packet localhost ibc transfer", func(t *testing.T) {
-		var err error
 		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
-		s.AssertTxSuccess(txResp)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 
-		ack, err = ibctesting.ParseAckFromEvents(txResp.Events)
+		events := testsuite.ABCIToSDKEvents(txResp.Events)
+		ack, err = ibctesting.ParseAckFromEvents(events)
 		s.Require().NoError(err)
 		s.Require().NotNil(ack)
 	})
@@ -146,14 +152,15 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("acknowledge packet localhost ibc transfer", func(t *testing.T) {
 		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
-		s.AssertTxSuccess(txResp)
+		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.ChannelId, 1)
+		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.GetChannelId(), 1)
 
-		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, msgChanOpenTryRes.ChannelId)
+		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, msgChanOpenTryRes.GetChannelId())
 		actualBalance, err := chainA.GetBalance(ctx, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
 		s.Require().NoError(err)
 

@@ -8,7 +8,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
-var _ codectypes.UnpackInterfacesMessage = (*GenesisState)(nil)
+var _ codectypes.UnpackInterfacesMessage = GenesisState{}
 
 // DefaultGenesisState returns the ibc module's default genesis state.
 func DefaultGenesisState() *GenesisState {

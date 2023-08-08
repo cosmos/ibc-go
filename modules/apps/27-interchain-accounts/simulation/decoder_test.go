@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/cosmos-sdk/types/kv"
+	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"

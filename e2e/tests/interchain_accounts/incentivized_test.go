@@ -9,10 +9,12 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -27,6 +29,14 @@ func TestIncentivizedInterchainAccountsTestSuite(t *testing.T) {
 
 type IncentivizedInterchainAccountsTestSuite struct {
 	InterchainAccountsTestSuite
+}
+
+// RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
+func (s *IncentivizedInterchainAccountsTestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
+	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
+) (sdk.TxResponse, error) {
+	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
+	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
 func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivized() {
@@ -65,11 +75,12 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
-		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
+		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version)
 
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.AssertTxSuccess(txResp)
+		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -105,8 +116,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		})
 
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
-			s.AssertTxSuccess(resp)
+			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
@@ -140,7 +152,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			}
 
 			cdc := testsuite.Codec()
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -151,8 +163,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
-			s.AssertTxSuccess(resp)
+			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
 		})
@@ -243,11 +256,12 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
-		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
+		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version)
 
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.AssertTxSuccess(txResp)
+		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -273,8 +287,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 
 	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
-			s.AssertTxSuccess(resp)
+			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
@@ -309,7 +324,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			}
 
 			cdc := testsuite.Codec()
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -320,8 +335,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
-			s.AssertTxSuccess(resp)
+			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
 		})

@@ -4,15 +4,11 @@ package ibc.core.client.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v7/modules/core/02-client/types";
 
-import "cosmos/msg/v1/msg.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
-import "ibc/core/client/v1/client.proto";
 
 // Msg defines the ibc/client Msg service.
 service Msg {
-  option (cosmos.msg.v1.service) = true;
-
   // CreateClient defines a rpc handler method for MsgCreateClient.
   rpc CreateClient(MsgCreateClient) returns (MsgCreateClientResponse);
 
@@ -24,15 +20,10 @@ service Msg {
 
   // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
   rpc SubmitMisbehaviour(MsgSubmitMisbehaviour) returns (MsgSubmitMisbehaviourResponse);
-
-  // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
-  rpc UpdateClientParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgCreateClient defines a message to create an IBC client
 message MsgCreateClient {
-  option (cosmos.msg.v1.signer) = "signer";
-
   option (gogoproto.goproto_getters) = false;
 
   // light client state
@@ -50,8 +41,6 @@ message MsgCreateClientResponse {}
 // MsgUpdateClient defines an sdk.Msg to update a IBC client state using
 // the given client message.
 message MsgUpdateClient {
-  option (cosmos.msg.v1.signer) = "signer";
-
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
@@ -68,8 +57,6 @@ message MsgUpdateClientResponse {}
 // MsgUpgradeClient defines an sdk.Msg to upgrade an IBC client to a new client
 // state
 message MsgUpgradeClient {
-  option (cosmos.msg.v1.signer) = "signer";
-
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
@@ -92,39 +79,18 @@ message MsgUpgradeClientResponse {}
 
 // MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 // light client misbehaviour.
-// This message has been deprecated. Use MsgUpdateClient instead.
+// Warning: DEPRECATED
 message MsgSubmitMisbehaviour {
-  option deprecated             = true;
-  option (cosmos.msg.v1.signer) = "signer";
-
   option (gogoproto.goproto_getters) = false;
 
   // client unique identifier
-  string client_id = 1;
+  string client_id = 1 [deprecated = true];
   // misbehaviour used for freezing the light client
-  google.protobuf.Any misbehaviour = 2;
+  google.protobuf.Any misbehaviour = 2 [deprecated = true];
   // signer address
-  string signer = 3;
+  string signer = 3 [deprecated = true];
 }
 
 // MsgSubmitMisbehaviourResponse defines the Msg/SubmitMisbehaviour response
 // type.
 message MsgSubmitMisbehaviourResponse {}
-
-// MsgUpdateParams defines the sdk.Msg type to update the client parameters.
-message MsgUpdateParams {
-  option (cosmos.msg.v1.signer) = "authority";
-
-  option (gogoproto.goproto_getters) = false;
-
-  // authority is the address of the governance account.
-  string authority = 1;
-
-  // params defines the client parameters to update.
-  //
-  // NOTE: All parameters must be supplied.
-  Params params = 2 [(gogoproto.nullable) = false];
-}
-
-// MsgUpdateParamsResponse defines the MsgUpdateParams response type.
-message MsgUpdateParamsResponse {}

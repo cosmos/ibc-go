@@ -4,20 +4,16 @@ import (
 	"strings"
 	"time"
 
-	ics23 "github.com/cosmos/ics23/go"
-
 	errorsmod "cosmossdk.io/errors"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cometbft/cometbft/light"
 	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	ics23 "github.com/cosmos/ics23/go"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -61,7 +57,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	ctx sdk.Context,
-	clientStore storetypes.KVStore,
+	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
@@ -83,7 +79,7 @@ func (cs ClientState) GetTimestampAtHeight(
 // has higher precedence.
 func (cs ClientState) Status(
 	ctx sdk.Context,
-	clientStore storetypes.KVStore,
+	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
 ) exported.Status {
 	if !cs.FrozenHeight.IsZero() {
@@ -173,6 +169,12 @@ func (cs ClientState) Validate() error {
 	return nil
 }
 
+// GetProofSpecs returns the format the client expects for proof verification
+// as a string array specifying the proof type for each position in chained proof
+func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
+	return cs.ProofSpecs
+}
+
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState
 // with all client customizable fields zeroed out
 func (cs ClientState) ZeroCustomFields() exported.ClientState {
@@ -189,7 +191,7 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 
 // Initialize checks that the initial consensus state is an 07-tendermint consensus state and
 // sets the client state, consensus state and associated metadata in the provided client store.
-func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
 	consensusState, ok := consState.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
@@ -208,7 +210,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 func (cs ClientState) VerifyMembership(
 	ctx sdk.Context,
-	clientStore storetypes.KVStore,
+	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -251,7 +253,7 @@ func (cs ClientState) VerifyMembership(
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 func (cs ClientState) VerifyNonMembership(
 	ctx sdk.Context,
-	clientStore storetypes.KVStore,
+	clientStore sdk.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -290,7 +292,7 @@ func (cs ClientState) VerifyNonMembership(
 
 // verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
 // since consensus state was submitted before allowing verification to continue.
-func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
+func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
 	if delayTimePeriod != 0 {
 		// check that executing chain's timestamp has passed consensusState's processed time + delay time period
 		processedTime, ok := GetProcessedTime(store, proofHeight)

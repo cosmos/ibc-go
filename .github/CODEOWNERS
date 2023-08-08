@@ -1,8 +1,8 @@
 # CODEOWNERS: https://help.github.com/articles/about-codeowners/
 
-*       @colin-axner @AdityaSripal @crodriguezvega @charleenfei @damiannolan @chatton @DimitrisJim
+*       @colin-axner @AdityaSripal @crodriguezvega @charleenfei @damiannolan @chatton
 
-# Our appreciation and gratitude to past code owners: @fedekunze @seantking @tmsdkeys
+# Our appreciation and gratitude to past code owners: @fedekunze @seantking 
 
 # Order is important; the last matching pattern takes the most
 # precedence. When someone opens a pull request that only
@@ -39,4 +39,4 @@
 /proto/ibc/applications/fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan
 
 # CODEOWNERS for docs
-/docs/ @colin-axner @AdityaSripal @crodriguezvega @charleenfei @damiannolan @chatton @DimitrisJim @srdtrk
+/docs/ @colin-axner @AdityaSripal @crodriguezvega @charleenfei @damiannolan @chatton @tmsdkeys

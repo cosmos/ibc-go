@@ -14,11 +14,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 
+	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 
-	"github.com/cosmos/ibc-go/e2e/semverutil"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -30,22 +29,12 @@ type InterTxTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
-// controller chain.
-func getICAVersion(chainAVersion, chainBVersion string) string {
-	chainBIsGreaterThanOrEqualToChainA := semverutil.GTE(chainBVersion, chainAVersion)
-	if chainBIsGreaterThanOrEqualToChainA {
-		// allow version to be specified by the controller chain
-		return ""
-	}
-	// explicitly set the version string because the host chain might not yet support incentivized channels.
-	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-}
-
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *InterTxTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) {
-	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
-	s.AssertTxSuccess(txResp)
+func (s *InterTxTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
+	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
+	s.Require().NoError(err)
+	s.AssertValidTxResponse(txResp)
+	return err
 }
 
 func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
@@ -64,9 +53,10 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		version := getICAVersion(testsuite.GetChainATag(), testsuite.GetChainBTag())
+		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
-		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
+		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.Require().NoError(err)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -114,14 +104,15 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 			// broadcast submitMessage tx from controller account on chain A
 			// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
 			// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
-			resp := s.BroadcastMessages(
+			resp, err := s.BroadcastMessages(
 				ctx,
 				chainA,
 				controllerAccount,
 				msgSubmitTx,
 			)
 
-			s.AssertTxSuccess(resp)
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
@@ -155,9 +146,10 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_FailedTransfer_InsufficientFunds() {
 	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		version := getICAVersion(testsuite.GetChainATag(), testsuite.GetChainBTag())
+		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
-		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
+		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.Require().NoError(err)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -201,13 +193,15 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_FailedTransfer_InsufficientFunds() {
 			// broadcast submitMessage tx from controller account on chain A
 			// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
 			// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
-			resp := s.BroadcastMessages(
+			resp, err := s.BroadcastMessages(
 				ctx,
 				chainA,
 				controllerAccount,
 				submitMsg,
 			)
-			s.AssertTxSuccess(resp)
+
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
 		})
 
 		t.Run("verify balance is the same", func(t *testing.T) {

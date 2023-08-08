@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -17,8 +16,9 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/mod/semver"
 
-	"github.com/cosmos/ibc-go/e2e/semverutil"
+	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -37,9 +37,9 @@ const (
 )
 
 func TestUpgradeTestSuite(t *testing.T) {
-	testCfg := testsuite.LoadConfig()
+	testCfg := testconfig.LoadConfig()
 	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
-		t.Fatalf("%s and %s must be set when running an upgrade test", testsuite.ChainUpgradeTagEnv, testsuite.ChainUpgradePlanEnv)
+		t.Fatalf("%s and %s must be set when running an upgrade test", testconfig.ChainUpgradeTagEnv, testconfig.ChainUpgradePlanEnv)
 	}
 
 	suite.Run(t, new(UpgradeTestSuite))
@@ -96,7 +96,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 
 func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	t := s.T()
-	testCfg := testsuite.LoadConfig()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -123,8 +123,9 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.AssertTxSuccess(transferTxResp)
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
 	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
@@ -161,8 +162,9 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	})
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.AssertTxSuccess(transferTxResp)
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
@@ -179,8 +181,9 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 
 	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
 		t.Run("send from chainB to chainA", func(t *testing.T) {
-			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
-			s.AssertTxSuccess(transferTxResp)
+			transferTxResp, err := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+			s.Require().NoError(err)
+			s.AssertValidTxResponse(transferTxResp)
 		})
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
@@ -226,7 +229,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("upgrade chain", func(t *testing.T) {
-		testCfg := testsuite.LoadConfig()
+		testCfg := testconfig.LoadConfig()
 		proposerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 		s.UpgradeChain(ctx, chain, proposerWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
@@ -252,7 +255,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 
 func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	t := s.T()
-	testCfg := testsuite.LoadConfig()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
@@ -271,10 +274,10 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	var hostAccount string
 
 	t.Run("register interchain account", func(t *testing.T) {
-		// explicitly set the version string because intertx with ibfc-go v5 does not support incentivized channels.
-		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
-		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
+		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.Require().NoError(err)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -322,14 +325,15 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			// broadcast submitMessage tx from controller account on chain A
 			// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
 			// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
-			resp := s.BroadcastMessages(
+			resp, err := s.BroadcastMessages(
 				ctx,
 				chainA,
 				controllerAccount,
 				msgSubmitTx,
 			)
 
-			s.AssertTxSuccess(resp)
+			s.AssertValidTxResponse(resp)
+			s.Require().NoError(err)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
@@ -376,14 +380,15 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		// broadcast submitMessage tx from controller account on chain A
 		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
 		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
-		resp := s.BroadcastMessages(
+		resp, err := s.BroadcastMessages(
 			ctx,
 			chainA,
 			controllerAccount,
 			msgSubmitTx,
 		)
 
-		s.AssertTxSuccess(resp)
+		s.AssertValidTxResponse(resp)
+		s.Require().NoError(err)
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 	})
@@ -407,7 +412,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
-		data, err := icatypes.SerializeCosmosTx(testsuite.Codec(), []proto.Message{msgSend}, icatypes.EncodingProtobuf)
+		data, err := icatypes.SerializeCosmosTx(testsuite.Codec(), []proto.Message{msgSend})
 		s.Require().NoError(err)
 
 		icaPacketData := icatypes.InterchainAccountPacketData{
@@ -421,14 +426,15 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		// broadcast MsgSendTx tx from controller account on chain A
 		// this message should trigger the sending of an ICA packet over channel-1 (channel created between controller and host)
 		// this ICA packet contains the assembled bank transfer message from above, which will be executed by the host account on the host chain.
-		resp := s.BroadcastMessages(
+		resp, err := s.BroadcastMessages(
 			ctx,
 			chainA,
 			controllerAccount,
 			msgSendTx,
 		)
 
-		s.AssertTxSuccess(resp)
+		s.AssertValidTxResponse(resp)
+		s.Require().NoError(err)
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 	})
@@ -452,7 +458,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 // can be sent before and after the upgrade without issue
 func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t := s.T()
-	testCfg := testsuite.LoadConfig()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -508,14 +514,15 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	msgCreateSoloMachineClient, err := clienttypes.NewMsgCreateClient(legacyClientState, legacyConsensusState, chainAAddress)
 	s.Require().NoError(err)
 
-	resp := s.BroadcastMessages(
+	resp, err := s.BroadcastMessages(
 		ctx,
 		chainA,
 		chainAWallet,
 		msgCreateSoloMachineClient,
 	)
 
-	s.AssertTxSuccess(resp)
+	s.AssertValidTxResponse(resp)
+	s.Require().NoError(err)
 
 	t.Run("check that the solomachine is now active and that the clientstate is a pre-upgrade v2 solomachine clientstate", func(t *testing.T) {
 		status, err := s.QueryClientStatus(ctx, chainA, testvalues.SolomachineClientID(2))
@@ -530,8 +537,9 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.AssertTxSuccess(transferTxResp)
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
 	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
@@ -575,8 +583,9 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 
 	t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.AssertTxSuccess(transferTxResp)
+		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.Require().NoError(err)
+		s.AssertValidTxResponse(transferTxResp)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -596,92 +605,47 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 }
 
-func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
+func (s *UpgradeTestSuite) TestV7ChainUpgradeAddLocalhost() {
 	t := s.T()
-	testCfg := testsuite.LoadConfig()
+	testCfg := testconfig.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
-	chainA, chainB := s.GetChains()
+	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	chain, _ := s.GetChains()
 
-	chainADenom := chainA.Config().Denom
-
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.FormattedAddress()
-
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.FormattedAddress()
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
-	t.Run("transfer native tokens from chainA to chainB", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.AssertTxSuccess(transferTxResp)
-	})
-
-	t.Run("tokens are escrowed", func(t *testing.T) {
-		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-		s.Require().NoError(err)
-
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
-	})
-
-	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
-	})
-
-	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
-
-	t.Run("packet is relayed", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
-
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
-		s.Require().NoError(err)
-
-		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
-	})
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chain), "failed to wait for blocks")
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainA, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chain, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
-		status, err := s.QueryClientStatus(ctx, chainA, exported.LocalhostClientID)
+		status, err := s.QueryClientStatus(ctx, chain, exported.LocalhostClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 
-		connectionEnd, err := s.QueryConnection(ctx, chainA, exported.LocalhostConnectionID)
+		connectionEnd, err := s.QueryConnection(ctx, chain, exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().Equal(connectiontypes.OPEN, connectionEnd.State)
 		s.Require().Equal(exported.LocalhostClientID, connectionEnd.ClientId)
 		s.Require().Equal(exported.LocalhostClientID, connectionEnd.Counterparty.ClientId)
 		s.Require().Equal(exported.LocalhostConnectionID, connectionEnd.Counterparty.ConnectionId)
 	})
-
-	t.Run("ensure escrow amount for native denom is stored in state", func(t *testing.T) {
-		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
-		s.Require().NoError(err)
-
-		expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
-		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow) // migration has run and total escrow amount has been set
-	})
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) {
-	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
-	s.AssertTxSuccess(txResp)
+func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) error {
+	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
+	s.Require().NoError(err)
+	s.AssertValidTxResponse(txResp)
+	return err
 }
 
 // getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
 // controller chain.
 func getICAVersion(chainAVersion, chainBVersion string) string {
-	chainBIsGreaterThanOrEqualToChainA := semverutil.GTE(chainBVersion, chainAVersion)
+	chainBIsGreaterThanOrEqualToChainA := semver.Compare(chainAVersion, chainBVersion) <= 0
 	if chainBIsGreaterThanOrEqualToChainA {
 		// allow version to be specified by the controller chain
 		return ""
@@ -705,7 +669,7 @@ func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, cli
 
 // getChainImage returns the image of a given chain.
 func getChainImage(chain *cosmos.CosmosChain) string {
-	tc := testsuite.LoadConfig()
+	tc := testconfig.LoadConfig()
 	for _, c := range tc.ChainConfigs {
 		if c.ChainID == chain.Config().ChainID {
 			return c.Image

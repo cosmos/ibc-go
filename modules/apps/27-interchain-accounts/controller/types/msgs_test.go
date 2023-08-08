@@ -3,11 +3,10 @@ package types_test
 import (
 	"testing"
 
-	"github.com/cosmos/gogoproto/proto"
-	"github.com/stretchr/testify/require"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -143,7 +142,7 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			Amount:      ibctesting.TestCoins,
 		}
 
-		data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
+		data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{msgBankSend})
 		require.NoError(t, err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -179,7 +178,7 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 		Amount:      ibctesting.TestCoins,
 	}
 
-	data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
+	data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{msgBankSend})
 	require.NoError(t, err)
 
 	packetData := icatypes.InterchainAccountPacketData{
@@ -194,52 +193,4 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 		packetData,
 	)
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
-}
-
-// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
-func TestMsgUpdateParamsValidateBasic(t *testing.T) {
-	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
-	}{
-		{"success: valid authority and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), true},
-		{"failure: invalid authority with valid params", types.NewMsgUpdateParams("invalidAddress", types.DefaultParams()), false},
-		{"failure: empty authority with valid params", types.NewMsgUpdateParams("", types.DefaultParams()), false},
-	}
-
-	for i, tc := range testCases {
-		err := tc.msg.ValidateBasic()
-		if tc.expPass {
-			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
-		} else {
-			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
-		}
-	}
-}
-
-// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
-func TestMsgUpdateParamsGetSigners(t *testing.T) {
-	testCases := []struct {
-		name    string
-		address sdk.AccAddress
-		expPass bool
-	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
-	}
-
-	for _, tc := range testCases {
-		msg := types.MsgUpdateParams{
-			Authority: tc.address.String(),
-			Params:    types.DefaultParams(),
-		}
-		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
-		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
-		}
-	}
 }

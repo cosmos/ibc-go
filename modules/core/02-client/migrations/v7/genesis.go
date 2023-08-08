@@ -2,7 +2,6 @@ package v7
 
 import (
 	errorsmod "cosmossdk.io/errors"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

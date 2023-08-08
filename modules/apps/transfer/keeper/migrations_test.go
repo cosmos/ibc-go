@@ -3,48 +3,9 @@ package keeper_test
 import (
 	"fmt"
 
-	sdkmath "cosmossdk.io/math"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-
 	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
-
-func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
-	testCases := []struct {
-		msg            string
-		malleate       func()
-		expectedParams transfertypes.Params
-	}{
-		{
-			"success: default params",
-			func() {
-				params := transfertypes.DefaultParams()
-				subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName)
-				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
-			},
-			transfertypes.DefaultParams(),
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-
-			tc.malleate() // explicitly set params
-
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-			err := migrator.MigrateParams(suite.chainA.GetContext())
-			suite.Require().NoError(err)
-
-			params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
-			suite.Require().Equal(tc.expectedParams, params)
-		})
-	}
-}
 
 func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 	testCases := []struct {
@@ -157,81 +118,4 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTracesCorruptionDetection() {
 	suite.Panics(func() {
 		migrator.MigrateTraces(suite.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
 	})
-}
-
-func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
-	var (
-		path  *ibctesting.Path
-		denom string
-	)
-
-	testCases := []struct {
-		msg               string
-		malleate          func()
-		expectedEscrowAmt sdkmath.Int
-	}{
-		{
-			"success: one native denom escrowed in one channel",
-			func() {
-				denom = sdk.DefaultBondDenom
-				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
-
-				// funds the escrow account to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
-			},
-			sdkmath.NewInt(100),
-		},
-		{
-			"success: one native denom escrowed in two channels",
-			func() {
-				denom = sdk.DefaultBondDenom
-				extraPath := NewTransferPath(suite.chainA, suite.chainB)
-				suite.coordinator.Setup(extraPath)
-
-				escrowAddress1 := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				escrowAddress2 := transfertypes.GetEscrowAddress(extraPath.EndpointA.ChannelConfig.PortID, extraPath.EndpointA.ChannelID)
-				coin1 := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
-				coin2 := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
-
-				// funds the escrow accounts to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress1, sdk.NewCoins(coin1)))
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress2, sdk.NewCoins(coin2)))
-			},
-			sdkmath.NewInt(200),
-		},
-		{
-			"success: valid ibc denom escrowed in one channel",
-			func() {
-				escrowAddress := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				trace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
-				coin := sdk.NewCoin(trace.IBCDenom(), sdkmath.NewInt(100))
-				denom = trace.IBCDenom()
-
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), trace)
-
-				// funds the escrow account to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
-			},
-			sdkmath.NewInt(100),
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-
-			path = NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
-
-			tc.malleate() // explicitly fund escrow account
-
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-			suite.Require().NoError(migrator.MigrateTotalEscrowForDenom(suite.chainA.GetContext()))
-
-			// check that the migration set the expected amount for both native and IBC tokens
-			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom)
-			suite.Require().Equal(tc.expectedEscrowAmt, amount.Amount)
-		})
-	}
 }

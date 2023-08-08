@@ -4,28 +4,11 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	legacytx "github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
+	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-)
-
-// msg types
-const (
-	TypeMsgPayPacketFee      = "payPacketFee"
-	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
-)
-
-var (
-	_ sdk.Msg            = (*MsgRegisterPayee)(nil)
-	_ sdk.Msg            = (*MsgRegisterCounterpartyPayee)(nil)
-	_ sdk.Msg            = (*MsgPayPacketFee)(nil)
-	_ sdk.Msg            = (*MsgPayPacketFeeAsync)(nil)
-	_ legacytx.LegacyMsg = (*MsgPayPacketFee)(nil)
-	_ legacytx.LegacyMsg = (*MsgPayPacketFeeAsync)(nil)
 )
 
 // NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
@@ -162,17 +145,12 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-// Type implements legacytx.LegacyMsg
-func (msg MsgPayPacketFee) Type() string {
-	return TypeMsgPayPacketFee
-}
-
-// Route implements legacytx.LegacyMsg
+// Route implements sdk.Msg
 func (msg MsgPayPacketFee) Route() string {
 	return RouterKey
 }
 
-// GetSignBytes implements legacytx.LegacyMsg
+// GetSignBytes implements sdk.Msg.
 func (msg MsgPayPacketFee) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }
@@ -204,17 +182,12 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-// Type implements legacytx.LegacyMsg
-func (msg MsgPayPacketFeeAsync) Type() string {
-	return TypeMsgPayPacketFeeAsync
-}
-
-// Route implements legacytx.LegacyMsg
+// Route implements sdk.Msg
 func (msg MsgPayPacketFeeAsync) Route() string {
 	return RouterKey
 }
 
-// GetSignBytes implements legacytx.LegacyMsg
+// GetSignBytes implements sdk.Msg.
 func (msg MsgPayPacketFeeAsync) GetSignBytes() []byte {
 	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }

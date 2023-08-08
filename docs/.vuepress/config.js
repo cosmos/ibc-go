@@ -145,10 +145,6 @@ module.exports = {
         key: "v4.3.0",
       },
       {
-        label: "v4.4.0",
-        key: "v4.4.0",
-      },
-      {
         label: "v5.0.0",
         key: "v5.0.0",
       },
@@ -161,28 +157,12 @@ module.exports = {
         key: "v5.2.0",
       },
       {
-        label: "v5.3.0",
-        key: "v5.3.0",
-      },
-      {
         label: "v6.1.0",
         key: "v6.1.0",
       },
       {
-        label: "v6.2.0",
-        key: "v6.2.0",
-      },
-      {
         label: "v7.0.0",
         key: "v7.0.0",
-      },
-      {
-        label: "v7.1.0",
-        key: "v7.1.0",
-      },
-      {
-        label: "v7.2.0",
-        key: "v7.2.0",
       },
     ],
     topbar: {
@@ -362,11 +342,6 @@ module.exports = {
                   title: "Authorizations",
                   directory: false,
                   path: "/apps/transfer/authorizations.html",
-                },
-                {
-                  title: "Client",
-                  directory: false,
-                  path: "/apps/transfer/client.html",
                 },
               ],
             },
@@ -608,7 +583,7 @@ module.exports = {
     },
     footer: {
       question: {
-        text: "Chat with IBC developers in <a href='https://discord.gg/cosmosnetwork' target='_blank'>Discord</a>.",
+        text: "Chat with IBC developers in <a href='https://discord.gg/W8trcGV' target='_blank'>Discord</a>.",
       },
       textLink: {
         text: "ibcprotocol.dev",
@@ -637,11 +612,11 @@ module.exports = {
         },
         {
           service: "youtube",
-          url: "https://www.youtube.com/@interchain_io/featured",
+          url: "https://www.youtube.com/c/CosmosProject",
         },
       ],
       smallprint:
-        "The development of IBC-Go is led primarily by Interchain GmbH. Funding for this development comes primarily from the [Interchain Foundation](https://interchain.io/), a Swiss non-profit.",
+        "The development of IBC-Go is led primarily by [Interchain GmbH](https://interchain.berlin/). Funding for this development comes primarily from the Interchain Foundation, a Swiss non-profit.",
       links: [
         {
           title: "Documentation",
@@ -655,11 +630,7 @@ module.exports = {
               url: "https://hub.cosmos.network",
             },
             {
-              title: "CometBFT",
-              url: "https://docs.cometbft.com/",
-            },
-            {
-              title: "Tendermint Core (archived)",
+              title: "Tendermint Core",
               url: "https://docs.tendermint.com",
             },
           ],
@@ -677,7 +648,7 @@ module.exports = {
             },
             {
               title: "Chat",
-              url: "https://discord.gg/cosmosnetwork",
+              url: "https://discord.gg/W8trcGV",
             },
           ],
         },

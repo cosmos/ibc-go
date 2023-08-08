@@ -1,10 +1,8 @@
 package keeper
 
 import (
-	metrics "github.com/armon/go-metrics"
-
 	errorsmod "cosmossdk.io/errors"
-
+	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -35,10 +33,6 @@ func (k Keeper) CreateClient(
 
 	if err := clientState.Initialize(ctx, k.cdc, clientStore, consensusState); err != nil {
 		return "", err
-	}
-
-	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return "", errorsmod.Wrapf(types.ErrClientNotActive, "cannot create client (%s) with status %s", clientID, status)
 	}
 
 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())

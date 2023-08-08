@@ -6,19 +6,17 @@ import (
 	"sort"
 	"strings"
 
-	proto "github.com/cosmos/gogoproto/proto"
-
 	errorsmod "cosmossdk.io/errors"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	proto "github.com/cosmos/gogoproto/proto"
 
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var (
-	_ codectypes.UnpackInterfacesMessage = (*IdentifiedClientState)(nil)
-	_ codectypes.UnpackInterfacesMessage = (*ConsensusStateWithHeight)(nil)
+	_ codectypes.UnpackInterfacesMessage = IdentifiedClientState{}
+	_ codectypes.UnpackInterfacesMessage = ConsensusStateWithHeight{}
 )
 
 // NewIdentifiedClientState creates a new IdentifiedClientState instance
@@ -44,7 +42,7 @@ func (ics IdentifiedClientState) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 	return unpacker.UnpackAny(ics.ClientState, new(exported.ClientState))
 }
 
-var _ sort.Interface = (*IdentifiedClientStates)(nil)
+var _ sort.Interface = IdentifiedClientStates{}
 
 // IdentifiedClientStates defines a slice of ClientConsensusStates that supports the sort interface
 type IdentifiedClientStates []IdentifiedClientState

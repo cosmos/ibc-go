@@ -50,7 +50,7 @@ func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 		paths[i] = path
 	}
 
-	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1)
+	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)
 	smClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), solomachine.ClientID)
 
 	// set client state

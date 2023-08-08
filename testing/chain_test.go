@@ -3,11 +3,9 @@ package ibctesting_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
-	sdkmath "cosmossdk.io/math"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -20,9 +18,9 @@ func TestChangeValSet(t *testing.T) {
 	path := ibctesting.NewPath(chainA, chainB)
 	coord.Setup(path)
 
-	amount, ok := sdkmath.NewIntFromString("10000000000000000000")
+	amount, ok := sdk.NewIntFromString("10000000000000000000")
 	require.True(t, ok)
-	amount2, ok := sdkmath.NewIntFromString("30000000000000000000")
+	amount2, ok := sdk.NewIntFromString("30000000000000000000")
 	require.True(t, ok)
 
 	val := chainA.GetSimApp().StakingKeeper.GetValidators(chainA.GetContext(), 4)
