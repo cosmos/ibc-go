@@ -84,7 +84,7 @@ func GetDestCallbackData(
 // address and gas limit from the callback data.
 func getCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
-	packet ibcexported.PacketI, remainingGas uint64,
+	packet ibcexported.PacketI, remainingGas,
 	maxGas uint64, callbackKey string,
 ) (CallbackData, error) {
 	// unmarshal packet data
@@ -119,7 +119,7 @@ func getCallbackData(
 	}
 
 	// get the gas limit from the callback data
-	executionGasLimit, commitGasLimit := computeExecAndCommitGasLimit(remainingGas, maxGas, callbackData)
+	executionGasLimit, commitGasLimit := computeExecAndCommitGasLimit(callbackData, remainingGas, maxGas)
 
 	return CallbackData{
 		ContractAddress:   callbackAddress,
@@ -129,7 +129,7 @@ func getCallbackData(
 	}, nil
 }
 
-func computeExecAndCommitGasLimit(remainingGas uint64, maxGas uint64, callbackData map[string]interface{}) (uint64, uint64) {
+func computeExecAndCommitGasLimit(callbackData map[string]interface{}, remainingGas, maxGas uint64) (uint64, uint64) {
 	// get the gas limit from the callback data
 	commitGasLimit := getUserDefinedGasLimit(callbackData)
 
