@@ -441,8 +441,8 @@ func NewSimApp(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	// Mock Keepers
-	// real applications should not use these
+	// NOTE: The mock ContractKeeper is only created for testing.
+	// Real applications should not use the mock ContractKeeper
 	app.MockContractKeeper = ibcmock.NewContractKeeper(memKeys[ibcmock.MemStoreKey])
 
 	// register the proposal types
