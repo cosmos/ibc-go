@@ -580,6 +580,13 @@ func (k Keeper) deleteCounterpartyUpgrade(ctx sdk.Context, portID, channelID str
 	store.Delete(host.ChannelCounterpartyUpgradeKey(portID, channelID))
 }
 
+// deleteUpgradeInfo deletes all auxiliary upgrade information.
+func (k Keeper) deleteUpgradeInfo(ctx sdk.Context, portID, channelID string) {
+	k.deleteUpgrade(ctx, portID, channelID)
+	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
+	k.deleteCounterpartyUpgrade(ctx, portID, channelID)
+}
+
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
 func (Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
