@@ -553,6 +553,33 @@ func (k Keeper) deleteUpgrade(ctx sdk.Context, portID, channelID string) {
 	store.Delete(host.ChannelUpgradeKey(portID, channelID))
 }
 
+// GetCounterpartyUpgrade gets the counterparty upgrade from the store.
+func (k Keeper) GetCounterpartyUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.ChannelCounterpartyUpgradeKey(portID, channelID))
+	if bz == nil {
+		return types.Upgrade{}, false
+	}
+
+	var upgrade types.Upgrade
+	k.cdc.MustUnmarshal(bz, &upgrade)
+
+	return upgrade, true
+}
+
+// SetCounterpartyUpgrade sets the counterparty upgrade in the store.
+func (k Keeper) SetCounterpartyUpgrade(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&upgrade)
+	store.Set(host.ChannelCounterpartyUpgradeKey(portID, channelID), bz)
+}
+
+// deleteCounterpartyUpgrade deletes the counterparty upgrade in the store.
+func (k Keeper) deleteCounterpartyUpgrade(ctx sdk.Context, portID, channelID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.ChannelCounterpartyUpgradeKey(portID, channelID))
+}
+
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
 func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })

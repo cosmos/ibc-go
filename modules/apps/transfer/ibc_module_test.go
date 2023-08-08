@@ -313,7 +313,10 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 }
 
 func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
-	var path *ibctesting.Path
+	var (
+		counterpartyUpgrade channeltypes.Upgrade
+		path                *ibctesting.Path
+	)
 
 	testCases := []struct {
 		name     string
@@ -326,36 +329,18 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			nil,
 		},
 		{
-			"invalid upgrade connection",
-			func() {
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{"connection-100"}
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{"connection-100"}
-			},
-			connectiontypes.ErrConnectionNotFound,
-		},
-		{
 			"invalid upgrade ordering",
 			func() {
-				// NOTE: counterpartyUpgrade is queried by Endpoint.ChanUpgradeTry() so retrieve and mutate fields here appropriately to force failure
-				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
 				counterpartyUpgrade.Fields.Ordering = channeltypes.ORDERED
-				path.EndpointA.SetChannelUpgrade(counterpartyUpgrade)
-
-				suite.coordinator.CommitBlock(suite.chainA)
 			},
-			channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannelOrdering),
+			channeltypes.ErrInvalidChannelOrdering,
 		},
 		{
 			"invalid upgrade version",
 			func() {
-				// NOTE: counterpartyUpgrade is queried by Endpoint.ChanUpgradeTry() so retrieve and mutate fields here appropriately to force failure
-				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
-				counterpartyUpgrade.Fields.Version = ibctesting.InvalidVersion
-				path.EndpointA.SetChannelUpgrade(counterpartyUpgrade)
-
-				suite.coordinator.CommitBlock(suite.chainA)
+				counterpartyUpgrade.Fields.Version = "invalid-version"
 			},
-			channeltypes.NewUpgradeError(1, types.ErrInvalidVersion),
+			types.ErrInvalidVersion,
 		},
 	}
 
@@ -377,27 +362,92 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
+			counterpartyUpgrade = path.EndpointA.GetChannelUpgrade()
+
 			tc.malleate()
 
-			err = path.EndpointB.ChanUpgradeTry()
+			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), types.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			version, err := cbs.OnChanUpgradeTry(
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
+				counterpartyUpgrade.Fields.Ordering, counterpartyUpgrade.Fields.ConnectionHops, counterpartyUpgrade.Fields.Version,
+			)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-
-				upgrade := path.EndpointB.GetChannelUpgrade()
-				suite.Require().Equal(upgradePath.EndpointB.ConnectionID, upgrade.Fields.ConnectionHops[0])
+				suite.Require().Equal(types.Version, version)
 			} else {
-				// NOTE: application callback failure in OnChanUpgradeTry results in an ErrorReceipt being written to state signaling for cancellation
-				if expUpgradeError, ok := tc.expError.(*channeltypes.UpgradeError); ok {
-					errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-					suite.Require().True(found)
-					suite.Require().Equal(expUpgradeError.GetErrorReceipt(), errorReceipt)
-				} else {
-					// NOTE: application callback is not reached and instead an error is returned directly to the client
-					suite.Require().Error(err)
-					suite.Require().ErrorIs(err, tc.expError)
-				}
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
+func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {}, // successful happy path for a standalone transfer app is swapping out the underlying connection
+			nil,
+		},
+		{
+			"invalid upgrade version",
+			func() {
+				path.EndpointB.ChannelConfig.Version = "invalid-version"
+			},
+			types.ErrInvalidVersion,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = NewTransferPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade to modify the underlying connection
+			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(upgradePath)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanUpgradeAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.Version)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}

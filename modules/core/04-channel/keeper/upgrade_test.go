@@ -122,7 +122,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
 				channel := path.EndpointA.GetChannel()
 
-				events := ctx.EventManager().Events()
+				events := ctx.EventManager().Events().ToABCIEvents()
 				expEvents := ibctesting.EventsMap{
 					types.EventTypeChannelUpgradeInit: {
 						types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
@@ -388,8 +388,9 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 
 			tc.malleate()
 
+			ctx := suite.chainB.GetContext()
 			upgradedChannelEnd, upgradeWithAppCallbackVersion := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeTryChannel(
-				suite.chainB.GetContext(),
+				ctx,
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
 				proposedUpgrade,
@@ -408,6 +409,26 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			actualCounterpartyLastSequenceSend, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().True(ok)
 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
+
+			events := ctx.EventManager().Events().ToABCIEvents()
+			expEvents := ibctesting.EventsMap{
+				types.EventTypeChannelUpgradeTry: {
+					types.AttributeKeyPortID:                    path.EndpointB.ChannelConfig.PortID,
+					types.AttributeKeyChannelID:                 path.EndpointB.ChannelID,
+					types.AttributeCounterpartyPortID:           path.EndpointA.ChannelConfig.PortID,
+					types.AttributeCounterpartyChannelID:        path.EndpointA.ChannelID,
+					types.AttributeKeyUpgradeConnectionHops:     upgrade.Fields.ConnectionHops[0],
+					types.AttributeKeyUpgradeVersion:            upgrade.Fields.Version,
+					types.AttributeKeyUpgradeOrdering:           upgrade.Fields.Ordering.String(),
+					types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
+					types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
+				},
+				sdk.EventTypeMessage: {
+					sdk.AttributeKeyModule: types.AttributeValueCategory,
+				},
+			}
+
+			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 
 			if tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
