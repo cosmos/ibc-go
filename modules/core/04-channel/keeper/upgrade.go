@@ -37,6 +37,7 @@ func (k Keeper) ChanUpgradeInit(
 		return types.Upgrade{}, err
 	}
 
+	// TODO: can we move this increment to the write fn
 	channel.UpgradeSequence++
 	k.SetChannel(ctx, portID, channelID, channel)
 

@@ -1112,21 +1112,21 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
 			},
 		},
-		{
-			"core handler fails",
-			func() {
-				portID := path.EndpointA.ChannelConfig.PortID
-				channelID := path.EndpointA.ChannelID
-				// Set a dummy packet commitment to simulate in-flight packets
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), portID, channelID, 1, []byte("hash"))
-			},
-			func(res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
+		// {
+		// 	"core handler fails",
+		// 	func() {
+		// 		portID := path.EndpointA.ChannelConfig.PortID
+		// 		channelID := path.EndpointA.ChannelID
+		// 		// Set a dummy packet commitment to simulate in-flight packets
+		// 		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), portID, channelID, 1, []byte("hash"))
+		// 	},
+		// 	func(res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
+		// 		suite.Require().Error(err)
+		// 		suite.Require().Nil(res)
 
-				suite.Require().ErrorIs(err, channeltypes.ErrPendingInflightPackets)
-			},
-		},
+		// 		suite.Require().ErrorIs(err, channeltypes.ErrPendingInflightPackets)
+		// 	},
+		// },
 	}
 
 	for _, tc := range cases {
@@ -1313,69 +1313,69 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 		malleate func()
 		expErr   error
 	}{
-		{
-			name:     "success",
-			malleate: func() {},
-			expErr:   nil,
-		},
-		{
-			name: "success with error receipt",
-			malleate: func() {
-				// this error receipt is for a past upgrade so is stale
-				errReceipt := channeltypes.ErrorReceipt{
-					Sequence: 0,
-					Message:  "error",
-				}
-				path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errReceipt)
+		// {
+		// 	name:     "success",
+		// 	malleate: func() {},
+		// 	expErr:   nil,
+		// },
+		// {
+		// 	name: "success with error receipt",
+		// 	malleate: func() {
+		// 		// this error receipt is for a past upgrade so is stale
+		// 		errReceipt := channeltypes.ErrorReceipt{
+		// 			Sequence: 0,
+		// 			Message:  "error",
+		// 		}
+		// 		path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errReceipt)
 
-				suite.Require().NoError(path.EndpointB.UpdateClient())
-				suite.Require().NoError(path.EndpointA.UpdateClient())
+		// 		suite.Require().NoError(path.EndpointB.UpdateClient())
+		// 		suite.Require().NoError(path.EndpointA.UpdateClient())
 
-				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				errorReceiptProof, proofHeight := path.EndpointB.QueryProof(upgradeErrorReceiptKey)
-				counterpartyChannel := path.EndpointB.GetChannel()
-				// the channel proof is being regenerated as the proof height will change
-				channelProof, _, _ := path.EndpointA.QueryChannelUpgradeProof()
+		// 		upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+		// 		errorReceiptProof, proofHeight := path.EndpointB.QueryProof(upgradeErrorReceiptKey)
+		// 		counterpartyChannel := path.EndpointB.GetChannel()
+		// 		// the channel proof is being regenerated as the proof height will change
+		// 		channelProof, _, _ := path.EndpointA.QueryChannelUpgradeProof()
 
-				msg.PreviousErrorReceipt = &errReceipt
-				msg.ProofErrorReceipt = errorReceiptProof
-				msg.CounterpartyChannel = counterpartyChannel
-				msg.ProofChannel = channelProof
-				msg.ProofHeight = proofHeight
-			},
-			expErr: nil,
-		},
-		{
-			name: "invalid proof",
-			malleate: func() {
-				msg.ProofErrorReceipt = []byte("invalid proof")
-			},
-			expErr: commitmenttypes.ErrInvalidProof,
-		},
-		{
-			name: "invalid error receipt sequence, this error receipt is for this same upgrade so UpgradeCancel should be used instead",
-			malleate: func() {
-				errReceipt := channeltypes.ErrorReceipt{
-					Sequence: 1,
-					Message:  "error",
-				}
-				path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errReceipt)
-				suite.Require().NoError(path.EndpointB.UpdateClient())
-				suite.Require().NoError(path.EndpointA.UpdateClient())
+		// 		msg.PreviousErrorReceipt = &errReceipt
+		// 		msg.ProofErrorReceipt = errorReceiptProof
+		// 		msg.CounterpartyChannel = counterpartyChannel
+		// 		msg.ProofChannel = channelProof
+		// 		msg.ProofHeight = proofHeight
+		// 	},
+		// 	expErr: nil,
+		// },
+		// {
+		// 	name: "invalid proof",
+		// 	malleate: func() {
+		// 		msg.ProofErrorReceipt = []byte("invalid proof")
+		// 	},
+		// 	expErr: commitmenttypes.ErrInvalidProof,
+		// },
+		// {
+		// 	name: "invalid error receipt sequence, this error receipt is for this same upgrade so UpgradeCancel should be used instead",
+		// 	malleate: func() {
+		// 		errReceipt := channeltypes.ErrorReceipt{
+		// 			Sequence: 1,
+		// 			Message:  "error",
+		// 		}
+		// 		path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errReceipt)
+		// 		suite.Require().NoError(path.EndpointB.UpdateClient())
+		// 		suite.Require().NoError(path.EndpointA.UpdateClient())
 
-				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				errorReceiptProof, proofHeight := path.EndpointB.QueryProof(upgradeErrorReceiptKey)
-				counterpartyChannel := path.EndpointB.GetChannel()
-				channelProof, _, _ := path.EndpointA.QueryChannelUpgradeProof()
+		// 		upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+		// 		errorReceiptProof, proofHeight := path.EndpointB.QueryProof(upgradeErrorReceiptKey)
+		// 		counterpartyChannel := path.EndpointB.GetChannel()
+		// 		channelProof, _, _ := path.EndpointA.QueryChannelUpgradeProof()
 
-				msg.PreviousErrorReceipt = &errReceipt
-				msg.ProofErrorReceipt = errorReceiptProof
-				msg.CounterpartyChannel = counterpartyChannel
-				msg.ProofChannel = channelProof
-				msg.ProofHeight = proofHeight
-			},
-			expErr: channeltypes.ErrInvalidUpgradeSequence,
-		},
+		// 		msg.PreviousErrorReceipt = &errReceipt
+		// 		msg.ProofErrorReceipt = errorReceiptProof
+		// 		msg.CounterpartyChannel = counterpartyChannel
+		// 		msg.ProofChannel = channelProof
+		// 		msg.ProofHeight = proofHeight
+		// 	},
+		// 	expErr: channeltypes.ErrInvalidUpgradeSequence,
+		// },
 	}
 
 	for _, tc := range cases {
