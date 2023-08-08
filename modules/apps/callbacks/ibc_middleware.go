@@ -222,11 +222,6 @@ func (IBCMiddleware) processCallback(
 ) (err error) {
 	callbackData, err := callbackDataGetter()
 	if err != nil {
-		types.Logger(ctx).Debug("Failed to get callback data.", "packet", packet, "err", err)
-		return nil
-	}
-	if callbackData.ContractAddress == "" {
-		types.Logger(ctx).Debug(fmt.Sprintf("No %s callback found for packet.", callbackType), "packet", packet)
 		return nil
 	}
 
