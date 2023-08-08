@@ -275,8 +275,8 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 		{
 			"invalid upgrade version",
 			func() {
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
 			},
 			types.ErrInvalidVersion,
 		},
@@ -341,7 +341,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 		{
 			"invalid upgrade version",
 			func() {
-				counterpartyUpgrade.Fields.Version = "invalid-version"
+				counterpartyUpgrade.Fields.Version = ibctesting.InvalidID
 			},
 			types.ErrInvalidVersion,
 		},
@@ -408,7 +408,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 		{
 			"invalid upgrade version",
 			func() {
-				path.EndpointB.ChannelConfig.Version = "invalid-version"
+				path.EndpointB.ChannelConfig.Version = ibctesting.InvalidID
 			},
 			types.ErrInvalidVersion,
 		},

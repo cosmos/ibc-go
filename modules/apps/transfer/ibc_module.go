@@ -334,7 +334,7 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 	if counterpartyVersion != types.Version {
 		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
 	}
@@ -343,10 +343,10 @@ func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counter
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) {}
+func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) {}
 
 // OnChanUpgradeRestore implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {}
+func (IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {}
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional

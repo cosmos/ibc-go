@@ -868,7 +868,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 }
 
 // ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
-func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeConfirm) (*channeltypes.MsgChannelUpgradeConfirmResponse, error) {
+func (Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeConfirm) (*channeltypes.MsgChannelUpgradeConfirmResponse, error) {
 	return &channeltypes.MsgChannelUpgradeConfirmResponse{}, nil
 }
 

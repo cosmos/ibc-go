@@ -580,7 +580,7 @@ func (k Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequence
 }
 
 // UpgradeErrorReceipt implements the Query/UpgradeErrorReceipt gRPC method
-func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
+func (k Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -590,7 +590,7 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	found := q.HasChannel(ctx, req.PortId, req.ChannelId)
+	found := k.HasChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -598,7 +598,7 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 		)
 	}
 
-	receipt, found := q.GetUpgradeErrorReceipt(ctx, req.PortId, req.ChannelId)
+	receipt, found := k.GetUpgradeErrorReceipt(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -611,7 +611,7 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 }
 
 // Upgrade implements the Query/UpgradeSequence gRPC method
-func (q Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*types.QueryUpgradeResponse, error) {
+func (k Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*types.QueryUpgradeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -621,7 +621,7 @@ func (q Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	found := q.HasChannel(ctx, req.PortId, req.ChannelId)
+	found := k.HasChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -629,7 +629,7 @@ func (q Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*typ
 		)
 	}
 
-	upgrade, found := q.GetUpgrade(ctx, req.PortId, req.ChannelId)
+	upgrade, found := k.GetUpgrade(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
