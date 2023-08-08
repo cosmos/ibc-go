@@ -139,12 +139,9 @@ func (k ContractKeeper) processMockCallback(
 	// increment callback execution attempts
 	k.Counters[callbackType]++
 
-	if gasRemaining < 400000 {
+	if gasRemaining < 500000 {
 		// consume gas will panic since we attempt to consume 500_000 gas, for tests
 		ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback panic", callbackType))
-	} else if gasRemaining < 500000 {
-		ctx.GasMeter().ConsumeGas(gasRemaining, fmt.Sprintf("mock %s callback failure", callbackType))
-		return MockApplicationCallbackError
 	}
 
 	if authAddress == MockCallbackUnauthorizedAddress {
