@@ -3,13 +3,18 @@ package fee_test
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 
-	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibcfee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
+	feekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -17,10 +22,10 @@ import (
 )
 
 var (
-	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
-	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
-	smallAmount       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(50)}}
+	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}}
+	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(200)}}
+	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(300)}}
+	smallAmount       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(50)}}
 )
 
 // Tests OnChanOpenInit on ChainA
@@ -251,7 +256,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"invalid version fails to unmarshal metadata",
-			"invalid-version",
+			ibctesting.InvalidID,
 			func(suite *FeeTestSuite) {},
 			false,
 		},
@@ -1045,8 +1050,8 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 			"invalid upgrade version",
 			func() {
 				expFeeEnabled = false
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
 
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ uint64, _, _ string) (string, error) {
 					// intentionally force the error here so we can assert that a passthrough occurs when fees should not be enabled for this channel
@@ -1059,7 +1064,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 			"invalid fee version",
 			func() {
 				expFeeEnabled = false
-				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-version", AppVersion: ibcmock.Version}))
+				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: ibctesting.InvalidID, AppVersion: ibcmock.Version}))
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 			},
@@ -1160,7 +1165,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 			func() {
 				expFeeEnabled = false
 				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
-				counterpartyUpgrade.Fields.Version = "invalid-version"
+				counterpartyUpgrade.Fields.Version = ibctesting.InvalidID
 				path.EndpointA.SetChannelUpgrade(counterpartyUpgrade)
 
 				suite.coordinator.CommitBlock(suite.chainA)
@@ -1176,7 +1181,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 			"invalid fee version",
 			func() {
 				expFeeEnabled = false
-				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-version", AppVersion: ibcmock.Version}))
+				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: ibctesting.InvalidID, AppVersion: ibcmock.Version}))
 
 				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
 				counterpartyUpgrade.Fields.Version = upgradeVersion
@@ -1271,7 +1276,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 			func() {
 				expFeeEnabled = true
 				counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
-				counterpartyUpgrade.Fields.Version = "invalid-version"
+				counterpartyUpgrade.Fields.Version = ibctesting.InvalidID
 				path.EndpointB.SetChannelUpgrade(counterpartyUpgrade)
 
 				suite.coordinator.CommitBlock(suite.chainB)
@@ -1282,7 +1287,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 			"invalid fee version",
 			func() {
 				expFeeEnabled = true
-				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-version", AppVersion: ibcmock.Version}))
+				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: ibctesting.InvalidID, AppVersion: ibcmock.Version}))
 
 				counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
 				counterpartyUpgrade.Fields.Version = upgradeVersion
@@ -1411,7 +1416,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			feeModule := cbs.(fee.IBCMiddleware)
+			feeModule := cbs.(ibcfee.IBCMiddleware)
 
 			appVersion, found := feeModule.GetAppVersion(suite.chainA.GetContext(), portID, channelID)
 
@@ -1424,4 +1429,28 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			}
 		})
 	}
+}
+
+func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	feeModule, ok := cbs.(porttypes.PacketDataUnmarshaler)
+	suite.Require().True(ok)
+
+	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
+	suite.Require().NoError(err)
+	suite.Require().Equal(ibcmock.MockPacketData, packetData)
+}
+
+func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
+	// test the case when the underlying application cannot be casted to a PacketDataUnmarshaler
+	mockFeeMiddleware := ibcfee.NewIBCMiddleware(nil, feekeeper.Keeper{})
+
+	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
+	expError := errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
+	suite.Require().ErrorIs(err, expError)
 }

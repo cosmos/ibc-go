@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -102,11 +103,6 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
 		)
-	}
-
-	if hasPassed, err := counterpartyUpgrade.Timeout.HasPassed(ctx); hasPassed {
-		// abort here and let counterparty timeout the upgrade
-		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
 	}
 
 	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
@@ -262,6 +258,10 @@ func (k Keeper) ChanUpgradeAck(
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade); err != nil {
+		return types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
 	if err := k.startFlushUpgradeHandshake(ctx, portID, channelID, upgrade.Fields, counterpartyChannel, counterpartyUpgrade,
@@ -897,10 +897,4 @@ func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upg
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
 	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgrade, upgradeError)
 	return nil
-}
-
-// deleteUpgradeInfo deletes all auxiliary upgrade information.
-func (k Keeper) deleteUpgradeInfo(ctx sdk.Context, portID, channelID string) {
-	k.deleteUpgrade(ctx, portID, channelID)
-	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
 }

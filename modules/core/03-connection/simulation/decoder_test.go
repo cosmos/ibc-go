@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/cosmos-sdk/types/kv"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -14,14 +15,14 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup(t, false)
 	cdc := app.AppCodec()
 
 	connectionID := "connectionidone"
 
 	connection := types.ConnectionEnd{
 		ClientId: "clientidone",
-		Versions: types.ExportedVersionsToProto(types.GetCompatibleVersions()),
+		Versions: types.GetCompatibleVersions(),
 	}
 
 	paths := types.ClientPaths{

@@ -6,19 +6,18 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
-
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	testifysuite "github.com/stretchr/testify/suite"
 )
 
 func TestIncentivizedInterTxTestSuite(t *testing.T) {
-	suite.Run(t, new(IncentivizedInterTxTestSuite))
+	testifysuite.Run(t, new(IncentivizedInterTxTestSuite))
 }
 
 type IncentivizedInterTxTestSuite struct {
@@ -63,8 +62,8 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 	t.Run("register interchain account", func(t *testing.T) {
 		version := "" // allow app to handle the version as appropriate.
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
-		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.Require().NoError(err)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -98,9 +97,8 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 		})
 
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(resp)
+			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+			s.AssertTxSuccess(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
@@ -136,9 +134,8 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 			msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(msgSend, ibctesting.FirstConnectionID, controllerAccount.FormattedAddress())
 			s.Require().NoError(err)
 
-			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSubmitTx)
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
+			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSubmitTx)
+			s.AssertTxSuccess(resp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
 		})
@@ -231,8 +228,8 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 	t.Run("register interchain account", func(t *testing.T) {
 		version := "" // allow app to handle the version as appropriate.
 		msgRegisterAccount := intertxtypes.NewMsgRegisterAccount(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, version)
-		err := s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.Require().NoError(err)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -258,9 +255,8 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 
 	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp, err := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
-			s.Require().NoError(err)
-			s.AssertValidTxResponse(resp)
+			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+			s.AssertTxSuccess(resp)
 		})
 
 		t.Run("verify counterparty payee", func(t *testing.T) {
@@ -297,9 +293,8 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 			msgSubmitTx, err := intertxtypes.NewMsgSubmitTx(msgSend, ibctesting.FirstConnectionID, controllerAccount.FormattedAddress())
 			s.Require().NoError(err)
 
-			resp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSubmitTx)
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
+			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSubmitTx)
+			s.AssertTxSuccess(resp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
 		})

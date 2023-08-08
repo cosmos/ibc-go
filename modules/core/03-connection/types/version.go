@@ -5,18 +5,22 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 )
 
 var (
 	// DefaultIBCVersion represents the latest supported version of IBC used
-	// in connection version negotiation. The current version supports only
-	// ORDERED and UNORDERED channels and requires at least one channel type
+	// in connection version negotiation. The current version supports the list
+	// of orderings defined in SupportedOrderings and requires at least one channel type
 	// to be agreed upon.
-	DefaultIBCVersion = NewVersion(DefaultIBCVersionIdentifier, []string{"ORDER_ORDERED", "ORDER_UNORDERED"})
+	DefaultIBCVersion = NewVersion(DefaultIBCVersionIdentifier, SupportedOrderings)
 
 	// DefaultIBCVersionIdentifier is the IBC v1.0.0 protocol version identifier
 	DefaultIBCVersionIdentifier = "1"
+
+	// SupportedOrderings is the list of orderings supported by IBC. The current
+	// version supports only ORDERED and UNORDERED channels.
+	SupportedOrderings = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
 
 	// AllowNilFeatureSet is a helper map to indicate if a specified version
 	// identifier is allowed to have a nil feature set. Any versions supported,
@@ -25,8 +29,6 @@ var (
 		DefaultIBCVersionIdentifier: false,
 	}
 )
-
-var _ exported.Version = &Version{}
 
 // NewVersion returns a new instance of Version.
 func NewVersion(identifier string, features []string) *Version {
@@ -68,7 +70,7 @@ func ValidateVersion(version *Version) error {
 // proposed version is supported by this chain. If the feature set is
 // empty it verifies that this is allowed for the specified version
 // identifier.
-func (version Version) VerifyProposedVersion(proposedVersion exported.Version) error {
+func (version Version) VerifyProposedVersion(proposedVersion *Version) error {
 	if proposedVersion.GetIdentifier() != version.GetIdentifier() {
 		return errorsmod.Wrapf(
 			ErrVersionNegotiationFailed,
@@ -84,7 +86,7 @@ func (version Version) VerifyProposedVersion(proposedVersion exported.Version) e
 	}
 
 	for _, proposedFeature := range proposedVersion.GetFeatures() {
-		if !contains(proposedFeature, version.GetFeatures()) {
+		if !collections.Contains(proposedFeature, version.GetFeatures()) {
 			return errorsmod.Wrapf(
 				ErrVersionNegotiationFailed,
 				"proposed feature (%s) is not a supported feature set (%s)", proposedFeature, version.GetFeatures(),
@@ -97,27 +99,22 @@ func (version Version) VerifyProposedVersion(proposedVersion exported.Version) e
 
 // VerifySupportedFeature takes in a version and feature string and returns
 // true if the feature is supported by the version and false otherwise.
-func VerifySupportedFeature(version exported.Version, feature string) bool {
-	for _, f := range version.GetFeatures() {
-		if f == feature {
-			return true
-		}
-	}
-	return false
+func VerifySupportedFeature(version *Version, feature string) bool {
+	return collections.Contains(feature, version.GetFeatures())
 }
 
 // GetCompatibleVersions returns a descending ordered set of compatible IBC
 // versions for the caller chain's connection end. The latest supported
 // version should be first element and the set should descend to the oldest
 // supported version.
-func GetCompatibleVersions() []exported.Version {
-	return []exported.Version{DefaultIBCVersion}
+func GetCompatibleVersions() []*Version {
+	return []*Version{DefaultIBCVersion}
 }
 
 // IsSupportedVersion returns true if the proposed version has a matching version
 // identifier and its entire feature set is supported or the version identifier
 // supports an empty feature set.
-func IsSupportedVersion(supportedVersions []exported.Version, proposedVersion *Version) bool {
+func IsSupportedVersion(supportedVersions []*Version, proposedVersion *Version) bool {
 	supportedVersion, found := FindSupportedVersion(proposedVersion, supportedVersions)
 	if !found {
 		return false
@@ -133,12 +130,13 @@ func IsSupportedVersion(supportedVersions []exported.Version, proposedVersion *V
 // FindSupportedVersion returns the version with a matching version identifier
 // if it exists. The returned boolean is true if the version is found and
 // false otherwise.
-func FindSupportedVersion(version exported.Version, supportedVersions []exported.Version) (exported.Version, bool) {
+func FindSupportedVersion(version *Version, supportedVersions []*Version) (*Version, bool) {
 	for _, supportedVersion := range supportedVersions {
 		if version.GetIdentifier() == supportedVersion.GetIdentifier() {
 			return supportedVersion, true
 		}
 	}
+
 	return nil, false
 }
 
@@ -153,7 +151,7 @@ func FindSupportedVersion(version exported.Version, supportedVersions []exported
 //
 // CONTRACT: PickVersion must only provide a version that is in the
 // intersection of the supported versions and the counterparty versions.
-func PickVersion(supportedVersions, counterpartyVersions []exported.Version) (*Version, error) {
+func PickVersion(supportedVersions, counterpartyVersions []*Version) (*Version, error) {
 	for _, supportedVersion := range supportedVersions {
 		// check if the source version is supported by the counterparty
 		if counterpartyVersion, found := FindSupportedVersion(supportedVersion, counterpartyVersions); found {
@@ -178,44 +176,10 @@ func PickVersion(supportedVersions, counterpartyVersions []exported.Version) (*V
 // set for the counterparty version.
 func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string) (featureSet []string) {
 	for _, feature := range sourceFeatureSet {
-		if contains(feature, counterpartyFeatureSet) {
+		if collections.Contains(feature, counterpartyFeatureSet) {
 			featureSet = append(featureSet, feature)
 		}
 	}
 
 	return featureSet
-}
-
-// ExportedVersionsToProto casts a slice of the Version interface to a slice
-// of the Version proto definition.
-func ExportedVersionsToProto(exportedVersions []exported.Version) []*Version {
-	versions := make([]*Version, len(exportedVersions))
-	for i := range exportedVersions {
-		versions[i] = exportedVersions[i].(*Version)
-	}
-
-	return versions
-}
-
-// ProtoVersionsToExported converts a slice of the Version proto definition to
-// the Version interface.
-func ProtoVersionsToExported(versions []*Version) []exported.Version {
-	exportedVersions := make([]exported.Version, len(versions))
-	for i := range versions {
-		exportedVersions[i] = versions[i]
-	}
-
-	return exportedVersions
-}
-
-// contains returns true if the provided string element exists within the
-// string set.
-func contains(elem string, set []string) bool {
-	for _, element := range set {
-		if elem == element {
-			return true
-		}
-	}
-
-	return false
 }
