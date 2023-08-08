@@ -121,7 +121,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
 				channel := path.EndpointA.GetChannel()
 
-				events := ctx.EventManager().Events()
+				events := ctx.EventManager().Events().ToABCIEvents()
 				expEvents := ibctesting.EventsMap{
 					types.EventTypeChannelUpgradeInit: {
 						types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
@@ -409,7 +409,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			suite.Require().True(ok)
 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
 
-			events := ctx.EventManager().Events()
+			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{
 				types.EventTypeChannelUpgradeTry: {
 					types.AttributeKeyPortID:                    path.EndpointB.ChannelConfig.PortID,

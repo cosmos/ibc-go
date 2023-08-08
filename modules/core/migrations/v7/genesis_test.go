@@ -3,10 +3,11 @@ package v7_test
 import (
 	"testing"
 
+	testifysuite "github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/stretchr/testify/suite"
 
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	clientv7 "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
@@ -19,7 +20,7 @@ import (
 )
 
 type MigrationsV7TestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -30,7 +31,7 @@ type MigrationsV7TestSuite struct {
 
 // TestMigrationsV7TestSuite runs all the tests within this package.
 func TestMigrationsV7TestSuite(t *testing.T) {
-	suite.Run(t, new(MigrationsV7TestSuite))
+	testifysuite.Run(t, new(MigrationsV7TestSuite))
 }
 
 // SetupTest creates a coordinator with 2 test chains.
@@ -57,7 +58,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	}
 
 	// create multiple legacy solo machine clients
-	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)
+	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1)
 	solomachineMulti := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4)
 
 	clientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)

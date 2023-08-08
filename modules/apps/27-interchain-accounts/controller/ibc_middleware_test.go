@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller"
 	controllerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -37,7 +38,7 @@ var (
 )
 
 type InterchainAccountsTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -48,7 +49,7 @@ type InterchainAccountsTestSuite struct {
 }
 
 func TestICATestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }
 
 func (suite *InterchainAccountsTestSuite) SetupTest() {
@@ -916,4 +917,27 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 
 	err = path.EndpointB.ChanOpenConfirm()
 	suite.Require().NoError(err)
+}
+
+func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+	err := SetupICAPath(path, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	expPacketData := icatypes.InterchainAccountPacketData{
+		Type: icatypes.EXECUTE_TX,
+		Data: []byte("data"),
+		Memo: "",
+	}
+
+	packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(expPacketData.GetBytes())
+	suite.Require().NoError(err)
+	suite.Require().Equal(expPacketData, packetData)
+
+	// test invalid packet data
+	invalidPacketData := []byte("invalid packet data")
+	packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(invalidPacketData)
+	suite.Require().Error(err)
+	suite.Require().Nil(packetData)
 }

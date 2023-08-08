@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,16 +23,16 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		packetData types.FungibleTokenPacketData
 		expPass    bool
 	}{
-		{"valid packet", types.NewFungibleTokenPacketData(denom, amount, addr1, addr2, ""), true},
-		{"valid packet with memo", types.NewFungibleTokenPacketData(denom, amount, addr1, addr2, "memo"), true},
-		{"valid packet with large amount", types.NewFungibleTokenPacketData(denom, largeAmount, addr1, addr2, ""), true},
-		{"invalid denom", types.NewFungibleTokenPacketData("", amount, addr1, addr2, ""), false},
-		{"invalid empty amount", types.NewFungibleTokenPacketData(denom, "", addr1, addr2, ""), false},
-		{"invalid zero amount", types.NewFungibleTokenPacketData(denom, "0", addr1, addr2, ""), false},
-		{"invalid negative amount", types.NewFungibleTokenPacketData(denom, "-1", addr1, addr2, ""), false},
-		{"invalid large amount", types.NewFungibleTokenPacketData(denom, invalidLargeAmount, addr1, addr2, ""), false},
-		{"missing sender address", types.NewFungibleTokenPacketData(denom, amount, emptyAddr, addr2, ""), false},
-		{"missing recipient address", types.NewFungibleTokenPacketData(denom, amount, addr1, emptyAddr, ""), false},
+		{"valid packet", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, ""), true},
+		{"valid packet with memo", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, "memo"), true},
+		{"valid packet with large amount", types.NewFungibleTokenPacketData(denom, largeAmount, sender, receiver, ""), true},
+		{"invalid denom", types.NewFungibleTokenPacketData("", amount, sender, receiver, ""), false},
+		{"invalid empty amount", types.NewFungibleTokenPacketData(denom, "", sender, receiver, ""), false},
+		{"invalid zero amount", types.NewFungibleTokenPacketData(denom, "0", sender, receiver, ""), false},
+		{"invalid negative amount", types.NewFungibleTokenPacketData(denom, "-1", sender, receiver, ""), false},
+		{"invalid large amount", types.NewFungibleTokenPacketData(denom, invalidLargeAmount, sender, receiver, ""), false},
+		{"missing sender address", types.NewFungibleTokenPacketData(denom, amount, emptyAddr, receiver, ""), false},
+		{"missing recipient address", types.NewFungibleTokenPacketData(denom, amount, sender, emptyAddr, ""), false},
 	}
 
 	for i, tc := range testCases {
@@ -41,5 +42,91 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		} else {
 			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
 		}
+	}
+}
+
+func (suite *TypesTestSuite) TestGetPacketSender() {
+	packetData := types.FungibleTokenPacketData{
+		Denom:    denom,
+		Amount:   amount,
+		Sender:   sender,
+		Receiver: receiver,
+		Memo:     "",
+	}
+
+	suite.Require().Equal(sender, packetData.GetPacketSender(types.PortID))
+}
+
+func (suite *TypesTestSuite) TestPacketDataProvider() {
+	testCases := []struct {
+		name          string
+		packetData    types.FungibleTokenPacketData
+		expCustomData interface{}
+	}{
+		{
+			"success: src_callback key in memo",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver),
+			},
+			map[string]interface{}{
+				"address": receiver,
+			},
+		},
+		{
+			"success: src_callback key in memo with additional fields",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver),
+			},
+			map[string]interface{}{
+				"address":   receiver,
+				"gas_limit": "200000",
+			},
+		},
+		{
+			"success: src_callback has string value",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": "string"}`,
+			},
+			"string",
+		},
+		{
+			"failure: empty memo",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "",
+			},
+			nil,
+		},
+		{
+			"failure: non-json memo",
+			types.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     "invalid",
+			},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		customData := tc.packetData.GetCustomPacketData("src_callback")
+		suite.Require().Equal(tc.expCustomData, customData)
 	}
 }

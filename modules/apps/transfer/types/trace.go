@@ -8,9 +8,11 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -75,12 +77,17 @@ func (dt DenomTrace) GetFullDenomPath() string {
 	return dt.GetPrefix() + dt.BaseDenom
 }
 
+// IsNativeDenom returns true if the denomination is native, thus containing no trace history.
+func (dt DenomTrace) IsNativeDenom() bool {
+	return dt.Path == ""
+}
+
 // extractPathAndBaseFromFullDenom returns the trace path and the base denom from
 // the elements that constitute the complete denom.
 func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
 	var (
-		path      []string
-		baseDenom []string
+		pathSlice      []string
+		baseDenomSlice []string
 	)
 
 	length := len(fullDenomItems)
@@ -95,14 +102,17 @@ func extractPathAndBaseFromFullDenom(fullDenomItems []string) (string, string) {
 		// as an IBC denomination. The hash used to store the token internally on our chain
 		// will be the same value as the base denomination being correctly parsed.
 		if i < length-1 && length > 2 && channeltypes.IsValidChannelID(fullDenomItems[i+1]) {
-			path = append(path, fullDenomItems[i], fullDenomItems[i+1])
+			pathSlice = append(pathSlice, fullDenomItems[i], fullDenomItems[i+1])
 		} else {
-			baseDenom = fullDenomItems[i:]
+			baseDenomSlice = fullDenomItems[i:]
 			break
 		}
 	}
 
-	return strings.Join(path, "/"), strings.Join(baseDenom, "/")
+	path := strings.Join(pathSlice, "/")
+	baseDenom := strings.Join(baseDenomSlice, "/")
+
+	return path, baseDenom
 }
 
 func validateTraceIdentifiers(identifiers []string) error {
@@ -158,7 +168,7 @@ func (t Traces) Validate() error {
 	return nil
 }
 
-var _ sort.Interface = Traces{}
+var _ sort.Interface = (*Traces)(nil)
 
 // Len implements sort.Interface for Traces
 func (t Traces) Len() int { return len(t) }
