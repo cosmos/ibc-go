@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -306,7 +308,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 	}
 
 	for _, tc := range testCases {
-		app := simapp.Setup(false)
+		app := simapp.Setup(suite.T(), false)
 
 		suite.NotPanics(func() {
 			ibc.InitGenesis(app.BaseApp.NewContext(false, tmproto.Header{Height: 1}), *app.IBCKeeper, tc.genState)

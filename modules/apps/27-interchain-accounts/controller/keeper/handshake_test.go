@@ -1,8 +1,7 @@
 package keeper_test
 
 import (
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -194,7 +193,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid version",
 			func() {
-				metadata.Version = "invalid-version"
+				metadata.Version = ibctesting.InvalidVersion
 
 				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
@@ -359,7 +358,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		{
 			"invalid counterparty version",
 			func() {
-				metadata.Version = "invalid-version"
+				metadata.Version = ibctesting.InvalidVersion
 
 				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)

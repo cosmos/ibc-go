@@ -6,16 +6,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clientutils "github.com/cosmos/ibc-go/v7/modules/core/02-client/client/utils"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channelutils "github.com/cosmos/ibc-go/v7/modules/core/04-channel/client/utils"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 const (
@@ -83,26 +86,54 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 			}
 
 			// if the timeouts are not absolute, retrieve latest block height and block timestamp
-			// for the consensus state connected to the destination port/channel
+			// for the consensus state connected to the destination port/channel.
+			// localhost clients must rely solely on local clock time in order to use relative timestamps.
 			if !absoluteTimeouts {
-				consensusState, height, _, err := channelutils.QueryLatestConsensusState(clientCtx, srcPort, srcChannel)
+				clientRes, err := channelutils.QueryChannelClientState(clientCtx, srcPort, srcChannel, false)
 				if err != nil {
 					return err
 				}
 
+				var clientState exported.ClientState
+				if err := clientCtx.InterfaceRegistry.UnpackAny(clientRes.IdentifiedClientState.ClientState, &clientState); err != nil {
+					return err
+				}
+
+				clientHeight, ok := clientState.GetLatestHeight().(clienttypes.Height)
+				if !ok {
+					return fmt.Errorf("invalid height type. expected type: %T, got: %T", clienttypes.Height{}, clientState.GetLatestHeight())
+				}
+
+				var consensusState exported.ConsensusState
+				if clientState.ClientType() != exported.Localhost {
+					consensusStateRes, err := clientutils.QueryConsensusState(clientCtx, clientRes.IdentifiedClientState.ClientId, clientHeight, false, true)
+					if err != nil {
+						return err
+					}
+
+					if err := clientCtx.InterfaceRegistry.UnpackAny(consensusStateRes.ConsensusState, &consensusState); err != nil {
+						return err
+					}
+				}
+
 				if !timeoutHeight.IsZero() {
-					absoluteHeight := height
+					absoluteHeight := clientHeight
 					absoluteHeight.RevisionNumber += timeoutHeight.RevisionNumber
 					absoluteHeight.RevisionHeight += timeoutHeight.RevisionHeight
 					timeoutHeight = absoluteHeight
 				}
 
+				// use local clock time as reference time if it is later than the
+				// consensus state timestamp of the counterparty chain, otherwise
+				// still use consensus state timestamp as reference.
+				// for localhost clients local clock time is always used.
 				if timeoutTimestamp != 0 {
-					// use local clock time as reference time if it is later than the
-					// consensus state timestamp of the counter party chain, otherwise
-					// still use consensus state timestamp as reference
+					var consensusStateTimestamp uint64
+					if consensusState != nil {
+						consensusStateTimestamp = consensusState.GetTimestamp()
+					}
+
 					now := time.Now().UnixNano()
-					consensusStateTimestamp := consensusState.GetTimestamp()
 					if now > 0 {
 						now := uint64(now)
 						if now > consensusStateTimestamp {

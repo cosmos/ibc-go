@@ -3,8 +3,7 @@ package transfer_test
 import (
 	"math"
 
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -273,8 +272,8 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 		{
 			"invalid upgrade version",
 			func() {
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = "invalid-version"
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidVersion
 			},
 			types.ErrInvalidVersion,
 		},

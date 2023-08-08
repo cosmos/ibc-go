@@ -3,10 +3,11 @@ package cli
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
@@ -156,6 +157,39 @@ func GetCmdQueryDenomHash() *cobra.Command {
 			}
 
 			res, err := queryClient.DenomHash(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryTotalEscrowForDenom defines the command to query the total amount of tokens in escrow for a denom
+func GetCmdQueryTotalEscrowForDenom() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "total-escrow [denom]",
+		Short:   "Query the total amount of tokens in escrow for a denom",
+		Long:    "Query the total amount of tokens in escrow for a denom",
+		Example: fmt.Sprintf("%s query ibc-transfer total-escrow uosmo", version.AppName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryTotalEscrowForDenomRequest{
+				Denom: args[0],
+			}
+
+			res, err := queryClient.TotalEscrowForDenom(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

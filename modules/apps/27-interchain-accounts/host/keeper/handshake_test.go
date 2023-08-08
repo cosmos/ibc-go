@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -130,7 +132,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			"account already exists",
 			func() {
 				interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-				err := suite.chainB.GetSimApp().BankKeeper.SendCoins(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), interchainAccAddr, sdk.Coins{sdk.NewCoin("stake", sdk.NewInt(1))})
+				err := suite.chainB.GetSimApp().BankKeeper.SendCoins(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), interchainAccAddr, sdk.Coins{sdk.NewCoin("stake", sdkmath.NewInt(1))})
 				suite.Require().NoError(err)
 				suite.Require().True(suite.chainB.GetSimApp().AccountKeeper.HasAccount(suite.chainB.GetContext(), interchainAccAddr))
 			},
@@ -237,7 +239,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"invalid counterparty version",
 			func() {
-				metadata.Version = "invalid-version"
+				metadata.Version = ibctesting.InvalidVersion
 
 				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
@@ -274,7 +276,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
+			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 			suite.coordinator.SetupConnections(path)
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -354,7 +356,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
+			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 			suite.coordinator.SetupConnections(path)
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
@@ -397,7 +399,7 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = NewICAPath(suite.chainA, suite.chainB)
+			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
 			suite.coordinator.SetupConnections(path)
 
 			err := SetupICAPath(path, TestOwnerAddress)

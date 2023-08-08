@@ -4,8 +4,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 
 	v7 "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -53,7 +54,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	}
 
 	solomachines := []*ibctesting.Solomachine{
-		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1),
 		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),
 	}
 
@@ -69,7 +70,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 
 func (suite *MigrationsV7TestSuite) TestMigrateStoreNoTendermintClients() {
 	solomachines := []*ibctesting.Solomachine{
-		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1),
 		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),
 	}
 

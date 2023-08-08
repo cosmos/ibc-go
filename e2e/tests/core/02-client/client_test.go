@@ -23,6 +23,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -58,6 +60,15 @@ func (s *ClientTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID 
 	return res.Status, nil
 }
 
+// QueryAllowedClients queries the on-chain AllowedClients parameter for 02-client
+func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Chain) []string {
+	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
+	res, err := queryClient.ClientParams(ctx, &clienttypes.QueryClientParamsRequest{})
+	s.Require().NoError(err)
+
+	return res.Params.AllowedClients
+}
+
 func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
@@ -67,7 +78,8 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		relayer            ibc.Relayer
 		subjectClientID    string
 		substituteClientID string
-		badTrustingPeriod  = time.Duration(time.Second)
+		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
+		badTrustingPeriod = time.Duration(time.Second * 10)
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
@@ -147,7 +159,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		trustedHeight   clienttypes.Height
 		latestHeight    clienttypes.Height
 		clientState     ibcexported.ClientState
-		block           *tmproto.Block
+		header          testsuite.Header
 		signers         []tmtypes.PrivValidator
 		validatorSet    []*tmtypes.Validator
 		maliciousHeader *ibctm.Header
@@ -194,8 +206,8 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	t.Run("create validator set", func(t *testing.T) {
 		var validators []*tmservice.Validator
 
-		t.Run("fetch block at latest client state height", func(t *testing.T) {
-			block, err = s.GetBlockByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
+		t.Run("fetch block header at latest client state height", func(t *testing.T) {
+			header, err = s.GetBlockHeaderByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
 			s.Require().NoError(err)
 		})
 
@@ -221,7 +233,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	t.Run("create malicious header", func(t *testing.T) {
 		valSet := tmtypes.NewValidatorSet(validatorSet)
 		maliciousHeader, err = createMaliciousTMHeader(chainB.Config().ChainID, int64(latestHeight.GetRevisionHeight()), trustedHeight,
-			block.Header.GetTime(), valSet, valSet, signers, &block.Header)
+			header.GetTime(), valSet, valSet, signers, header)
 		s.Require().NoError(err)
 	})
 
@@ -230,15 +242,65 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		msgUpdateClient, err := clienttypes.NewMsgUpdateClient(ibctesting.FirstClientID, maliciousHeader, rlyWallet.FormattedAddress())
 		s.Require().NoError(err)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("ensure client status is frozen", func(t *testing.T) {
 		status, err := s.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Frozen.String(), status)
+	})
+}
+
+// TestAllowedClientsParam tests changing the AllowedClients parameter using a governance proposal
+func (s *ClientTestSuite) TestAllowedClientsParam() {
+	t := s.T()
+	ctx := context.TODO()
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("ensure allowed clients are set to the default", func(t *testing.T) {
+		allowedClients := s.QueryAllowedClients(ctx, chainA)
+		s.Require().Equal(clienttypes.DefaultAllowedClients, allowedClients)
+	})
+
+	allowedClient := ibcexported.Solomachine
+	t.Run("change the allowed client to only allow solomachine clients", func(t *testing.T) {
+		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
+			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+			s.Require().NoError(err)
+			s.Require().NotNil(authority)
+
+			msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(allowedClient))
+			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+		} else {
+			value, err := tmjson.Marshal([]string{allowedClient})
+			s.Require().NoError(err)
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(clienttypes.KeyAllowedClients), string(value)),
+			}
+
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+		}
+	})
+
+	t.Run("validate the param was successfully changed", func(t *testing.T) {
+		allowedClients := s.QueryAllowedClients(ctx, chainA)
+		s.Require().Equal([]string{allowedClient}, allowedClients)
+	})
+
+	t.Run("ensure querying non-allowed client's status returns Unauthorized Status", func(t *testing.T) {
+		status, err := s.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+		s.Require().Equal(ibcexported.Unauthorized.String(), status)
 	})
 }
 
@@ -283,22 +345,14 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *co
 }
 
 // createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
-func createMaliciousTMHeader(
-	chainID string,
-	blockHeight int64,
-	trustedHeight clienttypes.Height,
-	timestamp time.Time,
-	tmValSet, tmTrustedVals *tmtypes.ValidatorSet,
-	signers []tmtypes.PrivValidator,
-	oldHeader *tmproto.Header,
-) (*ibctm.Header, error) {
+func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *tmtypes.ValidatorSet, signers []tmtypes.PrivValidator, oldHeader testsuite.Header) (*ibctm.Header, error) {
 	tmHeader := tmtypes.Header{
 		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
 		Height:             blockHeight,
 		Time:               timestamp,
 		LastBlockID:        ibctesting.MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
-		LastCommitHash:     oldHeader.LastCommitHash,
+		LastCommitHash:     oldHeader.GetLastCommitHash(),
 		ValidatorsHash:     tmValSet.Hash(),
 		NextValidatorsHash: tmValSet.Hash(),
 		DataHash:           tmhash.Sum([]byte(invalidHashValue)),

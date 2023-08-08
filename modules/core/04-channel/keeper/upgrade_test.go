@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -121,7 +122,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
 				channel := path.EndpointA.GetChannel()
 
-				events := ctx.EventManager().Events()
+				events := ctx.EventManager().Events().ToABCIEvents()
 				expEvents := ibctesting.EventsMap{
 					types.EventTypeChannelUpgradeInit: {
 						types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
@@ -409,7 +410,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			suite.Require().True(ok)
 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
 
-			events := ctx.EventManager().Events()
+			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{
 				types.EventTypeChannelUpgradeTry: {
 					types.AttributeKeyPortID:                    path.EndpointB.ChannelConfig.PortID,
@@ -547,7 +548,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				path.EndpointA.SetChannel(channel)
 
 				upgrade := path.EndpointA.GetChannelUpgrade()
-				upgrade.Fields.Version = "invalid-version"
+				upgrade.Fields.Version = ibctesting.InvalidVersion
 
 				path.EndpointA.SetChannelUpgrade(upgrade)
 			},
