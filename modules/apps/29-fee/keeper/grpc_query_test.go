@@ -3,9 +3,12 @@ package keeper_test
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/crypto/secp256k1"
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/cometbft/cometbft/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -50,6 +53,13 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 			true,
 		},
 		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
+		},
+		{
 			"empty pagination",
 			func() {
 				expectedPackets = nil
@@ -65,7 +75,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 
 			tc.malleate() // malleate mutates test data
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPackets(ctx, req)
 
@@ -92,6 +102,13 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			"success",
 			func() {},
 			true,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
 		},
 		{
 			"fees not found for packet id",
@@ -125,7 +142,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 
 			tc.malleate() // malleate mutates test data
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPacket(ctx, req)
 
 			if tc.expPass {
@@ -146,9 +163,9 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 	)
 
 	fee := types.Fee{
-		AckFee:     sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
-		RecvFee:    sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
-		TimeoutFee: sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}},
+		AckFee:     sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}},
+		RecvFee:    sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}},
+		TimeoutFee: sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}},
 	}
 
 	testCases := []struct {
@@ -178,6 +195,13 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				}
 			},
 			true,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
 		},
 		{
 			"no packets for specified channel",
@@ -218,7 +242,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			}
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPacketsForChannel(ctx, req)
 
@@ -245,6 +269,13 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 			"success",
 			func() {},
 			true,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
 		},
 		{
 			"packet not found",
@@ -275,7 +306,7 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 
 			tc.malleate()
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.TotalRecvFees(ctx, req)
 
 			if tc.expPass {
@@ -306,6 +337,13 @@ func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
 			true,
 		},
 		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
+		},
+		{
 			"packet not found",
 			func() {
 				req.PacketId = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 100)
@@ -334,7 +372,7 @@ func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
 
 			tc.malleate()
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.TotalAckFees(ctx, req)
 
 			if tc.expPass {
@@ -365,6 +403,13 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 			true,
 		},
 		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
+		},
+		{
 			"packet not found",
 			func() {
 				req.PacketId = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 100)
@@ -393,7 +438,7 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 
 			tc.malleate()
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.TotalTimeoutFees(ctx, req)
 
 			if tc.expPass {
@@ -422,6 +467,13 @@ func (suite *KeeperTestSuite) TestQueryPayee() {
 			"success",
 			func() {},
 			true,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
 		},
 		{
 			"payee address not found: invalid channel",
@@ -460,7 +512,7 @@ func (suite *KeeperTestSuite) TestQueryPayee() {
 
 			tc.malleate()
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.Payee(ctx, req)
 
 			if tc.expPass {
@@ -485,6 +537,13 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
 			"success",
 			func() {},
 			true,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
 		},
 		{
 			"counterparty address not found: invalid channel",
@@ -523,7 +582,7 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
 
 			tc.malleate()
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.CounterpartyPayee(ctx, req)
 
 			if tc.expPass {
@@ -551,6 +610,13 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 			"success",
 			func() {},
 			true,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
 		},
 		{
 			"success: empty pagination",
@@ -630,7 +696,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 
 			tc.malleate()
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannels(ctx, req)
 
 			if tc.expPass {
@@ -644,7 +710,10 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 }
 
 func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
-	var req *types.QueryFeeEnabledChannelRequest
+	var (
+		req        *types.QueryFeeEnabledChannelRequest
+		expEnabled bool
+	)
 
 	testCases := []struct {
 		name     string
@@ -657,18 +726,28 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			true,
 		},
 		{
+			"empty request",
+			func() {
+				req = nil
+				expEnabled = false
+			},
+			false,
+		},
+		{
 			"fee not enabled on channel",
 			func() {
 				req.ChannelId = "invalid-channel-id"
 				req.PortId = "invalid-port-id"
+				expEnabled = false
 			},
-			false,
+			true,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			expEnabled = true
 
 			suite.coordinator.Setup(suite.path)
 
@@ -679,14 +758,14 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 
 			tc.malleate()
 
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannel(ctx, req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().True(res.FeeEnabled)
+				suite.Require().Equal(expEnabled, res.FeeEnabled)
 			} else {
-				suite.Require().False(res.FeeEnabled)
+				suite.Require().Error(err)
 			}
 		})
 	}

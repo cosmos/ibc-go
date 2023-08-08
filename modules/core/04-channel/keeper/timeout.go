@@ -5,9 +5,10 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -175,7 +176,7 @@ func (k Keeper) TimeoutExecuted(
 	// emit an event marking that we have processed the timeout
 	emitTimeoutPacketEvent(ctx, packet, channel)
 
-	if channel.Ordering == types.ORDERED && channel.State == types.CLOSED {
+	if channel.Ordering == types.ORDERED && channel.IsClosed() {
 		emitChannelClosedEvent(ctx, packet, channel)
 	}
 

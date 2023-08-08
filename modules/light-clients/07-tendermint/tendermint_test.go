@@ -4,12 +4,14 @@ import (
 	"testing"
 	"time"
 
+	testifysuite "github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -35,7 +37,7 @@ var (
 )
 
 type TendermintTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -66,7 +68,7 @@ func (suite *TendermintTestSuite) SetupTest() {
 
 	// TODO: deprecate usage in favor of testing package
 	checkTx := false
-	app := simapp.Setup(checkTx)
+	app := simapp.Setup(suite.T(), checkTx)
 
 	suite.cdc = app.AppCodec()
 
@@ -110,5 +112,5 @@ func getBothSigners(suite *TendermintTestSuite, altVal *tmtypes.Validator, altPr
 }
 
 func TestTendermintTestSuite(t *testing.T) {
-	suite.Run(t, new(TendermintTestSuite))
+	testifysuite.Run(t, new(TendermintTestSuite))
 }

@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/gogoproto/proto"
-	"github.com/spf13/cobra"
 
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
@@ -21,8 +22,8 @@ const (
 func generatePacketDataCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate-packet-data [message]",
-		Short: "Generates ICA packet data.",
-		Long: `generate-packet-data accepts a message string and serializes it
+		Short: "Generates protobuf encoded ICA packet data.",
+		Long: `generate-packet-data accepts a message string and serializes it using protobuf
 into packet data which is outputted to stdout. It can be used in conjunction with send-tx"
 which submits pre-built packet data containing messages to be executed on the host chain.
 `,
@@ -129,7 +130,7 @@ func convertBytesIntoProtoMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]pr
 
 // generateIcaPacketDataFromProtoMessages generates ica packet data as bytes from a given set of proto encoded sdk messages and a memo.
 func generateIcaPacketDataFromProtoMessages(cdc *codec.ProtoCodec, sdkMessages []proto.Message, memo string) ([]byte, error) {
-	icaPacketDataBytes, err := icatypes.SerializeCosmosTx(cdc, sdkMessages)
+	icaPacketDataBytes, err := icatypes.SerializeCosmosTx(cdc, sdkMessages, icatypes.EncodingProtobuf)
 	if err != nil {
 		return nil, err
 	}

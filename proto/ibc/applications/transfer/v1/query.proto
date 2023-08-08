@@ -3,6 +3,7 @@ syntax = "proto3";
 package ibc.applications.transfer.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/applications/transfer/v1/transfer.proto";
 import "google/api/annotations.proto";
@@ -34,6 +35,11 @@ service Query {
   // EscrowAddress returns the escrow address for a particular port and channel id.
   rpc EscrowAddress(QueryEscrowAddressRequest) returns (QueryEscrowAddressResponse) {
     option (google.api.http).get = "/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address";
+  }
+
+  // TotalEscrowForDenom returns the total amount of tokens in escrow based on the denom.
+  rpc TotalEscrowForDenom(QueryTotalEscrowForDenomRequest) returns (QueryTotalEscrowForDenomResponse) {
+    option (google.api.http).get = "/ibc/apps/transfer/v1/denoms/{denom=**}/total_escrow";
   }
 }
 
@@ -102,4 +108,14 @@ message QueryEscrowAddressRequest {
 message QueryEscrowAddressResponse {
   // the escrow account address
   string escrow_address = 1;
+}
+
+// QueryTotalEscrowForDenomRequest is the request type for TotalEscrowForDenom RPC method.
+message QueryTotalEscrowForDenomRequest {
+  string denom = 1;
+}
+
+// QueryTotalEscrowForDenomResponse is the response type for TotalEscrowForDenom RPC method.
+message QueryTotalEscrowForDenomResponse {
+  cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
 }
