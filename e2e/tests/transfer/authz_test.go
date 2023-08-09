@@ -4,20 +4,21 @@ import (
 	"context"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 )
 
 func TestAuthzTransferTestSuite(t *testing.T) {
-	suite.Run(t, new(AuthzTransferTestSuite))
+	testifysuite.Run(t, new(AuthzTransferTestSuite))
 }
 
 type AuthzTransferTestSuite struct {
@@ -28,7 +29,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
 	chainA, chainB := suite.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -53,7 +54,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 				{
 					SourcePort:    channelA.PortID,
 					SourceChannel: channelA.ChannelID,
-					SpendLimit:    sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(testvalues.StartingTokenAmount))),
+					SpendLimit:    sdk.NewCoins(sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.StartingTokenAmount))),
 					AllowList:     []string{receiverWalletAddress},
 				},
 			},
@@ -72,9 +73,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			},
 		}
 
-		resp, err := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
-		suite.AssertValidTxResponse(resp)
-		suite.Require().NoError(err)
+		resp := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
+		suite.AssertTxSuccess(resp)
 	}
 
 	// verifyGrantFn returns a test function which asserts chainA has a grant authorization
@@ -88,7 +88,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			grantAuthorization := grantAuths[0]
 
 			transferAuth := suite.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
-			expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(expectedLimit)))
+			expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdkmath.NewInt(expectedLimit)))
 			suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
 		}
 	}
@@ -113,9 +113,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			Msgs:    []*codectypes.Any{protoAny},
 		}
 
-		resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-		suite.AssertValidTxResponse(resp)
-		suite.Require().NoError(err)
+		resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+		suite.AssertTxSuccess(resp)
 	})
 
 	t.Run("verify granter wallet amount", func(t *testing.T) {
@@ -148,9 +147,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			MsgTypeUrl: transfertypes.TransferAuthorization{}.MsgTypeURL(),
 		}
 
-		resp, err := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, &msgRevoke)
-		suite.AssertValidTxResponse(resp)
-		suite.Require().NoError(err)
+		resp := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, &msgRevoke)
+		suite.AssertTxSuccess(resp)
 	})
 
 	t.Run("exec unauthorized MsgTransfer", func(t *testing.T) {
@@ -171,10 +169,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			Msgs:    []*codectypes.Any{protoAny},
 		}
 
-		resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-		suite.Require().NotEqual(0, resp.Code)
-		suite.Require().Contains(resp.RawLog, authz.ErrNoAuthorizationFound.Error())
-		suite.Require().NoError(err)
+		resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+		suite.AssertTxFailure(resp, authz.ErrNoAuthorizationFound)
 	})
 }
 
@@ -182,9 +178,10 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, transferChannelOptions())
+	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
 	chainA, chainB := suite.GetChains()
 
+	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 
 	granterWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -208,7 +205,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				{
 					SourcePort:    channelA.PortID,
 					SourceChannel: channelA.ChannelID,
-					SpendLimit:    sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(spendLimit))),
+					SpendLimit:    sdk.NewCoins(sdk.NewCoin(chainADenom, sdkmath.NewInt(spendLimit))),
 					AllowList:     []string{receiverWalletAddress},
 				},
 			},
@@ -227,9 +224,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			},
 		}
 
-		resp, err := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
-		suite.AssertValidTxResponse(resp)
-		suite.Require().NoError(err)
+		resp := suite.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
+		suite.AssertTxSuccess(resp)
 	})
 
 	t.Run("exceed spend limit", func(t *testing.T) {
@@ -239,7 +235,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			transferMsg := transfertypes.MsgTransfer{
 				SourcePort:    channelA.PortID,
 				SourceChannel: channelA.ChannelID,
-				Token:         sdk.Coin{Denom: chainADenom, Amount: sdk.NewInt(invalidSpendAmount)},
+				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)},
 				Sender:        granterAddress,
 				Receiver:      receiverWalletAddress,
 				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
@@ -253,10 +249,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				Msgs:    []*codectypes.Any{protoAny},
 			}
 
-			resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-			suite.Require().NotEqual(0, resp.Code)
-			suite.Require().Contains(resp.RawLog, sdkerrors.ErrInsufficientFunds.Error())
-			suite.Require().NoError(err)
+			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
+				suite.AssertTxFailure(resp, ibcerrors.ErrInsufficientFunds)
+			} else {
+				suite.AssertTxFailure(resp, sdkerrors.ErrInsufficientFunds)
+			}
 		})
 
 		t.Run("verify granter wallet amount", func(t *testing.T) {
@@ -280,7 +278,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			grantAuthorization := grantAuths[0]
 
 			transferAuth := suite.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
-			expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdk.NewInt(spendLimit)))
+			expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdkmath.NewInt(spendLimit)))
 			suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
 		})
 	})
@@ -293,7 +291,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			transferMsg := transfertypes.MsgTransfer{
 				SourcePort:    channelA.PortID,
 				SourceChannel: channelA.ChannelID,
-				Token:         sdk.Coin{Denom: chainADenom, Amount: sdk.NewInt(spendLimit)},
+				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)},
 				Sender:        granterAddress,
 				Receiver:      invalidWalletAddress,
 				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
@@ -307,10 +305,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				Msgs:    []*codectypes.Any{protoAny},
 			}
 
-			resp, err := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
-			suite.Require().NotEqual(0, resp.Code)
-			suite.Require().Contains(resp.RawLog, sdkerrors.ErrInvalidAddress.Error())
-			suite.Require().NoError(err)
+			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
+				suite.AssertTxFailure(resp, ibcerrors.ErrInvalidAddress)
+			} else {
+				suite.AssertTxFailure(resp, sdkerrors.ErrInvalidAddress)
+			}
 		})
 	})
 }

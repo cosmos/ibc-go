@@ -3,25 +3,29 @@ package types_test
 import (
 	"testing"
 
-	"github.com/cometbft/cometbft/crypto/secp256k1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cometbft/cometbft/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )
 
 var (
 	// defaultRecvFee is the default packet receive fee used for testing purposes
-	defaultRecvFee = sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)})
+	defaultRecvFee = sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)})
 
 	// defaultAckFee is the default packet acknowledgement fee used for testing purposes
-	defaultAckFee = sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)})
+	defaultAckFee = sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(200)})
 
 	// defaultTimeoutFee is the default packet timeout fee used for testing purposes
-	defaultTimeoutFee = sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)})
+	defaultTimeoutFee = sdk.NewCoins(sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(300)})
 
 	// invalidFee is an invalid coin set used to trigger error cases for testing purposes
-	invalidFee = sdk.Coins{sdk.Coin{Denom: "invalid-denom", Amount: sdk.NewInt(-2)}}
+	invalidFee = sdk.Coins{sdk.Coin{Denom: "invalid-denom", Amount: sdkmath.NewInt(-2)}}
 
 	// defaultAccAddress is the default account used for testing purposes
 	defaultAccAddress = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -33,7 +37,7 @@ func TestFeeTotal(t *testing.T) {
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	total := fee.Total()
-	require.Equal(t, sdk.NewInt(600), total.AmountOf(sdk.DefaultBondDenom))
+	require.Equal(t, sdkmath.NewInt(600), total.AmountOf(sdk.DefaultBondDenom))
 }
 
 func TestPacketFeeValidation(t *testing.T) {

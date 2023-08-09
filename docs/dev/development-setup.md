@@ -42,6 +42,7 @@ It reads protobuf service definitions and generates a reverse-proxy server which
 - No `--force` onto `main` (except when reverting a broken commit, which should seldom happen).
 - Create a development branch either on `github.com/cosmos/ibc-go`, or your fork (using `git remote add fork`).
 - Before submitting a pull request, begin `git rebase` on top of `main`.
+- Ensure you are using the pre-commit hooks by running `make setup-pre-commit`.
 
 All Go tests in ibc-go can be ran by running `make test`.
 
