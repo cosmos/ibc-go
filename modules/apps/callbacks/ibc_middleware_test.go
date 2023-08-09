@@ -161,6 +161,13 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 }
 
 func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
+	type expResult uint8
+	const (
+		noExecution expResult = iota
+		callbackFailed
+		callbackSuccess
+	)
+
 	var (
 		packetData transfertypes.FungibleTokenPacketData
 		packet     channeltypes.Packet
@@ -171,15 +178,15 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 	panicError := fmt.Errorf("panic error")
 
 	testCases := []struct {
-		name            string
-		malleate        func()
-		callbackTrigger types.CallbackTrigger
-		expError        error
+		name      string
+		malleate  func()
+		expResult expResult
+		expError  error
 	}{
 		{
 			"success",
 			func() {},
-			types.CallbackTriggerAcknowledgementPacket,
+			callbackSuccess,
 			nil,
 		},
 		{
@@ -187,7 +194,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			func() {
 				ack = []byte("invalid ack")
 			},
-			"none", // underlying app  failure should result in no callback execution
+			noExecution,
 			ibcerrors.ErrUnknownRequest,
 		},
 		{
@@ -196,15 +203,16 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
-			"none", // improperly formatted callback data should result in no callback execution
+			noExecution,
 			nil,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficent gas provided by relayer",
 			func() {
-				ctx = ctx.WithGasMeter(sdk.NewGasMeter(400_000))
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, callbackAddr)
+				packet.Data = packetData.GetBytes()
 			},
-			types.CallbackTriggerAcknowledgementPacket,
+			callbackFailed,
 			nil,
 		},
 		{
@@ -212,7 +220,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			func() {
 				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
 			},
-			types.CallbackTriggerAcknowledgementPacket,
+			callbackFailed,
 			panicError,
 		},
 		{
@@ -221,7 +229,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
 				packet.Data = packetData.GetBytes()
 			},
-			types.CallbackTriggerAcknowledgementPacket,
+			callbackFailed,
 			nil, // execution failure in OnAcknowledgement should not block acknowledgement processing
 		},
 	}
@@ -231,9 +239,10 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
+			// set user gas limit above panic level in mock contract keeper
 			packetData = transfertypes.NewFungibleTokenPacketData(
 				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), callbackAddr, ibctesting.TestAccAddress,
-				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"350000"}}`, callbackAddr),
+				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"600000"}}`, callbackAddr),
 			)
 
 			packet = channeltypes.Packet{
@@ -275,6 +284,26 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			default:
 				err := onAcknowledgementPacket()
 				s.Require().ErrorIs(tc.expError, err)
+			}
+
+			sourceStatefulCounter := s.chainA.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+			sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
+
+			switch tc.expResult {
+			case noExecution:
+				s.Require().Len(sourceCounters, 0)
+				s.Require().Equal(uint8(0), sourceStatefulCounter)
+
+			case callbackFailed:
+				s.Require().Len(sourceCounters, 1)
+				s.Require().Equal(1, sourceCounters[types.CallbackTriggerAcknowledgementPacket])
+				s.Require().Equal(uint8(0), sourceStatefulCounter)
+
+			case callbackSuccess:
+				s.Require().Len(sourceCounters, 1)
+				s.Require().Equal(1, sourceCounters[types.CallbackTriggerAcknowledgementPacket])
+				s.Require().Equal(uint8(1), sourceStatefulCounter)
+
 			}
 		})
 	}
