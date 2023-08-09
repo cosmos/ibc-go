@@ -100,7 +100,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			},
 		},
 		{
-			"success: timeout callback",
+			"success: receive packet callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
 				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
