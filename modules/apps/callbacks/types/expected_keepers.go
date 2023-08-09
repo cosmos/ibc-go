@@ -8,7 +8,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-// ContractKeeper defines the entry points to a smart contract that must be exposed by the VM module
+// ContractKeeper defines the entry points exposed to the VM module which invokes a smart contract
 type ContractKeeper interface {
 	// IBCSendPacketCallback is called in the source chain when a PacketSend is executed. The
 	// packetSenderAddress is determined by the underlying module, and may be empty if the sender is
