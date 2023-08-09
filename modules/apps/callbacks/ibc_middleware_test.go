@@ -612,6 +612,95 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	}
 }
 
+func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
+	var (
+		packetData transfertypes.FungibleTokenPacketData
+		packet     channeltypes.Packet
+		ctx        sdk.Context
+		ack        ibcexported.Acknowledgement
+	)
+
+	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+
+	testCases := []struct {
+		name         string
+		malleate     func()
+		callbackType types.CallbackType
+		expError     error
+	}{
+		{
+			"success",
+			func() {
+				ack = successAck
+			},
+			types.CallbackTypeReceivePacket,
+			nil,
+		},
+		{
+			"success: no-op on callback data is not valid",
+			func() {
+				packetData.Memo = `{"dest_callback": {"address": ""}}`
+				packet.Data = packetData.GetBytes()
+			},
+			"none", // improperly formatted callback data should result in no callback execution
+			nil,
+		},
+		{
+			"failure: ics4Wrapper WriteAcknowledgement call fails",
+			func() {
+				packet.DestinationChannel = "invalid-channel"
+			},
+			"none",
+			channeltypes.ErrChannelNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupTransferTest()
+
+			// set user gas limit above panic level in mock contract keeper
+			packetData = transfertypes.NewFungibleTokenPacketData(
+				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress, s.chainB.SenderAccount.GetAddress().String(),
+				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress),
+			)
+
+			packet = channeltypes.Packet{
+				Sequence:           1,
+				SourcePort:         s.path.EndpointA.ChannelConfig.PortID,
+				SourceChannel:      s.path.EndpointA.ChannelID,
+				DestinationPort:    s.path.EndpointB.ChannelConfig.PortID,
+				DestinationChannel: s.path.EndpointB.ChannelID,
+				Data:               packetData.GetBytes(),
+				TimeoutHeight:      s.chainB.GetTimeoutHeight(),
+				TimeoutTimestamp:   0,
+			}
+
+			ctx = s.chainB.GetContext()
+
+			chanCap := s.chainB.GetChannelCapability(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
+
+			tc.malleate()
+
+			// callbacks module is routed as top level middleware
+			transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+			s.Require().True(ok)
+
+			err := transferStack.(porttypes.Middleware).WriteAcknowledgement(ctx, chanCap, packet, ack)
+
+			expPass := tc.expError == nil
+			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
+
+			if expPass {
+				s.Require().NoError(err)
+			} else {
+				s.Require().ErrorIs(tc.expError, err)
+			}
+		})
+	}
+}
+
 func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 	s.setupChains()
 
@@ -704,43 +793,4 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), packet, s.chainA.SenderAccount.GetAddress())
 	s.Require().Nil(ack)
 	s.AssertHasExecutedExpectedCallback("none", true)
-}
-
-func (s *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
-	s.SetupTransferTest()
-
-	// build packet
-	packetData := transfertypes.NewFungibleTokenPacketData(
-		ibctesting.TestCoin.Denom,
-		ibctesting.TestCoin.Amount.String(),
-		ibctesting.TestAccAddress,
-		ibctesting.TestAccAddress,
-		fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
-	)
-
-	packet := channeltypes.NewPacket(
-		packetData.GetBytes(),
-		1,
-		s.path.EndpointA.ChannelConfig.PortID,
-		s.path.EndpointA.ChannelID,
-		s.path.EndpointB.ChannelConfig.PortID,
-		s.path.EndpointB.ChannelID,
-		clienttypes.NewHeight(1, 100),
-		0,
-	)
-
-	transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	transferStackMw := transferStack.(porttypes.Middleware)
-
-	ack := channeltypes.NewResultAcknowledgement([]byte("success"))
-	chanCap := s.chainB.GetChannelCapability(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
-
-	modifiedCtx := s.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
-	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeReceivePacket),
-	}, func() {
-		_ = transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
-	})
 }
