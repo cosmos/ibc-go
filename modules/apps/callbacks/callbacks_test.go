@@ -162,7 +162,7 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType type
 		s.Require().Equal(expStatefulEntries, sourceStatefulCounter)
 		s.Require().Equal(uint8(0), destStatefulCounter)
 
-	case types.CallbackTypeWriteAcknowledgement:
+	case types.CallbackTypeReceivePacket:
 		s.Require().Equal(uint8(0), sourceStatefulCounter)
 		s.Require().Equal(expStatefulEntries, destStatefulCounter)
 
@@ -193,10 +193,10 @@ func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackT
 
 		s.Require().Len(destCounters, 0)
 
-	case types.CallbackTypeWriteAcknowledgement:
+	case types.CallbackTypeReceivePacket:
 		s.Require().Len(sourceCounters, 0)
 		s.Require().Len(destCounters, 1)
-		s.Require().Equal(1, destCounters[types.CallbackTypeWriteAcknowledgement])
+		s.Require().Equal(1, destCounters[types.CallbackTypeReceivePacket])
 
 	case types.CallbackTypeTimeoutPacket:
 		s.Require().Len(sourceCounters, 2)

@@ -364,7 +364,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
 
 	modifiedCtx := s.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(400000))
 	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeWriteAcknowledgement),
+		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeReceivePacket),
 	}, func() {
 		transferStackMw.OnRecvPacket(modifiedCtx, packet, s.chainB.SenderAccount.GetAddress())
 	})
@@ -407,7 +407,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
 
 	modifiedCtx := s.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
 	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeWriteAcknowledgement),
+		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeReceivePacket),
 	}, func() {
 		_ = transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
 	})

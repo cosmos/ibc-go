@@ -108,17 +108,17 @@ func (k ContractKeeper) IBCOnTimeoutPacketCallback(
 	return k.processMockCallback(ctx, callbacktypes.CallbackTypeTimeoutPacket, packetSenderAddress)
 }
 
-// IBCWriteAcknowledgementCallback returns nil if the gas meter has greater than
+// IBCReceivePacketCallback returns nil if the gas meter has greater than
 // or equal to 500000 gas remaining.
 // This function consumes 500000 gas, or the remaining gas if less than 500000.
 // This function oog panics if the gas remaining is less than 400000.
-func (k ContractKeeper) IBCWriteAcknowledgementCallback(
+func (k ContractKeeper) IBCReceivePacketCallback(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 	contractAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeWriteAcknowledgement, "")
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeReceivePacket, "")
 }
 
 // processMockCallback returns nil if the gas meter has greater than or equal to 500000 gas remaining.

@@ -8,7 +8,7 @@ const (
 	CallbackTypeSendPacket            CallbackType = "send_packet"
 	CallbackTypeAcknowledgementPacket CallbackType = "acknowledgement_packet"
 	CallbackTypeTimeoutPacket         CallbackType = "timeout_packet"
-	CallbackTypeWriteAcknowledgement  CallbackType = "write_acknowledgement"
+	CallbackTypeReceivePacket         CallbackType = "receive_packet"
 
 	// Source callback packet data is set inside the underlying packet data using the this key.
 	// ICS20 and ICS27 will store the callback packet data in the memo field as a json object.

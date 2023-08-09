@@ -86,7 +86,7 @@ func EmitCallbackEvent(
 
 	var eventType string
 	switch callbackTrigger {
-	case CallbackTypeWriteAcknowledgement:
+	case CallbackTypeReceivePacket:
 		eventType = EventTypeDestinationCallback
 		attributes = append(
 			attributes, sdk.NewAttribute(AttributeKeyCallbackDestPortID, packet.GetDestPort()),

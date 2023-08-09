@@ -51,11 +51,11 @@ type ContractKeeper interface {
 		contractAddress,
 		packetSenderAddress string,
 	) error
-	// IBCWriteAcknowledgementCallback is called in the destination chain when a packet acknowledgement is written.
+	// IBCReceivePacketCallback is called in the destination chain when a packet acknowledgement is written.
 	// The contract is expected to handle the callback within the user defined gas limit, and handle any errors,
 	// out of gas, or panics gracefully.
 	// If an error is returned, state will be reverted by the callbacks middleware.
-	IBCWriteAcknowledgementCallback(
+	IBCReceivePacketCallback(
 		ctx sdk.Context,
 		packet ibcexported.PacketI,
 		ack ibcexported.Acknowledgement,

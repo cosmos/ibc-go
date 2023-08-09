@@ -188,11 +188,11 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackData.CallbackAddress)
+		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, ack, callbackData.CallbackAddress)
 	}
 
-	err = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, err)
+	err = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
 
 	return ack
 }
@@ -219,11 +219,11 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackData.CallbackAddress)
+		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, ack, callbackData.CallbackAddress)
 	}
 
-	err = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, err)
+	err = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
 
 	return nil
 }
