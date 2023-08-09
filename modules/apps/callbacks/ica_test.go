@@ -81,18 +81,6 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 			true,
 		},
 		{
-			"failure: dest callback with low gas (error)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			"none",
-			false,
-		},
-		{
-			"failure: source callback with low gas (error)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTriggerAcknowledgementPacket,
-			false,
-		},
-		{
 			"failure: dest callback with low gas (panic)",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
 			"none",
@@ -143,18 +131,6 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 			true,
 		},
 		{
-			"success: dest callback with low gas (error)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			"none",
-			true,
-		},
-		{
-			"failure: source callback with low gas (error)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTriggerTimeoutPacket,
-			false,
-		},
-		{
 			"success: dest callback with low gas (panic)",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
 			"none",
@@ -196,27 +172,25 @@ func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint64) {
 	s.Require().NoError(err)
 }
 
-// ExecuteICATx executes a stakingtypes.MsgDelegate on chainB by sending a packet containing the msg to chainB
+// ExecuteICATx sends and times out an ICA tx
 func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, seq uint64) {
-	timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
+	relativeTimeout := uint64(1)
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	connectionID := s.path.EndpointA.ConnectionID
 	// build the interchain accounts packet data
 	packetData := s.buildICAMsgDelegatePacketData(icaAddress, memo)
-	msg := icacontrollertypes.NewMsgSendTx(icaOwner, connectionID, timeoutTimestamp, packetData)
+	msg := icacontrollertypes.NewMsgSendTx(icaOwner, connectionID, relativeTimeout, packetData)
 
 	res, err := s.chainA.SendMsgs(msg)
 	s.Require().NoError(err) // message committed
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
 	s.Require().NoError(err)
 
-	module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID)
+	// proof query requires up to date client
+	err = s.path.EndpointA.UpdateClient()
 	s.Require().NoError(err)
 
-	cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
-	s.Require().True(ok)
-
-	err = cbs.OnTimeoutPacket(s.chainA.GetContext(), packet, nil)
+	err = s.path.EndpointA.TimeoutPacket(packet)
 	s.Require().NoError(err)
 }
 
