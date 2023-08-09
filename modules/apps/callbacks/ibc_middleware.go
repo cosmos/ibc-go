@@ -89,16 +89,18 @@ func (im IBCMiddleware) SendPacket(
 	// is only derived from the source packet information in `GetSourceCallbackData`.
 	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
-	callbackDataGetter := func() (types.CallbackData, error) {
-		return types.GetSourceCallbackData(im.app, reconstructedPacket, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetSourceCallbackData(im.app, reconstructedPacket, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	if err != nil {
+		return seq, nil
 	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetSenderAddress string) error {
+
+	callbackExecutor := func(cachedCtx sdk.Context) error {
 		return im.contractKeeper.IBCSendPacketCallback(
-			cachedCtx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data, callbackAddress, packetSenderAddress,
+			cachedCtx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data, callbackData.ContractAddress, callbackData.SenderAddress,
 		)
 	}
 
-	err = im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackDataGetter, callbackExecutor)
+	err = im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
 	// contract keeper is allowed to reject the packet send.
 	if err != nil {
 		return 0, err
@@ -123,14 +125,16 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	callbackDataGetter := func() (types.CallbackData, error) {
-		return types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
-	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetSenderAddress string) error {
-		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackAddress, packetSenderAddress)
+	callbackData, err := types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	if err != nil {
+		return nil
 	}
 
-	_ = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackDataGetter, callbackExecutor)
+	callbackExecutor := func(cachedCtx sdk.Context) error {
+		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackData.ContractAddress, callbackData.SenderAddress)
+	}
+
+	_ = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, callbackExecutor)
 
 	return nil
 }
@@ -145,14 +149,16 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return err
 	}
 
-	callbackDataGetter := func() (types.CallbackData, error) {
-		return types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
-	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, packetSenderAddress string) error {
-		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackAddress, packetSenderAddress)
+	callbackData, err := types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	if err != nil {
+		return nil
 	}
 
-	_ = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackDataGetter, callbackExecutor)
+	callbackExecutor := func(cachedCtx sdk.Context) error {
+		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackData.ContractAddress, callbackData.SenderAddress)
+	}
+
+	_ = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
 
 	return nil
 }
@@ -171,14 +177,16 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return ack
 	}
 
-	callbackDataGetter := func() (types.CallbackData, error) {
-		return types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
-	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, _ string) error {
-		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress)
+	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	if err != nil {
+		return ack
 	}
 
-	_ = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
+	callbackExecutor := func(cachedCtx sdk.Context) error {
+		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackData.ContractAddress)
+	}
+
+	_ = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, callbackExecutor)
 
 	return ack
 }
@@ -199,14 +207,16 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	callbackDataGetter := func() (types.CallbackData, error) {
-		return types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
-	}
-	callbackExecutor := func(cachedCtx sdk.Context, callbackAddress, _ string) error {
-		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackAddress)
+	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	if err != nil {
+		return nil
 	}
 
-	_ = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackDataGetter, callbackExecutor)
+	callbackExecutor := func(cachedCtx sdk.Context) error {
+		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackData.ContractAddress)
+	}
+
+	_ = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, callbackExecutor)
 
 	return nil
 }
@@ -217,14 +227,8 @@ func (im IBCMiddleware) WriteAcknowledgement(
 // to CommitGasLimit.
 func (IBCMiddleware) processCallback(
 	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
-	callbackDataGetter func() (types.CallbackData, error),
-	callbackExecutor func(sdk.Context, string, string) error,
+	callbackData types.CallbackData, callbackExecutor func(sdk.Context) error,
 ) (err error) {
-	callbackData, err := callbackDataGetter()
-	if err != nil {
-		return nil
-	}
-
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.ExecutionGasLimit))
 	defer func() {
@@ -243,7 +247,7 @@ func (IBCMiddleware) processCallback(
 		}
 	}()
 
-	err = callbackExecutor(cachedCtx, callbackData.ContractAddress, callbackData.SenderAddress)
+	err = callbackExecutor(cachedCtx)
 	if err == nil {
 		writeFn()
 	}

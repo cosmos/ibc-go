@@ -488,21 +488,3 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacketLowRelayerGas() {
 		_ = transferStack.OnTimeoutPacket(modifiedCtx, packet, s.chainA.SenderAccount.GetAddress())
 	})
 }
-
-func (s *CallbacksTestSuite) TestProcessCallbackDataGetterError() {
-	// The successful cases, other errors, and panics are tested in transfer_test.go and ica_test.go.
-	s.SetupTransferTest()
-
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
-	callbackStack, ok := transferStack.(ibccallbacks.IBCMiddleware)
-	s.Require().True(ok)
-
-	invalidDataGetter := func() (types.CallbackData, error) {
-		return types.CallbackData{}, fmt.Errorf("invalid data getter")
-	}
-
-	mockPacket := channeltypes.Packet{Sequence: 0}
-	err := callbackStack.ProcessCallback(s.chainA.GetContext(), mockPacket, types.CallbackTypeWriteAcknowledgement, invalidDataGetter, nil)
-	s.Require().NoError(err)
-}
