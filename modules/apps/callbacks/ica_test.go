@@ -23,7 +23,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 	testCases := []struct {
 		name        string
 		icaMemo     string
-		expCallback types.CallbackTrigger
+		expCallback types.CallbackType
 		expSuccess  bool
 	}{
 		{
@@ -59,13 +59,13 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTriggerAcknowledgementPacket,
+			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with other json fields",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-			types.CallbackTriggerAcknowledgementPacket,
+			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
@@ -89,7 +89,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
-			types.CallbackTriggerAcknowledgementPacket,
+			types.CallbackTypeAcknowledgementPacket,
 			false,
 		},
 	}
@@ -109,7 +109,7 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 	testCases := []struct {
 		name        string
 		icaMemo     string
-		expCallback types.CallbackTrigger
+		expCallback types.CallbackType
 		expSuccess  bool
 	}{
 		{
@@ -127,7 +127,7 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTriggerTimeoutPacket,
+			types.CallbackTypeTimeoutPacket,
 			true,
 		},
 		{
@@ -139,7 +139,7 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
-			types.CallbackTriggerTimeoutPacket,
+			types.CallbackTypeTimeoutPacket,
 			false,
 		},
 	}

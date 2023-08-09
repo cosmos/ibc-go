@@ -19,7 +19,7 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 	testCases := []struct {
 		name         string
 		transferMemo string
-		expCallback  types.CallbackTrigger
+		expCallback  types.CallbackType
 		expSuccess   bool
 	}{
 		{
@@ -31,13 +31,13 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 		{
 			"success: dest callback",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTriggerReceivePacket,
+			types.CallbackTypeReceivePacket,
 			true,
 		},
 		{
 			"success: dest callback with other json fields",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-			types.CallbackTriggerReceivePacket,
+			types.CallbackTypeReceivePacket,
 			true,
 		},
 		{
@@ -55,13 +55,13 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTriggerAcknowledgementPacket,
+			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with other json fields",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-			types.CallbackTriggerAcknowledgementPacket,
+			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
@@ -79,13 +79,13 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 		{
 			"failure: dest callback with low gas (panic)",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTriggerReceivePacket,
+			types.CallbackTypeReceivePacket,
 			false,
 		},
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTriggerAcknowledgementPacket,
+			types.CallbackTypeAcknowledgementPacket,
 			false,
 		},
 	}
@@ -102,7 +102,7 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 	testCases := []struct {
 		name         string
 		transferMemo string
-		expCallback  types.CallbackTrigger
+		expCallback  types.CallbackType
 		expSuccess   bool
 	}{
 		{
@@ -120,7 +120,7 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTriggerTimeoutPacket,
+			types.CallbackTypeTimeoutPacket,
 			true,
 		},
 		{
@@ -132,7 +132,7 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTriggerTimeoutPacket,
+			types.CallbackTypeTimeoutPacket,
 			false,
 		},
 	}

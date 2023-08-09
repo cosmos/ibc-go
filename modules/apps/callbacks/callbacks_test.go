@@ -137,7 +137,7 @@ func (s *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 
 // AssertHasExecutedExpectedCallback checks the stateful entries and counters based on callbacktype.
 // It assumes that the source chain is chainA and the destination chain is chainB.
-func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType types.CallbackTrigger, expSuccess bool) {
+func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType types.CallbackType, expSuccess bool) {
 	var expStatefulEntries uint8
 	if expSuccess {
 		// if the callback is expected to be successful,
@@ -153,16 +153,16 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType type
 		s.Require().Equal(uint8(0), sourceStatefulCounter)
 		s.Require().Equal(uint8(0), destStatefulCounter)
 
-	case types.CallbackTriggerSendPacket:
+	case types.CallbackTypeSendPacket:
 		s.Require().Equal(expStatefulEntries, sourceStatefulCounter, "unexpected stateful entry amount for source send packet callback")
 		s.Require().Equal(uint8(0), destStatefulCounter)
 
-	case types.CallbackTriggerAcknowledgementPacket, types.CallbackTriggerTimeoutPacket:
+	case types.CallbackTypeAcknowledgementPacket, types.CallbackTypeTimeoutPacket:
 		expStatefulEntries *= 2 // expect OnAcknowledgement/OnTimeout to be successful as well
 		s.Require().Equal(expStatefulEntries, sourceStatefulCounter, "unexpected stateful entry amount for source acknowledgement/timeout callbacks")
 		s.Require().Equal(uint8(0), destStatefulCounter)
 
-	case types.CallbackTriggerReceivePacket:
+	case types.CallbackTypeReceivePacket:
 		s.Require().Equal(uint8(0), sourceStatefulCounter)
 		s.Require().Equal(expStatefulEntries, destStatefulCounter)
 
@@ -173,7 +173,7 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType type
 	s.AssertCallbackCounters(callbackType)
 }
 
-func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackTrigger) {
+func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackType) {
 	sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
 	destCounters := s.chainB.GetSimApp().MockContractKeeper.Counters
 
@@ -182,26 +182,26 @@ func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackT
 		s.Require().Len(sourceCounters, 0)
 		s.Require().Len(destCounters, 0)
 
-	case types.CallbackTriggerSendPacket:
+	case types.CallbackTypeSendPacket:
 		s.Require().Len(sourceCounters, 1)
-		s.Require().Equal(1, sourceCounters[types.CallbackTriggerSendPacket])
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
 
-	case types.CallbackTriggerAcknowledgementPacket:
+	case types.CallbackTypeAcknowledgementPacket:
 		s.Require().Len(sourceCounters, 2)
-		s.Require().Equal(1, sourceCounters[types.CallbackTriggerSendPacket])
-		s.Require().Equal(1, sourceCounters[types.CallbackTriggerAcknowledgementPacket])
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgementPacket])
 
 		s.Require().Len(destCounters, 0)
 
-	case types.CallbackTriggerReceivePacket:
+	case types.CallbackTypeReceivePacket:
 		s.Require().Len(sourceCounters, 0)
 		s.Require().Len(destCounters, 1)
-		s.Require().Equal(1, destCounters[types.CallbackTriggerReceivePacket])
+		s.Require().Equal(1, destCounters[types.CallbackTypeReceivePacket])
 
-	case types.CallbackTriggerTimeoutPacket:
+	case types.CallbackTypeTimeoutPacket:
 		s.Require().Len(sourceCounters, 2)
-		s.Require().Equal(1, sourceCounters[types.CallbackTriggerSendPacket])
-		s.Require().Equal(1, sourceCounters[types.CallbackTriggerTimeoutPacket])
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeTimeoutPacket])
 
 		s.Require().Len(destCounters, 0)
 
@@ -217,7 +217,7 @@ func TestIBCCallbacksTestSuite(t *testing.T) {
 // AssertHasExecutedExpectedCallbackWithFee checks if only the expected type of callback has been executed
 // and that the expected ics-29 fee has been paid.
 func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
-	callbackType types.CallbackTrigger, isSuccessful bool, isTimeout bool,
+	callbackType types.CallbackType, isSuccessful bool, isTimeout bool,
 	originalSenderBalance sdk.Coins, fee feetypes.Fee,
 ) {
 	// Recall that:

@@ -100,12 +100,12 @@ func (im IBCMiddleware) SendPacket(
 		)
 	}
 
-	err = im.processCallback(ctx, reconstructedPacket, types.CallbackTriggerSendPacket, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
 	// contract keeper is allowed to reject the packet send.
 	if err != nil {
 		return 0, err
 	}
-	types.EmitCallbackEvent(ctx, reconstructedPacket, types.CallbackTriggerSendPacket, callbackData, err)
+	types.EmitCallbackEvent(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackData, err)
 
 	return seq, nil
 }
@@ -137,8 +137,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		)
 	}
 
-	err = im.processCallback(ctx, packet, types.CallbackTriggerAcknowledgementPacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTriggerAcknowledgementPacket, callbackData, err)
+	err = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, err)
 
 	return nil
 }
@@ -162,8 +162,8 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackData.CallbackAddress, callbackData.SenderAddress)
 	}
 
-	err = im.processCallback(ctx, packet, types.CallbackTriggerTimeoutPacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTriggerTimeoutPacket, callbackData, err)
+	err = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
 
 	return nil
 }
@@ -191,8 +191,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, ack, callbackData.CallbackAddress)
 	}
 
-	err = im.processCallback(ctx, packet, types.CallbackTriggerReceivePacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTriggerReceivePacket, callbackData, err)
+	err = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
 
 	return ack
 }
@@ -222,8 +222,8 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, ack, callbackData.CallbackAddress)
 	}
 
-	err = im.processCallback(ctx, packet, types.CallbackTriggerReceivePacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTriggerReceivePacket, callbackData, err)
+	err = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
 
 	return nil
 }
@@ -235,25 +235,26 @@ func (im IBCMiddleware) WriteAcknowledgement(
 //   - the contractExecutor out of gas panics and the relayer has not reserved gas grater than or equal to
 //     CommitGasLimit.
 func (IBCMiddleware) processCallback(
-	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackTrigger,
+	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
 	callbackData types.CallbackData, callbackExecutor func(sdk.Context) error,
 ) (err error) {
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.ExecutionGasLimit))
+
 	defer func() {
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
-		if r := recover(); r != nil && callbackType != types.CallbackTriggerSendPacket {
+		if r := recover(); r != nil && callbackType != types.CallbackTypeSendPacket {
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
 			//
 			// We do not handle panics for SendPacket callbacks because we require an approval
 			// from the callback actor to send the packet.
 			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
-				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "packet", packet, "panic", oogError)
 				// If execution gas limit was less than the commit gas limit, allow retry.
 				if callbackData.ExecutionGasLimit < callbackData.CommitGasLimit {
 					panic(r)
 				}
+				types.LogDebugWithPacket(ctx, callbackType, packet, "Callbacks recovered from out of gas panic.", "panic", oogError)
 			}
 		}
 	}()

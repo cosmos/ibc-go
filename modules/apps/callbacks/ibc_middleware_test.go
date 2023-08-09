@@ -87,15 +87,15 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 	var packetData transfertypes.FungibleTokenPacketData
 
 	testCases := []struct {
-		name            string
-		malleate        func()
-		callbackTrigger types.CallbackTrigger
-		expError        error
+		name         string
+		malleate     func()
+		callbackType types.CallbackType
+		expError     error
 	}{
 		{
 			"success",
 			func() {},
-			types.CallbackTriggerSendPacket,
+			types.CallbackTypeSendPacket,
 			nil,
 		},
 		{
@@ -119,7 +119,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			func() {
 				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
 			},
-			types.CallbackTriggerSendPacket,
+			types.CallbackTypeSendPacket,
 			ibcmock.MockApplicationCallbackError, // execution failure on SendPacket should prevent packet sends
 		},
 	}
@@ -145,7 +145,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			seq, err := transferStack.(porttypes.Middleware).SendPacket(s.chainA.GetContext(), chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
 
 			expPass := tc.expError == nil
-			s.AssertHasExecutedExpectedCallback(tc.callbackTrigger, expPass)
+			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
 
 			if expPass {
 				s.Require().Nil(err)
@@ -274,7 +274,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 
 			case panicError:
 				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-					Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerAcknowledgementPacket),
+					Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeAcknowledgementPacket),
 				}, func() {
 					_ = onAcknowledgementPacket()
 				})
@@ -294,12 +294,12 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 
 			case callbackFailed:
 				s.Require().Len(sourceCounters, 1)
-				s.Require().Equal(1, sourceCounters[types.CallbackTriggerAcknowledgementPacket])
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgementPacket])
 				s.Require().Equal(uint8(0), sourceStatefulCounter)
 
 			case callbackSuccess:
 				s.Require().Len(sourceCounters, 1)
-				s.Require().Equal(1, sourceCounters[types.CallbackTriggerAcknowledgementPacket])
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgementPacket])
 				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
 			}
@@ -425,7 +425,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 
 			case panicError:
 				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-					Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerTimeoutPacket),
+					Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeTimeoutPacket),
 				}, func() {
 					_ = onTimeoutPacket()
 				})
@@ -446,14 +446,14 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 
 			case callbackFailed:
 				s.Require().Len(sourceCounters, 2)
-				s.Require().Equal(1, sourceCounters[types.CallbackTriggerTimeoutPacket])
-				s.Require().Equal(1, sourceCounters[types.CallbackTriggerSendPacket])
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeTimeoutPacket])
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
 				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
 			case callbackSuccess:
 				s.Require().Len(sourceCounters, 2)
-				s.Require().Equal(1, sourceCounters[types.CallbackTriggerTimeoutPacket])
-				s.Require().Equal(1, sourceCounters[types.CallbackTriggerSendPacket])
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeTimeoutPacket])
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
 				s.Require().Equal(uint8(2), sourceStatefulCounter)
 			}
 		})
@@ -674,7 +674,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
 
 	modifiedCtx := s.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(400000))
 	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerReceivePacket),
+		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeReceivePacket),
 	}, func() {
 		transferStackMw.OnRecvPacket(modifiedCtx, packet, s.chainB.SenderAccount.GetAddress())
 	})
@@ -717,7 +717,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
 
 	modifiedCtx := s.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
 	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerReceivePacket),
+		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeReceivePacket),
 	}, func() {
 		_ = transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
 	})
