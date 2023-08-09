@@ -240,6 +240,7 @@ func (IBCMiddleware) processCallback(
 ) (err error) {
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.ExecutionGasLimit))
+
 	defer func() {
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
 		if r := recover(); r != nil && callbackType != types.CallbackTriggerSendPacket {
@@ -249,11 +250,11 @@ func (IBCMiddleware) processCallback(
 			// We do not handle panics for SendPacket callbacks because we require an approval
 			// from the callback actor to send the packet.
 			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
-				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "packet", packet, "panic", oogError)
 				// If execution gas limit was less than the commit gas limit, allow retry.
 				if callbackData.ExecutionGasLimit < callbackData.CommitGasLimit {
 					panic(r)
 				}
+				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "packet", packet, "panic", oogError)
 			}
 		}
 	}()
