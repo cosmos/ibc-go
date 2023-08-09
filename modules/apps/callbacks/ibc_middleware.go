@@ -231,19 +231,19 @@ func (im IBCMiddleware) WriteAcknowledgement(
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
 //
 // panics if
-//   - the callbackType is SendPacket and the contractExecutor panics for any reason, or
+//   - the callbackTrigger is SendPacket and the contractExecutor panics for any reason, or
 //   - the contractExecutor out of gas panics and the relayer has not reserved gas grater than or equal to
 //     CommitGasLimit.
 func (IBCMiddleware) processCallback(
-	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackTrigger,
+	ctx sdk.Context, packet ibcexported.PacketI, callbackTrigger types.CallbackTrigger,
 	callbackData types.CallbackData, callbackExecutor func(sdk.Context) error,
 ) (err error) {
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.ExecutionGasLimit))
 
 	defer func() {
-		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
-		if r := recover(); r != nil && callbackType != types.CallbackTriggerSendPacket {
+		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackTrigger))
+		if r := recover(); r != nil && callbackTrigger != types.CallbackTriggerSendPacket {
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
 			//
