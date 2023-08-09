@@ -105,11 +105,6 @@ func (k Keeper) ChanUpgradeTry(
 		)
 	}
 
-	if hasPassed, err := counterpartyUpgrade.Timeout.HasPassed(ctx); hasPassed {
-		// abort here and let counterparty timeout the upgrade
-		return types.Upgrade{}, errorsmod.Wrap(err, "upgrade timeout has passed")
-	}
-
 	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
 	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
 	proposedUpgradeFields := types.UpgradeFields{
@@ -166,6 +161,30 @@ func (k Keeper) ChanUpgradeTry(
 		Version:         channel.Version,
 		UpgradeSequence: counterpartyUpgradeSequence, // provided by the relayer
 		FlushStatus:     types.NOTINFLUSH,
+	}
+
+	// verify the counterparty channel state containing the upgrade sequence
+	if err := k.connectionKeeper.VerifyChannelState(
+		ctx,
+		connection,
+		proofHeight, proofCounterpartyChannel,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		counterpartyChannel,
+	); err != nil {
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
+	}
+
+	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
+	if err := k.connectionKeeper.VerifyChannelUpgrade(
+		ctx,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		connection,
+		counterpartyUpgrade,
+		proofCounterpartyUpgrade, proofHeight,
+	); err != nil {
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
 
 	if err = k.startFlushUpgradeHandshake(
@@ -311,7 +330,7 @@ func (k Keeper) ChanUpgradeAck(
 // WriteUpgradeAckChannel writes a channel which has successfully passed the UpgradeAck handshake step as well as
 // setting the upgrade for that channel.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgradeVersion string, counterpartyLastSequenceSend uint64) {
+func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string, counterpartyUpgrade types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-ack")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -327,7 +346,8 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgra
 		channel.FlushStatus = types.FLUSHCOMPLETE
 	}
 
-	k.SetCounterpartyLastPacketSequence(ctx, portID, channelID, counterpartyLastSequenceSend)
+	k.SetCounterpartyLastPacketSequence(ctx, portID, channelID, counterpartyUpgrade.LatestSequenceSend)
+	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -335,7 +355,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgra
 		panic(fmt.Sprintf("could not find existing upgrade when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	upgrade.Fields.Version = upgradeVersion
+	upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
