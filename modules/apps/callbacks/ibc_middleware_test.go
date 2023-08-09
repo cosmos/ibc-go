@@ -286,8 +286,8 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().ErrorIs(tc.expError, err)
 			}
 
-			sourceStatefulCounter := s.chainA.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
-			sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
+			sourceStatefulCounter := s.chainA.ContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+			sourceCounters := s.chainA.ContractKeeper.Counters
 
 			switch tc.expResult {
 			case noExecution:
