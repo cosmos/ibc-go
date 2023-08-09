@@ -84,9 +84,7 @@ func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
 }
 
 func (s *CallbacksTestSuite) TestSendPacket() {
-	var (
-		packetData transfertypes.FungibleTokenPacketData
-	)
+	var packetData transfertypes.FungibleTokenPacketData
 
 	testCases := []struct {
 		name            string
@@ -207,7 +205,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			nil,
 		},
 		{
-			"failure: callback execution reach out of gas, but sufficent gas provided by relayer",
+			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
 			func() {
 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, callbackAddr)
 				packet.Data = packetData.GetBytes()
@@ -216,7 +214,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			nil,
 		},
 		{
-			"failure: callback execution panics on insufficent gas provided by relayer",
+			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
 				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
 			},
@@ -304,6 +302,159 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().Equal(1, sourceCounters[types.CallbackTriggerAcknowledgementPacket])
 				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
+			}
+		})
+	}
+}
+
+func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
+	type expResult uint8
+	const (
+		noExecution expResult = iota
+		callbackFailed
+		callbackSuccess
+	)
+
+	var (
+		packetData transfertypes.FungibleTokenPacketData
+		packet     channeltypes.Packet
+		ctx        sdk.Context
+	)
+
+	panicError := fmt.Errorf("panic error")
+
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expResult expResult
+		expError  error
+	}{
+		{
+			"success",
+			func() {},
+			callbackSuccess,
+			nil,
+		},
+		{
+			"failure: underlying app OnTimeoutPacket fails",
+			func() {
+				packet.Data = []byte("invalid packet data")
+			},
+			noExecution,
+			ibcerrors.ErrUnknownRequest,
+		},
+		{
+			"success: no-op on callback data is not valid",
+			func() {
+				packetData.Memo = `{"src_callback": {"address": ""}}`
+				packet.Data = packetData.GetBytes()
+			},
+			noExecution,
+			nil,
+		},
+		{
+			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, callbackAddr)
+				packet.Data = packetData.GetBytes()
+			},
+			callbackFailed,
+			nil,
+		},
+		{
+			"failure: callback execution panics on insufficient gas provided by relayer",
+			func() {
+				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+			},
+			callbackFailed,
+			panicError,
+		},
+		{
+			"failure: callback execution fails, unauthorized address",
+			func() {
+				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
+				packet.Data = packetData.GetBytes()
+			},
+			callbackFailed,
+			nil, // execution failure in OnTimeout should not block timeout processing
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupTransferTest()
+
+			// NOTE: we call send packet so transfer is setup with the correct logic to
+			// succeed on timeout
+			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
+			msg := transfertypes.NewMsgTransfer(
+				s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
+				ibctesting.TestCoin, s.chainA.SenderAccount.GetAddress().String(),
+				s.chainB.SenderAccount.GetAddress().String(), clienttypes.ZeroHeight(), timeoutTimestamp,
+				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress), // set user gas limit above panic level in mock contract keeper
+			)
+
+			res, err := s.chainA.SendMsgs(msg)
+			s.Require().NoError(err)
+			s.Require().NotNil(res)
+
+			packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+			s.Require().NoError(err)
+			s.Require().NotNil(packet)
+
+			err = transfertypes.ModuleCdc.UnmarshalJSON(packet.Data, &packetData)
+			s.Require().NoError(err)
+
+			ctx = s.chainA.GetContext()
+
+			tc.malleate()
+
+			// callbacks module is routed as top level middleware
+			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+			s.Require().True(ok)
+
+			onTimeoutPacket := func() error {
+				return transferStack.OnTimeoutPacket(ctx, packet, s.chainA.SenderAccount.GetAddress())
+			}
+
+			switch tc.expError {
+			case nil:
+				err := onTimeoutPacket()
+				s.Require().Nil(err)
+
+			case panicError:
+				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+					Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerTimeoutPacket),
+				}, func() {
+					_ = onTimeoutPacket()
+				})
+
+			default:
+				err := onTimeoutPacket()
+				s.Require().ErrorIs(tc.expError, err)
+			}
+
+			sourceStatefulCounter := s.chainA.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+			sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
+
+			// account for SendPacket succeeding
+			switch tc.expResult {
+			case noExecution:
+				s.Require().Len(sourceCounters, 1)
+				s.Require().Equal(uint8(1), sourceStatefulCounter)
+
+			case callbackFailed:
+				s.Require().Len(sourceCounters, 2)
+				s.Require().Equal(1, sourceCounters[types.CallbackTriggerTimeoutPacket])
+				s.Require().Equal(1, sourceCounters[types.CallbackTriggerSendPacket])
+				s.Require().Equal(uint8(1), sourceStatefulCounter)
+
+			case callbackSuccess:
+				s.Require().Len(sourceCounters, 2)
+				s.Require().Equal(1, sourceCounters[types.CallbackTriggerTimeoutPacket])
+				s.Require().Equal(1, sourceCounters[types.CallbackTriggerSendPacket])
+				s.Require().Equal(uint8(2), sourceStatefulCounter)
 			}
 		})
 	}
@@ -441,21 +592,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgementError() {
 	s.Require().ErrorIs(err, errorsmod.Wrap(channeltypes.ErrChannelNotFound, packet.GetDestChannel()))
 }
 
-func (s *CallbacksTestSuite) TestOnTimeoutPacketError() {
-	// The successful cases are tested in transfer_test.go and ica_test.go.
-	// This test case tests the error case by passing an invalid packet data.
-	s.SetupTransferTest()
-
-	// We will pass the function call down the transfer stack to the transfer module
-	// transfer stack OnTimeoutPacket call order: callbacks -> fee -> transfer
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	err := transferStack.OnTimeoutPacket(s.chainA.GetContext(), channeltypes.Packet{}, s.chainA.SenderAccount.GetAddress())
-	s.Require().ErrorIs(ibcerrors.ErrUnknownRequest, err)
-	s.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet data:")
-}
-
 func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 	s.SetupMockFeeTest()
 
@@ -584,40 +720,5 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
 		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerReceivePacket),
 	}, func() {
 		_ = transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
-	})
-}
-
-func (s *CallbacksTestSuite) TestOnTimeoutPacketLowRelayerGas() {
-	s.SetupTransferTest()
-
-	timeoutHeight := clienttypes.GetSelfHeight(s.chainB.GetContext())
-	timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
-
-	amount := ibctesting.TestCoin
-	msg := transfertypes.NewMsgTransfer(
-		s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
-		amount, s.chainA.SenderAccount.GetAddress().String(),
-		s.chainB.SenderAccount.GetAddress().String(), timeoutHeight, timeoutTimestamp,
-		fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
-	)
-
-	res, err := s.chainA.SendMsgs(msg)
-	s.Require().NoError(err) // message committed
-
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
-	s.Require().NoError(err) // packet committed
-	s.Require().NotNil(packet)
-
-	// need to update chainA's client representing chainB to prove missing ack
-	err = s.path.EndpointA.UpdateClient()
-	s.Require().NoError(err)
-
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
-	modifiedCtx := s.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
-	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerTimeoutPacket),
-	}, func() {
-		_ = transferStack.OnTimeoutPacket(modifiedCtx, packet, s.chainA.SenderAccount.GetAddress())
 	})
 }
