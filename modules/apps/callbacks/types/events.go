@@ -40,9 +40,9 @@ const (
 	AttributeKeyCallbackSourcePortID = "packet_src_port"
 	// AttributeKeyCallbackSourceChannelID denotes the source channel ID of the packet
 	AttributeKeyCallbackSourceChannelID = "packet_src_channel"
-	// AttributeKeyCallbackSourcePortID denotes the destination port ID of the packet
+	// AttributeKeyCallbackDestPortID denotes the destination port ID of the packet
 	AttributeKeyCallbackDestPortID = "packet_dest_port"
-	// AttributeKeyCallbackSourceChannelID denotes the destination channel ID of the packet
+	// AttributeKeyCallbackDestChannelID denotes the destination channel ID of the packet
 	AttributeKeyCallbackDestChannelID = "packet_dest_channel"
 	// AttributeKeyCallbackSequence denotes the sequence of the packet
 	AttributeKeyCallbackSequence = "packet_sequence"
