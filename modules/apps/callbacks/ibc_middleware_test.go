@@ -102,6 +102,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		{
 			"success: no-op on callback data is not valid",
 			func() {
+				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			"none", // improperly formatted callback data should result in no callback execution
@@ -199,6 +200,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"success: no-op on callback data is not valid",
 			func() {
+				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
@@ -347,6 +349,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"success: no-op on callback data is not valid",
 			func() {
+				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
@@ -501,6 +504,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"success: no-op on callback data is not valid",
 			func() {
+				//nolint:goconst
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
