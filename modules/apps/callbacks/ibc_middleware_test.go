@@ -83,7 +83,7 @@ func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
 	s.Require().IsType(channelkeeper.Keeper{}, ics4Wrapper)
 }
 
-func (s *CallbacksTestSuite) TestSendPacketError() {
+func (s *CallbacksTestSuite) TestSendPacket() {
 	var (
 		packetData transfertypes.FungibleTokenPacketData
 	)
@@ -155,6 +155,126 @@ func (s *CallbacksTestSuite) TestSendPacketError() {
 			} else {
 				s.Require().ErrorIs(tc.expError, err)
 				s.Require().Equal(uint64(0), seq)
+			}
+		})
+	}
+}
+
+func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
+	var (
+		packetData transfertypes.FungibleTokenPacketData
+		packet     channeltypes.Packet
+		ack        []byte
+		ctx        sdk.Context
+	)
+
+	panicError := fmt.Errorf("panic error")
+
+	testCases := []struct {
+		name            string
+		malleate        func()
+		callbackTrigger types.CallbackTrigger
+		expError        error
+	}{
+		{
+			"success",
+			func() {},
+			types.CallbackTriggerAcknowledgementPacket,
+			nil,
+		},
+		{
+			"failure: underlying app OnAcknolwedgePacket fails",
+			func() {
+				ack = []byte("invalid ack")
+			},
+			"none", // underlying app  failure should result in no callback execution
+			ibcerrors.ErrUnknownRequest,
+		},
+		{
+			"success: no-op on callback data is not valid",
+			func() {
+				packetData.Memo = `{"src_callback": {"address": ""}}`
+				packet.Data = packetData.GetBytes()
+			},
+			"none", // improperly formatted callback data should result in no callback execution
+			nil,
+		},
+		{
+			"failure: callback execution reach out of gas, but sufficent gas provided by relayer",
+			func() {
+				ctx = ctx.WithGasMeter(sdk.NewGasMeter(400_000))
+			},
+			types.CallbackTriggerAcknowledgementPacket,
+			nil,
+		},
+		{
+			"failure: callback execution panics on insufficent gas provided by relayer",
+			func() {
+				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+			},
+			types.CallbackTriggerAcknowledgementPacket,
+			panicError,
+		},
+		{
+			"failure: callback execution fails, unauthorized address",
+			func() {
+				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
+				packet.Data = packetData.GetBytes()
+			},
+			types.CallbackTriggerAcknowledgementPacket,
+			nil, // execution failure in OnAcknowledgement should not block acknowledgement processing
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupTransferTest()
+
+			packetData = transfertypes.NewFungibleTokenPacketData(
+				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), callbackAddr, ibctesting.TestAccAddress,
+				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"350000"}}`, callbackAddr),
+			)
+
+			packet = channeltypes.Packet{
+				Sequence:           1,
+				SourcePort:         s.path.EndpointA.ChannelConfig.PortID,
+				SourceChannel:      s.path.EndpointA.ChannelID,
+				DestinationPort:    s.path.EndpointB.ChannelConfig.PortID,
+				DestinationChannel: s.path.EndpointB.ChannelID,
+				Data:               packetData.GetBytes(),
+				TimeoutHeight:      s.chainB.GetTimeoutHeight(),
+				TimeoutTimestamp:   0,
+			}
+
+			ack = channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement()
+			ctx = s.chainA.GetContext()
+
+			tc.malleate()
+
+			// callbacks module is routed as top level middleware
+			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+			s.Require().True(ok)
+
+			onAcknowledgementPacket := func() error {
+				return transferStack.OnAcknowledgementPacket(ctx, packet, ack, s.chainA.SenderAccount.GetAddress())
+			}
+
+			switch tc.expError {
+			case nil:
+				err := onAcknowledgementPacket()
+				s.Require().Nil(err)
+
+			case panicError:
+				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+					Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerAcknowledgementPacket),
+				}, func() {
+					_ = onAcknowledgementPacket()
+				})
+
+			default:
+				err := onAcknowledgementPacket()
+				s.Require().ErrorIs(tc.expError, err)
 			}
 		})
 	}
@@ -290,21 +410,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgementError() {
 
 	err := callbackStack.WriteAcknowledgement(s.chainB.GetContext(), chanCap, packet, ack)
 	s.Require().ErrorIs(err, errorsmod.Wrap(channeltypes.ErrChannelNotFound, packet.GetDestChannel()))
-}
-
-func (s *CallbacksTestSuite) TestOnAcknowledgementPacketError() {
-	// The successful cases are tested in transfer_test.go and ica_test.go.
-	// This test case tests the error case by passing an invalid packet data.
-	s.SetupTransferTest()
-
-	// We will pass the function call down the transfer stack to the transfer module
-	// transfer stack OnAcknowledgementPacket call order: callbacks -> fee -> transfer
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	err := transferStack.OnAcknowledgementPacket(s.chainA.GetContext(), channeltypes.Packet{}, []byte("invalid"), s.chainA.SenderAccount.GetAddress())
-	s.Require().ErrorIs(ibcerrors.ErrUnknownRequest, err)
-	s.Require().ErrorContains(err, "cannot unmarshal ICS-20 transfer packet acknowledgement:")
 }
 
 func (s *CallbacksTestSuite) TestOnTimeoutPacketError() {
@@ -450,47 +555,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
 		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerReceivePacket),
 	}, func() {
 		_ = transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
-	})
-}
-
-func (s *CallbacksTestSuite) TestOnAcknowledgementPacketLowRelayerGas() {
-	s.SetupTransferTest()
-
-	senderAddr := s.chainA.SenderAccount.GetAddress()
-	amount := ibctesting.TestCoin
-	msg := transfertypes.NewMsgTransfer(
-		s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
-		amount, s.chainA.SenderAccount.GetAddress().String(),
-		senderAddr.String(), clienttypes.NewHeight(1, 100), 0,
-		fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"350000"}}`, ibctesting.TestAccAddress),
-	)
-
-	res, err := s.chainA.SendMsgs(msg)
-	s.Require().NoError(err) // message committed
-
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
-	s.Require().NoError(err) // packet committed
-	s.Require().NotNil(packet)
-
-	// relay to chainB
-	err = s.path.EndpointB.UpdateClient()
-	s.Require().NoError(err)
-	res, err = s.path.EndpointB.RecvPacketWithResult(packet)
-	s.Require().NoError(err)
-	s.Require().NotNil(res)
-
-	// relay ack to chainA
-	ack, err := ibctesting.ParseAckFromEvents(res.Events)
-	s.Require().NoError(err)
-
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
-	// Low Relayer gas
-	modifiedCtx := s.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
-	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerAcknowledgementPacket),
-	}, func() {
-		_ = transferStack.OnAcknowledgementPacket(modifiedCtx, packet, ack, senderAddr)
 	})
 }
 
