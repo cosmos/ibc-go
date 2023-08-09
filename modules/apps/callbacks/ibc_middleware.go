@@ -132,7 +132,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackData.ContractAddress, callbackData.SenderAddress)
+		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(
+			cachedCtx, packet, acknowledgement, relayer, callbackData.ContractAddress, callbackData.SenderAddress,
+		)
 	}
 
 	err = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, callbackExecutor)
