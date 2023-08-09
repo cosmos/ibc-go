@@ -13,7 +13,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 	testCases := []struct {
 		name          string
 		packet        channeltypes.Packet
-		callbackType  types.CallbackType
+		callbackType  types.CallbackTrigger
 		callbackData  types.CallbackData
 		callbackError error
 		expEvents     ibctesting.EventsMap
@@ -24,7 +24,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
 				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTriggerAcknowledgementPacket,
 			types.CallbackData{
 				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
@@ -34,7 +34,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			ibctesting.EventsMap{
 				types.EventTypeSourceCallback: {
 					sdk.AttributeKeyModule:                    types.ModuleName,
-					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeAcknowledgementPacket),
+					types.AttributeKeyCallbackTrigger:         string(types.CallbackTriggerAcknowledgementPacket),
 					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
 					types.AttributeKeyCallbackGasLimit:        "100000",
 					types.AttributeKeyCallbackCommitGasLimit:  "200000",
@@ -51,7 +51,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
 				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
-			types.CallbackTypeSendPacket,
+			types.CallbackTriggerSendPacket,
 			types.CallbackData{
 				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
@@ -61,7 +61,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			ibctesting.EventsMap{
 				types.EventTypeSourceCallback: {
 					sdk.AttributeKeyModule:                    types.ModuleName,
-					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeSendPacket),
+					types.AttributeKeyCallbackTrigger:         string(types.CallbackTriggerSendPacket),
 					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
 					types.AttributeKeyCallbackGasLimit:        "100000",
 					types.AttributeKeyCallbackCommitGasLimit:  "200000",
@@ -78,7 +78,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
 				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
-			types.CallbackTypeTimeoutPacket,
+			types.CallbackTriggerTimeoutPacket,
 			types.CallbackData{
 				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
@@ -88,7 +88,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			ibctesting.EventsMap{
 				types.EventTypeSourceCallback: {
 					sdk.AttributeKeyModule:                    types.ModuleName,
-					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeTimeoutPacket),
+					types.AttributeKeyCallbackTrigger:         string(types.CallbackTriggerTimeoutPacket),
 					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
 					types.AttributeKeyCallbackGasLimit:        "100000",
 					types.AttributeKeyCallbackCommitGasLimit:  "200000",
@@ -105,7 +105,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
 				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
-			types.CallbackTypeReceivePacket,
+			types.CallbackTriggerReceivePacket,
 			types.CallbackData{
 				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
@@ -115,7 +115,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			ibctesting.EventsMap{
 				types.EventTypeDestinationCallback: {
 					sdk.AttributeKeyModule:                   types.ModuleName,
-					types.AttributeKeyCallbackTrigger:        string(types.CallbackTypeReceivePacket),
+					types.AttributeKeyCallbackTrigger:        string(types.CallbackTriggerReceivePacket),
 					types.AttributeKeyCallbackAddress:        ibctesting.TestAccAddress,
 					types.AttributeKeyCallbackGasLimit:       "100000",
 					types.AttributeKeyCallbackCommitGasLimit: "200000",
@@ -159,7 +159,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
 				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTriggerAcknowledgementPacket,
 			types.CallbackData{
 				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
@@ -169,7 +169,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			ibctesting.EventsMap{
 				types.EventTypeSourceCallback: {
 					sdk.AttributeKeyModule:                    types.ModuleName,
-					types.AttributeKeyCallbackTrigger:         string(types.CallbackTypeAcknowledgementPacket),
+					types.AttributeKeyCallbackTrigger:         string(types.CallbackTriggerAcknowledgementPacket),
 					types.AttributeKeyCallbackAddress:         ibctesting.TestAccAddress,
 					types.AttributeKeyCallbackGasLimit:        "100000",
 					types.AttributeKeyCallbackCommitGasLimit:  "200000",

@@ -21,10 +21,10 @@ import (
 func (s *CallbacksTestSuite) TestICACallbacks() {
 	// Destination callbacks are not supported for ICA packets
 	testCases := []struct {
-		name            string
-		icaMemo         string
-		expCallbackType types.CallbackType
-		expSuccess      bool
+		name        string
+		icaMemo     string
+		expCallback types.CallbackTrigger
+		expSuccess  bool
 	}{
 		{
 			"success: transfer with no memo",
@@ -59,13 +59,13 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTriggerAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with other json fields",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTriggerAcknowledgementPacket,
 			true,
 		},
 		{
@@ -89,7 +89,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		{
 			"failure: source callback with low gas (error)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTriggerAcknowledgementPacket,
 			false,
 		},
 		{
@@ -101,7 +101,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTriggerAcknowledgementPacket,
 			false,
 		},
 	}
@@ -111,7 +111,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 			icaAddr := s.SetupICATest()
 
 			s.ExecuteICATx(icaAddr, tc.icaMemo, 1)
-			s.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
 		})
 	}
 }
@@ -119,10 +119,10 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 	// ICA channels are closed after a timeout packet is executed
 	testCases := []struct {
-		name            string
-		icaMemo         string
-		expCallbackType types.CallbackType
-		expSuccess      bool
+		name        string
+		icaMemo     string
+		expCallback types.CallbackTrigger
+		expSuccess  bool
 	}{
 		{
 			"success: transfer with no memo",
@@ -139,7 +139,7 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTypeTimeoutPacket,
+			types.CallbackTriggerTimeoutPacket,
 			true,
 		},
 		{
@@ -151,7 +151,7 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 		{
 			"failure: source callback with low gas (error)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeTimeoutPacket,
+			types.CallbackTriggerTimeoutPacket,
 			false,
 		},
 		{
@@ -163,7 +163,7 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
-			types.CallbackTypeTimeoutPacket,
+			types.CallbackTriggerTimeoutPacket,
 			false,
 		},
 	}
@@ -173,7 +173,7 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 			icaAddr := s.SetupICATest()
 
 			s.ExecuteICATimeout(icaAddr, tc.icaMemo, 1)
-			s.AssertHasExecutedExpectedCallback(tc.expCallbackType, tc.expSuccess)
+			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
 		})
 	}
 }

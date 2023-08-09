@@ -20,10 +20,10 @@ var (
 
 func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 	testCases := []struct {
-		name            string
-		transferMemo    string
-		expCallbackType types.CallbackType
-		expSuccess      bool
+		name         string
+		transferMemo string
+		expCallback  types.CallbackTrigger
+		expSuccess   bool
 	}{
 		{
 			"success: transfer with no memo",
@@ -34,13 +34,13 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		{
 			"success: dest callback",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTypeReceivePacket,
+			types.CallbackTriggerReceivePacket,
 			true,
 		},
 		{
 			"success: dest callback with other json fields",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-			types.CallbackTypeReceivePacket,
+			types.CallbackTriggerReceivePacket,
 			true,
 		},
 		{
@@ -58,13 +58,13 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTriggerAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with other json fields",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTriggerAcknowledgementPacket,
 			true,
 		},
 		{
@@ -82,13 +82,13 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		{
 			"failure: dest callback with low gas (panic)",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeReceivePacket,
+			types.CallbackTriggerReceivePacket,
 			false,
 		},
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTriggerAcknowledgementPacket,
 			false,
 		},
 	}
@@ -107,17 +107,17 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 			preRelaySenderBalance = preRelaySenderBalance.Sub(ibctesting.TestCoin)
 
 			// after incentivizing the packets
-			s.AssertHasExecutedExpectedCallbackWithFee(tc.expCallbackType, tc.expSuccess, false, preRelaySenderBalance, fee)
+			s.AssertHasExecutedExpectedCallbackWithFee(tc.expCallback, tc.expSuccess, false, preRelaySenderBalance, fee)
 		})
 	}
 }
 
 func (s *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 	testCases := []struct {
-		name            string
-		transferMemo    string
-		expCallbackType types.CallbackType
-		expSuccess      bool
+		name         string
+		transferMemo string
+		expCallback  types.CallbackTrigger
+		expSuccess   bool
 	}{
 		{
 			"success: transfer with no memo",
@@ -134,7 +134,7 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTypeTimeoutPacket,
+			types.CallbackTriggerTimeoutPacket,
 			true,
 		},
 		{
@@ -146,7 +146,7 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeTimeoutPacket,
+			types.CallbackTriggerTimeoutPacket,
 			false,
 		},
 	}
@@ -162,7 +162,7 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 			s.ExecuteTransferTimeout(tc.transferMemo, 1)
 
 			// after incentivizing the packets
-			s.AssertHasExecutedExpectedCallbackWithFee(tc.expCallbackType, tc.expSuccess, true, preRelaySenderBalance, fee)
+			s.AssertHasExecutedExpectedCallbackWithFee(tc.expCallback, tc.expSuccess, true, preRelaySenderBalance, fee)
 		})
 	}
 }

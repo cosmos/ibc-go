@@ -364,7 +364,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketLowRelayerGas() {
 
 	modifiedCtx := s.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(400000))
 	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeReceivePacket),
+		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerReceivePacket),
 	}, func() {
 		transferStackMw.OnRecvPacket(modifiedCtx, packet, s.chainB.SenderAccount.GetAddress())
 	})
@@ -407,7 +407,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgementOogError() {
 
 	modifiedCtx := s.chainB.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
 	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeReceivePacket),
+		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerReceivePacket),
 	}, func() {
 		_ = transferStackMw.WriteAcknowledgement(modifiedCtx, chanCap, packet, ack)
 	})
@@ -448,7 +448,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacketLowRelayerGas() {
 	// Low Relayer gas
 	modifiedCtx := s.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
 	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeAcknowledgementPacket),
+		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerAcknowledgementPacket),
 	}, func() {
 		_ = transferStack.OnAcknowledgementPacket(modifiedCtx, packet, ack, senderAddr)
 	})
@@ -483,7 +483,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacketLowRelayerGas() {
 	s.Require().True(ok)
 	modifiedCtx := s.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
 	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeTimeoutPacket),
+		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTriggerTimeoutPacket),
 	}, func() {
 		_ = transferStack.OnTimeoutPacket(modifiedCtx, packet, s.chainA.SenderAccount.GetAddress())
 	})

@@ -62,7 +62,7 @@ func Logger(ctx sdk.Context) log.Logger {
 func EmitCallbackEvent(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
-	callbackTrigger CallbackType,
+	callbackTrigger CallbackTrigger,
 	callbackData CallbackData,
 	err error,
 ) {
@@ -86,7 +86,7 @@ func EmitCallbackEvent(
 
 	var eventType string
 	switch callbackTrigger {
-	case CallbackTypeReceivePacket:
+	case CallbackTriggerReceivePacket:
 		eventType = EventTypeDestinationCallback
 		attributes = append(
 			attributes, sdk.NewAttribute(AttributeKeyCallbackDestPortID, packet.GetDestPort()),

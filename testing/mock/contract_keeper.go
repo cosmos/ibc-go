@@ -28,7 +28,7 @@ var _ callbacktypes.ContractKeeper = (*ContractKeeper)(nil)
 type ContractKeeper struct {
 	key storetypes.StoreKey
 
-	Counters map[callbacktypes.CallbackType]int
+	Counters map[callbacktypes.CallbackTrigger]int
 }
 
 // SetStateEntryCounter sets state entry counter. The number of stateful
@@ -58,7 +58,7 @@ func (k ContractKeeper) IncrementStateEntryCounter(ctx sdk.Context) {
 func NewContractKeeper(key storetypes.StoreKey) ContractKeeper {
 	return ContractKeeper{
 		key:      key,
-		Counters: make(map[callbacktypes.CallbackType]int),
+		Counters: make(map[callbacktypes.CallbackTrigger]int),
 	}
 }
 
@@ -76,7 +76,7 @@ func (k ContractKeeper) IBCSendPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeSendPacket, packetSenderAddress)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTriggerSendPacket, packetSenderAddress)
 }
 
 // IBCOnAcknowledgementPacketCallback returns nil if the gas meter has greater than
@@ -91,7 +91,7 @@ func (k ContractKeeper) IBCOnAcknowledgementPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeAcknowledgementPacket, packetSenderAddress)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTriggerAcknowledgementPacket, packetSenderAddress)
 }
 
 // IBCOnTimeoutPacketCallback returns nil if the gas meter has greater than
@@ -105,7 +105,7 @@ func (k ContractKeeper) IBCOnTimeoutPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeTimeoutPacket, packetSenderAddress)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTriggerTimeoutPacket, packetSenderAddress)
 }
 
 // IBCReceivePacketCallback returns nil if the gas meter has greater than
@@ -118,7 +118,7 @@ func (k ContractKeeper) IBCReceivePacketCallback(
 	ack ibcexported.Acknowledgement,
 	contractAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeReceivePacket, "")
+	return k.processMockCallback(ctx, callbacktypes.CallbackTriggerReceivePacket, "")
 }
 
 // processMockCallback returns nil if the gas meter has greater than or equal to 500000 gas remaining.
@@ -126,7 +126,7 @@ func (k ContractKeeper) IBCReceivePacketCallback(
 // This function oog panics if the gas remaining is less than 400000.
 func (k ContractKeeper) processMockCallback(
 	ctx sdk.Context,
-	callbackType callbacktypes.CallbackType,
+	callbackType callbacktypes.CallbackTrigger,
 	authAddress string,
 ) error {
 	gasRemaining := ctx.GasMeter().GasRemaining()
