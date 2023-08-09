@@ -105,6 +105,7 @@ func (im IBCMiddleware) SendPacket(
 	if err != nil {
 		return 0, err
 	}
+	types.EmitCallbackEvent(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackData, err)
 
 	return seq, nil
 }
@@ -134,7 +135,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(cachedCtx, packet, acknowledgement, relayer, callbackData.ContractAddress, callbackData.SenderAddress)
 	}
 
-	_ = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, err)
 
 	return nil
 }
@@ -158,7 +160,8 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackData.ContractAddress, callbackData.SenderAddress)
 	}
 
-	_ = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
 
 	return nil
 }
@@ -186,7 +189,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackData.ContractAddress)
 	}
 
-	_ = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, err)
 
 	return ack
 }
@@ -216,7 +220,8 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackData.ContractAddress)
 	}
 
-	_ = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, err)
 
 	return nil
 }
@@ -232,7 +237,6 @@ func (IBCMiddleware) processCallback(
 	cachedCtx, writeFn := ctx.CacheContext()
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.ExecutionGasLimit))
 	defer func() {
-		types.EmitCallbackEvent(ctx, packet, callbackType, callbackData, err)
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
 		if r := recover(); r != nil {
 			// We handle panic here. This is to ensure that the state changes are reverted
