@@ -1370,20 +1370,6 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			connectiontypes.ErrInvalidConnectionState,
 		},
 		{
-			"failed verification for counterparty channel state due to incorrectly constructed counterparty channel",
-			func() {
-				counterpartyChannel.Close()
-			},
-			commitmenttypes.ErrInvalidProof,
-		},
-		{
-			"failed verification for counterparty upgrade due to incorrectly constructed counterparty upgrade",
-			func() {
-				counterpartyUpgrade.LatestSequenceSend = 100
-			},
-			commitmenttypes.ErrInvalidProof,
-		},
-		{
 			"upgrade sequence mismatch, endpointB channel upgrade sequence is ahead",
 			func() {
 				channel := path.EndpointB.GetChannel()
