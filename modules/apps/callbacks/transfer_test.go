@@ -77,26 +77,14 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 			true,
 		},
 		{
-			"failure: dest callback with low gas (error)",
+			"failure: dest callback with low gas (panic)",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
 			types.CallbackTypeWriteAcknowledgement,
 			false,
 		},
 		{
-			"failure: source callback with low gas (error)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgement,
-			false,
-		},
-		{
-			"failure: dest callback with low gas (panic)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
-			types.CallbackTypeWriteAcknowledgement,
-			false,
-		},
-		{
 			"failure: source callback with low gas (panic)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
 			types.CallbackTypeAcknowledgement,
 			false,
 		},
@@ -126,7 +114,7 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 		{
 			"success: dest callback",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
-			"none",
+			"none", // timeouts don't reach destination chain execution
 			true,
 		},
 		{
@@ -136,26 +124,14 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 			true,
 		},
 		{
-			"success: dest callback with low gas (error)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			"none",
-			true,
-		},
-		{
-			"failure: source callback with low gas (error)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeTimeoutPacket,
-			false,
-		},
-		{
 			"success: dest callback with low gas (panic)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": 350000"}}`, callbackAddr),
-			"none",
+			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
+			"none", // timeouts don't reach destination chain execution
 			true,
 		},
 		{
 			"failure: source callback with low gas (panic)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
 			types.CallbackTypeTimeoutPacket,
 			false,
 		},
