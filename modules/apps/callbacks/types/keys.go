@@ -7,7 +7,7 @@ const (
 
 	CallbackTypeSendPacket            CallbackType = "send_packet"
 	CallbackTypeAcknowledgementPacket CallbackType = "acknowledgement_packet"
-	CallbackTypeTimeoutPacket         CallbackType = "timeout"
+	CallbackTypeTimeoutPacket         CallbackType = "timeout_packet"
 	CallbackTypeWriteAcknowledgement  CallbackType = "write_acknowledgement"
 
 	// Source callback packet data is set inside the underlying packet data using the this key.
