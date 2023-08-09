@@ -26,7 +26,6 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 		malleate        func()
 		remainingGas    uint64
 		expCallbackData types.CallbackData
-		expAllowRetry   bool
 		expPass         bool
 	}{
 		{
@@ -48,7 +47,6 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				ExecutionGasLimit: 1_000_000,
 				CommitGasLimit:    1_000_000,
 			},
-			false,
 			true,
 		},
 		{
@@ -70,7 +68,6 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				ExecutionGasLimit: 50000,
 				CommitGasLimit:    50000,
 			},
-			false,
 			true,
 		},
 		{
@@ -93,10 +90,9 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				CommitGasLimit:    200000,
 			},
 			true,
-			true,
 		},
 		{
-			"success: source callback with  remaining gas < max gas < gas limit",
+			"success: source callback with remaining gas < max gas < gas limit",
 			func() {
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
@@ -114,7 +110,6 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    1_000_000,
 			},
-			true,
 			true,
 		},
 		{
@@ -136,7 +131,6 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				ExecutionGasLimit: 1_000_000,
 				CommitGasLimit:    1_000_000,
 			},
-			false,
 			true,
 		},
 		{
@@ -154,7 +148,6 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			100000,
 			types.CallbackData{},
 			false,
-			false,
 		},
 		{
 			"failure: invalid packet data",
@@ -163,7 +156,6 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			},
 			100000,
 			types.CallbackData{},
-			false,
 			false,
 		},
 	}
@@ -196,7 +188,6 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 		malleate        func()
 		remainingGas    uint64
 		expCallbackData types.CallbackData
-		expAllowRetry   bool
 		expPass         bool
 	}{
 		{
@@ -218,7 +209,6 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				ExecutionGasLimit: 1_000_000,
 				CommitGasLimit:    1_000_000,
 			},
-			false,
 			true,
 		},
 		{
@@ -240,7 +230,6 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				ExecutionGasLimit: 50000,
 				CommitGasLimit:    50000,
 			},
-			false,
 			true,
 		},
 		{
@@ -263,10 +252,9 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				CommitGasLimit:    200000,
 			},
 			true,
-			true,
 		},
 		{
-			"success: dest callback with  remaining gas < max gas < gas limit",
+			"success: dest callback with remaining gas < max gas < gas limit",
 			func() {
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
@@ -284,7 +272,6 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    1_000_000,
 			},
-			true,
 			true,
 		},
 		{
@@ -306,7 +293,6 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				ExecutionGasLimit: 1_000_000,
 				CommitGasLimit:    1_000_000,
 			},
-			false,
 			true,
 		},
 		{
@@ -324,7 +310,6 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			100000,
 			types.CallbackData{},
 			false,
-			false,
 		},
 		{
 			"failure: invalid packet data",
@@ -333,7 +318,6 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			},
 			100000,
 			types.CallbackData{},
-			false,
 			false,
 		},
 	}
