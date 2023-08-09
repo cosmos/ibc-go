@@ -16,11 +16,11 @@ const (
 	// EventTypeDestinationCallback is the event type for a destination callback
 	EventTypeDestinationCallback = "ibc_dest_callback"
 
-	// AttributeKeyCallbackTrigger denotes the condition that the callback is executed on:
+	// AttributeKeyCallbackType denotes the condition that the callback is executed on:
 	//   "acknowledgement": the callback is executed on the acknowledgement of the packet
 	//   "timeout": the callback is executed on the timeout of the packet
 	//   "recv_packet": the callback is executed on the reception of the packet
-	AttributeKeyCallbackTrigger = "callback_trigger"
+	AttributeKeyCallbackType = "callback_trigger"
 	// AttributeKeyCallbackAddress denotes the callback address
 	AttributeKeyCallbackAddress = "callback_address"
 	// AttributeKeyCallbackResult denotes the callback result:
@@ -60,9 +60,9 @@ func Logger(ctx sdk.Context) log.Logger {
 
 // LogDebugWithPacket logs a debug message with the packet identifier information.
 // The callback trigger determines whether the packet source or destination is logged.
-func LogDebugWithPacket(ctx sdk.Context, callbackTrigger CallbackTrigger, packet ibcexported.PacketI, msg string, args ...interface{}) {
-	switch callbackTrigger {
-	case CallbackTriggerReceivePacket:
+func LogDebugWithPacket(ctx sdk.Context, callbackType CallbackType, packet ibcexported.PacketI, msg string, args ...interface{}) {
+	switch callbackType {
+	case CallbackTypeReceivePacket:
 		// Log the packet destination
 		args = append(args, AttributeKeyCallbackDestPortID, packet.GetDestPort(), AttributeKeyCallbackDestChannelID, packet.GetDestChannel())
 	default:
@@ -78,13 +78,13 @@ func LogDebugWithPacket(ctx sdk.Context, callbackTrigger CallbackTrigger, packet
 func EmitCallbackEvent(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
-	callbackTrigger CallbackTrigger,
+	callbackType CallbackType,
 	callbackData CallbackData,
 	err error,
 ) {
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, ModuleName),
-		sdk.NewAttribute(AttributeKeyCallbackTrigger, string(callbackTrigger)),
+		sdk.NewAttribute(AttributeKeyCallbackType, string(callbackType)),
 		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.CallbackAddress),
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.ExecutionGasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackCommitGasLimit, fmt.Sprintf("%d", callbackData.CommitGasLimit)),
@@ -101,8 +101,8 @@ func EmitCallbackEvent(
 	}
 
 	var eventType string
-	switch callbackTrigger {
-	case CallbackTriggerReceivePacket:
+	switch callbackType {
+	case CallbackTypeReceivePacket:
 		eventType = EventTypeDestinationCallback
 		attributes = append(
 			attributes, sdk.NewAttribute(AttributeKeyCallbackDestPortID, packet.GetDestPort()),
