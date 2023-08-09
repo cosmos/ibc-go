@@ -89,13 +89,23 @@ func (s *CallbacksTestSuite) TestSendPacketError() {
 	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
+		name            string
+		malleate        func()
+		callbackTrigger types.CallbackTrigger
+		expError        error
 	}{
 		{
 			"success",
 			func() {},
+			types.CallbackTriggerSendPacket,
+			nil,
+		},
+		{
+			"success: no-op on callback data is not valid",
+			func() {
+				packetData.Memo = `{"src_callback": {"address": ""}}`
+			},
+			"none", // improperly formatted callback data should result in no callback execution
 			nil,
 		},
 		{
@@ -103,14 +113,16 @@ func (s *CallbacksTestSuite) TestSendPacketError() {
 			func() {
 				s.path.EndpointA.ChannelID = "invalid-channel"
 			},
+			"none", // ics4wrapper  failure should result in no callback execution
 			channeltypes.ErrChannelNotFound,
 		},
 		{
-			"failure: sender is not callback address",
+			"failure: callback execution fails, sender is not callback address",
 			func() {
 				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
 			},
-			ibcmock.MockApplicationCallbackError,
+			types.CallbackTriggerSendPacket,
+			ibcmock.MockApplicationCallbackError, // execution failure on SendPacket should prevent packet sends
 		},
 	}
 
@@ -134,7 +146,10 @@ func (s *CallbacksTestSuite) TestSendPacketError() {
 
 			seq, err := transferStack.(porttypes.Middleware).SendPacket(s.chainA.GetContext(), chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
 
-			if tc.expError == nil {
+			expPass := tc.expError == nil
+			s.AssertHasExecutedExpectedCallback(tc.callbackTrigger, expPass)
+
+			if expPass {
 				s.Require().Nil(err)
 				s.Require().Equal(uint64(1), seq)
 			} else {
