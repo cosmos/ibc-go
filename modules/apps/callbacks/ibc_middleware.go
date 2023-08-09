@@ -137,8 +137,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		)
 	}
 
-	err = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgement, callbackData, err)
+	err = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, err)
 
 	return nil
 }

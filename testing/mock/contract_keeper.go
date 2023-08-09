@@ -91,7 +91,7 @@ func (k ContractKeeper) IBCOnAcknowledgementPacketCallback(
 	contractAddress,
 	packetSenderAddress string,
 ) error {
-	return k.processMockCallback(ctx, callbacktypes.CallbackTypeAcknowledgement, packetSenderAddress)
+	return k.processMockCallback(ctx, callbacktypes.CallbackTypeAcknowledgementPacket, packetSenderAddress)
 }
 
 // IBCOnTimeoutPacketCallback returns nil if the gas meter has greater than

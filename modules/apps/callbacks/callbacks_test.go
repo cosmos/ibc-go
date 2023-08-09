@@ -157,7 +157,7 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType type
 		s.Require().Equal(expStatefulEntries, sourceStatefulCounter)
 		s.Require().Equal(uint8(0), destStatefulCounter)
 
-	case types.CallbackTypeAcknowledgement, types.CallbackTypeTimeoutPacket:
+	case types.CallbackTypeAcknowledgementPacket, types.CallbackTypeTimeoutPacket:
 		expStatefulEntries *= 2 // expect OnAcknowledgement/OnTimeout to be successful as well
 		s.Require().Equal(expStatefulEntries, sourceStatefulCounter)
 		s.Require().Equal(uint8(0), destStatefulCounter)
@@ -186,10 +186,10 @@ func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackT
 		s.Require().Len(sourceCounters, 1)
 		s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
 
-	case types.CallbackTypeAcknowledgement:
+	case types.CallbackTypeAcknowledgementPacket:
 		s.Require().Len(sourceCounters, 2)
 		s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
-		s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgement])
+		s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgementPacket])
 
 		s.Require().Len(destCounters, 0)
 

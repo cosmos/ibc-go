@@ -55,13 +55,13 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgement,
+			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with other json fields",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-			types.CallbackTypeAcknowledgement,
+			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
@@ -85,7 +85,7 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgement,
+			types.CallbackTypeAcknowledgementPacket,
 			false,
 		},
 	}

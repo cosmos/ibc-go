@@ -5,10 +5,10 @@ type CallbackType string
 const (
 	ModuleName = "ibccallbacks"
 
-	CallbackTypeSendPacket           CallbackType = "send_packet"
-	CallbackTypeAcknowledgement      CallbackType = "acknowledgement"
-	CallbackTypeTimeoutPacket        CallbackType = "timeout"
-	CallbackTypeWriteAcknowledgement CallbackType = "write_acknowledgement"
+	CallbackTypeSendPacket            CallbackType = "send_packet"
+	CallbackTypeAcknowledgementPacket CallbackType = "acknowledgement_packet"
+	CallbackTypeTimeoutPacket         CallbackType = "timeout"
+	CallbackTypeWriteAcknowledgement  CallbackType = "write_acknowledgement"
 
 	// Source callback packet data is set inside the underlying packet data using the this key.
 	// ICS20 and ICS27 will store the callback packet data in the memo field as a json object.

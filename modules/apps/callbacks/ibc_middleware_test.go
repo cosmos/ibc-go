@@ -448,7 +448,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacketLowRelayerGas() {
 	// Low Relayer gas
 	modifiedCtx := s.chainA.GetContext().WithGasMeter(sdk.NewGasMeter(300_000))
 	s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeAcknowledgement),
+		Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeAcknowledgementPacket),
 	}, func() {
 		_ = transferStack.OnAcknowledgementPacket(modifiedCtx, packet, ack, senderAddr)
 	})

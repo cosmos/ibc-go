@@ -59,13 +59,13 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgement,
+			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with other json fields",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-			types.CallbackTypeAcknowledgement,
+			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
@@ -89,7 +89,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		{
 			"failure: source callback with low gas (error)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgement,
+			types.CallbackTypeAcknowledgementPacket,
 			false,
 		},
 		{
@@ -101,7 +101,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgement,
+			types.CallbackTypeAcknowledgementPacket,
 			false,
 		},
 	}
