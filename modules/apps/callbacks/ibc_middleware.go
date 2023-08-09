@@ -230,8 +230,10 @@ func (im IBCMiddleware) WriteAcknowledgement(
 
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
 //
-// panics if the contractExecutor out of gas panics and the relayer has not reserved gas grater than or equal
-// to CommitGasLimit.
+// panics if
+//   - the callbackType is SendPacket and the contractExecutor panics for any reason, or
+//   - the contractExecutor out of gas panics and the relayer has not reserved gas grater than or equal to
+//     CommitGasLimit.
 func (IBCMiddleware) processCallback(
 	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
 	callbackData types.CallbackData, callbackExecutor func(sdk.Context) error,
@@ -240,9 +242,12 @@ func (IBCMiddleware) processCallback(
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.ExecutionGasLimit))
 	defer func() {
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
-		if r := recover(); r != nil {
+		if r := recover(); r != nil && callbackType != types.CallbackTypeSendPacket {
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
+			//
+			// We do not handle panics for SendPacket callbacks because we require an approval
+			// from the callback actor to send the packet.
 			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
 				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "packet", packet, "panic", oogError)
 				// If execution gas limit was less than the commit gas limit, allow retry.
