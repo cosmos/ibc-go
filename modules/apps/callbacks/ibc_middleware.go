@@ -254,7 +254,7 @@ func (IBCMiddleware) processCallback(
 				if callbackData.ExecutionGasLimit < callbackData.CommitGasLimit {
 					panic(r)
 				}
-				types.Logger(ctx).Debug("Callbacks recovered from out of gas panic.", "packet", packet, "panic", oogError)
+				types.LogDebugWithPacket(ctx, callbackTrigger, packet, "Callbacks recovered from out of gas panic.", "panic", oogError)
 			}
 		}
 	}()
