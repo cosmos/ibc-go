@@ -526,9 +526,16 @@ func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
 		return fmt.Errorf("unsupported order type %s", endpoint.ChannelConfig.Order)
 	}
 
+<<<<<<< HEAD
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
 	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
 	require.True(endpoint.Chain.T, found)
+=======
+	counterparty := endpoint.Counterparty
+	proof, proofHeight := counterparty.QueryProof(packetKey)
+	nextSeqRecv, found := counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(counterparty.Chain.GetContext(), counterparty.ChannelConfig.PortID, counterparty.ChannelID)
+	require.True(endpoint.Chain.TB, found)
+>>>>>>> 00a680cd (testing: fix usage on TimeoutPacket to use counterparty portID/channelID in nextSeqRecv query (#4319))
 
 	timeoutMsg := channeltypes.NewMsgTimeout(
 		packet, nextSeqRecv,
