@@ -27,7 +27,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		expSuccess  bool
 	}{
 		{
-			"success: transfer with no memo",
+			"success: send ica tx with no memo",
 			"",
 			"none",
 			true,
@@ -113,7 +113,7 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 		expSuccess  bool
 	}{
 		{
-			"success: transfer with no memo",
+			"success: send ica tx timeout with no memo",
 			"",
 			"none",
 			true,

@@ -113,7 +113,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			func() {
 				s.path.EndpointA.ChannelID = "invalid-channel"
 			},
-			"none", // ics4wrapper  failure should result in no callback execution
+			"none", // ics4wrapper failure should result in no callback execution
 			channeltypes.ErrChannelNotFound,
 		},
 		{
