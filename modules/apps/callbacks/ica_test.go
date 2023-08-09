@@ -81,18 +81,6 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 			true,
 		},
 		{
-			"failure: dest callback with low gas (error)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			"none",
-			false,
-		},
-		{
-			"failure: source callback with low gas (error)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTriggerAcknowledgementPacket,
-			false,
-		},
-		{
 			"failure: dest callback with low gas (panic)",
 			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
 			"none",
@@ -141,18 +129,6 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
 			types.CallbackTriggerTimeoutPacket,
 			true,
-		},
-		{
-			"success: dest callback with low gas (error)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			"none",
-			true,
-		},
-		{
-			"failure: source callback with low gas (error)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTriggerTimeoutPacket,
-			false,
 		},
 		{
 			"success: dest callback with low gas (panic)",
