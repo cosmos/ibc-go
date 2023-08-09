@@ -242,7 +242,7 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 			).Sub(originalSenderBalance[0]),
 		)
 	} else {
-		// forwad relay balance should be 0
+		// forward relay balance should be 0
 		s.Require().Equal(
 			sdk.NewCoin(ibctesting.TestCoin.Denom, sdkmath.ZeroInt()),
 			s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom),
