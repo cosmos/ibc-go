@@ -84,9 +84,7 @@ func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
 }
 
 func (s *CallbacksTestSuite) TestSendPacket() {
-	var (
-		packetData transfertypes.FungibleTokenPacketData
-	)
+	var packetData transfertypes.FungibleTokenPacketData
 
 	testCases := []struct {
 		name            string
@@ -207,7 +205,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			nil,
 		},
 		{
-			"failure: callback execution reach out of gas, but sufficent gas provided by relayer",
+			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
 			func() {
 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, callbackAddr)
 				packet.Data = packetData.GetBytes()
@@ -216,7 +214,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			nil,
 		},
 		{
-			"failure: callback execution panics on insufficent gas provided by relayer",
+			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
 				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
 			},
