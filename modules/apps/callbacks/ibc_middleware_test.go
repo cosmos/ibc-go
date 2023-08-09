@@ -84,40 +84,65 @@ func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
 }
 
 func (s *CallbacksTestSuite) TestSendPacketError() {
-	s.SetupICATest()
-
-	// We will call upwards from the top of icacontroller stack to the channel keeper
-	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
-	s.Require().True(ok)
-
-	controllerStack := icaControllerStack.(porttypes.Middleware)
-	seq, err := controllerStack.SendPacket(s.chainA.GetContext(), nil, "invalid_port", "invalid_channel", clienttypes.NewHeight(1, 100), 0, nil)
-	// we just check that this call is passed up to the channel keeper to return an error
-	s.Require().Equal(uint64(0), seq)
-	s.Require().ErrorIs(errorsmod.Wrap(channeltypes.ErrChannelNotFound, "invalid_channel"), err)
-}
-
-func (s *CallbacksTestSuite) TestSendPacketReject() {
-	s.SetupTransferTest()
-
-	transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
-	s.Require().True(ok)
-	callbackStack, ok := transferStack.(porttypes.Middleware)
-	s.Require().True(ok)
-
-	// We use the MockCallbackUnauthorizedAddress so that mock contract keeper knows to reject the packet
-	ftpd := transfertypes.NewFungibleTokenPacketData(
-		ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibcmock.MockCallbackUnauthorizedAddress,
-		ibctesting.TestAccAddress, fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+	var (
+		packetData transfertypes.FungibleTokenPacketData
 	)
 
-	channelCap := s.path.EndpointA.Chain.GetChannelCapability(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
-	seq, err := callbackStack.SendPacket(
-		s.chainA.GetContext(), channelCap, s.path.EndpointA.ChannelConfig.PortID,
-		s.path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0, ftpd.GetBytes(),
-	)
-	s.Require().ErrorIs(err, ibcmock.MockApplicationCallbackError)
-	s.Require().Equal(uint64(0), seq)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: ics4Wrapper SendPacket call fails",
+			func() {
+				s.path.EndpointA.ChannelID = "invalid-channel"
+			},
+			channeltypes.ErrChannelNotFound,
+		},
+		{
+			"failure: sender is not callback address",
+			func() {
+				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
+			},
+			ibcmock.MockApplicationCallbackError,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupTransferTest()
+
+			// callbacks module is routed as top level middleware
+			transferStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
+			s.Require().True(ok)
+
+			packetData = transfertypes.NewFungibleTokenPacketData(
+				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), callbackAddr,
+				ibctesting.TestAccAddress, fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+			)
+
+			chanCap := s.path.EndpointA.Chain.GetChannelCapability(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
+
+			tc.malleate()
+
+			seq, err := transferStack.(porttypes.Middleware).SendPacket(s.chainA.GetContext(), chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+
+			if tc.expError == nil {
+				s.Require().Nil(err)
+				s.Require().Equal(uint64(1), seq)
+			} else {
+				s.Require().ErrorIs(tc.expError, err)
+				s.Require().Equal(uint64(0), seq)
+			}
+		})
+	}
 }
 
 func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
