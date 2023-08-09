@@ -112,7 +112,6 @@ import (
 	ibcfee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
 	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	ibcfeetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
 	transfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -249,7 +248,7 @@ type SimApp struct {
 	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
 
 	// mock contract keeper used for testing
-	MockContractKeeper ibcmock.ContractKeeper
+	//MockContractKeeper ibcmock.ContractKeeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -273,6 +272,20 @@ func init() {
 	}
 
 	DefaultNodeHome = filepath.Join(userHomeDir, ".simapp")
+}
+func NewSimappWithOptions(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	loadLatest bool,
+	appOpts servertypes.AppOptions,
+	simAppOptions ...func(*SimApp),
+) *SimApp{
+	app := NewSimApp(logger, db, traceStore, loadLatest, appOpts)
+	for _, option := range simAppOptions {
+		option(app)
+	}
+	return app
 }
 
 // NewSimApp returns a reference to an initialized SimApp.
@@ -443,7 +456,7 @@ func NewSimApp(
 
 	// NOTE: The mock ContractKeeper is only created for testing.
 	// Real applications should not use the mock ContractKeeper
-	app.MockContractKeeper = ibcmock.NewContractKeeper(memKeys[ibcmock.MemStoreKey])
+	//app.MockContractKeeper = ibcmock.NewContractKeeper(memKeys[ibcmock.MemStoreKey])
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
@@ -501,7 +514,7 @@ func NewSimApp(
 	ibcRouter := porttypes.NewRouter()
 
 	// Middleware Stacks
-	maxCallbackGas := uint64(1_000_000)
+	//maxCallbackGas := uint64(1_000_000)
 
 	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
 	// since fee middleware will wrap the IBCKeeper for underlying application.
@@ -541,9 +554,9 @@ func NewSimApp(
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
-	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+	//transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
-	app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.Middleware))
+	//app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.Middleware))
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
@@ -558,9 +571,9 @@ func NewSimApp(
 	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
-	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+	//icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
-	app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.Middleware))
+	//app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.Middleware))
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
@@ -592,7 +605,7 @@ func NewSimApp(
 	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
 	var feeWithMockModule porttypes.Middleware = ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
-	feeWithMockModule = ibccallbacks.NewIBCMiddleware(feeWithMockModule, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+	//feeWithMockModule = ibccallbacks.NewIBCMiddleware(feeWithMockModule, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// Seal the IBC Router
