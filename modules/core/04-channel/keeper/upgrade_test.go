@@ -525,11 +525,28 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			types.ErrUpgradeNotFound,
 		},
 		{
-			"fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			"fails due to upgrade incompatibility",
 			func() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 			},
 			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
+		},
+		{
+			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.Ordering = types.ORDERED
+				path.EndpointA.SetChannel(channel)
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"fails due to proof verification failure, counterparty update has unexpected sequence",
+			func() {
+				// Decrementing LatestSequenceSend is sufficient to cause the proof to fail.
+				counterpartyUpgrade.LatestSequenceSend--
+			},
+			commitmenttypes.ErrInvalidProof,
 		},
 		{
 			"startFlushUpgradeHandshake fails due to mismatch in upgrade ordering",
