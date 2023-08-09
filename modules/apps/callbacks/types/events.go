@@ -55,7 +55,7 @@ const (
 
 // Logger returns a module-specific logger.
 func Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+ModuleName)
+	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+ModuleName)
 }
 
 // EmitCallbackEvent emits an event for a callback
