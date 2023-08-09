@@ -96,7 +96,7 @@ func (im IBCMiddleware) SendPacket(
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
 		return im.contractKeeper.IBCSendPacketCallback(
-			cachedCtx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data, callbackData.ContractAddress, callbackData.SenderAddress,
+			cachedCtx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data, callbackData.CallbackAddress, callbackData.SenderAddress,
 		)
 	}
 
@@ -133,7 +133,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
 		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(
-			cachedCtx, packet, acknowledgement, relayer, callbackData.ContractAddress, callbackData.SenderAddress,
+			cachedCtx, packet, acknowledgement, relayer, callbackData.CallbackAddress, callbackData.SenderAddress,
 		)
 	}
 
@@ -159,7 +159,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackData.ContractAddress, callbackData.SenderAddress)
+		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackData.CallbackAddress, callbackData.SenderAddress)
 	}
 
 	err = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
@@ -188,7 +188,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackData.ContractAddress)
+		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackData.CallbackAddress)
 	}
 
 	err = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, callbackExecutor)
@@ -219,7 +219,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackData.ContractAddress)
+		return im.contractKeeper.IBCWriteAcknowledgementCallback(cachedCtx, packet, ack, callbackData.CallbackAddress)
 	}
 
 	err = im.processCallback(ctx, packet, types.CallbackTypeWriteAcknowledgement, callbackData, callbackExecutor)

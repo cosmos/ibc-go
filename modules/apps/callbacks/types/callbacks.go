@@ -19,13 +19,13 @@ The Memo format is defined like so:
 {
 	// ... other memo fields we don't care about
 	"src_callback": {
-		"address": {stringContractAddress},
+		"address": {stringCallbackAddress},
 
 		// optional fields
 		"gas_limit": {stringForCallback}
 	},
 	"dest_callback": {
-		"address": {stringContractAddress},
+		"address": {stringCallbackAddress},
 
 		// optional fields
 		"gas_limit": {stringForCallback}
@@ -34,7 +34,7 @@ The Memo format is defined like so:
 ```
 
 We will pass the packet sender info (if available) to the contract keeper for source callback executions. This will allow the contract
-keeper to verify that the packet sender is the same as the contract address if desired.
+keeper to verify that the packet sender is the same as the callback address if desired.
 
 */
 
@@ -47,12 +47,12 @@ type CallbacksCompatibleModule interface {
 
 // CallbackData is the callback data parsed from the packet.
 type CallbackData struct {
-	// ContractAddress is the address of the callback contract.
-	ContractAddress string
+	// CallbackAddress is the address of the callback actor.
+	CallbackAddress string
 	// ExecutionGasLimit is the gas limit which will be used for the callback execution.
 	ExecutionGasLimit uint64
 	// SenderAddress is the sender of the packet. This is passed to the contract keeper
-	// to verify that the packet sender is the same as the contract address if desired.
+	// to verify that the packet sender is the same as the callback address if desired.
 	// This address is empty during destination callback execution.
 	// This address may be empty if the sender is unknown or undefined.
 	SenderAddress string
@@ -122,7 +122,7 @@ func getCallbackData(
 	executionGasLimit, commitGasLimit := computeExecAndCommitGasLimit(callbackData, remainingGas, maxGas)
 
 	return CallbackData{
-		ContractAddress:   callbackAddress,
+		CallbackAddress:   callbackAddress,
 		ExecutionGasLimit: executionGasLimit,
 		SenderAddress:     packetSender,
 		CommitGasLimit:    commitGasLimit,

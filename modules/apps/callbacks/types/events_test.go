@@ -26,7 +26,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeAcknowledgementPacket,
 			types.CallbackData{
-				ContractAddress:   ibctesting.TestAccAddress,
+				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    200000,
 			},
@@ -53,7 +53,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeSendPacket,
 			types.CallbackData{
-				ContractAddress:   ibctesting.TestAccAddress,
+				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    200000,
 			},
@@ -80,7 +80,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeTimeoutPacket,
 			types.CallbackData{
-				ContractAddress:   ibctesting.TestAccAddress,
+				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    200000,
 			},
@@ -107,7 +107,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeWriteAcknowledgement,
 			types.CallbackData{
-				ContractAddress:   ibctesting.TestAccAddress,
+				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    200000,
 			},
@@ -134,7 +134,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			"something",
 			types.CallbackData{
-				ContractAddress:   ibctesting.TestAccAddress,
+				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    200000,
 			},
@@ -161,7 +161,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			),
 			types.CallbackTypeAcknowledgementPacket,
 			types.CallbackData{
-				ContractAddress:   ibctesting.TestAccAddress,
+				CallbackAddress:   ibctesting.TestAccAddress,
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    200000,
 			},

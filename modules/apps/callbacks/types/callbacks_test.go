@@ -43,7 +43,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			},
 			2_000_000,
 			types.CallbackData{
-				ContractAddress:   sender,
+				CallbackAddress:   sender,
 				SenderAddress:     sender,
 				ExecutionGasLimit: 1_000_000,
 				CommitGasLimit:    1_000_000,
@@ -65,7 +65,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			},
 			100000,
 			types.CallbackData{
-				ContractAddress:   sender,
+				CallbackAddress:   sender,
 				SenderAddress:     sender,
 				ExecutionGasLimit: 50000,
 				CommitGasLimit:    50000,
@@ -87,7 +87,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			},
 			100000,
 			types.CallbackData{
-				ContractAddress:   sender,
+				CallbackAddress:   sender,
 				SenderAddress:     sender,
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    200000,
@@ -109,7 +109,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			},
 			100000,
 			types.CallbackData{
-				ContractAddress:   sender,
+				CallbackAddress:   sender,
 				SenderAddress:     sender,
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    1_000_000,
@@ -131,7 +131,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 			},
 			2_000_000,
 			types.CallbackData{
-				ContractAddress:   sender,
+				CallbackAddress:   sender,
 				SenderAddress:     sender,
 				ExecutionGasLimit: 1_000_000,
 				CommitGasLimit:    1_000_000,
@@ -213,7 +213,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			},
 			2_000_000,
 			types.CallbackData{
-				ContractAddress:   sender,
+				CallbackAddress:   sender,
 				SenderAddress:     "",
 				ExecutionGasLimit: 1_000_000,
 				CommitGasLimit:    1_000_000,
@@ -235,7 +235,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			},
 			100000,
 			types.CallbackData{
-				ContractAddress:   sender,
+				CallbackAddress:   sender,
 				SenderAddress:     "",
 				ExecutionGasLimit: 50000,
 				CommitGasLimit:    50000,
@@ -257,7 +257,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			},
 			100000,
 			types.CallbackData{
-				ContractAddress:   sender,
+				CallbackAddress:   sender,
 				SenderAddress:     "",
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    200000,
@@ -279,7 +279,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			},
 			100000,
 			types.CallbackData{
-				ContractAddress:   sender,
+				CallbackAddress:   sender,
 				SenderAddress:     "",
 				ExecutionGasLimit: 100000,
 				CommitGasLimit:    1_000_000,
@@ -301,7 +301,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 			},
 			2_000_000,
 			types.CallbackData{
-				ContractAddress:   sender,
+				CallbackAddress:   sender,
 				SenderAddress:     "",
 				ExecutionGasLimit: 1_000_000,
 				CommitGasLimit:    1_000_000,
