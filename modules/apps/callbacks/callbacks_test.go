@@ -226,7 +226,8 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 	// - reverse relayer is chainA.SenderAccount
 	// - The counterparty payee of the forward relayer in chainA is chainB.SenderAccount (as a chainA account)
 
-	if !isTimeout {
+	// We only check if the fee is paid if the callback is successful.
+	if !isTimeout && isSuccessful {
 		// check forward relay balance
 		s.Require().Equal(
 			fee.RecvFee,
@@ -241,7 +242,7 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 					ibctesting.TestCoin.Denom),
 			).Sub(originalSenderBalance[0]),
 		)
-	} else {
+	} else if isSuccessful {
 		// forward relay balance should be 0
 		s.Require().Equal(
 			sdk.NewCoin(ibctesting.TestCoin.Denom, sdkmath.ZeroInt()),

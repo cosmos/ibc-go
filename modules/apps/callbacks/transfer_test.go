@@ -85,7 +85,7 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTypeSendPacket,
 			false,
 		},
 	}
@@ -132,7 +132,7 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeTimeoutPacket,
+			types.CallbackTypeSendPacket,
 			false,
 		},
 	}
@@ -166,7 +166,9 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	)
 
 	res, err := s.chainA.SendMsgs(msg)
-	s.Require().NoError(err) // message committed
+	if err != nil {
+		return // we return if send packet is rejected
+	}
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
 	s.Require().NoError(err)
@@ -198,7 +200,9 @@ func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string, nextSeqRecv uin
 	)
 
 	res, err := s.chainA.SendMsgs(msg)
-	s.Require().NoError(err) // message committed
+	if err != nil {
+		return // we return if send packet is rejected
+	}
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
 	s.Require().NoError(err) // packet committed

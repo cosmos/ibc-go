@@ -65,7 +65,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTypeSendPacket,
 			false,
 		},
 	}
@@ -109,7 +109,7 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
-			types.CallbackTypeTimeoutPacket,
+			types.CallbackTypeSendPacket,
 			false,
 		},
 	}
@@ -134,7 +134,10 @@ func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint64) {
 	msg := icacontrollertypes.NewMsgSendTx(icaOwner, connectionID, timeoutTimestamp, packetData)
 
 	res, err := s.chainA.SendMsgs(msg)
-	s.Require().NoError(err) // message committed
+	if err != nil {
+		return // we return if send packet is rejected
+	}
+
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
 	s.Require().NoError(err)
 
@@ -152,7 +155,10 @@ func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, seq uint
 	msg := icacontrollertypes.NewMsgSendTx(icaOwner, connectionID, relativeTimeout, packetData)
 
 	res, err := s.chainA.SendMsgs(msg)
-	s.Require().NoError(err) // message committed
+	if err != nil {
+		return // we return if send packet is rejected
+	}
+
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
 	s.Require().NoError(err)
 

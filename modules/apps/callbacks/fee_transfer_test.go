@@ -88,7 +88,7 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeAcknowledgementPacket,
+			types.CallbackTypeSendPacket,
 			false,
 		},
 	}
@@ -146,7 +146,7 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 		{
 			"failure: source callback with low gas (panic)",
 			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, callbackAddr),
-			types.CallbackTypeTimeoutPacket,
+			types.CallbackTypeSendPacket,
 			false,
 		},
 	}
@@ -177,8 +177,10 @@ func (s *CallbacksTestSuite) ExecutePayPacketFeeMsg(fee feetypes.Fee) {
 	preEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
 	res, err := s.chainA.SendMsgs(msg)
+	if err != nil {
+		return // we return if send packet is rejected
+	}
 	s.Require().NotNil(res)
-	s.Require().NoError(err) // message committed
 
 	postEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	s.Require().Equal(postEscrowBalance.AddAmount(fee.Total().AmountOf(sdk.DefaultBondDenom)), preEscrowBalance)
