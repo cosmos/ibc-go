@@ -655,6 +655,30 @@ func (endpoint *Endpoint) ChanUpgradeAck() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// ChanUpgradeConfirm sends a MsgChannelUpgradeConfirm to the associated endpoint.
+func (endpoint *Endpoint) ChanUpgradeConfirm() error {
+	err := endpoint.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
+
+	proofChannel, proofUpgrade, height := endpoint.QueryChannelUpgradeProof()
+
+	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
+	require.True(endpoint.Chain.TB, found)
+
+	msg := channeltypes.NewMsgChannelUpgradeConfirm(
+		endpoint.ChannelConfig.PortID,
+		endpoint.ChannelID,
+		endpoint.Counterparty.GetChannel().State,
+		counterpartyUpgrade,
+		proofChannel,
+		proofUpgrade,
+		height,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	return endpoint.Chain.sendMsgs(msg)
+}
+
 // ChanUpgradeOpen sends a MsgChannelUpgradeOpen to the associated endpoint.
 func (endpoint *Endpoint) ChanUpgradeOpen() error {
 	err := endpoint.UpdateClient()
