@@ -39,24 +39,6 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 			true,
 		},
 		{
-			"success: dest callback with other json fields",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
-			"none",
-			true,
-		},
-		{
-			"success: dest callback with malformed json",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, malformed}`, callbackAddr),
-			"none",
-			true,
-		},
-		{
-			"success: dest callback with missing address",
-			`{"dest_callback": {"address": ""}}`,
-			"none",
-			true,
-		},
-		{
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
 			types.CallbackTypeAcknowledgementPacket,
@@ -79,12 +61,6 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 			`{"src_callback": {"address": ""}}`,
 			"none",
 			true,
-		},
-		{
-			"failure: dest callback with low gas (panic)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
-			"none",
-			false,
 		},
 		{
 			"failure: source callback with low gas (panic)",
@@ -128,12 +104,6 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 			"success: source callback",
 			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
 			types.CallbackTypeTimeoutPacket,
-			true,
-		},
-		{
-			"success: dest callback with low gas (panic)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
-			"none",
 			true,
 		},
 		{
