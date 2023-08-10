@@ -245,12 +245,14 @@ func (IBCMiddleware) processCallback(
 		// consume the minimum of g.consumed and g.limit
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
 
+		// recover from all panics except during SendPacket callbacks
 		if r := recover(); r != nil {
 			if callbackType == types.CallbackTypeSendPacket {
 				panic(r)
 			}
 		}
 
+		// if the callback ran out of gas and the relayer has not reserved enough gas, then revert the state
 		if cachedCtx.GasMeter().IsPastLimit() && callbackData.AllowRetry() {
 			panic(sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
 		}
