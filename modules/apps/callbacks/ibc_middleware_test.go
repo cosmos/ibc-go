@@ -726,6 +726,142 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 	}
 }
 
+func (s *CallbacksTestSuite) TestProcessCallback() {
+	var (
+		callbackType     types.CallbackType
+		callbackData     types.CallbackData
+		ctx              sdk.Context
+		callbackExecutor func(sdk.Context) error
+	)
+
+	callbackError := fmt.Errorf("callbackExecutor error")
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPanic bool
+		expValue interface{}
+	}{
+		{
+			"success",
+			func() {},
+			false,
+			nil,
+		},
+		{
+			"success: callbackExecutor panic, but not out of gas",
+			func() {
+				callbackExecutor = func(cachedCtx sdk.Context) error {
+					panic("callbackExecutor panic")
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"success: callbackExecutor oog panic, but retry is not allowed",
+			func() {
+				executionGas := callbackData.ExecutionGasLimit
+				callbackExecutor = func(cachedCtx sdk.Context) error {
+					cachedCtx.GasMeter().ConsumeGas(executionGas+1, "callbackExecutor oog panic")
+					return nil
+				}
+			},
+			false,
+			nil,
+		},
+		{
+			"failure: callbackExecutor error",
+			func() {
+				callbackExecutor = func(cachedCtx sdk.Context) error {
+					return callbackError
+				}
+			},
+			false,
+			callbackError,
+		},
+		{
+			"failure: callbackExecutor panic, not out of gas, and SendPacket",
+			func() {
+				callbackType = types.CallbackTypeSendPacket
+				callbackExecutor = func(cachedCtx sdk.Context) error {
+					panic("callbackExecutor panic")
+				}
+			},
+			true,
+			"callbackExecutor panic",
+		},
+		{
+			"failure: callbackExecutor oog panic, but retry is allowed",
+			func() {
+				executionGas := callbackData.ExecutionGasLimit
+				callbackData.CommitGasLimit = executionGas + 1
+				callbackExecutor = func(cachedCtx sdk.Context) error {
+					cachedCtx.GasMeter().ConsumeGas(executionGas+1, "callbackExecutor oog panic")
+					return nil
+				}
+			},
+			true,
+			sdk.ErrorOutOfGas{Descriptor: "callbackExecutor oog panic"},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupMockFeeTest()
+
+			// set mock packet, it is only used in logs and not in callback execution
+			mockPacket := channeltypes.NewPacket(
+				ibcmock.MockPacketData, 1, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
+				s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
+
+			// set a callback data that does not allow retry
+			callbackData = types.CallbackData{
+				CallbackAddress:   s.chainB.SenderAccount.GetAddress().String(),
+				ExecutionGasLimit: 1000000,
+				SenderAddress:     s.chainB.SenderAccount.GetAddress().String(),
+				CommitGasLimit:    600000,
+			}
+
+			// this only makes a difference if it is SendPacket
+			callbackType = types.CallbackTypeReceivePacket
+
+			ctx = s.chainB.GetContext()
+
+			// set a callback executor that will always succeed
+			callbackExecutor = func(cachedCtx sdk.Context) error {
+				return nil
+			}
+
+			tc.malleate()
+
+			module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
+			s.Require().NoError(err)
+			cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			s.Require().True(ok)
+			mockCallbackStack, ok := cbs.(ibccallbacks.IBCMiddleware)
+			s.Require().True(ok)
+
+			processCallback := func() {
+				err = mockCallbackStack.ProcessCallback(ctx, mockPacket, callbackType, callbackData, callbackExecutor)
+			}
+
+			expPass := tc.expValue == nil
+			switch {
+			case expPass:
+				processCallback()
+				s.Require().NoError(err)
+			case tc.expPanic:
+				s.Require().PanicsWithValue(tc.expValue, processCallback)
+			default:
+				processCallback()
+				s.Require().ErrorIs(tc.expValue.(error), err)
+			}
+		})
+	}
+}
+
 func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 	s.setupChains()
 
