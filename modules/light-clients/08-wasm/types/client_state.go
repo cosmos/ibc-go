@@ -115,8 +115,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 	// The global store key can be used here to implement #4085
 	// wasmStore := ctx.KVStore(WasmStoreKey)
 
-	err := wasmInit(ctx, clientStore, &cs, payload)
-	return err
+	return wasmInit(ctx, clientStore, &cs, payload)
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
