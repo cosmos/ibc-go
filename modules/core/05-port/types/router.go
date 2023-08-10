@@ -1,10 +1,6 @@
 package types
 
-import (
-	"fmt"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
+import sdk "github.com/cosmos/cosmos-sdk/types"
 
 // The router is a map from module name to the IBCModule
 // which contains all the module-defined callbacks required by ICS-26
@@ -22,9 +18,9 @@ func NewRouter() *Router {
 // Seal prevents the Router from any subsequent route handlers to be registered.
 // Seal will panic if called more than once.
 func (rtr *Router) Seal() {
-	if rtr.sealed {
-		panic("router already sealed")
-	}
+	//if rtr.sealed {
+	//	panic("router already sealed")
+	//}
 	rtr.sealed = true
 }
 
@@ -36,15 +32,15 @@ func (rtr Router) Sealed() bool {
 // AddRoute adds IBCModule for a given module name. It returns the Router
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
 func (rtr *Router) AddRoute(module string, cbs IBCModule) *Router {
-	if rtr.sealed {
-		panic(fmt.Sprintf("router sealed; cannot register %s route callbacks", module))
-	}
+	//if rtr.sealed {
+	//	panic(fmt.Sprintf("router sealed; cannot register %s route callbacks", module))
+	//}
 	if !sdk.IsAlphaNumeric(module) {
 		panic("route expressions can only contain alphanumeric characters")
 	}
-	if rtr.HasRoute(module) {
-		panic(fmt.Sprintf("route %s has already been registered", module))
-	}
+	//if rtr.HasRoute(module) {
+	//	panic(fmt.Sprintf("route %s has already been registered", module))
+	//}
 
 	rtr.routes[module] = cbs
 	return rtr

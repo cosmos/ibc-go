@@ -15,98 +15,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	icacontroller "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
-	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibcfee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	simapp "github.com/cosmos/ibc-go/v7/testing/simapp"
 )
-
-func (s *CallbacksTestSuite) SetupCallbacksTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-
-	var mockContractKeeper ibcmock.ContractKeeper
-
-	app := simapp.NewSimappWithOptions(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, func(app *simapp.SimApp) {
-
-		// Mock Module Stack
-		router := porttypes.NewRouter()
-		mockContractKeeper = ibcmock.NewContractKeeper(app.GetMemKey(ibcmock.MemStoreKey))
-
-		var transferStack porttypes.IBCModule
-		transferStack = transfer.NewIBCModule(app.TransferKeeper)
-		transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
-		transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, mockContractKeeper, maxCallbackGas)
-		// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
-		app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.Middleware))
-		router.AddRoute(transfertypes.ModuleName, transferStack)
-
-		mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
-
-		// The mock module is used for testing IBC
-		mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.ModuleName, app.ScopedIBCMockKeeper))
-		router.AddRoute(ibcmock.ModuleName, mockIBCModule)
-
-		// initialize ICA module with mock module as the authentication module on the controller side
-		var icaControllerStack porttypes.IBCModule
-		icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", app.ScopedICAControllerKeeper))
-		app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
-		icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
-		icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
-		icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, mockContractKeeper, maxCallbackGas)
-		// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
-		app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.Middleware))
-
-		// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
-		// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
-
-		var icaHostStack porttypes.IBCModule
-		icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
-		icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
-
-		// Add host, controller & ica auth modules to IBC router
-		router.
-			// the ICA Controller middleware needs to be explicitly added to the IBC Router because the
-			// ICA controller module owns the port capability for ICA. The ICA authentication module
-			// owns the channel capability.
-			AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-			AddRoute(icahosttypes.SubModuleName, icaHostStack).
-			AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
-
-		// Create Mock IBC Fee module stack for testing
-		// SendPacket, since it is originating from the application to core IBC:
-		// mockModule.SendPacket -> fee.SendPacket -> channel.SendPacket
-
-		// OnRecvPacket, message that originates from core IBC and goes down to app, the flow is the otherway
-		// channel.RecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket
-
-		// OnAcknowledgementPacket as this is where fee's are paid out
-		// mockModule.OnAcknowledgementPacket -> fee.OnAcknowledgementPacket -> channel.OnAcknowledgementPacket
-
-		// create fee wrapped mock module
-		feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibctesting.MockFeePort, app.ScopedFeeMockKeeper))
-		app.FeeMockModule = feeMockModule
-		var feeWithMockModule porttypes.Middleware = ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
-		feeWithMockModule = ibccallbacks.NewIBCMiddleware(feeWithMockModule, app.IBCFeeKeeper, mockContractKeeper, maxCallbackGas)
-		router.AddRoute(ibctesting.MockFeePort, feeWithMockModule)
-
-		app.IBCKeeper.Router = nil
-		app.IBCKeeper.SetRouter(router)
-	})
-
-	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
-}
 
 const maxCallbackGas = uint64(1000000)
 
@@ -130,81 +49,47 @@ type CallbacksTestSuite struct {
 // setupChains sets up a coordinator with 2 test chains.
 func (s *CallbacksTestSuite) setupChains() {
 	var chainAContractKeeper, chainBContractKeeper *ibcmock.ContractKeeper
-
 	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
+
 		db := dbm.NewMemDB()
 		encCdc := simapp.MakeTestEncodingConfig()
 
 		app := simapp.NewSimappWithOptions(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, func(app *simapp.SimApp) {
 
-			// Mock Module Stack
-			router := porttypes.NewRouter()
 			mockContractKeeper := ibcmock.NewContractKeeper(app.GetMemKey(ibcmock.MemStoreKey))
 			if chainAContractKeeper == nil {
 				chainAContractKeeper = &mockContractKeeper
-			} else {
+			} else if chainBContractKeeper == nil {
 				chainBContractKeeper = &mockContractKeeper
+			} else {
+				panic("both contract keepers were already set")
 			}
 
-			mockModule := ibcmock.NewAppModule(&app.IBCKeeper.PortKeeper)
-
-			// The mock module is used for testing IBC
-			mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.ModuleName, app.ScopedIBCMockKeeper))
-			router.AddRoute(ibcmock.ModuleName, mockIBCModule)
-
-
-			var transferStack porttypes.IBCModule
-			transferStack = transfer.NewIBCModule(app.TransferKeeper)
-			transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
-			transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, mockContractKeeper, maxCallbackGas)
+			transferStack, ok := app.IBCKeeper.Router.GetRoute(transfertypes.ModuleName)
+			if !ok {
+				panic("no transfer")
+			}
+			transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, &mockContractKeeper, maxCallbackGas)
 			// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
-			app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.Middleware))
-			router.AddRoute(transfertypes.ModuleName, transferStack)
+			app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.ICS4Wrapper))
+			app.IBCKeeper.Router.AddRoute(transfertypes.ModuleName, transferStack)
 
 			// initialize ICA module with mock module as the authentication module on the controller side
-			var icaControllerStack porttypes.IBCModule
-			icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", app.ScopedICAControllerKeeper))
-			app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
-			icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
-			icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
-			icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, mockContractKeeper, maxCallbackGas)
+			icaControllerStack, ok := app.IBCKeeper.Router.GetRoute(icacontrollertypes.SubModuleName)
+			if !ok {
+				panic("no ica controller")
+			}
+			icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, &mockContractKeeper, maxCallbackGas)
 			// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
-			app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.Middleware))
+			app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.ICS4Wrapper))
 
-			// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
-			// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
-
-			var icaHostStack porttypes.IBCModule
-			icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
-			icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
-
-			// Add host, controller & ica auth modules to IBC router
-			router.
-				// the ICA Controller middleware needs to be explicitly added to the IBC Router because the
-				// ICA controller module owns the port capability for ICA. The ICA authentication module
-				// owns the channel capability.
+			app.IBCKeeper.Router.
 				AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-				AddRoute(icahosttypes.SubModuleName, icaHostStack).
-				AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
+				AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack)
 
-			// Create Mock IBC Fee module stack for testing
-			// SendPacket, since it is originating from the application to core IBC:
-			// mockModule.SendPacket -> fee.SendPacket -> channel.SendPacket
+			router := app.IBCKeeper.Router
 
-			// OnRecvPacket, message that originates from core IBC and goes down to app, the flow is the otherway
-			// channel.RecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket
-
-			// OnAcknowledgementPacket as this is where fee's are paid out
-			// mockModule.OnAcknowledgementPacket -> fee.OnAcknowledgementPacket -> channel.OnAcknowledgementPacket
-
-			// create fee wrapped mock module
-			feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibctesting.MockFeePort, app.ScopedFeeMockKeeper))
-			app.FeeMockModule = feeMockModule
-			var feeWithMockModule porttypes.Middleware = ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
-			feeWithMockModule = ibccallbacks.NewIBCMiddleware(feeWithMockModule, app.IBCFeeKeeper, mockContractKeeper, maxCallbackGas)
-			router.AddRoute(ibctesting.MockFeePort, feeWithMockModule)
-
-			app.IBCKeeper.Router = nil
+			app.IBCKeeper.Router = nil // bypass protection logic for set router
 			app.IBCKeeper.SetRouter(router)
 		})
 
@@ -323,8 +208,6 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType type
 
 	sourceStatefulCounter := s.chainA.ContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
 	destStatefulCounter := s.chainB.ContractKeeper.GetStateEntryCounter(s.chainB.GetContext())
-	fmt.Println("chain a contract keeper", s.chainA.ContractKeeper)
-	fmt.Println("chain b contract keeper", s.chainB.ContractKeeper)
 
 	switch callbackType {
 	case "none":
