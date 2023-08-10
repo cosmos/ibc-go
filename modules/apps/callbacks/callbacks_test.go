@@ -158,7 +158,7 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType type
 		s.Require().Equal(uint8(0), destStatefulCounter)
 
 	case types.CallbackTypeAcknowledgementPacket, types.CallbackTypeTimeoutPacket:
-		expStatefulEntries *= 2 // expect OnAcknowledgement/OnTimeout to be successful as well
+		expStatefulEntries *= 2 // expect OnAcknowledgement/OnTimeout to be successful as well as the initial SendPacket
 		s.Require().Equal(expStatefulEntries, sourceStatefulCounter, "unexpected stateful entry amount for source acknowledgement/timeout callbacks")
 		s.Require().Equal(uint8(0), destStatefulCounter)
 
