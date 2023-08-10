@@ -244,8 +244,8 @@ func (IBCMiddleware) processCallback(
 	defer func() {
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
 		if r := recover(); r != nil {
-			// We handle panic here. This is to ensure that the state changes are reverted
-			// and out of gas panics are handled.
+			// We handle panic here. This is to ensure that the state changes are reverted and
+			// out of gas panics are handled.
 			//
 			// We propagate all panics for SendPacket callbacks because we require an approval
 			// from the callback actor to send the packet.
