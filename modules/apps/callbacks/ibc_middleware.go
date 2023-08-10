@@ -242,25 +242,19 @@ func (IBCMiddleware) processCallback(
 	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.ExecutionGasLimit))
 
 	defer func() {
+		// consume the minimum of g.consumed and g.limit
 		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
+
 		if r := recover(); r != nil {
-			// We handle panic here. This is to ensure that the state changes are reverted and
-			// out of gas panics are handled.
-			//
-			// We propagate all panics for SendPacket callbacks because we require an approval
-			// from the callback actor to send the packet.
-			//
-			// Otherwise we recover from all panics except for out of gas panics when retrying
-			// is allowed.
-			if oogError, ok := r.(sdk.ErrorOutOfGas); callbackType != types.CallbackTypeSendPacket && !(ok && callbackData.AllowRetry()) {
-				if ok {
-					// If we are recovering from an out of gas panic, then we log the error.
-					types.LogDebugWithPacket(ctx, callbackType, packet, "Callbacks recovered from out of gas panic.", "panic", oogError)
-				}
-				return // do not propagate panic, force transaction to complete
+			if callbackType == types.CallbackTypeSendPacket {
+				panic(r)
 			}
-			panic(r) // propagate the original panic
 		}
+
+		if cachedCtx.GasMeter().IsPastLimit() && callbackData.AllowRetry() {
+			panic(sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
+		}
+		// commit the transaction
 	}()
 
 	err = callbackExecutor(cachedCtx)

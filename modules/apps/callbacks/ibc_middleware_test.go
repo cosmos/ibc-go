@@ -266,9 +266,10 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			s.SetupTransferTest()
 
 			// set user gas limit above panic level in mock contract keeper
+			userGasLimit := 600000
 			packetData = transfertypes.NewFungibleTokenPacketData(
 				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), callbackAddr, ibctesting.TestAccAddress,
-				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"600000"}}`, callbackAddr),
+				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, callbackAddr, userGasLimit),
 			)
 
 			packet = channeltypes.Packet{
@@ -302,7 +303,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 
 			case panicError:
 				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-					Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeAcknowledgementPacket),
+					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit),
 				}, func() {
 					_ = onAcknowledgementPacket()
 				})
@@ -416,12 +417,13 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 
 			// NOTE: we call send packet so transfer is setup with the correct logic to
 			// succeed on timeout
+			userGasLimit := 600_000
 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
 			msg := transfertypes.NewMsgTransfer(
 				s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
 				ibctesting.TestCoin, s.chainA.SenderAccount.GetAddress().String(),
 				s.chainB.SenderAccount.GetAddress().String(), clienttypes.ZeroHeight(), timeoutTimestamp,
-				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress), // set user gas limit above panic level in mock contract keeper
+				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit), // set user gas limit above panic level in mock contract keeper
 			)
 
 			res, err := s.chainA.SendMsgs(msg)
@@ -454,7 +456,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 
 			case panicError:
 				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-					Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeTimeoutPacket),
+					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeTimeoutPacket, userGasLimit),
 				}, func() {
 					_ = onTimeoutPacket()
 				})
@@ -570,9 +572,10 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			s.SetupTransferTest()
 
 			// set user gas limit above panic level in mock contract keeper
+			userGasLimit := 600_000
 			packetData = transfertypes.NewFungibleTokenPacketData(
 				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress, s.chainB.SenderAccount.GetAddress().String(),
-				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress),
+				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit),
 			)
 
 			packet = channeltypes.Packet{
@@ -605,7 +608,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 
 			case panicAck:
 				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
-					Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeReceivePacket),
+					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeReceivePacket, userGasLimit),
 				}, func() {
 					_ = onRecvPacket()
 				})
@@ -802,7 +805,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				}
 			},
 			true,
-			sdk.ErrorOutOfGas{Descriptor: "callbackExecutor oog panic"},
+			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeReceivePacket, 1000000+1)},
 		},
 	}
 
