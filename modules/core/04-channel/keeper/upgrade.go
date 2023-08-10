@@ -734,30 +734,6 @@ func (k Keeper) startFlushUpgradeHandshake(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
 	}
 
-	// verify the counterparty channel state containing the upgrade sequence
-	if err := k.connectionKeeper.VerifyChannelState(
-		ctx,
-		connection,
-		proofHeight, proofCounterpartyChannel,
-		channel.Counterparty.PortId,
-		channel.Counterparty.ChannelId,
-		counterpartyChannel,
-	); err != nil {
-		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
-	}
-
-	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
-	if err := k.connectionKeeper.VerifyChannelUpgrade(
-		ctx,
-		channel.Counterparty.PortId,
-		channel.Counterparty.ChannelId,
-		connection,
-		counterpartyUpgrade,
-		proofCounterpartyUpgrade, proofHeight,
-	); err != nil {
-		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
-	}
-
 	// the current upgrade handshake must only continue if both channels are using the same upgrade sequence,
 	// otherwise an error receipt must be written so that the upgrade handshake may be attempted again with synchronized sequences
 	if counterpartyChannel.UpgradeSequence != channel.UpgradeSequence {
