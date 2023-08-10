@@ -91,12 +91,14 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		name         string
 		malleate     func()
 		callbackType types.CallbackType
-		expError     error
+		expPanic     bool
+		expValue     interface{}
 	}{
 		{
 			"success",
 			func() {},
 			types.CallbackTypeSendPacket,
+			false,
 			nil,
 		},
 		{
@@ -106,6 +108,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			"none", // improperly formatted callback data should result in no callback execution
+			false,
 			nil,
 		},
 		{
@@ -114,6 +117,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				s.path.EndpointA.ChannelID = "invalid-channel"
 			},
 			"none", // ics4wrapper failure should result in no callback execution
+			false,
 			channeltypes.ErrChannelNotFound,
 		},
 		{
@@ -122,7 +126,17 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
 			},
 			types.CallbackTypeSendPacket,
+			false,
 			ibcmock.MockApplicationCallbackError, // execution failure on SendPacket should prevent packet sends
+		},
+		{
+			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, callbackAddr)
+			},
+			types.CallbackTypeSendPacket,
+			true,
+			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeSendPacket)},
 		},
 	}
 
@@ -144,18 +158,29 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 
 			tc.malleate()
 
-			seq, err := transferStack.(porttypes.Middleware).SendPacket(s.chainA.GetContext(), chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+			var (
+				seq uint64
+				err error
+			)
+			sendPacket := func() {
+				seq, err = transferStack.(porttypes.Middleware).SendPacket(s.chainA.GetContext(), chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+			}
 
-			expPass := tc.expError == nil
-			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
-
-			if expPass {
+			expPass := tc.expValue == nil
+			switch {
+			case expPass:
+				sendPacket()
 				s.Require().Nil(err)
 				s.Require().Equal(uint64(1), seq)
-			} else {
-				s.Require().ErrorIs(tc.expError, err)
+			case tc.expPanic:
+				s.Require().PanicsWithValue(tc.expValue, sendPacket)
+			default:
+				sendPacket()
+				s.Require().ErrorIs(tc.expValue.(error), err)
 				s.Require().Equal(uint64(0), seq)
 			}
+
+			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
 		})
 	}
 }
