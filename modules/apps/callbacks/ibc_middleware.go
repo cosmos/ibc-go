@@ -247,19 +247,19 @@ func (IBCMiddleware) processCallback(
 			// We handle panic here. This is to ensure that the state changes are reverted
 			// and out of gas panics are handled.
 			//
-			// We do not handle panics for SendPacket callbacks because we require an approval
+			// We propagate all panics for SendPacket callbacks because we require an approval
 			// from the callback actor to send the packet.
-			if callbackType == types.CallbackTypeSendPacket {
-				panic(r)
-			}
-
-			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
-				// If execution gas limit was less than the commit gas limit, allow retry.
-				if callbackData.AllowRetry() {
-					panic(r)
+			//
+			// Otherwise we recover from all panics except for out of gas panics when retrying
+			// is allowed.
+			if oogError, ok := r.(sdk.ErrorOutOfGas); callbackType != types.CallbackTypeSendPacket && !(ok && callbackData.AllowRetry()) {
+				if ok {
+					// If we are recovering from an out of gas panic, then we log the error.
+					types.LogDebugWithPacket(ctx, callbackType, packet, "Callbacks recovered from out of gas panic.", "panic", oogError)
 				}
-				types.LogDebugWithPacket(ctx, callbackType, packet, "Callbacks recovered from out of gas panic.", "panic", oogError)
+				return // do not propagate panic, force transaction to complete
 			}
+			panic(r) // propagate the original panic
 		}
 	}()
 
