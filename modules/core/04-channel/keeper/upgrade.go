@@ -279,15 +279,6 @@ func (k Keeper) ChanUpgradeAck(
 		FlushStatus:     counterpartyFlushStatus, // provided by the relayer
 	}
 
-	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
-	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade); err != nil {
-		return types.NewUpgradeError(channel.UpgradeSequence, err)
-	}
-
 	// verify the counterparty channel state containing the upgrade sequence
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
@@ -310,6 +301,15 @@ func (k Keeper) ChanUpgradeAck(
 		proofUpgrade, proofHeight,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
+	}
+
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade); err != nil {
+		return types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
 	if err := k.startFlushUpgradeHandshake(ctx, portID, channelID, upgrade.Fields, counterpartyChannel, counterpartyUpgrade,
