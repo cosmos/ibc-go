@@ -188,3 +188,8 @@ func getCallbackAddress(callbackData map[string]interface{}) string {
 
 	return callbackAddress
 }
+
+// AllowRetry returns true if the callback execution gas limit is less than the commit gas limit.
+func (c CallbackData) AllowRetry() bool {
+	return c.ExecutionGasLimit < c.CommitGasLimit
+}

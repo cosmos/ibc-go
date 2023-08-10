@@ -255,7 +255,7 @@ func (IBCMiddleware) processCallback(
 
 			if oogError, ok := r.(sdk.ErrorOutOfGas); ok {
 				// If execution gas limit was less than the commit gas limit, allow retry.
-				if callbackData.ExecutionGasLimit < callbackData.CommitGasLimit {
+				if callbackData.AllowRetry() {
 					panic(r)
 				}
 				types.LogDebugWithPacket(ctx, callbackType, packet, "Callbacks recovered from out of gas panic.", "panic", oogError)

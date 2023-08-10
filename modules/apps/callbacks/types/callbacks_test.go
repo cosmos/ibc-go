@@ -171,6 +171,8 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 		if tc.expPass {
 			s.Require().NoError(err, tc.name)
 			s.Require().Equal(tc.expCallbackData, callbackData, tc.name)
+			expAllowRetry := tc.expCallbackData.ExecutionGasLimit < tc.expCallbackData.CommitGasLimit
+			s.Require().Equal(expAllowRetry, callbackData.AllowRetry(), tc.name)
 		} else {
 			s.Require().Error(err, tc.name)
 		}
