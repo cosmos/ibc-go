@@ -177,9 +177,7 @@ func (s *CallbacksTestSuite) ExecutePayPacketFeeMsg(fee feetypes.Fee) {
 	preEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
 	res, err := s.chainA.SendMsgs(msg)
-	if err != nil {
-		return // we return if send packet is rejected
-	}
+	s.Require().NoError(err)
 	s.Require().NotNil(res)
 
 	postEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
