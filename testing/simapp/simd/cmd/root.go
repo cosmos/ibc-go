@@ -236,8 +236,6 @@ func queryCommand(basicManager module.BasicManager) *cobra.Command {
 		authcmd.GetSimulateCmd(),
 	)
 
-	basicManager.AddQueryCommands(cmd)
-
 	return cmd
 }
 
@@ -261,8 +259,6 @@ func txCommand(basicManager module.BasicManager) *cobra.Command {
 		authcmd.GetDecodeCommand(),
 		authcmd.GetAuxToFeeCommand(),
 	)
-
-	basicManager.AddTxCommands(cmd)
 
 	return cmd
 }
