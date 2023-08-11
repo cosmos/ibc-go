@@ -58,22 +58,6 @@ func Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+ModuleName)
 }
 
-// LogDebugWithPacket logs a debug message with the packet identifier information.
-// The callback trigger determines whether the packet source or destination is logged.
-func LogDebugWithPacket(ctx sdk.Context, callbackType CallbackType, packet ibcexported.PacketI, msg string, args ...interface{}) {
-	switch callbackType {
-	case CallbackTypeReceivePacket:
-		// Log the packet destination
-		args = append(args, AttributeKeyCallbackDestPortID, packet.GetDestPort(), AttributeKeyCallbackDestChannelID, packet.GetDestChannel())
-	default:
-		// Log the packet source
-		args = append(args, AttributeKeyCallbackSourcePortID, packet.GetSourcePort(), AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel())
-	}
-	args = append(args, AttributeKeyCallbackSequence, packet.GetSequence())
-
-	Logger(ctx).Debug(msg, args...)
-}
-
 // EmitCallbackEvent emits an event for a callback
 func EmitCallbackEvent(
 	ctx sdk.Context,
