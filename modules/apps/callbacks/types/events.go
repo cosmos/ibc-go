@@ -20,7 +20,7 @@ const (
 	//   "acknowledgement": the callback is executed on the acknowledgement of the packet
 	//   "timeout": the callback is executed on the timeout of the packet
 	//   "recv_packet": the callback is executed on the reception of the packet
-	AttributeKeyCallbackType = "callback_trigger"
+	AttributeKeyCallbackType = "callback_type"
 	// AttributeKeyCallbackAddress denotes the callback address
 	AttributeKeyCallbackAddress = "callback_address"
 	// AttributeKeyCallbackResult denotes the callback result:

@@ -69,8 +69,8 @@ func (im *IBCMiddleware) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 
 // SendPacket implements source callbacks for sending packets.
 // It defers to the underlying application and then calls the contract callback.
-// If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
-// reverted via a panic.
+// If the contract callback returns an error, panics, or runs out of gas, then
+// the packet send is rejected.
 func (im IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
@@ -168,7 +168,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	return nil
 }
 
-// OnRecvPacket implements the WriteAcknowledgement destination callbacks for the ibc-callbacks middleware during
+// OnRecvPacket implements the ReceivePacket destination callbacks for the ibc-callbacks middleware during
 // synchronous packet acknowledgement.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
@@ -176,8 +176,8 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
 	// if ack is nil (asynchronous acknowledgements), then the callback will be handled in WriteAcknowledgement
-	// if ack is not successful, all state changes are reverted. If a packet cannot be received, then you need not
-	// execute a callback on the receiving chain.
+	// if ack is not successful, all state changes are reverted. If a packet cannot be received, then there is
+	// no need to execute a callback on the receiving chain.
 	if ack == nil || !ack.Success() {
 		return ack
 	}
@@ -197,7 +197,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	return ack
 }
 
-// WriteAcknowledgement implements the WriteAcknowledgement destination callbacks for the ibc-callbacks middleware
+// WriteAcknowledgement implements the ReceivePacket destination callbacks for the ibc-callbacks middleware
 // during asynchronous packet acknowledgement.
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
@@ -231,8 +231,8 @@ func (im IBCMiddleware) WriteAcknowledgement(
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
 //
 // panics if
-//   - the callbackType is SendPacket and the contractExecutor panics for any reason, or
-//   - the contractExecutor out of gas panics and the relayer has not reserved gas grater than or equal to
+//   - the contractExecutor panics for any reason, and the callbackType is SendPacket, or
+//   - the contractExecutor runs out of gas and the relayer has not reserved gas grater than or equal to
 //     CommitGasLimit.
 func (IBCMiddleware) processCallback(
 	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
@@ -256,7 +256,8 @@ func (IBCMiddleware) processCallback(
 		if cachedCtx.GasMeter().IsPastLimit() && callbackData.AllowRetry() {
 			panic(sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
 		}
-		// commit the transaction
+
+		// allow the transaction to be committed, continuing the packet lifecycle
 	}()
 
 	err = callbackExecutor(cachedCtx)
