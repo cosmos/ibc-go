@@ -207,8 +207,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
 		genesisCommand(encodingConfig, basicManager),
-		txCommand(basicManager),
-		queryCommand(basicManager),
+		txCommand(),
+		queryCommand(),
 		keys.Commands(),
 	)
 }
@@ -217,7 +217,7 @@ func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
 }
 
-func queryCommand(basicManager module.BasicManager) *cobra.Command {
+func queryCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",
 		Aliases:                    []string{"q"},
@@ -239,7 +239,7 @@ func queryCommand(basicManager module.BasicManager) *cobra.Command {
 	return cmd
 }
 
-func txCommand(basicManager module.BasicManager) *cobra.Command {
+func txCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
