@@ -19,7 +19,7 @@ require (
 	github.com/cometbft/cometbft v0.38.0-rc3
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.50.0-beta.0.0.20230802171422-ee5b2e3afc4f
+	github.com/cosmos/cosmos-sdk v0.50.0-beta.0.0.20230811080659-5b0c08130c52
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc3
 	github.com/cosmos/ics23/go v0.10.0
@@ -43,7 +43,7 @@ require (
 	cloud.google.com/go/iam v1.1.0 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	cosmossdk.io/collections v0.3.0 // indirect
-	cosmossdk.io/depinject v1.0.0-alpha.3 // indirect
+	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
@@ -85,7 +85,7 @@ require (
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/getsentry/sentry-go v0.22.0 // indirect
+	github.com/getsentry/sentry-go v0.23.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
@@ -176,9 +176,9 @@ require (
 	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/term v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/tools v0.9.1 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.126.0 // indirect
