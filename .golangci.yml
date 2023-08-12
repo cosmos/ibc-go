@@ -26,6 +26,7 @@ linters:
     - typecheck
     - tenv
     - unconvert
+    - unparam
     - unused
     - misspell
 
