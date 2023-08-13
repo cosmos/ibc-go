@@ -67,8 +67,6 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 	for _, tc := range testCases {
 		tc := tc
 		s.Run(tc.name, func() {
-			s.setupChains()
-
 			expPass := tc.expError == nil
 			if expPass {
 				s.Require().NotPanics(tc.instantiateFn, "unexpected panic: NewIBCMiddleware")
