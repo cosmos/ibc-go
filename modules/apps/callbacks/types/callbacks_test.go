@@ -11,26 +11,32 @@ import (
 	transfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
-	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
+	var (
+		sender                = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		receiver              = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		packetDataUnmarshaler porttypes.PacketDataUnmarshaler
+		packetData            []byte
+		remainingGas          uint64
+		callbackKey           string
+	)
 
-	var packetData []byte
 	// max gas is 1_000_000
 	testCases := []struct {
 		name            string
 		malleate        func()
-		remainingGas    uint64
 		expCallbackData types.CallbackData
-		expPass         bool
+		expError        error
 	}{
 		{
 			"success: source callback",
 			func() {
+				remainingGas = 2_000_000
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -40,14 +46,35 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				}
 				packetData = expPacketData.GetBytes()
 			},
-			2_000_000,
 			types.CallbackData{
 				CallbackAddress:   sender,
 				SenderAddress:     sender,
 				ExecutionGasLimit: 1_000_000,
 				CommitGasLimit:    1_000_000,
 			},
-			true,
+			nil,
+		},
+		{
+			"success: destination callback",
+			func() {
+				callbackKey = types.DestinationCallbackKey
+				remainingGas = 2_000_000
+				expPacketData := transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, sender),
+				}
+				packetData = expPacketData.GetBytes()
+			},
+			types.CallbackData{
+				CallbackAddress:   sender,
+				SenderAddress:     "",
+				ExecutionGasLimit: 1_000_000,
+				CommitGasLimit:    1_000_000,
+			},
+			nil,
 		},
 		{
 			"success: source callback with gas limit < remaining gas < max gas",
@@ -60,19 +87,21 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "50000"}}`, sender),
 				}
 				packetData = expPacketData.GetBytes()
+
+				remainingGas = 100_000
 			},
-			100000,
 			types.CallbackData{
 				CallbackAddress:   sender,
 				SenderAddress:     sender,
-				ExecutionGasLimit: 50000,
-				CommitGasLimit:    50000,
+				ExecutionGasLimit: 50_000,
+				CommitGasLimit:    50_000,
 			},
-			true,
+			nil,
 		},
 		{
 			"success: source callback with remaining gas < gas limit < max gas",
 			func() {
+				remainingGas = 100_000
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -82,18 +111,18 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				}
 				packetData = expPacketData.GetBytes()
 			},
-			100000,
 			types.CallbackData{
 				CallbackAddress:   sender,
 				SenderAddress:     sender,
-				ExecutionGasLimit: 100000,
-				CommitGasLimit:    200000,
+				ExecutionGasLimit: 100_000,
+				CommitGasLimit:    200_000,
 			},
-			true,
+			nil,
 		},
 		{
 			"success: source callback with remaining gas < max gas < gas limit",
 			func() {
+				remainingGas = 100_000
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -103,161 +132,19 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				}
 				packetData = expPacketData.GetBytes()
 			},
-			100000,
 			types.CallbackData{
 				CallbackAddress:   sender,
 				SenderAddress:     sender,
-				ExecutionGasLimit: 100000,
+				ExecutionGasLimit: 100_000,
 				CommitGasLimit:    1_000_000,
 			},
-			true,
+			nil,
 		},
 		{
-			"success: source callback with max gas < remaining gas < gas limit",
+			"success: destination callback with remaining gas < max gas < gas limit",
 			func() {
-				expPacketData := transfertypes.FungibleTokenPacketData{
-					Denom:    ibctesting.TestCoin.Denom,
-					Amount:   ibctesting.TestCoin.Amount.String(),
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "3000000"}}`, sender),
-				}
-				packetData = expPacketData.GetBytes()
-			},
-			2_000_000,
-			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
-			},
-			true,
-		},
-		{
-			"failure: empty memo",
-			func() {
-				expPacketData := transfertypes.FungibleTokenPacketData{
-					Denom:    ibctesting.TestCoin.Denom,
-					Amount:   ibctesting.TestCoin.Amount.String(),
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     "",
-				}
-				packetData = expPacketData.GetBytes()
-			},
-			100000,
-			types.CallbackData{},
-			false,
-		},
-		{
-			"failure: invalid packet data",
-			func() {
-				packetData = []byte("invalid packet data")
-			},
-			100000,
-			types.CallbackData{},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc.malleate()
-
-		packetUnmarshaler := transfer.IBCModule{}
-
-		testPacket := channeltypes.Packet{Data: packetData}
-		callbackData, err := types.GetSourceCallbackData(packetUnmarshaler, testPacket, tc.remainingGas, uint64(1_000_000))
-
-		if tc.expPass {
-			s.Require().NoError(err, tc.name)
-			s.Require().Equal(tc.expCallbackData, callbackData, tc.name)
-			expAllowRetry := tc.expCallbackData.ExecutionGasLimit < tc.expCallbackData.CommitGasLimit
-			s.Require().Equal(expAllowRetry, callbackData.AllowRetry(), tc.name)
-		} else {
-			s.Require().Error(err, tc.name)
-		}
-	}
-}
-
-func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
-	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-
-	var packetData []byte
-	// max gas is 1_000_000
-	testCases := []struct {
-		name            string
-		malleate        func()
-		remainingGas    uint64
-		expCallbackData types.CallbackData
-		expPass         bool
-	}{
-		{
-			"success: dest callback",
-			func() {
-				expPacketData := transfertypes.FungibleTokenPacketData{
-					Denom:    ibctesting.TestCoin.Denom,
-					Amount:   ibctesting.TestCoin.Amount.String(),
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, sender),
-				}
-				packetData = expPacketData.GetBytes()
-			},
-			2_000_000,
-			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
-			},
-			true,
-		},
-		{
-			"success: dest callback with gas limit < remaining gas < max gas",
-			func() {
-				expPacketData := transfertypes.FungibleTokenPacketData{
-					Denom:    ibctesting.TestCoin.Denom,
-					Amount:   ibctesting.TestCoin.Amount.String(),
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "50000"}}`, sender),
-				}
-				packetData = expPacketData.GetBytes()
-			},
-			100000,
-			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 50000,
-				CommitGasLimit:    50000,
-			},
-			true,
-		},
-		{
-			"success: dest callback with remaining gas < gas limit < max gas",
-			func() {
-				expPacketData := transfertypes.FungibleTokenPacketData{
-					Denom:    ibctesting.TestCoin.Denom,
-					Amount:   ibctesting.TestCoin.Amount.String(),
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "200000"}}`, sender),
-				}
-				packetData = expPacketData.GetBytes()
-			},
-			100000,
-			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 100000,
-				CommitGasLimit:    200000,
-			},
-			true,
-		},
-		{
-			"success: dest callback with remaining gas < max gas < gas limit",
-			func() {
+				callbackKey = types.DestinationCallbackKey
+				remainingGas = 100_000
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -267,39 +154,39 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				}
 				packetData = expPacketData.GetBytes()
 			},
-			100000,
 			types.CallbackData{
 				CallbackAddress:   sender,
 				SenderAddress:     "",
-				ExecutionGasLimit: 100000,
+				ExecutionGasLimit: 100_000,
 				CommitGasLimit:    1_000_000,
 			},
-			true,
+			nil,
 		},
 		{
-			"success: dest callback with max gas < remaining gas < gas limit",
+			"success: source callback with max gas < remaining gas < gas limit",
 			func() {
+				remainingGas = 2_000_000
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
 					Sender:   sender,
 					Receiver: receiver,
-					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "3000000"}}`, sender),
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "3000000"}}`, sender),
 				}
 				packetData = expPacketData.GetBytes()
 			},
-			2_000_000,
 			types.CallbackData{
 				CallbackAddress:   sender,
-				SenderAddress:     "",
+				SenderAddress:     sender,
 				ExecutionGasLimit: 1_000_000,
 				CommitGasLimit:    1_000_000,
 			},
-			true,
+			nil,
 		},
 		{
 			"failure: empty memo",
 			func() {
+				remainingGas = 100_000
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -309,36 +196,110 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				}
 				packetData = expPacketData.GetBytes()
 			},
-			100000,
 			types.CallbackData{},
-			false,
+			types.ErrCallbackKeyNotFound,
 		},
 		{
 			"failure: invalid packet data",
 			func() {
+				remainingGas = 100_000
 				packetData = []byte("invalid packet data")
 			},
-			100000,
 			types.CallbackData{},
-			false,
+			types.ErrCannotUnmarshalPacketData,
+		},
+		{
+			"failure: packet data does not implement PacketDataProvider",
+			func() {
+				remainingGas = 100_000
+				packetData = ibcmock.MockPacketData
+				packetDataUnmarshaler = ibcmock.IBCModule{}
+			},
+			types.CallbackData{},
+			types.ErrNotPacketDataProvider,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc.malleate()
+		tc := tc
+		s.Run(tc.name, func() {
+			callbackKey = types.SourceCallbackKey
 
-		packetUnmarshaler := transfer.IBCModule{}
+			packetDataUnmarshaler = transfer.IBCModule{}
 
-		testPacket := channeltypes.Packet{Data: packetData}
-		callbackData, err := types.GetDestCallbackData(packetUnmarshaler, testPacket, tc.remainingGas, uint64(1_000_000))
+			tc.malleate()
 
-		if tc.expPass {
-			s.Require().NoError(err, tc.name)
-			s.Require().Equal(tc.expCallbackData, callbackData, tc.name)
-		} else {
-			s.Require().Error(err, tc.name)
-		}
+			testPacket := channeltypes.Packet{Data: packetData}
+			callbackData, err := types.GetCallbackData(packetDataUnmarshaler, testPacket, remainingGas, uint64(1_000_000), callbackKey)
+
+			expPass := tc.expError == nil
+			if expPass {
+				s.Require().NoError(err, tc.name)
+				s.Require().Equal(tc.expCallbackData, callbackData, tc.name)
+
+				expAllowRetry := tc.expCallbackData.ExecutionGasLimit < tc.expCallbackData.CommitGasLimit
+				s.Require().Equal(expAllowRetry, callbackData.AllowRetry(), tc.name)
+			} else {
+				s.Require().ErrorIs(err, tc.expError, tc.name)
+			}
+		})
 	}
+}
+
+func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
+	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+
+	packetData := transfertypes.FungibleTokenPacketData{
+		Denom:    ibctesting.TestCoin.Denom,
+		Amount:   ibctesting.TestCoin.Amount.String(),
+		Sender:   sender,
+		Receiver: receiver,
+		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, sender),
+	}
+	packetDataBytes := packetData.GetBytes()
+
+	expCallbackData := types.CallbackData{
+		CallbackAddress:   sender,
+		SenderAddress:     sender,
+		ExecutionGasLimit: 1_000_000,
+		CommitGasLimit:    1_000_000,
+	}
+
+	packetUnmarshaler := transfer.IBCModule{}
+
+	testPacket := channeltypes.Packet{Data: packetDataBytes}
+	callbackData, err := types.GetSourceCallbackData(packetUnmarshaler, testPacket, 2_000_000, 1_000_000)
+	s.Require().NoError(err)
+	s.Require().Equal(expCallbackData, callbackData)
+}
+
+func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
+	sender := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+
+	packetData := transfertypes.FungibleTokenPacketData{
+		Denom:    ibctesting.TestCoin.Denom,
+		Amount:   ibctesting.TestCoin.Amount.String(),
+		Sender:   sender,
+		Receiver: receiver,
+		Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, sender),
+	}
+	packetDataBytes := packetData.GetBytes()
+
+	expCallbackData := types.CallbackData{
+		CallbackAddress:   sender,
+		SenderAddress:     "",
+		ExecutionGasLimit: 1_000_000,
+		CommitGasLimit:    1_000_000,
+	}
+
+	packetUnmarshaler := transfer.IBCModule{}
+
+	testPacket := channeltypes.Packet{Data: packetDataBytes}
+	callbackData, err := types.GetDestCallbackData(packetUnmarshaler, testPacket, 2_000_000, 1_000_000)
+	s.Require().NoError(err)
+	s.Require().Equal(expCallbackData, callbackData)
 }
 
 func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
@@ -558,18 +519,4 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		s.Require().Equal(ok, callbackData != nil)
 		s.Require().Equal(tc.expUserGas, types.GetUserDefinedGasLimit(callbackData), tc.name)
 	}
-}
-
-func (s *CallbacksTypesTestSuite) TestGetCallbackDataErrors() {
-	// Success cases are tested above. This test case tests extra error case where
-	// the packet data can be unmarshaled but the resulting packet data cannot be
-	// casted to a AdditionalPacketDataProvider.
-
-	packetUnmarshaler := ibcmock.IBCModule{}
-
-	// ibcmock.MockPacketData instructs the MockPacketDataUnmarshaler to return ibcmock.MockPacketData, nil
-	mockPacket := channeltypes.Packet{Data: ibcmock.MockPacketData}
-	callbackData, err := types.GetCallbackData(packetUnmarshaler, mockPacket, 100000, uint64(1_000_000), types.SourceCallbackKey)
-	s.Require().Equal(types.CallbackData{}, callbackData)
-	s.Require().ErrorIs(err, types.ErrNotPacketDataProvider)
 }
