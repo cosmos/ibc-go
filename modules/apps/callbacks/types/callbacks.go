@@ -3,6 +3,8 @@ package types
 import (
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
+
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
@@ -90,7 +92,7 @@ func getCallbackData(
 	// unmarshal packet data
 	unmarshaledData, err := packetDataUnmarshaler.UnmarshalPacketData(packet.GetData())
 	if err != nil {
-		return CallbackData{}, err
+		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
 
 	packetDataProvider, ok := unmarshaledData.(ibcexported.PacketDataProvider)
