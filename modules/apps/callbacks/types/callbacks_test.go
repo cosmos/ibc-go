@@ -77,6 +77,28 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			nil,
 		},
 		{
+			"success: destination callback with 0 user defined gas limit",
+			func() {
+				callbackKey = types.DestinationCallbackKey
+				remainingGas = 2_000_000
+				expPacketData := transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit":"0"}}`, sender),
+				}
+				packetData = expPacketData.GetBytes()
+			},
+			types.CallbackData{
+				CallbackAddress:   sender,
+				SenderAddress:     "",
+				ExecutionGasLimit: 1_000_000,
+				CommitGasLimit:    1_000_000,
+			},
+			nil,
+		},
+		{
 			"success: source callback with gas limit < remaining gas < max gas",
 			func() {
 				expPacketData := transfertypes.FungibleTokenPacketData{
@@ -472,6 +494,17 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     `{"src_callback": {"gas_limit": "100"}}`,
 			},
 			100,
+		},
+		{
+			"success: user defined gas limit is zero",
+			transfertypes.FungibleTokenPacketData{
+				Denom:    denom,
+				Amount:   amount,
+				Sender:   sender,
+				Receiver: receiver,
+				Memo:     `{"src_callback": {"gas_limit": "0"}}`,
+			},
+			0,
 		},
 		{
 			"failure: memo has empty src_callback object",
