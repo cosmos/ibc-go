@@ -52,6 +52,10 @@ func NewIBCMiddleware(
 		panic(fmt.Errorf("contract keeper cannot be nil"))
 	}
 
+	if maxCallbackGas == 0 {
+		panic(fmt.Errorf("maxCallbackGas cannot be zero"))
+	}
+
 	return IBCMiddleware{
 		app:            packetDataUnmarshalerApp,
 		ics4Wrapper:    ics4Wrapper,
