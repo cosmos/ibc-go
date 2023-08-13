@@ -94,6 +94,7 @@ func (im IBCMiddleware) SendPacket(
 	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
 	callbackData, err := types.GetSourceCallbackData(im.app, reconstructedPacket, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return seq, nil
 	}
@@ -131,6 +132,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	callbackData, err := types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return nil
 	}
@@ -158,6 +160,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 
 	callbackData, err := types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return nil
 	}
@@ -187,6 +190,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	}
 
 	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return ack
 	}
@@ -218,6 +222,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	}
 
 	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return nil
 	}
