@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 
@@ -21,6 +23,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -31,7 +34,6 @@ import (
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
@@ -44,24 +46,40 @@ import (
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
 func NewRootCmd() *cobra.Command {
-	// we "pre"-instantiate the application for getting the injected/configured encoding configuration
-	// note, this is not necessary when using app wiring, as depinject can be directly used (see root_v2.go)
-	tempApp := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(tempDir()))
-	encodingConfig := params.EncodingConfig{
-		InterfaceRegistry: tempApp.InterfaceRegistry(),
-		Codec:             tempApp.AppCodec(),
-		TxConfig:          tempApp.TxConfig(),
-		Amino:             tempApp.LegacyAmino(),
+	var (
+		legacyAmino        *codec.LegacyAmino
+		interfaceRegistry  codectypes.InterfaceRegistry
+		appCodec           codec.Codec
+		txConfig           client.TxConfig
+		autoCliOpts        autocli.AppOptions
+		moduleBasicManager module.BasicManager
+		initClientCtx      client.Context
+	)
+
+	if err := depinject.Inject(
+		depinject.Configs(simapp.AppConfig,
+			depinject.Supply(
+				log.NewNopLogger(),
+				simtestutil.NewAppOptionsWithFlagHome(tempDir()),
+			),
+		),
+		&legacyAmino,
+		&interfaceRegistry,
+		&appCodec,
+		&txConfig,
+		&autoCliOpts,
+		&moduleBasicManager,
+		&initClientCtx,
+	); err != nil {
+		panic(err)
 	}
 
-	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Codec).
-		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
-		WithLegacyAmino(encodingConfig.Amino).
-		WithInput(os.Stdin).
-		WithAccountRetriever(types.AccountRetriever{}).
-		WithHomeDir(simapp.DefaultNodeHome).
-		WithViper("") // In simapp, we don't use any prefix for env variables.
+	encodingConfig := params.EncodingConfig{
+		InterfaceRegistry: interfaceRegistry,
+		Codec:             appCodec,
+		TxConfig:          txConfig,
+		Amino:             legacyAmino,
+	}
 
 	rootCmd := &cobra.Command{
 		Use:           "simd",
@@ -91,7 +109,7 @@ func NewRootCmd() *cobra.Command {
 				TextualCoinMetadataQueryFn: txmodule.NewGRPCCoinMetadataQueryFn(initClientCtx),
 			}
 			txConfigWithTextual, err := tx.NewTxConfigWithOptions(
-				codec.NewProtoCodec(encodingConfig.InterfaceRegistry),
+				codec.NewProtoCodec(interfaceRegistry),
 				txConfigOpts,
 			)
 			if err != nil {
@@ -110,9 +128,9 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	initRootCmd(rootCmd, encodingConfig, tempApp.BasicModuleManager)
+	initRootCmd(rootCmd, encodingConfig, moduleBasicManager)
 
-	if err := tempApp.AutoCliOpts().EnhanceRootCommand(rootCmd); err != nil {
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
 		panic(err)
 	}
 
