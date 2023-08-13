@@ -110,8 +110,8 @@ func (im IBCMiddleware) SendPacket(
 	if err != nil {
 		return 0, err
 	}
-	types.EmitCallbackEvent(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackData, err)
 
+	types.EmitCallbackEvent(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackData, nil)
 	return seq, nil
 }
 
