@@ -5,8 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cometbft/cometbft/libs/log"
-
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
@@ -52,11 +50,6 @@ const (
 	// AttributeValueCallbackFailure denotes that the callback has failed to execute
 	AttributeValueCallbackFailure = "failure"
 )
-
-// Logger returns a module-specific logger.
-func Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+ModuleName)
-}
 
 // EmitCallbackEvent emits an event for a callback
 func EmitCallbackEvent(
