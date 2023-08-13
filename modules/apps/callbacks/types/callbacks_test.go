@@ -184,9 +184,25 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			nil,
 		},
 		{
+			"failure: invalid packet data",
+			func() {
+				packetData = []byte("invalid packet data")
+			},
+			types.CallbackData{},
+			types.ErrCannotUnmarshalPacketData,
+		},
+		{
+			"failure: packet data does not implement PacketDataProvider",
+			func() {
+				packetData = ibcmock.MockPacketData
+				packetDataUnmarshaler = ibcmock.IBCModule{}
+			},
+			types.CallbackData{},
+			types.ErrNotPacketDataProvider,
+		},
+		{
 			"failure: empty memo",
 			func() {
-				remainingGas = 100_000
 				expPacketData := transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -200,23 +216,34 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			types.ErrCallbackKeyNotFound,
 		},
 		{
-			"failure: invalid packet data",
+			"failure: empty address",
 			func() {
-				remainingGas = 100_000
-				packetData = []byte("invalid packet data")
+				expPacketData := transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     `{"src_callback": {"address": ""}}`,
+				}
+				packetData = expPacketData.GetBytes()
 			},
 			types.CallbackData{},
-			types.ErrCannotUnmarshalPacketData,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
-			"failure: packet data does not implement PacketDataProvider",
+			"failure: space address",
 			func() {
-				remainingGas = 100_000
-				packetData = ibcmock.MockPacketData
-				packetDataUnmarshaler = ibcmock.IBCModule{}
+				expPacketData := transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     `{"src_callback": {"address": " "}}`,
+				}
+				packetData = expPacketData.GetBytes()
 			},
 			types.CallbackData{},
-			types.ErrNotPacketDataProvider,
+			types.ErrCallbackAddressNotFound,
 		},
 	}
 

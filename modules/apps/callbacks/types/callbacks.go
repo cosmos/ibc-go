@@ -2,6 +2,7 @@ package types
 
 import (
 	"strconv"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -107,7 +108,7 @@ func getCallbackData(
 
 	// get the callback address from the callback data
 	callbackAddress := getCallbackAddress(callbackData)
-	if callbackAddress == "" {
+	if strings.TrimSpace(callbackAddress) == "" {
 		return CallbackData{}, ErrCallbackAddressNotFound
 	}
 
