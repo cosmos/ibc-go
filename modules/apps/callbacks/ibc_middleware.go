@@ -143,6 +143,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		)
 	}
 
+	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
 	err = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, err)
 
@@ -169,6 +170,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return im.contractKeeper.IBCOnTimeoutPacketCallback(cachedCtx, packet, relayer, callbackData.CallbackAddress, callbackData.SenderAddress)
 	}
 
+	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
 	err = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
 
@@ -199,6 +201,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, ack, callbackData.CallbackAddress)
 	}
 
+	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
 	err = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
 
@@ -231,6 +234,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, ack, callbackData.CallbackAddress)
 	}
 
+	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
 	err = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
 
