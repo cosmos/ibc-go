@@ -239,7 +239,16 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			types.ErrInvalidUpgrade,
 		},
 		{
-			"startFlushUpgradeHandshake fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.Ordering = types.ORDERED
+				path.EndpointB.SetChannel(channel)
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
 			func() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 			},
@@ -502,11 +511,28 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			types.ErrUpgradeNotFound,
 		},
 		{
-			"fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			"fails due to upgrade incompatibility",
 			func() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 			},
 			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
+		},
+		{
+			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.Ordering = types.ORDERED
+				path.EndpointA.SetChannel(channel)
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"fails due to proof verification failure, counterparty update has unexpected sequence",
+			func() {
+				// Decrementing LatestSequenceSend is sufficient to cause the proof to fail.
+				counterpartyUpgrade.LatestSequenceSend--
+			},
+			commitmenttypes.ErrInvalidProof,
 		},
 		{
 			"startFlushUpgradeHandshake fails due to mismatch in upgrade ordering",
@@ -620,20 +646,19 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			// create upgrade proposal with different version in init upgrade to see if the WriteUpgradeAck overwrites the version
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "original-version"
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
 			tc.malleate()
 
 			// perform the upgrade handshake.
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 
-			proposedUpgrade = path.EndpointA.GetChannelUpgrade()
-			suite.Require().Equal("original-version", proposedUpgrade.Fields.Version)
-
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, mock.UpgradeVersion, proposedUpgrade.LatestSequenceSend)
+			proposedUpgrade = path.EndpointB.GetChannelUpgrade()
+
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
 
 			channel := path.EndpointA.GetChannel()
 			upgrade := path.EndpointA.GetChannelUpgrade()
@@ -642,6 +667,10 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			actualCounterpartyLastSequenceSend, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(ok)
 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
+
+			counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(ok)
+			suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 
 			if tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
@@ -1325,20 +1354,6 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 				path.EndpointB.SetConnection(conn)
 			},
 			connectiontypes.ErrInvalidConnectionState,
-		},
-		{
-			"failed verification for counterparty channel state due to incorrectly constructed counterparty channel",
-			func() {
-				counterpartyChannel.Close()
-			},
-			commitmenttypes.ErrInvalidProof,
-		},
-		{
-			"failed verification for counterparty upgrade due to incorrectly constructed counterparty upgrade",
-			func() {
-				counterpartyUpgrade.LatestSequenceSend = 100
-			},
-			commitmenttypes.ErrInvalidProof,
 		},
 		{
 			"upgrade sequence mismatch, endpointB channel upgrade sequence is ahead",

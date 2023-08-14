@@ -157,6 +157,30 @@ func (k Keeper) ChanUpgradeTry(
 		FlushStatus:     types.NOTINFLUSH,
 	}
 
+	// verify the counterparty channel state containing the upgrade sequence
+	if err := k.connectionKeeper.VerifyChannelState(
+		ctx,
+		connection,
+		proofHeight, proofCounterpartyChannel,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		counterpartyChannel,
+	); err != nil {
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
+	}
+
+	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
+	if err := k.connectionKeeper.VerifyChannelUpgrade(
+		ctx,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		connection,
+		counterpartyUpgrade,
+		proofCounterpartyUpgrade, proofHeight,
+	); err != nil {
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
+	}
+
 	if err = k.startFlushUpgradeHandshake(
 		ctx,
 		portID, channelID,
@@ -258,6 +282,30 @@ func (k Keeper) ChanUpgradeAck(
 		return types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
+	// verify the counterparty channel state containing the upgrade sequence
+	if err := k.connectionKeeper.VerifyChannelState(
+		ctx,
+		connection,
+		proofHeight, proofChannel,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		counterpartyChannel,
+	); err != nil {
+		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
+	}
+
+	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
+	if err := k.connectionKeeper.VerifyChannelUpgrade(
+		ctx,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		connection,
+		counterpartyUpgrade,
+		proofUpgrade, proofHeight,
+	); err != nil {
+		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
+	}
+
 	if err := k.startFlushUpgradeHandshake(ctx, portID, channelID, upgrade.Fields, counterpartyChannel, counterpartyUpgrade,
 		proofChannel, proofUpgrade, proofHeight); err != nil {
 		return err
@@ -276,7 +324,7 @@ func (k Keeper) ChanUpgradeAck(
 // WriteUpgradeAckChannel writes a channel which has successfully passed the UpgradeAck handshake step as well as
 // setting the upgrade for that channel.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgradeVersion string, counterpartyLastSequenceSend uint64) {
+func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string, counterpartyUpgrade types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-ack")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -292,7 +340,8 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgra
 		channel.FlushStatus = types.FLUSHCOMPLETE
 	}
 
-	k.SetCounterpartyLastPacketSequence(ctx, portID, channelID, counterpartyLastSequenceSend)
+	k.SetCounterpartyLastPacketSequence(ctx, portID, channelID, counterpartyUpgrade.LatestSequenceSend)
+	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -300,7 +349,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID, upgra
 		panic(fmt.Sprintf("could not find existing upgrade when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	upgrade.Fields.Version = upgradeVersion
+	upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
@@ -677,30 +726,6 @@ func (k Keeper) startFlushUpgradeHandshake(
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
-	}
-
-	// verify the counterparty channel state containing the upgrade sequence
-	if err := k.connectionKeeper.VerifyChannelState(
-		ctx,
-		connection,
-		proofHeight, proofCounterpartyChannel,
-		channel.Counterparty.PortId,
-		channel.Counterparty.ChannelId,
-		counterpartyChannel,
-	); err != nil {
-		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
-	}
-
-	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
-	if err := k.connectionKeeper.VerifyChannelUpgrade(
-		ctx,
-		channel.Counterparty.PortId,
-		channel.Counterparty.ChannelId,
-		connection,
-		counterpartyUpgrade,
-		proofCounterpartyUpgrade, proofHeight,
-	); err != nil {
-		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
 
 	// the current upgrade handshake must only continue if both channels are using the same upgrade sequence,
