@@ -981,10 +981,10 @@ func makeEncodingConfig() simappparams.EncodingConfig {
 
 // IBC Upgrade examples
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
-func (app *SimApp) setupUpgradeHandlers() {}
+func (*SimApp) setupUpgradeHandlers() {}
 
 // setupUpgradeStoreLoaders sets all necessary store loaders required by upgrades.
-func (app *SimApp) setupUpgradeStoreLoaders() {}
+func (*SimApp) setupUpgradeStoreLoaders() {}
 
 // IBC TestingApp functions
 

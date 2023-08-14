@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"testing"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	dbm "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
 
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
@@ -27,7 +28,7 @@ import (
 
 const maxCallbackGas = uint64(1000000)
 
-func init(){
+func init() {
 	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 		db := dbm.NewMemDB()
 		encCdc := simapp.MakeTestEncodingConfig()
