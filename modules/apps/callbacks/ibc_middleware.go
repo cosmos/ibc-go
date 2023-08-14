@@ -105,7 +105,7 @@ func (im IBCMiddleware) SendPacket(
 		)
 	}
 
-	err = im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
 	// contract keeper is allowed to reject the packet send.
 	if err != nil {
 		return 0, err
@@ -144,7 +144,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, err)
 
 	return nil
@@ -171,7 +171,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
 
 	return nil
@@ -202,7 +202,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
 
 	return ack
@@ -235,7 +235,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
 
 	return nil
@@ -248,7 +248,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 //   - the contractExecutor runs out of gas and the relayer has not reserved gas grater than or equal to
 //     CommitGasLimit.
 func (IBCMiddleware) processCallback(
-	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
+	ctx sdk.Context, callbackType types.CallbackType,
 	callbackData types.CallbackData, callbackExecutor func(sdk.Context) error,
 ) (err error) {
 	cachedCtx, writeFn := ctx.CacheContext()
