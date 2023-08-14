@@ -194,9 +194,13 @@ func (s *CallbacksTestSuite) buildICAMsgDelegatePacketData(icaAddress string, me
 
 	// ensure chainB is allowed to execute stakingtypes.MsgDelegate
 	params := icahosttypes.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate)})
-	s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
+	GetSimApp(s.chainB).ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 
+<<<<<<< HEAD
 	data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate})
+=======
+	data, err := icatypes.SerializeCosmosTx(GetSimApp(s.chainA).AppCodec(), []proto.Message{msgDelegate}, icatypes.EncodingProtobuf)
+>>>>>>> 66104094 (Duplicate SimApp into callbacks directory (#4337))
 	s.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{
