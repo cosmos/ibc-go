@@ -10,6 +10,7 @@ import (
 
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
+	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -30,14 +31,14 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"success",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, ibcmock.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			nil,
 		},
 		{
 			"panics with nil underlying app",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(nil, channelkeeper.Keeper{}, ibcmock.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(nil, channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
 		},
@@ -51,14 +52,14 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"panics with nil ics4Wrapper",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, nil, ibcmock.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, nil, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			fmt.Errorf("ICS4Wrapper cannot be nil"),
 		},
 		{
 			"panics with zero maxCallbackGas",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, ibcmock.ContractKeeper{}, uint64(0))
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
 			},
 			fmt.Errorf("maxCallbackGas cannot be zero"),
 		},
@@ -128,7 +129,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		{
 			"failure: callback execution fails, sender is not callback address",
 			func() {
-				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
+				packetData.Sender = simapp.MockCallbackUnauthorizedAddress
 			},
 			types.CallbackTypeSendPacket,
 			false,
@@ -257,7 +258,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"failure: callback execution fails, unauthorized address",
 			func() {
-				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
+				packetData.Sender = simapp.MockCallbackUnauthorizedAddress
 				packet.Data = packetData.GetBytes()
 			},
 			callbackFailed,
@@ -407,7 +408,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: callback execution fails, unauthorized address",
 			func() {
-				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
+				packetData.Sender = simapp.MockCallbackUnauthorizedAddress
 				packet.Data = packetData.GetBytes()
 			},
 			callbackFailed,
