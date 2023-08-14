@@ -105,6 +105,17 @@ var (
 		// govtypes.ModuleName
 	}
 
+	CustomModuleBasicConfig = map[string]module.AppModuleBasic{
+		genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+		govtypes.ModuleName: gov.NewAppModuleBasic(
+			[]govclient.ProposalHandler{
+				paramsclient.ProposalHandler,
+				ibcclientclient.UpdateClientProposalHandler,
+				ibcclientclient.UpgradeProposalHandler,
+			},
+		),
+	}
+
 	// application configuration (used by depinject)
 	AppConfig = depinject.Configs(appconfig.Compose(&appv1alpha1.Config{
 		Modules: []*appv1alpha1.ModuleConfig{
@@ -280,15 +291,6 @@ var (
 	}),
 		depinject.Supply(
 			// supply custom module basics
-			map[string]module.AppModuleBasic{
-				genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-				govtypes.ModuleName: gov.NewAppModuleBasic(
-					[]govclient.ProposalHandler{
-						paramsclient.ProposalHandler,
-						ibcclientclient.UpdateClientProposalHandler,
-						ibcclientclient.UpgradeProposalHandler,
-					},
-				),
-			},
+			CustomModuleBasicConfig,
 		))
 )

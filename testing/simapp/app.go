@@ -7,6 +7,9 @@ import (
 
 	dbm "github.com/cosmos/cosmos-db"
 
+	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/core/address"
+	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -44,6 +47,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
@@ -193,7 +197,6 @@ func NewSimApp(
 		&app.GroupKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.CircuitBreakerKeeper,
-		&app.CapabilityKeeper,
 	); err != nil {
 		panic(err)
 	}
@@ -229,6 +232,8 @@ func NewSimApp(
 	/**** Register IBC modules ****/
 
 	if err := app.RegisterStores(
+		storetypes.NewKVStoreKey(capabilitytypes.StoreKey),
+		storetypes.NewMemoryStoreKey(capabilitytypes.MemStoreKey),
 		storetypes.NewKVStoreKey(icacontrollertypes.StoreKey),
 		storetypes.NewKVStoreKey(ibcexported.StoreKey),
 		storetypes.NewKVStoreKey(ibcfeetypes.StoreKey),
@@ -237,6 +242,16 @@ func NewSimApp(
 	); err != nil {
 		panic(err)
 	}
+
+	// TODO: ibc module subspaces can be removed after migration of params
+	// https://github.com/cosmos/ibc-go/issues/2010
+	app.ParamsKeeper.Subspace(ibctransfertypes.ModuleName)
+	app.ParamsKeeper.Subspace(ibcexported.ModuleName)
+	app.ParamsKeeper.Subspace(icacontrollertypes.SubModuleName)
+	app.ParamsKeeper.Subspace(icahosttypes.SubModuleName)
+
+	// add capability keeper and ScopeToModule for ibc module
+	app.CapabilityKeeper = capabilitykeeper.NewKeeper(app.appCodec, app.GetKey(capabilitytypes.StoreKey), app.GetMemKey(capabilitytypes.MemStoreKey))
 
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
@@ -436,6 +451,41 @@ func NewSimApp(
 	app.ScopedFeeMockKeeper = scopedFeeMockKeeper
 
 	return app
+}
+
+// AutoCliOpts returns the autocli options for the app.
+func (app *SimApp) AutoCliOpts() autocli.AppOptions {
+	modules := make(map[string]appmodule.AppModule, 0)
+	for _, m := range app.ModuleManager.Modules {
+		if moduleWithName, ok := m.(module.HasName); ok {
+			moduleName := moduleWithName.Name()
+			if appModule, ok := moduleWithName.(appmodule.AppModule); ok {
+				modules[moduleName] = appModule
+			}
+		}
+	}
+
+	var (
+		addressCodec          address.Codec
+		validatorAddressCodec runtime.ValidatorAddressCodec
+		consensusAddressCodec runtime.ConsensusAddressCodec
+	)
+
+	if err := depinject.Inject(
+		depinject.Configs(AppConfig, depinject.Supply(log.NewNopLogger())),
+		&addressCodec,
+		&validatorAddressCodec,
+		&consensusAddressCodec,
+	); err != nil {
+		panic(err)
+	}
+
+	return autocli.AppOptions{
+		Modules:               modules,
+		AddressCodec:          addressCodec,
+		ValidatorAddressCodec: validatorAddressCodec,
+		ConsensusAddressCodec: consensusAddressCodec,
+	}
 }
 
 // LegacyAmino returns SimApp's amino codec.
