@@ -385,6 +385,13 @@ func (chain *TestChain) GetConsensusState(clientID string, height exported.Heigh
 // GetValsAtHeight will return the validator set of the chain at a given height. It will return
 // a success boolean depending on if the validator set exists or not at that height.
 func (chain *TestChain) GetValsAtHeight(height int64) (*cmttypes.ValidatorSet, bool) {
+	// if the current uncommitted header equals the requested height, then we can return
+	// the current validator set as this validator set will be stored in the historical info
+	// when the block height is executed
+	if height == chain.CurrentHeader.Height {
+		return chain.Vals, true
+	}
+
 	histInfo, ok := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), height)
 	if !ok {
 		return nil, false
@@ -431,20 +438,13 @@ func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterpa
 		tmTrustedVals *cmttypes.ValidatorSet
 		ok            bool
 	)
-	// Once we get TrustedHeight from client, we must query the validators from the counterparty chain
-	// If the LatestHeight == LastHeader.Height, then TrustedValidators are current validators
-	// If LatestHeight < LastHeader.Height, we can query the historical validator set from HistoricalInfo
-	if trustedHeight == counterparty.LastHeader.GetHeight() {
-		tmTrustedVals = counterparty.Vals
-	} else {
-		// NOTE: We need to get validators from counterparty at height: trustedHeight+1
-		// since the last trusted validators for a header at height h
-		// is the NextValidators at h+1 committed to in header h by
-		// NextValidatorsHash
-		tmTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight + 1))
-		if !ok {
-			return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
-		}
+
+	// NOTE: We need to get validators from counterparty at height: trustedHeight+1
+	// since the last trusted validators for a header at height h
+	// is the NextValidators at h+1 committed to in header h via the NextValidatorsHash field
+	tmTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight + 1))
+	if !ok {
+		return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
 	}
 	// inject trusted fields into last header
 	// for now assume revision number is 0
