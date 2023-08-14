@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/cosmos-sdk/types/kv"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -16,7 +17,7 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup(t, false)
 	clientID := "clientidone"
 
 	height := types.NewHeight(0, 10)

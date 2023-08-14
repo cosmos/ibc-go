@@ -11,4 +11,6 @@ import (
 func TestValidateParams(t *testing.T) {
 	require.NoError(t, types.DefaultParams().Validate())
 	require.NoError(t, types.NewParams(false, []string{}).Validate())
+	require.Error(t, types.NewParams(true, []string{""}).Validate())
+	require.Error(t, types.NewParams(true, []string{" "}).Validate())
 }

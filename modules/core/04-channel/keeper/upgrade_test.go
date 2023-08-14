@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -121,7 +122,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
 				channel := path.EndpointA.GetChannel()
 
-				events := ctx.EventManager().Events()
+				events := ctx.EventManager().Events().ToABCIEvents()
 				expEvents := ibctesting.EventsMap{
 					types.EventTypeChannelUpgradeInit: {
 						types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
@@ -221,13 +222,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			connectiontypes.ErrInvalidConnectionState,
 		},
 		{
-			"timeout has passed",
-			func() {
-				counterpartyUpgrade.Timeout = types.NewTimeout(clienttypes.NewHeight(0, 1), 0)
-			},
-			types.ErrInvalidUpgrade,
-		},
-		{
 			"initializing handshake fails, proposed connection hops do not exist",
 			func() {
 				proposedUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
@@ -257,7 +251,16 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			types.ErrInvalidUpgrade,
 		},
 		{
-			"startFlushUpgradeHandshake fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.Ordering = types.ORDERED
+				path.EndpointB.SetChannel(channel)
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
 			func() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 			},
@@ -409,7 +412,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			suite.Require().True(ok)
 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
 
-			events := ctx.EventManager().Events()
+			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{
 				types.EventTypeChannelUpgradeTry: {
 					types.AttributeKeyPortID:                    path.EndpointB.ChannelConfig.PortID,
@@ -522,9 +525,26 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			types.ErrUpgradeNotFound,
 		},
 		{
-			"startFlushUpgradeHandshake fails due to proof verification failure, counterparty upgrade connection hops are tampered with",
+			"fails due to upgrade incompatibility",
 			func() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
+			},
+			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
+		},
+		{
+			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.Ordering = types.ORDERED
+				path.EndpointA.SetChannel(channel)
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"fails due to proof verification failure, counterparty update has unexpected sequence",
+			func() {
+				// Decrementing LatestSequenceSend is sufficient to cause the proof to fail.
+				counterpartyUpgrade.LatestSequenceSend--
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -640,20 +660,19 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			// create upgrade proposal with different version in init upgrade to see if the WriteUpgradeAck overwrites the version
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = "original-version"
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
 			tc.malleate()
 
 			// perform the upgrade handshake.
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 
-			proposedUpgrade = path.EndpointA.GetChannelUpgrade()
-			suite.Require().Equal("original-version", proposedUpgrade.Fields.Version)
-
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, mock.UpgradeVersion, proposedUpgrade.LatestSequenceSend)
+			proposedUpgrade = path.EndpointB.GetChannelUpgrade()
+
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
 
 			channel := path.EndpointA.GetChannel()
 			upgrade := path.EndpointA.GetChannelUpgrade()
@@ -662,6 +681,10 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			actualCounterpartyLastSequenceSend, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(ok)
 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
+
+			counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(ok)
+			suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 
 			if tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
@@ -927,8 +950,13 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 	upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().Equal(types.Upgrade{}, upgrade)
 	suite.Require().False(found)
+
 	lastPacketSequence, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().Equal(uint64(0), lastPacketSequence)
+	suite.Require().False(found)
+
+	counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
 	suite.Require().False(found)
 }
 
@@ -1089,7 +1117,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 
 	// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
 	proposedUpgrade := path.EndpointA.GetProposedUpgrade()
-	events := ctx.EventManager().Events()
+	events := ctx.EventManager().Events().ToABCIEvents()
 	expEvents := ibctesting.EventsMap{
 		types.EventTypeChannelUpgradeCancel: {
 			types.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
@@ -1109,6 +1137,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 	suite.Require().Equal(uint64(0), lastPacketSequence)
 	suite.Require().False(found)
 	ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+
+	counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+	suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
+	suite.Require().False(found)
 }
 
 func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
@@ -1358,20 +1390,6 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 				path.EndpointB.SetConnection(conn)
 			},
 			connectiontypes.ErrInvalidConnectionState,
-		},
-		{
-			"failed verification for counterparty channel state due to incorrectly constructed counterparty channel",
-			func() {
-				counterpartyChannel.Close()
-			},
-			commitmenttypes.ErrInvalidProof,
-		},
-		{
-			"failed verification for counterparty upgrade due to incorrectly constructed counterparty upgrade",
-			func() {
-				counterpartyUpgrade.LatestSequenceSend = 100
-			},
-			commitmenttypes.ErrInvalidProof,
 		},
 		{
 			"upgrade sequence mismatch, endpointB channel upgrade sequence is ahead",
