@@ -3,7 +3,7 @@ name: Callbacks Module
 on:
   pull_request:
     paths:
-      - '.github/workflows/capability.yml'
+      - '.github/workflows/callbacks.yml'
       - 'modules/apps/callbacks/**'
 
 jobs:
