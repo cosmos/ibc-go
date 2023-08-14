@@ -186,7 +186,18 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 	for _, tc := range testCases {
 		newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
 
-		types.EmitCallbackEvent(newCtx, tc.packet, tc.callbackType, tc.callbackData, tc.callbackError)
+		switch tc.callbackType {
+		case types.CallbackTypeReceivePacket:
+			types.EmitCallbackEvent(
+				newCtx, tc.packet.GetDestChannel(), tc.packet.GetDestPort(),
+				tc.packet.GetSequence(), tc.callbackType, tc.callbackData, tc.callbackError,
+			)
+		default:
+			types.EmitCallbackEvent(
+				newCtx, tc.packet.GetSourceChannel(), tc.packet.GetSourcePort(),
+				tc.packet.GetSequence(), tc.callbackType, tc.callbackData, tc.callbackError,
+			)
+		}
 		events := newCtx.EventManager().Events().ToABCIEvents()
 		ibctesting.AssertEvents(&s.Suite, tc.expEvents, events)
 	}

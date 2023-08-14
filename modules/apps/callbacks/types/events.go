@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 const (
@@ -54,7 +52,9 @@ const (
 // EmitCallbackEvent emits an event for a callback
 func EmitCallbackEvent(
 	ctx sdk.Context,
-	packet ibcexported.PacketI,
+	channelID,
+	portID string,
+	sequence uint64,
 	callbackType CallbackType,
 	callbackData CallbackData,
 	err error,
@@ -65,7 +65,7 @@ func EmitCallbackEvent(
 		sdk.NewAttribute(AttributeKeyCallbackAddress, callbackData.CallbackAddress),
 		sdk.NewAttribute(AttributeKeyCallbackGasLimit, fmt.Sprintf("%d", callbackData.ExecutionGasLimit)),
 		sdk.NewAttribute(AttributeKeyCallbackCommitGasLimit, fmt.Sprintf("%d", callbackData.CommitGasLimit)),
-		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", packet.GetSequence())),
+		sdk.NewAttribute(AttributeKeyCallbackSequence, fmt.Sprintf("%d", sequence)),
 	}
 	if err == nil {
 		attributes = append(attributes, sdk.NewAttribute(AttributeKeyCallbackResult, AttributeValueCallbackSuccess))
@@ -82,14 +82,14 @@ func EmitCallbackEvent(
 	case CallbackTypeReceivePacket:
 		eventType = EventTypeDestinationCallback
 		attributes = append(
-			attributes, sdk.NewAttribute(AttributeKeyCallbackDestPortID, packet.GetDestPort()),
-			sdk.NewAttribute(AttributeKeyCallbackDestChannelID, packet.GetDestChannel()),
+			attributes, sdk.NewAttribute(AttributeKeyCallbackDestPortID, portID),
+			sdk.NewAttribute(AttributeKeyCallbackDestChannelID, channelID),
 		)
 	default:
 		eventType = EventTypeSourceCallback
 		attributes = append(
-			attributes, sdk.NewAttribute(AttributeKeyCallbackSourcePortID, packet.GetSourcePort()),
-			sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, packet.GetSourceChannel()),
+			attributes, sdk.NewAttribute(AttributeKeyCallbackSourcePortID, portID),
+			sdk.NewAttribute(AttributeKeyCallbackSourceChannelID, channelID),
 		)
 	}
 

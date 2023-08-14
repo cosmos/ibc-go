@@ -111,7 +111,7 @@ func (im IBCMiddleware) SendPacket(
 		return 0, err
 	}
 
-	types.EmitCallbackEvent(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackData, nil)
+	types.EmitCallbackEvent(ctx, sourceChannel, sourcePort, seq, types.CallbackTypeSendPacket, callbackData, nil)
 	return seq, nil
 }
 
@@ -145,7 +145,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
 	err = im.processCallback(ctx, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, err)
+	types.EmitCallbackEvent(
+		ctx, packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence(),
+		types.CallbackTypeAcknowledgementPacket, callbackData, err,
+	)
 
 	return nil
 }
@@ -172,7 +175,10 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
 	err = im.processCallback(ctx, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
+	types.EmitCallbackEvent(
+		ctx, packet.GetSourceChannel(), packet.GetSourcePort(), packet.GetSequence(),
+		types.CallbackTypeTimeoutPacket, callbackData, err,
+	)
 
 	return nil
 }
@@ -203,7 +209,10 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
 	err = im.processCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
+	types.EmitCallbackEvent(
+		ctx, packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence(),
+		types.CallbackTypeReceivePacket, callbackData, err,
+	)
 
 	return ack
 }
@@ -236,7 +245,10 @@ func (im IBCMiddleware) WriteAcknowledgement(
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
 	err = im.processCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
+	types.EmitCallbackEvent(
+		ctx, packet.GetDestChannel(), packet.GetDestPort(), packet.GetSequence(),
+		types.CallbackTypeReceivePacket, callbackData, err,
+	)
 
 	return nil
 }
