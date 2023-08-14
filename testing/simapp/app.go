@@ -588,6 +588,10 @@ func BlockedAddresses() map[string]bool {
 		for addr := range GetMaccPerms() {
 			result[addr] = true
 		}
+
+		// allow the following addresses to receive funds
+		delete(result, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+		delete(result, authtypes.NewModuleAddress(ibcmock.ModuleName).String())
 	}
 
 	return result
