@@ -2,7 +2,6 @@ package simapp
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -96,8 +95,9 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
-	tmos "github.com/cometbft/cometbft/libs/os"
 
+	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
+	simappparams "github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp/params"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -125,8 +125,6 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
-	upgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 )
 
@@ -246,6 +244,9 @@ type SimApp struct {
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
 	ScopedIBCMockKeeper       capabilitykeeper.ScopedKeeper
 	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
+
+	// mock contract keeper used for testing
+	MockContractKeeper ContractKeeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -435,6 +436,10 @@ func NewSimApp(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	// NOTE: The mock ContractKeeper is only created for testing.
+	// Real applications should not use the mock ContractKeeper
+	app.MockContractKeeper = NewContractKeeper(memKeys[ibcmock.MemStoreKey])
+
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
@@ -491,9 +496,11 @@ func NewSimApp(
 	ibcRouter := porttypes.NewRouter()
 
 	// Middleware Stacks
+	maxCallbackGas := uint64(1_000_000)
 
 	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
 	// since fee middleware will wrap the IBCKeeper for underlying application.
+	// NOTE: the Transfer Keeper's ICS4Wrapper can later be replaced.
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
@@ -515,12 +522,13 @@ func NewSimApp(
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// transferKeeper.SendPacket -> fee.SendPacket -> channel.SendPacket
+	// transferKeeper.SendPacket -> fee.SendPacket -> callbacks.SendPacket -> channel.SendPacket
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-	// channel.RecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
+	// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
 
 	// transfer stack contains (from top to bottom):
+	// - IBC Callbacks Middleware
 	// - IBC Fee Middleware
 	// - Transfer
 
@@ -528,13 +536,16 @@ func NewSimApp(
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
+	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
+	app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.Middleware))
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> fee.SendPacket -> channel.SendPacket
+	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> fee.SendPacket -> callbacks.SendPacket -> channel.SendPacket
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
@@ -542,9 +553,12 @@ func NewSimApp(
 	app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
 	icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
+	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
+	app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.Middleware))
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
-	// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
+	// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
 
 	var icaHostStack porttypes.IBCModule
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
@@ -572,7 +586,8 @@ func NewSimApp(
 	// create fee wrapped mock module
 	feeMockModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
 	app.FeeMockModule = feeMockModule
-	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
+	var feeWithMockModule porttypes.Middleware = ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
+	feeWithMockModule = ibccallbacks.NewIBCMiddleware(feeWithMockModule, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// Seal the IBC Router
@@ -966,64 +981,10 @@ func makeEncodingConfig() simappparams.EncodingConfig {
 
 // IBC Upgrade examples
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
-func (app *SimApp) setupUpgradeHandlers() {
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V5,
-		upgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
-	)
-
-	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
-	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
-	// See: https://github.com/cosmos/ibc-go/blob/v6.1.0/testing/simapp/app.go#L310
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V6,
-		upgrades.CreateV6UpgradeHandler(
-			app.ModuleManager,
-			app.configurator,
-			app.appCodec,
-			app.keys[capabilitytypes.ModuleName],
-			app.CapabilityKeeper,
-			ibcmock.ModuleName+icacontrollertypes.SubModuleName,
-		),
-	)
-
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V7,
-		upgrades.CreateV7UpgradeHandler(
-			app.ModuleManager,
-			app.configurator,
-			app.appCodec,
-			app.IBCKeeper.ClientKeeper,
-			app.ConsensusParamsKeeper,
-			app.ParamsKeeper,
-		),
-	)
-
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V7_1,
-		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, app.IBCKeeper.ClientKeeper),
-	)
-}
+func (*SimApp) setupUpgradeHandlers() {}
 
 // setupUpgradeStoreLoaders sets all necessary store loaders required by upgrades.
-func (app *SimApp) setupUpgradeStoreLoaders() {
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		tmos.Exit(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if upgradeInfo.Name == upgrades.V7 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{
-				consensusparamtypes.StoreKey,
-				crisistypes.StoreKey,
-			},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
-}
+func (*SimApp) setupUpgradeStoreLoaders() {}
 
 // IBC TestingApp functions
 

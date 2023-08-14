@@ -1,4 +1,4 @@
-package mock
+package simapp
 
 import (
 	"fmt"
@@ -6,14 +6,20 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	callbacktypes "github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
+	callbacktypes "github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 // MockKeeper implements callbacktypes.ContractKeeper
 var _ callbacktypes.ContractKeeper = (*ContractKeeper)(nil)
+
+var (
+	StatefulCounterKey              = "stateful-callback-counter"
+	MockCallbackUnauthorizedAddress = "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk"
+)
 
 // This is a mock contract keeper used for testing. It is not wired up to any modules.
 // It implements the interface functions expected by the ibccallbacks middleware
@@ -146,7 +152,7 @@ func (k ContractKeeper) processMockCallback(
 
 	if authAddress == MockCallbackUnauthorizedAddress {
 		ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback unauthorized", callbackType))
-		return MockApplicationCallbackError
+		return ibcmock.MockApplicationCallbackError
 	}
 
 	ctx.GasMeter().ConsumeGas(500000, fmt.Sprintf("mock %s callback success", callbackType))

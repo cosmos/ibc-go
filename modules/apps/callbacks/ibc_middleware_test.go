@@ -7,9 +7,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
@@ -30,14 +31,14 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"success",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, ibcmock.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			nil,
 		},
 		{
 			"panics with nil underlying app",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(nil, channelkeeper.Keeper{}, ibcmock.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(nil, channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
 		},
@@ -51,14 +52,14 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"panics with nil ics4Wrapper",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, nil, ibcmock.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, nil, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			fmt.Errorf("ICS4Wrapper cannot be nil"),
 		},
 		{
 			"panics with zero maxCallbackGas",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, ibcmock.ContractKeeper{}, uint64(0))
+				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
 			},
 			fmt.Errorf("maxCallbackGas cannot be zero"),
 		},
@@ -128,7 +129,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		{
 			"failure: callback execution fails, sender is not callback address",
 			func() {
-				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
+				packetData.Sender = simapp.MockCallbackUnauthorizedAddress
 			},
 			types.CallbackTypeSendPacket,
 			false,
@@ -257,7 +258,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"failure: callback execution fails, unauthorized address",
 			func() {
-				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
+				packetData.Sender = simapp.MockCallbackUnauthorizedAddress
 				packet.Data = packetData.GetBytes()
 			},
 			callbackFailed,
@@ -318,8 +319,8 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().ErrorIs(tc.expError, err)
 			}
 
-			sourceStatefulCounter := s.chainA.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
-			sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
+			sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+			sourceCounters := GetSimApp(s.chainA).MockContractKeeper.Counters
 
 			switch tc.expResult {
 			case noExecution:
@@ -407,7 +408,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: callback execution fails, unauthorized address",
 			func() {
-				packetData.Sender = ibcmock.MockCallbackUnauthorizedAddress
+				packetData.Sender = simapp.MockCallbackUnauthorizedAddress
 				packet.Data = packetData.GetBytes()
 			},
 			callbackFailed,
@@ -471,8 +472,8 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().ErrorIs(tc.expError, err)
 			}
 
-			sourceStatefulCounter := s.chainA.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
-			sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
+			sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+			sourceCounters := GetSimApp(s.chainA).MockContractKeeper.Counters
 
 			// account for SendPacket succeeding
 			switch tc.expResult {
@@ -623,8 +624,8 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				s.Require().Equal(tc.expAck, ack)
 			}
 
-			destStatefulCounter := s.chainB.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainB.GetContext())
-			destCounters := s.chainB.GetSimApp().MockContractKeeper.Counters
+			destStatefulCounter := GetSimApp(s.chainB).MockContractKeeper.GetStateEntryCounter(s.chainB.GetContext())
+			destCounters := GetSimApp(s.chainB).MockContractKeeper.Counters
 
 			switch tc.expResult {
 			case noExecution:
@@ -819,11 +820,6 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 		s.Run(tc.name, func() {
 			s.SetupMockFeeTest()
 
-			// set mock packet, it is only used in logs and not in callback execution
-			mockPacket := channeltypes.NewPacket(
-				ibcmock.MockPacketData, 1, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
-				s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
-
 			// set a callback data that does not allow retry
 			callbackData = types.CallbackData{
 				CallbackAddress:   s.chainB.SenderAccount.GetAddress().String(),
@@ -852,7 +848,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			s.Require().True(ok)
 
 			processCallback := func() {
-				err = mockCallbackStack.ProcessCallback(ctx, mockPacket, callbackType, callbackData, callbackExecutor)
+				err = mockCallbackStack.ProcessCallback(ctx, callbackType, callbackData, callbackExecutor)
 			}
 
 			expPass := tc.expValue == nil

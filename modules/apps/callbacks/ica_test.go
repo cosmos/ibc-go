@@ -11,10 +11,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
@@ -182,9 +182,9 @@ func (s *CallbacksTestSuite) buildICAMsgDelegatePacketData(icaAddress string, me
 
 	// ensure chainB is allowed to execute stakingtypes.MsgDelegate
 	params := icahosttypes.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate)})
-	s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
+	GetSimApp(s.chainB).ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 
-	data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate}, icatypes.EncodingProtobuf)
+	data, err := icatypes.SerializeCosmosTx(GetSimApp(s.chainA).AppCodec(), []proto.Message{msgDelegate}, icatypes.EncodingProtobuf)
 	s.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{

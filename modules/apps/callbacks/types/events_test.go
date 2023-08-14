@@ -3,7 +3,7 @@ package types_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -184,10 +184,24 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 	}
 
 	for _, tc := range testCases {
-		newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
+		tc := tc
+		s.Run(tc.name, func() {
+			newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
 
-		types.EmitCallbackEvent(newCtx, tc.packet, tc.callbackType, tc.callbackData, tc.callbackError)
-		events := newCtx.EventManager().Events().ToABCIEvents()
-		ibctesting.AssertEvents(&s.Suite, tc.expEvents, events)
+			switch tc.callbackType {
+			case types.CallbackTypeReceivePacket:
+				types.EmitCallbackEvent(
+					newCtx, tc.packet.GetDestPort(), tc.packet.GetDestChannel(),
+					tc.packet.GetSequence(), tc.callbackType, tc.callbackData, tc.callbackError,
+				)
+			default:
+				types.EmitCallbackEvent(
+					newCtx, tc.packet.GetSourcePort(), tc.packet.GetSourceChannel(),
+					tc.packet.GetSequence(), tc.callbackType, tc.callbackData, tc.callbackError,
+				)
+			}
+			events := newCtx.EventManager().Events().ToABCIEvents()
+			ibctesting.AssertEvents(&s.Suite, tc.expEvents, events)
+		})
 	}
 }
