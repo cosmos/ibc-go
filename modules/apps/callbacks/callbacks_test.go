@@ -29,12 +29,15 @@ import (
 const maxCallbackGas = uint64(1000000)
 
 func init() {
-	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
-		db := dbm.NewMemDB()
-		encCdc := simapp.MakeTestEncodingConfig()
-		app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
-		return app, simapp.NewDefaultGenesisState(encCdc.Codec)
-	}
+	ibctesting.DefaultTestingAppInit = SetupTestingApp
+}
+
+// SetupTestingApp provides the duplicated simapp which is specific to the callbacks module on chain creation.
+func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
+	db := dbm.NewMemDB()
+	encCdc := simapp.MakeTestEncodingConfig()
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
 }
 
 // GetSimApp returns the duplicated SimApp from within the callbacks directory.
