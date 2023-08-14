@@ -188,13 +188,16 @@ func (suite *TypesTestSuite) TestPacketDataUnmarshalerInterface() {
 		Memo: "some memo",
 	}
 
-	packetData, err := types.PacketDataFromBytes(expPacketData.GetBytes())
+	var packetData types.InterchainAccountPacketData
+	err := packetData.UnmarshalJSON(expPacketData.GetBytes())
 	suite.Require().NoError(err)
 	suite.Require().Equal(expPacketData, packetData)
 
 	// test invalid packet data
-	invalidPacketData := []byte("invalid packet data")
-	packetData, err = types.PacketDataFromBytes(invalidPacketData)
+	invalidPacketDataBytes := []byte("invalid packet data")
+
+	var invalidPacketData types.InterchainAccountPacketData
+	err = packetData.UnmarshalJSON(invalidPacketDataBytes)
 	suite.Require().Error(err)
-	suite.Require().Equal(types.InterchainAccountPacketData{}, packetData)
+	suite.Require().Equal(types.InterchainAccountPacketData{}, invalidPacketData)
 }
