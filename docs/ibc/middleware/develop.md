@@ -18,8 +18,6 @@ type Middleware interface {
 
 An `IBCMiddleware` struct implementing the `Middleware` interface, can be defined with its constructor as follows:
 
-#### `OnChanOpenInit`
-
 ```go
 // @ x/module_name/ibc_middleware.go
 

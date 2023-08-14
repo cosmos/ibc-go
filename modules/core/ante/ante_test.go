@@ -3,9 +3,10 @@ package ante_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -16,7 +17,7 @@ import (
 )
 
 type AnteTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -41,7 +42,7 @@ func (suite *AnteTestSuite) SetupTest() {
 
 // TestAnteTestSuite runs all the tests within this package.
 func TestAnteTestSuite(t *testing.T) {
-	suite.Run(t, new(AnteTestSuite))
+	testifysuite.Run(t, new(AnteTestSuite))
 }
 
 // createRecvPacketMessage creates a RecvPacket message for a packet sent from chain A to chain B.
@@ -336,7 +337,7 @@ func (suite *AnteTestSuite) TestAnteDecorator() {
 				}
 
 				// append non packet and update message to msgs to ensure multimsg tx should pass
-				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{})
+				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{}) //nolint:staticcheck // we're using the deprecated message for testing
 				return msgs
 			},
 			true,

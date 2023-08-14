@@ -5,12 +5,14 @@ import (
 	"regexp"
 	"strings"
 
+	yaml "gopkg.in/yaml.v2"
+
 	errorsmod "cosmossdk.io/errors"
+
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkaddress "github.com/cosmos/cosmos-sdk/types/address"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	yaml "gopkg.in/yaml.v2"
 )
 
 var (
@@ -75,12 +77,12 @@ func NewInterchainAccount(ba *authtypes.BaseAccount, accountOwner string) *Inter
 }
 
 // SetPubKey implements the authtypes.AccountI interface
-func (ia InterchainAccount) SetPubKey(pubKey crypto.PubKey) error {
+func (InterchainAccount) SetPubKey(pubkey crypto.PubKey) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set public key for interchain account")
 }
 
 // SetSequence implements the authtypes.AccountI interface
-func (ia InterchainAccount) SetSequence(seq uint64) error {
+func (InterchainAccount) SetSequence(seq uint64) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for interchain account")
 }
 

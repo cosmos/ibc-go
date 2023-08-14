@@ -5,6 +5,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -12,7 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ exported.ClientMessage = &Header{}
+var _ exported.ClientMessage = (*Header)(nil)
 
 // ConsensusState returns the updated consensus state associated with the header
 func (h Header) ConsensusState() *ConsensusState {
@@ -24,7 +25,7 @@ func (h Header) ConsensusState() *ConsensusState {
 }
 
 // ClientType defines that the Header is a Tendermint consensus algorithm
-func (h Header) ClientType() string {
+func (Header) ClientType() string {
 	return exported.Tendermint
 }
 

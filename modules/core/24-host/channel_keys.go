@@ -9,6 +9,7 @@ const (
 	KeyUpgradePrefix                  = "upgrades"
 	KeyUpgradeErrorPrefix             = "upgradeError"
 	KeyCounterpartyLastPacketSequence = "counterpartyLastPacketSequence"
+	KeyCounterpartyUpgrade            = "counterpartyUpgrade"
 	KeyChannelCapabilityPrefix        = "capabilities"
 )
 
@@ -59,6 +60,16 @@ func ChannelCounterpartyLastPacketSequenceKey(portID, channelID string) []byte {
 // ChannelCounterpartyLastPacketSequencePath defines the path under which the last packet sequence sent on the counterparty channel is stored.
 func ChannelCounterpartyLastPacketSequencePath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyCounterpartyLastPacketSequence, channelPath(portID, channelID))
+}
+
+// ChannelCounterpartyUpgradeKey returns the store key for the upgrade used on the counterparty channel.
+func ChannelCounterpartyUpgradeKey(portID, channelID string) []byte {
+	return []byte(ChannelCounterpartyUpgradePath(portID, channelID))
+}
+
+// ChannelCounterpartyUpgradePath defines the path under which the upgrade used on the counterparty channel is stored.
+func ChannelCounterpartyUpgradePath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyCounterpartyUpgrade, channelPath(portID, channelID))
 }
 
 func channelPath(portID, channelID string) string {

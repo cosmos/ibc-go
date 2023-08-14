@@ -1,6 +1,7 @@
 package types
 
 import (
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -14,5 +15,5 @@ type ClientKeeper interface {
 	GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error)
 	ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error
 	IterateClientStates(ctx sdk.Context, prefix []byte, cb func(string, exported.ClientState) bool)
-	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
+	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
 }
