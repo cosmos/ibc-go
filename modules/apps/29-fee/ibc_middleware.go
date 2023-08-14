@@ -56,13 +56,15 @@ func (im IBCMiddleware) OnChanOpenInit(
 			AppVersion: "",
 		}
 	} else {
-		if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &versionMetadata); err != nil {
+		metadata, err := types.MetadataFromVersion(version)
+		if err != nil {
 			// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
 			// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
 			// application.
 			return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
 				chanCap, counterparty, version)
 		}
+		versionMetadata = metadata
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
@@ -99,8 +101,8 @@ func (im IBCMiddleware) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	var versionMetadata types.Metadata
-	if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
+	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
 		// Since it is valid for fee version to not be specified, the above middleware version may be for a middleware
 		// lower down in the stack. Thus, if it is not a fee version we pass the entire version string onto the underlying
 		// application.
@@ -139,8 +141,8 @@ func (im IBCMiddleware) OnChanOpenAck(
 	// If handshake was initialized with fee enabled it must complete with fee enabled.
 	// If handshake was initialized with fee disabled it must complete with fee disabled.
 	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		var versionMetadata types.Metadata
-		if err := types.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &versionMetadata); err != nil {
+		versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
+		if err != nil {
 			return errorsmod.Wrapf(err, "failed to unmarshal ICS29 counterparty version metadata: %s", counterpartyVersion)
 		}
 
