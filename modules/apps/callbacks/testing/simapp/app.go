@@ -246,7 +246,7 @@ type SimApp struct {
 	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
 
 	// mock contract keeper used for testing
-	MockContractKeeper ibcmock.ContractKeeper
+	MockContractKeeper ContractKeeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -438,7 +438,7 @@ func NewSimApp(
 
 	// NOTE: The mock ContractKeeper is only created for testing.
 	// Real applications should not use the mock ContractKeeper
-	app.MockContractKeeper = ibcmock.NewContractKeeper(memKeys[ibcmock.MemStoreKey])
+	app.MockContractKeeper = NewContractKeeper(memKeys[ibcmock.MemStoreKey])
 
 	// register the proposal types
 	govRouter := govv1beta1.NewRouter()
