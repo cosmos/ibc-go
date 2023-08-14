@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	transfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
@@ -278,8 +277,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 
 			tc.malleate()
 
-			testPacket := channeltypes.Packet{Data: packetData}
-			callbackData, err := types.GetCallbackData(packetDataUnmarshaler, testPacket, remainingGas, uint64(1_000_000), callbackKey)
+			callbackData, err := types.GetCallbackData(packetDataUnmarshaler, packetData, "", remainingGas, uint64(1_000_000), callbackKey)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -317,8 +315,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 
 	packetUnmarshaler := transfer.IBCModule{}
 
-	testPacket := channeltypes.Packet{Data: packetDataBytes}
-	callbackData, err := types.GetSourceCallbackData(packetUnmarshaler, testPacket, 2_000_000, 1_000_000)
+	callbackData, err := types.GetSourceCallbackData(packetUnmarshaler, packetDataBytes, "", 2_000_000, 1_000_000)
 	s.Require().NoError(err)
 	s.Require().Equal(expCallbackData, callbackData)
 }
@@ -345,8 +342,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 
 	packetUnmarshaler := transfer.IBCModule{}
 
-	testPacket := channeltypes.Packet{Data: packetDataBytes}
-	callbackData, err := types.GetDestCallbackData(packetUnmarshaler, testPacket, 2_000_000, 1_000_000)
+	callbackData, err := types.GetDestCallbackData(packetUnmarshaler, packetDataBytes, "", 2_000_000, 1_000_000)
 	s.Require().NoError(err)
 	s.Require().Equal(expCallbackData, callbackData)
 }

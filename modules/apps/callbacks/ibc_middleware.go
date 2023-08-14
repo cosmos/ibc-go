@@ -89,11 +89,7 @@ func (im IBCMiddleware) SendPacket(
 		return 0, err
 	}
 
-	// Reconstruct the sent packet. The destination portID and channelID are intentionally left empty as the sender information
-	// is only derived from the source packet information in `GetSourceCallbackData`.
-	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
-
-	callbackData, err := types.GetSourceCallbackData(im.app, reconstructedPacket, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetSourceCallbackData(im.app, data, sourcePort, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return seq, nil
@@ -131,7 +127,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	callbackData, err := types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetSourceCallbackData(
+		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
+	)
 	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return nil
@@ -163,7 +161,9 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return err
 	}
 
-	callbackData, err := types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetSourceCallbackData(
+		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
+	)
 	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return nil
@@ -197,7 +197,9 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return ack
 	}
 
-	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetDestCallbackData(
+		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
+	)
 	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return ack
@@ -233,7 +235,9 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetDestCallbackData(
+		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
+	)
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return nil
