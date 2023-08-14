@@ -52,8 +52,8 @@ const (
 // EmitCallbackEvent emits an event for a callback
 func EmitCallbackEvent(
 	ctx sdk.Context,
-	channelID,
-	portID string,
+	portID,
+	channelID string,
 	sequence uint64,
 	callbackType CallbackType,
 	callbackData CallbackData,
