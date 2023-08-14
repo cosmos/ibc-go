@@ -404,6 +404,10 @@ func NewSimApp(
 
 	/**** End IBC Module Setup ****/
 
+	// registerUpgradeHandlers is used for registering any on-chain upgrades.
+	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
+	app.registerUpgradeHandlers()
+
 	// register streaming services
 	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
 		panic(err)
