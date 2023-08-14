@@ -11,9 +11,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
-const (
-	callbackAddr = "cosmos1q4hx350dh0843y34n0vm4lfj6eh5qz4sqfrnq0"
-)
+var callbackAddr = ibctesting.TestAccAddress
 
 func (s *CallbacksTestSuite) TestTransferCallbacks() {
 	testCases := []struct {
