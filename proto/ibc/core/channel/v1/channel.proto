@@ -70,15 +70,19 @@ enum State {
   // A channel has been closed and can no longer be used to send or receive
   // packets.
   STATE_CLOSED = 4 [(gogoproto.enumvalue_customname) = "CLOSED"];
+  // A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+  STATE_FLUSHING = 5;
+  // A channel has just completed flushing any in-flight packets.
+  STATE_FLUSHCOMPLETE = 6;
   // A channel has just started the channel upgrade handshake.
   // The chain that is proposing the upgrade should set the channel state from OPEN to UPGRADEINIT.
-  STATE_INITUPGRADE = 5 [(gogoproto.enumvalue_customname) = "INITUPGRADE"];
+  STATE_INITUPGRADE = 7 [(gogoproto.enumvalue_customname) = "INITUPGRADE"];
   // A channel has acknowledged the upgrade handshake step on the counterparty chain.
   // The counterparty chain that accepts the upgrade should set the channel state from OPEN to UPGRADETRY.
-  STATE_TRYUPGRADE = 6 [(gogoproto.enumvalue_customname) = "TRYUPGRADE"];
+  STATE_TRYUPGRADE = 8 [(gogoproto.enumvalue_customname) = "TRYUPGRADE"];
   // A channel has verified the counterparty chain is in UPGRADETRY.
   // However, there are still in-flight packets on both ends waiting to be flushed before it can move to OPEN.
-  STATE_ACKUPGRADE = 7 [(gogoproto.enumvalue_customname) = "ACKUPGRADE"];
+  STATE_ACKUPGRADE = 9 [(gogoproto.enumvalue_customname) = "ACKUPGRADE"];
 }
 
 // FlushStatus defines the status of a channel end pertaining to in-flight packets during an upgrade handshake.

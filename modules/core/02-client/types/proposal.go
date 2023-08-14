@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -19,9 +20,9 @@ const (
 )
 
 var (
-	_ govtypes.Content                   = &ClientUpdateProposal{}
-	_ govtypes.Content                   = &UpgradeProposal{}
-	_ codectypes.UnpackInterfacesMessage = &UpgradeProposal{}
+	_ govtypes.Content                   = (*ClientUpdateProposal)(nil)
+	_ govtypes.Content                   = (*UpgradeProposal)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*UpgradeProposal)(nil)
 )
 
 func init() {
@@ -46,10 +47,10 @@ func (cup *ClientUpdateProposal) GetTitle() string { return cup.Title }
 func (cup *ClientUpdateProposal) GetDescription() string { return cup.Description }
 
 // ProposalRoute returns the routing key of a client update proposal.
-func (cup *ClientUpdateProposal) ProposalRoute() string { return RouterKey }
+func (*ClientUpdateProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a client update proposal.
-func (cup *ClientUpdateProposal) ProposalType() string { return ProposalTypeClientUpdate }
+func (*ClientUpdateProposal) ProposalType() string { return ProposalTypeClientUpdate }
 
 // ValidateBasic runs basic stateless validity checks
 func (cup *ClientUpdateProposal) ValidateBasic() error {
@@ -93,10 +94,10 @@ func (up *UpgradeProposal) GetTitle() string { return up.Title }
 func (up *UpgradeProposal) GetDescription() string { return up.Description }
 
 // ProposalRoute returns the routing key of a upgrade proposal.
-func (up *UpgradeProposal) ProposalRoute() string { return RouterKey }
+func (*UpgradeProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the upgrade proposal type.
-func (up *UpgradeProposal) ProposalType() string { return ProposalTypeUpgrade }
+func (*UpgradeProposal) ProposalType() string { return ProposalTypeUpgrade }
 
 // ValidateBasic runs basic stateless validity checks
 func (up *UpgradeProposal) ValidateBasic() error {

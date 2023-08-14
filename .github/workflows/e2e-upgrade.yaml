@@ -50,10 +50,10 @@ jobs:
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
-      chain-a-tag: pr-3136 # TODO: needs v7.0.0 (with simapp fixes) when cut
-      chain-b-tag: pr-3136 # TODO: needs v7.0.0 (with simapp fixes) when cut
-      chain-upgrade-tag: pr-3164 # TODO: needs v7.1.0 when cut
+      chain-a-tag: v7.0.0
+      chain-b-tag: v7.0.0
+      chain-upgrade-tag: v7.1.0
       upgrade-plan-name: "v7.1"
       test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV7ChainUpgradeAddLocalhost"
+      test: "TestV7ToV7_1ChainUpgrade"
       upload-logs: true

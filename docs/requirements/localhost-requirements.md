@@ -46,19 +46,19 @@ Polymer plans to leverage the localhost client with multiple connections as part
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
-| 1.01 | The localhost client shall have a client ID of the string `09-localhost`. | [Localhost client is created with client ID `09-localhost`](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/02-client/keeper/keeper.go#L60). | `Implemented` | |
-| 1.02 | The localhost client shall have a sentinel connection ID of the string `connection-localhost`. | [Creation of sentinel connection with ID `connection-localhost`](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/keeper/keeper.go#L200). | `Implemented` | | 
-| 1.03 | Only 1 localhost connection is required | Localhost connection handshakes are forbidden in [Init](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/types/msgs.go#L47) and [Try](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/types/msgs.go#L110). | `Implemented` | |
-| 1.04 | When the localhost client is initialised the consensus state must be `nil`. | [Error is returned if consensus state is not `nil`](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/light-clients/09-localhost/client_state.go#L57). | `Implemented` | |
-| 1.05 | The localhost client can be added to a chain through an upgrade. | [Automatic migration handler configured in core IBC module to set the localhost `ClientState` and sentinel `ConnectionEnd` in state.](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/module.go#L132-L145). | `Implemented` | |
-| 1.06 | A chain can enable the localhost client by initialising the client in the genesis state. | [`InitGenesis` handler in 02-client](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/02-client/genesis.go#L52) and [`InitGenesis` handler in 03-connection](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/genesis.go#L23). | `Implemented` | |
+| 1.01 | The localhost client shall have a client ID of the string `09-localhost`. | [Localhost client is created with client ID `09-localhost`](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/02-client/keeper/keeper.go#L60). | `Verified` | v7.1.0 |
+| 1.02 | The localhost client shall have a sentinel connection ID of the string `connection-localhost`. | [Creation of sentinel connection with ID `connection-localhost`](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/keeper/keeper.go#L200). | `Verified` | v7.1.0 | 
+| 1.03 | Only 1 localhost connection is required | Localhost connection handshakes are forbidden in [Init](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/types/msgs.go#L47) and [Try](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/types/msgs.go#L110). | `Verified` | v7.1.0 |
+| 1.04 | When the localhost client is initialised the consensus state must be `nil`. | [Error is returned if consensus state is not `nil`](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/light-clients/09-localhost/client_state.go#L57). | `Verified` | v7.1.0 |
+| 1.05 | The localhost client can be added to a chain through an upgrade. | [Automatic migration handler configured in core IBC module to set the localhost `ClientState` and sentinel `ConnectionEnd` in state.](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/module.go#L132-L145). | `Verified` | v7.1.0 |
+| 1.06 | A chain can enable the localhost client by initialising the client in the genesis state. | [`InitGenesis` handler in 02-client](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/02-client/genesis.go#L52) and [`InitGenesis` handler in 03-connection](https://github.com/cosmos/ibc-go/blob/release/v7.1.x/modules/core/03-connection/genesis.go#L23). | `Verified` | v7.1.0 |
 
 ### 2 - Operation
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
-| 2.01 | A user of the localhost client can send IBC messages to an application on the same chain. | [e2e test with transfer](https://github.com/cosmos/ibc-go/blob/main/e2e/tests/transfer/localhost_test.go#L32). | `Implemented`| |
-| 2.02 | A user can use the localhost client through the existing IBC application module interfaces. | [e2e test with transfer](https://github.com/cosmos/ibc-go/blob/main/e2e/tests/transfer/localhost_test.go#L32). | `Implemented` | | 
+| 2.01 | A user of the localhost client can send IBC messages to an application on the same chain. | [e2e test with transfer](https://github.com/cosmos/ibc-go/blob/main/e2e/tests/transfer/localhost_test.go#L32). | `Verified`| v7.1.0 |
+| 2.02 | A user can use the localhost client through the existing IBC application module interfaces. | [e2e test with transfer](https://github.com/cosmos/ibc-go/blob/main/e2e/tests/transfer/localhost_test.go#L32). | `Verified` | v7.1.0 | 
 
 # External interface requirements
 
@@ -66,4 +66,4 @@ Polymer plans to leverage the localhost client with multiple connections as part
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
-| 3.01 | Existing CLI interfaces used with IBC application modules shall be useable with the localhost client. | Manual test | `Implemented` | |
+| 3.01 | Existing CLI interfaces used with IBC application modules shall be useable with the localhost client. | Manual test | `Verified` | v7.1.0 |

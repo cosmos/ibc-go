@@ -1,8 +1,9 @@
 package cli
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
+
+	"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
@@ -29,6 +30,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryUnreceivedPackets(),
 		GetCmdQueryUnreceivedAcks(),
 		GetCmdQueryNextSequenceReceive(),
+		GetCmdQueryNextSequenceSend(),
 		GetCmdQueryUpgradeError(),
 		GetCmdQueryUpgrade(),
 	)

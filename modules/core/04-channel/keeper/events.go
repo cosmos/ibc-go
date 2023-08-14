@@ -18,7 +18,6 @@ func emitChannelOpenInitEvent(ctx sdk.Context, portID string, channelID string, 
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, channel.Counterparty.PortId),
-			sdk.NewAttribute(types.AttributeCounterpartyChannelID, channel.Counterparty.ChannelId),
 			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
 			sdk.NewAttribute(types.AttributeVersion, channel.Version),
 		),
@@ -138,7 +137,7 @@ func emitSendPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)
-			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), //nolint:staticcheck // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
 		),
 		sdk.NewEvent(
@@ -166,7 +165,7 @@ func emitRecvPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)
-			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), //nolint:staticcheck // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
 		),
 		sdk.NewEvent(
@@ -194,7 +193,7 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, cha
 			sdk.NewAttribute(types.AttributeKeyAckHex, hex.EncodeToString(acknowledgement)),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)
-			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), //nolint:staticcheck // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
 		),
 		sdk.NewEvent(
@@ -220,7 +219,7 @@ func emitAcknowledgePacketEvent(ctx sdk.Context, packet exported.PacketI, channe
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
 			// (is it going to a chain I am connected to)
-			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), //nolint:staticcheck // DEPRECATED
+			sdk.NewAttribute(types.AttributeKeyConnection, channel.ConnectionHops[0]), // DEPRECATED
 			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
 		),
 		sdk.NewEvent(

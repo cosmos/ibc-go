@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -13,7 +14,7 @@ import (
 // SentinelHeaderPath defines a placeholder path value used for headers in solomachine client updates
 const SentinelHeaderPath = "solomachine:header"
 
-var _ exported.ClientMessage = &Header{}
+var _ exported.ClientMessage = (*Header)(nil)
 
 // ClientType defines that the Header is a Solo Machine.
 func (Header) ClientType() string {
