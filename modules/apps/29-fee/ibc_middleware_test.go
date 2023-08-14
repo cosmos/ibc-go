@@ -1067,7 +1067,11 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
+<<<<<<< HEAD
 			feeModule := cbs.(fee.IBCMiddleware)
+=======
+			feeModule := cbs.(porttypes.Middleware)
+>>>>>>> 2c11494c (feat(callbacks): adr8 implementation (#3939))
 
 			appVersion, found := feeModule.GetAppVersion(suite.chainA.GetContext(), portID, channelID)
 
