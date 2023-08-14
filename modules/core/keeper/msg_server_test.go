@@ -1420,7 +1420,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeTimeout(ctx, msg)
 
-			events := ctx.EventManager().Events()
+			events := ctx.EventManager().Events().ToABCIEvents()
 
 			expPass := tc.expErr == nil
 			if expPass {
