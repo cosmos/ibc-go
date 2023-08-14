@@ -1097,7 +1097,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 	errorReceipt, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 	suite.Require().True(ok)
 
-	suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt.Sequence)
+	ctx := suite.chainA.GetContext()
+	suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt.Sequence)
 
 	channel := path.EndpointA.GetChannel()
 
@@ -1113,8 +1114,29 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 	suite.Require().False(found)
 
 	lastPacketSequence, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+	// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
+	proposedUpgrade := path.EndpointA.GetProposedUpgrade()
+	events := ctx.EventManager().Events().ToABCIEvents()
+	expEvents := ibctesting.EventsMap{
+		types.EventTypeChannelUpgradeCancel: {
+			types.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+			types.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+			types.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+			types.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+			types.AttributeKeyUpgradeConnectionHops: proposedUpgrade.Fields.ConnectionHops[0],
+			types.AttributeKeyUpgradeVersion:        proposedUpgrade.Fields.Version,
+			types.AttributeKeyUpgradeOrdering:       proposedUpgrade.Fields.Ordering.String(),
+			types.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
+		},
+		sdk.EventTypeMessage: {
+			sdk.AttributeKeyModule: types.AttributeValueCategory,
+		},
+	}
+
 	suite.Require().Equal(uint64(0), lastPacketSequence)
 	suite.Require().False(found)
+	ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 
 	counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
