@@ -175,7 +175,7 @@ func (k Keeper) ChanUpgradeTry(
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		connection,
-		counterpartyUpgrade,
+		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
 		proofCounterpartyUpgrade, proofHeight,
 	); err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
@@ -833,20 +833,6 @@ func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
 		ConnectionHops: channel.ConnectionHops,
 		Version:        channel.Version,
 	}
-}
-
-// constructProposedUpgrade returns the proposed upgrade from the provided arguments.
-func (k Keeper) constructProposedUpgrade(ctx sdk.Context, portID, channelID string, fields types.UpgradeFields, upgradeTimeout types.Timeout) (types.Upgrade, error) {
-	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
-	if !found {
-		return types.Upgrade{}, errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
-	return types.Upgrade{
-		Fields:             fields,
-		Timeout:            upgradeTimeout,
-		LatestSequenceSend: nextSequenceSend - 1,
-	}, nil
 }
 
 // MustAbortUpgrade will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
