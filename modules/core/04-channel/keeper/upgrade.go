@@ -38,10 +38,6 @@ func (k Keeper) ChanUpgradeInit(
 		return types.Upgrade{}, err
 	}
 
-	// TODO: can we move this increment to the write fn
-	channel.UpgradeSequence++
-	k.SetChannel(ctx, portID, channelID, channel)
-
 	return types.Upgrade{Fields: upgradeFields}, nil
 }
 
@@ -50,19 +46,20 @@ func (k Keeper) ChanUpgradeInit(
 func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
-	currentChannel, found := k.GetChannel(ctx, portID, channelID)
+	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeInit step, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	currentChannel.State = types.INITUPGRADE
+	channel.State = types.INITUPGRADE
+	channel.UpgradeSequence++
 
-	k.SetChannel(ctx, portID, channelID, currentChannel)
+	k.SetChannel(ctx, portID, channelID, channel)
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
-	emitChannelUpgradeInitEvent(ctx, portID, channelID, currentChannel, upgrade)
+	emitChannelUpgradeInitEvent(ctx, portID, channelID, channel, upgrade)
 }
 
 // ChanUpgradeTry is called by a module to accept the first step of a channel upgrade handshake initiated by
