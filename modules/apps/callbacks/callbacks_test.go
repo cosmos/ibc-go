@@ -36,6 +36,8 @@ func init(){
 	}
 }
 
+// GetSimApp returns the duplicated SimApp from within the callbacks directory.
+// This must be used instead of chain.GetSimApp() for tests within this directory.
 func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 	app, ok := chain.App.(*simapp.SimApp)
 	if !ok {
