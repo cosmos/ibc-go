@@ -74,6 +74,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibcfeetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -152,6 +153,7 @@ var (
 					// properly initialized with tokens from genesis accounts.
 					// NOTE: The genutils module must also occur after auth so that it can access the params from auth.
 					InitGenesis: []string{
+						capabilitytypes.ModuleName,
 						authtypes.ModuleName,
 						banktypes.ModuleName,
 						distrtypes.ModuleName,
@@ -160,9 +162,14 @@ var (
 						govtypes.ModuleName,
 						minttypes.ModuleName,
 						crisistypes.ModuleName,
+						ibcexported.ModuleName,
 						genutiltypes.ModuleName,
 						evidencetypes.ModuleName,
 						authz.ModuleName,
+						ibctransfertypes.ModuleName,
+						icatypes.ModuleName,
+						ibcfeetypes.ModuleName,
+						ibcmock.ModuleName,
 						feegrant.ModuleName,
 						group.ModuleName,
 						paramstypes.ModuleName,
@@ -278,6 +285,8 @@ var (
 				govtypes.ModuleName: gov.NewAppModuleBasic(
 					[]govclient.ProposalHandler{
 						paramsclient.ProposalHandler,
+						ibcclientclient.UpdateClientProposalHandler,
+						ibcclientclient.UpgradeProposalHandler,
 					},
 				),
 			},

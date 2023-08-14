@@ -34,6 +34,7 @@ import (
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
@@ -53,7 +54,6 @@ func NewRootCmd() *cobra.Command {
 		txConfig           client.TxConfig
 		autoCliOpts        autocli.AppOptions
 		moduleBasicManager module.BasicManager
-		initClientCtx      client.Context
 	)
 
 	if err := depinject.Inject(
@@ -69,7 +69,6 @@ func NewRootCmd() *cobra.Command {
 		&txConfig,
 		&autoCliOpts,
 		&moduleBasicManager,
-		&initClientCtx,
 	); err != nil {
 		panic(err)
 	}
@@ -80,6 +79,15 @@ func NewRootCmd() *cobra.Command {
 		TxConfig:          txConfig,
 		Amino:             legacyAmino,
 	}
+
+	initClientCtx := client.Context{}.
+		WithCodec(encodingConfig.Codec).
+		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+		WithLegacyAmino(encodingConfig.Amino).
+		WithInput(os.Stdin).
+		WithAccountRetriever(authtypes.AccountRetriever{}).
+		WithHomeDir(simapp.DefaultNodeHome).
+		WithViper("") // In simapp, we don't use any prefix for env variables.
 
 	rootCmd := &cobra.Command{
 		Use:           "simd",
