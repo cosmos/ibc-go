@@ -148,10 +148,10 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	escrowAddress := transfertypes.GetEscrowAddress(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// record the balance of the escrow address before the transfer
-	escrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
+	escrowBalance := GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
 	// record the balance of the receiving address before the transfer
 	voucherDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, sdk.DefaultBondDenom))
-	receiverBalance := s.chainB.GetSimApp().BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
+	receiverBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
 
 	amount := ibctesting.TestCoin
 	msg := transfertypes.NewMsgTransfer(
@@ -176,9 +176,9 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	s.Require().NoError(err) // relay committed
 
 	// check that the escrow address balance increased by 100
-	s.Require().Equal(escrowBalance.Add(amount), s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
+	s.Require().Equal(escrowBalance.Add(amount), GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
 	// check that the receiving address balance increased by 100
-	s.Require().Equal(receiverBalance.AddAmount(sdk.NewInt(100)), s.chainB.GetSimApp().BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom()))
+	s.Require().Equal(receiverBalance.AddAmount(sdk.NewInt(100)), GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom()))
 }
 
 // ExecuteTransferTimeout executes a transfer message on chainA for 100 denom.
