@@ -1,9 +1,13 @@
 package ibccallbacks_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
+	dbm "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -14,6 +18,7 @@ import (
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	simapp "github.com/cosmos/ibc-go/v7/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -21,6 +26,23 @@ import (
 )
 
 const maxCallbackGas = uint64(1000000)
+
+func init(){
+	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
+		db := dbm.NewMemDB()
+		encCdc := simapp.MakeTestEncodingConfig()
+		app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+		return app, simapp.NewDefaultGenesisState(encCdc.Codec)
+	}
+}
+
+func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
+	app, ok := chain.App.(*simapp.SimApp)
+	if !ok {
+		panic("chain is not a simapp.SimApp")
+	}
+	return app
+}
 
 // CallbacksTestSuite defines the needed instances and methods to test callbacks
 type CallbacksTestSuite struct {
@@ -104,7 +126,7 @@ func (s *CallbacksTestSuite) SetupICATest() string {
 	err = s.path.EndpointB.ChanOpenConfirm()
 	s.Require().NoError(err)
 
-	interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), s.path.EndpointA.ConnectionID, s.path.EndpointA.ChannelConfig.PortID)
+	interchainAccountAddr, found := GetSimApp(s.chainB).ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), s.path.EndpointA.ConnectionID, s.path.EndpointA.ChannelConfig.PortID)
 	s.Require().True(found)
 
 	// fund the interchain account on chainB
@@ -145,8 +167,8 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType type
 		expStatefulEntries = 1
 	}
 
-	sourceStatefulCounter := s.chainA.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
-	destStatefulCounter := s.chainB.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainB.GetContext())
+	sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+	destStatefulCounter := GetSimApp(s.chainB).MockContractKeeper.GetStateEntryCounter(s.chainB.GetContext())
 
 	switch callbackType {
 	case "none":
@@ -174,8 +196,8 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallback(callbackType type
 }
 
 func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackType) {
-	sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
-	destCounters := s.chainB.GetSimApp().MockContractKeeper.Counters
+	sourceCounters := GetSimApp(s.chainA).MockContractKeeper.Counters
+	destCounters := GetSimApp(s.chainB).MockContractKeeper.Counters
 
 	switch callbackType {
 	case "none":
@@ -231,13 +253,13 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 		// check forward relay balance
 		s.Require().Equal(
 			fee.RecvFee,
-			sdk.NewCoins(s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+			sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
 		)
 
 		s.Require().Equal(
 			fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
 			sdk.NewCoins(
-				s.chainA.GetSimApp().BankKeeper.GetBalance(
+				GetSimApp(s.chainA).BankKeeper.GetBalance(
 					s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(),
 					ibctesting.TestCoin.Denom),
 			).Sub(originalSenderBalance[0]),
@@ -246,14 +268,14 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 		// forward relay balance should be 0
 		s.Require().Equal(
 			sdk.NewCoin(ibctesting.TestCoin.Denom, sdkmath.ZeroInt()),
-			s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom),
+			GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom),
 		)
 
 		// all fees should be returned as sender is the reverse relayer
 		s.Require().Equal(
 			fee.Total(),
 			sdk.NewCoins(
-				s.chainA.GetSimApp().BankKeeper.GetBalance(
+				GetSimApp(s.chainA).BankKeeper.GetBalance(
 					s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(),
 					ibctesting.TestCoin.Denom),
 			).Sub(originalSenderBalance[0]),
