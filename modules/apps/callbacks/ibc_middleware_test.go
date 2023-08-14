@@ -318,8 +318,8 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().ErrorIs(tc.expError, err)
 			}
 
-			sourceStatefulCounter := s.chainA.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
-			sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
+			sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+			sourceCounters := GetSimApp(s.chainA).MockContractKeeper.Counters
 
 			switch tc.expResult {
 			case noExecution:
@@ -471,8 +471,8 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().ErrorIs(tc.expError, err)
 			}
 
-			sourceStatefulCounter := s.chainA.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
-			sourceCounters := s.chainA.GetSimApp().MockContractKeeper.Counters
+			sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+			sourceCounters := GetSimApp(s.chainA).MockContractKeeper.Counters
 
 			// account for SendPacket succeeding
 			switch tc.expResult {
@@ -623,8 +623,8 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				s.Require().Equal(tc.expAck, ack)
 			}
 
-			destStatefulCounter := s.chainB.GetSimApp().MockContractKeeper.GetStateEntryCounter(s.chainB.GetContext())
-			destCounters := s.chainB.GetSimApp().MockContractKeeper.Counters
+			destStatefulCounter := GetSimApp(s.chainB).MockContractKeeper.GetStateEntryCounter(s.chainB.GetContext())
+			destCounters := GetSimApp(s.chainB).MockContractKeeper.Counters
 
 			switch tc.expResult {
 			case noExecution:
