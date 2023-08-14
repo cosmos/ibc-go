@@ -277,7 +277,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 
 			tc.malleate()
 
-			callbackData, err := types.GetCallbackData(packetDataUnmarshaler, packetData, "", remainingGas, uint64(1_000_000), callbackKey)
+			callbackData, err := types.GetCallbackData(packetDataUnmarshaler, packetData, ibcmock.PortID, remainingGas, uint64(1_000_000), callbackKey)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -315,7 +315,7 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 
 	packetUnmarshaler := transfer.IBCModule{}
 
-	callbackData, err := types.GetSourceCallbackData(packetUnmarshaler, packetDataBytes, "", 2_000_000, 1_000_000)
+	callbackData, err := types.GetSourceCallbackData(packetUnmarshaler, packetDataBytes, ibcmock.PortID, 2_000_000, 1_000_000)
 	s.Require().NoError(err)
 	s.Require().Equal(expCallbackData, callbackData)
 }
@@ -342,7 +342,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 
 	packetUnmarshaler := transfer.IBCModule{}
 
-	callbackData, err := types.GetDestCallbackData(packetUnmarshaler, packetDataBytes, "", 2_000_000, 1_000_000)
+	callbackData, err := types.GetDestCallbackData(packetUnmarshaler, packetDataBytes, ibcmock.PortID, 2_000_000, 1_000_000)
 	s.Require().NoError(err)
 	s.Require().Equal(expCallbackData, callbackData)
 }
