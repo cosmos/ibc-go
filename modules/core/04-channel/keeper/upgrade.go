@@ -301,8 +301,8 @@ func (k Keeper) ChanUpgradeAck(
 
 	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade); err != nil {
 		return types.NewUpgradeError(channel.UpgradeSequence, err)
-  }
-  
+	}
+
 	timeout := counterpartyUpgrade.Timeout
 	if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(err, "counterparty upgrade timeout has passed"))
