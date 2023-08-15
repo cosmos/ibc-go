@@ -96,6 +96,8 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 
+	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
+	simappparams "github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp/params"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -110,8 +112,6 @@ import (
 	ibcfee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
 	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	ibcfeetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
-	simappparams "github.com/cosmos/ibc-go/v7/modules/apps/callbacks/testing/simapp/params"
 	transfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"

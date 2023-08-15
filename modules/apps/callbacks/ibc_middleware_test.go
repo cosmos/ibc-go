@@ -7,10 +7,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
@@ -820,11 +820,6 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 		s.Run(tc.name, func() {
 			s.SetupMockFeeTest()
 
-			// set mock packet, it is only used in logs and not in callback execution
-			mockPacket := channeltypes.NewPacket(
-				ibcmock.MockPacketData, 1, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
-				s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
-
 			// set a callback data that does not allow retry
 			callbackData = types.CallbackData{
 				CallbackAddress:   s.chainB.SenderAccount.GetAddress().String(),
@@ -853,7 +848,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			s.Require().True(ok)
 
 			processCallback := func() {
-				err = mockCallbackStack.ProcessCallback(ctx, mockPacket, callbackType, callbackData, callbackExecutor)
+				err = mockCallbackStack.ProcessCallback(ctx, callbackType, callbackData, callbackExecutor)
 			}
 
 			expPass := tc.expValue == nil

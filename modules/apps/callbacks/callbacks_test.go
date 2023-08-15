@@ -16,11 +16,11 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 
+	simapp "github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	simapp "github.com/cosmos/ibc-go/v7/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"

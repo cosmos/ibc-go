@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
@@ -89,11 +89,7 @@ func (im IBCMiddleware) SendPacket(
 		return 0, err
 	}
 
-	// Reconstruct the sent packet. The destination portID and channelID are intentionally left empty as the sender information
-	// is only derived from the source packet information in `GetSourceCallbackData`.
-	reconstructedPacket := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
-
-	callbackData, err := types.GetSourceCallbackData(im.app, reconstructedPacket, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetSourceCallbackData(im.app, data, sourcePort, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return seq, nil
@@ -105,13 +101,13 @@ func (im IBCMiddleware) SendPacket(
 		)
 	}
 
-	err = im.processCallback(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
+	err = im.processCallback(ctx, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
 	// contract keeper is allowed to reject the packet send.
 	if err != nil {
 		return 0, err
 	}
 
-	types.EmitCallbackEvent(ctx, reconstructedPacket, types.CallbackTypeSendPacket, callbackData, nil)
+	types.EmitCallbackEvent(ctx, sourcePort, sourceChannel, seq, types.CallbackTypeSendPacket, callbackData, nil)
 	return seq, nil
 }
 
@@ -131,7 +127,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	callbackData, err := types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetSourceCallbackData(
+		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
+	)
 	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return nil
@@ -144,8 +142,11 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = im.processCallback(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeAcknowledgementPacket, callbackData, err)
+	err = im.processCallback(ctx, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(
+		ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
+		types.CallbackTypeAcknowledgementPacket, callbackData, err,
+	)
 
 	return nil
 }
@@ -160,7 +161,9 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 		return err
 	}
 
-	callbackData, err := types.GetSourceCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetSourceCallbackData(
+		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
+	)
 	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return nil
@@ -171,8 +174,11 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Pac
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = im.processCallback(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeTimeoutPacket, callbackData, err)
+	err = im.processCallback(ctx, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(
+		ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
+		types.CallbackTypeTimeoutPacket, callbackData, err,
+	)
 
 	return nil
 }
@@ -191,7 +197,9 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return ack
 	}
 
-	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetDestCallbackData(
+		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
+	)
 	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return ack
@@ -202,8 +210,11 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
+	err = im.processCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(
+		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
+		types.CallbackTypeReceivePacket, callbackData, err,
+	)
 
 	return ack
 }
@@ -224,7 +235,9 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	callbackData, err := types.GetDestCallbackData(im.app, packet, ctx.GasMeter().GasRemaining(), im.maxCallbackGas)
+	callbackData, err := types.GetDestCallbackData(
+		im.app, packet.GetData(), packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), im.maxCallbackGas,
+	)
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return nil
@@ -235,8 +248,11 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = im.processCallback(ctx, packet, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
-	types.EmitCallbackEvent(ctx, packet, types.CallbackTypeReceivePacket, callbackData, err)
+	err = im.processCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	types.EmitCallbackEvent(
+		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
+		types.CallbackTypeReceivePacket, callbackData, err,
+	)
 
 	return nil
 }
@@ -248,7 +264,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 //   - the contractExecutor runs out of gas and the relayer has not reserved gas grater than or equal to
 //     CommitGasLimit.
 func (IBCMiddleware) processCallback(
-	ctx sdk.Context, packet ibcexported.PacketI, callbackType types.CallbackType,
+	ctx sdk.Context, callbackType types.CallbackType,
 	callbackData types.CallbackData, callbackExecutor func(sdk.Context) error,
 ) (err error) {
 	cachedCtx, writeFn := ctx.CacheContext()
