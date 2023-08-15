@@ -574,8 +574,8 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			msg = types.NewMsgChannelUpgradeTry(
 				ibctesting.MockPort,
 				ibctesting.FirstChannelID,
-				[]string{ibctesting.FirstChannelID},
-				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
+				[]string{ibctesting.FirstConnectionID},
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
 				1,
 				suite.proof,
 				suite.proof,
