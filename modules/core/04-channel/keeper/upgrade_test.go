@@ -672,9 +672,10 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 
+			ctx := suite.chainA.GetContext()
 			proposedUpgrade = path.EndpointB.GetChannelUpgrade()
 
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeAckChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
 
 			channel := path.EndpointA.GetChannel()
 			upgrade := path.EndpointA.GetChannelUpgrade()
@@ -683,6 +684,26 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			actualCounterpartyLastSequenceSend, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(ok)
 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
+
+			events := ctx.EventManager().Events().ToABCIEvents()
+			expEvents := ibctesting.EventsMap{
+				types.EventTypeChannelUpgradeAck: {
+					types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
+					types.AttributeKeyChannelID:                 path.EndpointA.ChannelID,
+					types.AttributeCounterpartyPortID:           path.EndpointB.ChannelConfig.PortID,
+					types.AttributeCounterpartyChannelID:        path.EndpointB.ChannelID,
+					types.AttributeKeyUpgradeConnectionHops:     upgrade.Fields.ConnectionHops[0],
+					types.AttributeKeyUpgradeVersion:            upgrade.Fields.Version,
+					types.AttributeKeyUpgradeOrdering:           upgrade.Fields.Ordering.String(),
+					types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
+					types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
+				},
+				sdk.EventTypeMessage: {
+					sdk.AttributeKeyModule: types.AttributeValueCategory,
+				},
+			}
+
+			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 
 			counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(ok)
