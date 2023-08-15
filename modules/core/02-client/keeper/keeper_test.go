@@ -5,13 +5,19 @@ import (
 	"testing"
 	"time"
 
-	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -22,7 +28,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
-	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -46,7 +51,7 @@ var (
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -57,7 +62,6 @@ type KeeperTestSuite struct {
 	ctx            sdk.Context
 	keeper         *keeper.Keeper
 	consensusState *ibctm.ConsensusState
-	header         *ibctm.Header
 	valSet         *tmtypes.ValidatorSet
 	valSetHash     tmbytes.HexBytes
 	privVal        tmtypes.PrivValidator
@@ -78,7 +82,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.now = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	suite.past = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 	now2 := suite.now.Add(time.Hour)
-	app := simapp.Setup(isCheckTx)
+	app := simapp.Setup(suite.T(), isCheckTx)
 
 	suite.cdc = app.AppCodec()
 	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testClientID, Time: now2})
@@ -87,8 +91,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	pubKey, err := suite.privVal.GetPubKey()
 	suite.Require().NoError(err)
 
-	testClientHeightMinus1 := types.NewHeight(0, height-1)
-
 	validator := tmtypes.NewValidator(pubKey, 1)
 	suite.valSet = tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
 	suite.valSetHash = suite.valSet.Hash()
@@ -96,7 +98,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.signers = make(map[string]tmtypes.PrivValidator, 1)
 	suite.signers[validator.Address.String()] = suite.privVal
 
-	suite.header = suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight), testClientHeightMinus1, now2, suite.valSet, suite.valSet, suite.valSet, suite.signers)
 	suite.consensusState = ibctm.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot([]byte("hash")), suite.valSetHash)
 
 	var validators stakingtypes.Validators
@@ -110,7 +111,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		suite.Require().NoError(err)
 
 		val.Status = stakingtypes.Bonded
-		val.Tokens = sdk.NewInt(rand.Int63())
+		val.Tokens = sdkmath.NewInt(rand.Int63())
 		validators = append(validators, val)
 
 		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
@@ -121,7 +122,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
 func (suite *KeeperTestSuite) TestSetClientState() {
@@ -303,30 +304,6 @@ func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is
 	}
 }
 
-func (suite KeeperTestSuite) TestConsensusStateHelpers() { //nolint:govet // this is a test, we are okay with copying locks
-	// initial setup
-	clientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-
-	suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
-	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
-
-	nextState := ibctm.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot([]byte("next")), suite.valSetHash)
-
-	testClientHeightPlus5 := types.NewHeight(0, height+5)
-
-	header := suite.chainA.CreateTMClientHeader(testClientID, int64(testClientHeightPlus5.RevisionHeight), testClientHeight, suite.header.Header.Time.Add(time.Minute),
-		suite.valSet, suite.valSet, suite.valSet, suite.signers)
-
-	// mock update functionality
-	clientState.LatestHeight = header.GetHeight().(types.Height)
-	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, header.GetHeight(), nextState)
-	suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
-
-	latest, ok := suite.keeper.GetLatestClientConsensusState(suite.ctx, testClientID)
-	suite.Require().True(ok)
-	suite.Require().Equal(nextState, latest, "Latest client not returned correctly")
-}
-
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
 // and a consensus state at the update height.
 func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // this is a test, we are okay with copying locks
@@ -386,7 +363,7 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 	}
 
 	solomachines := []*ibctesting.Solomachine{
-		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1),
+		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1),
 		ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4),
 	}
 
@@ -449,4 +426,60 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 			suite.Require().ElementsMatch(tc.expClientIDs(), clientIDs)
 		})
 	}
+}
+
+// TestDefaultSetParams tests the default params set are what is expected
+func (suite *KeeperTestSuite) TestDefaultSetParams() {
+	expParams := types.DefaultParams()
+
+	clientKeeper := suite.chainA.App.GetIBCKeeper().ClientKeeper
+	params := clientKeeper.GetParams(suite.chainA.GetContext())
+
+	suite.Require().Equal(expParams, params)
+	suite.Require().Equal(expParams.AllowedClients, clientKeeper.GetParams(suite.chainA.GetContext()).AllowedClients)
+}
+
+// TestParams tests that Param setting and retrieval works properly
+func (suite *KeeperTestSuite) TestParams() {
+	testCases := []struct {
+		name    string
+		input   types.Params
+		expPass bool
+	}{
+		{"success: set default params", types.DefaultParams(), true},
+		{"success: empty allowedClients", types.NewParams(), true},
+		{"success: subset of allowedClients", types.NewParams(exported.Tendermint, exported.Localhost), true},
+		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
+			err := tc.input.Validate()
+			suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.SetParams(ctx, tc.input)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				expected := tc.input
+				p := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
+				suite.Require().Equal(expected, p)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+// TestUnsetParams tests that trying to get params that are not set panics.
+func (suite *KeeperTestSuite) TestUnsetParams() {
+	suite.SetupTest()
+	ctx := suite.chainA.GetContext()
+	store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
+	store.Delete([]byte(types.ParamsKey))
+
+	suite.Require().Panics(func() {
+		suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
+	})
 }

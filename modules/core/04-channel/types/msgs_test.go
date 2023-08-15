@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	dbm "github.com/cometbft/cometbft-db"
-	abci "github.com/cometbft/cometbft/abci/types"
-	log "github.com/cometbft/cometbft/libs/log"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
+
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	log "github.com/cometbft/cometbft/libs/log"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -69,13 +71,13 @@ var (
 )
 
 type TypesTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	proof []byte
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	app := simapp.Setup(false)
+	app := simapp.Setup(suite.T(), false)
 	db := dbm.NewMemDB()
 	dblog := log.TestingLogger()
 	store := rootmulti.NewStore(db, dblog)
@@ -104,7 +106,7 @@ func (suite *TypesTestSuite) SetupTest() {
 }
 
 func TestTypesTestSuite(t *testing.T) {
-	suite.Run(t, new(TypesTestSuite))
+	testifysuite.Run(t, new(TypesTestSuite))
 }
 
 func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
@@ -466,14 +468,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 			false,
 		},
 		{
-			"timeout height is zero && timeout timestamp is zero",
-			func() {
-				msg.Timeout.Height = clienttypes.ZeroHeight()
-				msg.Timeout.Timestamp = 0
-			},
-			false,
-		},
-		{
 			"missing signer address",
 			func() {
 				msg.Signer = emptyAddr
@@ -488,7 +482,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 			msg = types.NewMsgChannelUpgradeInit(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
 				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
-				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				addr,
 			)
 
@@ -546,18 +539,9 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			false,
 		},
 		{
-			"invalid counterparty upgrade",
+			"invalid counterparty upgrade fields ordering",
 			func() {
-				msg.CounterpartyProposedUpgrade.Timeout.Height = clienttypes.ZeroHeight()
-				msg.CounterpartyProposedUpgrade.Timeout.Timestamp = 0
-			},
-			false,
-		},
-		{
-			"timeout height is zero && timeout timestamp is zero",
-			func() {
-				msg.UpgradeTimeout.Height = clienttypes.ZeroHeight()
-				msg.UpgradeTimeout.Timestamp = 0
+				msg.CounterpartyUpgradeFields.Ordering = types.NONE
 			},
 			false,
 		},
@@ -587,17 +571,11 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			counterpartyProposedUpgrade := types.NewUpgrade(
-				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
-				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
-				1,
-			)
 			msg = types.NewMsgChannelUpgradeTry(
 				ibctesting.MockPort,
 				ibctesting.FirstChannelID,
-				[]string{ibctesting.FirstChannelID},
-				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
-				counterpartyProposedUpgrade,
+				[]string{ibctesting.FirstConnectionID},
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
 				1,
 				suite.proof,
 				suite.proof,
@@ -693,6 +671,105 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 			}
 		})
 	}
+}
+
+func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
+	var msg *types.MsgChannelUpgradeConfirm
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"success: counterparty state set to FLUSHCOMPLETE",
+			func() {
+				msg.CounterpartyChannelState = types.STATE_FLUSHCOMPLETE
+			},
+			true,
+		},
+		{
+			"invalid port identifier",
+			func() {
+				msg.PortId = invalidPort
+			},
+			false,
+		},
+		{
+			"invalid channel identifier",
+			func() {
+				msg.ChannelId = invalidChannel
+			},
+			false,
+		},
+		{
+			"invalid counterparty channel state",
+			func() {
+				msg.CounterpartyChannelState = types.CLOSED
+			},
+			false,
+		},
+		{
+			"cannot submit an empty channel proof",
+			func() {
+				msg.ProofChannel = emptyProof
+			},
+			false,
+		},
+		{
+			"cannot submit an empty upgrade proof",
+			func() {
+				msg.ProofUpgrade = emptyProof
+			},
+			false,
+		},
+		{
+			"missing signer address",
+			func() {
+				msg.Signer = emptyAddr
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			counterpartyUpgrade := types.NewUpgrade(
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
+				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
+				1,
+			)
+
+			msg = types.NewMsgChannelUpgradeConfirm(
+				ibctesting.MockPort, ibctesting.FirstChannelID,
+				types.STATE_FLUSHING, counterpartyUpgrade, suite.proof, suite.proof,
+				height, addr,
+			)
+
+			tc.malleate()
+			err := msg.ValidateBasic()
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+
+	msg := &types.MsgChannelUpgradeConfirm{Signer: addr}
+	suite.Require().Equal([]sdk.AccAddress{expSigner}, msg.GetSigners())
 }
 
 func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {

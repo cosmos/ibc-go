@@ -2,29 +2,29 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 var (
-	_ sdk.Msg = &MsgCreateClient{}
-	_ sdk.Msg = &MsgUpdateClient{}
-	_ sdk.Msg = &MsgSubmitMisbehaviour{}
-	_ sdk.Msg = &MsgUpgradeClient{}
+	_ sdk.Msg = (*MsgCreateClient)(nil)
+	_ sdk.Msg = (*MsgUpdateClient)(nil)
+	_ sdk.Msg = (*MsgSubmitMisbehaviour)(nil)
+	_ sdk.Msg = (*MsgUpgradeClient)(nil)
+	_ sdk.Msg = (*MsgUpdateParams)(nil)
 
-	_ codectypes.UnpackInterfacesMessage = MsgCreateClient{}
-	_ codectypes.UnpackInterfacesMessage = MsgUpdateClient{}
-	_ codectypes.UnpackInterfacesMessage = MsgSubmitMisbehaviour{}
-	_ codectypes.UnpackInterfacesMessage = MsgUpgradeClient{}
+	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgSubmitMisbehaviour)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgUpgradeClient)(nil)
 )
 
 // NewMsgCreateClient creates a new MsgCreateClient instance
-//
-//nolint:interfacer
 func NewMsgCreateClient(
 	clientState exported.ClientState, consensusState exported.ConsensusState, signer string,
 ) (*MsgCreateClient, error) {
@@ -93,8 +93,6 @@ func (msg MsgCreateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 }
 
 // NewMsgUpdateClient creates a new MsgUpdateClient instance
-//
-//nolint:interfacer
 func NewMsgUpdateClient(id string, clientMsg exported.ClientMessage, signer string) (*MsgUpdateClient, error) {
 	anyClientMsg, err := PackClientMessage(clientMsg)
 	if err != nil {
@@ -140,8 +138,6 @@ func (msg MsgUpdateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 }
 
 // NewMsgUpgradeClient creates a new MsgUpgradeClient instance
-//
-//nolint:interfacer
 func NewMsgUpgradeClient(clientID string, clientState exported.ClientState, consState exported.ConsensusState,
 	proofUpgradeClient, proofUpgradeConsState []byte, signer string,
 ) (*MsgUpgradeClient, error) {
@@ -218,8 +214,6 @@ func (msg MsgUpgradeClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 }
 
 // NewMsgSubmitMisbehaviour creates a new MsgSubmitMisbehaviour instance.
-//
-//nolint:interfacer
 func NewMsgSubmitMisbehaviour(clientID string, misbehaviour exported.ClientMessage, signer string) (*MsgSubmitMisbehaviour, error) {
 	anyMisbehaviour, err := PackClientMessage(misbehaviour)
 	if err != nil {
@@ -263,4 +257,29 @@ func (msg MsgSubmitMisbehaviour) GetSigners() []sdk.AccAddress {
 func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var misbehaviour exported.ClientMessage
 	return unpacker.UnpackAny(msg.Misbehaviour, &misbehaviour)
+}
+
+// NewMsgUpdateParams creates a new instance of MsgUpdateParams.
+func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Authority: authority,
+		Params:    params,
+	}
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
+}
+
+// ValidateBasic performs basic checks on a MsgUpdateParams.
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return msg.Params.Validate()
 }
