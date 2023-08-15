@@ -7,6 +7,7 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types";
 import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto";
+import "cosmos/msg/v1/msg.proto";
 
 // Fee defines the ICS29 receive, acknowledgement and timeout fees
 message Fee {
@@ -23,6 +24,8 @@ message Fee {
 
 // PacketFee contains ICS29 relayer fees, refund address and optional list of permitted relayers
 message PacketFee {
+  option (cosmos.msg.v1.signer) = "refund_address";
+
   // fee encapsulates the recv, ack and timeout fees associated with an IBC packet
   Fee fee = 1 [(gogoproto.nullable) = false];
   // the refund address for unspent fees

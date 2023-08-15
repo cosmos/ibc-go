@@ -66,8 +66,8 @@ func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string
 		return version, true
 	}
 
-	var metadata types.Metadata
-	if err := types.ModuleCdc.UnmarshalJSON([]byte(version), &metadata); err != nil {
+	metadata, err := types.MetadataFromVersion(version)
+	if err != nil {
 		panic(fmt.Errorf("unable to unmarshal metadata for fee enabled channel: %w", err))
 	}
 
