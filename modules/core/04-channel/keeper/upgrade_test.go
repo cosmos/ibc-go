@@ -512,13 +512,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			types.ErrUpgradeNotFound,
 		},
 		{
-			"fails due to upgrade incompatibility",
-			func() {
-				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
-			},
-			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
-		},
-		{
 			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
 			func() {
 				channel := path.EndpointA.GetChannel()
@@ -1395,59 +1388,6 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 				path.EndpointB.SetConnection(conn)
 			},
 			connectiontypes.ErrInvalidConnectionState,
-		},
-		{
-			"upgrade sequence mismatch, endpointB channel upgrade sequence is ahead",
-			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.UpgradeSequence++
-				path.EndpointB.SetChannel(channel)
-			},
-			types.NewUpgradeError(2, types.ErrIncompatibleCounterpartyUpgrade), // max sequence will be returned
-		},
-		{
-			"upgrade ordering is not the same on both sides",
-			func() {
-				upgrade.Fields.Ordering = types.ORDERED
-			},
-			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
-		},
-		{
-			"proposed connection is not found",
-			func() {
-				upgrade.Fields.ConnectionHops[0] = ibctesting.InvalidID
-			},
-			types.NewUpgradeError(1, connectiontypes.ErrConnectionNotFound),
-		},
-		{
-			"proposed connection is not in OPEN state",
-			func() {
-				// reuse existing connection to create a new connection in a non OPEN state
-				connectionEnd := path.EndpointB.GetConnection()
-				connectionEnd.State = connectiontypes.UNINITIALIZED
-				connectionEnd.Counterparty.ConnectionId = counterpartyUpgrade.Fields.ConnectionHops[0] // both sides must be each other's counterparty
-
-				// set proposed connection in state
-				proposedConnectionID := "connection-100"
-				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connectionEnd)
-				upgrade.Fields.ConnectionHops[0] = proposedConnectionID
-			},
-			types.NewUpgradeError(1, connectiontypes.ErrInvalidConnectionState),
-		},
-		{
-			"proposed connection ends are not each other's counterparty",
-			func() {
-				// reuse existing connection to create a new connection in a non OPEN state
-				connectionEnd := path.EndpointB.GetConnection()
-				// ensure counterparty connectionID does not match connectionID set in counterparty proposed upgrade
-				connectionEnd.Counterparty.ConnectionId = "connection-50"
-
-				// set proposed connection in state
-				proposedConnectionID := "connection-100"
-				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connectionEnd)
-				upgrade.Fields.ConnectionHops[0] = proposedConnectionID
-			},
-			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
 		},
 	}
 
