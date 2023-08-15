@@ -303,6 +303,11 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
 
+	timeout := counterpartyUpgrade.Timeout
+	if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
+		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(err, "counterparty upgrade timeout has passed"))
+	}
+
 	if err := k.startFlushUpgradeHandshake(ctx, portID, channelID, upgrade.Fields, counterpartyChannel, counterpartyUpgrade,
 		proofChannel, proofUpgrade, proofHeight); err != nil {
 		return err

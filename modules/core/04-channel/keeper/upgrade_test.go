@@ -559,6 +559,21 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			},
 			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
 		},
+		{
+			"counterparty timeout has elapsed",
+			func() {
+				// Need to set counterparty upgrade in state and update clients to ensure
+				// proofs submitted reflect the altered upgrade.
+				counterpartyUpgrade.Timeout = types.NewTimeout(clienttypes.NewHeight(0, 1), 0)
+				path.EndpointB.SetChannelUpgrade(counterpartyUpgrade)
+
+				err := path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+			},
+			types.NewUpgradeError(1, types.ErrInvalidUpgrade),
+		},
 	}
 
 	for _, tc := range testCases {
