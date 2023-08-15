@@ -104,7 +104,7 @@ message MsgPayPacketFeeResponse {}
 // MsgPayPacketFeeAsync defines the request type for the PayPacketFeeAsync rpc
 // This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
 message MsgPayPacketFeeAsync {
-  option (cosmos.msg.v1.signer)      = "packet_fee.refundaddress";
+  option (cosmos.msg.v1.signer)      = "packet_fee";
   option (gogoproto.goproto_getters) = false;
 
   // unique packet identifier comprised of the channel ID, port ID and sequence
