@@ -308,8 +308,6 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
 
-	// the current upgrade handshake must only continue if both channels are using the same upgrade sequence,
-	// otherwise an error receipt must be written so that the upgrade handshake may be attempted again with synchronized sequences
 	if err := k.checkForUpgradeSequences(ctx, portID, channelID, channel, counterpartyChannel.UpgradeSequence); err != nil {
 		return err
 	}
