@@ -532,9 +532,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 				path.EndpointB.SetChannelUpgrade(counterpartyUpgrade)
 
-				err := path.EndpointB.UpdateClient()
-				suite.Require().NoError(err)
-				err = path.EndpointA.UpdateClient()
+				suite.coordinator.CommitBlock(suite.chainB)
+
+				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 			},
 			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
