@@ -468,14 +468,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 			false,
 		},
 		{
-			"timeout height is zero && timeout timestamp is zero",
-			func() {
-				msg.Timeout.Height = clienttypes.ZeroHeight()
-				msg.Timeout.Timestamp = 0
-			},
-			false,
-		},
-		{
 			"missing signer address",
 			func() {
 				msg.Signer = emptyAddr
@@ -490,7 +482,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 			msg = types.NewMsgChannelUpgradeInit(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
 				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
-				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
 				addr,
 			)
 
@@ -548,18 +539,9 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			false,
 		},
 		{
-			"invalid counterparty upgrade",
+			"invalid counterparty upgrade fields ordering",
 			func() {
-				msg.CounterpartyProposedUpgrade.Timeout.Height = clienttypes.ZeroHeight()
-				msg.CounterpartyProposedUpgrade.Timeout.Timestamp = 0
-			},
-			false,
-		},
-		{
-			"timeout height is zero && timeout timestamp is zero",
-			func() {
-				msg.UpgradeTimeout.Height = clienttypes.ZeroHeight()
-				msg.UpgradeTimeout.Timestamp = 0
+				msg.CounterpartyUpgradeFields.Ordering = types.NONE
 			},
 			false,
 		},
@@ -589,17 +571,11 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			counterpartyProposedUpgrade := types.NewUpgrade(
-				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstChannelID}, mock.Version),
-				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
-				1,
-			)
 			msg = types.NewMsgChannelUpgradeTry(
 				ibctesting.MockPort,
 				ibctesting.FirstChannelID,
-				[]string{ibctesting.FirstChannelID},
-				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
-				counterpartyProposedUpgrade,
+				[]string{ibctesting.FirstConnectionID},
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
 				1,
 				suite.proof,
 				suite.proof,
