@@ -97,17 +97,17 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 			expSequence = 1
 
-			upgradeFields = types.NewUpgradeFields(types.UNORDERED, []string{path.EndpointA.ConnectionID}, fmt.Sprintf("%s-v2", mock.Version))
+			upgradeFields = types.NewUpgradeFields(types.UNORDERED, []string{path.EndpointA.ConnectionID}, mock.UpgradeVersion)
 
 			tc.malleate()
 
-			proposedUpgrade, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
+			upgrade, err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeInit(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeFields,
 			)
 
 			if tc.expPass {
 				ctx := suite.chainA.GetContext()
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
 				channel := path.EndpointA.GetChannel()
 
 				events := ctx.EventManager().Events().ToABCIEvents()
