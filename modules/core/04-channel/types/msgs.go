@@ -462,14 +462,12 @@ var _ sdk.Msg = &MsgChannelUpgradeInit{}
 func NewMsgChannelUpgradeInit(
 	portID, channelID string,
 	upgradeFields UpgradeFields,
-	upgradeTimeout Timeout,
 	signer string,
 ) *MsgChannelUpgradeInit {
 	return &MsgChannelUpgradeInit{
 		PortId:    portID,
 		ChannelId: channelID,
 		Fields:    upgradeFields,
-		Timeout:   upgradeTimeout,
 		Signer:    signer,
 	}
 }
@@ -486,10 +484,6 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	if !msg.Timeout.IsValid() {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "upgrade timeout height and upgrade timeout timestamp cannot both be 0")
 	}
 
 	return msg.Fields.ValidateBasic()
@@ -513,8 +507,7 @@ func NewMsgChannelUpgradeTry(
 	portID,
 	channelID string,
 	proposedConnectionHops []string,
-	upgradeTimeout Timeout,
-	counterpartyProposedUpgrade Upgrade,
+	counterpartyUpgradeFields UpgradeFields,
 	counterpartyUpgradeSequence uint64,
 	proofChannel []byte,
 	proofUpgrade []byte,
@@ -525,8 +518,7 @@ func NewMsgChannelUpgradeTry(
 		PortId:                        portID,
 		ChannelId:                     channelID,
 		ProposedUpgradeConnectionHops: proposedConnectionHops,
-		UpgradeTimeout:                upgradeTimeout,
-		CounterpartyProposedUpgrade:   counterpartyProposedUpgrade,
+		CounterpartyUpgradeFields:     counterpartyUpgradeFields,
 		CounterpartyUpgradeSequence:   counterpartyUpgradeSequence,
 		ProofChannel:                  proofChannel,
 		ProofUpgrade:                  proofUpgrade,
@@ -549,12 +541,8 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed connection hops cannot be empty")
 	}
 
-	if !msg.UpgradeTimeout.IsValid() {
-		return errorsmod.Wrap(ErrInvalidTimeout, "upgrade timeout height or timeout timestamp must be non-zero")
-	}
-
-	if err := msg.CounterpartyProposedUpgrade.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "error validating counterparty upgrade")
+	if err := msg.CounterpartyUpgradeFields.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "error validating counterparty upgrade fields")
 	}
 
 	if msg.CounterpartyUpgradeSequence == 0 {

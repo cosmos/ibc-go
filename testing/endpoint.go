@@ -594,7 +594,6 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
 		upgrade.Fields,
-		upgrade.Timeout,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
@@ -620,8 +619,7 @@ func (endpoint *Endpoint) ChanUpgradeTry() error {
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
 		upgrade.Fields.ConnectionHops,
-		upgrade.Timeout,
-		counterpartyUpgrade,
+		counterpartyUpgrade.Fields,
 		endpoint.Counterparty.GetChannel().UpgradeSequence,
 		proofChannel,
 		proofUpgrade,

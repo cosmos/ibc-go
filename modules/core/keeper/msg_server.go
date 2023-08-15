@@ -713,7 +713,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	proposedUpgrade, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, msg.Fields, msg.Timeout)
+	upgrade, err := k.ChannelKeeper.ChanUpgradeInit(ctx, msg.PortId, msg.ChannelId, msg.Fields)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init failed", "error", errorsmod.Wrap(err, "channel upgrade init failed"))
 		return nil, errorsmod.Wrap(err, "channel upgrade init failed")
@@ -724,14 +724,14 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
 	}
 
-	proposedVersion, err := cbs.OnChanUpgradeInit(
+	upgradeVersion, err := cbs.OnChanUpgradeInit(
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
-		proposedUpgrade.Fields.Ordering,
-		proposedUpgrade.Fields.ConnectionHops,
+		upgrade.Fields.Ordering,
+		upgrade.Fields.ConnectionHops,
 		channel.UpgradeSequence,
-		proposedUpgrade.Fields.Version,
+		upgrade.Fields.Version,
 		channel.Version,
 	)
 	if err != nil {
@@ -739,14 +739,14 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(err, "channel upgrade init callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
-	proposedUpgrade.Fields.Version = proposedVersion
-	k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, proposedUpgrade)
+	upgrade.Fields.Version = upgradeVersion
+	k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, upgrade)
 
-	ctx.Logger().Info("channel upgrade init succeeded", "channel-id", msg.ChannelId, "version", proposedVersion)
+	ctx.Logger().Info("channel upgrade init succeeded", "channel-id", msg.ChannelId, "version", upgradeVersion)
 
 	return &channeltypes.MsgChannelUpgradeInitResponse{
 		ChannelId:       msg.ChannelId,
-		Upgrade:         proposedUpgrade,
+		Upgrade:         upgrade,
 		UpgradeSequence: channel.UpgradeSequence,
 	}, nil
 }
@@ -767,7 +767,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	upgrade, err := k.ChannelKeeper.ChanUpgradeTry(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgradeConnectionHops, msg.UpgradeTimeout, msg.CounterpartyProposedUpgrade, msg.CounterpartyUpgradeSequence, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
+	upgrade, err := k.ChannelKeeper.ChanUpgradeTry(ctx, msg.PortId, msg.ChannelId, msg.ProposedUpgradeConnectionHops, msg.CounterpartyUpgradeFields, msg.CounterpartyUpgradeSequence, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel upgrade try failed"))
 		if channeltypes.IsUpgradeError(err) {
@@ -794,7 +794,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	}
 	writeFn()
 
-	channel, upgrade := k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade, upgradeVersion, msg.CounterpartyProposedUpgrade.LatestSequenceSend)
+	channel, upgrade := k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade, upgradeVersion, upgrade.LatestSequenceSend)
 
 	ctx.Logger().Info("channel upgrade try succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
