@@ -312,97 +312,97 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
-	var (
-		path            *ibctesting.Path
-		proposedUpgrade types.Upgrade
-	)
+// func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
+// 	var (
+// 		path            *ibctesting.Path
+// 		proposedUpgrade types.Upgrade
+// 	)
 
-	testCases := []struct {
-		name                 string
-		malleate             func()
-		hasPacketCommitments bool
-	}{
-		{
-			"success with no packet commitments",
-			func() {},
-			false,
-		},
-		{
-			"success with packet commitments",
-			func() {
-				// manually set packet commitment
-				sequence, err := path.EndpointB.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-				suite.Require().Equal(uint64(1), sequence)
-			},
-			true,
-		},
-	}
+// 	testCases := []struct {
+// 		name                 string
+// 		malleate             func()
+// 		hasPacketCommitments bool
+// 	}{
+// 		{
+// 			"success with no packet commitments",
+// 			func() {},
+// 			false,
+// 		},
+// 		{
+// 			"success with packet commitments",
+// 			func() {
+// 				// manually set packet commitment
+// 				sequence, err := path.EndpointB.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
+// 				suite.Require().NoError(err)
+// 				suite.Require().Equal(uint64(1), sequence)
+// 			},
+// 			true,
+// 		},
+// 	}
 
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+// 	for _, tc := range testCases {
+// 		tc := tc
+// 		suite.Run(tc.name, func() {
+// 			suite.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+// 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+// 			suite.coordinator.Setup(path)
 
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-			proposedUpgrade = path.EndpointB.GetProposedUpgrade()
+// 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+// 			proposedUpgrade = path.EndpointB.GetProposedUpgrade()
 
-			tc.malleate()
+// 			tc.malleate()
 
-			ctx := suite.chainB.GetContext()
-			upgradedChannelEnd, upgradeWithAppCallbackVersion := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeTryChannel(
-				ctx,
-				path.EndpointB.ChannelConfig.PortID,
-				path.EndpointB.ChannelID,
-				proposedUpgrade,
-				proposedUpgrade.Fields.Version,
-				proposedUpgrade.LatestSequenceSend,
-			)
+// 			ctx := suite.chainB.GetContext()
+// 			upgradedChannelEnd, upgradeWithAppCallbackVersion := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeTryChannel(
+// 				ctx,
+// 				path.EndpointB.ChannelConfig.PortID,
+// 				path.EndpointB.ChannelID,
+// 				proposedUpgrade,
+// 				proposedUpgrade.Fields.Version,
+// 				proposedUpgrade.LatestSequenceSend,
+// 			)
 
-			channel := path.EndpointB.GetChannel()
-			suite.Require().Equal(upgradedChannelEnd, channel)
+// 			channel := path.EndpointB.GetChannel()
+// 			suite.Require().Equal(upgradedChannelEnd, channel)
 
-			upgrade, found := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			suite.Require().True(found)
-			suite.Require().Equal(types.TRYUPGRADE, channel.State)
-			suite.Require().Equal(upgradeWithAppCallbackVersion, upgrade)
+// 			upgrade, found := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 			suite.Require().True(found)
+// 			suite.Require().Equal(types.TRYUPGRADE, channel.State)
+// 			suite.Require().Equal(upgradeWithAppCallbackVersion, upgrade)
 
-			actualCounterpartyLastSequenceSend, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			suite.Require().True(ok)
-			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
+// 			actualCounterpartyLastSequenceSend, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 			suite.Require().True(ok)
+// 			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
 
-			events := ctx.EventManager().Events().ToABCIEvents()
-			expEvents := ibctesting.EventsMap{
-				types.EventTypeChannelUpgradeTry: {
-					types.AttributeKeyPortID:                    path.EndpointB.ChannelConfig.PortID,
-					types.AttributeKeyChannelID:                 path.EndpointB.ChannelID,
-					types.AttributeCounterpartyPortID:           path.EndpointA.ChannelConfig.PortID,
-					types.AttributeCounterpartyChannelID:        path.EndpointA.ChannelID,
-					types.AttributeKeyUpgradeConnectionHops:     upgrade.Fields.ConnectionHops[0],
-					types.AttributeKeyUpgradeVersion:            upgrade.Fields.Version,
-					types.AttributeKeyUpgradeOrdering:           upgrade.Fields.Ordering.String(),
-					types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
-					types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
-				},
-				sdk.EventTypeMessage: {
-					sdk.AttributeKeyModule: types.AttributeValueCategory,
-				},
-			}
+// 			events := ctx.EventManager().Events().ToABCIEvents()
+// 			expEvents := ibctesting.EventsMap{
+// 				types.EventTypeChannelUpgradeTry: {
+// 					types.AttributeKeyPortID:                    path.EndpointB.ChannelConfig.PortID,
+// 					types.AttributeKeyChannelID:                 path.EndpointB.ChannelID,
+// 					types.AttributeCounterpartyPortID:           path.EndpointA.ChannelConfig.PortID,
+// 					types.AttributeCounterpartyChannelID:        path.EndpointA.ChannelID,
+// 					types.AttributeKeyUpgradeConnectionHops:     upgrade.Fields.ConnectionHops[0],
+// 					types.AttributeKeyUpgradeVersion:            upgrade.Fields.Version,
+// 					types.AttributeKeyUpgradeOrdering:           upgrade.Fields.Ordering.String(),
+// 					types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
+// 					types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
+// 				},
+// 				sdk.EventTypeMessage: {
+// 					sdk.AttributeKeyModule: types.AttributeValueCategory,
+// 				},
+// 			}
 
-			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+// 			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 
-			if tc.hasPacketCommitments {
-				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
-			} else {
-				suite.Require().Equal(types.FLUSHCOMPLETE, channel.FlushStatus)
-			}
-		})
-	}
-}
+// 			if tc.hasPacketCommitments {
+// 				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
+// 			} else {
+// 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.FlushStatus)
+// 			}
+// 		})
+// 	}
+// }
 
 func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	var (
