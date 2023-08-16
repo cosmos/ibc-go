@@ -24,7 +24,7 @@ func NewClientState(data []byte, codeHash []byte, height clienttypes.Height) *Cl
 }
 
 // ClientType is Wasm light client.
-func (cs ClientState) ClientType() string {
+func (ClientState) ClientType() string {
 	return exported.Wasm
 }
 

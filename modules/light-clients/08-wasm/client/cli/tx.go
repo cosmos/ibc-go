@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -31,7 +31,7 @@ func newStoreCodeCmd() *cobra.Command {
 
 			fileName := args[0]
 
-			code, err := ioutil.ReadFile(fileName)
+			code, err := os.ReadFile(fileName)
 			if err != nil {
 				return err
 			}
