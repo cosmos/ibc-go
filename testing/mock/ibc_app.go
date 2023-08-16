@@ -91,8 +91,7 @@ type IBCApp struct {
 		portID, channelID string,
 		order channeltypes.Order,
 		connectionHops []string,
-		sequence uint64,
-		version, previousVersion string,
+		version string,
 	) (string, error)
 
 	OnChanUpgradeTry func(

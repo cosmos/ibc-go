@@ -115,8 +115,7 @@ type UpgradableModule interface {
 		portID, channelID string,
 		order channeltypes.Order,
 		connectionHops []string,
-		sequence uint64,
-		version, previousVersion string,
+		version string,
 	) (string, error)
 
 	// OnChanUpgradeTry verifies the counterparty upgrade and sets the upgrade on TRY chain
