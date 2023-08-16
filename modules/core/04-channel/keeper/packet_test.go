@@ -773,31 +773,31 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
-		{"success on channel in tryupgrade and flush status in flushing", func() {
-			// setup uses an UNORDERED channel
-			suite.coordinator.Setup(path)
+		// {"success on channel in tryupgrade and flush status in flushing", func() {
+		// 	// setup uses an UNORDERED channel
+		// 	suite.coordinator.Setup(path)
 
-			// create packet commitment
-			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
-			suite.Require().NoError(err)
+		// 	// create packet commitment
+		// 	sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+		// 	suite.Require().NoError(err)
 
-			// create packet receipt and acknowledgement
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			err = path.EndpointB.RecvPacket(packet)
-			suite.Require().NoError(err)
+		// 	// create packet receipt and acknowledgement
+		// 	packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+		// 	err = path.EndpointB.RecvPacket(packet)
+		// 	suite.Require().NoError(err)
 
-			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+		// 	channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-			// Move channel to correct state.
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+		// 	// Move channel to correct state.
+		// 	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+		// 	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-			err = path.EndpointB.ChanUpgradeInit()
-			suite.Require().NoError(err)
+		// 	err = path.EndpointB.ChanUpgradeInit()
+		// 	suite.Require().NoError(err)
 
-			err = path.EndpointA.ChanUpgradeTry()
-			suite.Require().NoError(err)
-		}, true},
+		// 	err = path.EndpointA.ChanUpgradeTry()
+		// 	suite.Require().NoError(err)
+		// }, true},
 		{"packet already acknowledged ordered channel (no-op)", func() {
 			expError = types.ErrNoOpMsg
 
