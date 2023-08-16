@@ -522,7 +522,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			commitmenttypes.ErrInvalidProof,
 		},
 		{
-			"startFlushUpgradeHandshake fails due to mismatch in upgrade ordering",
+			"fails due to mismatch in upgrade ordering",
 			func() {
 				upgrade := path.EndpointA.GetChannelUpgrade()
 				upgrade.Fields.Ordering = types.NONE
@@ -1376,16 +1376,11 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 // 	}
 // }
 
-// TestStartFlushUpgradeHandshake tests the startFlushUpgradeHandshake.
-// UpgradeInit will be run on chainA and startFlushUpgradeHandshake
+// TestStartFlushUpgradeHandshake tests the startFlushing.
+// UpgradeInit will be run on chainA and startFlushing
 // will be called on chainB
-func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
-	var (
-		path                *ibctesting.Path
-		upgrade             types.Upgrade
-		counterpartyChannel types.Channel
-		counterpartyUpgrade types.Upgrade
-	)
+func (suite *KeeperTestSuite) TestStartFlush() {
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
@@ -1434,38 +1429,36 @@ func (suite *KeeperTestSuite) TestStartFlushUpgradeHandshake() {
 			suite.coordinator.Setup(path)
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
-			// ensure proof verification succeeds
-			err = path.EndpointB.UpdateClient()
+			// crossing hellos so that the upgrade is created on chain B.
+			// the ChanUpgradeInit sub protocol is also called when it is not a crossing hello situation.
+			err = path.EndpointB.ChanUpgradeInit()
 			suite.Require().NoError(err)
-
-			proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
-			counterpartyChannel = path.EndpointA.GetChannel()
-
-			var found bool
-			counterpartyUpgrade, found = path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			suite.Require().True(found)
-
-			// ensure that the channel has a valid upgrade sequence
-			channel := path.EndpointB.GetChannel()
-			channel.UpgradeSequence = 1
-			path.EndpointB.SetChannel(channel)
-
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-			upgrade = path.EndpointB.GetProposedUpgrade()
 
 			tc.malleate()
 
-			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.StartFlushUpgradeHandshake(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, upgrade.Fields,
-				counterpartyChannel, counterpartyUpgrade, proofChannel, proofUpgrade, proofHeight,
+			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.StartFlushing(
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
 			)
 
 			if tc.expError != nil {
 				suite.assertUpgradeError(err, tc.expError)
 			} else {
+				channel := path.EndpointB.GetChannel()
+				upgrade := path.EndpointB.GetChannelUpgrade()
+
+				nextSequenceSend, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(ok)
+
+				suite.Require().Equal(types.STATE_FLUSHING, channel.State)
+				suite.Require().Equal(nextSequenceSend-1, upgrade.LatestSequenceSend)
+
+				// TODO: fix in https://github.com/cosmos/ibc-go/issues/4313
+				suite.Require().Equal(types.NewTimeout(clienttypes.NewHeight(1, 1000), 0), upgrade.Timeout)
 				suite.Require().NoError(err)
 			}
 		})
