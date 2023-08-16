@@ -51,13 +51,12 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeInit step, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	channel.State = types.INITUPGRADE
 	channel.UpgradeSequence++
 
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State.String(), "upgrade-sequence", fmt.Sprintf("%d", channel.UpgradeSequence))
 
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, channel, upgrade)
 	return channel
@@ -81,9 +80,8 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	// the channel state must be in OPEN or INITUPGRADE if we are in a crossing hellos situation
-	if !collections.Contains(channel.State, []types.State{types.OPEN, types.INITUPGRADE}) {
-		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.INITUPGRADE, channel.State)
+	if channel.State != types.OPEN {
+		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -110,43 +108,32 @@ func (k Keeper) ChanUpgradeTry(
 		upgrade types.Upgrade
 	)
 
-	switch channel.State {
-	case types.OPEN:
-		// initialize handshake with upgrade fields
+	// NOTE: if an upgrade exists (crossing hellos) then use existing upgrade fields
+	// otherwise, run the upgrade init sub-protocol
+	upgrade, found = k.GetUpgrade(ctx, portID, channelID)
+	if found {
+		proposedUpgradeFields = upgrade.Fields
+	} else {
+		// TODO: add fast forward feature
+		// https://github.com/cosmos/ibc-go/issues/3794
+		// NOTE: OnChanUpgradeInit will not be executed by the application
 		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields)
 		if err != nil {
 			return types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
 
-		// TODO: add fast forward feature
-		// https://github.com/cosmos/ibc-go/issues/3794
-
-		// NOTE: OnChanUpgradeInit will not be executed by the application
-
 		channel = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade)
+	}
 
-	case types.INITUPGRADE:
-		// crossing hellos
-		// assert that the upgrade fields are the same as the upgrade already in progress
-		upgrade, found = k.GetUpgrade(ctx, portID, channelID)
-		if !found {
-			return types.Upgrade{}, errorsmod.Wrapf(types.ErrUpgradeNotFound, "current upgrade not found despite channel state being in %s", types.INITUPGRADE)
-		}
-
-		if !reflect.DeepEqual(upgrade.Fields, proposedUpgradeFields) {
-			return types.Upgrade{}, errorsmod.Wrapf(
-				types.ErrInvalidUpgrade, "upgrade fields are not equal to current upgrade fields in crossing hellos case; expected %s, got %s", upgrade.Fields, proposedUpgradeFields)
-		}
-
-	default:
-		panic(fmt.Sprintf("channel state should be asserted to be in OPEN or INITUPGRADE before reaching this check; state is %s", channel.State))
+	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgradeFields); err != nil {
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed upgrade compatibility check")
 	}
 
 	// construct expected counterparty channel from information in state
 	// only the counterpartyUpgradeSequence is provided by the relayer
 	counterpartyConnectionHops := []string{connection.GetCounterparty().GetConnectionID()}
 	counterpartyChannel := types.Channel{
-		State:           types.INITUPGRADE,
+		State:           types.OPEN,
 		Ordering:        channel.Ordering,
 		Counterparty:    types.NewCounterparty(portID, channelID),
 		ConnectionHops:  counterpartyConnectionHops,
@@ -171,10 +158,6 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, err
 	}
 
-	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgradeFields); err != nil {
-		return types.Upgrade{}, errorsmod.Wrap(err, "failed upgrade compatibility check")
-	}
-
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
@@ -187,7 +170,7 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
 
-	if err = k.startFlushUpgradeHandshake(
+	if err := k.startFlushUpgradeHandshake(
 		ctx,
 		portID, channelID,
 		proposedUpgradeFields,
@@ -251,7 +234,7 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !collections.Contains(channel.State, []types.State{types.INITUPGRADE, types.TRYUPGRADE}) {
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.INITUPGRADE, types.TRYUPGRADE, channel.State)
 	}
 

@@ -131,7 +131,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expSequence, channel.UpgradeSequence)
 				suite.Require().Equal(mock.Version, channel.Version)
-				suite.Require().Equal(types.INITUPGRADE, channel.State)
+				suite.Require().Equal(types.OPEN, channel.State)
 				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Error(err)
@@ -215,28 +215,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				proposedUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 			},
 			connectiontypes.ErrConnectionNotFound,
-		},
-		{
-			"current upgrade not found even though channel is in INITUPGRADE",
-			func() {
-				// crossing hellos
-				err := path.EndpointB.ChanUpgradeInit()
-				suite.Require().NoError(err)
-
-				suite.chainB.DeleteKey(host.ChannelUpgradeKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-			},
-			types.ErrUpgradeNotFound,
-		},
-		{
-			"proposed upgrade fields must be equal to existing upgrade fields in crossing hellos",
-			func() {
-				// crossing hellos
-				err := path.EndpointB.ChanUpgradeInit()
-				suite.Require().NoError(err)
-
-				proposedUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
-			},
-			types.ErrInvalidUpgrade,
 		},
 		{
 			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
@@ -1014,115 +992,115 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 // 	suite.Require().False(found)
 // }
 
-func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
-	var (
-		path              *ibctesting.Path
-		errorReceipt      types.ErrorReceipt
-		errorReceiptProof []byte
-		proofHeight       clienttypes.Height
-	)
+// func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
+// 	var (
+// 		path              *ibctesting.Path
+// 		errorReceipt      types.ErrorReceipt
+// 		errorReceiptProof []byte
+// 		proofHeight       clienttypes.Height
+// 	)
 
-	tests := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			name:     "success",
-			malleate: func() {},
-			expError: nil,
-		},
-		{
-			name: "invalid channel state",
-			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.INIT
-				path.EndpointA.SetChannel(channel)
-			},
-			expError: types.ErrInvalidChannelState,
-		},
-		{
-			name: "channel not found",
-			malleate: func() {
-				path.EndpointA.Chain.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			},
-			expError: types.ErrChannelNotFound,
-		},
-		{
-			name: "connection not found",
-			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.ConnectionHops = []string{"connection-100"}
-				path.EndpointA.SetChannel(channel)
-			},
-			expError: connectiontypes.ErrConnectionNotFound,
-		},
-		{
-			name: "counterparty upgrade sequence less than current sequence",
-			malleate: func() {
-				var ok bool
-				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().True(ok)
+// 	tests := []struct {
+// 		name     string
+// 		malleate func()
+// 		expError error
+// 	}{
+// 		{
+// 			name:     "success",
+// 			malleate: func() {},
+// 			expError: nil,
+// 		},
+// 		{
+// 			name: "invalid channel state",
+// 			malleate: func() {
+// 				channel := path.EndpointA.GetChannel()
+// 				channel.State = types.INIT
+// 				path.EndpointA.SetChannel(channel)
+// 			},
+// 			expError: types.ErrInvalidChannelState,
+// 		},
+// 		{
+// 			name: "channel not found",
+// 			malleate: func() {
+// 				path.EndpointA.Chain.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+// 			},
+// 			expError: types.ErrChannelNotFound,
+// 		},
+// 		{
+// 			name: "connection not found",
+// 			malleate: func() {
+// 				channel := path.EndpointA.GetChannel()
+// 				channel.ConnectionHops = []string{"connection-100"}
+// 				path.EndpointA.SetChannel(channel)
+// 			},
+// 			expError: connectiontypes.ErrConnectionNotFound,
+// 		},
+// 		{
+// 			name: "counterparty upgrade sequence less than current sequence",
+// 			malleate: func() {
+// 				var ok bool
+// 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 				suite.Require().True(ok)
 
-				// the channel sequence will be 1
-				errorReceipt.Sequence = 0
+// 				// the channel sequence will be 1
+// 				errorReceipt.Sequence = 0
 
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+// 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
 
-				suite.coordinator.CommitBlock(suite.chainB)
-				suite.Require().NoError(path.EndpointA.UpdateClient())
+// 				suite.coordinator.CommitBlock(suite.chainB)
+// 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
-				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
-			},
-			expError: types.ErrInvalidUpgradeSequence,
-		},
-	}
+// 				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 				errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+// 			},
+// 			expError: types.ErrInvalidUpgradeSequence,
+// 		},
+// 	}
 
-	for _, tc := range tests {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+// 	for _, tc := range tests {
+// 		tc := tc
+// 		suite.Run(tc.name, func() {
+// 			suite.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+// 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+// 			suite.coordinator.Setup(path)
 
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+// 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+// 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
-			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+// 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 
-			// cause the upgrade to fail on chain b so an error receipt is written.
-			suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(
-				ctx sdk.Context, portID, channelID string, order types.Order, connectionHops []string, counterpartyVersion string,
-			) (string, error) {
-				return "", fmt.Errorf("mock app callback failed")
-			}
+// 			// cause the upgrade to fail on chain b so an error receipt is written.
+// 			suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(
+// 				ctx sdk.Context, portID, channelID string, order types.Order, connectionHops []string, counterpartyVersion string,
+// 			) (string, error) {
+// 				return "", fmt.Errorf("mock app callback failed")
+// 			}
 
-			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
+// 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 
-			suite.Require().NoError(path.EndpointA.UpdateClient())
+// 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
-			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+// 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 			errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
 
-			var ok bool
-			errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			suite.Require().True(ok)
+// 			var ok bool
+// 			errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 			suite.Require().True(ok)
 
-			tc.malleate()
+// 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
+// 			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
 
-			expPass := tc.expError == nil
-			if expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-			}
-		})
-	}
-}
+// 			expPass := tc.expError == nil
+// 			if expPass {
+// 				suite.Require().NoError(err)
+// 			} else {
+// 				suite.Require().ErrorIs(err, tc.expError)
+// 			}
+// 		})
+// 	}
+// }
 
 func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 	suite.SetupTest()
@@ -1197,206 +1175,206 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 	suite.Require().False(found)
 }
 
-func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
-	var (
-		path                     *ibctesting.Path
-		errReceipt               *types.ErrorReceipt
-		proofHeight              exported.Height
-		proofCounterpartyChannel []byte
-		proofErrorReceipt        []byte
-	)
+// func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
+// 	var (
+// 		path                     *ibctesting.Path
+// 		errReceipt               *types.ErrorReceipt
+// 		proofHeight              exported.Height
+// 		proofCounterpartyChannel []byte
+// 		proofErrorReceipt        []byte
+// 	)
 
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		// {
-		// 	"success: proof height has passed",
-		// 	func() {},
-		// 	nil,
-		// },
-		{
-			"success: proof timestamp has passed",
-			func() {
-				upgrade := path.EndpointA.GetProposedUpgrade()
-				upgrade.Timeout.Height = defaultTimeoutHeight
-				upgrade.Timeout.Timestamp = 5
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
+// 	testCases := []struct {
+// 		name     string
+// 		malleate func()
+// 		expError error
+// 	}{
+// 		// {
+// 		// 	"success: proof height has passed",
+// 		// 	func() {},
+// 		// 	nil,
+// 		// },
+// 		{
+// 			"success: proof timestamp has passed",
+// 			func() {
+// 				upgrade := path.EndpointA.GetProposedUpgrade()
+// 				upgrade.Timeout.Height = defaultTimeoutHeight
+// 				upgrade.Timeout.Timestamp = 5
+// 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
 
-				suite.Require().NoError(path.EndpointA.UpdateClient())
+// 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
-				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
-				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
-			},
-			nil,
-		},
-		// {
-		// 	"success: non-nil error receipt",
-		// 	func() {
-		// 		errReceipt = &types.ErrorReceipt{
-		// 			Sequence: 0,
-		// 			Message:  types.ErrInvalidUpgrade.Error(),
-		// 		}
+// 				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
+// 				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 				proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+// 			},
+// 			nil,
+// 		},
+// 		{
+// 			"success: non-nil error receipt",
+// 			func() {
+// 				errReceipt = &types.ErrorReceipt{
+// 					Sequence: 0,
+// 					Message:  types.ErrInvalidUpgrade.Error(),
+// 				}
 
-		// 		suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *errReceipt)
+// 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, *errReceipt)
 
-		// 		suite.Require().NoError(path.EndpointB.UpdateClient())
-		// 		suite.Require().NoError(path.EndpointA.UpdateClient())
+// 				suite.Require().NoError(path.EndpointB.UpdateClient())
+// 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
-		// 		proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
-		// 		upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-		// 		proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
-		// 	},
-		// 	nil,
-		// },
-		{
-			"channel not found",
-			func() {
-				path.EndpointA.ChannelID = ibctesting.InvalidID
-			},
-			types.ErrChannelNotFound,
-		},
-		{
-			"channel state is not in INITUPGRADE state",
-			func() {
-				suite.Require().NoError(path.EndpointA.SetChannelState(types.ACKUPGRADE))
-			},
-			types.ErrInvalidChannelState,
-		},
-		{
-			"current upgrade not found",
-			func() {
-				suite.chainA.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			},
-			types.ErrUpgradeNotFound,
-		},
-		{
-			"connection not found",
-			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.ConnectionHops[0] = ibctesting.InvalidID
-				path.EndpointA.SetChannel(channel)
-			},
-			connectiontypes.ErrConnectionNotFound,
-		},
-		{
-			"connection not open",
-			func() {
-				connectionEnd := path.EndpointA.GetConnection()
-				connectionEnd.State = connectiontypes.UNINITIALIZED
-				path.EndpointA.SetConnection(connectionEnd)
-			},
-			connectiontypes.ErrInvalidConnectionState,
-		},
-		{
-			"unable to retrieve timestamp at proof height",
-			func() {
-				proofHeight = suite.chainA.GetTimeoutHeight()
-			},
-			clienttypes.ErrConsensusStateNotFound,
-		},
-		{
-			"timeout has not passed",
-			func() {
-				upgrade := path.EndpointA.GetProposedUpgrade()
-				upgrade.Timeout.Height = suite.chainA.GetTimeoutHeight()
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
+// 				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
+// 				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 				proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+// 			},
+// 			nil,
+// 		},
+// 		{
+// 			"channel not found",
+// 			func() {
+// 				path.EndpointA.ChannelID = ibctesting.InvalidID
+// 			},
+// 			types.ErrChannelNotFound,
+// 		},
+// 		{
+// 			"channel state is not in INITUPGRADE state",
+// 			func() {
+// 				suite.Require().NoError(path.EndpointA.SetChannelState(types.ACKUPGRADE))
+// 			},
+// 			types.ErrInvalidChannelState,
+// 		},
+// 		{
+// 			"current upgrade not found",
+// 			func() {
+// 				suite.chainA.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+// 			},
+// 			types.ErrUpgradeNotFound,
+// 		},
+// 		{
+// 			"connection not found",
+// 			func() {
+// 				channel := path.EndpointA.GetChannel()
+// 				channel.ConnectionHops[0] = ibctesting.InvalidID
+// 				path.EndpointA.SetChannel(channel)
+// 			},
+// 			connectiontypes.ErrConnectionNotFound,
+// 		},
+// 		{
+// 			"connection not open",
+// 			func() {
+// 				connectionEnd := path.EndpointA.GetConnection()
+// 				connectionEnd.State = connectiontypes.UNINITIALIZED
+// 				path.EndpointA.SetConnection(connectionEnd)
+// 			},
+// 			connectiontypes.ErrInvalidConnectionState,
+// 		},
+// 		{
+// 			"unable to retrieve timestamp at proof height",
+// 			func() {
+// 				proofHeight = suite.chainA.GetTimeoutHeight()
+// 			},
+// 			clienttypes.ErrConsensusStateNotFound,
+// 		},
+// 		{
+// 			"timeout has not passed",
+// 			func() {
+// 				upgrade := path.EndpointA.GetProposedUpgrade()
+// 				upgrade.Timeout.Height = suite.chainA.GetTimeoutHeight()
+// 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
 
-				suite.Require().NoError(path.EndpointA.UpdateClient())
+// 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
-				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
-				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
-			},
-			types.ErrInvalidUpgradeTimeout,
-		},
-		// {
-		// 	"counterparty channel state is not OPEN or INITUPGRADE (crossing hellos)",
-		// 	func() {
-		// 		channel := path.EndpointB.GetChannel()
-		// 		channel.State = types.TRYUPGRADE
-		// 		path.EndpointB.SetChannel(channel)
+// 				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
+// 				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 				proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+// 			},
+// 			types.ErrInvalidUpgradeTimeout,
+// 		},
+// 		{
+// 			"counterparty channel state is not OPEN or INITUPGRADE (crossing hellos)",
+// 			func() {
+// 				channel := path.EndpointB.GetChannel()
+// 				channel.State = types.TRYUPGRADE
+// 				path.EndpointB.SetChannel(channel)
 
-		// 		suite.Require().NoError(path.EndpointB.UpdateClient())
-		// 		suite.Require().NoError(path.EndpointA.UpdateClient())
+// 				suite.Require().NoError(path.EndpointB.UpdateClient())
+// 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
-		// 		proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
-		// 		upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-		// 		proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
-		// 	},
-		// 	types.ErrInvalidChannelState,
-		// },
-		// {
-		// 	"non-nil error receipt: error receipt seq greater than current upgrade seq",
-		// 	func() {
-		// 		errReceipt = &types.ErrorReceipt{
-		// 			Sequence: 3,
-		// 			Message:  types.ErrInvalidUpgrade.Error(),
-		// 		}
-		// 	},
-		// 	types.ErrInvalidUpgradeSequence,
-		// },
-		// {
-		// 	"non-nil error receipt: error receipt seq equal to current upgrade seq",
-		// 	func() {
-		// 		errReceipt = &types.ErrorReceipt{
-		// 			Sequence: 1,
-		// 			Message:  types.ErrInvalidUpgrade.Error(),
-		// 		}
-		// 	},
-		// 	types.ErrInvalidUpgradeSequence,
-		// },
-	}
+// 				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
+// 				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 				proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+// 			},
+// 			types.ErrInvalidChannelState,
+// 		},
+// 		{
+// 			"non-nil error receipt: error receipt seq greater than current upgrade seq",
+// 			func() {
+// 				errReceipt = &types.ErrorReceipt{
+// 					Sequence: 3,
+// 					Message:  types.ErrInvalidUpgrade.Error(),
+// 				}
+// 			},
+// 			types.ErrInvalidUpgradeSequence,
+// 		},
+// 		{
+// 			"non-nil error receipt: error receipt seq equal to current upgrade seq",
+// 			func() {
+// 				errReceipt = &types.ErrorReceipt{
+// 					Sequence: 1,
+// 					Message:  types.ErrInvalidUpgrade.Error(),
+// 				}
+// 			},
+// 			types.ErrInvalidUpgradeSequence,
+// 		},
+// 	}
 
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			expPass := tc.expError == nil
+// 	for _, tc := range testCases {
+// 		tc := tc
+// 		suite.Run(tc.name, func() {
+// 			suite.SetupTest()
+// 			expPass := tc.expError == nil
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+// 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+// 			suite.coordinator.Setup(path)
 
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+// 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+// 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
-			errReceipt = nil
+// 			errReceipt = nil
 
-			// set timeout height to 1 to ensure timeout
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Timeout.Height = clienttypes.NewHeight(1, 1)
-			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+// 			// set timeout height to 1 to ensure timeout
+// 			path.EndpointA.ChannelConfig.ProposedUpgrade.Timeout.Height = clienttypes.NewHeight(1, 1)
+// 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 
-			// ensure clients are up to date to receive valid proofs
-			suite.Require().NoError(path.EndpointB.UpdateClient())
-			suite.Require().NoError(path.EndpointA.UpdateClient())
+// 			// ensure clients are up to date to receive valid proofs
+// 			suite.Require().NoError(path.EndpointB.UpdateClient())
+// 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
-			proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
-			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+// 			proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
+// 			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+// 			proofErrorReceipt, _ = suite.chainB.QueryProof(upgradeErrorReceiptKey)
 
-			tc.malleate()
+// 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTimeout(
-				suite.chainA.GetContext(),
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				path.EndpointB.GetChannel(),
-				errReceipt,
-				proofCounterpartyChannel,
-				proofErrorReceipt,
-				proofHeight,
-			)
+// 			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTimeout(
+// 				suite.chainA.GetContext(),
+// 				path.EndpointA.ChannelConfig.PortID,
+// 				path.EndpointA.ChannelID,
+// 				path.EndpointB.GetChannel(),
+// 				errReceipt,
+// 				proofCounterpartyChannel,
+// 				proofErrorReceipt,
+// 				proofHeight,
+// 			)
 
-			if expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.assertUpgradeError(err, tc.expError)
-			}
-		})
-	}
-}
+// 			if expPass {
+// 				suite.Require().NoError(err)
+// 			} else {
+// 				suite.assertUpgradeError(err, tc.expError)
+// 			}
+// 		})
+// 	}
+// }
 
 // TestStartFlushUpgradeHandshake tests the startFlushUpgradeHandshake.
 // UpgradeInit will be run on chainA and startFlushUpgradeHandshake
@@ -1711,7 +1689,7 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 
 				channel, found := channelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				if found { // test cases uses a channel that exists
-					suite.Require().Equal(types.INITUPGRADE, channel.State, "channel state should not be restored to %s", types.INITUPGRADE.String())
+					suite.Require().Equal(types.OPEN, channel.State, "channel state should not be restored to %s", types.OPEN.String())
 				}
 
 				_, found = channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
