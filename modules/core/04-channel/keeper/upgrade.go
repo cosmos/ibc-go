@@ -217,7 +217,7 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 
 // ChanUpgradeAck is called by a module to accept the ACKUPGRADE handshake step of the channel upgrade protocol.
 // This method should only be called by the IBC core msg server.
-// This method will verify that the counterparty has entered TRYUPGRADE
+// This method will verify that the counterparty has called the ChanUpgradeTry handler.
 // and that its own upgrade is compatible with the selected counterparty version.
 func (k Keeper) ChanUpgradeAck(
 	ctx sdk.Context,
@@ -235,7 +235,7 @@ func (k Keeper) ChanUpgradeAck(
 	}
 
 	if !collections.Contains(channel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.INITUPGRADE, types.TRYUPGRADE, channel.State)
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.STATE_FLUSHING, channel.State)
 	}
 
 	if !collections.Contains(counterpartyFlushStatus, []types.FlushStatus{types.FLUSHING, types.FLUSHCOMPLETE}) {
