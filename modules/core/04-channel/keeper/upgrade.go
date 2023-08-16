@@ -43,7 +43,7 @@ func (k Keeper) ChanUpgradeInit(
 
 // WriteUpgradeInitChannel writes a channel which has successfully passed the UpgradeInit handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) {
+func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) types.Channel {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -60,6 +60,7 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN.String(), "new-state", types.INITUPGRADE.String())
 
 	emitChannelUpgradeInitEvent(ctx, portID, channelID, channel, upgrade)
+	return channel
 }
 
 // ChanUpgradeTry is called by a module to accept the first step of a channel upgrade handshake initiated by
@@ -122,7 +123,7 @@ func (k Keeper) ChanUpgradeTry(
 
 		// NOTE: OnChanUpgradeInit will not be executed by the application
 
-		k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade)
+		channel = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade)
 
 	case types.INITUPGRADE:
 		// crossing hellos
@@ -164,6 +165,14 @@ func (k Keeper) ChanUpgradeTry(
 		counterpartyChannel,
 	); err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
+	}
+
+	if err := k.syncUpgradeSequence(ctx, portID, channelID, channel, counterpartyUpgradeSequence); err != nil {
+		return types.Upgrade{}, err
+	}
+
+	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgradeFields); err != nil {
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed upgrade compatibility check")
 	}
 
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
@@ -299,7 +308,7 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade); err != nil {
+	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade.Fields); err != nil {
 		return types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
@@ -730,52 +739,52 @@ func (k Keeper) startFlushUpgradeHandshake(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
 	}
 
-	// the current upgrade handshake must only continue if both channels are using the same upgrade sequence,
-	// otherwise an error receipt must be written so that the upgrade handshake may be attempted again with synchronized sequences
-	if counterpartyChannel.UpgradeSequence != channel.UpgradeSequence {
-		// save the previous upgrade sequence for the error message
-		prevUpgradeSequence := channel.UpgradeSequence
+	return nil
+}
 
+// syncUpgradeSequence ensures current upgrade handshake only continues if both channels are using the same upgrade sequence,
+// otherwise an upgrade error is returned so that an error receipt will be written so that the upgrade handshake may be attempted again with synchronized sequences.
+func (k Keeper) syncUpgradeSequence(ctx sdk.Context, portID, channelID string, channel types.Channel, counterpartyUpgradeSequence uint64) error {
+	// save the previous upgrade sequence for the error message
+	prevUpgradeSequence := channel.UpgradeSequence
+
+	if counterpartyUpgradeSequence != channel.UpgradeSequence {
 		// error on the higher sequence so that both chains synchronize on a fresh sequence
-		channel.UpgradeSequence = sdkmath.Max(counterpartyChannel.UpgradeSequence, channel.UpgradeSequence)
+		channel.UpgradeSequence = sdkmath.Max(counterpartyUpgradeSequence, channel.UpgradeSequence)
 		k.SetChannel(ctx, portID, channelID, channel)
 
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade sequence (%d) to match counterparty upgrade sequence (%d)", prevUpgradeSequence, counterpartyChannel.UpgradeSequence),
+			types.ErrInvalidUpgradeSequence, "expected upgrade sequence (%d) to match counterparty upgrade sequence (%d)", prevUpgradeSequence, counterpartyUpgradeSequence),
 		)
-	}
-
-	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgrade); err != nil {
-		return types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
 	return nil
 }
 
 // checkForUpgradeCompatibility checks performs stateful validation of self upgrade fields relative to counterparty upgrade.
-func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, proposedUpgradeFields types.UpgradeFields, counterpartyUpgrade types.Upgrade) error {
+func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, counterpartyUpgradeFields types.UpgradeFields) error {
 	// assert that both sides propose the same channel ordering
-	if proposedUpgradeFields.Ordering != counterpartyUpgrade.Fields.Ordering {
-		return errorsmod.Wrapf(types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", proposedUpgradeFields.Ordering, counterpartyUpgrade.Fields.Ordering)
+	if upgradeFields.Ordering != counterpartyUpgradeFields.Ordering {
+		return errorsmod.Wrapf(types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", upgradeFields.Ordering, counterpartyUpgradeFields.Ordering)
 	}
 
-	proposedConnection, found := k.connectionKeeper.GetConnection(ctx, proposedUpgradeFields.ConnectionHops[0])
+	connection, found := k.connectionKeeper.GetConnection(ctx, upgradeFields.ConnectionHops[0])
 	if !found {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, proposedUpgradeFields.ConnectionHops[0])
+		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, upgradeFields.ConnectionHops[0])
 	}
 
-	if proposedConnection.GetState() != int32(connectiontypes.OPEN) {
+	if connection.GetState() != int32(connectiontypes.OPEN) {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(proposedConnection.GetState()).String())
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
 	}
 
 	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
-	if counterpartyUpgrade.Fields.ConnectionHops[0] != proposedConnection.GetCounterparty().GetConnectionID() {
+	if counterpartyUpgradeFields.ConnectionHops[0] != connection.GetCounterparty().GetConnectionID() {
 		return errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgrade.Fields.ConnectionHops[0], proposedConnection.GetCounterparty().GetConnectionID())
+			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgradeFields.ConnectionHops[0], connection.GetCounterparty().GetConnectionID())
 	}
 
 	return nil
