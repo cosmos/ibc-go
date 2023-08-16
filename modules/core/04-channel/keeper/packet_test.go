@@ -851,7 +851,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			suite.Require().NoError(err)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, false},
-		{"channel in ackupgrade and flush status flush complete", func() {
+		{"channel in flush complete state", func() {
 			expError = types.ErrInvalidChannelState
 
 			suite.coordinator.Setup(path)
