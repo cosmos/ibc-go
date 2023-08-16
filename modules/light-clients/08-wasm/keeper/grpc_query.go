@@ -27,8 +27,10 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 		return nil, status.Error(codes.InvalidArgument, "invalid code hash")
 	}
 
-	// Note: do we want to return just any old code that might be stored in VM or
-	// limit to only stored light-clients?
+	// Only return code hashes we previously stored, not arbitrary code hashes that might be stored via e.g Wasmd.
+	if !types.HasCodeHash(sdk.UnwrapSDKContext(c), k.cdc, codeHash) {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.CodeHash).Error())
+	}
 	code, err := k.wasmVM.GetCode(codeHash)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.CodeHash).Error())
@@ -44,8 +46,9 @@ func (k Keeper) CodeHashes(c context.Context, req *types.QueryCodeHashesRequest)
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var codeHashes []string
-	for _, hash := range types.GetCodeHashes(ctx, k.cdc) {
-		codeHashes = append(codeHashes, hex.EncodeToString([]byte(hash)))
+	storedHashes := types.GetCodeHashes(ctx, k.cdc)
+	for _, hash := range storedHashes.CodeHashes {
+		codeHashes = append(codeHashes, hex.EncodeToString(hash))
 	}
 
 	return &types.QueryCodeHashesResponse{

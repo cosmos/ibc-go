@@ -13,7 +13,7 @@ import (
 func (suite *KeeperTestSuite) TestInitGenesis() {
 	var (
 		genesisState  types.GenesisState
-		expCodeHashes []string
+		expCodeHashes [][]byte
 	)
 
 	testCases := []struct {
@@ -35,14 +35,14 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 					},
 				)
 
-				expCodeHashes = []string{codeHash}
+				expCodeHashes = [][]byte{[]byte(codeHash)}
 			},
 		},
 		{
 			"success with empty genesis contract",
 			func() {
 				genesisState = *types.NewGenesisState([]types.Contract{})
-				expCodeHashes = []string{}
+				expCodeHashes = [][]byte{}
 			},
 		},
 	}
@@ -57,14 +57,12 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			suite.Require().NoError(err)
 
 			res := types.GetCodeHashes(suite.chainA.GetContext(), suite.chainA.GetSimApp().AppCodec())
-			for idx, codeHash := range res {
-				res[idx] = hex.EncodeToString([]byte(codeHash))
-			}
+			storedHashes := res.CodeHashes
 
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
-			suite.Require().Equal(len(expCodeHashes), len(res))
-			suite.Require().ElementsMatch(expCodeHashes, res)
+			suite.Require().Equal(len(expCodeHashes), len(storedHashes))
+			suite.Require().ElementsMatch(expCodeHashes, storedHashes)
 		})
 	}
 }

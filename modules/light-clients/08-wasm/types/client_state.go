@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/hex"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -100,20 +102,22 @@ func (cs ClientState) GetTimestampAtHeight(
 // Initialize checks that the initial consensus state is an 08-wasm consensus state and
 // sets the client state, consensus state in the provided client store.
 // It also initializes the wasm contract for the client.
-func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
+func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
 	consensusState, ok := state.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, state)
 	}
 
+	// Do not allow initialization of a client with a code hash that hasn't been previously stored via storeWasmCode.
+	if !HasCodeHash(ctx, cdc, cs.CodeHash) {
+		return errorsmod.Wrapf(ErrInvalidCodeHash, "code hash (%s) has not been previously stored", hex.EncodeToString(cs.CodeHash))
+	}
+
 	payload := instantiateMessage{
 		ClientState:    &cs,
 		ConsensusState: consensusState,
 	}
-
-	// The global store key can be used here to implement #4085
-	// wasmStore := ctx.KVStore(WasmStoreKey)
 
 	return wasmInit(ctx, clientStore, &cs, payload)
 }
@@ -194,39 +198,4 @@ func (cs ClientState) VerifyNonMembership(
 	}
 	_, err := wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
-}
-
-// GetCodeHashes returns all the code hashes stored.
-func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) []string {
-	store := ctx.KVStore(WasmStoreKey)
-	bz := store.Get([]byte(KeyCodeHashes))
-	if len(bz) == 0 {
-		return []string{}
-	}
-	var hashes CodeHashes
-	cdc.MustUnmarshal(bz, &hashes)
-	return hashes.CodeHashes
-}
-
-// AddCodeHash adds a new code hash to the list of stored code hashes.
-func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) {
-	hashes := GetCodeHashes(ctx, cdc)
-	hashes = append(hashes, string(codeHash))
-
-	store := ctx.KVStore(WasmStoreKey)
-	bz := cdc.MustMarshal(&CodeHashes{CodeHashes: hashes})
-	store.Set([]byte(KeyCodeHashes), bz)
-}
-
-// HasCodeHash returns true if the given code hash exists in the store and
-// false otherwise.
-func HasCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) bool {
-	hashes := GetCodeHashes(ctx, cdc)
-
-	for _, hash := range hashes {
-		if hash == string(codeHash) {
-			return true
-		}
-	}
-	return false
 }
