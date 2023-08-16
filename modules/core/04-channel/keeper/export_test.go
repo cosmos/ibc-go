@@ -30,3 +30,13 @@ func (k Keeper) StartFlushUpgradeHandshake(
 func (k Keeper) ValidateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types.UpgradeFields, currentChannel types.Channel) error {
 	return k.validateSelfUpgradeFields(ctx, proposedUpgrade, currentChannel)
 }
+
+// CheckForUpgradeCompatibility is a wrapper around checkForUpgradeCompatibility to allow the function to be directly called in tests.
+func (k Keeper) CheckForUpgradeCompatibility(ctx sdk.Context, upgradeFields, counterpartyUpgradeFields types.UpgradeFields) error {
+	return k.checkForUpgradeCompatibility(ctx, upgradeFields, counterpartyUpgradeFields)
+}
+
+// SyncUpgradeSequence is a wrapper around syncUpgradeSequence to allow the function to be directly called in tests.
+func (k Keeper) SyncUpgradeSequence(ctx sdk.Context, portID, channelID string, channel types.Channel, counterpartyUpgradeSequence uint64) error {
+	return k.syncUpgradeSequence(ctx, portID, channelID, channel, counterpartyUpgradeSequence)
+}
