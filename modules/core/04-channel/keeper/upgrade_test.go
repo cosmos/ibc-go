@@ -1101,7 +1101,7 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 // 	}
 // }
 //
-//func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
+// func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 //	suite.SetupTest()
 //
 //	path := ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -1172,7 +1172,7 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 //	counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 //	suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
 //	suite.Require().False(found)
-//}
+// }
 
 // func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 // 	var (

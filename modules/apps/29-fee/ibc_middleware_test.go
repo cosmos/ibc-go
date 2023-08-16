@@ -328,35 +328,35 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 		},
 		{
 			"application callback fails", func() {
-			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseInit = func(
-				ctx sdk.Context, portID, channelID string,
-			) error {
-				return fmt.Errorf("application callback fails")
-			}
-		}, false,
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseInit = func(
+					ctx sdk.Context, portID, channelID string,
+				) error {
+					return fmt.Errorf("application callback fails")
+				}
+			}, false,
 		},
 		{
 			"RefundFeesOnChannelClosure continues - invalid refund address", func() {
-			// store the fee in state & update escrow account balance
-			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
-			packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
+				// store the fee in state & update escrow account balance
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
+				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
-			err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
-			suite.Require().NoError(err)
-		},
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				suite.Require().NoError(err)
+			},
 			true,
 		},
 		{
 			"fee module locked", func() {
-			lockFeeModule(suite.chainA)
-		},
+				lockFeeModule(suite.chainA)
+			},
 			false,
 		},
 		{
 			"fee module is not enabled", func() {
-			suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-		},
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
 			true,
 		},
 	}
@@ -417,35 +417,35 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 		},
 		{
 			"application callback fails", func() {
-			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseConfirm = func(
-				ctx sdk.Context, portID, channelID string,
-			) error {
-				return fmt.Errorf("application callback fails")
-			}
-		}, false,
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseConfirm = func(
+					ctx sdk.Context, portID, channelID string,
+				) error {
+					return fmt.Errorf("application callback fails")
+				}
+			}, false,
 		},
 		{
 			"RefundChannelFeesOnClosure continues - refund address is invalid", func() {
-			// store the fee in state & update escrow account balance
-			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
-			packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
+				// store the fee in state & update escrow account balance
+				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))
+				packetFees := types.NewPacketFees([]types.PacketFee{types.NewPacketFee(fee, "invalid refund address", nil)})
 
-			suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
-			err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
-			suite.Require().NoError(err)
-		},
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID, packetFees)
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
+				suite.Require().NoError(err)
+			},
 			true,
 		},
 		{
 			"fee module locked", func() {
-			lockFeeModule(suite.chainA)
-		},
+				lockFeeModule(suite.chainA)
+			},
 			false,
 		},
 		{
 			"fee module is not enabled", func() {
-			suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-		},
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
 			true,
 		},
 	}
@@ -1120,8 +1120,8 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 		})
 	}
 }
-//
-//func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
+
+// func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 //	var (
 //		expFeeEnabled bool
 //		path          *ibctesting.Path
@@ -1245,7 +1245,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 //			}
 //		})
 //	}
-//}
+// }
 
 // TODO: Revisit these testcases when core refactor is completed
 // func (suite *FeeTestSuite) TestOnChanUpgradeAck() {

@@ -158,8 +158,6 @@ func (k Keeper) ChanUpgradeTry(
 	); err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
 	}
-
-
 	if counterpartyUpgradeSequence < channel.UpgradeSequence {
 		return upgrade, types.NewUpgradeError(channel.UpgradeSequence-1, errorsmod.Wrapf(
 			types.ErrInvalidUpgradeSequence, "counterparty upgrade sequence < current upgrade sequence (%d < %d)", counterpartyUpgradeSequence, channel.UpgradeSequence,
