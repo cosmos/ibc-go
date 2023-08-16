@@ -719,20 +719,13 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "channel upgrade init failed")
 	}
 
-	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
-	if !found {
-		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
-	}
-
 	upgradeVersion, err := cbs.OnChanUpgradeInit(
 		ctx,
 		msg.PortId,
 		msg.ChannelId,
 		upgrade.Fields.Ordering,
 		upgrade.Fields.ConnectionHops,
-		channel.UpgradeSequence,
 		upgrade.Fields.Version,
-		channel.Version,
 	)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
@@ -740,7 +733,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 	}
 
 	upgrade.Fields.Version = upgradeVersion
-	k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, upgrade)
+	channel := k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, upgrade)
 
 	ctx.Logger().Info("channel upgrade init succeeded", "channel-id", msg.ChannelId, "version", upgradeVersion)
 

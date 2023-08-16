@@ -1053,7 +1053,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
 
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ uint64, _, _ string) (string, error) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 					// intentionally force the error here so we can assert that a passthrough occurs when fees should not be enabled for this channel
 					return "", ibcmock.MockApplicationCallbackError
 				}
@@ -1074,7 +1074,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 			"underlying app callback returns error",
 			func() {
 				expFeeEnabled = false
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ uint64, _, _ string) (string, error) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			},
