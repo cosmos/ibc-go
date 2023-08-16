@@ -773,7 +773,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		}, true},
-		{"success on channel in tryupgrade and flush status in flushing", func() {
+		{"success on channel in flushing state", func() {
 			// setup uses an UNORDERED channel
 			suite.coordinator.Setup(path)
 

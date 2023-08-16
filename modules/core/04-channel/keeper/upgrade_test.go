@@ -396,9 +396,9 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 
 			if tc.hasPacketCommitments {
-				suite.Require().Equal(types.FLUSHING, channel.FlushStatus)
+				suite.Require().Equal(types.NOTINFLUSH, channel.FlushStatus)
 			} else {
-				suite.Require().Equal(types.FLUSHCOMPLETE, channel.FlushStatus)
+				suite.Require().Equal(types.NOTINFLUSH, channel.FlushStatus)
 			}
 		})
 	}
