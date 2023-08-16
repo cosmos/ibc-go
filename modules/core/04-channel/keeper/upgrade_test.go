@@ -406,9 +406,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 
 func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 	var (
-		path                    *ibctesting.Path
-		counterpartyFlushStatus types.FlushStatus
-		counterpartyUpgrade     types.Upgrade
+		path                *ibctesting.Path
+		counterpartyUpgrade types.Upgrade
 	)
 
 	testCases := []struct {
@@ -454,13 +453,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				suite.Require().NoError(path.EndpointA.SetChannelState(types.CLOSED))
 			},
 			types.ErrInvalidChannelState,
-		},
-		{
-			"counterparty flush status is not in FLUSHING or FLUSHCOMPLETE",
-			func() {
-				counterpartyFlushStatus = types.NOTINFLUSH
-			},
-			types.ErrInvalidFlushStatus,
 		},
 		{
 			"connection not found",
@@ -573,8 +565,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 
-			counterpartyFlushStatus = types.FLUSHING
-
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
@@ -597,7 +587,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeAck(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyFlushStatus, counterpartyUpgrade,
+				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyUpgrade,
 				proofChannel, proofUpgrade, proofHeight,
 			)
 

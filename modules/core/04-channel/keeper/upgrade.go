@@ -195,11 +195,6 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 
 	previousState := channel.State
 	channel.State = types.TRYUPGRADE
-	channel.FlushStatus = types.FLUSHING
-
-	if !k.HasInflightPackets(ctx, portID, channelID) {
-		channel.FlushStatus = types.FLUSHCOMPLETE
-	}
 
 	upgrade.Fields.Version = upgradeVersion
 
@@ -221,7 +216,6 @@ func (k Keeper) ChanUpgradeAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
-	counterpartyFlushStatus types.FlushStatus,
 	counterpartyUpgrade types.Upgrade,
 	proofChannel,
 	proofUpgrade []byte,
@@ -234,10 +228,6 @@ func (k Keeper) ChanUpgradeAck(
 
 	if !collections.Contains(channel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.STATE_FLUSHING, channel.State)
-	}
-
-	if !collections.Contains(counterpartyFlushStatus, []types.FlushStatus{types.FLUSHING, types.FLUSHCOMPLETE}) {
-		return errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected one of [%s, %s], got %s", types.FLUSHING, types.FLUSHCOMPLETE, counterpartyFlushStatus)
 	}
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -257,7 +247,7 @@ func (k Keeper) ChanUpgradeAck(
 		Counterparty:    types.NewCounterparty(portID, channelID),
 		Version:         channel.Version,
 		UpgradeSequence: channel.UpgradeSequence,
-		FlushStatus:     counterpartyFlushStatus, // provided by the relayer
+		FlushStatus:     types.NOTINFLUSH, // TODO: remove flush status from channel end
 	}
 
 	// verify the counterparty channel state containing the upgrade sequence
