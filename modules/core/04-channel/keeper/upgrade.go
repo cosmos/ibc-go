@@ -172,7 +172,7 @@ func (k Keeper) ChanUpgradeTry(
 	}
 
 	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgradeFields); err != nil {
-		return types.Upgrade{}, types.NewUpgradeError(counterpartyUpgradeSequence, err)
+		return types.Upgrade{}, errorsmod.Wrap(err, "failed upgrade compatibility check")
 	}
 
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty

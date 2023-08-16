@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			types.ErrIncompatibleCounterpartyUpgrade,
 		},
 		{
-			"startFlushUpgradeHandshake fails due to incompatible upgrades, chainB proposes a new connection hop that does not match counterparty",
+			"fails due to incompatible upgrades, chainB proposes a new connection hop that does not match counterparty",
 			func() {
 				// reuse existing connection to create a new connection in a non OPEN state
 				connection := path.EndpointB.GetConnection()
@@ -267,10 +267,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connection)
 				proposedUpgrade.Fields.ConnectionHops[0] = proposedConnectionID
 			},
-			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
+			types.ErrIncompatibleCounterpartyUpgrade,
 		},
 		{
-			"startFlushUpgradeHandshake fails due to mismatch in upgrade sequences",
+			"fails due to mismatch in upgrade sequences",
 			func() {
 				channel := path.EndpointB.GetChannel()
 				channel.UpgradeSequence = 5
