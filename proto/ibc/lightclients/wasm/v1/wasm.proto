@@ -35,5 +35,5 @@ message ClientMessage {
 // CodeHashes defines a list of all code hashes that are stored.
 message CodeHashes {
   // list of code hashes
-  repeated string code_hashes = 1;
+  repeated bytes code_hashes = 1;
 }
