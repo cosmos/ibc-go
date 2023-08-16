@@ -22,7 +22,7 @@ chains:
 
 relayer:
   type: rly # override with RELAYER_TYPE
-  image: damiannolan/rly
+  image: ghcr.io/cosmos/relayer
   tag: latest # override with RELAYER_TAG
 
 cometbft:
