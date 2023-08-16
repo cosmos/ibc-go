@@ -252,7 +252,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			func() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 			},
-			commitmenttypes.ErrInvalidProof,
+			types.ErrIncompatibleCounterpartyUpgrade,
 		},
 		{
 			"startFlushUpgradeHandshake fails due to incompatible upgrades, chainB proposes a new connection hop that does not match counterparty",
@@ -276,7 +276,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				channel.UpgradeSequence = 5
 				path.EndpointB.SetChannel(channel)
 			},
-			types.NewUpgradeError(6, types.ErrIncompatibleCounterpartyUpgrade), // max sequence + 1 will be returned
+			types.NewUpgradeError(6, types.ErrInvalidUpgradeSequence), // max sequence + 1 will be returned
 		},
 	}
 
@@ -1606,7 +1606,7 @@ func (suite *KeeperTestSuite) assertUpgradeError(actualError, expError error) {
 		suite.Require().Equal(expUpgradeError.GetErrorReceipt(), upgradeError.GetErrorReceipt())
 	}
 
-	suite.Require().True(errorsmod.IsOf(actualError, expError), actualError)
+	suite.Require().True(errorsmod.IsOf(actualError, expError), fmt.Sprintf("expected error: %s, actual error: %s", expError, actualError))
 }
 
 // TestAbortHandshake tests that when the channel handshake is aborted, the channel state
@@ -1723,6 +1723,156 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 				}
 
 				// TODO: assertion that GetCounterpartyLastPacketSequence is present and correct
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestCheckForUpgradeCompatibility() {
+	var (
+		path                      *ibctesting.Path
+		upgradeFields             types.UpgradeFields
+		counterpartyUpgradeFields types.UpgradeFields
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"upgrade ordering is not the same on both sides",
+			func() {
+				upgradeFields.Ordering = types.ORDERED
+			},
+			types.ErrIncompatibleCounterpartyUpgrade,
+		},
+		{
+			"proposed connection is not found",
+			func() {
+				upgradeFields.ConnectionHops[0] = ibctesting.InvalidID
+			},
+			connectiontypes.ErrConnectionNotFound,
+		},
+		{
+			"proposed connection is not in OPEN state",
+			func() {
+				// reuse existing connection to create a new connection in a non OPEN state
+				connectionEnd := path.EndpointB.GetConnection()
+				connectionEnd.State = connectiontypes.UNINITIALIZED
+				connectionEnd.Counterparty.ConnectionId = counterpartyUpgradeFields.ConnectionHops[0] // both sides must be each other's counterparty
+
+				// set proposed connection in state
+				proposedConnectionID := "connection-100"
+				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connectionEnd)
+				upgradeFields.ConnectionHops[0] = proposedConnectionID
+			},
+			connectiontypes.ErrInvalidConnectionState,
+		},
+		{
+			"proposed connection ends are not each other's counterparty",
+			func() {
+				// reuse existing connection to create a new connection in a non OPEN state
+				connectionEnd := path.EndpointB.GetConnection()
+				// ensure counterparty connectionID does not match connectionID set in counterparty proposed upgrade
+				connectionEnd.Counterparty.ConnectionId = "connection-50"
+
+				// set proposed connection in state
+				proposedConnectionID := "connection-100"
+				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), proposedConnectionID, connectionEnd)
+				upgradeFields.ConnectionHops[0] = proposedConnectionID
+			},
+			types.ErrIncompatibleCounterpartyUpgrade,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			upgradeFields = path.EndpointA.GetProposedUpgrade().Fields
+			counterpartyUpgradeFields = path.EndpointB.GetProposedUpgrade().Fields
+
+			tc.malleate()
+
+			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.CheckForUpgradeCompatibility(suite.chainB.GetContext(), upgradeFields, counterpartyUpgradeFields)
+			if tc.expError != nil {
+				suite.Require().ErrorIs(err, tc.expError)
+			} else {
+				suite.Require().NoError(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestSyncUpgradeSequence() {
+	var (
+		path                        *ibctesting.Path
+		counterpartyUpgradeSequence uint64
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"upgrade sequence mismatch, endpointB channel upgrade sequence is ahead",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 10
+				path.EndpointB.SetChannel(channel)
+			},
+			types.NewUpgradeError(10, types.ErrInvalidUpgradeSequence), // max sequence will be returned
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			counterpartyUpgradeSequence = 1
+
+			tc.malleate()
+
+			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SyncUpgradeSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointB.GetChannel(), counterpartyUpgradeSequence)
+			if tc.expError != nil {
+				suite.Require().ErrorIs(err, tc.expError)
+			} else {
+				suite.Require().NoError(err)
 			}
 		})
 	}

@@ -171,7 +171,7 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, err
 	}
 
-	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, upgrade); err != nil {
+	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgradeFields); err != nil {
 		return types.Upgrade{}, types.NewUpgradeError(counterpartyUpgradeSequence, err)
 	}
 
@@ -308,11 +308,7 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if err := k.syncUpgradeSequence(ctx, portID, channelID, channel, counterpartyChannel.UpgradeSequence); err != nil {
-		return err
-	}
-
-	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade); err != nil {
+	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade.Fields); err != nil {
 		return types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
@@ -758,7 +754,7 @@ func (k Keeper) syncUpgradeSequence(ctx sdk.Context, portID, channelID string, c
 		k.SetChannel(ctx, portID, channelID, channel)
 
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade sequence (%d) to match counterparty upgrade sequence (%d)", prevUpgradeSequence, counterpartyUpgradeSequence),
+			types.ErrInvalidUpgradeSequence, "expected upgrade sequence (%d) to match counterparty upgrade sequence (%d)", prevUpgradeSequence, counterpartyUpgradeSequence),
 		)
 	}
 
@@ -766,29 +762,29 @@ func (k Keeper) syncUpgradeSequence(ctx sdk.Context, portID, channelID string, c
 }
 
 // checkForUpgradeCompatibility checks performs stateful validation of self upgrade fields relative to counterparty upgrade.
-func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, proposedUpgradeFields types.UpgradeFields, counterpartyUpgrade types.Upgrade) error {
+func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, counterpartyUpgradeFields types.UpgradeFields) error {
 	// assert that both sides propose the same channel ordering
-	if proposedUpgradeFields.Ordering != counterpartyUpgrade.Fields.Ordering {
-		return errorsmod.Wrapf(types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", proposedUpgradeFields.Ordering, counterpartyUpgrade.Fields.Ordering)
+	if upgradeFields.Ordering != counterpartyUpgradeFields.Ordering {
+		return errorsmod.Wrapf(types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", upgradeFields.Ordering, counterpartyUpgradeFields.Ordering)
 	}
 
-	proposedConnection, found := k.connectionKeeper.GetConnection(ctx, proposedUpgradeFields.ConnectionHops[0])
+	connection, found := k.connectionKeeper.GetConnection(ctx, upgradeFields.ConnectionHops[0])
 	if !found {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, proposedUpgradeFields.ConnectionHops[0])
+		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, upgradeFields.ConnectionHops[0])
 	}
 
-	if proposedConnection.GetState() != int32(connectiontypes.OPEN) {
+	if connection.GetState() != int32(connectiontypes.OPEN) {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
 		// validated in the upgrade INIT and TRY handlers
-		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(proposedConnection.GetState()).String())
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "expected proposed connection to be OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
 	}
 
 	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
-	if counterpartyUpgrade.Fields.ConnectionHops[0] != proposedConnection.GetCounterparty().GetConnectionID() {
+	if counterpartyUpgradeFields.ConnectionHops[0] != connection.GetCounterparty().GetConnectionID() {
 		return errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgrade.Fields.ConnectionHops[0], proposedConnection.GetCounterparty().GetConnectionID())
+			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgradeFields.ConnectionHops[0], connection.GetCounterparty().GetConnectionID())
 	}
 
 	return nil
