@@ -61,6 +61,7 @@ var (
 	EventTypeChannelUpgradeInit    = "channel_upgrade_init"
 	EventTypeChannelUpgradeTry     = "channel_upgrade_try"
 	EventTypeChannelUpgradeAck     = "channel_upgrade_ack"
+	EventTypeChannelUpgradeConfirm = "channel_upgrade_confirm"
 	EventTypeChannelUpgradeOpen    = "channel_upgrade_open"
 	EventTypeChannelUpgradeTimeout = "channel_upgrade_timeout"
 	EventTypeChannelUpgradeCancel  = "channel_upgrade_cancelled"
