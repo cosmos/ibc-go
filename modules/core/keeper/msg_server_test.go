@@ -799,7 +799,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
 
 				channel := path.EndpointB.GetChannel()
-				suite.Require().Equal(channeltypes.TRYUPGRADE, channel.State)
+				suite.Require().Equal(channeltypes.STATE_FLUSHING, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 			},
 		},
