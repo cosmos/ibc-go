@@ -684,10 +684,8 @@ func (k Keeper) WriteUpgradeTimeoutChannel(
 	emitChannelUpgradeTimeoutEvent(ctx, portID, channelID, channel, upgrade)
 }
 
-// startFlushing will verify the counterparty proposed upgrade and the current channel state.
-// Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
-// If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an
-// aborted upgrade.
+// startFlushing will set the upgrade last packet send and continue blocking the upgrade from continuing until all
+// in-flight packets have been flushed.
 func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {

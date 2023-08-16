@@ -1376,9 +1376,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 // 	}
 // }
 
-// TestStartFlushUpgradeHandshake tests the startFlushing.
-// UpgradeInit will be run on chainA and startFlushing
-// will be called on chainB
 func (suite *KeeperTestSuite) TestStartFlush() {
 	var path *ibctesting.Path
 
