@@ -170,15 +170,7 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
 
-	if err := k.startFlushUpgradeHandshake(
-		ctx,
-		portID, channelID,
-		proposedUpgradeFields,
-		counterpartyChannel,
-		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
-		proofCounterpartyChannel, proofCounterpartyUpgrade,
-		proofHeight,
-	); err != nil {
+	if err := k.startFlushing(ctx, portID, channelID); err != nil {
 		return types.Upgrade{}, err
 	}
 
@@ -300,8 +292,7 @@ func (k Keeper) ChanUpgradeAck(
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(err, "counterparty upgrade timeout has passed"))
 	}
 
-	if err := k.startFlushUpgradeHandshake(ctx, portID, channelID, upgrade.Fields, counterpartyChannel, counterpartyUpgrade,
-		proofChannel, proofUpgrade, proofHeight); err != nil {
+	if err := k.startFlushing(ctx, portID, channelID); err != nil {
 		return err
 	}
 
@@ -718,21 +709,9 @@ func (k Keeper) WriteUpgradeTimeoutChannel(
 	emitChannelUpgradeTimeoutEvent(ctx, portID, channelID, channel, upgrade)
 }
 
-// startFlushUpgradeHandshake will verify the counterparty proposed upgrade and the current channel state.
-// Once the counterparty information has been verified, it will be validated against the self proposed upgrade.
-// If any of the proposed upgrade fields are incompatible, an upgrade error will be returned resulting in an
-// aborted upgrade.
-func (k Keeper) startFlushUpgradeHandshake(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-	proposedUpgradeFields types.UpgradeFields,
-	counterpartyChannel types.Channel,
-	counterpartyUpgrade types.Upgrade,
-	proofCounterpartyChannel,
-	proofCounterpartyUpgrade []byte,
-	proofHeight clienttypes.Height,
-) error {
+// startFlushing will set the upgrade last packet send and continue blocking the upgrade from continuing until all
+// in-flight packets have been flushed.
+func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -747,7 +726,29 @@ func (k Keeper) startFlushUpgradeHandshake(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
 	}
 
+	channel.State = types.STATE_FLUSHING
+	k.SetChannel(ctx, portID, channelID, channel)
+
+	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	upgrade.LatestSequenceSend = nextSequenceSend - 1
+	upgrade.Timeout = getUpgradeTimeout()
+	k.SetUpgrade(ctx, portID, channelID, upgrade)
+
 	return nil
+}
+
+// TODO: use a hard coded value for now. Will be resolved in https://github.com/cosmos/ibc-go/issues/4313
+func getUpgradeTimeout() types.Timeout {
+	return types.NewTimeout(clienttypes.NewHeight(1, 1000), 0)
 }
 
 // syncUpgradeSequence ensures current upgrade handshake only continues if both channels are using the same upgrade sequence,
