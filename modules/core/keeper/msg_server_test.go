@@ -943,13 +943,16 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"core handler returns error and no upgrade error receipt is written",
 			func() {
-				// force an error by overriding the counterparty flush status to an invalid value
-				msg.CounterpartyFlushStatus = channeltypes.NOTINFLUSH
+				// force an error by overriding the channel state to an invalid value
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.CLOSED
+
+				path.EndpointA.SetChannel(channel)
 			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
-				suite.Require().ErrorIs(err, channeltypes.ErrInvalidFlushStatus)
+				suite.Require().ErrorIs(err, channeltypes.ErrInvalidChannelState)
 
 				errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().Empty(errorReceipt)
@@ -1026,20 +1029,18 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			counterpartyChannel := path.EndpointB.GetChannel()
 			counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
 
 			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeAck{
-				PortId:                  path.EndpointA.ChannelConfig.PortID,
-				ChannelId:               path.EndpointA.ChannelID,
-				CounterpartyFlushStatus: counterpartyChannel.FlushStatus,
-				CounterpartyUpgrade:     counterpartyUpgrade,
-				ProofChannel:            proofChannel,
-				ProofUpgrade:            proofUpgrade,
-				ProofHeight:             proofHeight,
-				Signer:                  suite.chainA.SenderAccount.GetAddress().String(),
+				PortId:              path.EndpointA.ChannelConfig.PortID,
+				ChannelId:           path.EndpointA.ChannelID,
+				CounterpartyUpgrade: counterpartyUpgrade,
+				ProofChannel:        proofChannel,
+				ProofUpgrade:        proofUpgrade,
+				ProofHeight:         proofHeight,
+				Signer:              suite.chainA.SenderAccount.GetAddress().String(),
 			}
 
 			tc.malleate()
