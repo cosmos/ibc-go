@@ -31,8 +31,8 @@ type ContractKeeper interface {
 	// the sender is unknown or undefined. The contract is expected to handle the callback within the
 	// user defined gas limit, and handle any errors, or panics gracefully.
 	// If an error is returned, state will be reverted by the callbacks middleware.
-	// NOTE: Performing the SendPacket validation in this acknowledgement callback is recommended in
-	// case the callbacks middleware is not wired properly.
+	// NOTE: Performing the SendPacket validation defensively in this acknowledgement callback is
+	// recommended in case the callbacks middleware is not wired properly.
 	IBCOnAcknowledgementPacketCallback(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
@@ -46,8 +46,8 @@ type ContractKeeper interface {
 	// empty if the sender is unknown or undefined. The contract is expected to handle the callback
 	// within the user defined gas limit, and handle any error, out of gas, or panics gracefully.
 	// If an error is returned, state will be reverted by the callbacks middleware.
-	// NOTE: Performing the SendPacket validation in this timeout callback is recommended in case the
-	// callbacks middleware is not wired properly.
+	// NOTE: Performing the SendPacket validation defensively in this timeout callback is recommended
+	// in case the callbacks middleware is not wired properly.
 	IBCOnTimeoutPacketCallback(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
