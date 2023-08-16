@@ -397,8 +397,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 
 			if tc.hasPacketCommitments {
 				suite.Require().Equal(types.NOTINFLUSH, channel.FlushStatus)
-			} else {
-				suite.Require().Equal(types.NOTINFLUSH, channel.FlushStatus)
 			}
 		})
 	}
