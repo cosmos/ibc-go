@@ -167,7 +167,7 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
 	}
 
-	if err := k.checkForUpgradeSequences(ctx, portID, channelID, channel, counterpartyUpgradeSequence); err != nil {
+	if err := k.syncUpgradeSequence(ctx, portID, channelID, channel, counterpartyUpgradeSequence); err != nil {
 		return types.Upgrade{}, err
 	}
 
@@ -308,7 +308,7 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if err := k.checkForUpgradeSequences(ctx, portID, channelID, channel, counterpartyChannel.UpgradeSequence); err != nil {
+	if err := k.syncUpgradeSequence(ctx, portID, channelID, channel, counterpartyChannel.UpgradeSequence); err != nil {
 		return err
 	}
 
@@ -746,9 +746,9 @@ func (k Keeper) startFlushUpgradeHandshake(
 	return nil
 }
 
-// checkForUpgradeSequences ensures current upgrade handshake only continues if both channels are using the same upgrade sequence,
+// syncUpgradeSequence ensures current upgrade handshake only continues if both channels are using the same upgrade sequence,
 // otherwise an upgrade error is returned so that an error receipt will be written so that the upgrade handshake may be attempted again with synchronized sequences.
-func (k Keeper) checkForUpgradeSequences(ctx sdk.Context, portID, channelID string, channel types.Channel, counterpartyUpgradeSequence uint64) error {
+func (k Keeper) syncUpgradeSequence(ctx sdk.Context, portID, channelID string, channel types.Channel, counterpartyUpgradeSequence uint64) error {
 	// save the previous upgrade sequence for the error message
 	prevUpgradeSequence := channel.UpgradeSequence
 
