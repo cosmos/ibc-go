@@ -331,9 +331,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 	channelID string,
 	order channeltypes.Order,
 	connectionHops []string,
-	upgradeSequence uint64,
 	upgradeVersion string,
-	previousVersion string,
 ) (string, error) {
 	versionMetadata, err := types.MetadataFromVersion(upgradeVersion)
 	if err != nil {
@@ -341,14 +339,14 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 		// since it is valid for fee version to not be specified, the upgrade version may be for a middleware
 		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
-		return im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, upgradeSequence, upgradeVersion, previousVersion)
+		return im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, upgradeVersion)
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
-	appVersion, err := im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, upgradeSequence, versionMetadata.AppVersion, previousVersion)
+	appVersion, err := im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, versionMetadata.AppVersion)
 	if err != nil {
 		return "", err
 	}
