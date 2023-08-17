@@ -495,7 +495,6 @@ func (k Keeper) ChanUpgradeOpen(
 			UpgradeSequence: channel.UpgradeSequence,
 		}
 
-
 	default:
 		// TODO: return error instead of panic
 		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s], got %s", types.STATE_FLUSHCOMPLETE, types.OPEN, counterpartyChannelState))
