@@ -441,21 +441,13 @@ func (k Keeper) ChanUpgradeOpen(
 	proofCounterpartyChannel []byte,
 	proofHeight clienttypes.Height,
 ) error {
-	if k.HasInflightPackets(ctx, portID, channelID) {
-		return errorsmod.Wrapf(types.ErrPendingInflightPackets, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !collections.Contains(channel.State, []types.State{types.TRYUPGRADE, types.ACKUPGRADE}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.TRYUPGRADE, types.ACKUPGRADE, channel.State)
-	}
-
-	if channel.FlushStatus != types.FLUSHCOMPLETE {
-		return errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected %s, got %s", types.FLUSHCOMPLETE, channel.FlushStatus)
+	if channel.State != types.STATE_FLUSHCOMPLETE {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.STATE_FLUSHCOMPLETE, channel.State)
 	}
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -491,38 +483,22 @@ func (k Keeper) ChanUpgradeOpen(
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         upgrade.Fields.Version,
 			UpgradeSequence: channel.UpgradeSequence,
-			FlushStatus:     types.NOTINFLUSH,
 		}
 
-	case types.TRYUPGRADE:
-		// If the counterparty is in TRYUPGRADE, then we must have gone through the ACKUPGRADE step.
-		if channel.State != types.ACKUPGRADE {
-			return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.ACKUPGRADE, channel.State)
-		}
-
+	case types.STATE_FLUSHCOMPLETE:
 		counterpartyChannel = types.Channel{
-			State:           types.TRYUPGRADE,
+			State:           types.STATE_FLUSHCOMPLETE,
 			Ordering:        channel.Ordering,
 			ConnectionHops:  []string{connection.GetCounterparty().GetConnectionID()},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         channel.Version,
 			UpgradeSequence: channel.UpgradeSequence,
-			FlushStatus:     types.FLUSHCOMPLETE,
 		}
 
-	case types.ACKUPGRADE:
-		counterpartyChannel = types.Channel{
-			State:           types.ACKUPGRADE,
-			Ordering:        channel.Ordering,
-			ConnectionHops:  []string{connection.GetCounterparty().GetConnectionID()},
-			Counterparty:    types.NewCounterparty(portID, channelID),
-			Version:         channel.Version,
-			UpgradeSequence: channel.UpgradeSequence,
-			FlushStatus:     types.FLUSHCOMPLETE,
-		}
 
 	default:
-		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s, %s], got %s", types.TRYUPGRADE, types.ACKUPGRADE, types.OPEN, counterpartyChannelState))
+		// TODO: return error instead of panic
+		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s], got %s", types.STATE_FLUSHCOMPLETE, types.OPEN, counterpartyChannelState))
 	}
 
 	if err := k.connectionKeeper.VerifyChannelState(
