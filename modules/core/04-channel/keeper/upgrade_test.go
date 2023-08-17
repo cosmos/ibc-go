@@ -1745,6 +1745,13 @@ func (suite *KeeperTestSuite) TestCheckForUpgradeCompatibility() {
 			},
 			types.ErrIncompatibleCounterpartyUpgrade,
 		},
+		{
+			"proposed upgrade version is not the same on both sides",
+			func() {
+				upgradeFields.Version = mock.Version
+			},
+			types.ErrIncompatibleCounterpartyUpgrade,
+		},
 	}
 
 	for _, tc := range testCases {

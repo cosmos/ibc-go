@@ -774,6 +774,10 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, cou
 		return errorsmod.Wrapf(types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", upgradeFields.Ordering, counterpartyUpgradeFields.Ordering)
 	}
 
+	if upgradeFields.Version != counterpartyUpgradeFields.Version {
+		return errorsmod.Wrapf(types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade version (%s) to match counterparty upgrade version (%s)", upgradeFields.Version, counterpartyUpgradeFields.Version)
+	}
+
 	connection, found := k.connectionKeeper.GetConnection(ctx, upgradeFields.ConnectionHops[0])
 	if !found {
 		// NOTE: this error is expected to be unreachable as the proposed upgrade connectionID should have been
