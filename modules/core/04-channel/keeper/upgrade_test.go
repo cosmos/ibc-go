@@ -254,7 +254,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				channel.UpgradeSequence = 5
 				path.EndpointB.SetChannel(channel)
 			},
-			types.NewUpgradeError(5, types.ErrInvalidUpgradeSequence), // channel sequence - 1 will be returned
+			// channel sequence - 1 will be returned (upgrade sequence is bumped in init as this is non-crossing hellos case)
+			types.NewUpgradeError(5, types.ErrInvalidUpgradeSequence),
 		},
 	}
 
