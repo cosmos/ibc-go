@@ -539,8 +539,8 @@ func (k Keeper) ChanUpgradeOpen(
 	return nil
 }
 
-// WriteUpgradeOpenChannel writes the agreed upon upgrade fields to the channel, sets the channel flush status to NOTINFLUSH and sets the channel state back to OPEN. This can be called in one of two cases:
-// - In the UpgradeAck step of the handshake if both sides have already flushed all in-flight packets.
+// WriteUpgradeOpenChannel writes the agreed upon upgrade fields to the channel, and sets the channel state back to OPEN. This can be called in one of two cases:
+// - In the UpgradeConfirm step of the handshake if both sides have already flushed all in-flight packets.
 // - In the UpgradeOpen step of the handshake.
 func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -559,7 +559,6 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 	channel.Version = upgrade.Fields.Version
 	channel.ConnectionHops = upgrade.Fields.ConnectionHops
 	channel.State = types.OPEN
-	channel.FlushStatus = types.NOTINFLUSH
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
