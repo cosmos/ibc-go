@@ -242,13 +242,12 @@ func (k Keeper) ChanUpgradeAck(
 
 	counterpartyHops := []string{connection.GetCounterparty().GetConnectionID()}
 	counterpartyChannel := types.Channel{
-		State:           types.TRYUPGRADE,
+		State:           types.STATE_FLUSHING,
 		Ordering:        channel.Ordering,
 		ConnectionHops:  counterpartyHops,
 		Counterparty:    types.NewCounterparty(portID, channelID),
 		Version:         channel.Version,
 		UpgradeSequence: channel.UpgradeSequence,
-		FlushStatus:     types.NOTINFLUSH, // TODO: remove flush status from channel end
 	}
 
 	// verify the counterparty channel state containing the upgrade sequence
@@ -280,24 +279,28 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
+	// optimistically accept version that TRY chain proposes and pass this to callback for confirmation
+	// in the crossing hello case, we do not modify version that our TRY call returned and instead enforce
+	// that both TRY calls returned the same version
+
+	if channel.IsOpen() { // TODO why do we need this?
+		upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
+	}
+
+	// if upgrades are not compatible by ACK step, then we restore the channel
 	if err := k.checkForUpgradeCompatibility(ctx, upgrade.Fields, counterpartyUpgrade.Fields); err != nil {
 		return types.NewUpgradeError(channel.UpgradeSequence, err)
+	}
+
+	if channel.IsOpen() {
+		if err := k.startFlushing(ctx, portID, channelID); err != nil {
+			return err
+		}
 	}
 
 	timeout := counterpartyUpgrade.Timeout
 	if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(err, "counterparty upgrade timeout has passed"))
-	}
-
-	if err := k.startFlushing(ctx, portID, channelID); err != nil {
-		return err
-	}
-
-	// in the crossing hellos case, the versions returned by both on TRY must be the same
-	if channel.State == types.TRYUPGRADE {
-		if upgrade.Fields.Version != counterpartyUpgrade.Fields.Version {
-			return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(types.ErrIncompatibleCounterpartyUpgrade, "both channel ends must agree on the same version"))
-		}
 	}
 
 	return nil
@@ -314,16 +317,15 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	previousState := channel.State
-	channel.State = types.ACKUPGRADE
-	channel.FlushStatus = types.FLUSHING
+	// channel.State will always be in FLUSHING at this point.
+	previousState := channel.State // FIXME: previous state could have been OPEN
 
 	if !k.HasInflightPackets(ctx, portID, channelID) {
-		channel.FlushStatus = types.FLUSHCOMPLETE
+		channel.State = types.STATE_FLUSHCOMPLETE
+	} else {
+		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
 
-	k.SetCounterpartyLastPacketSequence(ctx, portID, channelID, counterpartyUpgrade.LatestSequenceSend)
-	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
