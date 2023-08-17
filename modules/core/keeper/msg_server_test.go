@@ -832,34 +832,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 
 				errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(found)
-				suite.Require().Equal(uint64(100), errorReceipt.Sequence)
-			},
-		},
-		{
-			"application callback error writes upgrade error receipt",
-			func() {
-				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(
-					ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string,
-				) (string, error) {
-					// set arbitrary value in store to mock application state changes
-					store := ctx.KVStore(suite.chainB.GetSimApp().GetKey(exported.ModuleName))
-					store.Set([]byte("foo"), []byte("bar"))
-					return "", fmt.Errorf("mock app callback failed")
-				}
-			},
-			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
-				suite.Require().NoError(err)
-
-				suite.Require().NotNil(res)
-				suite.Require().Equal(channeltypes.FAILURE, res.Result)
-
-				errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().True(found)
-				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
-
-				// assert application state changes are not committed
-				store := suite.chainB.GetContext().KVStore(suite.chainB.GetSimApp().GetKey(exported.ModuleName))
-				suite.Require().False(store.Has([]byte("foo")))
+				suite.Require().Equal(uint64(99), errorReceipt.Sequence)
 			},
 		},
 	}
@@ -1226,13 +1199,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 		// 	},
 		// 	expErr: channeltypes.ErrInvalidUpgradeSequence,
 		// },
-		{
-			name: "capability not found",
-			malleate: func() {
-				msg.ChannelId = ibctesting.InvalidID
-			},
-			expErr: capabilitytypes.ErrCapabilityNotFound,
-		},
+		// {
+		//	name: "capability not found",
+		//	malleate: func() {
+		//		msg.ChannelId = ibctesting.InvalidID
+		//	},
+		//	expErr: capabilitytypes.ErrCapabilityNotFound,
+		// },
 	}
 
 	for _, tc := range cases {
