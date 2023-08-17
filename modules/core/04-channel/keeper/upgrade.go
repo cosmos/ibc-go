@@ -177,7 +177,7 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
 
-	if err := k.startFlushing(ctx, portID, channelID); err != nil {
+	if err := k.startFlushing(ctx, portID, channelID, &upgrade); err != nil {
 		return types.Upgrade{}, err
 	}
 
@@ -287,7 +287,7 @@ func (k Keeper) ChanUpgradeAck(
 	}
 
 	if channel.IsOpen() {
-		if err := k.startFlushing(ctx, portID, channelID); err != nil {
+		if err := k.startFlushing(ctx, portID, channelID, &upgrade); err != nil {
 			return err
 		}
 	}
@@ -704,7 +704,7 @@ func (k Keeper) WriteUpgradeTimeoutChannel(
 
 // startFlushing will set the upgrade last packet send and continue blocking the upgrade from continuing until all
 // in-flight packets have been flushed.
-func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string) error {
+func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade *types.Upgrade) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -722,11 +722,6 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string) error {
 	channel.State = types.STATE_FLUSHING
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
 	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -734,7 +729,7 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string) error {
 
 	upgrade.LatestSequenceSend = nextSequenceSend - 1
 	upgrade.Timeout = getUpgradeTimeout()
-	k.SetUpgrade(ctx, portID, channelID, upgrade)
+	k.SetUpgrade(ctx, portID, channelID, *upgrade)
 
 	return nil
 }
