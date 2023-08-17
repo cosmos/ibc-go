@@ -77,25 +77,25 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 		},
 		{
 			"failure: dest callback with low gas (panic)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, simapp.OogPanicContract),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogPanicContract),
 			types.CallbackTypeReceivePacket,
 			false,
 		},
 		{
 			"failure: source callback with low gas (panic)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, simapp.OogPanicContract),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogPanicContract),
 			types.CallbackTypeSendPacket,
 			false,
 		},
 		{
 			"failure: dest callback with low gas (error)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, simapp.OogErrorContract),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogErrorContract),
 			types.CallbackTypeReceivePacket,
 			false,
 		},
 		{
 			"failure: source callback with low gas (error)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, simapp.OogErrorContract),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogErrorContract),
 			types.CallbackTypeSendPacket,
 			false,
 		},
@@ -136,25 +136,25 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 		},
 		{
 			"success: dest callback with low gas (panic)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, simapp.OogPanicContract),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogPanicContract),
 			"none", // timeouts don't reach destination chain execution
 			true,
 		},
 		{
 			"success: dest callback with low gas (error)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s", "gas_limit": "450000"}}`, simapp.OogErrorContract),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogErrorContract),
 			"none", // timeouts don't reach destination chain execution
 			true,
 		},
 		{
 			"failure: source callback with low gas (panic)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, simapp.OogPanicContract),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogPanicContract),
 			types.CallbackTypeSendPacket,
 			false,
 		},
 		{
 			"failure: source callback with low gas (error)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "450000"}}`, simapp.OogErrorContract),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogErrorContract),
 			types.CallbackTypeSendPacket,
 			false,
 		},
