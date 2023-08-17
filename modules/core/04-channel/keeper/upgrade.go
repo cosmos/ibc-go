@@ -496,8 +496,7 @@ func (k Keeper) ChanUpgradeOpen(
 		}
 
 	default:
-		// TODO: return error instead of panic
-		panic(fmt.Sprintf("counterparty channel state should be in one of [%s, %s], got %s", types.STATE_FLUSHCOMPLETE, types.OPEN, counterpartyChannelState))
+		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "counterparty channel state must be one of [%s, %s], got %s", types.OPEN, types.STATE_FLUSHCOMPLETE, counterpartyChannelState)
 	}
 
 	if err := k.connectionKeeper.VerifyChannelState(

@@ -838,6 +838,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 		})
 	}
 }
+
 func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 	var path *ibctesting.Path
 	testCases := []struct {
@@ -883,6 +884,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 				path.EndpointA.SetConnection(connectionEnd)
 			},
 			connectiontypes.ErrInvalidConnectionState,
+		},
+		{
+			"invalid counterparty channel state",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.State = types.CLOSED
+				path.EndpointB.SetChannel(channel)
+			},
+			types.ErrInvalidCounterparty,
 		},
 	}
 

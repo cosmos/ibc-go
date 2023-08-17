@@ -1217,7 +1217,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 		malleate  func()
 		expResult func(res *channeltypes.MsgChannelUpgradeOpenResponse, err error)
 	}{
-		// TODO: Uncomment and address testcases when appropriate, timeout logic currently causes failures
 		{
 			"success",
 			func() {},
