@@ -114,8 +114,13 @@ func (k Keeper) ChanUpgradeTry(
 	if found {
 		proposedUpgradeFields = upgrade.Fields
 	} else {
-		// TODO: add fast forward feature
-		// https://github.com/cosmos/ibc-go/issues/3794
+		// if the counterparty sequence is greater than the current sequence, we fast-forward to the counterparty sequence.
+		if counterpartyUpgradeSequence > channel.UpgradeSequence {
+			// using -1 as WriteUpgradeInitChannel increments the sequence
+			channel.UpgradeSequence = counterpartyUpgradeSequence - 1
+			k.SetChannel(ctx, portID, channelID, channel)
+		}
+
 		// NOTE: OnChanUpgradeInit will not be executed by the application
 		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields)
 		if err != nil {
@@ -154,8 +159,10 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
 	}
 
-	if err := k.syncUpgradeSequence(ctx, portID, channelID, channel, counterpartyUpgradeSequence); err != nil {
-		return types.Upgrade{}, err
+	if counterpartyUpgradeSequence < channel.UpgradeSequence {
+		return upgrade, types.NewUpgradeError(channel.UpgradeSequence-1, errorsmod.Wrapf(
+			types.ErrInvalidUpgradeSequence, "counterparty upgrade sequence < current upgrade sequence (%d < %d)", counterpartyUpgradeSequence, channel.UpgradeSequence,
+		))
 	}
 
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
@@ -896,7 +903,7 @@ func (k Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 		upgradeError = types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
-	if err := k.writeErrorReceipt(ctx, portID, channelID, upgrade, upgradeError); err != nil {
+	if err := k.WriteErrorReceipt(ctx, portID, channelID, upgrade.Fields, upgradeError); err != nil {
 		return err
 	}
 
@@ -915,14 +922,14 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	k.deleteUpgradeInfo(ctx, portID, channelID)
 }
 
-// writeErrorReceipt will write an error receipt from the provided UpgradeError.
-func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeError *types.UpgradeError) error {
+// WriteErrorReceipt will write an error receipt from the provided UpgradeError.
+func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeFields types.UpgradeFields, upgradeError *types.UpgradeError) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
-	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgrade, upgradeError)
+	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeFields, upgradeError)
 	return nil
 }
