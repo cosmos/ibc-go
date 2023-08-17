@@ -158,6 +158,7 @@ func (k Keeper) ChanUpgradeTry(
 	); err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
 	}
+
 	if counterpartyUpgradeSequence < channel.UpgradeSequence {
 		return upgrade, types.NewUpgradeError(channel.UpgradeSequence-1, errorsmod.Wrapf(
 			types.ErrInvalidUpgradeSequence, "counterparty upgrade sequence < current upgrade sequence (%d < %d)", counterpartyUpgradeSequence, channel.UpgradeSequence,
@@ -765,6 +766,10 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, cou
 	// assert that both sides propose the same channel ordering
 	if upgradeFields.Ordering != counterpartyUpgradeFields.Ordering {
 		return errorsmod.Wrapf(types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade ordering (%s) to match counterparty upgrade ordering (%s)", upgradeFields.Ordering, counterpartyUpgradeFields.Ordering)
+	}
+
+	if upgradeFields.Version != counterpartyUpgradeFields.Version {
+		return errorsmod.Wrapf(types.ErrIncompatibleCounterpartyUpgrade, "expected upgrade version (%s) to match counterparty upgrade version (%s)", upgradeFields.Version, counterpartyUpgradeFields.Version)
 	}
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, upgradeFields.ConnectionHops[0])
