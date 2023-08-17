@@ -579,16 +579,15 @@ var _ sdk.Msg = &MsgChannelUpgradeAck{}
 
 // NewMsgChannelUpgradeAck constructs a new MsgChannelUpgradeAck
 // nolint:interfacer
-func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyFlushStatus FlushStatus, counterpartyUpgrade Upgrade, proofChannel, proofUpgrade []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
+func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyUpgrade Upgrade, proofChannel, proofUpgrade []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
 	return &MsgChannelUpgradeAck{
-		PortId:                  portID,
-		ChannelId:               channelID,
-		CounterpartyFlushStatus: counterpartyFlushStatus,
-		CounterpartyUpgrade:     counterpartyUpgrade,
-		ProofChannel:            proofChannel,
-		ProofUpgrade:            proofUpgrade,
-		ProofHeight:             proofHeight,
-		Signer:                  signer,
+		PortId:              portID,
+		ChannelId:           channelID,
+		CounterpartyUpgrade: counterpartyUpgrade,
+		ProofChannel:        proofChannel,
+		ProofUpgrade:        proofUpgrade,
+		ProofHeight:         proofHeight,
+		Signer:              signer,
 	}
 }
 

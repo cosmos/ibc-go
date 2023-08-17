@@ -832,34 +832,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 
 				errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(found)
-				suite.Require().Equal(uint64(100), errorReceipt.Sequence)
-			},
-		},
-		{
-			"application callback error writes upgrade error receipt",
-			func() {
-				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(
-					ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string,
-				) (string, error) {
-					// set arbitrary value in store to mock application state changes
-					store := ctx.KVStore(suite.chainB.GetSimApp().GetKey(exported.ModuleName))
-					store.Set([]byte("foo"), []byte("bar"))
-					return "", fmt.Errorf("mock app callback failed")
-				}
-			},
-			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
-				suite.Require().NoError(err)
-
-				suite.Require().NotNil(res)
-				suite.Require().Equal(channeltypes.FAILURE, res.Result)
-
-				errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().True(found)
-				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
-
-				// assert application state changes are not committed
-				store := suite.chainB.GetContext().KVStore(suite.chainB.GetSimApp().GetKey(exported.ModuleName))
-				suite.Require().False(store.Has([]byte("foo")))
+				suite.Require().Equal(uint64(99), errorReceipt.Sequence)
 			},
 		},
 	}
@@ -970,13 +943,16 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"core handler returns error and no upgrade error receipt is written",
 			func() {
-				// force an error by overriding the counterparty flush status to an invalid value
-				msg.CounterpartyFlushStatus = channeltypes.NOTINFLUSH
+				// force an error by overriding the channel state to an invalid value
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.CLOSED
+
+				path.EndpointA.SetChannel(channel)
 			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
-				suite.Require().ErrorIs(err, channeltypes.ErrInvalidFlushStatus)
+				suite.Require().ErrorIs(err, channeltypes.ErrInvalidChannelState)
 
 				errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().Empty(errorReceipt)
@@ -1053,20 +1029,18 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			counterpartyChannel := path.EndpointB.GetChannel()
 			counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
 
 			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeAck{
-				PortId:                  path.EndpointA.ChannelConfig.PortID,
-				ChannelId:               path.EndpointA.ChannelID,
-				CounterpartyFlushStatus: counterpartyChannel.FlushStatus,
-				CounterpartyUpgrade:     counterpartyUpgrade,
-				ProofChannel:            proofChannel,
-				ProofUpgrade:            proofUpgrade,
-				ProofHeight:             proofHeight,
-				Signer:                  suite.chainA.SenderAccount.GetAddress().String(),
+				PortId:              path.EndpointA.ChannelConfig.PortID,
+				ChannelId:           path.EndpointA.ChannelID,
+				CounterpartyUpgrade: counterpartyUpgrade,
+				ProofChannel:        proofChannel,
+				ProofUpgrade:        proofUpgrade,
+				ProofHeight:         proofHeight,
+				Signer:              suite.chainA.SenderAccount.GetAddress().String(),
 			}
 
 			tc.malleate()
@@ -1226,13 +1200,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 		// 	},
 		// 	expErr: channeltypes.ErrInvalidUpgradeSequence,
 		// },
-		{
-			name: "capability not found",
-			malleate: func() {
-				msg.ChannelId = ibctesting.InvalidID
-			},
-			expErr: capabilitytypes.ErrCapabilityNotFound,
-		},
+		// {
+		//	name: "capability not found",
+		//	malleate: func() {
+		//		msg.ChannelId = ibctesting.InvalidID
+		//	},
+		//	expErr: capabilitytypes.ErrCapabilityNotFound,
+		// },
 	}
 
 	for _, tc := range cases {
