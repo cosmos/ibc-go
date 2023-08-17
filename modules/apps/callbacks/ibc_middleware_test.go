@@ -754,9 +754,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 	}{
 		{
 			"success",
-			func() {
-				expGasConsumed = 0
-			},
+			func() {},
 			false,
 			nil,
 		},
@@ -844,8 +842,9 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 
 			ctx = s.chainB.GetContext()
 
-			// set a callback executor that will always succeed without consuming gas
+			// set a callback executor that will always succeed after consuming expGasConsumed
 			callbackExecutor = func(cachedCtx sdk.Context) error {
+				cachedCtx.GasMeter().ConsumeGas(expGasConsumed, "callbackExecutor gas consumption")
 				return nil
 			}
 
