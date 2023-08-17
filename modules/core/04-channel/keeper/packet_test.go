@@ -224,7 +224,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				sourceChannel = path.EndpointA.ChannelID
 
 				channel := path.EndpointA.GetChannel()
-				channel.FlushStatus = types.FLUSHING
+				channel.State = types.STATE_FLUSHING
 				path.EndpointA.SetChannel(channel)
 			},
 			false,
@@ -236,19 +236,23 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				sourceChannel = path.EndpointA.ChannelID
 
 				channel := path.EndpointA.GetChannel()
-				channel.FlushStatus = types.FLUSHCOMPLETE
+				channel.State = types.STATE_FLUSHCOMPLETE
 				path.EndpointA.SetChannel(channel)
 			},
 			false,
 		},
 		{
-			"channel is in INITUPGRADE state",
+			"channel is in FLUSHING state",
 			func() {
 				suite.coordinator.Setup(path)
 
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-				err := path.EndpointA.ChanUpgradeInit()
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeTry()
 				suite.Require().NoError(err)
 			},
 			false,
