@@ -575,7 +575,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 
 				channel := path.EndpointA.GetChannel()
 				// ChanUpgradeAck will set the channel state to STATE_FLUSHING
-				// It will get set to FLUSHING_COMPLETE in the write function.
+				// It will be set to FLUSHING_COMPLETE in the write function.
 				suite.Require().Equal(types.STATE_FLUSHING, channel.State)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
