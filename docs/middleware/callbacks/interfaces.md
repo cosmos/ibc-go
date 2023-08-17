@@ -2,7 +2,9 @@
 
 The callbacks middleware requires certain interfaces to be implemented by the underlying ibc application and the secondary application. If you're simply wiring up the callbacks middleware to an existing ibc application stack such as `icacontroller` and `wasm`, you can skip this section.
 
-## `PacketDataUnmarshaler`
+## Interfaces for developing the Underlying IBC Application
+
+### `PacketDataUnmarshaler`
 
 ```go
 // PacketDataUnmarshaler defines an optional interface which allows a middleware to
@@ -17,7 +19,7 @@ The callbacks middleware **requires** the underlying ibc application to implemen
 
 If the underlying application is a middleware itself, then it can implement this interface by simply passing the function call to its underlying application. See its implementation in the [`fee middleware`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/apps/29-fee/ibc_middleware.go#L368-L378) for reference.
 
-## `PacketDataProvider`
+### `PacketDataProvider`
 
 ```go
 // PacketDataProvider defines an optional interfaces for retrieving custom packet data stored on behalf of another application.
@@ -36,7 +38,7 @@ The callbacks middleware also **requires** the underlying ibc application's pack
 
 Since middlewares do not have packet types, they do not need to implement this interface.
 
-## `PacketData`
+### `PacketData`
 
 ```go
 // PacketData defines an optional interface which an application's packet data structure may implement.
@@ -51,7 +53,9 @@ This is an optional interface that can be implemented by the underlying ibc appl
 
 Since middlewares do not have packet types, they do not need to implement this interface.
 
-## `ContractKeeper`
+## Interfaces for developing the Secondary Application
+
+### `ContractKeeper`
 
 The callbacks middleware requires the secondary application to implement the [`ContractKeeper`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/callbacks/types/expected_keepers.go#L11-L64) interface.
 
