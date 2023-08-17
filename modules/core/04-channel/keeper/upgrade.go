@@ -277,7 +277,7 @@ func (k Keeper) ChanUpgradeAck(
 	// in the crossing hello case, we do not modify version that our TRY call returned and instead enforce
 	// that both TRY calls returned the same version
 
-	if channel.IsOpen() { // TODO why do we need this?
+	if channel.IsOpen() {
 		upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 	}
 
