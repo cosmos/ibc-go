@@ -311,9 +311,6 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	// channel.State will always be in FLUSHING at this point.
-	previousState := channel.State // FIXME: previous state could have been OPEN
-
 	if !k.HasInflightPackets(ctx, portID, channelID) {
 		channel.State = types.STATE_FLUSHCOMPLETE
 	} else {
@@ -331,7 +328,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.ACKUPGRADE.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State.String())
 	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, upgrade)
 }
 
