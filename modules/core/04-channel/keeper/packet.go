@@ -381,11 +381,9 @@ func (k Keeper) AcknowledgePacket(
 		)
 	}
 
-	if channel.State != types.OPEN && channel.FlushStatus != types.FLUSHING {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"packets cannot be acknowledged on channel with state (%s) and flush status (%s)", channel.State, channel.FlushStatus,
-		)
+	// TODO(damian): update TRYUPGRADE to FLUSHING following https://github.com/cosmos/ibc-go/issues/4243
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.TRYUPGRADE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "packets cannot be acknowledged on channel with state (%s)", channel.State)
 	}
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
