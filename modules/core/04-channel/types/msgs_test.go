@@ -656,8 +656,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 
 			msg = types.NewMsgChannelUpgradeAck(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.FLUSHING, upgrade,
-				suite.proof, suite.proof,
+				upgrade, suite.proof, suite.proof,
 				height, addr,
 			)
 

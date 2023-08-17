@@ -643,7 +643,6 @@ func (endpoint *Endpoint) ChanUpgradeAck() error {
 	msg := channeltypes.NewMsgChannelUpgradeAck(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
-		endpoint.Counterparty.GetChannel().FlushStatus,
 		counterpartyUpgrade,
 		proofChannel,
 		proofUpgrade,
