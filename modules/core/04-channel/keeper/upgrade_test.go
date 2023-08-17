@@ -672,6 +672,173 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
+	var (
+		path                     *ibctesting.Path
+		counterpartyChannelState types.State
+		counterpartyUpgrade      types.Upgrade
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"success with later upgrade sequence",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.UpgradeSequence = 10
+				path.EndpointA.SetChannel(channel)
+
+				channel = path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 10
+				path.EndpointB.SetChannel(channel)
+
+				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+
+				err := path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+			},
+			nil,
+		},
+		{
+			"channel not found",
+			func() {
+				path.EndpointB.ChannelID = ibctesting.InvalidID
+				path.EndpointB.ChannelConfig.PortID = ibctesting.InvalidID
+			},
+			types.ErrChannelNotFound,
+		},
+		{
+			"channel is not in FLUSHING state",
+			func() {
+				err := path.EndpointB.SetChannelState(types.CLOSED)
+				suite.Require().NoError(err)
+			},
+			types.ErrInvalidChannelState,
+		},
+		{
+			"invalid counterparty channel state",
+			func() {
+				counterpartyChannelState = types.CLOSED
+			},
+			types.ErrInvalidCounterparty,
+		},
+		{
+			"connection not found",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+				path.EndpointB.SetChannel(channel)
+			},
+			connectiontypes.ErrConnectionNotFound,
+		},
+		{
+			"invalid connection state",
+			func() {
+				connectionEnd := path.EndpointB.GetConnection()
+				connectionEnd.State = connectiontypes.UNINITIALIZED
+				path.EndpointB.SetConnection(connectionEnd)
+			},
+			connectiontypes.ErrInvalidConnectionState,
+		},
+		{
+			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.Ordering = types.ORDERED
+				path.EndpointA.SetChannel(channel)
+
+				suite.coordinator.CommitBlock(suite.chainA)
+
+				err := path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"fails due to mismatch in upgrade ordering",
+			func() {
+				upgrade := path.EndpointA.GetChannelUpgrade()
+				upgrade.Fields.Ordering = types.NONE
+
+				path.EndpointA.SetChannelUpgrade(upgrade)
+
+				suite.coordinator.CommitBlock(suite.chainA)
+
+				err := path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"counterparty timeout has elapsed",
+			func() {
+				// Need to set counterparty upgrade in state and update clients to ensure
+				// proofs submitted reflect the altered upgrade.
+				counterpartyUpgrade.Timeout = types.NewTimeout(clienttypes.NewHeight(0, 1), 0)
+				path.EndpointA.SetChannelUpgrade(counterpartyUpgrade)
+
+				suite.coordinator.CommitBlock(suite.chainA)
+
+				err := path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+			},
+			types.NewUpgradeError(1, types.ErrInvalidUpgrade),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.UpdateClient()
+			suite.Require().NoError(err)
+
+			counterpartyChannelState = path.EndpointA.GetChannel().State
+			counterpartyUpgrade = path.EndpointA.GetChannelUpgrade()
+
+			tc.malleate()
+
+			proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+
+			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeConfirm(
+				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, counterpartyChannelState, counterpartyUpgrade,
+				proofChannel, proofUpgrade, proofHeight,
+			)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.assertUpgradeError(err, tc.expError)
+			}
+		})
+	}
+}
+
 // TODO: Uncomment and address testcases when appropriate, timeout logic currently causes failures
 // func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 // 	var path *ibctesting.Path

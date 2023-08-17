@@ -331,6 +331,80 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, upgrade)
 }
 
+// ChanUpgradeConfirm is called on the chain which is on FLUSHING after chanUpgradeAck is called on the counterparty.
+// This will inform the TRY chain of the timeout set on ACK by the counterparty. If the timeout has already exceeded, we will write an error receipt and restore.
+func (k Keeper) ChanUpgradeConfirm(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	counterpartyChannelState types.State,
+	counterpartyUpgrade types.Upgrade,
+	proofChannel,
+	proofUpgrade []byte,
+	proofHeight clienttypes.Height,
+) error {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if channel.State != types.STATE_FLUSHING {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.STATE_FLUSHING, channel.State)
+	}
+
+	if !collections.Contains(counterpartyChannelState, []types.State{types.STATE_FLUSHING, types.STATE_FLUSHCOMPLETE}) {
+		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "expected one of [%s, %s], got %s", types.STATE_FLUSHING, types.STATE_FLUSHCOMPLETE, counterpartyChannelState)
+	}
+
+	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !found {
+		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+	}
+
+	if connection.GetState() != int32(connectiontypes.OPEN) {
+		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
+	}
+
+	counterpartyHops := []string{connection.GetCounterparty().GetConnectionID()}
+	counterpartyChannel := types.Channel{
+		State:           counterpartyChannelState,
+		Ordering:        channel.Ordering,
+		ConnectionHops:  counterpartyHops,
+		Counterparty:    types.NewCounterparty(portID, channelID),
+		Version:         channel.Version,
+		UpgradeSequence: channel.UpgradeSequence,
+	}
+
+	if err := k.connectionKeeper.VerifyChannelState(
+		ctx,
+		connection,
+		proofHeight, proofChannel,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		counterpartyChannel,
+	); err != nil {
+		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
+	}
+
+	if err := k.connectionKeeper.VerifyChannelUpgrade(
+		ctx,
+		channel.Counterparty.PortId,
+		channel.Counterparty.ChannelId,
+		connection,
+		counterpartyUpgrade,
+		proofUpgrade, proofHeight,
+	); err != nil {
+		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
+	}
+
+	timeout := counterpartyUpgrade.Timeout
+	if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
+		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(err, "counterparty upgrade timeout has passed"))
+	}
+
+	return nil
+}
+
 // WriteUpgradeConfirmChannel writes a channel which has successfully passed the ChanUpgradeConfirm handshake step.
 // If the channel has no in-flight packets, its state is updated to indicate that flushing has completed. Otherwise, the counterparty upgrade is set
 // and the channel state is left unchanged.
