@@ -841,15 +841,16 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 
 	ctx.Logger().Info("channel upgrade ack succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
-	// Move channel to OPEN state if both chains have finished flushing any in-flight packets. Counterparty flush status
-	// has been verified in ChanUpgradeAck.
-	if !k.ChannelKeeper.HasInflightPackets(ctx, msg.PortId, msg.ChannelId) {
-		cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId)
+	// TODO: Move this block of code to the confirm handler (https://github.com/cosmos/ibc-go/issues/4268)
+	// // Move channel to OPEN state if both chains have finished flushing any in-flight packets. Counterparty flush status
+	// // has been verified in ChanUpgradeAck.
+	// if !k.ChannelKeeper.HasInflightPackets(ctx, msg.PortId, msg.ChannelId) {
+	// 	cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId)
 
-		k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
+	// 	k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
 
-		ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
-	}
+	// 	ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+	// }
 
 	return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.SUCCESS}, nil
 }
