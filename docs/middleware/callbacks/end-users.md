@@ -1,3 +1,7 @@
+<!--
+order: 5
+-->
+
 # Usage
 
 This section explains how to use the callbacks middleware from the perspective of an IBC Actor. Callbacks middleware provides two types of callbacks:

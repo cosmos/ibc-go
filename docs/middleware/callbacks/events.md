@@ -1,3 +1,7 @@
+<!--
+order: 4
+-->
+
 # Events
 
 An overview of all events related to the callbacks middleware. There are two types of events, `"ibc_src_callback"` and `"ibc_dest_callback"`.

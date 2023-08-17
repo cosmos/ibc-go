@@ -1,3 +1,7 @@
+<!--
+order: 3
+-->
+
 # Interfaces
 
 The callbacks middleware requires certain interfaces to be implemented by the underlying ibc application and the secondary application. If you're simply wiring up the callbacks middleware to an existing ibc application stack such as `icacontroller` and `wasm`, you can skip this section.
