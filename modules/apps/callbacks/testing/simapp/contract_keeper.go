@@ -16,21 +16,19 @@ import (
 // MockKeeper implements callbacktypes.ContractKeeper
 var _ callbacktypes.ContractKeeper = (*ContractKeeper)(nil)
 
-var (
-	StatefulCounterKey              = "stateful-callback-counter"
-)
+var StatefulCounterKey = "stateful-callback-counter"
 
 const (
 	// OogPanicContract is a contract address that will panic out of gas
-	OogPanicContract     = "panics out of gas"
+	OogPanicContract = "panics out of gas"
 	// OogErrorContract is a contract address that will error out of gas
-	OogErrorContract     = "errors out of gas"
+	OogErrorContract = "errors out of gas"
 	// PanicContract is a contract address that will panic
-	PanicContract        = "panics"
+	PanicContract = "panics"
 	// ErrorContract is a contract address that will return an error
-	ErrorContract        = "errors"
+	ErrorContract = "errors"
 	// SuccessContract is a contract address that will return nil
-	SuccessContract      = "success"
+	SuccessContract = "success"
 )
 
 // This is a mock contract keeper used for testing. It is not wired up to any modules.
@@ -142,11 +140,12 @@ func (k ContractKeeper) IBCReceivePacketCallback(
 // processMockCallback processes a mock callback.
 // It increments the stateful entry counter and the callback counter.
 // This function:
-//	 - returns MockApplicationCallbackError and consumes half the remaining gas if the contract address is ErrorContract
+//   - returns MockApplicationCallbackError and consumes half the remaining gas if the contract address is ErrorContract
 //   - Oog panics and consumes all the remaining gas + 1 if the contract address is OogPanicContract
 //   - returns MockApplicationCallbackError and consumes all the remaining gas + 1 if the contract address is OogErrorContract
 //   - Panics and consumes half the remaining gas if the contract address is PanicContract
 //   - returns nil and consumes half the remaining gas if the contract address is SuccessContract or any other value
+//
 // This function errors if the authAddress is MockCallbackUnauthorizedAddress.
 func (k ContractKeeper) processMockCallback(
 	ctx sdk.Context,
@@ -164,24 +163,24 @@ func (k ContractKeeper) processMockCallback(
 	k.Counters[callbackType]++
 
 	switch contractAddress {
-		case ErrorContract:
-			ctx.GasMeter().ConsumeGas(gasRemaining/2, fmt.Sprintf("mock %s callback unauthorized", callbackType))
-			return ibcmock.MockApplicationCallbackError
-		case OogPanicContract:
-			ctx.GasMeter().ConsumeGas(gasRemaining+1, fmt.Sprintf("mock %s callback oog panic", callbackType))
-			return nil // unreachable
-		case OogErrorContract:
-			defer func() {
-				_ = recover()
-				err = ibcmock.MockApplicationCallbackError
-			}()
-			ctx.GasMeter().ConsumeGas(gasRemaining+1, fmt.Sprintf("mock %s callback oog error", callbackType))
-			return nil // unreachable
-		case PanicContract:
-			ctx.GasMeter().ConsumeGas(gasRemaining/2, fmt.Sprintf("mock %s callback panic", callbackType))
-			panic(ibcmock.MockApplicationCallbackError)
-		default:
-			ctx.GasMeter().ConsumeGas(gasRemaining/2, fmt.Sprintf("mock %s callback success", callbackType))
-			return nil // success
+	case ErrorContract:
+		ctx.GasMeter().ConsumeGas(gasRemaining/2, fmt.Sprintf("mock %s callback unauthorized", callbackType))
+		return ibcmock.MockApplicationCallbackError
+	case OogPanicContract:
+		ctx.GasMeter().ConsumeGas(gasRemaining+1, fmt.Sprintf("mock %s callback oog panic", callbackType))
+		return nil // unreachable
+	case OogErrorContract:
+		defer func() {
+			_ = recover()
+			err = ibcmock.MockApplicationCallbackError
+		}()
+		ctx.GasMeter().ConsumeGas(gasRemaining+1, fmt.Sprintf("mock %s callback oog error", callbackType))
+		return nil // unreachable
+	case PanicContract:
+		ctx.GasMeter().ConsumeGas(gasRemaining/2, fmt.Sprintf("mock %s callback panic", callbackType))
+		panic(ibcmock.MockApplicationCallbackError)
+	default:
+		ctx.GasMeter().ConsumeGas(gasRemaining/2, fmt.Sprintf("mock %s callback success", callbackType))
+		return nil // success
 	}
 }
