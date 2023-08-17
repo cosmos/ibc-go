@@ -788,9 +788,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-			// TODO(damian): update TRYUPGRADE to FLUSHING following https://github.com/cosmos/ibc-go/issues/4243
 			channel := path.EndpointA.GetChannel()
-			channel.State = types.TRYUPGRADE
+			channel.State = types.STATE_FLUSHING
 
 			path.EndpointA.SetChannel(channel)
 		}, true},

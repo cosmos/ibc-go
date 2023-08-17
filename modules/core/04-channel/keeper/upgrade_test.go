@@ -369,12 +369,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 
 			upgrade, found := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().True(found)
-			suite.Require().Equal(types.TRYUPGRADE, channel.State)
 			suite.Require().Equal(upgradeWithAppCallbackVersion, upgrade)
-
-			actualCounterpartyLastSequenceSend, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			suite.Require().True(ok)
-			suite.Require().Equal(proposedUpgrade.LatestSequenceSend, actualCounterpartyLastSequenceSend)
 
 			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{

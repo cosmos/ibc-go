@@ -381,8 +381,7 @@ func (k Keeper) AcknowledgePacket(
 		)
 	}
 
-	// TODO(damian): update TRYUPGRADE to FLUSHING following https://github.com/cosmos/ibc-go/issues/4243
-	if !collections.Contains(channel.State, []types.State{types.OPEN, types.TRYUPGRADE}) {
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "packets cannot be acknowledged on channel with state (%s)", channel.State)
 	}
 

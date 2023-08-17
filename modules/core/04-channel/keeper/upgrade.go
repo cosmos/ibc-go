@@ -194,16 +194,10 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeTry step, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	previousState := channel.State
-	channel.State = types.TRYUPGRADE
-
 	upgrade.Fields.Version = upgradeVersion
-
-	k.SetCounterpartyLastPacketSequence(ctx, portID, channelID, counterpartyLastSequenceSend)
-	k.SetChannel(ctx, portID, channelID, channel)
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.TRYUPGRADE.String())
+	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN, "new-state", channel.State)
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, upgrade)
 
 	return channel, upgrade
