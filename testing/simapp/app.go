@@ -534,7 +534,7 @@ func NewSimApp(
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> fee.SendPacket -> channel.SendPacket
+	// icaControllerKeeper.SendTx -> fee.SendPacket -> channel.SendPacket
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
