@@ -841,23 +841,54 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 
 	ctx.Logger().Info("channel upgrade ack succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
-	// TODO: Move this block of code to the confirm handler (https://github.com/cosmos/ibc-go/issues/4268)
-	// // Move channel to OPEN state if both chains have finished flushing any in-flight packets. Counterparty flush status
-	// // has been verified in ChanUpgradeAck.
-	// if !k.ChannelKeeper.HasInflightPackets(ctx, msg.PortId, msg.ChannelId) {
-	// 	cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId)
-
-	// 	k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
-
-	// 	ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
-	// }
-
 	return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.SUCCESS}, nil
 }
 
 // ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
-func (Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeConfirm) (*channeltypes.MsgChannelUpgradeConfirmResponse, error) {
-	return &channeltypes.MsgChannelUpgradeConfirmResponse{}, nil
+func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeConfirm) (*channeltypes.MsgChannelUpgradeConfirmResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	}
+
+	cbs, ok := k.Router.GetRoute(module)
+	if !ok {
+		ctx.Logger().Error("channel upgrade confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	}
+
+	err = k.ChannelKeeper.ChanUpgradeConfirm(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelState, msg.CounterpartyUpgrade, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
+	if err != nil {
+		ctx.Logger().Error("channel upgrade confirm failed", "error", errorsmod.Wrap(err, "channel upgrade confirm failed"))
+		if channeltypes.IsUpgradeError(err) {
+			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
+			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
+
+			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
+			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
+			return &channeltypes.MsgChannelUpgradeConfirmResponse{Result: channeltypes.FAILURE}, nil
+		}
+
+		// NOTE: an error is returned to baseapp and transaction state is not committed.
+		return nil, errorsmod.Wrap(err, "channel upgrade confirm failed")
+	}
+
+	k.ChannelKeeper.WriteUpgradeConfirmChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade)
+	ctx.Logger().Info("channel upgrade confirm succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+
+	// Move channel to OPEN state if both chains have finished flushing in-flight packets.
+	// Counterparty channel state has been verified in ChanUpgradeConfirm.
+	if msg.CounterpartyChannelState == channeltypes.STATE_FLUSHCOMPLETE && !k.ChannelKeeper.HasInflightPackets(ctx, msg.PortId, msg.ChannelId) {
+		cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId)
+		k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
+
+		ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+	}
+
+	return &channeltypes.MsgChannelUpgradeConfirmResponse{Result: channeltypes.SUCCESS}, nil
 }
 
 // ChannelUpgradeOpen defines a rpc handler method for MsgChannelUpgradeOpen.
