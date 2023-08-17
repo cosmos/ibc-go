@@ -70,3 +70,18 @@ Note that a packet can have both a source and destination callback.
   }
 }
 ```
+
+# User Defined Gas Limit
+
+User defined gas limit was added to reasons:
+
+- To prevent callbacks from blocking packet lifecycle.
+- To prevent relayers from being able to DOS the callback execution by sending a packet with a low amount of gas.
+
+::: tip
+There is a chain wide parameter that sets the maximum gas limit that a user can set for a callback. This is to prevent a user from setting a gas limit that is too high for relayers. If the `"gas_limit"` is not set in the packet memo, then the maximum gas limit is used.
+:::
+
+It achieves the first goal because if the relayer reserves user defined gas limit for the callback execution, then even if the callback execution runs out of gas, the packet lifecycle will not be blocked and callback will not be executed again.
+
+It achieves the second goal because if the relayer does not reserve user defined gas limit for the callback execution and the callback runs out of gas, then the entire tx will be reverted and the packet lifecycle will be blocked. This will allow the relayer to retry with a higher gas limit.
