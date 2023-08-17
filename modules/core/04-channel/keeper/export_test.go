@@ -11,8 +11,8 @@ import (
 )
 
 // StartFlushing is a wrapper around startFlushing to allow the function to be directly called in tests.
-func (k Keeper) StartFlushing(ctx sdk.Context, portID, channelID string) error {
-	return k.startFlushing(ctx, portID, channelID)
+func (k Keeper) StartFlushing(ctx sdk.Context, portID, channelID string, upgrade *types.Upgrade) error {
+	return k.startFlushing(ctx, portID, channelID, upgrade)
 }
 
 // ValidateSelfUpgradeFields is a wrapper around validateSelfUpgradeFields to allow the function to be directly called in tests.
