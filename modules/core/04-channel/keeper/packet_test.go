@@ -218,37 +218,29 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			channelCap = capabilitytypes.NewCapability(5)
 		}, false},
 		{
-			"invalid flush status: FLUSHING",
+			"channel is in FLUSH_COMPLETE state",
 			func() {
 				suite.coordinator.Setup(path)
 				sourceChannel = path.EndpointA.ChannelID
 
 				channel := path.EndpointA.GetChannel()
-				channel.FlushStatus = types.FLUSHING
+				channel.State = types.STATE_FLUSHCOMPLETE
 				path.EndpointA.SetChannel(channel)
 			},
 			false,
 		},
 		{
-			"invalid flush status: FLUSHCOMPLETE",
-			func() {
-				suite.coordinator.Setup(path)
-				sourceChannel = path.EndpointA.ChannelID
-
-				channel := path.EndpointA.GetChannel()
-				channel.FlushStatus = types.FLUSHCOMPLETE
-				path.EndpointA.SetChannel(channel)
-			},
-			false,
-		},
-		{
-			"channel is in INITUPGRADE state",
+			"channel is in FLUSHING state",
 			func() {
 				suite.coordinator.Setup(path)
 
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-				err := path.EndpointA.ChanUpgradeInit()
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeTry()
 				suite.Require().NoError(err)
 			},
 			false,
