@@ -36,14 +36,7 @@ func (k Keeper) SendPacket(
 	}
 
 	if channel.State != types.OPEN {
-		return 0, errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel is not OPEN (got %s)", channel.State.String(),
-		)
-	}
-
-	if channel.FlushStatus != types.NOTINFLUSH {
-		return 0, errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected flush status to be %s during packet send, got %s", types.NOTINFLUSH, channel.FlushStatus)
+		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
