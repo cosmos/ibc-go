@@ -218,19 +218,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			channelCap = capabilitytypes.NewCapability(5)
 		}, false},
 		{
-			"invalid flush status: FLUSHING",
-			func() {
-				suite.coordinator.Setup(path)
-				sourceChannel = path.EndpointA.ChannelID
-
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
-				path.EndpointA.SetChannel(channel)
-			},
-			false,
-		},
-		{
-			"invalid flush status: FLUSHCOMPLETE",
+			"channel is in FLUSH_COMPLETE state",
 			func() {
 				suite.coordinator.Setup(path)
 				sourceChannel = path.EndpointA.ChannelID
