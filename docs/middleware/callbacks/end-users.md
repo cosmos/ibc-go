@@ -6,33 +6,33 @@ order: 5
 
 This section explains how to use the callbacks middleware from the perspective of an IBC Actor. Callbacks middleware provides two types of callbacks:
 
-- Source Callbacks:
-  - SendPacket Callback
-  - OnAcknowledgementPacket Callback
-  - OnTimeoutPacket Callback
-- Destination Callbacks:
-  - ReceivePacket Callback
+- Source callbacks:
+  - `SendPacket` callback
+  - `OnAcknowledgementPacket` callback
+  - `OnTimeoutPacket` callback
+- Destination callbacks:
+  - `ReceivePacket` callback
 
-For a given channel, the source callbacks are supported if the source chain has the callbacks middleware wired up in the channel's ibc stack. Similarly, the destination callbacks are supported if the destination chain has the callbacks middleware wired up in the channel's ibc stack.
+For a given channel, the source callbacks are supported if the source chain has the callbacks middleware wired up in the channel's IBC stack. Similarly, the destination callbacks are supported if the destination chain has the callbacks middleware wired up in the channel's IBC stack.
 
 ::: tip
 Callbacks are always executed after the packet has been processed by the underlying IBC module.
 :::
 
 ::: warning
-If the underlying application module is doing an asynchronous acknowledgement on packet receive (for example, if the packet forward middleware is in the stack, and is being used by this packet), then the callbacks middleware will execute the ReceivePacket callback after the acknowledgement has been received.
+If the underlying application module is doing an asynchronous acknowledgement on packet receive (for example, if the [packet forward middleware](https://github.com/cosmos/ibc-apps/tree/main/middleware/packet-forward-middleware) is in the stack, and is being used by this packet), then the callbacks middleware will execute the `ReceivePacket` callback after the acknowledgement has been received.
 :::
 
 ## Source Callbacks
 
-Source callbacks are natively supported in the following ibc modules (if they are wrapped my the callbacks middleware):
+Source callbacks are natively supported in the following ibc modules (if they are wrapped by the callbacks middleware):
 
-- transfer
-- icacontroller
+- `transfer`
+- `icacontroller`
 
-To have your source callbacks be processed by the callbacks middleware, you must set the packet memo to the following format:
+To have your source callbacks be processed by the callbacks middleware, you must set the memo in the application's packet data to the following format:
 
-```json
+```jsonc
 {
   "src_callback": {
     "address": "callbackAddressString",
@@ -46,9 +46,9 @@ To have your source callbacks be processed by the callbacks middleware, you must
 
 Destination callbacks are natively only supported in the transfer module. Note that wrapping icahost is not supported. This is because icahost should be able to execute an arbitrary transaction anyway, and can call contracts or modules directly.
 
-To have your destination callbacks processed by the callbacks middleware, you must set the packet memo to the following format:
+To have your destination callbacks processed by the callbacks middleware, you must set the memo in the application's packet data to the following format:
 
-```json
+```jsonc
 {
   "dest_callback": {
     "address": "callbackAddressString",
@@ -60,7 +60,7 @@ To have your destination callbacks processed by the callbacks middleware, you mu
 
 Note that a packet can have both a source and destination callback.
 
-```json
+```jsonc
 {
   "src_callback": {
     "address": "callbackAddressString",
@@ -77,7 +77,7 @@ Note that a packet can have both a source and destination callback.
 
 # User Defined Gas Limit
 
-User defined gas limit was added to reasons:
+User defined gas limit was added for the following reasons:
 
 - To prevent callbacks from blocking packet lifecycle.
 - To prevent relayers from being able to DOS the callback execution by sending a packet with a low amount of gas.
