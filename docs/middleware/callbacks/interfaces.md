@@ -4,7 +4,7 @@ order: 3
 
 # Interfaces
 
-The callbacks middleware requires certain interfaces to be implemented by the underlying ibc application and the secondary application. If you're simply wiring up the callbacks middleware to an existing ibc application stack such as `icacontroller` and `wasm`, you can skip this section.
+The callbacks middleware requires certain interfaces to be implemented by the underlying IBC applications and the secondary application. If you're simply wiring up the callbacks middleware to an existing IBC application stack and a secondary application such as `icacontroller` and `x/wasm`, you can skip this section.
 
 ## Interfaces for developing the Underlying IBC Application
 
@@ -53,7 +53,9 @@ type PacketData interface {
 }
 ```
 
-This is an optional interface that can be implemented by the underlying ibc application's packet data type. It is used to retrieve the packet sender address from the packet data. The callbacks middleware uses this interface to retrieve the packet sender address and pass it to the callback function during a source callback. See its implementation in the [`transfer`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/apps/transfer/types/packet.go#L74-L83) and [`ica`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/apps/27-interchain-accounts/types/packet.go#L78-L92).
+This is an optional interface that can be implemented by the underlying ibc application's packet data type. It is used to retrieve the packet sender address from the packet data. The callbacks middleware uses this interface to retrieve the packet sender address and pass it to the callback function during a source callback. If this interface is not implemented, then the callbacks middleware passes and empty string as the sender address. See its implementation in the [`transfer`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/apps/transfer/types/packet.go#L74-L83) and [`ica`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/apps/27-interchain-accounts/types/packet.go#L78-L92) module.
+
+This interface was added so that secondary applications can retrieve the packet sender address to perform custom authorization logic if needed.
 
 Since middlewares do not have packet types, they do not need to implement this interface.
 
