@@ -229,7 +229,7 @@ func NewSimApp(
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	/**** Register IBC modules ****/
+	/* Register IBC modules */
 
 	if err := app.RegisterStores(
 		storetypes.NewKVStoreKey(capabilitytypes.StoreKey),
@@ -402,7 +402,7 @@ func NewSimApp(
 		panic(err)
 	}
 
-	/**** End IBC Module Setup ****/
+	/* End IBC Module Setup */
 
 	// registerUpgradeHandlers is used for registering any on-chain upgrades.
 	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
@@ -413,7 +413,7 @@ func NewSimApp(
 		panic(err)
 	}
 
-	/****  Module Options ****/
+	/* Module Options */
 
 	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 
