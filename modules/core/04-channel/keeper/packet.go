@@ -34,10 +34,10 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return 0, errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
-			"channel is not OPEN (got %s)", channel.State.String(),
+			"channel state is not OPEN (got %s)", channel.State.String(),
 		)
 	}
 
@@ -130,7 +130,7 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel state is not OPEN (got %s)", channel.State.String(),
@@ -296,7 +296,7 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel state is not OPEN (got %s)", channel.State.String(),
@@ -371,7 +371,7 @@ func (k Keeper) AcknowledgePacket(
 		)
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel state is not OPEN (got %s)", channel.State.String(),
