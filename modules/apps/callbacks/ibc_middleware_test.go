@@ -164,12 +164,15 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 
 			tc.malleate()
 
+			ctx := s.chainA.GetContext()
+			gasLimit := ctx.GasMeter().Limit()
+
 			var (
 				seq uint64
 				err error
 			)
 			sendPacket := func() {
-				seq, err = transferStack.(porttypes.Middleware).SendPacket(s.chainA.GetContext(), chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+				seq, err = transferStack.(porttypes.Middleware).SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
 			}
 
 			expPass := tc.expValue == nil
@@ -178,6 +181,14 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				sendPacket()
 				s.Require().Nil(err)
 				s.Require().Equal(uint64(1), seq)
+
+				expEvent, exists := GetExpectedEvent(
+					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
+					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, seq, types.CallbackTypeSendPacket, nil,
+				)
+				if exists {
+					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+				}
 			case tc.expPanic:
 				s.Require().PanicsWithValue(tc.expValue, sendPacket)
 			default:
