@@ -5,9 +5,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -17,10 +23,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	testifysuite "github.com/stretchr/testify/suite"
 )
 
 func TestInterchainAccountsLocalhostTestSuite(t *testing.T) {
@@ -180,7 +182,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		balance, err := chainA.GetBalance(ctx, userBWallet.FormattedAddress(), chainADenom)
 		s.Require().NoError(err)
 
-		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		expected := testvalues.IBCTransferAmount.Add(testvalues.StartingTokenAmount)
 		s.Require().Equal(expected, balance)
 	})
 }
@@ -464,7 +466,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		balance, err := chainA.GetBalance(ctx, userBWallet.FormattedAddress(), chainADenom)
 		s.Require().NoError(err)
 
-		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		expected := testvalues.IBCTransferAmount.Add(testvalues.StartingTokenAmount)
 		s.Require().Equal(expected, balance)
 	})
 }

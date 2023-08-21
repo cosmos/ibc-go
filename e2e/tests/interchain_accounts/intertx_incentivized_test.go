@@ -4,16 +4,18 @@ import (
 	"context"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestIncentivizedInterTxTestSuite(t *testing.T) {
@@ -168,7 +170,7 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 			_, err = chainB.GetBalance(ctx, interchainAcc, chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+			expected := testvalues.IBCTransferAmount.Add(testvalues.StartingTokenAmount)
 			s.Require().Equal(expected, balance)
 		})
 
@@ -176,7 +178,8 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 			actualBalance, err := s.GetChainANativeBalance(ctx, controllerAccount)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount.Sub(testFee.AckFee.AmountOf(chainADenom))
+			expected = expected.Sub(testFee.RecvFee.AmountOf(chainADenom))
 			s.Require().Equal(expected, actualBalance)
 		})
 
@@ -335,7 +338,8 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 			actualBalance, err := s.GetChainANativeBalance(ctx, controllerAccount)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount.Sub(testFee.AckFee.AmountOf(chainADenom))
+			expected = expected.Sub(testFee.RecvFee.AmountOf(chainADenom))
 			s.Require().Equal(expected, actualBalance)
 		})
 

@@ -4,17 +4,20 @@ import (
 	"context"
 	"testing"
 
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	testifysuite "github.com/stretchr/testify/suite"
 )
 
 func TestAuthzTransferTestSuite(t *testing.T) {
@@ -54,7 +57,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 				{
 					SourcePort:    channelA.PortID,
 					SourceChannel: channelA.ChannelID,
-					SpendLimit:    sdk.NewCoins(sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.StartingTokenAmount))),
+					SpendLimit:    sdk.NewCoins(sdk.NewCoin(chainADenom, testvalues.StartingTokenAmount)),
 					AllowList:     []string{receiverWalletAddress},
 				},
 			},
@@ -79,7 +82,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	// verifyGrantFn returns a test function which asserts chainA has a grant authorization
 	// with the given spend limit.
-	verifyGrantFn := func(expectedLimit int64) func(t *testing.T) {
+	verifyGrantFn := func(expectedLimit sdkmath.Int) func(t *testing.T) {
 		return func(t *testing.T) {
 			grantAuths, err := suite.QueryGranterGrants(ctx, chainA, granterAddress)
 
@@ -88,7 +91,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			grantAuthorization := grantAuths[0]
 
 			transferAuth := suite.extractTransferAuthorizationFromGrantAuthorization(grantAuthorization)
-			expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, sdkmath.NewInt(expectedLimit)))
+			expectedSpendLimit := sdk.NewCoins(sdk.NewCoin(chainADenom, expectedLimit))
 			suite.Require().Equal(expectedSpendLimit, transferAuth.Allocations[0].SpendLimit)
 		}
 	}
@@ -121,7 +124,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		actualBalance, err := suite.GetChainANativeBalance(ctx, granterWallet)
 		suite.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 		suite.Require().Equal(expected, actualBalance)
 	})
 
@@ -134,7 +137,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		suite.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
 	})
 
-	t.Run("granter grant spend limit reduced", verifyGrantFn(testvalues.StartingTokenAmount-testvalues.IBCTransferAmount))
+	t.Run("granter grant spend limit reduced", verifyGrantFn(testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)))
 
 	t.Run("re-initialize MsgGrant", createMsgGrantFn)
 

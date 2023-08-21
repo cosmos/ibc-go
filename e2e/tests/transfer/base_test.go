@@ -5,18 +5,20 @@ import (
 	"testing"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+
+	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestTransferTestSuite(t *testing.T) {
@@ -67,14 +69,14 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 		s.Require().Equal(expected, actualBalance)
 
 		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainAVersion) {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 			s.Require().NoError(err)
 
-			expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
+			expectedTotalEscrow := sdk.NewCoin(chainADenom, testvalues.IBCTransferAmount)
 			s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
 		}
 	})
@@ -159,7 +161,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -206,7 +208,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -330,7 +332,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+			expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 			s.Require().Equal(expected, actualBalance)
 		})
 
@@ -382,7 +384,8 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - (testvalues.IBCTransferAmount * 2) // second send
+			secondSend := testvalues.IBCTransferAmount.Mul(sdkmath.NewInt(2))
+			expected := testvalues.StartingTokenAmount.Sub(secondSend) // second send
 			s.Require().Equal(expected, actualBalance)
 		})
 
@@ -394,7 +397,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount // only first send marked
+			expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount) // only first send marked
 			s.Require().Equal(expected, actualBalance)
 		})
 	})
@@ -447,7 +450,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 		s.Require().Equal(expected, actualBalance)
 	})
 

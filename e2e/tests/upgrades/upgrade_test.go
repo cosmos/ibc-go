@@ -6,11 +6,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -22,12 +31,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	testifysuite "github.com/stretchr/testify/suite"
 )
 
 const (
@@ -130,7 +133,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -172,7 +175,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
-		expected := testvalues.IBCTransferAmount * 2
+		expected := testvalues.IBCTransferAmount.Mul(sdkmath.NewInt(2))
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -220,7 +223,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 		balance, err := chain.GetBalance(ctx, userWalletAddr, chain.Config().Denom)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount * 2
+		expected := testvalues.StartingTokenAmount.Mul(sdkmath.NewInt(2))
 		s.Require().Equal(expected, balance)
 	})
 
@@ -244,7 +247,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 		balance, err := chain.GetBalance(ctx, userWalletAddr, chain.Config().Denom)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount * 3
+		expected := testvalues.StartingTokenAmount.Mul(sdkmath.NewInt(3))
 		s.Require().Equal(expected, balance)
 	})
 }
@@ -340,7 +343,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+			expected := testvalues.IBCTransferAmount.Add(testvalues.StartingTokenAmount)
 			s.Require().Equal(expected, balance)
 		})
 	})
@@ -394,7 +397,8 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		expected := (testvalues.IBCTransferAmount * 2) + testvalues.StartingTokenAmount
+		expected := testvalues.IBCTransferAmount.Mul(sdkmath.NewInt(2))
+		expected = expected.Add(testvalues.StartingTokenAmount)
 		s.Require().Equal(expected, balance)
 	})
 
@@ -439,7 +443,8 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		expected := (testvalues.IBCTransferAmount * 3) + testvalues.StartingTokenAmount
+		expected := testvalues.IBCTransferAmount.Mul(sdk.NewInt(3))
+		expected = expected.Add(testvalues.StartingTokenAmount)
 		s.Require().Equal(expected, balance)
 	})
 }
@@ -537,7 +542,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -584,7 +589,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
-		expected := testvalues.IBCTransferAmount * 2
+		expected := testvalues.IBCTransferAmount.Mul(sdk.NewInt(2))
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -622,7 +627,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -666,7 +671,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
 		s.Require().NoError(err)
 
-		expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
+		expectedTotalEscrow := sdk.NewCoin(chainADenom, testvalues.IBCTransferAmount)
 		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow) // migration has run and total escrow amount has been set
 	})
 }

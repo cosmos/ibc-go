@@ -4,19 +4,24 @@ import (
 	"fmt"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 )
 
 const (
-	StartingTokenAmount int64         = 100_000_000
-	IBCTransferAmount   int64         = 10_000
-	InvalidAddress      string        = "<invalid-address>"
-	VotingPeriod        time.Duration = time.Second * 30
+	InvalidAddress string        = "<invalid-address>"
+	VotingPeriod   time.Duration = time.Second * 30
+)
+
+var (
+	IBCTransferAmount   = sdkmath.NewInt(10_000)
+	StartingTokenAmount = sdkmath.NewInt(100_000_000)
 )
 
 // ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immediately.
@@ -35,7 +40,7 @@ func DefaultFee(denom string) feetypes.Fee {
 }
 
 func DefaultTransferAmount(denom string) sdk.Coin {
-	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(IBCTransferAmount)}
+	return sdk.Coin{Denom: denom, Amount: IBCTransferAmount}
 }
 
 func TendermintClientID(id int) string {

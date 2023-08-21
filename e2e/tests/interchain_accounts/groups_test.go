@@ -5,19 +5,21 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
-	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	testifysuite "github.com/stretchr/testify/suite"
 )
 
 const (
@@ -196,13 +198,13 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		balance, err := chainB.GetBalance(ctx, chainBAddress, chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		expected := testvalues.IBCTransferAmount.Add(testvalues.StartingTokenAmount)
 		s.Require().Equal(expected, balance)
 
 		balance, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		expected = testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected = testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 		s.Require().Equal(expected, balance)
 	})
 }

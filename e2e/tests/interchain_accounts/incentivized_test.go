@@ -5,19 +5,21 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	testifysuite "github.com/stretchr/testify/suite"
 )
 
 func TestIncentivizedInterchainAccountsTestSuite(t *testing.T) {
@@ -184,7 +186,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			_, err = chainB.GetBalance(ctx, interchainAcc, chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+			expected := testvalues.IBCTransferAmount.Add(testvalues.StartingTokenAmount)
 			s.Require().Equal(expected, balance)
 		})
 
@@ -192,7 +194,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			actualBalance, err := s.GetChainANativeBalance(ctx, controllerAccount)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount.Sub(testFee.AckFee.AmountOf(chainADenom)).Sub(testFee.RecvFee.AmountOf(chainADenom))
 			s.Require().Equal(expected, actualBalance)
 		})
 
@@ -361,7 +363,8 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			actualBalance, err := s.GetChainANativeBalance(ctx, controllerAccount)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount.Sub(testFee.AckFee.AmountOf(chainADenom))
+			expected = expected.Sub(testFee.RecvFee.AmountOf(chainADenom))
 			s.Require().Equal(expected, actualBalance)
 		})
 

@@ -4,17 +4,17 @@ import (
 	"context"
 	"testing"
 
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	testifysuite "github.com/stretchr/testify/suite"
-
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
 func TestTransferLocalhostTestSuite(t *testing.T) {
@@ -126,7 +126,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, userAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected := testvalues.StartingTokenAmount.Sub(testvalues.IBCTransferAmount)
 		s.Require().Equal(expected, actualBalance)
 	})
 
