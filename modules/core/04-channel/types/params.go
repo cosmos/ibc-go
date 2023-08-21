@@ -9,19 +9,19 @@ import (
 // TODO: determine sane default value for upgrade timeout.
 var DefaultTimeout = NewTimeout(clienttypes.NewHeight(1, 1000), 0)
 
-// NewParams creates a new parameter configuration for the host submodule
+// NewParams creates a new parameter configuration for the channel submodule
 func NewParams(upgradeTimeout Timeout) Params {
 	return Params{
 		UpgradeTimeout: upgradeTimeout,
 	}
 }
 
-// DefaultParams is the default parameter configuration for the host submodule
+// DefaultParams is the default parameter configuration for the channel submodule
 func DefaultParams() Params {
 	return NewParams(DefaultTimeout)
 }
 
-// Validate all ibc-client module parameters
+// Validate the params.
 func (p Params) Validate() error {
 	if !p.UpgradeTimeout.IsValid() {
 		return fmt.Errorf("upgrade timeout invalid: %v", p.UpgradeTimeout)
