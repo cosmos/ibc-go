@@ -66,8 +66,8 @@ service Msg {
   // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
   rpc ChannelUpgradeCancel(MsgChannelUpgradeCancel) returns (MsgChannelUpgradeCancelResponse);
 
-  // UpdateChannelParams defines a rpc handler method for MsgUpdateChannelParams.
-  rpc UpdateChannelParams(MsgUpdateChannelParams) returns (MsgUpdateChannelParamsResponse);
+  // UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
+  rpc UpdateChannelParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // ResponseResultType defines the possible outcomes of the execution of a message
@@ -428,8 +428,8 @@ message MsgChannelUpgradeCancel {
 // MsgChannelUpgradeCancelResponse defines the MsgChannelUpgradeCancel response type
 message MsgChannelUpgradeCancelResponse {}
 
-// MsgUpdateChannelParams is the MsgUpdateChannelParams request type.
-message MsgUpdateChannelParams {
+// MsgUpdateParams is the MsgUpdateParams request type.
+message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
 
   option (gogoproto.goproto_getters) = false;
@@ -443,5 +443,5 @@ message MsgUpdateChannelParams {
   Params params = 2 [(gogoproto.nullable) = false];
 }
 
-// MsgUpdateChannelParamsResponse defines the MsgUpdateChannelParams response type.
-message MsgUpdateChannelParamsResponse {}
+// MsgUpdateParamsResponse defines the MsgUpdateParams response type.
+message MsgUpdateParamsResponse {}

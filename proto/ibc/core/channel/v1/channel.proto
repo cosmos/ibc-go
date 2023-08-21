@@ -203,5 +203,5 @@ message Timeout {
 // Params defines the set of IBC channel parameters.
 message Params {
   // timeout after which channel upgrades will time out.
-  Timeout upgrade_timeout = 7 [(gogoproto.nullable) = false];
+  Timeout upgrade_timeout = 1 [(gogoproto.nullable) = false];
 }

@@ -1007,8 +1007,8 @@ func (k Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontyp
 }
 
 
-// UpdateChannelParams defines a rpc handler method for MsgUpdateClientParams.
-func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.MsgUpdateChannelParams) (*channeltypes.MsgUpdateChannelParamsResponse, error) {
+// UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
+func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.MsgUpdateParams) (*channeltypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Authority {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
 	}
@@ -1016,5 +1016,5 @@ func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Msg
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	k.ChannelKeeper.SetParams(ctx, msg.Params)
 
-	return &channeltypes.MsgUpdateChannelParamsResponse{}, nil
+	return &channeltypes.MsgUpdateParamsResponse{}, nil
 }
