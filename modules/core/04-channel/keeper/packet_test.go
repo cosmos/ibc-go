@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
@@ -840,7 +839,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			// TODO: cleanup
 			upgrade := types.Upgrade{
-				Fields:  types.NewUpgradeFields(types.UNORDERED, channel.ConnectionHops, mock.UpgradeVersion),
+				Fields:  types.NewUpgradeFields(types.UNORDERED, channel.ConnectionHops, ibcmock.UpgradeVersion),
 				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
 			}
 
