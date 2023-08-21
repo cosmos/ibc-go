@@ -20,7 +20,7 @@ func (ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ st
 	return false
 }
 
-func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, misbehaviour *Misbehaviour) error {
+func (cs ClientState) verifyMisbehaviour(cdc codec.BinaryCodec, misbehaviour *Misbehaviour) error {
 	// NOTE: a check that the misbehaviour message data are not equal is done by
 	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
 	// verify first signature
