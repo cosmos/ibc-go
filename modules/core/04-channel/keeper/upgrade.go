@@ -595,7 +595,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 }
 
 // isAuthorizedUpgrader checks if the sender is authorized to cancel the upgrade.
-func (k Keeper) isAuthorizedUpgrader(signer string) bool {
+func (Keeper) isAuthorizedUpgrader(signer string) bool {
 	// TODO: the authority is only available on the core ibc keeper at the moment.
 	// return k.GetAuthority() == signer
 	return true
