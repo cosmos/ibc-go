@@ -4,18 +4,18 @@ module github.com/cosmos/ibc-go/v7
 
 require (
 	cosmossdk.io/api v0.7.0
-	cosmossdk.io/client/v2 v2.0.0-20230722073756-0fa85b7a424d
+	cosmossdk.io/client/v2 v2.0.0-20230630094428-02b760776860
 	cosmossdk.io/core v0.10.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.0
 	cosmossdk.io/math v1.0.1
 	cosmossdk.io/store v1.0.0-alpha.1.0.20230728080422-54ed7dab3982
-	cosmossdk.io/tools/confix v0.0.0-20230722073756-0fa85b7a424d
-	cosmossdk.io/x/circuit v0.0.0-20230722073756-0fa85b7a424d
-	cosmossdk.io/x/evidence v0.0.0-20230722073756-0fa85b7a424d
-	cosmossdk.io/x/feegrant v0.0.0-20230722073756-0fa85b7a424d
+	cosmossdk.io/tools/confix v0.0.0-20230613133644-0a778132a60f
+	cosmossdk.io/x/circuit v0.0.0-20230613133644-0a778132a60f
+	cosmossdk.io/x/evidence v0.0.0-20230613133644-0a778132a60f
+	cosmossdk.io/x/feegrant v0.0.0-20230613133644-0a778132a60f
 	cosmossdk.io/x/tx v0.9.1
-	cosmossdk.io/x/upgrade v0.0.0-20230722073756-0fa85b7a424d
+	cosmossdk.io/x/upgrade v0.0.0-20230613133644-0a778132a60f
 	github.com/cometbft/cometbft v0.38.0-rc3
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
@@ -48,6 +48,7 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
+	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/aws/aws-sdk-go v1.44.224 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
