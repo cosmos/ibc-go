@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.lightclients.localhost.v2;
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost;localhost";
+option go_package = "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost;localhost";
 
 import "ibc/core/client/v1/client.proto";
 import "gogoproto/gogo.proto";
