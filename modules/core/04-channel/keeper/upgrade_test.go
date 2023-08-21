@@ -1125,15 +1125,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		expError error
 	}{
 		{
-			name:     "success",
+			name:     "success with flush complete",
 			malleate: func() {},
 			expError: nil,
 		},
 		{
-			name: "success: unauthorized",
+			name: "success without flush complete",
 			malleate: func() {
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHCOMPLETE
+				channel.State = types.STATE_FLUSHING
 				path.EndpointA.SetChannel(channel)
 			},
 			expError: nil,
@@ -1155,15 +1155,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "error receipt sequence less than channel upgrade sequence",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHCOMPLETE
-				path.EndpointA.SetChannel(channel)
-
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
 
-				errorReceipt.Sequence = channel.UpgradeSequence - 1
+				errorReceipt.Sequence = path.EndpointA.GetChannel().UpgradeSequence - 1
 
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
 
@@ -1180,20 +1176,23 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			name: "connection not found",
 			malleate: func() {
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHCOMPLETE
 				channel.ConnectionHops = []string{"connection-100"}
 				path.EndpointA.SetChannel(channel)
 			},
 			expError: connectiontypes.ErrConnectionNotFound,
 		},
-
+		{
+			name: "connection not found",
+			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.ConnectionHops = []string{"connection-100"}
+				path.EndpointA.SetChannel(channel)
+			},
+			expError: connectiontypes.ErrConnectionNotFound,
+		},
 		{
 			name: "error verification failed",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHCOMPLETE
-				path.EndpointA.SetChannel(channel)
-
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
@@ -1254,6 +1253,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			var ok bool
 			errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().True(ok)
+
+			channel = path.EndpointA.GetChannel()
+			channel.State = types.STATE_FLUSHCOMPLETE
+			path.EndpointA.SetChannel(channel)
 
 			tc.malleate()
 
