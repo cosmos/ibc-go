@@ -1006,7 +1006,6 @@ func (k Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontyp
 	return &connectiontypes.MsgUpdateParamsResponse{}, nil
 }
 
-
 // UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
 func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.MsgUpdateParams) (*channeltypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Authority {
