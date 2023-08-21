@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/e2e
 
-go 1.20
+go 1.21
 
 require (
 	cosmossdk.io/errors v1.0.0
