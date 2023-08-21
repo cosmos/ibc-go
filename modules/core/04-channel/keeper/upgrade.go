@@ -771,15 +771,15 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 	}
 
 	upgrade.LatestSequenceSend = nextSequenceSend - 1
-	upgrade.Timeout = getUpgradeTimeout()
+	upgrade.Timeout = k.getUpgradeTimeout(ctx)
 	k.SetUpgrade(ctx, portID, channelID, *upgrade)
 
 	return nil
 }
 
-// TODO: use a hard coded value for now. Will be resolved in https://github.com/cosmos/ibc-go/issues/4313
-func getUpgradeTimeout() types.Timeout {
-	return types.NewTimeout(clienttypes.NewHeight(1, 1000), 0)
+// getUpgradeTimeout returns the timeout for the given upgrade.
+func (k Keeper) getUpgradeTimeout(ctx sdk.Context) types.Timeout {
+	return k.GetParams(ctx).UpgradeTimeout
 }
 
 // syncUpgradeSequence ensures current upgrade handshake only continues if both channels are using the same upgrade sequence,

@@ -860,3 +860,29 @@ func (msg MsgChannelUpgradeCancel) GetSigners() []sdk.AccAddress {
 
 	return []sdk.AccAddress{signer}
 }
+
+
+// NewMsgUpdateChannelParams creates a new instance of MsgUpdateChannelParams.
+func NewMsgUpdateChannelParams(authority string, params Params) *MsgUpdateChannelParams {
+	return &MsgUpdateChannelParams{
+		Authority: authority,
+		Params:    params,
+	}
+}
+
+// GetSigners returns the expected signers for a MsgUpdateChannelParams message.
+func (msg *MsgUpdateChannelParams) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
+}
+
+// ValidateBasic performs basic checks on a MsgUpdateChannelParams.
+func (msg *MsgUpdateChannelParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return msg.Params.Validate()
+}
