@@ -1125,12 +1125,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		expError error
 	}{
 		{
-			name:     "success with flush complete",
+			name:     "success with flush complete state",
 			malleate: func() {},
 			expError: nil,
 		},
 		{
-			name: "success without flush complete",
+			name: "success with flushing state",
 			malleate: func() {
 				channel := path.EndpointA.GetChannel()
 				channel.State = types.STATE_FLUSHING
