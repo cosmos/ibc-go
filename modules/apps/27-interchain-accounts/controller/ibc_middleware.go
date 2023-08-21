@@ -261,10 +261,10 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 // into an InterchainAccountPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	var packetData icatypes.InterchainAccountPacketData
-	if err := icatypes.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {
+	var data icatypes.InterchainAccountPacketData
+	err := data.UnmarshalJSON(bz)
+	if err != nil {
 		return nil, err
 	}
-
-	return packetData, nil
+	return data, nil
 }
