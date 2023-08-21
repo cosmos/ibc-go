@@ -626,7 +626,7 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 	previousState := channel.State
 
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
-	k.restoreChannel(ctx, portID, channelID, errorReceipt.Sequence, channel)
+	channel = k.restoreChannel(ctx, portID, channelID, errorReceipt.Sequence, channel)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
 	emitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
@@ -953,15 +953,16 @@ func (k Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 }
 
 // restoreChannel will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
-func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, currentChannel types.Channel) {
-	currentChannel.State = types.OPEN
-	currentChannel.FlushStatus = types.NOTINFLUSH
-	currentChannel.UpgradeSequence = upgradeSequence
+func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, channel types.Channel) types.Channel {
+	channel.State = types.OPEN
+	channel.FlushStatus = types.NOTINFLUSH
+	channel.UpgradeSequence = upgradeSequence
 
-	k.SetChannel(ctx, portID, channelID, currentChannel)
+	k.SetChannel(ctx, portID, channelID, channel)
 
 	// delete state associated with upgrade which is no longer required.
 	k.deleteUpgradeInfo(ctx, portID, channelID)
+	return channel
 }
 
 // WriteErrorReceipt will write an error receipt from the provided UpgradeError.
