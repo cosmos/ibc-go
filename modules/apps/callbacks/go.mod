@@ -2,7 +2,7 @@ module github.com/cosmos/ibc-go/modules/apps/callbacks
 
 go 1.20
 
-replace github.com/cosmos/ibc-go/v7 => ../../../
+replace github.com/cosmos/ibc-go/v8 => ../../../
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
@@ -15,7 +15,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.47.4
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc1
-	github.com/cosmos/ibc-go/v7 v7.2.0
+	github.com/cosmos/ibc-go/v8 v8.0.0-00010101000000-000000000000
 	github.com/spf13/cast v1.5.1
 	github.com/stretchr/testify v1.8.4
 )
