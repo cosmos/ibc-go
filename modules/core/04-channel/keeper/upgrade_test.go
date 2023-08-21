@@ -1130,6 +1130,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: nil,
 		},
 		{
+			name: "success: unauthorized",
+			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.STATE_FLUSHCOMPLETE
+				path.EndpointA.SetChannel(channel)
+			},
+			expError: nil,
+		},
+		{
 			name: "channel not found",
 			malleate: func() {
 				path.EndpointA.Chain.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
@@ -1137,23 +1146,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: types.ErrChannelNotFound,
 		},
 		{
-			name: "empty error receipt",
+			name: "upgrade not found",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHCOMPLETE
-				path.EndpointA.SetChannel(channel)
-
-				errorReceipt = types.ErrorReceipt{}
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
-
-				suite.coordinator.CommitBlock(suite.chainB)
-
-				suite.Require().NoError(path.EndpointA.UpdateClient())
-
-				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+				path.EndpointA.Chain.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expError: types.ErrInvalidUpgradeError,
+			expError: types.ErrUpgradeNotFound,
 		},
 		{
 			name: "error receipt sequence less than channel upgrade sequence",
