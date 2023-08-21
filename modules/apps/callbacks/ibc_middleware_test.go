@@ -789,6 +789,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 		callbackData     types.CallbackData
 		ctx              sdk.Context
 		callbackExecutor func(sdk.Context) error
+		expGasConsumed   uint64
 	)
 
 	callbackError := fmt.Errorf("callbackExecutor error")
@@ -809,6 +810,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			"success: callbackExecutor panic, but not out of gas",
 			func() {
 				callbackExecutor = func(cachedCtx sdk.Context) error {
+					cachedCtx.GasMeter().ConsumeGas(expGasConsumed, "callbackExecutor gas consumption")
 					panic("callbackExecutor panic")
 				}
 			},
@@ -819,8 +821,9 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			"success: callbackExecutor oog panic, but retry is not allowed",
 			func() {
 				executionGas := callbackData.ExecutionGasLimit
+				expGasConsumed = executionGas
 				callbackExecutor = func(cachedCtx sdk.Context) error {
-					cachedCtx.GasMeter().ConsumeGas(executionGas+1, "callbackExecutor oog panic")
+					cachedCtx.GasMeter().ConsumeGas(expGasConsumed+1, "callbackExecutor gas consumption")
 					return nil
 				}
 			},
@@ -831,6 +834,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			"failure: callbackExecutor error",
 			func() {
 				callbackExecutor = func(cachedCtx sdk.Context) error {
+					cachedCtx.GasMeter().ConsumeGas(expGasConsumed, "callbackExecutor gas consumption")
 					return callbackError
 				}
 			},
@@ -842,6 +846,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			func() {
 				callbackType = types.CallbackTypeSendPacket
 				callbackExecutor = func(cachedCtx sdk.Context) error {
+					cachedCtx.GasMeter().ConsumeGas(expGasConsumed, "callbackExecutor gas consumption")
 					panic("callbackExecutor panic")
 				}
 			},
@@ -853,6 +858,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			func() {
 				executionGas := callbackData.ExecutionGasLimit
 				callbackData.CommitGasLimit = executionGas + 1
+				expGasConsumed = executionGas
 				callbackExecutor = func(cachedCtx sdk.Context) error {
 					cachedCtx.GasMeter().ConsumeGas(executionGas+1, "callbackExecutor oog panic")
 					return nil
@@ -871,18 +877,22 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			// set a callback data that does not allow retry
 			callbackData = types.CallbackData{
 				CallbackAddress:   s.chainB.SenderAccount.GetAddress().String(),
-				ExecutionGasLimit: 1000000,
+				ExecutionGasLimit: 1_000_000,
 				SenderAddress:     s.chainB.SenderAccount.GetAddress().String(),
-				CommitGasLimit:    600000,
+				CommitGasLimit:    600_000,
 			}
 
 			// this only makes a difference if it is SendPacket
 			callbackType = types.CallbackTypeReceivePacket
 
+			// expGasConsumed can be overwritten in malleate
+			expGasConsumed = 300_000
+
 			ctx = s.chainB.GetContext()
 
-			// set a callback executor that will always succeed
+			// set a callback executor that will always succeed after consuming expGasConsumed
 			callbackExecutor = func(cachedCtx sdk.Context) error {
+				cachedCtx.GasMeter().ConsumeGas(expGasConsumed, "callbackExecutor gas consumption")
 				return nil
 			}
 
@@ -910,6 +920,8 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				processCallback()
 				s.Require().ErrorIs(tc.expValue.(error), err)
 			}
+
+			s.Require().Equal(expGasConsumed, ctx.GasMeter().GasConsumed())
 		})
 	}
 }
