@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
@@ -784,6 +785,68 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channel.State = types.STATE_FLUSHING
 
 			path.EndpointA.SetChannel(channel)
+
+			upgrade := types.Upgrade{
+				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 0),
+			}
+
+			path.EndpointA.SetChannelCounterpartyUpgrade(upgrade)
+		}, true},
+		{"success on channel in flushing state with valid timeout", func() {
+			// setup uses an UNORDERED channel
+			suite.coordinator.Setup(path)
+
+			// create packet commitment
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+
+			// create packet receipt and acknowledgement
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointB.RecvPacket(packet)
+			suite.Require().NoError(err)
+
+			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			channel := path.EndpointA.GetChannel()
+			channel.State = types.STATE_FLUSHING
+
+			path.EndpointA.SetChannel(channel)
+
+			upgrade := types.Upgrade{
+				Timeout: types.NewTimeout(suite.chainB.GetTimeoutHeight(), 0),
+			}
+
+			path.EndpointA.SetChannelCounterpartyUpgrade(upgrade)
+		}, true},
+		{"success on channel in flushing state with timeout passed", func() {
+			// setup uses an UNORDERED channel
+			suite.coordinator.Setup(path)
+
+			// create packet commitment
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+
+			// create packet receipt and acknowledgement
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointB.RecvPacket(packet)
+			suite.Require().NoError(err)
+
+			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			channel := path.EndpointA.GetChannel()
+			channel.State = types.STATE_FLUSHING
+
+			path.EndpointA.SetChannel(channel)
+
+			// TODO: cleanup
+			upgrade := types.Upgrade{
+				Fields:  types.NewUpgradeFields(types.UNORDERED, channel.ConnectionHops, mock.UpgradeVersion),
+				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
+			}
+
+			// TODO: cleanup - need to set self upgrade as MustAbortUpgrade is called restoring the channel
+			path.EndpointA.SetChannelUpgrade(upgrade)
+			path.EndpointA.SetChannelCounterpartyUpgrade(upgrade)
 		}, true},
 		{"packet already acknowledged ordered channel (no-op)", func() {
 			expError = types.ErrNoOpMsg
@@ -1040,6 +1103,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				} else {
 					suite.Require().Equal(uint64(1), sequenceAck, "sequence incremented for UNORDERED channel")
 				}
+
 			} else {
 				suite.Error(err)
 				// only check if expError is set, since not all error codes can be known
