@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/internal/collections"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // DefaultAllowedClients are the default clients for the AllowedClients parameter.

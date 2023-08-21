@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func TestMetadataFromVersion(t *testing.T) {

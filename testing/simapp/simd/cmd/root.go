@@ -30,8 +30,8 @@ import (
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/libs/log"
 
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
-	"github.com/cosmos/ibc-go/v7/testing/simapp/params"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
+	"github.com/cosmos/ibc-go/v8/testing/simapp/params"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the

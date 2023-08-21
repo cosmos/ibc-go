@@ -5,7 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
+	"github.com/cosmos/ibc-go/v8/internal/collections"
 )
 
 var (

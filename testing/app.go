@@ -28,9 +28,9 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
-	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
+	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 )
 
 var DefaultTestingAppInit = SetupTestingApp

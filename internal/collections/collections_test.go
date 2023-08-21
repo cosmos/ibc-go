@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
+	"github.com/cosmos/ibc-go/v8/internal/collections"
 )
 
 func TestContainsString(t *testing.T) {
