@@ -1182,15 +1182,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: connectiontypes.ErrConnectionNotFound,
 		},
 		{
-			name: "connection not found",
-			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.ConnectionHops = []string{"connection-100"}
-				path.EndpointA.SetChannel(channel)
-			},
-			expError: connectiontypes.ErrConnectionNotFound,
-		},
-		{
 			name: "error verification failed",
 			malleate: func() {
 				var ok bool
