@@ -292,6 +292,7 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 	s.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
 }
 
+// GetExpectedEvent returns the expected event for a callback.
 func GetExpectedEvent(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte, srcPortID,
 	eventPortID, eventChannelID string, seq uint64, callbackType types.CallbackType, expError error,
