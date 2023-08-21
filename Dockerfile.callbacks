@@ -26,4 +26,3 @@ FROM alpine:3.18
 COPY --from=builder /go/build/simd /bin/simd
 
 ENTRYPOINT ["simd"]
-
