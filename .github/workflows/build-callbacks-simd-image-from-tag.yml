@@ -31,5 +31,5 @@ jobs:
            run: |
             # remove any `/` characters from the docker tag and replace them with a -
             docker_tag="$(echo $GIT_TAG | sed 's/\//-/')"
-            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" -f Dockerfile.callbacks
+            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" -f modules/apps/callbacks/Dockerfile
             docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
