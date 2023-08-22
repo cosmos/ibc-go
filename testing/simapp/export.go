@@ -121,7 +121,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 
 	// reinitialize all validators
 	err = app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
-		valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+		valAddr, err := sdk.ValAddressFromBech32(val.GetOperator())
 		if err != nil {
 			panic(err)
 		}
