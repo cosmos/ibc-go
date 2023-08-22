@@ -1264,9 +1264,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 }
 
 func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
-	var (
-		path         *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	tests := []struct {
 		name         string
@@ -1284,7 +1282,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 			malleate: func() {
 				path.EndpointA.Chain.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expPanic: true,
+			expPanic:     true,
 			messagePanic: "could not find existing channel when updating channel state, channelID: channel-0, portID: mock",
 		},
 		{
@@ -1292,7 +1290,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 			malleate: func() {
 				path.EndpointA.Chain.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expPanic: true,
+			expPanic:     true,
 			messagePanic: "could not find upgrade when updating channel state, channelID: channel-0, portID: mock",
 		},
 	}
@@ -1341,7 +1339,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 				}()
 			}
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
-			
+
 			channel = path.EndpointA.GetChannel()
 
 			// Verify that channel has been restored to previous state
