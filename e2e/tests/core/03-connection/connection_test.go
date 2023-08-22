@@ -48,10 +48,11 @@ func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Cont
 
 	// removing additional strings that are used for amino
 	delay := strings.ReplaceAll(res.Param.Value, "\"", "")
-	time, err := strconv.ParseUint(delay, 10, 64)
+	// convert to uint64
+	uinttime, err := strconv.ParseUint(delay, 10, 64)
 	s.Require().NoError(err)
 
-	return time
+	return uinttime
 }
 
 // TestMaxExpectedTimePerBlockParam tests changing the MaxExpectedTimePerBlock param using a governance proposal

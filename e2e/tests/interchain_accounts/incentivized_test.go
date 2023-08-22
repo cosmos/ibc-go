@@ -1,4 +1,4 @@
-package interchain_accounts
+package interchainaccounts
 
 import (
 	"context"

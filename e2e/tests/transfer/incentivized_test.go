@@ -93,11 +93,11 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 			s.Require().Empty(packets)
 		})
 
-		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
+		packetID := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 
@@ -206,11 +206,11 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 			s.Require().Empty(packets)
 		})
 
-		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, 1)
+		packetID := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, 1)
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 
@@ -422,7 +422,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	})
 
 	t.Run("pay packet fee", func(t *testing.T) {
-		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
+		packetID := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("no incentivized packets", func(t *testing.T) {
@@ -432,7 +432,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 		})
 
 		t.Run("should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 
@@ -525,11 +525,11 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 			s.Require().Empty(packets)
 		})
 
-		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
+		packetID := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetId, packetFee)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 
@@ -642,16 +642,16 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 			s.Require().Empty(packets)
 		})
 
-		packetId := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
+		packetID := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
 		packetFee1 := feetypes.NewPacketFee(testFee, chainAWallet1.FormattedAddress(), nil)
 		packetFee2 := feetypes.NewPacketFee(testFee, chainAWallet2.FormattedAddress(), nil)
 
 		t.Run("paying packetFee1 should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet1, packetId, packetFee1)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet1, packetID, packetFee1)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 		t.Run("paying packetFee2 should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet2, packetId, packetFee2)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet2, packetID, packetFee2)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 
