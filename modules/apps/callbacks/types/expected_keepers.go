@@ -55,7 +55,6 @@ type ContractKeeper interface {
 	// within the user defined gas limit, and handle any error, out of gas, or panics gracefully.
 	// If an error is returned, state will be reverted by the callbacks middleware.
 	//
-	//
 	// Implementations are provided with the packetSendAddress and MAY choose to use this to perform
 	// validation on the origin of a given packet. It is recommended to perform the same validation
 	// on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This
