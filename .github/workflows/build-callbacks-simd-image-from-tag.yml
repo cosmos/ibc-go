@@ -20,7 +20,7 @@ jobs:
       steps:
          - uses: actions/checkout@v3
            with:
-            ref: "${{ env.GIT_TAG }}"
+#            ref: "${{ env.GIT_TAG }}"
             fetch-depth: 0
          - name: Log in to the Container registry
            uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
