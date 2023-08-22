@@ -1,5 +1,6 @@
 name: Build Callbacks Simd Image
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       tag:
