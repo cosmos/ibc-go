@@ -134,7 +134,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 		actualBalance, err := chainB.GetBalance(ctx, receiverWalletAddress, chainBIBCToken.IBCDenom())
 		suite.Require().NoError(err)
-		suite.Require().Equal(testvalues.IBCTransferAmount.Int64(), actualBalance.Int64())
+		suite.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
 	})
 
 	t.Run("granter grant spend limit reduced", verifyGrantFn(testvalues.StartingTokenAmount-testvalues.IBCTransferAmount))
