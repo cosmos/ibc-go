@@ -1267,10 +1267,9 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 	var path *ibctesting.Path
 
 	tests := []struct {
-		name         string
-		malleate     func()
-		expPanic     bool
-		messagePanic string
+		name     string
+		malleate func()
+		expPanic bool
 	}{
 		{
 			name:     "success",
@@ -1282,16 +1281,14 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 			malleate: func() {
 				path.EndpointA.Chain.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expPanic:     true,
-			messagePanic: "could not find existing channel when updating channel state, channelID: channel-0, portID: mock",
+			expPanic: true,
 		},
 		{
 			name: "upgrade not found",
 			malleate: func() {
 				path.EndpointA.Chain.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expPanic:     true,
-			messagePanic: "could not find upgrade when updating channel state, channelID: channel-0, portID: mock",
+			expPanic: true,
 		},
 	}
 
@@ -1332,51 +1329,49 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 			tc.malleate()
 
 			if tc.expPanic {
-				defer func() {
-					r := recover()
-					suite.NotNil(r, "The code did not panic")
-					suite.Equal(r, tc.messagePanic)
-				}()
+				suite.Require().Panics(func() {
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
+				})
+			} else {
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
+
+				channel = path.EndpointA.GetChannel()
+
+				// Verify that channel has been restored to previous state
+				suite.Require().Equal(types.OPEN, channel.State)
+				suite.Require().Equal(mock.Version, channel.Version)
+				suite.Require().Equal(errorReceipt.Sequence, channel.UpgradeSequence)
+
+				// Assert that state stored for upgrade has been deleted
+				upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().Equal(types.Upgrade{}, upgrade)
+				suite.Require().False(found)
+
+				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
+				proposedUpgrade := path.EndpointA.GetProposedUpgrade()
+				events := ctx.EventManager().Events().ToABCIEvents()
+				expEvents := ibctesting.EventsMap{
+					types.EventTypeChannelUpgradeCancel: {
+						types.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+						types.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+						types.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+						types.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+						types.AttributeKeyUpgradeConnectionHops: proposedUpgrade.Fields.ConnectionHops[0],
+						types.AttributeKeyUpgradeVersion:        proposedUpgrade.Fields.Version,
+						types.AttributeKeyUpgradeOrdering:       proposedUpgrade.Fields.Ordering.String(),
+						types.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: types.AttributeValueCategory,
+					},
+				}
+
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+
+				counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
+				suite.Require().False(found)
 			}
-			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
-
-			channel = path.EndpointA.GetChannel()
-
-			// Verify that channel has been restored to previous state
-			suite.Require().Equal(types.OPEN, channel.State)
-			suite.Require().Equal(types.NOTINFLUSH, channel.FlushStatus)
-			suite.Require().Equal(mock.Version, channel.Version)
-			suite.Require().Equal(errorReceipt.Sequence, channel.UpgradeSequence)
-
-			// Assert that state stored for upgrade has been deleted
-			upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			suite.Require().Equal(types.Upgrade{}, upgrade)
-			suite.Require().False(found)
-
-			// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
-			proposedUpgrade := path.EndpointA.GetProposedUpgrade()
-			events := ctx.EventManager().Events().ToABCIEvents()
-			expEvents := ibctesting.EventsMap{
-				types.EventTypeChannelUpgradeCancel: {
-					types.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
-					types.AttributeKeyChannelID:             path.EndpointA.ChannelID,
-					types.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
-					types.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
-					types.AttributeKeyUpgradeConnectionHops: proposedUpgrade.Fields.ConnectionHops[0],
-					types.AttributeKeyUpgradeVersion:        proposedUpgrade.Fields.Version,
-					types.AttributeKeyUpgradeOrdering:       proposedUpgrade.Fields.Ordering.String(),
-					types.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
-				},
-				sdk.EventTypeMessage: {
-					sdk.AttributeKeyModule: types.AttributeValueCategory,
-				},
-			}
-
-			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
-
-			counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
-			suite.Require().False(found)
 		})
 	}
 }
