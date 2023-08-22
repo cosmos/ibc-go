@@ -205,6 +205,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
 	rootCmd.AddCommand(
+		server.StatusCommand(),
 		genesisCommand(encodingConfig, basicManager),
 		txCommand(basicManager),
 		queryCommand(basicManager),
