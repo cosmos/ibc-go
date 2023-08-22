@@ -204,7 +204,7 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 }
 
 // ChanUpgradeAck is called by a module to accept the ACKUPGRADE handshake step of the channel upgrade protocol.
-// This method should only be called by the IBC core name server.
+// This method should only be called by the IBC core msg server.
 // This method will verify that the counterparty has called the ChanUpgradeTry handler.
 // and that its own upgrade is compatible with the selected counterparty version.
 func (k Keeper) ChanUpgradeAck(
