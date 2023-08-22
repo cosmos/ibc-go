@@ -12,16 +12,16 @@ require (
 	cosmossdk.io/log v1.2.0
 	cosmossdk.io/math v1.0.1
 	cosmossdk.io/store v1.0.0-alpha.1.0.20230728080422-54ed7dab3982
-	cosmossdk.io/tools/confix v0.0.0-20230722073756-0fa85b7a424d
-	cosmossdk.io/x/circuit v0.0.0-20230722073756-0fa85b7a424d
-	cosmossdk.io/x/evidence v0.0.0-20230722073756-0fa85b7a424d
-	cosmossdk.io/x/feegrant v0.0.0-20230722073756-0fa85b7a424d
+	cosmossdk.io/tools/confix v0.0.0-20230818115413-c402c51a1508
+	cosmossdk.io/x/circuit v0.0.0-20230818115413-c402c51a1508
+	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508
+	cosmossdk.io/x/feegrant v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/tx v0.9.1
-	cosmossdk.io/x/upgrade v0.0.0-20230722073756-0fa85b7a424d
+	cosmossdk.io/x/upgrade v0.0.0-20230818115413-c402c51a1508
 	github.com/cometbft/cometbft v0.38.0-rc3
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.50.0-rc.0
+	github.com/cosmos/cosmos-sdk v0.50.0-rc.0.0.20230819070346-e8164be94954
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc3
 	github.com/cosmos/ics23/go v0.10.0
