@@ -1266,7 +1266,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 	var (
 		path         *ibctesting.Path
-		errorReceipt types.ErrorReceipt
 	)
 
 	tests := []struct {
@@ -1328,7 +1327,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			_, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			errorReceipt, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().True(ok)
 
 			ctx := suite.chainA.GetContext()
