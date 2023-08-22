@@ -730,6 +730,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		packet types.Packet
 		ack    = ibcmock.MockAcknowledgement
 
+		assertFn   func()
 		channelCap *capabilitytypes.Capability
 		expError   *errorsmod.Error
 	)
@@ -785,11 +786,16 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			path.EndpointA.SetChannel(channel)
 
-			upgrade := types.Upgrade{
+			counterpartyUpgrade := types.Upgrade{
 				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 0),
 			}
 
-			path.EndpointA.SetChannelCounterpartyUpgrade(upgrade)
+			path.EndpointA.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
+
+			assertFn = func() {
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(types.STATE_FLUSHING, channel.State)
+			}
 		}, true},
 		{"success on channel in flushing state with valid timeout", func() {
 			// setup uses an UNORDERED channel
@@ -811,11 +817,16 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			path.EndpointA.SetChannel(channel)
 
-			upgrade := types.Upgrade{
+			counterpartyUpgrade := types.Upgrade{
 				Timeout: types.NewTimeout(suite.chainB.GetTimeoutHeight(), 0),
 			}
 
-			path.EndpointA.SetChannelCounterpartyUpgrade(upgrade)
+			path.EndpointA.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
+
+			assertFn = func() {
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(types.STATE_FLUSHCOMPLETE, channel.State)
+			}
 		}, true},
 		{"success on channel in flushing state with timeout passed", func() {
 			// setup uses an UNORDERED channel
@@ -837,15 +848,27 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			path.EndpointA.SetChannel(channel)
 
-			// TODO: cleanup
 			upgrade := types.Upgrade{
-				Fields:  types.NewUpgradeFields(types.UNORDERED, channel.ConnectionHops, ibcmock.UpgradeVersion),
+				Fields:  types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, ibcmock.UpgradeVersion),
 				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
 			}
 
-			// TODO: cleanup - need to set self upgrade as MustAbortUpgrade is called restoring the channel
+			counterpartyUpgrade := types.Upgrade{
+				Fields:  types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, ibcmock.UpgradeVersion),
+				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
+			}
+
 			path.EndpointA.SetChannelUpgrade(upgrade)
-			path.EndpointA.SetChannelCounterpartyUpgrade(upgrade)
+			path.EndpointA.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
+
+			assertFn = func() {
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(types.OPEN, channel.State)
+
+				errorReceipt, found := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().NotEmpty(errorReceipt)
+			}
 		}, true},
 		{"packet already acknowledged ordered channel (no-op)", func() {
 			expError = types.ErrNoOpMsg
@@ -1103,6 +1126,9 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 					suite.Require().Equal(uint64(1), sequenceAck, "sequence incremented for UNORDERED channel")
 				}
 
+				if assertFn != nil {
+					assertFn()
+				}
 			} else {
 				suite.Error(err)
 				// only check if expError is set, since not all error codes can be known
