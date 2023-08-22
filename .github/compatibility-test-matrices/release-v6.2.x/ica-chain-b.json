@@ -14,9 +14,7 @@
   "test": [
     "TestMsgSendTx_SuccessfulTransfer",
     "TestMsgSendTx_FailedTransfer_InsufficientFunds",
-    "TestMsgSendTx_SuccessfulTransfer_AfterReopeningICA",
-    "TestControllerEnabledParam",
-    "TestHostEnabledParam"
+    "TestMsgSendTx_SuccessfulTransfer_AfterReopeningICA"
   ],
   "relayer-type": [
     "rly"

@@ -267,7 +267,12 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 
 	t.Run("ensure allowed clients are set to the default", func(t *testing.T) {
 		allowedClients := s.QueryAllowedClients(ctx, chainA)
-		s.Require().Equal(clienttypes.DefaultAllowedClients, allowedClients)
+
+		defaultAllowedClients := clienttypes.DefaultAllowedClients
+		if !testvalues.LocalhostClientFeatureReleases.IsSupported(chainAVersion) {
+			defaultAllowedClients = defaultAllowedClients[:len(defaultAllowedClients)-1]
+		}
+		s.Require().Equal(defaultAllowedClients, allowedClients)
 	})
 
 	allowedClient := ibcexported.Solomachine
