@@ -3,6 +3,6 @@ go 1.20
 use (
 	./
 	./modules/capability
-	./modules/applications/callbacks
+	./modules/apps/callbacks
 	./e2e
 )
