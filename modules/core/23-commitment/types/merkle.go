@@ -81,6 +81,12 @@ func NewMerklePath(keyPath ...string) MerklePath {
 // This represents the path in the same way the tendermint KeyPath will
 // represent a key path. The backslashes partition the key path into
 // the respective stores they belong to.
+//
+// Deprecated: This function makes assumptions about the way a merkle path
+// in a multistore should be represented as a string that are not standardized.
+// The decision on how to represent the merkle path as a string will be deferred
+// to upstream users of the type.
+// This function will be removed in a next release.
 func (mp MerklePath) String() string {
 	pathStr := ""
 	for _, k := range mp.KeyPath {
@@ -93,6 +99,12 @@ func (mp MerklePath) String() string {
 // This function will unescape any backslash within a particular store key.
 // This makes the keypath more human-readable while removing information
 // about the exact partitions in the key path.
+//
+// Deprecated: This function makes assumptions about the way a merkle path
+// in a multistore should be represented as a string that are not standardized.
+// The decision on how to represent the merkle path as a string will be deferred
+// to upstream users of the type.
+// This function will be removed in a next release.
 func (mp MerklePath) Pretty() string {
 	path, err := url.PathUnescape(mp.String())
 	if err != nil {
