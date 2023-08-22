@@ -7,6 +7,7 @@ import (
 )
 
 // TODO: determine sane default value for upgrade timeout.
+
 var DefaultTimeout = NewTimeout(clienttypes.NewHeight(1, 1000), 0)
 
 // NewParams creates a new parameter configuration for the channel submodule
