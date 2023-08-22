@@ -5,18 +5,20 @@ import (
 	"testing"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+
+	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestTransferTestSuite(t *testing.T) {
