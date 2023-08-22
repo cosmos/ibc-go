@@ -132,7 +132,8 @@ func (cs *ClientState) VerifyMembership(
 		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
 
-	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	// in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	key, err := merklePath.GetKey(1)
 	if err != nil {
 		return errorsmod.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
 	}
@@ -187,7 +188,8 @@ func (cs *ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
 
-	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	// in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	key, err := merklePath.GetKey(1)
 	if err != nil {
 		return errorsmod.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
 	}
