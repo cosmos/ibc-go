@@ -192,7 +192,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainBWallet.FormattedAddress(), // destination address
 		Denom:   chainA.Config().Denom,
-		Amount:  testvalues.IBCTransferAmount,
+		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
 	}
 
 	t.Run("IBC transfer packet timesout", func(t *testing.T) {
