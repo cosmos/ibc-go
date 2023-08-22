@@ -75,15 +75,11 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 
 	// withdraw all validator commission
 	err := app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
-		valAddr, err := sdk.ValAddressFromBech32(val.GetOperator())
+		valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 		if err != nil {
 			panic(err)
 		}
-		_, err = app.DistrKeeper.WithdrawValidatorCommission(ctx, valAddr)
-		if err != nil {
-			panic(err)
-		}
-		_, _ = app.DistrKeeper.WithdrawValidatorCommission(ctx, valAddr)
+		_, _ = app.DistrKeeper.WithdrawValidatorCommission(ctx, valBz)
 		return false
 	})
 	if err != nil {
