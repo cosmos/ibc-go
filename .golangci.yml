@@ -26,6 +26,8 @@ linters:
     - typecheck
     - tenv
     - unconvert
+    # Prefer unparam over revive's unused param. It is more thorough in its checking.
+    - unparam
     - unused
     - misspell
 
@@ -99,6 +101,9 @@ linters-settings:
       - name: confusing-naming
         disabled: true
       - name: defer
+        disabled: true
+      # Disabled in favour of unparam.
+      - name: unused-parameter
         disabled: true
       - name: unhandled-error
         disabled: false
