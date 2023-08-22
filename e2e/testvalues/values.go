@@ -26,6 +26,7 @@ func ImmediatelyTimeout() *ibc.IBCTimeout {
 	}
 }
 
+// DefaultFee returns a default fee for the given denomination.
 func DefaultFee(denom string) feetypes.Fee {
 	return feetypes.Fee{
 		RecvFee:    sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(50))),
@@ -34,14 +35,17 @@ func DefaultFee(denom string) feetypes.Fee {
 	}
 }
 
+// DefaultTransferAmount returns a default transfer amount for the given denomination.
 func DefaultTransferAmount(denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(IBCTransferAmount)}
 }
 
+// TendermintClientID returns the client identifier for the given tendermint client.
 func TendermintClientID(id int) string {
 	return fmt.Sprintf("07-tendermint-%d", id)
 }
 
+// SolomachineClientID returns the client identifier for the given solomachine client.
 func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
 }
