@@ -709,6 +709,23 @@ func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUp
 	return &clienttypes.MsgUpdateParamsResponse{}, nil
 }
 
+// ScheduleIBCClientUpgrade defines a rpc handler method for MsgScheduleIBCClientUpgrade.
+func (k Keeper) ScheduleIBCClientUpgrade(goCtx context.Context, msg *clienttypes.MsgScheduleIBCClientUpgrade) (*clienttypes.MsgScheduleIBCClientUpgradeResponse, error) {
+	if k.GetAuthority() != msg.Authority {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)
+	if err != nil {
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot unpack client state: %s", err)
+	}
+
+	k.ClientKeeper.ScheduleIBCClientUpgrade(ctx, msg.Plan, upgradedClientState)
+
+	return &clienttypes.MsgScheduleIBCClientUpgradeResponse{}, nil
+}
+
 // UpdateConnectionParams defines a rpc handler method for MsgUpdateParams for the 03-connection submodule.
 func (k Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Authority {

@@ -8,6 +8,7 @@ import (
 	fmt "fmt"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
+	types1 "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
@@ -280,6 +281,113 @@ func (m *MsgUpgradeClientResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpgradeClientResponse proto.InternalMessageInfo
 
+// MsgScheduleIBCClientUpgrade defines an sdk.Msg to schedule an upgrade of an IBC client using a v1 governance proposal
+type MsgScheduleIBCClientUpgrade struct {
+	// authority is the address of the governance account.
+	Authority string      `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	Plan      types1.Plan `protobuf:"bytes,2,opt,name=plan,proto3" json:"plan"`
+	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
+	// This will make the chain commit to the correct upgraded (self) client state
+	// before the upgrade occurs, so that connecting chains can verify that the
+	// new upgraded client is valid by verifying a proof on the previous version
+	// of the chain. This will allow IBC connections to persist smoothly across
+	// planned chain upgrades. Correspondingly, the UpgradedClientState field has been
+	// deprecated in the Cosmos SDK to allow for this logic to exist solely in
+	// the 02-client module.
+	UpgradedClientState *types.Any `protobuf:"bytes,3,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
+}
+
+func (m *MsgScheduleIBCClientUpgrade) Reset()         { *m = MsgScheduleIBCClientUpgrade{} }
+func (m *MsgScheduleIBCClientUpgrade) String() string { return proto.CompactTextString(m) }
+func (*MsgScheduleIBCClientUpgrade) ProtoMessage()    {}
+func (*MsgScheduleIBCClientUpgrade) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cb5dc4651eb49a04, []int{6}
+}
+func (m *MsgScheduleIBCClientUpgrade) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgScheduleIBCClientUpgrade) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgScheduleIBCClientUpgrade.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgScheduleIBCClientUpgrade) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgScheduleIBCClientUpgrade.Merge(m, src)
+}
+func (m *MsgScheduleIBCClientUpgrade) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgScheduleIBCClientUpgrade) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgScheduleIBCClientUpgrade.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgScheduleIBCClientUpgrade proto.InternalMessageInfo
+
+func (m *MsgScheduleIBCClientUpgrade) GetAuthority() string {
+	if m != nil {
+		return m.Authority
+	}
+	return ""
+}
+
+func (m *MsgScheduleIBCClientUpgrade) GetPlan() types1.Plan {
+	if m != nil {
+		return m.Plan
+	}
+	return types1.Plan{}
+}
+
+func (m *MsgScheduleIBCClientUpgrade) GetUpgradedClientState() *types.Any {
+	if m != nil {
+		return m.UpgradedClientState
+	}
+	return nil
+}
+
+// MsgScheduleIBCClientUpgradeResponse defines the Msg/ScheduleIBCClientUpgrade response type.
+type MsgScheduleIBCClientUpgradeResponse struct {
+}
+
+func (m *MsgScheduleIBCClientUpgradeResponse) Reset()         { *m = MsgScheduleIBCClientUpgradeResponse{} }
+func (m *MsgScheduleIBCClientUpgradeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgScheduleIBCClientUpgradeResponse) ProtoMessage()    {}
+func (*MsgScheduleIBCClientUpgradeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cb5dc4651eb49a04, []int{7}
+}
+func (m *MsgScheduleIBCClientUpgradeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgScheduleIBCClientUpgradeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgScheduleIBCClientUpgradeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgScheduleIBCClientUpgradeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgScheduleIBCClientUpgradeResponse.Merge(m, src)
+}
+func (m *MsgScheduleIBCClientUpgradeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgScheduleIBCClientUpgradeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgScheduleIBCClientUpgradeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgScheduleIBCClientUpgradeResponse proto.InternalMessageInfo
+
 // MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 // light client misbehaviour.
 // This message has been deprecated. Use MsgUpdateClient instead.
@@ -298,7 +406,7 @@ func (m *MsgSubmitMisbehaviour) Reset()         { *m = MsgSubmitMisbehaviour{} }
 func (m *MsgSubmitMisbehaviour) String() string { return proto.CompactTextString(m) }
 func (*MsgSubmitMisbehaviour) ProtoMessage()    {}
 func (*MsgSubmitMisbehaviour) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb5dc4651eb49a04, []int{6}
+	return fileDescriptor_cb5dc4651eb49a04, []int{8}
 }
 func (m *MsgSubmitMisbehaviour) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -336,7 +444,7 @@ func (m *MsgSubmitMisbehaviourResponse) Reset()         { *m = MsgSubmitMisbehav
 func (m *MsgSubmitMisbehaviourResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSubmitMisbehaviourResponse) ProtoMessage()    {}
 func (*MsgSubmitMisbehaviourResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb5dc4651eb49a04, []int{7}
+	return fileDescriptor_cb5dc4651eb49a04, []int{9}
 }
 func (m *MsgSubmitMisbehaviourResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -379,7 +487,7 @@ func (m *MsgUpdateParams) Reset()         { *m = MsgUpdateParams{} }
 func (m *MsgUpdateParams) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateParams) ProtoMessage()    {}
 func (*MsgUpdateParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb5dc4651eb49a04, []int{8}
+	return fileDescriptor_cb5dc4651eb49a04, []int{10}
 }
 func (m *MsgUpdateParams) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -416,7 +524,7 @@ func (m *MsgUpdateParamsResponse) Reset()         { *m = MsgUpdateParamsResponse
 func (m *MsgUpdateParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateParamsResponse) ProtoMessage()    {}
 func (*MsgUpdateParamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb5dc4651eb49a04, []int{9}
+	return fileDescriptor_cb5dc4651eb49a04, []int{11}
 }
 func (m *MsgUpdateParamsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -452,6 +560,8 @@ func init() {
 	proto.RegisterType((*MsgUpdateClientResponse)(nil), "ibc.core.client.v1.MsgUpdateClientResponse")
 	proto.RegisterType((*MsgUpgradeClient)(nil), "ibc.core.client.v1.MsgUpgradeClient")
 	proto.RegisterType((*MsgUpgradeClientResponse)(nil), "ibc.core.client.v1.MsgUpgradeClientResponse")
+	proto.RegisterType((*MsgScheduleIBCClientUpgrade)(nil), "ibc.core.client.v1.MsgScheduleIBCClientUpgrade")
+	proto.RegisterType((*MsgScheduleIBCClientUpgradeResponse)(nil), "ibc.core.client.v1.MsgScheduleIBCClientUpgradeResponse")
 	proto.RegisterType((*MsgSubmitMisbehaviour)(nil), "ibc.core.client.v1.MsgSubmitMisbehaviour")
 	proto.RegisterType((*MsgSubmitMisbehaviourResponse)(nil), "ibc.core.client.v1.MsgSubmitMisbehaviourResponse")
 	proto.RegisterType((*MsgUpdateParams)(nil), "ibc.core.client.v1.MsgUpdateParams")
@@ -461,49 +571,56 @@ func init() {
 func init() { proto.RegisterFile("ibc/core/client/v1/tx.proto", fileDescriptor_cb5dc4651eb49a04) }
 
 var fileDescriptor_cb5dc4651eb49a04 = []byte{
-	// 658 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x95, 0x3f, 0x6f, 0xd3, 0x4e,
-	0x18, 0xc7, 0xe3, 0xfe, 0x89, 0x7e, 0xb9, 0xa6, 0xed, 0x8f, 0x53, 0xa1, 0xa9, 0x4b, 0x9d, 0x2a,
-	0x30, 0x94, 0x42, 0xed, 0x26, 0x0c, 0x8d, 0x8a, 0x18, 0xda, 0x4e, 0x0c, 0x91, 0x90, 0x2b, 0x16,
-	0x96, 0x60, 0x3b, 0x97, 0x8b, 0xa5, 0xd8, 0x67, 0xf9, 0xec, 0x88, 0x0c, 0x48, 0x88, 0x89, 0x11,
-	0x24, 0x16, 0x36, 0x5e, 0x42, 0xc5, 0x7b, 0x40, 0xea, 0xd8, 0x91, 0x09, 0xa1, 0x64, 0xe8, 0xdb,
-	0x40, 0xf6, 0x5d, 0x1c, 0xdb, 0x8d, 0x4d, 0x2a, 0x36, 0xfb, 0x9e, 0xcf, 0x73, 0xdf, 0xef, 0xf3,
-	0xf8, 0x39, 0x1f, 0xd8, 0x36, 0x75, 0x43, 0x31, 0x88, 0x8b, 0x14, 0xa3, 0x6f, 0x22, 0xdb, 0x53,
-	0x06, 0x75, 0xc5, 0x7b, 0x2b, 0x3b, 0x2e, 0xf1, 0x08, 0x84, 0xa6, 0x6e, 0xc8, 0x41, 0x50, 0x66,
-	0x41, 0x79, 0x50, 0x17, 0x37, 0x0d, 0x42, 0x2d, 0x42, 0x15, 0x8b, 0xe2, 0x80, 0xb5, 0x28, 0x66,
-	0xb0, 0xb8, 0x81, 0x09, 0x26, 0xe1, 0xa3, 0x12, 0x3c, 0xf1, 0xd5, 0x2d, 0x4c, 0x08, 0xee, 0x23,
-	0x25, 0x7c, 0xd3, 0xfd, 0xae, 0xa2, 0xd9, 0x43, 0x1e, 0xaa, 0xce, 0x90, 0xe6, 0x3a, 0x21, 0x50,
-	0xfb, 0x2e, 0x80, 0xf5, 0x16, 0xc5, 0x67, 0x2e, 0xd2, 0x3c, 0x74, 0x16, 0x46, 0xe0, 0x11, 0x28,
-	0x33, 0xa6, 0x4d, 0x3d, 0xcd, 0x43, 0x15, 0x61, 0x57, 0xd8, 0x5b, 0x69, 0x6c, 0xc8, 0x4c, 0x46,
-	0x9e, 0xc8, 0xc8, 0x27, 0xf6, 0x50, 0x5d, 0x61, 0xe4, 0x79, 0x00, 0xc2, 0xe7, 0x60, 0xdd, 0x20,
-	0x36, 0x45, 0x36, 0xf5, 0x29, 0xcf, 0x5d, 0xc8, 0xc9, 0x5d, 0x8b, 0x60, 0x96, 0x7e, 0x0f, 0x14,
-	0xa9, 0x89, 0x6d, 0xe4, 0x56, 0x16, 0x77, 0x85, 0xbd, 0x92, 0xca, 0xdf, 0x8e, 0xd7, 0x3f, 0x7e,
-	0xab, 0x16, 0x3e, 0x5c, 0x5f, 0xec, 0xf3, 0x85, 0xda, 0x16, 0xd8, 0x4c, 0x79, 0x56, 0x11, 0x75,
-	0x82, 0xcd, 0x6a, 0x5f, 0x58, 0x3d, 0xaf, 0x9c, 0xce, 0xb4, 0x9e, 0x6d, 0x50, 0xe2, 0xf5, 0x98,
-	0x9d, 0xb0, 0x98, 0x92, 0xfa, 0x1f, 0x5b, 0x78, 0xd1, 0x81, 0xcf, 0xc0, 0x1a, 0x0f, 0x5a, 0x88,
-	0x52, 0x0d, 0xe7, 0x5b, 0x5e, 0x65, 0x6c, 0x8b, 0xa1, 0xb7, 0x75, 0x1c, 0x77, 0x15, 0x39, 0xfe,
-	0xb1, 0x00, 0xfe, 0x0f, 0x63, 0xd8, 0xd5, 0x3a, 0x73, 0x59, 0x4e, 0x7f, 0x9f, 0x85, 0x7f, 0xf8,
-	0x3e, 0x8b, 0xb7, 0xf8, 0x3e, 0x87, 0x60, 0xc3, 0x71, 0x09, 0xe9, 0xb6, 0x7d, 0xe6, 0xb5, 0xcd,
-	0xf6, 0xae, 0x2c, 0xed, 0x0a, 0x7b, 0x65, 0x15, 0x86, 0xb1, 0x64, 0x19, 0x27, 0x60, 0x27, 0x95,
-	0x91, 0x92, 0x5f, 0x0e, 0x53, 0xc5, 0x44, 0x6a, 0xd6, 0x50, 0x14, 0xf3, 0x5b, 0x2c, 0x82, 0x4a,
-	0xba, 0x8d, 0x51, 0x8f, 0xbf, 0x0a, 0xe0, 0x6e, 0x8b, 0xe2, 0x73, 0x5f, 0xb7, 0x4c, 0xaf, 0x65,
-	0x52, 0x1d, 0xf5, 0xb4, 0x81, 0x49, 0x7c, 0x37, 0xbf, 0xd1, 0x4d, 0x50, 0xb6, 0x62, 0x70, 0x6e,
-	0xa3, 0x13, 0x64, 0xe6, 0x60, 0xdc, 0x49, 0xb9, 0xae, 0x08, 0xb5, 0x2a, 0xd8, 0x99, 0x69, 0x2d,
-	0x32, 0xff, 0x2e, 0x36, 0xd1, 0x2f, 0x35, 0x57, 0xb3, 0x28, 0xbc, 0x0f, 0x4a, 0x9a, 0xef, 0xf5,
-	0x88, 0x6b, 0x7a, 0x43, 0xee, 0x7a, 0xba, 0x00, 0x9b, 0xa0, 0xe8, 0x84, 0x1c, 0x37, 0x2c, 0xca,
-	0x37, 0xff, 0x31, 0x32, 0xdb, 0xe9, 0x74, 0xe9, 0xf2, 0x57, 0xb5, 0xa0, 0x72, 0xfe, 0x18, 0x4e,
-	0xec, 0x4d, 0x77, 0x4b, 0x8c, 0x2e, 0x4b, 0x9a, 0x38, 0x6b, 0x7c, 0x5e, 0x02, 0x8b, 0x2d, 0x8a,
-	0xe1, 0x1b, 0x50, 0x4e, 0xfc, 0x40, 0x1e, 0xcc, 0x12, 0x4c, 0x9d, 0x58, 0xf1, 0xf1, 0x1c, 0xd0,
-	0x44, 0x29, 0x50, 0x48, 0x1c, 0xe9, 0x2c, 0x85, 0x38, 0x94, 0xa9, 0x30, 0xeb, 0x18, 0x42, 0x03,
-	0xac, 0x26, 0x67, 0xf7, 0x61, 0x66, 0x76, 0x8c, 0x12, 0x9f, 0xcc, 0x43, 0x45, 0x22, 0x2e, 0x80,
-	0x33, 0x66, 0xf0, 0x51, 0xc6, 0x1e, 0x37, 0x51, 0xb1, 0x3e, 0x37, 0x1a, 0x69, 0x76, 0x01, 0x8c,
-	0x17, 0xcc, 0x27, 0x28, 0xbf, 0x81, 0x0c, 0xfa, 0x4b, 0x03, 0x93, 0xc3, 0x20, 0x2e, 0xbf, 0xbf,
-	0xbe, 0xd8, 0x17, 0x4e, 0xd5, 0xcb, 0x91, 0x24, 0x5c, 0x8d, 0x24, 0xe1, 0xf7, 0x48, 0x12, 0x3e,
-	0x8d, 0xa5, 0xc2, 0xd5, 0x58, 0x2a, 0xfc, 0x1c, 0x4b, 0x85, 0xd7, 0x4d, 0x6c, 0x7a, 0x3d, 0x5f,
-	0x97, 0x0d, 0x62, 0x29, 0xfc, 0x82, 0x33, 0x75, 0xe3, 0x00, 0x13, 0x65, 0x70, 0xa4, 0x58, 0xa4,
-	0xe3, 0xf7, 0x11, 0x65, 0x77, 0xd5, 0x61, 0xe3, 0x80, 0x5f, 0x57, 0xde, 0xd0, 0x41, 0x54, 0x2f,
-	0x86, 0x27, 0xed, 0xe9, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x70, 0x00, 0x5d, 0xdc, 0x49, 0x07,
-	0x00, 0x00,
+	// 772 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x96, 0xcf, 0x4f, 0xdb, 0x4a,
+	0x10, 0xc7, 0x63, 0x7e, 0x44, 0x2f, 0x4b, 0x80, 0xf7, 0xf6, 0x41, 0x09, 0x06, 0x12, 0x14, 0xa8,
+	0x44, 0x69, 0xb1, 0x09, 0x95, 0x0a, 0xa2, 0xea, 0x01, 0x72, 0x29, 0x87, 0x48, 0x28, 0xa8, 0x97,
+	0x5e, 0x52, 0xdb, 0x59, 0x36, 0x96, 0x62, 0xaf, 0xe5, 0xb5, 0xa3, 0xe6, 0x50, 0xa9, 0xaa, 0x7a,
+	0xe8, 0xb1, 0x87, 0x1e, 0xda, 0x5b, 0xff, 0x04, 0xd4, 0xff, 0xa1, 0x12, 0x97, 0x4a, 0x1c, 0x7b,
+	0xaa, 0x2a, 0x38, 0xf0, 0x6f, 0x54, 0xf6, 0xae, 0x1d, 0xdb, 0xc4, 0x26, 0xa8, 0x37, 0x7b, 0xe7,
+	0x33, 0x3b, 0xdf, 0x99, 0xd9, 0x59, 0x2d, 0x58, 0xd2, 0x55, 0x4d, 0xd6, 0x88, 0x8d, 0x64, 0xad,
+	0xab, 0x23, 0xd3, 0x91, 0x7b, 0x35, 0xd9, 0x79, 0x2d, 0x59, 0x36, 0x71, 0x08, 0x84, 0xba, 0xaa,
+	0x49, 0x9e, 0x51, 0x62, 0x46, 0xa9, 0x57, 0x13, 0x17, 0x34, 0x42, 0x0d, 0x42, 0x65, 0x83, 0x62,
+	0x8f, 0x35, 0x28, 0x66, 0xb0, 0xb8, 0xce, 0x0d, 0xae, 0x85, 0x6d, 0xa5, 0x8d, 0xe4, 0x5e, 0x4d,
+	0x45, 0x8e, 0x52, 0x0b, 0xfe, 0x39, 0x35, 0x87, 0x09, 0x26, 0xfe, 0xa7, 0xec, 0x7d, 0xf1, 0xd5,
+	0x45, 0x4c, 0x08, 0xee, 0x22, 0xd9, 0xff, 0x53, 0xdd, 0x53, 0x59, 0x31, 0xfb, 0xdc, 0x54, 0x19,
+	0x22, 0x90, 0xab, 0xf1, 0x81, 0xea, 0x37, 0x01, 0xcc, 0x36, 0x28, 0xae, 0xdb, 0x48, 0x71, 0x50,
+	0xdd, 0xb7, 0xc0, 0x5d, 0x50, 0x64, 0x4c, 0x8b, 0x3a, 0x8a, 0x83, 0x4a, 0xc2, 0xaa, 0xb0, 0x31,
+	0xb5, 0x33, 0x27, 0xb1, 0x30, 0x52, 0x10, 0x46, 0x3a, 0x30, 0xfb, 0xcd, 0x29, 0x46, 0x9e, 0x78,
+	0x20, 0x7c, 0x06, 0x66, 0x35, 0x62, 0x52, 0x64, 0x52, 0x97, 0x72, 0xdf, 0xb1, 0x0c, 0xdf, 0x99,
+	0x10, 0x66, 0xee, 0xf7, 0x40, 0x9e, 0xea, 0xd8, 0x44, 0x76, 0x69, 0x7c, 0x55, 0xd8, 0x28, 0x34,
+	0xf9, 0xdf, 0xfe, 0xec, 0x87, 0xaf, 0x95, 0xdc, 0xbb, 0xeb, 0xb3, 0x4d, 0xbe, 0x50, 0x5d, 0x04,
+	0x0b, 0x09, 0xcd, 0x4d, 0x44, 0x2d, 0x6f, 0xb3, 0xea, 0x27, 0x96, 0xcf, 0x0b, 0xab, 0x3d, 0xc8,
+	0x67, 0x09, 0x14, 0x78, 0x3e, 0x7a, 0xdb, 0x4f, 0xa6, 0xd0, 0xfc, 0x87, 0x2d, 0x1c, 0xb5, 0xe1,
+	0x53, 0x30, 0xc3, 0x8d, 0x06, 0xa2, 0x54, 0xc1, 0xd9, 0x92, 0xa7, 0x19, 0xdb, 0x60, 0xe8, 0x5d,
+	0x15, 0x47, 0x55, 0x85, 0x8a, 0xbf, 0x8f, 0x81, 0x7f, 0x7d, 0x9b, 0xdf, 0xe8, 0x51, 0x24, 0x27,
+	0xfb, 0x33, 0xf6, 0x17, 0xfd, 0x19, 0xbf, 0x43, 0x7f, 0xb6, 0xc1, 0x9c, 0x65, 0x13, 0x72, 0xda,
+	0xe2, 0x87, 0xb2, 0xc5, 0xf6, 0x2e, 0x4d, 0xac, 0x0a, 0x1b, 0xc5, 0x26, 0xf4, 0x6d, 0xf1, 0x34,
+	0x0e, 0xc0, 0x4a, 0xc2, 0x23, 0x11, 0x7e, 0xd2, 0x77, 0x15, 0x63, 0xae, 0x69, 0x87, 0x22, 0x9f,
+	0x5d, 0x62, 0x11, 0x94, 0x92, 0x65, 0x0c, 0x6b, 0xfc, 0x43, 0x00, 0x4b, 0x0d, 0x8a, 0x4f, 0xb4,
+	0x0e, 0x6a, 0xbb, 0x5d, 0x74, 0x74, 0x58, 0x67, 0x00, 0xa7, 0xe1, 0x32, 0x28, 0x28, 0xae, 0xd3,
+	0x21, 0xb6, 0xee, 0xf4, 0x79, 0xb9, 0x07, 0x0b, 0xf0, 0x09, 0x98, 0xb0, 0xba, 0x8a, 0xc9, 0xeb,
+	0xbc, 0x2c, 0xb1, 0x51, 0x95, 0x82, 0xd1, 0xe4, 0xa3, 0x2a, 0x1d, 0x77, 0x15, 0xf3, 0x70, 0xe2,
+	0xfc, 0x57, 0x25, 0xd7, 0xf4, 0x79, 0xf8, 0x1c, 0xcc, 0x73, 0xa6, 0xdd, 0x8a, 0x35, 0x2c, 0xab,
+	0xe8, 0xff, 0x07, 0x2e, 0xf5, 0x41, 0xe3, 0xf6, 0x67, 0xbc, 0x44, 0x07, 0x8a, 0xaa, 0xf7, 0xc1,
+	0x5a, 0x46, 0x3a, 0x61, 0xda, 0x5f, 0x04, 0x30, 0xef, 0x71, 0xae, 0x6a, 0xe8, 0x4e, 0x43, 0xa7,
+	0x2a, 0xea, 0x28, 0x3d, 0x9d, 0xb8, 0x76, 0xf6, 0xf9, 0xda, 0x03, 0x45, 0x23, 0x02, 0x67, 0x9e,
+	0xaf, 0x18, 0x99, 0x3a, 0x0f, 0xff, 0x25, 0x9a, 0x55, 0x12, 0xaa, 0x15, 0xb0, 0x32, 0x54, 0x5a,
+	0x28, 0xfe, 0x4d, 0x64, 0x90, 0x8f, 0x15, 0x5b, 0x31, 0xe8, 0x2d, 0x6d, 0xda, 0x03, 0x79, 0xcb,
+	0xe7, 0xb8, 0x60, 0x51, 0xba, 0x79, 0x01, 0x4b, 0x6c, 0x27, 0xde, 0x26, 0xce, 0xef, 0xc3, 0x40,
+	0x5e, 0xa4, 0xc4, 0xd1, 0x89, 0x65, 0x4e, 0x81, 0xb2, 0x9d, 0xcf, 0x93, 0x60, 0xbc, 0x41, 0x31,
+	0x7c, 0x05, 0x8a, 0xb1, 0x7b, 0x73, 0x6d, 0x58, 0xc0, 0xc4, 0x45, 0x25, 0x3e, 0x1c, 0x01, 0x0a,
+	0x22, 0x79, 0x11, 0x62, 0x37, 0x59, 0x5a, 0x84, 0x28, 0x94, 0x1a, 0x61, 0xd8, 0xed, 0x03, 0x35,
+	0x30, 0x1d, 0x1f, 0xd9, 0xf5, 0x54, 0xef, 0x08, 0x25, 0x3e, 0x1a, 0x85, 0x0a, 0x83, 0xbc, 0x17,
+	0x40, 0x29, 0x75, 0xf6, 0xe4, 0x94, 0xad, 0xd2, 0x1c, 0xc4, 0xdd, 0x3b, 0x3a, 0x84, 0x32, 0x6c,
+	0x00, 0x87, 0x8c, 0xc2, 0x83, 0xb4, 0xed, 0x6e, 0xa0, 0x62, 0x6d, 0x64, 0x34, 0x8c, 0x79, 0x0a,
+	0x60, 0xb4, 0xee, 0xfc, 0x20, 0x67, 0xf7, 0x91, 0x41, 0xb7, 0xf4, 0x31, 0x7e, 0x26, 0xc5, 0xc9,
+	0xb7, 0xd7, 0x67, 0x9b, 0xc2, 0x61, 0xf3, 0xfc, 0xb2, 0x2c, 0x5c, 0x5c, 0x96, 0x85, 0xdf, 0x97,
+	0x65, 0xe1, 0xe3, 0x55, 0x39, 0x77, 0x71, 0x55, 0xce, 0xfd, 0xbc, 0x2a, 0xe7, 0x5e, 0xee, 0x61,
+	0xdd, 0xe9, 0xb8, 0xaa, 0xa4, 0x11, 0x43, 0xe6, 0x6f, 0x0d, 0x5d, 0xd5, 0xb6, 0x30, 0x91, 0x7b,
+	0xbb, 0xb2, 0x41, 0xbc, 0xc2, 0x51, 0xf6, 0x52, 0xd8, 0xde, 0xd9, 0xe2, 0x8f, 0x05, 0xa7, 0x6f,
+	0x21, 0xaa, 0xe6, 0xfd, 0x81, 0x7f, 0xfc, 0x27, 0x00, 0x00, 0xff, 0xff, 0xb4, 0xf0, 0x1e, 0xb7,
+	0xed, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -524,6 +641,8 @@ type MsgClient interface {
 	UpdateClient(ctx context.Context, in *MsgUpdateClient, opts ...grpc.CallOption) (*MsgUpdateClientResponse, error)
 	// UpgradeClient defines a rpc handler method for MsgUpgradeClient.
 	UpgradeClient(ctx context.Context, in *MsgUpgradeClient, opts ...grpc.CallOption) (*MsgUpgradeClientResponse, error)
+	// ScheduleIBCClientUpgrade defines a rpc handler method for MsgScheduleIBCClientUpgrade.
+	ScheduleIBCClientUpgrade(ctx context.Context, in *MsgScheduleIBCClientUpgrade, opts ...grpc.CallOption) (*MsgScheduleIBCClientUpgradeResponse, error)
 	// SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 	SubmitMisbehaviour(ctx context.Context, in *MsgSubmitMisbehaviour, opts ...grpc.CallOption) (*MsgSubmitMisbehaviourResponse, error)
 	// UpdateClientParams defines a rpc handler method for MsgUpdateParams.
@@ -565,6 +684,15 @@ func (c *msgClient) UpgradeClient(ctx context.Context, in *MsgUpgradeClient, opt
 	return out, nil
 }
 
+func (c *msgClient) ScheduleIBCClientUpgrade(ctx context.Context, in *MsgScheduleIBCClientUpgrade, opts ...grpc.CallOption) (*MsgScheduleIBCClientUpgradeResponse, error) {
+	out := new(MsgScheduleIBCClientUpgradeResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.client.v1.Msg/ScheduleIBCClientUpgrade", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) SubmitMisbehaviour(ctx context.Context, in *MsgSubmitMisbehaviour, opts ...grpc.CallOption) (*MsgSubmitMisbehaviourResponse, error) {
 	out := new(MsgSubmitMisbehaviourResponse)
 	err := c.cc.Invoke(ctx, "/ibc.core.client.v1.Msg/SubmitMisbehaviour", in, out, opts...)
@@ -591,6 +719,8 @@ type MsgServer interface {
 	UpdateClient(context.Context, *MsgUpdateClient) (*MsgUpdateClientResponse, error)
 	// UpgradeClient defines a rpc handler method for MsgUpgradeClient.
 	UpgradeClient(context.Context, *MsgUpgradeClient) (*MsgUpgradeClientResponse, error)
+	// ScheduleIBCClientUpgrade defines a rpc handler method for MsgScheduleIBCClientUpgrade.
+	ScheduleIBCClientUpgrade(context.Context, *MsgScheduleIBCClientUpgrade) (*MsgScheduleIBCClientUpgradeResponse, error)
 	// SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 	SubmitMisbehaviour(context.Context, *MsgSubmitMisbehaviour) (*MsgSubmitMisbehaviourResponse, error)
 	// UpdateClientParams defines a rpc handler method for MsgUpdateParams.
@@ -609,6 +739,9 @@ func (*UnimplementedMsgServer) UpdateClient(ctx context.Context, req *MsgUpdateC
 }
 func (*UnimplementedMsgServer) UpgradeClient(ctx context.Context, req *MsgUpgradeClient) (*MsgUpgradeClientResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpgradeClient not implemented")
+}
+func (*UnimplementedMsgServer) ScheduleIBCClientUpgrade(ctx context.Context, req *MsgScheduleIBCClientUpgrade) (*MsgScheduleIBCClientUpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ScheduleIBCClientUpgrade not implemented")
 }
 func (*UnimplementedMsgServer) SubmitMisbehaviour(ctx context.Context, req *MsgSubmitMisbehaviour) (*MsgSubmitMisbehaviourResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitMisbehaviour not implemented")
@@ -675,6 +808,24 @@ func _Msg_UpgradeClient_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_ScheduleIBCClientUpgrade_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgScheduleIBCClientUpgrade)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ScheduleIBCClientUpgrade(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.client.v1.Msg/ScheduleIBCClientUpgrade",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ScheduleIBCClientUpgrade(ctx, req.(*MsgScheduleIBCClientUpgrade))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Msg_SubmitMisbehaviour_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgSubmitMisbehaviour)
 	if err := dec(in); err != nil {
@@ -726,6 +877,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpgradeClient",
 			Handler:    _Msg_UpgradeClient_Handler,
+		},
+		{
+			MethodName: "ScheduleIBCClientUpgrade",
+			Handler:    _Msg_ScheduleIBCClientUpgrade_Handler,
 		},
 		{
 			MethodName: "SubmitMisbehaviour",
@@ -987,6 +1142,81 @@ func (m *MsgUpgradeClientResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgScheduleIBCClientUpgrade) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgScheduleIBCClientUpgrade) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgScheduleIBCClientUpgrade) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.UpgradedClientState != nil {
+		{
+			size, err := m.UpgradedClientState.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	{
+		size, err := m.Plan.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgScheduleIBCClientUpgradeResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgScheduleIBCClientUpgradeResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgScheduleIBCClientUpgradeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func (m *MsgSubmitMisbehaviour) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1227,6 +1457,34 @@ func (m *MsgUpgradeClient) Size() (n int) {
 }
 
 func (m *MsgUpgradeClientResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgScheduleIBCClientUpgrade) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.Plan.Size()
+	n += 1 + l + sovTx(uint64(l))
+	if m.UpgradedClientState != nil {
+		l = m.UpgradedClientState.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgScheduleIBCClientUpgradeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1980,6 +2238,207 @@ func (m *MsgUpgradeClientResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgUpgradeClientResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgScheduleIBCClientUpgrade) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgScheduleIBCClientUpgrade: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgScheduleIBCClientUpgrade: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Plan", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Plan.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpgradedClientState", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UpgradedClientState == nil {
+				m.UpgradedClientState = &types.Any{}
+			}
+			if err := m.UpgradedClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgScheduleIBCClientUpgradeResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgScheduleIBCClientUpgradeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgScheduleIBCClientUpgradeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
