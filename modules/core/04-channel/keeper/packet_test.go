@@ -1058,7 +1058,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 // 	var path *ibctesting.Path
 
 // 	testCases := []struct {
-// 		msg                 string
+// 		name                 string
 // 		malleate            func()
 // 		expectedFlushStatus types.FlushStatus
 // 	}{
@@ -1081,7 +1081,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 // 	for i, tc := range testCases {
 // 		tc := tc
-// 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
+// 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.name, i, len(testCases)), func() {
 // 			suite.SetupTest() // reset
 // 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 // 			suite.coordinator.Setup(path)

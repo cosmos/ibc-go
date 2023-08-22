@@ -19,7 +19,7 @@ import (
 
 // ChanOpenInit is called by a module to initiate a channel opening handshake with
 // a module on another chain. The counterparty channel identifier is validated to be
-// empty in msg validation.
+// empty in name validation.
 func (k Keeper) ChanOpenInit(
 	ctx sdk.Context,
 	order types.Order,
@@ -29,7 +29,7 @@ func (k Keeper) ChanOpenInit(
 	counterparty types.Counterparty,
 	version string,
 ) (string, *capabilitytypes.Capability, error) {
-	// connection hop length checked on msg.ValidateBasic()
+	// connection hop length checked on name.ValidateBasic()
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, connectionHops[0])
 	if !found {
 		return "", nil, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
