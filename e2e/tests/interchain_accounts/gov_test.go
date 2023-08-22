@@ -112,7 +112,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			_, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+			expected := testvalues.IBCTransferAmount.Int64() + testvalues.StartingTokenAmount.Int64()
 			s.Require().Equal(expected, balance)
 		})
 	})

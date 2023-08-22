@@ -200,13 +200,13 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		balance, err := chainB.GetBalance(ctx, chainBAddress, chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		expected := testvalues.IBCTransferAmount.Int64() + testvalues.StartingTokenAmount.Int64()
 		s.Require().Equal(expected, balance)
 
 		balance, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		expected = testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected = testvalues.StartingTokenAmount.Int64() - testvalues.IBCTransferAmount.Int64()
 		s.Require().Equal(expected, balance)
 	})
 }
