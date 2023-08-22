@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/modules/capability
 
-go 1.20
+go 1.21
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
@@ -8,7 +8,7 @@ require (
 	cosmossdk.io/core v0.9.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.1.1-0.20230704160919-88f2c830b0ca
-	cosmossdk.io/math v1.0.1
+	cosmossdk.io/math v1.1.2
 	cosmossdk.io/store v1.0.0-alpha.1
 	github.com/cometbft/cometbft v0.38.0-rc3
 	github.com/cosmos/cosmos-db v1.0.0
