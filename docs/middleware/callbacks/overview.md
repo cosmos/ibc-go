@@ -34,6 +34,12 @@ Think of the secondary application as a bridge between the Callbacks Middleware 
 
 Note that it is possible that the IBC Actor, Secondary Application, and Callback Actor are all the same entity. In which case, the Callback Address should be the secondary application's module address.
 
+The following diagram shows how a typical `RecvPacket`, `AcknowledgementPacket`, and `TimeoutPacket` execution flow would look like:
+![callbacks-middleware](../../assets/callbacks-mw/callbackflow.svg)
+
+And the following diagram shows how a typical `SendPacket` and `WriteAcknowledgement` execution flow would look like:
+![callbacks-middleware](../../assets/callbacks-mw/ics4-callbackflow.svg)
+
 ## Known Limitations
 
 - Callbacks are always executed after the underlying IBC application has executed its logic.
