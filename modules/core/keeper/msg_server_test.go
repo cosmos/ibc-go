@@ -827,7 +827,7 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 }
 
 // TestScheduleIBCClientUpgrade tests the ScheduleIBCClientUpgrade rpc handler
-func (suite *KeeperTestSuite) TestScheduleIBCClientUpgrade() {
+func (*KeeperTestSuite) TestScheduleIBCClientUpgrade() {
 }
 
 // TestUpdateConnectionParams tests the UpdateConnectionParams rpc handler
