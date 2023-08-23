@@ -710,10 +710,9 @@ func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUp
 }
 
 // ScheduleIBCClientUpgrade defines a rpc handler method for MsgScheduleIBCClientUpgrade.
-func (k Keeper) ScheduleIBCClientUpgrade(goCtx context.Context, msg *clienttypes.MsgScheduleIBCClientUpgrade) (*clienttypes.MsgScheduleIBCClientUpgradeResponse, error) {
-	// TODO
-	return nil, nil
-}
+// func (k Keeper) ScheduleIBCClientUpgrade(goCtx context.Context, msg *clienttypes.MsgScheduleIBCClientUpgrade) (*clienttypes.MsgScheduleIBCClientUpgradeResponse, error) {
+// 	return nil, nil
+// }
 
 // UpdateConnectionParams defines a rpc handler method for MsgUpdateParams for the 03-connection submodule.
 func (k Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
