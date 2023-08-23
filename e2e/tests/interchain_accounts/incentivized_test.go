@@ -189,7 +189,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance)
+			s.Require().Equal(expected, balance.Int64())
 		})
 
 		t.Run("timeout fee is refunded", func(t *testing.T) {
@@ -358,7 +358,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance, "tokens should not have been sent as interchain account was not funded")
+			s.Require().Equal(expected, balance.Int64(), "tokens should not have been sent as interchain account was not funded")
 		})
 
 		t.Run("timeout fee is refunded", func(t *testing.T) {

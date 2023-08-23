@@ -94,7 +94,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	t.Run("non-native IBC token transfer from chainB to chainA, receiver is source of tokens", func(t *testing.T) {
@@ -347,7 +347,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
-			s.Require().Equal(expected, actualBalance)
+			s.Require().Equal(expected, actualBalance.Int64())
 		})
 
 		t.Run("stop relayer", func(t *testing.T) {
@@ -466,7 +466,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		s.Require().NoError(err)
 
 		if testvalues.MemoFeatureReleases.IsSupported(chainBVersion) {
-			s.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
+			s.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
 		} else {
 			s.Require().Equal(int64(0), actualBalance)
 		}
