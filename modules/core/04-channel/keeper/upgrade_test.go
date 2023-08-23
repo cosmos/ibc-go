@@ -1883,13 +1883,6 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 			expPass: true,
 		},
 		{
-			name: "upgrade does not exist",
-			malleate: func() {
-				suite.chainA.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			},
-			expPass: false,
-		},
-		{
 			name: "channel does not exist",
 			malleate: func() {
 				suite.chainA.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))

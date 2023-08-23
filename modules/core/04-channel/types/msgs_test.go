@@ -785,20 +785,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 			true,
 		},
 		{
-			"success: counterparty state set to TRYUPGRADE",
-			func() {
-				msg.CounterpartyChannelState = types.TRYUPGRADE
-			},
-			true,
-		},
-		{
-			"success: counterparty state set to ACKUPGRADE",
-			func() {
-				msg.CounterpartyChannelState = types.ACKUPGRADE
-			},
-			true,
-		},
-		{
 			"invalid port identifier",
 			func() {
 				msg.PortId = invalidPort
@@ -840,7 +826,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 		suite.Run(tc.name, func() {
 			msg = types.NewMsgChannelUpgradeOpen(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.OPEN, suite.proof,
+				types.STATE_FLUSHCOMPLETE, suite.proof,
 				height, addr,
 			)
 
