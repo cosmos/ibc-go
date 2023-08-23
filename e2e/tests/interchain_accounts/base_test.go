@@ -401,6 +401,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 	})
 }
