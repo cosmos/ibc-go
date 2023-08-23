@@ -7,6 +7,12 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -14,11 +20,6 @@ import (
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"

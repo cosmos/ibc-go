@@ -6,15 +6,15 @@ on:
     branches:
       - main
     paths:
-      - "proto/**"
+      - 'proto/**'
 
 jobs:
   push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: bufbuild/buf-setup-action@v1.26.0
+      - uses: bufbuild/buf-setup-action@v1.26.1
       - uses: bufbuild/buf-push-action@v1
         with:
-          input: "proto"
+          input: 'proto'
           buf_token: ${{ secrets.BUF_TOKEN }}

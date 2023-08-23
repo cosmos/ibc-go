@@ -6,6 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,12 +30,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	testifysuite "github.com/stretchr/testify/suite"
 )
 
 const (
@@ -210,7 +212,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	t.Run("send funds to test wallet", func(t *testing.T) {
 		err := chain.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: userWalletAddr,
-			Amount:  testvalues.StartingTokenAmount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 			Denom:   chain.Config().Denom,
 		})
 		s.Require().NoError(err)
@@ -234,7 +236,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	t.Run("send funds to test wallet", func(t *testing.T) {
 		err := chain.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: userWalletAddr,
-			Amount:  testvalues.StartingTokenAmount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 			Denom:   chain.Config().Denom,
 		})
 		s.Require().NoError(err)
@@ -296,7 +298,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			// fund the host account, so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)

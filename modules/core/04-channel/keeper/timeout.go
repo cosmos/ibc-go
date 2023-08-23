@@ -84,7 +84,7 @@ func (k Keeper) TimeoutPacket(
 		return types.ErrNoOpMsg
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel state is not OPEN (got %s)", channel.State.String(),
