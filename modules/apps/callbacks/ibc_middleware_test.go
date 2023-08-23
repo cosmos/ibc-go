@@ -780,7 +780,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			func() {
 				executionGas := callbackData.ExecutionGasLimit
 				expGasConsumed = executionGas
-				callbackExecutor = func(cachedCtx sdk.Context) error {
+				callbackExecutor = func(cachedCtx sdk.Context) error { //nolint:unparam
 					cachedCtx.GasMeter().ConsumeGas(expGasConsumed+1, "callbackExecutor gas consumption")
 					return nil
 				}
@@ -817,7 +817,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				executionGas := callbackData.ExecutionGasLimit
 				callbackData.CommitGasLimit = executionGas + 1
 				expGasConsumed = executionGas
-				callbackExecutor = func(cachedCtx sdk.Context) error {
+				callbackExecutor = func(cachedCtx sdk.Context) error { //nolint:unparam
 					cachedCtx.GasMeter().ConsumeGas(executionGas+1, "callbackExecutor oog panic")
 					return nil
 				}
@@ -849,7 +849,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			ctx = s.chainB.GetContext()
 
 			// set a callback executor that will always succeed after consuming expGasConsumed
-			callbackExecutor = func(cachedCtx sdk.Context) error {
+			callbackExecutor = func(cachedCtx sdk.Context) error { //nolint:unparam
 				cachedCtx.GasMeter().ConsumeGas(expGasConsumed, "callbackExecutor gas consumption")
 				return nil
 			}
