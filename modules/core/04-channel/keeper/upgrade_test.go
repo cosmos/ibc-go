@@ -322,12 +322,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 	testCases := []struct {
 		name                 string
 		malleate             func()
-		hasPacketCommitments bool
 	}{
 		{
 			"success with no packet commitments",
 			func() {},
-			false,
 		},
 		{
 			"success with packet commitments",
@@ -337,7 +335,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(uint64(1), sequence)
 			},
-			true,
 		},
 	}
 
@@ -390,10 +387,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			}
 
 			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
-
-			if tc.hasPacketCommitments {
-				suite.Require().Equal(types.NOTINFLUSH, channel.FlushStatus)
-			}
 		})
 	}
 }
