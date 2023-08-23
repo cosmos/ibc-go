@@ -563,6 +563,11 @@ module.exports = {
                   directory: false,
                   path: "/middleware/callbacks/end-users.html",
                 },
+                {
+                  title: "Gas Management",
+                  directory: false,
+                  path: "/middleware/callbacks/gas.html",
+                },
               ],
             },
           ],
