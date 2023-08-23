@@ -168,7 +168,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 		return // we return if send packet is rejected
 	}
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
 	// relay send
@@ -202,7 +202,7 @@ func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string, nextSeqRecv uin
 		return // we return if send packet is rejected
 	}
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err) // packet committed
 	s.Require().NotNil(packet)
 

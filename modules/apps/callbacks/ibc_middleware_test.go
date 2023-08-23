@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	ibccallbacks "github.com/cosmos/ibc-go/v7/modules/apps/callbacks"
@@ -15,7 +16,6 @@ import (
 	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
@@ -225,7 +225,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				ack = []byte("invalid ack")
 			},
 			noExecution,
-			ibcerrors.ErrUnknownRequest,
+			sdkerrors.ErrUnknownRequest,
 		},
 		{
 			"success: no-op on callback data is not valid",
@@ -375,7 +375,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				packet.Data = []byte("invalid packet data")
 			},
 			noExecution,
-			ibcerrors.ErrUnknownRequest,
+			sdkerrors.ErrUnknownRequest,
 		},
 		{
 			"success: no-op on callback data is not valid",
@@ -435,7 +435,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().NoError(err)
 			s.Require().NotNil(res)
 
-			packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+			packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
 			s.Require().NoError(err)
 			s.Require().NotNil(packet)
 
@@ -531,7 +531,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				packet.Data = []byte("invalid packet data")
 			},
 			noExecution,
-			channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInvalidType),
+			channeltypes.NewErrorAcknowledgement(sdkerrors.ErrInvalidType),
 		},
 		{
 			"success: no-op on callback data is not valid",
@@ -921,7 +921,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseInit() {
 	controllerStack := icaControllerStack.(porttypes.Middleware)
 	err := controllerStack.OnChanCloseInit(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller to return an error
-	s.Require().ErrorIs(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"), err)
+	s.Require().ErrorIs(errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel"), err)
 }
 
 func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {

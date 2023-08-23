@@ -129,7 +129,7 @@ func (s *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 	s.Require().NotEmpty(res)
 	s.Require().NoError(err)
 
-	channelID, err := ibctesting.ParseChannelIDFromEvents(res.Events)
+	channelID, err := ibctesting.ParseChannelIDFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
 	s.path.EndpointA.ChannelID = channelID

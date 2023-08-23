@@ -23,6 +23,8 @@ import (
 const (
 	ModuleName = "mock"
 
+	MemStoreKey = "memory:mock"
+
 	PortID  = ModuleName
 	Version = "mock-version"
 )

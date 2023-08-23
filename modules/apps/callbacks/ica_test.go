@@ -138,7 +138,7 @@ func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint64) {
 		return // we return if send packet is rejected
 	}
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
 	err = s.path.RelayPacket(packet)
@@ -159,7 +159,7 @@ func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, seq uint
 		return // we return if send packet is rejected
 	}
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
 	// proof query requires up to date client
@@ -184,7 +184,7 @@ func (s *CallbacksTestSuite) buildICAMsgDelegatePacketData(icaAddress string, me
 	params := icahosttypes.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate)})
 	s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 
-	data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate}, icatypes.EncodingProtobuf)
+	data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate})
 	s.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{

@@ -187,7 +187,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 		newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
 
 		types.EmitCallbackEvent(newCtx, tc.packet, tc.callbackType, tc.callbackData, tc.callbackError)
-		events := newCtx.EventManager().Events().ToABCIEvents()
+		events := newCtx.EventManager().Events()
 		ibctesting.AssertEvents(&s.Suite, tc.expEvents, events)
 	}
 }
