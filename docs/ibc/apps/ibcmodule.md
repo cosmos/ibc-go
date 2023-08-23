@@ -369,4 +369,4 @@ The implementation of `UnmarshalPacketData` should unmarshal the bytes into the 
 The base application of an IBC stack should unmarshal the bytes into its packet data type, while a middleware may simply defer the call to the underlying application.
 
 This interface allows middlewares to unmarshal a packet data in order to make use of interfaces the packet data type implements. 
-For example, the callbacks middleware makes use of this function to access packet data's which implement the `PacketData` and `PacketDataProvider` interfaces. 
+For example, the callbacks middleware makes use of this function to access packet data types which implement the `PacketData` and `PacketDataProvider` interfaces. 

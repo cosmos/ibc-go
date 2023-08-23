@@ -72,7 +72,7 @@ packetData := DecodePacketData(packet.Data)
 ### Optional interfaces
 
 The following interfaces are optional and MAY be implemented by a custom packet type.
-They allow middleware's such as callbacks to access information stored within the packet data. 
+They allow middlewares such as callbacks to access information stored within the packet data. 
 
 #### PacketData interface
 
@@ -90,7 +90,7 @@ type PacketData interface {
 The implementation of `GetPacketSender` should return the sender of the packet data. 
 If the packet sender is unknown or undefined, an empty string should be returned.
 
-This interface is intended to give IBC applications access to the packet sender of a packet data type. 
+This interface is intended to give IBC middlewares access to the packet sender of a packet data type. 
 
 #### PacketDataProvider interface
 
@@ -112,7 +112,7 @@ type PacketDataProvider interface {
 The implementation of `GetCustomPacketData` should return packet data held on behalf of another application (if present and supported). 
 If this functionality is not supported, it should return nil. Otherwise it should return the packet data associated with the provided key. 
 
-This interfaces gives IBC applications access to the packet data information embedded into the base packet data type. 
+This interface gives IBC applications access to the packet data information embedded into the base packet data type. 
 Within transfer and interchain accounts, the embedded packet data is stored within the Memo field. 
 
 Once all IBC applications within an IBC stack are capable of creating/maintaining their own packet data type's, this interface function will be deprecated and removed. 
