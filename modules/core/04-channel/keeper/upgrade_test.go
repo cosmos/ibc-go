@@ -1266,7 +1266,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 	var path *ibctesting.Path
 
-	tests := []struct {
+	testCases := []struct {
 		name     string
 		malleate func()
 		expPanic bool
@@ -1292,7 +1292,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 		},
 	}
 
-	for _, tc := range tests {
+	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
@@ -1345,6 +1345,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 				// Assert that state stored for upgrade has been deleted
 				upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().Equal(types.Upgrade{}, upgrade)
+				suite.Require().False(found)
+
+				counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
 				suite.Require().False(found)
 
 				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
