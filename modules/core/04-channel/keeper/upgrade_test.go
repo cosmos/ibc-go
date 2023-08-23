@@ -320,8 +320,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 	)
 
 	testCases := []struct {
-		name                 string
-		malleate             func()
+		name     string
+		malleate func()
 	}{
 		{
 			"success with no packet commitments",
