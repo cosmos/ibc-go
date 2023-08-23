@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - upgrade-sdk-v0.50
     paths-ignore:
       - 'docs/**'
       - '**.md'
