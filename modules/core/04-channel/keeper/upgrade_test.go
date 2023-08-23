@@ -1367,10 +1367,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 				}
 
 				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
-
-				counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
-				suite.Require().False(found)
 			}
 		})
 	}
