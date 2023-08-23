@@ -505,8 +505,8 @@ func (suite *KeeperTestSuite) TestParams() {
 		expPass bool
 	}{
 		{"success: set default params", types.DefaultParams(), true},
-		{"success: zero timeout timestamp", types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), 10000)), true},
-		{"success: zero timestamp height", types.NewParams(types.NewTimeout(types.DefaultTimeout.Height, 0)), true},
+		{"success: zero timeout height", types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), 10000)), true},
+		{"success: zero timestamp timestamp", types.NewParams(types.NewTimeout(types.DefaultTimeout.Height, 0)), true},
 		{"fail: zero timeout", types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), 0)), false},
 	}
 
@@ -530,7 +530,7 @@ func (suite *KeeperTestSuite) TestParams() {
 	}
 }
 
-// TestUnsetParams tests that trying to get params that are not set returns empty params.
+// TestUnsetParams tests that trying to get params that are not set panics.
 func (suite *KeeperTestSuite) TestUnsetParams() {
 	suite.SetupTest()
 	ctx := suite.chainA.GetContext()

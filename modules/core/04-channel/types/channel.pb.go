@@ -605,7 +605,7 @@ func (m *Timeout) GetTimestamp() uint64 {
 
 // Params defines the set of IBC channel parameters.
 type Params struct {
-	// timeout after which channel upgrades will time out.
+	// the relative timeout after which channel upgrades will time out.
 	UpgradeTimeout Timeout `protobuf:"bytes,1,opt,name=upgrade_timeout,json=upgradeTimeout,proto3" json:"upgrade_timeout"`
 }
 
