@@ -1125,15 +1125,15 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 				events := ctx.EventManager().Events().ToABCIEvents()
 				expEvents := ibctesting.EventsMap{
 					types.EventTypeChannelUpgradeOpen: {
-						types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
-						types.AttributeKeyChannelID:                 path.EndpointA.ChannelID,
-						types.AttributeCounterpartyPortID:           path.EndpointB.ChannelConfig.PortID,
-						types.AttributeCounterpartyChannelID:        path.EndpointB.ChannelID,
-						types.AttributeKeyChannelState:              types.OPEN.String(),
-						types.AttributeKeyUpgradeConnectionHops:     channel.ConnectionHops[0],
-						types.AttributeKeyUpgradeVersion:            channel.Version,
-						types.AttributeKeyUpgradeOrdering:           channel.Ordering.String(),
-						types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
+						types.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+						types.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+						types.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+						types.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+						types.AttributeKeyChannelState:          types.OPEN.String(),
+						types.AttributeKeyUpgradeConnectionHops: channel.ConnectionHops[0],
+						types.AttributeKeyUpgradeVersion:        channel.Version,
+						types.AttributeKeyUpgradeOrdering:       channel.Ordering.String(),
+						types.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
 					},
 					sdk.EventTypeMessage: {
 						sdk.AttributeKeyModule: types.AttributeValueCategory,
