@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -8,10 +9,15 @@ import (
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -675,6 +681,158 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			require.Panics(t, func() {
 				msg.GetSigners()
 			})
+		}
+	}
+}
+
+// TestMsgScheduleIBCClientUpgrade_NewMsgScheduleIBCClientUpgrade tests NewMsgScheduleIBCClientUpgrade
+func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_NewMsgScheduleIBCClientUpgrade() {
+	testCases := []struct {
+		name                string
+		upgradedClientState exported.ClientState
+		expPass             bool
+	}{
+		{
+			"success",
+			ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+			true,
+		},
+		{
+			"fail: failed to pack ClientState",
+			nil,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		plan := upgradetypes.Plan{
+			Name:   "upgrade IBC clients",
+			Height: 1000,
+		}
+		_, err := types.NewMsgScheduleIBCClientUpgrade(
+			ibctesting.TestAccAddress,
+			plan,
+			tc.upgradedClientState,
+		)
+
+		if tc.expPass {
+			suite.Require().NoError(err)
+		} else {
+			suite.Require().True(errors.Is(err, ibcerrors.ErrPackAny))
+		}
+	}
+}
+
+// TestMsgScheduleIBCClientUpgrade_GetSigners tests GetSigners for MsgScheduleIBCClientUpgrade
+func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_GetSigners() {
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{
+			"success: valid address",
+			sdk.AccAddress(ibctesting.TestAccAddress),
+			true,
+		},
+		{
+			"failure: nil address",
+			nil,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+		plan := upgradetypes.Plan{
+			Name:   "upgrade IBC clients",
+			Height: 1000,
+		}
+		msg, err := types.NewMsgScheduleIBCClientUpgrade(
+			tc.address.String(),
+			plan,
+			clientState,
+		)
+		suite.Require().NoError(err)
+
+		if tc.expPass {
+			suite.Require().Equal([]sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			suite.Require().Panics(func() { msg.GetSigners() })
+		}
+	}
+}
+
+// TestMsgScheduleIBCClientUpgrade_ValidateBasic tests ValidateBasic for MsgScheduleIBCClientUpgrade
+func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_ValidateBasic() {
+	var (
+		authority string
+		plan      upgradetypes.Plan
+		anyClient *codectypes.Any
+		expError  error
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"failure: invalid authority address",
+			func() {
+				authority = "invalid"
+				expError = ibcerrors.ErrInvalidAddress
+			},
+			false,
+		},
+		{
+			"failure: error unpacking client state",
+			func() {
+				anyClient = &codectypes.Any{}
+				expError = ibcerrors.ErrUnpackAny
+			},
+			false,
+		},
+		{
+			"failure: error validating upgrade plan, height is not greater than zero",
+			func() {
+				plan.Height = 0
+				expError = sdkerrors.ErrInvalidRequest
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		authority = ibctesting.TestAccAddress
+		plan = upgradetypes.Plan{
+			Name:   "upgrade IBC clients",
+			Height: 1000,
+		}
+		upgradedClientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+		var err error
+		anyClient, err = types.PackClientState(upgradedClientState)
+		suite.Require().NoError(err)
+
+		tc.malleate()
+
+		msg := types.MsgScheduleIBCClientUpgrade{
+			authority,
+			plan,
+			anyClient,
+		}
+
+		err = msg.ValidateBasic()
+
+		if tc.expPass {
+			suite.Require().NoError(err)
+		}
+		if expError != nil {
+			suite.Require().True(errors.Is(err, expError))
 		}
 	}
 }

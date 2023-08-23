@@ -5,6 +5,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
@@ -282,4 +283,40 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Params.Validate()
+}
+
+// NewMsgScheduleIBCClientUpgrade creates a new MsgScheduleIBCClientUpgrade instance
+func NewMsgScheduleIBCClientUpgrade(authority string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (*MsgScheduleIBCClientUpgrade, error) {
+	anyClient, err := PackClientState(upgradedClientState)
+	if err != nil {
+		return nil, err
+	}
+
+	return &MsgScheduleIBCClientUpgrade{
+		Authority:           authority,
+		Plan:                plan,
+		UpgradedClientState: anyClient,
+	}, nil
+}
+
+// GetSigners returns the expected signers for a MsgScheduleIBCClientUpgrade message.
+func (msg *MsgScheduleIBCClientUpgrade) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
+}
+
+// ValidateBasic performs basic checks on a MsgScheduleIBCClientUpgrade.
+func (msg *MsgScheduleIBCClientUpgrade) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	if _, err := UnpackClientState(msg.UpgradedClientState); err != nil {
+		return err
+	}
+
+	return msg.Plan.ValidateBasic()
 }
