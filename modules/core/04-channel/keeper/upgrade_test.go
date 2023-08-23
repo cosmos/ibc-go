@@ -349,6 +349,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			proposedUpgrade = path.EndpointB.GetProposedUpgrade()
 
@@ -361,7 +362,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 				path.EndpointB.ChannelID,
 				proposedUpgrade,
 				proposedUpgrade.Fields.Version,
-				proposedUpgrade.LatestSequenceSend,
+				path.EndpointA.GetProposedUpgrade().Fields,
 			)
 
 			channel := path.EndpointB.GetChannel()
