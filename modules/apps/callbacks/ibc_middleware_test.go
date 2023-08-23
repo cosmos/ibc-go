@@ -143,7 +143,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			},
 			types.CallbackTypeSendPacket,
 			true,
-			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeSendPacket)},
+			storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeSendPacket)},
 		},
 	}
 
@@ -309,7 +309,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().Nil(err)
 
 			case panicError:
-				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
 					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit),
 				}, func() {
 					_ = onAcknowledgementPacket()
@@ -462,7 +462,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().Nil(err)
 
 			case panicError:
-				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
 					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeTimeoutPacket, userGasLimit),
 				}, func() {
 					_ = onTimeoutPacket()
@@ -614,7 +614,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				s.Require().NotNil(ack)
 
 			case panicAck:
-				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
 					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeReceivePacket, userGasLimit),
 				}, func() {
 					_ = onRecvPacket()
@@ -818,7 +818,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				}
 			},
 			true,
-			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeReceivePacket, 1000000+1)},
+			storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeReceivePacket, 1000000+1)},
 		},
 	}
 
