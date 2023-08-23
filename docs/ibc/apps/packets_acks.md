@@ -76,7 +76,8 @@ They allow middleware's such as callbacks to access information stored within th
 
 #### PacketData interface
 
-The `PacketData` interfaces is defined as follows:
+The `PacketData` interface is defined as follows:
+
 ```go
 // PacketData defines an optional interface which an application's packet data structure may implement.
 type PacketData interface {
@@ -93,7 +94,7 @@ This interface is intended to give IBC applications access to the packet sender 
 
 #### PacketDataProvider interface
 
-The `PacketDataProvider` interfaces is defined as follows:
+The `PacketDataProvider` interface is defined as follows:
 
 ```go
 // PacketDataProvider defines an optional interfaces for retrieving custom packet data stored on behalf of another application.
