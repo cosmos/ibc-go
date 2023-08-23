@@ -1118,10 +1118,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 				suite.Require().Equal(types.Upgrade{}, upgrade)
 				suite.Require().False(found)
 
-				lastPacketSequence, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().Equal(uint64(0), lastPacketSequence)
-				suite.Require().False(found)
-
 				counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
 				suite.Require().False(found)
@@ -1138,7 +1134,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 						types.AttributeKeyUpgradeVersion:            channel.Version,
 						types.AttributeKeyUpgradeOrdering:           channel.Ordering.String(),
 						types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
-						types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
 					},
 					sdk.EventTypeMessage: {
 						sdk.AttributeKeyModule: types.AttributeValueCategory,
