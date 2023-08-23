@@ -1,13 +1,18 @@
 package keeper_test
 
 import (
+	"errors"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -828,6 +833,73 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 
 // TestScheduleIBCClientUpgrade tests the ScheduleIBCClientUpgrade rpc handler
 func (suite *KeeperTestSuite) TestScheduleIBCClientUpgrade() {
+	var (
+		expError error
+		msg      *clienttypes.MsgScheduleIBCClientUpgrade
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success: valid authority and client upgrade",
+			func() {},
+			true,
+		},
+		{
+			"failure: invalid authority address",
+			func() {
+				msg.Authority = suite.chainA.SenderAccount.GetAddress().String()
+				expError = ibcerrors.ErrUnauthorized
+			},
+			false,
+		},
+		{
+			"failure: invalid clientState",
+			func() {
+				msg.UpgradedClientState = nil
+				expError = clienttypes.ErrInvalidClientType
+			},
+			false,
+		},
+		{
+			"failure: failed to schedule client upgrade",
+			func() {
+				msg.Plan.Height = 0
+				expError = sdkerrors.ErrInvalidRequest
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+			var err error
+			msg, err = clienttypes.NewMsgScheduleIBCClientUpgrade(
+				validAuthority,
+				upgradetypes.Plan{
+					Name:   "upgrade IBC clients",
+					Height: 1000,
+				},
+				ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, types.NewHeight(1, 10), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+			)
+
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			_, err = keeper.Keeper.ScheduleIBCClientUpgrade(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().True(errors.Is(err, expError))
+			}
+		})
+	}
 }
 
 // TestUpdateConnectionParams tests the UpdateConnectionParams rpc handler
