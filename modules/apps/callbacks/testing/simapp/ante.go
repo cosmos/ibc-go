@@ -8,12 +8,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
+	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
 )
 
 // HandlerOptions are the options required for constructing a default SDK AnteHandler.
 type HandlerOptions struct {
 	ante.HandlerOptions
 	CircuitKeeper circuitante.CircuitBreaker
+
+	IBCKeeper *keeper.Keeper
 }
 
 // NewAnteHandler returns an AnteHandler that checks and increments sequence
