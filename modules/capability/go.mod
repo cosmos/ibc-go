@@ -1,21 +1,17 @@
 module github.com/cosmos/ibc-go/modules/capability
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 require (
 	cosmossdk.io/core v0.10.0
 	cosmossdk.io/errors v1.0.0
-<<<<<<< HEAD
-	cosmossdk.io/log v1.1.1-0.20230704160919-88f2c830b0ca
-	cosmossdk.io/math v1.0.1
-	cosmossdk.io/store v1.0.0-alpha.1
-=======
 	cosmossdk.io/log v1.2.0
 	cosmossdk.io/math v1.1.2
 	cosmossdk.io/store v1.0.0-alpha.1.0.20230728080422-54ed7dab3982
->>>>>>> 7c5bd1eb (deps: update sdk to latest sdk v0.50 release candidate in mod/capability (#4399))
 	github.com/cometbft/cometbft v0.38.0-rc3
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-sdk v0.50.0-rc.0
