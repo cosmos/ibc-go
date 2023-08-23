@@ -723,8 +723,8 @@ func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
 
-	if !collections.Contains(msg.CounterpartyChannelState, []State{TRYUPGRADE, ACKUPGRADE, OPEN}) {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: %s, %s or %s, got: %s", TRYUPGRADE, ACKUPGRADE, OPEN, msg.CounterpartyChannelState)
+	if msg.CounterpartyChannelState != STATE_FLUSHCOMPLETE {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be: %s, got: %s", STATE_FLUSHCOMPLETE, msg.CounterpartyChannelState)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
