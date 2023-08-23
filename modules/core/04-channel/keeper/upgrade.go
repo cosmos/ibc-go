@@ -667,7 +667,7 @@ func (k Keeper) ChanUpgradeTimeout(
 		)
 	}
 
-	// either timeoutHeight or timeoutTimestamp must be defined.
+	// proof height must be from a height after timeout has elapsed.
 	if !upgrade.Timeout.Height.IsZero() && proofHeight.LT(upgrade.Timeout.Height) {
 		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "timeout height is not valid")
 	}
@@ -679,12 +679,13 @@ func (k Keeper) ChanUpgradeTimeout(
 		return err
 	}
 
-	// either timeoutHeight or timeoutTimestamp must be defined.
+	// if timeout timestamp is defined then the consensus time
+	// from proof height must be greater than timeout timestamp.
 	if upgrade.Timeout.Timestamp != 0 && proofTimestamp < upgrade.Timeout.Timestamp {
 		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "timeout timestamp is not valid")
 	}
 
-	// counterparty channel must be proved to still be in OPEN state or FLUSHING state (crossing hellos)
+	// counterparty channel must be proved to still be in OPEN state or FLUSHING state.
 	if !collections.Contains(counterpartyChannel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.STATE_FLUSHING, counterpartyChannel.State)
 	}
