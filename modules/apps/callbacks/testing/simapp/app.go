@@ -100,9 +100,6 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cast"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	dbm "github.com/cosmos/cosmos-db"
-
 	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
 	simappparams "github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp/params"
 	"github.com/cosmos/ibc-go/modules/capability"
@@ -728,7 +725,7 @@ func NewSimApp(
 	overrideModules := map[string]module.AppModuleSimulation{
 		authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 	}
-	app.sm = module.NewSimulationManagerFromAppModules(app.ModuleManager.Modules, overrideModules)
+	app.simulationManager = module.NewSimulationManagerFromAppModules(app.ModuleManager.Modules, overrideModules)
 
 	app.simulationManager.RegisterStoreDecoders()
 

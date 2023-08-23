@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	storetypes "cosmossdk.io/store/types"
 	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
@@ -142,7 +143,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			},
 			types.CallbackTypeSendPacket,
 			true,
-			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeSendPacket)},
+			storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeSendPacket)},
 		},
 	}
 
@@ -250,7 +251,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
-				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
 			},
 			callbackFailed,
 			panicError,
@@ -308,7 +309,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().Nil(err)
 
 			case panicError:
-				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
 					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit),
 				}, func() {
 					_ = onAcknowledgementPacket()
@@ -400,7 +401,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
-				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
 			},
 			callbackFailed,
 			panicError,
@@ -436,7 +437,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().NoError(err)
 			s.Require().NotNil(res)
 
-			packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+			packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
 			s.Require().NoError(err)
 			s.Require().NotNil(packet)
 
@@ -461,7 +462,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().Nil(err)
 
 			case panicError:
-				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
 					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeTimeoutPacket, userGasLimit),
 				}, func() {
 					_ = onTimeoutPacket()
@@ -556,7 +557,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
-				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
 			},
 			callbackFailed,
 			panicAck,
@@ -613,7 +614,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				s.Require().NotNil(ack)
 
 			case panicAck:
-				s.Require().PanicsWithValue(sdk.ErrorOutOfGas{
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
 					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeReceivePacket, userGasLimit),
 				}, func() {
 					_ = onRecvPacket()
@@ -817,7 +818,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				}
 			},
 			true,
-			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeReceivePacket, 1000000+1)},
+			storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeReceivePacket, 1000000+1)},
 		},
 	}
 
