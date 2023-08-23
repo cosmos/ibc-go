@@ -13,8 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	dbm "github.com/cosmos/cosmos-db"
 
 	simapp "github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
