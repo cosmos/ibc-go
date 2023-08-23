@@ -275,7 +275,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
-			// set user gas limit above panic level in mock contract keeper
 			userGasLimit = 600000
 			packetData = transfertypes.NewFungibleTokenPacketData(
 				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress, ibctesting.TestAccAddress,

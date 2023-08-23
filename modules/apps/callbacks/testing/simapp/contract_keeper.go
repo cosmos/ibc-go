@@ -164,6 +164,7 @@ func (k ContractKeeper) processMockCallback(
 
 	switch contractAddress {
 	case ErrorContract:
+		// consume half of the remaining gas so that ConsumeGas cannot oog panic
 		ctx.GasMeter().ConsumeGas(gasRemaining/2, fmt.Sprintf("mock %s callback unauthorized", callbackType))
 		return ibcmock.MockApplicationCallbackError
 	case OogPanicContract:
@@ -177,9 +178,11 @@ func (k ContractKeeper) processMockCallback(
 		ctx.GasMeter().ConsumeGas(gasRemaining+1, fmt.Sprintf("mock %s callback oog error", callbackType))
 		return nil // unreachable
 	case PanicContract:
+		// consume half of the remaining gas so that ConsumeGas cannot oog panic
 		ctx.GasMeter().ConsumeGas(gasRemaining/2, fmt.Sprintf("mock %s callback panic", callbackType))
 		panic(ibcmock.MockApplicationCallbackError)
 	default:
+		// consume half of the remaining gas so that ConsumeGas cannot oog panic
 		ctx.GasMeter().ConsumeGas(gasRemaining/2, fmt.Sprintf("mock %s callback success", callbackType))
 		return nil // success
 	}
