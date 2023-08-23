@@ -19,7 +19,7 @@ type PacketDataUnmarshaler interface {
 }
 ```
 
-The callbacks middleware **requires** the underlying ibc application to implement the [`PacketDataUnmarshaler`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/core/05-port/types/module.go#L142-L147) interface so that it can unmarshal the packet data bytes into the appropriate packet data type. The packet data type is expected to also implement the `PacketDataProvider` interface (see section below), which is used to parse the callback data that is currently stored in the packet memo field for `transfer` and `ica` packets as a JSON string. See its implementation in the [`transfer`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/apps/transfer/ibc_module.go#L303-L313) and [`icacontroller`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/apps/27-interchain-accounts/controller/ibc_middleware.go#L258-L268) modules for reference.
+The callbacks middleware **requires** the underlying ibc application to implement the [`PacketDataUnmarshaler`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/core/05-port/types/module.go#L142-L147) interface so that it can unmarshal the packet data bytes into the appropriate packet data type. This allows usage of interface functions implemented by the packet data type. The packet data type is expected to implement the `PacketDataProvider` interface (see section below), which is used to parse the callback data that is currently stored in the packet memo field for `transfer` and `ica` packets as a JSON string. See its implementation in the [`transfer`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/apps/transfer/ibc_module.go#L303-L313) and [`icacontroller`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/apps/27-interchain-accounts/controller/ibc_middleware.go#L258-L268) modules for reference.
 
 If the underlying application is a middleware itself, then it can implement this interface by simply passing the function call to its underlying application. See its implementation in the [`fee middleware`](https://github.com/cosmos/ibc-go/blob/release/v7.3.x/modules/apps/29-fee/ibc_middleware.go#L368-L378) for reference.
 
@@ -63,7 +63,7 @@ Since middlewares do not have packet types, they do not need to implement this i
 
 ### `ContractKeeper`
 
-The callbacks middleware requires the secondary application to implement the [`ContractKeeper`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/callbacks/types/expected_keepers.go#L11-L64) interface.
+The callbacks middleware requires the secondary application to implement the [`ContractKeeper`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/callbacks/types/expected_keepers.go#L11-L64) interface. The contract keeper will be invoked at each step of the packet lifecycle. When a packet is sent, if callback information is provided, the contract keeper will be invoked via the IBCSendPacketCallback. This allows the contract keeper to prevent packet sends when callback information is provided, but the sender is unauthroized to perform callbacks on the given information. If successful, the contract keeper on the destination (if present) will be invoked when a packet has been received and the acknowledgement is written, this will occur via IBCReceivePacketCallback. At the end of the packet lifecycle, when processing acknolwedgements or timeouts, the source contract keeper will be invoked either via IBCOnAcknowledgementPacket or IBCOnTimeoutPacket. Once a packet has been sent, each step of the packet lifecycle can be processed given that a relayer sets the gas limit to be more than or equal to the required CommitGasLimit. State changes performed in the callback will only be committed upon successful execution.
 
 ```go
 // ContractKeeper defines the entry points exposed to the VM module which invokes a smart contract
@@ -123,3 +123,7 @@ type ContractKeeper interface {
 ```
 
 These are the callback entry points exposed to the secondary application. The secondary application is expected to execute its custom logic within these entry points. The callbacks middleware will handle the execution of these callbacks and revert the state if needed.
+
+:::tip
+Note that the source callback entry points are provided with the `packetSenderAddress` and MAY choose to use this to perform validation on the origin of a given packet. It is recommended to perform the same validation on all source chain callbacks (SendPacket, AcknowledgePacket, TimeoutPacket). This defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
+:::

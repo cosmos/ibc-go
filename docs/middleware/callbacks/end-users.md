@@ -86,6 +86,8 @@ User defined gas limit was added for the following reasons:
 There is a chain wide parameter that sets the maximum gas limit that a user can set for a callback. This is to prevent a user from setting a gas limit that is too high for relayers. If the `"gas_limit"` is not set in the packet memo, then the maximum gas limit is used.
 :::
 
-It achieves the first goal because if the relayer reserves user defined gas limit for the callback execution, then even if the callback execution runs out of gas, the packet lifecycle will not be blocked and callback will not be executed again.
+These goals are achieved by creating a minimum gas amount required for callback execution. If the relayer provides at least the minimum gas limit for the callback execution, then the packet lifecycle will not be blocked if the callback runs out of gas during execution, and the callback cannot be retried. If the relayer does not provided the minimum amount of gas and the callback executions runs out of gas, the entire tx is reverted and it may be executed again.
 
-It achieves the second goal because if the relayer does not reserve user defined gas limit for the callback execution and the callback runs out of gas, then the entire tx will be reverted and the packet lifecycle will be blocked. This will allow the relayer to retry with a higher gas limit.
+::: tip
+`SendPacket` callback is always reverted if the callback execution fails or returns an error for any reason. This is so that the packet is not sent if the callback execution fails.
+:::
