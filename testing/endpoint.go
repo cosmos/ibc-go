@@ -827,6 +827,11 @@ func (endpoint *Endpoint) SetChannelUpgrade(upgrade channeltypes.Upgrade) {
 	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetUpgrade(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, upgrade)
 }
 
+// SetChannelCounterpartyUpgrade sets the channel counterparty upgrade for this endpoint.
+func (endpoint *Endpoint) SetChannelCounterpartyUpgrade(upgrade channeltypes.Upgrade) {
+	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetCounterpartyUpgrade(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, upgrade)
+}
+
 // QueryClientStateProof performs and abci query for a client stat associated
 // with this endpoint and returns the ClientState along with the proof.
 func (endpoint *Endpoint) QueryClientStateProof() (exported.ClientState, []byte) {
