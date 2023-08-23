@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -270,7 +271,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 
 		defaultAllowedClients := clienttypes.DefaultAllowedClients
 		if !testvalues.LocalhostClientFeatureReleases.IsSupported(chainAVersion) {
-			defaultAllowedClients = defaultAllowedClients[:len(defaultAllowedClients)-1]
+			defaultAllowedClients = slices.DeleteFunc(defaultAllowedClients, func(s string) bool { return s == ibcexported.Localhost })
 		}
 		s.Require().Equal(defaultAllowedClients, allowedClients)
 	})

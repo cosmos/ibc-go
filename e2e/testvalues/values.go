@@ -100,7 +100,7 @@ var IbcErrorsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8.0",
 }
 
-// LocalhostClientFeatureReleases represents the releases the IBC module level errors was released in.
+// LocalhostClientFeatureReleases represents the releases the localhost client was released in.
 var LocalhostClientFeatureReleases = semverutil.FeatureReleases{
 	MinorVersions: []string{
 		"v7.1",
