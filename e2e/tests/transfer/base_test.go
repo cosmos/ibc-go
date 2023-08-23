@@ -106,7 +106,9 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
-		s.Require().Equal(sdkmath.ZeroInt, actualBalance)
+		zero := sdkmath.ZeroInt
+
+		s.Require().Equal(zero, actualBalance)
 
 		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainBVersion) {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
