@@ -468,11 +468,6 @@ func (k Keeper) AcknowledgePacket(
 	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
-	if channel.FlushStatus == types.FLUSHING && !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-		channel.FlushStatus = types.FLUSHCOMPLETE
-		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-	}
-
 	// log that a packet has been acknowledged
 	k.Logger(ctx).Info(
 		"packet acknowledged",
@@ -485,6 +480,31 @@ func (k Keeper) AcknowledgePacket(
 
 	// emit an event marking that we have processed the acknowledgement
 	emitAcknowledgePacketEvent(ctx, packet, channel)
+
+	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
+	if channel.State == types.STATE_FLUSHING {
+		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+		if !found {
+			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
+		}
+
+		timeout := counterpartyUpgrade.Timeout
+		// if the timeout is valid then use it, otherwise it has not been set in the upgrade handshake yet.
+		if timeout.IsValid() {
+			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
+				// packet flushing timeout has expired, abort the upgrade and return nil,
+				// committing an error receipt to state, restoring the channel and successfully acknowledging the packet.
+				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
+				return nil
+			}
+
+			// set the channel state to flush complete if all packets have been acknowledged/flushed.
+			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+				channel.State = types.STATE_FLUSHCOMPLETE
+				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			}
+		}
+	}
 
 	return nil
 }

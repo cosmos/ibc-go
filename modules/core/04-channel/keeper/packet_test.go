@@ -730,6 +730,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		packet types.Packet
 		ack    = ibcmock.MockAcknowledgement
 
+		assertFn   func()
 		channelCap *capabilitytypes.Capability
 		expError   *errorsmod.Error
 	)
@@ -784,6 +785,90 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channel.State = types.STATE_FLUSHING
 
 			path.EndpointA.SetChannel(channel)
+
+			counterpartyUpgrade := types.Upgrade{
+				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 0),
+			}
+
+			path.EndpointA.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
+
+			assertFn = func() {
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(types.STATE_FLUSHING, channel.State)
+			}
+		}, true},
+		{"success on channel in flushing state with valid timeout", func() {
+			// setup uses an UNORDERED channel
+			suite.coordinator.Setup(path)
+
+			// create packet commitment
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+
+			// create packet receipt and acknowledgement
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointB.RecvPacket(packet)
+			suite.Require().NoError(err)
+
+			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			channel := path.EndpointA.GetChannel()
+			channel.State = types.STATE_FLUSHING
+
+			path.EndpointA.SetChannel(channel)
+
+			counterpartyUpgrade := types.Upgrade{
+				Timeout: types.NewTimeout(suite.chainB.GetTimeoutHeight(), 0),
+			}
+
+			path.EndpointA.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
+
+			assertFn = func() {
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(types.STATE_FLUSHCOMPLETE, channel.State)
+			}
+		}, true},
+		{"success on channel in flushing state with timeout passed", func() {
+			// setup uses an UNORDERED channel
+			suite.coordinator.Setup(path)
+
+			// create packet commitment
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+
+			// create packet receipt and acknowledgement
+			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointB.RecvPacket(packet)
+			suite.Require().NoError(err)
+
+			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			channel := path.EndpointA.GetChannel()
+			channel.State = types.STATE_FLUSHING
+
+			path.EndpointA.SetChannel(channel)
+
+			upgrade := types.Upgrade{
+				Fields:  types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, ibcmock.UpgradeVersion),
+				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
+			}
+
+			counterpartyUpgrade := types.Upgrade{
+				Fields:  types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, ibcmock.UpgradeVersion),
+				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
+			}
+
+			path.EndpointA.SetChannelUpgrade(upgrade)
+			path.EndpointA.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
+
+			assertFn = func() {
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(types.OPEN, channel.State)
+
+				errorReceipt, found := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().NotEmpty(errorReceipt)
+			}
 		}, true},
 		{"packet already acknowledged ordered channel (no-op)", func() {
 			expError = types.ErrNoOpMsg
@@ -1039,6 +1124,10 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 					suite.Require().Equal(packet.GetSequence()+1, sequenceAck, "sequence not incremented in ordered channel")
 				} else {
 					suite.Require().Equal(uint64(1), sequenceAck, "sequence incremented for UNORDERED channel")
+				}
+
+				if assertFn != nil {
+					assertFn()
 				}
 			} else {
 				suite.Error(err)
