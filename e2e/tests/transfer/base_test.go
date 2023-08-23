@@ -106,7 +106,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
-		zero := sdkmath.ZeroInt
+		zero := sdkmath.NewInt(0)
 
 		s.Require().Equal(zero, actualBalance)
 
