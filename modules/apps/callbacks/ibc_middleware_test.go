@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -250,7 +251,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
-				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
 			},
 			callbackFailed,
 			panicError,
@@ -400,7 +401,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
-				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
 			},
 			callbackFailed,
 			panicError,
@@ -556,7 +557,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"failure: callback execution panics on insufficient gas provided by relayer",
 			func() {
-				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
 			},
 			callbackFailed,
 			panicAck,
