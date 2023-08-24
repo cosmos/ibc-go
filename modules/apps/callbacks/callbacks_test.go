@@ -14,6 +14,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 
 	simapp "github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
@@ -22,6 +23,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -288,4 +290,27 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 		)
 	}
 	s.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
+}
+
+// GetExpectedEvent returns the expected event for a callback.
+func GetExpectedEvent(
+	packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte, srcPortID,
+	eventPortID, eventChannelID string, seq uint64, callbackType types.CallbackType, expError error,
+) (abci.Event, bool) {
+	var (
+		callbackData types.CallbackData
+		err          error
+	)
+	if callbackType == types.CallbackTypeReceivePacket {
+		callbackData, err = types.GetDestCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxCallbackGas)
+	} else {
+		callbackData, err = types.GetSourceCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxCallbackGas)
+	}
+	if err != nil {
+		return abci.Event{}, false
+	}
+
+	newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
+	types.EmitCallbackEvent(newCtx, eventPortID, eventChannelID, seq, callbackType, callbackData, expError)
+	return newCtx.EventManager().Events().ToABCIEvents()[0], true
 }
