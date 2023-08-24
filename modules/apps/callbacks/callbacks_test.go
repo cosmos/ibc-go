@@ -8,9 +8,9 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 
-	"cosmossdk.io/log"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
