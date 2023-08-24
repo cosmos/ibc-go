@@ -6,7 +6,6 @@ run:
 linters:
   disable-all: true
   enable:
-    - dogsled
     - exportloopref
     - errcheck
     - gci
@@ -21,32 +20,26 @@ linters:
     - nakedret
     - staticcheck
     - thelper
+    - typecheck
     - stylecheck
     - revive
     - typecheck
+    - tenv
     - unconvert
+    # Prefer unparam over revive's unused param. It is more thorough in its checking.
+    - unparam
     - unused
     - misspell
 
 issues:
   exclude-rules:
-    - text: 'unused-parameter'
+    - text: 'differs only by capitalization to method'
       linters:
         - revive
-    - text: 'SA1019:'
-      linters:
-        - staticcheck
     - text: 'Use of weak random number generator'
       linters:
         - gosec
-    - text: 'ST1003:'
-      linters:
-        - stylecheck
-    # FIXME: Disabled until golangci-lint updates stylecheck with this fix:
-    # https://github.com/dominikh/go-tools/issues/389
-    - text: 'ST1016:'
-      linters:
-        - stylecheck
+
   max-issues-per-linter: 10000
   max-same-issues: 10000
 
@@ -62,17 +55,60 @@ linters-settings:
       - prefix(github.com/cometbft/cometbft)
       - prefix(github.com/cosmos/ibc-go)
     custom-order: true
-  dogsled:
-    max-blank-identifiers: 3
-  maligned:
-    # print struct with more effective memory layout or not, false by default
-    suggest-new: true
-  nolintlint:
-    allow-unused: false
-    allow-leading-space: true
-    require-explanation: false
-    require-specific: false
   revive:
+    enable-all-rules: true
+    # Do NOT whine about the following, full explanation found in:
+    # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#description-of-available-rules
     rules:
+      - name: use-any
+        disabled: true
       - name: if-return
         disabled: true
+      - name: max-public-structs
+        disabled: true
+      - name: cognitive-complexity
+        disabled: true
+      - name: argument-limit
+        disabled: true
+      - name: cyclomatic
+        disabled: true
+      - name: file-header
+        disabled: true
+      - name: function-length
+        disabled: true
+      - name: function-result-limit
+        disabled: true
+      - name: line-length-limit
+        disabled: true
+      - name: flag-parameter
+        disabled: true
+      - name: add-constant
+        disabled: true
+      - name: empty-lines
+        disabled: true
+      - name: banned-characters
+        disabled: true
+      - name: deep-exit
+        disabled: true
+      - name: confusing-results
+        disabled: true
+      - name: unused-parameter
+        disabled: true
+      - name: modifies-value-receiver
+        disabled: true
+      - name: early-return
+        disabled: true
+      - name: confusing-naming
+        disabled: true
+      - name: defer
+        disabled: true
+      # Disabled in favour of unparam.
+      - name: unused-parameter
+        disabled: true
+      - name: unhandled-error
+        disabled: false
+        arguments:
+          - 'fmt.Printf'
+          - 'fmt.Print'
+          - 'fmt.Println'
+          - 'myFunction'

@@ -11,15 +11,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/gogoproto/proto"
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/ibc-go/e2e/semverutil"
-	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -30,6 +22,12 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 )
 
 const (
@@ -38,12 +36,12 @@ const (
 )
 
 func TestUpgradeTestSuite(t *testing.T) {
-	testCfg := testconfig.LoadConfig()
+	testCfg := testsuite.LoadConfig()
 	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
-		t.Fatalf("%s and %s must be set when running an upgrade test", testconfig.ChainUpgradeTagEnv, testconfig.ChainUpgradePlanEnv)
+		t.Fatalf("%s and %s must be set when running an upgrade test", testsuite.ChainUpgradeTagEnv, testsuite.ChainUpgradePlanEnv)
 	}
 
-	suite.Run(t, new(UpgradeTestSuite))
+	testifysuite.Run(t, new(UpgradeTestSuite))
 }
 
 type UpgradeTestSuite struct {
@@ -97,7 +95,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 
 func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	t := s.T()
-	testCfg := testconfig.LoadConfig()
+	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -227,7 +225,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("upgrade chain", func(t *testing.T) {
-		testCfg := testconfig.LoadConfig()
+		testCfg := testsuite.LoadConfig()
 		proposerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 		s.UpgradeChain(ctx, chain, proposerWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
@@ -253,7 +251,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 
 func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 	t := s.T()
-	testCfg := testconfig.LoadConfig()
+	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
@@ -453,7 +451,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 // can be sent before and after the upgrade without issue
 func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t := s.T()
-	testCfg := testconfig.LoadConfig()
+	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -599,7 +597,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 
 func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	t := s.T()
-	testCfg := testconfig.LoadConfig()
+	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
@@ -706,7 +704,7 @@ func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, cli
 
 // getChainImage returns the image of a given chain.
 func getChainImage(chain *cosmos.CosmosChain) string {
-	tc := testconfig.LoadConfig()
+	tc := testsuite.LoadConfig()
 	for _, c := range tc.ChainConfigs {
 		if c.ChainID == chain.Config().ChainID {
 			return c.Image

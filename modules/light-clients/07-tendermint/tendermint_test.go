@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -37,7 +37,7 @@ var (
 )
 
 type TendermintTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -68,7 +68,7 @@ func (suite *TendermintTestSuite) SetupTest() {
 
 	// TODO: deprecate usage in favor of testing package
 	checkTx := false
-	app := simapp.Setup(checkTx)
+	app := simapp.Setup(suite.T(), checkTx)
 
 	suite.cdc = app.AppCodec()
 
@@ -112,5 +112,5 @@ func getBothSigners(suite *TendermintTestSuite, altVal *tmtypes.Validator, altPr
 }
 
 func TestTendermintTestSuite(t *testing.T) {
-	suite.Run(t, new(TendermintTestSuite))
+	testifysuite.Run(t, new(TendermintTestSuite))
 }

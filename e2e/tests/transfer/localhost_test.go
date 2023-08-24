@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -13,13 +11,14 @@ import (
 	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
 func TestTransferLocalhostTestSuite(t *testing.T) {
-	suite.Run(t, new(LocalhostTransferTestSuite))
+	testifysuite.Run(t, new(LocalhostTransferTestSuite))
 }
 
 type LocalhostTransferTestSuite struct {
@@ -118,8 +117,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
 		s.AssertTxSuccess(txResp)
 
-		events := testsuite.ABCIToSDKEvents(txResp.Events)
-		packet, err = ibctesting.ParsePacketFromEvents(events)
+		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
@@ -139,8 +137,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
 		s.AssertTxSuccess(txResp)
 
-		events := testsuite.ABCIToSDKEvents(txResp.Events)
-		ack, err = ibctesting.ParseAckFromEvents(events)
+		ack, err = ibctesting.ParseAckFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(ack)
 	})

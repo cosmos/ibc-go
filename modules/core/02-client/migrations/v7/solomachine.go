@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -49,105 +50,105 @@ func (cs ConsensusState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error
 }
 
 // ClientType panics!
-func (cs ClientState) ClientType() string {
+func (ClientState) ClientType() string {
 	panic("legacy solo machine is deprecated!")
 }
 
 // GetLatestHeight panics!
-func (cs ClientState) GetLatestHeight() exported.Height {
+func (ClientState) GetLatestHeight() exported.Height {
 	panic("legacy solo machine is deprecated!")
 }
 
 // Status panics!
-func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) exported.Status {
+func (ClientState) Status(_ sdk.Context, _ storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
 	panic("legacy solo machine is deprecated!")
 }
 
 // Validate panics!
-func (cs ClientState) Validate() error {
+func (ClientState) Validate() error {
 	panic("legacy solo machine is deprecated!")
 }
 
 // ZeroCustomFields panics!
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
+func (ClientState) ZeroCustomFields() exported.ClientState {
 	panic("legacy solo machine is deprecated!")
 }
 
 // Initialize panics!
-func (cs ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, consState exported.ConsensusState) error {
+func (ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ConsensusState) error {
 	panic("legacy solo machine is deprecated!")
 }
 
 // ExportMetadata panics!
-func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
+func (ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
 	panic("legacy solo machine is deprecated!")
 }
 
 // CheckForMisbehaviour panics!
-func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, msg exported.ClientMessage) bool {
+func (ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) bool {
 	panic("legacy solo machine is deprecated!")
 }
 
 // UpdateStateOnMisbehaviour panics!
-func (cs *ClientState) UpdateStateOnMisbehaviour(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
+func (*ClientState) UpdateStateOnMisbehaviour(
+	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) {
 	panic("legacy solo machine is deprecated!")
 }
 
 // VerifyClientMessage panics!
-func (cs *ClientState) VerifyClientMessage(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
+func (*ClientState) VerifyClientMessage(
+	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) error {
 	panic("legacy solo machine is deprecated!")
 }
 
 // UpdateState panis!
-func (cs *ClientState) UpdateState(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage) []exported.Height {
+func (*ClientState) UpdateState(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) []exported.Height {
 	panic("legacy solo machine is deprecated!")
 }
 
 // CheckHeaderAndUpdateState panics!
-func (cs *ClientState) CheckHeaderAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
+func (*ClientState) CheckHeaderAndUpdateState(
+	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	panic("legacy solo machine is deprecated!")
 }
 
 // CheckMisbehaviourAndUpdateState panics!
-func (cs ClientState) CheckMisbehaviourAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, _ exported.ClientMessage,
+func (ClientState) CheckMisbehaviourAndUpdateState(
+	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) (exported.ClientState, error) {
 	panic("legacy solo machine is deprecated!")
 }
 
 // CheckSubstituteAndUpdateState panics!
-func (cs ClientState) CheckSubstituteAndUpdateState(
-	ctx sdk.Context, _ codec.BinaryCodec, _, _ sdk.KVStore,
+func (ClientState) CheckSubstituteAndUpdateState(
+	ctx sdk.Context, _ codec.BinaryCodec, _, _ storetypes.KVStore,
 	_ exported.ClientState,
 ) error {
 	panic("legacy solo machine is deprecated!")
 }
 
 // VerifyUpgradeAndUpdateState panics!
-func (cs ClientState) VerifyUpgradeAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
+func (ClientState) VerifyUpgradeAndUpdateState(
+	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore,
 	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
 ) error {
 	panic("legacy solo machine is deprecated!")
 }
 
 // VerifyClientState panics!
-func (cs ClientState) VerifyClientState(
-	store sdk.KVStore, cdc codec.BinaryCodec,
+func (ClientState) VerifyClientState(
+	store storetypes.KVStore, cdc codec.BinaryCodec,
 	_ exported.Height, _ exported.Prefix, _ string, _ []byte, clientState exported.ClientState,
 ) error {
 	panic("legacy solo machine is deprecated!")
 }
 
 // VerifyClientConsensusState panics!
-func (cs ClientState) VerifyClientConsensusState(
-	sdk.KVStore, codec.BinaryCodec,
+func (ClientState) VerifyClientConsensusState(
+	storetypes.KVStore, codec.BinaryCodec,
 	exported.Height, string, exported.Height, exported.Prefix,
 	[]byte, exported.ConsensusState,
 ) error {
@@ -155,24 +156,24 @@ func (cs ClientState) VerifyClientConsensusState(
 }
 
 // VerifyConnectionState panics!
-func (cs ClientState) VerifyConnectionState(
-	sdk.KVStore, codec.BinaryCodec, exported.Height,
+func (ClientState) VerifyConnectionState(
+	storetypes.KVStore, codec.BinaryCodec, exported.Height,
 	exported.Prefix, []byte, string, exported.ConnectionI,
 ) error {
 	panic("legacy solo machine is deprecated!")
 }
 
 // VerifyChannelState panics!
-func (cs ClientState) VerifyChannelState(
-	sdk.KVStore, codec.BinaryCodec, exported.Height, exported.Prefix,
+func (ClientState) VerifyChannelState(
+	storetypes.KVStore, codec.BinaryCodec, exported.Height, exported.Prefix,
 	[]byte, string, string, exported.ChannelI,
 ) error {
 	panic("legacy solo machine is deprecated!")
 }
 
 // VerifyPacketCommitment panics!
-func (cs ClientState) VerifyPacketCommitment(
-	sdk.Context, sdk.KVStore, codec.BinaryCodec, exported.Height,
+func (ClientState) VerifyPacketCommitment(
+	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64, []byte,
 ) error {
@@ -180,8 +181,8 @@ func (cs ClientState) VerifyPacketCommitment(
 }
 
 // VerifyPacketAcknowledgement panics!
-func (cs ClientState) VerifyPacketAcknowledgement(
-	sdk.Context, sdk.KVStore, codec.BinaryCodec, exported.Height,
+func (ClientState) VerifyPacketAcknowledgement(
+	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64, []byte,
 ) error {
@@ -189,8 +190,8 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 }
 
 // VerifyPacketReceiptAbsence panics!
-func (cs ClientState) VerifyPacketReceiptAbsence(
-	sdk.Context, sdk.KVStore, codec.BinaryCodec, exported.Height,
+func (ClientState) VerifyPacketReceiptAbsence(
+	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64,
 ) error {
@@ -198,8 +199,8 @@ func (cs ClientState) VerifyPacketReceiptAbsence(
 }
 
 // VerifyNextSequenceRecv panics!
-func (cs ClientState) VerifyNextSequenceRecv(
-	sdk.Context, sdk.KVStore, codec.BinaryCodec, exported.Height,
+func (ClientState) VerifyNextSequenceRecv(
+	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64,
 ) error {
@@ -207,16 +208,16 @@ func (cs ClientState) VerifyNextSequenceRecv(
 }
 
 // GetTimestampAtHeight panics!
-func (cs ClientState) GetTimestampAtHeight(
-	sdk.Context, sdk.KVStore, codec.BinaryCodec, exported.Height,
+func (ClientState) GetTimestampAtHeight(
+	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 ) (uint64, error) {
 	panic("legacy solo machine is deprecated!")
 }
 
 // VerifyMembership panics!
-func (cs *ClientState) VerifyMembership(
+func (*ClientState) VerifyMembership(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -229,9 +230,9 @@ func (cs *ClientState) VerifyMembership(
 }
 
 // VerifyNonMembership panics!
-func (cs *ClientState) VerifyNonMembership(
+func (*ClientState) VerifyNonMembership(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -248,11 +249,11 @@ func (ConsensusState) ClientType() string {
 }
 
 // GetTimestamp panics!
-func (cs ConsensusState) GetTimestamp() uint64 {
+func (ConsensusState) GetTimestamp() uint64 {
 	panic("legacy solo machine is deprecated!")
 }
 
 // ValidateBasic panics!
-func (cs ConsensusState) ValidateBasic() error {
+func (ConsensusState) ValidateBasic() error {
 	panic("legacy solo machine is deprecated!")
 }

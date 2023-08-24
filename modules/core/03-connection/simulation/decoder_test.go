@@ -15,14 +15,14 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup(t, false)
 	cdc := app.AppCodec()
 
 	connectionID := "connectionidone"
 
 	connection := types.ConnectionEnd{
 		ClientId: "clientidone",
-		Versions: types.ExportedVersionsToProto(types.GetCompatibleVersions()),
+		Versions: types.GetCompatibleVersions(),
 	}
 
 	paths := types.ClientPaths{

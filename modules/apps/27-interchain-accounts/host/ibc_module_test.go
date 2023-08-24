@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -42,7 +42,7 @@ var (
 )
 
 type InterchainAccountsTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -52,7 +52,7 @@ type InterchainAccountsTestSuite struct {
 }
 
 func TestICATestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }
 
 func (suite *InterchainAccountsTestSuite) SetupTest() {
@@ -446,7 +446,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
 				Amount:      amount,
 			}
-			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{msg}, icatypes.EncodingProtobuf)
+			data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, icatypes.EncodingProtobuf)
 			suite.Require().NoError(err)
 
 			icaPacketData := icatypes.InterchainAccountPacketData{

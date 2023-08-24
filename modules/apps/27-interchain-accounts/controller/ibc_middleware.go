@@ -17,7 +17,10 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-var _ porttypes.Middleware = (*IBCMiddleware)(nil)
+var (
+	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
+	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
+)
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
 // ICA controller keeper and the underlying application.
@@ -76,7 +79,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanOpenTry(
+func (IBCMiddleware) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -124,7 +127,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanOpenConfirm(
+func (IBCMiddleware) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -133,7 +136,7 @@ func (im IBCMiddleware) OnChanOpenConfirm(
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanCloseInit(
+func (IBCMiddleware) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -165,7 +168,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCMiddleware interface
-func (im IBCMiddleware) OnRecvPacket(
+func (IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
@@ -227,7 +230,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 }
 
 // SendPacket implements the ICS4 Wrapper interface
-func (im IBCMiddleware) SendPacket(
+func (IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	sourcePort string,
@@ -240,7 +243,7 @@ func (im IBCMiddleware) SendPacket(
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
-func (im IBCMiddleware) WriteAcknowledgement(
+func (IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	packet ibcexported.PacketI,
@@ -252,4 +255,16 @@ func (im IBCMiddleware) WriteAcknowledgement(
 // GetAppVersion returns the interchain accounts metadata.
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
+}
+
+// UnmarshalPacketData attempts to unmarshal the provided packet data bytes
+// into an InterchainAccountPacketData. This function implements the optional
+// PacketDataUnmarshaler interface required for ADR 008 support.
+func (IBCMiddleware) UnmarshalPacketData(bz []byte) (interface{}, error) {
+	var data icatypes.InterchainAccountPacketData
+	err := data.UnmarshalJSON(bz)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

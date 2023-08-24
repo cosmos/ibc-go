@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -38,7 +38,7 @@ const (
 var clientHeight = clienttypes.NewHeight(1, 10)
 
 type IBCTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -55,7 +55,7 @@ func (suite *IBCTestSuite) SetupTest() {
 }
 
 func TestIBCTestSuite(t *testing.T) {
-	suite.Run(t, new(IBCTestSuite))
+	testifysuite.Run(t, new(IBCTestSuite))
 }
 
 func (suite *IBCTestSuite) TestValidateGenesis() {
@@ -308,7 +308,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 	}
 
 	for _, tc := range testCases {
-		app := simapp.Setup(false)
+		app := simapp.Setup(suite.T(), false)
 
 		suite.NotPanics(func() {
 			ibc.InitGenesis(app.BaseApp.NewContext(false, tmproto.Header{Height: 1}), *app.IBCKeeper, tc.genState)
