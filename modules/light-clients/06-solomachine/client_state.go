@@ -126,13 +126,13 @@ func (cs *ClientState) VerifyMembership(
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
-		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+		return sdkerrors.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
 
 	// in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 	key, err := merklePath.GetKey(1)
 	if err != nil {
-		return errorsmod.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
+		return sdkerrors.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
 	}
 
 	signBytes := &SignBytes{
@@ -182,13 +182,13 @@ func (cs *ClientState) VerifyNonMembership(
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
-		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+		return sdkerrors.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
 
 	// in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
 	key, err := merklePath.GetKey(1)
 	if err != nil {
-		return errorsmod.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
+		return sdkerrors.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
 	}
 
 	signBytes := &SignBytes{
