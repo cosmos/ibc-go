@@ -16,6 +16,11 @@ type ContractKeeper interface {
 	// gas limit, and handle any errors, or panics gracefully.
 	// If an error is returned, the transaction will be reverted by the callbacks middleware, and the
 	// packet will not be sent.
+	//
+	// Implementations are provided with the packetSenderAddress and MAY choose to use this to perform
+	// validation on the origin of a given packet. It is recommended to perform the same validation
+	// on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This
+	// defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
 	IBCSendPacketCallback(
 		ctx sdk.Context,
 		sourcePort string,
@@ -31,6 +36,11 @@ type ContractKeeper interface {
 	// the sender is unknown or undefined. The contract is expected to handle the callback within the
 	// user defined gas limit, and handle any errors, or panics gracefully.
 	// If an error is returned, state will be reverted by the callbacks middleware.
+	//
+	// Implementations are provided with the packetSenderAddress and MAY choose to use this to perform
+	// validation on the origin of a given packet. It is recommended to perform the same validation
+	// on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This
+	// defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
 	IBCOnAcknowledgementPacketCallback(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
@@ -44,6 +54,11 @@ type ContractKeeper interface {
 	// empty if the sender is unknown or undefined. The contract is expected to handle the callback
 	// within the user defined gas limit, and handle any error, out of gas, or panics gracefully.
 	// If an error is returned, state will be reverted by the callbacks middleware.
+	//
+	// Implementations are provided with the packetSenderAddress and MAY choose to use this to perform
+	// validation on the origin of a given packet. It is recommended to perform the same validation
+	// on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This
+	// defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
 	IBCOnTimeoutPacketCallback(
 		ctx sdk.Context,
 		packet channeltypes.Packet,
