@@ -362,8 +362,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 				channel := path.EndpointB.GetChannel()
-				channel.State = types.INITUPGRADE
-				channel.FlushStatus = types.FLUSHING
+				channel.State = types.STATE_FLUSHING
 				path.EndpointB.SetChannel(channel)
 
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence-1)

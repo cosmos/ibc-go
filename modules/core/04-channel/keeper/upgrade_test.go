@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			types.ErrChannelNotFound,
 		},
 		{
-			"channel state is not in OPEN or INITUPGRADE state",
+			"channel state is not in OPEN state",
 			func() {
 				suite.Require().NoError(path.EndpointB.SetChannelState(types.CLOSED))
 			},
@@ -436,7 +436,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			types.ErrChannelNotFound,
 		},
 		{
-			"channel state is not in INITUPGRADE or TRYUPGRADE state",
+			"channel state is not in FLUSHING state",
 			func() {
 				suite.Require().NoError(path.EndpointA.SetChannelState(types.CLOSED))
 			},
