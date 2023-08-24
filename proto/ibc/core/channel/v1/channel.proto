@@ -199,3 +199,9 @@ message Timeout {
   // block timestamp (in nanoseconds) after which the packet or upgrade times out
   uint64 timestamp = 2;
 }
+
+// Params defines the set of IBC channel parameters.
+message Params {
+  // the relative timeout after which channel upgrades will time out.
+  Timeout upgrade_timeout = 1 [(gogoproto.nullable) = false];
+}
