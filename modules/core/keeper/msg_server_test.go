@@ -1524,7 +1524,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 
-			// fetch the previous channel when it is in the INITUPGRADE state.
+			// fetch the previous channel when it is in the OPEN state.
 			prevChannel := path.EndpointA.GetChannel()
 
 			suite.Require().NoError(path.EndpointB.UpdateClient())
