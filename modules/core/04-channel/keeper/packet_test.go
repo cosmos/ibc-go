@@ -336,7 +336,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				path.EndpointB.SetChannel(channel)
 
 				// set last packet sent sequence to sequence + 1
-				counterpartyUpgrade := types.NewUpgrade(types.UpgradeFields{}, types.Timeout{}, sequence+1)
+				counterpartyUpgrade := types.Upgrade{LatestSequenceSend: sequence + 1}
 				path.EndpointB.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 			},
 			true,
@@ -374,7 +374,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				path.EndpointB.SetChannel(channel)
 
 				// set last packet sent sequence to sequence - 1
-				counterpartyUpgrade := types.NewUpgrade(types.UpgradeFields{}, types.Timeout{}, sequence-1)
+				counterpartyUpgrade := types.Upgrade{LatestSequenceSend: sequence - 1}
 				path.EndpointB.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 			},
 			false,
