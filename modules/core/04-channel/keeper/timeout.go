@@ -157,21 +157,6 @@ func (k Keeper) TimeoutExecuted(
 
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
-	if channel.State == types.STATE_FLUSHING {
-		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-		if found {
-			// counterparty-specified timeout must not have exceeded
-			// if it has, then restore the channel and abort upgrade handshake
-			timeout := counterpartyUpgrade.Timeout
-			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
-				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
-			}
-		} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-			channel.State = types.STATE_FLUSHCOMPLETE
-			k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-		}
-	}
-
 	if channel.Ordering == types.ORDERED {
 		channel.Close()
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
@@ -185,6 +170,31 @@ func (k Keeper) TimeoutExecuted(
 		"dst_port", packet.GetDestPort(),
 		"dst_channel", packet.GetDestChannel(),
 	)
+
+	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
+	if channel.State == types.STATE_FLUSHING {
+		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+		if !found {
+			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
+		}
+
+		timeout := counterpartyUpgrade.Timeout
+		// if the timeout is valid then use it, otherwise it has not been set in the upgrade handshake yet.
+		if timeout.IsValid() {
+			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
+				// packet flushing timeout has expired, abort the upgrade and return nil,
+				// committing an error receipt to state, restoring the channel and successfully acknowledging the packet.
+				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
+				return nil
+			}
+
+			// set the channel state to flush complete if all packets have been acknowledged/flushed.
+			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+				channel.State = types.STATE_FLUSHCOMPLETE
+				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			}
+		}
+	}
 
 	// emit an event marking that we have processed the timeout
 	emitTimeoutPacketEvent(ctx, packet, channel)
