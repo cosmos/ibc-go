@@ -819,11 +819,6 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 		s.Run(tc.name, func() {
 			s.SetupMockFeeTest()
 
-			// set mock packet, it is only used in logs and not in callback execution
-			mockPacket := channeltypes.NewPacket(
-				ibcmock.MockPacketData, 1, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
-				s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, clienttypes.NewHeight(0, 100), 0)
-
 			// set a callback data that does not allow retry
 			callbackData = types.CallbackData{
 				CallbackAddress:   s.chainB.SenderAccount.GetAddress().String(),
@@ -852,7 +847,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			s.Require().True(ok)
 
 			processCallback := func() {
-				err = mockCallbackStack.ProcessCallback(ctx, mockPacket, callbackType, callbackData, callbackExecutor)
+				err = mockCallbackStack.ProcessCallback(ctx, callbackType, callbackData, callbackExecutor)
 			}
 
 			expPass := tc.expValue == nil

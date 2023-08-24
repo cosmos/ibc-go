@@ -68,17 +68,17 @@ type CallbackData struct {
 // GetSourceCallbackData parses the packet data and returns the source callback data.
 func GetSourceCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
-	packet ibcexported.PacketI, remainingGas uint64, maxGas uint64,
+	data []byte, srcPortID string, remainingGas, maxGas uint64,
 ) (CallbackData, error) {
-	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, maxGas, SourceCallbackKey)
+	return getCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxGas, SourceCallbackKey)
 }
 
 // GetDestCallbackData parses the packet data and returns the destination callback data.
 func GetDestCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
-	packet ibcexported.PacketI, remainingGas uint64, maxGas uint64,
+	data []byte, srcPortID string, remainingGas, maxGas uint64,
 ) (CallbackData, error) {
-	return getCallbackData(packetDataUnmarshaler, packet, remainingGas, maxGas, DestinationCallbackKey)
+	return getCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxGas, DestinationCallbackKey)
 }
 
 // getCallbackData parses the packet data and returns the callback data.
@@ -87,16 +87,16 @@ func GetDestCallbackData(
 // address and gas limit from the callback data.
 func getCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
-	packet ibcexported.PacketI, remainingGas,
+	data []byte, srcPortID string, remainingGas,
 	maxGas uint64, callbackKey string,
 ) (CallbackData, error) {
 	// unmarshal packet data
-	unmarshaledData, err := packetDataUnmarshaler.UnmarshalPacketData(packet.GetData())
+	packetData, err := packetDataUnmarshaler.UnmarshalPacketData(data)
 	if err != nil {
 		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
 
-	packetDataProvider, ok := unmarshaledData.(ibcexported.PacketDataProvider)
+	packetDataProvider, ok := packetData.(ibcexported.PacketDataProvider)
 	if !ok {
 		return CallbackData{}, ErrNotPacketDataProvider
 	}
@@ -115,9 +115,9 @@ func getCallbackData(
 	// retrieve packet sender from packet data if possible and if needed
 	var packetSender string
 	if callbackKey == SourceCallbackKey {
-		packetData, ok := unmarshaledData.(ibcexported.PacketData)
+		packetData, ok := packetData.(ibcexported.PacketData)
 		if ok {
-			packetSender = packetData.GetPacketSender(packet.GetSourcePort())
+			packetSender = packetData.GetPacketSender(srcPortID)
 		}
 	}
 
