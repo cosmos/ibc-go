@@ -425,10 +425,10 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 
 				// we are sending two packets here as one will be removed in TimeoutExecuted. This is to ensure that
 				// there is still an in-flight packet so that the channel remains in the flushing state.
-				sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+				_, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
-				sequence, err = path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+				sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)

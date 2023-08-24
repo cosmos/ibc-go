@@ -157,6 +157,13 @@ func (k Keeper) TimeoutExecuted(
 
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
+	if channel.Ordering == types.ORDERED {
+		channel.Close()
+		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+		emitChannelClosedEvent(ctx, packet, channel)
+	}
+
+	// TODO: handle situation outlined in https://github.com/cosmos/ibc-go/issues/4454
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.STATE_FLUSHING {
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
@@ -182,11 +189,6 @@ func (k Keeper) TimeoutExecuted(
 		}
 	}
 
-	if channel.Ordering == types.ORDERED {
-		channel.Close()
-		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-	}
-
 	k.Logger(ctx).Info(
 		"packet timed-out",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
@@ -198,10 +200,6 @@ func (k Keeper) TimeoutExecuted(
 
 	// emit an event marking that we have processed the timeout
 	emitTimeoutPacketEvent(ctx, packet, channel)
-
-	if channel.Ordering == types.ORDERED && channel.IsClosed() {
-		emitChannelClosedEvent(ctx, packet, channel)
-	}
 
 	return nil
 }
