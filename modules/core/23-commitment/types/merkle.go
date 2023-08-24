@@ -119,11 +119,7 @@ func (mp MerklePath) GetKey(i uint64) ([]byte, error) {
 	if i >= uint64(len(mp.KeyPath)) {
 		return nil, fmt.Errorf("index out of range. %d (index) >= %d (len)", i, len(mp.KeyPath))
 	}
-	key, err := url.PathUnescape(mp.KeyPath[i])
-	if err != nil {
-		return nil, err
-	}
-	return []byte(key), nil
+	return []byte(mp.KeyPath[i]), nil
 }
 
 // Empty returns true if the path is empty
