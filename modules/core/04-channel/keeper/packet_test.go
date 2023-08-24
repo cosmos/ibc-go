@@ -10,6 +10,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -1143,7 +1144,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			},
 			expResult: func(commitment []byte, err error) {
 				suite.Require().Error(err)
-				// suite.Require().ErrorIs(err, connectiontypes.ErrConnectionNotFound)
+				suite.Require().ErrorIs(err, commitmenttypes.ErrInvalidProof)
 			},
 		},
 		{
@@ -1233,9 +1234,9 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		tc := tc
-		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.name, i, len(testCases)), func() {
+		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
