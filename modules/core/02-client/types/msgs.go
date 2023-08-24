@@ -285,22 +285,22 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 	return msg.Params.Validate()
 }
 
-// NewMsgScheduleIBCClientUpgrade creates a new MsgScheduleIBCClientUpgrade instance
-func NewMsgScheduleIBCClientUpgrade(authority string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (*MsgScheduleIBCClientUpgrade, error) {
+// NewMsgIBCSoftwareUpgrade creates a new MsgIBCSoftwareUpgrade instance
+func NewMsgIBCSoftwareUpgrade(authority string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (*MsgIBCSoftwareUpgrade, error) {
 	anyClient, err := PackClientState(upgradedClientState)
 	if err != nil {
 		return nil, err
 	}
 
-	return &MsgScheduleIBCClientUpgrade{
+	return &MsgIBCSoftwareUpgrade{
 		Authority:           authority,
 		Plan:                plan,
 		UpgradedClientState: anyClient,
 	}, nil
 }
 
-// GetSigners returns the expected signers for a MsgScheduleIBCClientUpgrade message.
-func (msg *MsgScheduleIBCClientUpgrade) GetSigners() []sdk.AccAddress {
+// GetSigners returns the expected signers for a MsgIBCSoftwareUpgrade message.
+func (msg *MsgIBCSoftwareUpgrade) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		panic(err)
@@ -308,8 +308,8 @@ func (msg *MsgScheduleIBCClientUpgrade) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{accAddr}
 }
 
-// ValidateBasic performs basic checks on a MsgScheduleIBCClientUpgrade.
-func (msg *MsgScheduleIBCClientUpgrade) ValidateBasic() error {
+// ValidateBasic performs basic checks on a MsgIBCSoftwareUpgrade.
+func (msg *MsgIBCSoftwareUpgrade) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}

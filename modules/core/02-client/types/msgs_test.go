@@ -685,8 +685,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 }
 
-// TestMsgScheduleIBCClientUpgrade_NewMsgScheduleIBCClientUpgrade tests NewMsgScheduleIBCClientUpgrade
-func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_NewMsgScheduleIBCClientUpgrade() {
+// TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade tests NewMsgIBCSoftwareUpgrade
+func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade() {
 	testCases := []struct {
 		name                string
 		upgradedClientState exported.ClientState
@@ -709,7 +709,7 @@ func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_NewMsgScheduleIBCCl
 			Name:   "upgrade IBC clients",
 			Height: 1000,
 		}
-		_, err := types.NewMsgScheduleIBCClientUpgrade(
+		msg, err := types.NewMsgIBCSoftwareUpgrade(
 			ibctesting.TestAccAddress,
 			plan,
 			tc.upgradedClientState,
@@ -717,14 +717,19 @@ func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_NewMsgScheduleIBCCl
 
 		if tc.expPass {
 			suite.Require().NoError(err)
+			suite.Assert().Equal(ibctesting.TestAccAddress, msg.Authority)
+			suite.Assert().Equal(plan, msg.Plan)
+			unpackedClientState, err := types.UnpackClientState(msg.UpgradedClientState)
+			suite.Require().NoError(err)
+			suite.Assert().Equal(tc.upgradedClientState, unpackedClientState)
 		} else {
 			suite.Require().True(errors.Is(err, ibcerrors.ErrPackAny))
 		}
 	}
 }
 
-// TestMsgScheduleIBCClientUpgrade_GetSigners tests GetSigners for MsgScheduleIBCClientUpgrade
-func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_GetSigners() {
+// TestMsgIBCSoftwareUpgrade_GetSigners tests GetSigners for MsgIBCSoftwareUpgrade
+func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -748,7 +753,7 @@ func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_GetSigners() {
 			Name:   "upgrade IBC clients",
 			Height: 1000,
 		}
-		msg, err := types.NewMsgScheduleIBCClientUpgrade(
+		msg, err := types.NewMsgIBCSoftwareUpgrade(
 			tc.address.String(),
 			plan,
 			clientState,
@@ -763,47 +768,48 @@ func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_GetSigners() {
 	}
 }
 
-// TestMsgScheduleIBCClientUpgrade_ValidateBasic tests ValidateBasic for MsgScheduleIBCClientUpgrade
-func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_ValidateBasic() {
+// TestMsgIBCSoftwareUpgrade_ValidateBasic tests ValidateBasic for MsgIBCSoftwareUpgrade
+func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 	var (
 		authority string
 		plan      upgradetypes.Plan
 		anyClient *codectypes.Any
-		expError  error
 	)
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
+		expError error
 	}{
 		{
 			"success",
 			func() {},
 			true,
+			nil,
 		},
 		{
 			"failure: invalid authority address",
 			func() {
 				authority = "invalid"
-				expError = ibcerrors.ErrInvalidAddress
 			},
 			false,
+			ibcerrors.ErrInvalidAddress,
 		},
 		{
 			"failure: error unpacking client state",
 			func() {
 				anyClient = &codectypes.Any{}
-				expError = ibcerrors.ErrUnpackAny
 			},
 			false,
+			ibcerrors.ErrUnpackAny,
 		},
 		{
 			"failure: error validating upgrade plan, height is not greater than zero",
 			func() {
 				plan.Height = 0
-				expError = sdkerrors.ErrInvalidRequest
 			},
 			false,
+			sdkerrors.ErrInvalidRequest,
 		},
 	}
 
@@ -820,7 +826,7 @@ func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_ValidateBasic() {
 
 		tc.malleate()
 
-		msg := types.MsgScheduleIBCClientUpgrade{
+		msg := types.MsgIBCSoftwareUpgrade{
 			authority,
 			plan,
 			anyClient,
@@ -831,8 +837,8 @@ func (suite *TypesTestSuite) TestMsgScheduleIBCClientUpgrade_ValidateBasic() {
 		if tc.expPass {
 			suite.Require().NoError(err)
 		}
-		if expError != nil {
-			suite.Require().True(errors.Is(err, expError))
+		if tc.expError != nil {
+			suite.Require().True(errors.Is(err, tc.expError))
 		}
 	}
 }
