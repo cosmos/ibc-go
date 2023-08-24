@@ -11,7 +11,6 @@ import (
 	dockertypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 )
 
 const testLabel = "ibc-test"
@@ -69,38 +68,4 @@ func GetFileContentsFromContainer(ctx context.Context, dc *dockerclient.Client, 
 	}
 
 	return io.ReadAll(tr)
-}
-
-// SetGenesisContentsToContainer set the contents of a specific file to a container.
-func SetGenesisContentsToContainer(t *testing.T, ctx context.Context, dc *dockerclient.Client, cfg ibc.ChainConfig, content io.Reader, options dockertypes.CopyToContainerOptions) error {
-	containerID, err := getDockerContainerID(t, ctx, cfg, dc)
-	if err != nil {
-		return err
-	}
-	genesisFilePath := chainAbsoluteGenesisFilePaths(cfg)
-	err = dc.CopyToContainer(ctx, containerID, genesisFilePath, content, options)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// chainAbsoluteGenesisFilePaths get absolute path of Genesis file of a chain
-func chainAbsoluteGenesisFilePaths(cfg ibc.ChainConfig) string {
-	return fmt.Sprintf("/var/cosmos-chain/%s/config/genesis.json", cfg.Name)
-}
-
-// getDockerContainerID get docker container id
-func getDockerContainerID(t *testing.T, ctx context.Context, cfg ibc.ChainConfig, dc *dockerclient.Client) (string, error) {
-	imageOfChain := cfg.Images[0].Repository
-	testContainers, err := GetTestContainers(t, ctx, dc)
-	if err != nil {
-		return  "", err
-	}
-	for _, container := range testContainers {
-		if container.Image == imageOfChain {
-			return container.ID, nil
-		}
-	}
-	return "", fmt.Errorf("can't find container id")
 }

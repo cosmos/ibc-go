@@ -1,20 +1,17 @@
 package upgrades
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	cosmos "github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
 	tmjson "github.com/cometbft/cometbft/libs/json"
 
-	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
@@ -132,10 +129,10 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	genesisJson, err := tmjson.MarshalIndent(genesisState, "", "  ")
 	s.Require().NoError(err)
 
-	err = dockerutil.SetGenesisContentsToContainer(s.T(), ctx, s.E2ETestSuite.DockerClient, chain.Config(), bytes.NewReader(genesisJson), types.CopyToContainerOptions{
-		AllowOverwriteDirWithFile: true,
-	})
-	s.Require().NoError(err)
+	for _, node := range chain.Nodes() {
+		err := node.OverwriteGenesisFile(ctx, genesisJson)
+		s.Require().NoError(err)
+	}
 
 	for _, node := range chain.FullNodes {
 		err = node.UnsafeResetAll(ctx)
