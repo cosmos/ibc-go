@@ -18,6 +18,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	simapp "github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 const maxCallbackGas = uint64(1000000)
@@ -260,4 +261,41 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 		)
 	}
 	s.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
+}
+
+// OverrideSendMsgWithAssertion overrides both chains' SendMsgsOverride function to assert whether the
+// transaction is successful or not.
+func OverrideSendMsgWithAssertion(chain *ibctesting.TestChain, expPass bool) {
+	chain.SendMsgsOverride = func(msgs ...sdk.Msg) (*sdk.Result, error) {
+		// ensure the chain has the latest time
+		chain.Coordinator.UpdateTimeForChain(chain)
+
+		_, r, err := simapp.SignAndDeliver(
+			chain.T,
+			chain.TxConfig,
+			chain.App.GetBaseApp(),
+			chain.GetContext().BlockHeader(),
+			msgs,
+			chain.ChainID,
+			[]uint64{chain.SenderAccount.GetAccountNumber()},
+			[]uint64{chain.SenderAccount.GetSequence()},
+			true, expPass, chain.SenderPrivKey,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		// NextBlock calls app.Commit()
+		chain.NextBlock()
+
+		// increment sequence for successful transaction execution
+		err = chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+		if err != nil {
+			return nil, err
+		}
+
+		chain.Coordinator.IncrementTime()
+
+		return r, nil
+	}
 }

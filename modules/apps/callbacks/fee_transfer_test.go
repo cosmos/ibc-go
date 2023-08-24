@@ -101,7 +101,9 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 
 			s.ExecutePayPacketFeeMsg(fee)
 			preRelaySenderBalance := sdk.NewCoins(s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-			s.ExecuteTransfer(tc.transferMemo)
+
+			expSendFailure := !tc.expSuccess && (tc.expCallback == types.CallbackTypeSendPacket)
+			s.ExecuteTransfer(tc.transferMemo, expSendFailure)
 			// we manually subtract the transfer amount from the preRelaySenderBalance because ExecuteTransfer
 			// also relays the packet, which will trigger the fee payments.
 			preRelaySenderBalance = preRelaySenderBalance.Sub(ibctesting.TestCoin)
@@ -159,7 +161,9 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 
 			s.ExecutePayPacketFeeMsg(fee)
 			preRelaySenderBalance := sdk.NewCoins(s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-			s.ExecuteTransferTimeout(tc.transferMemo, 1)
+
+			expSendFailure := !tc.expSuccess && (tc.expCallback == types.CallbackTypeSendPacket)
+			s.ExecuteTransferTimeout(tc.transferMemo, expSendFailure)
 
 			// after incentivizing the packets
 			s.AssertHasExecutedExpectedCallbackWithFee(tc.expCallback, tc.expSuccess, true, preRelaySenderBalance, fee)

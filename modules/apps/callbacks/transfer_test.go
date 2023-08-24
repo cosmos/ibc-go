@@ -91,7 +91,8 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 	for _, tc := range testCases {
 		s.SetupTransferTest()
 
-		s.ExecuteTransfer(tc.transferMemo)
+		expSendFailure := !tc.expSuccess && (tc.expCallback == types.CallbackTypeSendPacket)
+		s.ExecuteTransfer(tc.transferMemo, expSendFailure)
 		s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
 	}
 }
@@ -138,14 +139,15 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 	for _, tc := range testCases {
 		s.SetupTransferTest()
 
-		s.ExecuteTransferTimeout(tc.transferMemo, 1)
+		expSendFailure := !tc.expSuccess && (tc.expCallback == types.CallbackTypeSendPacket)
+		s.ExecuteTransferTimeout(tc.transferMemo, expSendFailure)
 		s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
 	}
 }
 
 // ExecuteTransfer executes a transfer message on chainA for ibctesting.TestCoin (100 "stake").
 // It checks that the transfer is successful and that the packet is relayed to chainB.
-func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
+func (s *CallbacksTestSuite) ExecuteTransfer(memo string, expSendFailure bool) {
 	escrowAddress := transfertypes.GetEscrowAddress(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// record the balance of the escrow address before the transfer
 	escrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
@@ -163,7 +165,12 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 		clienttypes.NewHeight(1, 100), 0, memo,
 	)
 
+	if expSendFailure {
+		OverrideSendMsgWithAssertion(s.chainA, false)
+	}
+
 	res, err := s.chainA.SendMsgs(msg)
+	s.chainA.SendMsgsOverride = nil // undo override
 	if err != nil {
 		return // we return if send packet is rejected
 	}
@@ -183,7 +190,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 
 // ExecuteTransferTimeout executes a transfer message on chainA for 100 denom.
 // This message is not relayed to chainB, and it times out on chainA.
-func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string, nextSeqRecv uint64) {
+func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string, expSendFailure bool) {
 	timeoutHeight := clienttypes.GetSelfHeight(s.chainB.GetContext())
 	timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
 
@@ -197,7 +204,12 @@ func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string, nextSeqRecv uin
 		timeoutHeight, timeoutTimestamp, memo,
 	)
 
+	if expSendFailure {
+		OverrideSendMsgWithAssertion(s.chainA, false)
+	}
+
 	res, err := s.chainA.SendMsgs(msg)
+	s.chainA.SendMsgsOverride = nil // undo override
 	if err != nil {
 		return // we return if send packet is rejected
 	}
