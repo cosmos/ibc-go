@@ -380,7 +380,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			false,
 		},
 		{
-			"failure while upgrading channel, channel in FLUSH_COMPLETE",
+			"failure while upgrading channel, channel in flush complete state",
 			func() {
 				expError = types.ErrInvalidChannelState
 

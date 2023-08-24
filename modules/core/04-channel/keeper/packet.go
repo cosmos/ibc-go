@@ -143,7 +143,7 @@ func (k Keeper) RecvPacket(
 		if packet.GetSequence() > counterpartyUpgrade.LatestSequenceSend {
 			return errorsmod.Wrapf(
 				types.ErrInvalidPacket,
-				"failed to receive packet (%d), cannot flush packet at sequence greater than counterparty last sequence send (%d)", packet.GetSequence(), counterpartyUpgrade.LatestSequenceSend,
+				"failed to receive packet, cannot flush packet at sequence greater than counterparty last sequence send (%d) > (%d)", packet.GetSequence(), counterpartyUpgrade.LatestSequenceSend,
 			)
 		}
 	}
