@@ -1532,12 +1532,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			channelProof, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeTimeout{
-				PortId:               path.EndpointA.ChannelConfig.PortID,
-				ChannelId:            path.EndpointA.ChannelID,
-				CounterpartyChannel:  path.EndpointB.GetChannel(),
-				ProofChannel:         channelProof,
-				ProofHeight:          proofHeight,
-				Signer:               suite.chainA.SenderAccount.GetAddress().String(),
+				PortId:              path.EndpointA.ChannelConfig.PortID,
+				ChannelId:           path.EndpointA.ChannelID,
+				CounterpartyChannel: path.EndpointB.GetChannel(),
+				ProofChannel:        channelProof,
+				ProofHeight:         proofHeight,
+				Signer:              suite.chainA.SenderAccount.GetAddress().String(),
 			}
 
 			tc.malleate()

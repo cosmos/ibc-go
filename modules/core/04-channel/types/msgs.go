@@ -756,12 +756,12 @@ func NewMsgChannelUpgradeTimeout(
 	signer string,
 ) *MsgChannelUpgradeTimeout {
 	return &MsgChannelUpgradeTimeout{
-		PortId:               portID,
-		ChannelId:            channelID,
-		CounterpartyChannel:  counterpartyChannel,
-		ProofChannel:         proofChannel,
-		ProofHeight:          proofHeight,
-		Signer:               signer,
+		PortId:              portID,
+		ChannelId:           channelID,
+		CounterpartyChannel: counterpartyChannel,
+		ProofChannel:        proofChannel,
+		ProofHeight:         proofHeight,
+		Signer:              signer,
 	}
 }
 
