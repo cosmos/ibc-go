@@ -331,23 +331,12 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-				// Move channel to correct state.
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
-
-				err = path.EndpointB.ChanUpgradeInit()
-				suite.Require().NoError(err)
-
-				err = path.EndpointA.ChanUpgradeTry()
-				suite.Require().NoError(err)
-
-				err = path.EndpointB.ChanUpgradeAck()
-				suite.Require().NoError(err)
-
 				channel := path.EndpointB.GetChannel()
 				channel.State = types.STATE_FLUSHING
 				path.EndpointB.SetChannel(channel)
 
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence+1)
+				counterpartyUpgrade := types.NewUpgrade(types.UpgradeFields{}, types.Timeout{}, sequence+1)
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyUpgrade(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, counterpartyUpgrade)
 			},
 			true,
 		},

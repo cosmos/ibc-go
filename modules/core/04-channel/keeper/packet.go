@@ -134,9 +134,17 @@ func (k Keeper) RecvPacket(
 
 	// in the case of the channel being in FLUSHING we need to ensure that the the counterparty last sequence send
 	// is less than or equal to the packet sequence.
-	if counterpartyLastSequenceSend, found := k.GetCounterpartyLastPacketSequence(ctx, packet.GetDestPort(), packet.GetDestChannel()); found {
-		if channel.State != types.STATE_FLUSHING || packet.GetSequence() > counterpartyLastSequenceSend {
-			return errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected channel flush status to be (%s) when counterparty last sequence send (%d) is set, failed to recv packet (%d)", types.FLUSHING, counterpartyLastSequenceSend, packet.GetSequence())
+	if channel.State == types.STATE_FLUSHING {
+		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
+		if !found {
+			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetDestChannel())
+		}
+
+		if packet.GetSequence() > counterpartyUpgrade.LatestSequenceSend {
+			return errorsmod.Wrapf(
+				types.ErrInvalidPacket,
+				"failed to receive packet (%d), cannot flush packet at sequence greater than counterparty last sequence send (%d)", packet.GetSequence(), counterpartyUpgrade.LatestSequenceSend,
+			)
 		}
 	}
 
