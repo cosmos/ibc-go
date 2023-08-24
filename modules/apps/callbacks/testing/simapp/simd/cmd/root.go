@@ -5,8 +5,12 @@ import (
 	"io"
 	"os"
 
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"cosmossdk.io/log"
+	confixcmd "cosmossdk.io/tools/confix/cmd"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -16,19 +20,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	dbm "github.com/cometbft/cometbft-db"
 	cmtcfg "github.com/cometbft/cometbft/config"
-	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp/params"
@@ -38,7 +45,8 @@ import (
 // main function.
 func NewRootCmd() *cobra.Command {
 	// we "pre"-instantiate the application for getting the injected/configured encoding configuration
-	tempApp := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(simapp.DefaultNodeHome))
+	// note, this is not necessary when using app wiring, as depinject can be directly used (see root_v2.go)
+	tempApp := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(tempDir()))
 	encodingConfig := params.EncodingConfig{
 		InterfaceRegistry: tempApp.InterfaceRegistry(),
 		Codec:             tempApp.AppCodec(),
@@ -49,7 +57,6 @@ func NewRootCmd() *cobra.Command {
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
-		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
@@ -57,13 +64,15 @@ func NewRootCmd() *cobra.Command {
 		WithViper("") // In simapp, we don't use any prefix for env variables.
 
 	rootCmd := &cobra.Command{
-		Use:   "simd",
-		Short: "simulation app",
+		Use:           "simd",
+		Short:         "simulation app",
+		SilenceErrors: true,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
 
+			initClientCtx = initClientCtx.WithCmdContext(cmd.Context())
 			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
 			if err != nil {
 				return err
@@ -74,25 +83,45 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
+			// This needs to go after ReadFromClientConfig, as that function
+			// sets the RPC client needed for SIGN_MODE_TEXTUAL.
+			enabledSignModes := append(tx.DefaultSignModes, signing.SignMode_SIGN_MODE_TEXTUAL) //nolint:gocritic // we know we aren't appending to the same slice
+			txConfigOpts := tx.ConfigOptions{
+				EnabledSignModes:           enabledSignModes,
+				TextualCoinMetadataQueryFn: txmodule.NewGRPCCoinMetadataQueryFn(initClientCtx),
+			}
+			txConfigWithTextual, err := tx.NewTxConfigWithOptions(
+				codec.NewProtoCodec(encodingConfig.InterfaceRegistry),
+				txConfigOpts,
+			)
+			if err != nil {
+				return err
+			}
+			initClientCtx = initClientCtx.WithTxConfig(txConfigWithTextual)
+
 			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 				return err
 			}
 
 			customAppTemplate, customAppConfig := initAppConfig()
-			customTMConfig := initTendermintConfig()
+			customCMTConfig := initCometBFTConfig()
 
-			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
+			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customCMTConfig)
 		},
 	}
 
-	initRootCmd(rootCmd, encodingConfig)
+	initRootCmd(rootCmd, encodingConfig, tempApp.BasicModuleManager)
+
+	if err := tempApp.AutoCliOpts().EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
 
 	return rootCmd
 }
 
-// initTendermintConfig helps to override default Tendermint Config values.
+// initCometBFTConfig helps to override default CometBFT Config values.
 // return cmtcfg.DefaultConfig if no custom configuration is required for the application.
-func initTendermintConfig() *cmtcfg.Config {
+func initCometBFTConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
 
 	// these values put a higher strain on node memory
@@ -159,42 +188,33 @@ lru_size = 0`
 	return customAppTemplate, customAppConfig
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
+func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, basicManager module.BasicManager) {
 	cfg := sdk.GetConfig()
 	cfg.Seal()
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(simapp.ModuleBasics, simapp.DefaultNodeHome),
+		genutilcli.InitCmd(basicManager, simapp.DefaultNodeHome),
 		debug.Cmd(),
-		config.Cmd(),
-		pruning.PruningCmd(newApp),
+		confixcmd.ConfigCommand(),
+		pruning.Cmd(newApp, simapp.DefaultNodeHome),
 		snapshot.Cmd(newApp),
+		server.QueryBlockResultsCmd(),
 	)
 
 	server.AddCommands(rootCmd, simapp.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
-		genesisCommand(encodingConfig),
-		queryCommand(),
+		server.StatusCommand(),
+		genesisCommand(encodingConfig, basicManager),
 		txCommand(),
-		keys.Commands(simapp.DefaultNodeHome),
+		queryCommand(),
+		keys.Commands(),
 	)
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
-}
-
-// genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
-func genesisCommand(encodingConfig params.EncodingConfig, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.GenesisCoreCommand(encodingConfig.TxConfig, simapp.ModuleBasics, simapp.DefaultNodeHome)
-
-	for _, subCmd := range cmds {
-		cmd.AddCommand(subCmd)
-	}
-	return cmd
 }
 
 func queryCommand() *cobra.Command {
@@ -208,14 +228,13 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetAccountCmd(),
 		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		server.QueryBlockCmd(),
 		authcmd.QueryTxsByEventsCmd(),
+		server.QueryBlocksCmd(),
 		authcmd.QueryTxCmd(),
+		authcmd.GetSimulateCmd(),
 	)
-
-	simapp.ModuleBasics.AddQueryCommands(cmd)
 
 	return cmd
 }
@@ -241,8 +260,16 @@ func txCommand() *cobra.Command {
 		authcmd.GetAuxToFeeCommand(),
 	)
 
-	simapp.ModuleBasics.AddTxCommands(cmd)
+	return cmd
+}
 
+// genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
+func genesisCommand(encodingConfig params.EncodingConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
+	cmd := genutilcli.Commands(encodingConfig.TxConfig, basicManager, simapp.DefaultNodeHome)
+
+	for _, subCmd := range cmds {
+		cmd.AddCommand(subCmd)
+	}
 	return cmd
 }
 
@@ -302,4 +329,14 @@ func appExport(
 	}
 
 	return simApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
+}
+
+var tempDir = func() string {
+	dir, err := os.MkdirTemp("", "simapp")
+	if err != nil {
+		dir = simapp.DefaultNodeHome
+	}
+	defer os.RemoveAll(dir)
+
+	return dir
 }
