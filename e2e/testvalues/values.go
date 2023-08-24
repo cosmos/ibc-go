@@ -74,7 +74,7 @@ var SimdNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
-// TransferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
+// SelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
 var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
