@@ -143,7 +143,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			},
 			types.CallbackTypeSendPacket,
 			true,
-			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback oog panic", types.CallbackTypeSendPacket)},
+			storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback oog panic", types.CallbackTypeSendPacket)},
 		},
 	}
 
@@ -255,7 +255,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
 				packet.Data = packetData.GetBytes()
 
-				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
 			},
 			callbackFailed,
 			panicError,
@@ -405,10 +405,10 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.OogPanicContract)
 				packet.Data = packetData.GetBytes()
 
-				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
 			},
 			callbackFailed,
-			sdk.ErrorOutOfGas{
+			storetypes.ErrorOutOfGas{
 				Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeTimeoutPacket, maxCallbackGas),
 			},
 		},
@@ -443,7 +443,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().NoError(err)
 			s.Require().NotNil(res)
 
-			packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+			packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
 			s.Require().NoError(err)
 			s.Require().NotNil(packet)
 
@@ -563,7 +563,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				packetData.Memo = fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
 				packet.Data = packetData.GetBytes()
 
-				ctx = ctx.WithGasMeter(sdk.NewGasMeter(300_000))
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
 			},
 			callbackFailed,
 			panicAck,
