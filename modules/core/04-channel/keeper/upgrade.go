@@ -186,7 +186,7 @@ func (k Keeper) ChanUpgradeTry(
 
 // WriteUpgradeTryChannel writes the channel end and upgrade to state after successfully passing the UpgradeTry handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeVersion string, counterpartyLastSequenceSend uint64) (types.Channel, types.Upgrade) {
+func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeVersion string, counterpartyUpgradeFields types.UpgradeFields) (types.Channel, types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -196,6 +196,9 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 
 	upgrade.Fields.Version = upgradeVersion
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
+
+	counterpartyUpgrade := types.Upgrade{Fields: counterpartyUpgradeFields}
+	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN, "new-state", channel.State)
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, upgrade)
@@ -782,15 +785,19 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 	}
 
 	upgrade.LatestSequenceSend = nextSequenceSend - 1
-	upgrade.Timeout = getUpgradeTimeout()
+	upgrade.Timeout = k.getUpgradeTimeout(ctx)
 	k.SetUpgrade(ctx, portID, channelID, *upgrade)
 
 	return nil
 }
 
-// TODO: use a hard coded value for now. Will be resolved in https://github.com/cosmos/ibc-go/issues/4313
-func getUpgradeTimeout() types.Timeout {
-	return types.NewTimeout(clienttypes.NewHeight(1, 1000), 0)
+// getUpgradeTimeout returns the absolute timeout for the given upgrade.
+func (k Keeper) getUpgradeTimeout(ctx sdk.Context) types.Timeout {
+	// relativeTimeout := k.GetParams(ctx).UpgradeTimeout
+	// absoluteTimeoutHeight := clienttypes.NewHeight(clienttypes.ParseChainID(ctx.ChainID()), uint64(ctx.BlockHeight())+relativeTimeout.Height.RevisionHeight)
+	// absoluteTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + relativeTimeout.Timestamp
+	// return types.NewTimeout(absoluteTimeoutHeight, absoluteTimeoutTimestamp)
+	return k.GetParams(ctx).UpgradeTimeout
 }
 
 // syncUpgradeSequence ensures current upgrade handshake only continues if both channels are using the same upgrade sequence,
