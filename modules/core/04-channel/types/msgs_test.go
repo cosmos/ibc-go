@@ -780,8 +780,15 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 		expPass  bool
 	}{
 		{
-			"success",
+			"success: flushcomplete state",
 			func() {},
+			true,
+		},
+		{
+			"success: open state",
+			func() {
+				msg.CounterpartyChannelState = types.OPEN
+			},
 			true,
 		},
 		{

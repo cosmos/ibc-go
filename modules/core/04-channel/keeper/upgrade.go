@@ -681,7 +681,7 @@ func (k Keeper) ChanUpgradeTimeout(
 
 	// counterparty channel must be proved to still be in OPEN state or FLUSHING state.
 	if !collections.Contains(counterpartyChannel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.STATE_FLUSHING, counterpartyChannel.State)
+		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "expected one of [%s, %s], got %s", types.OPEN, types.STATE_FLUSHING, counterpartyChannel.State)
 	}
 
 	if counterpartyChannel.State == types.OPEN {
@@ -697,7 +697,7 @@ func (k Keeper) ChanUpgradeTimeout(
 		upgradeAlreadyComplete := upgrade.Fields.Version == counterpartyChannel.Version && upgrade.Fields.Ordering == counterpartyChannel.Ordering && upgrade.Fields.ConnectionHops[0] == counterpartyHops[0]
 		if upgradeAlreadyComplete {
 			// counterparty has already successfully upgraded so we cannot timeout
-			return errorsmod.Wrap(types.ErrInvalidCounterparty, "counterparty channel is already upgraded")
+			return errorsmod.Wrap(types.ErrUpgradeTimeoutFailed, "counterparty channel is already upgraded")
 		}
 	}
 

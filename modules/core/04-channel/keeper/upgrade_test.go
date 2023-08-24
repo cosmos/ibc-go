@@ -1568,7 +1568,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 
 				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
 			},
-			types.ErrInvalidChannelState,
+			types.ErrInvalidCounterparty,
 		},
 		{
 			"counterparty proposed connection invalid",
@@ -1602,7 +1602,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 
 				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
 			},
-			types.ErrInvalidCounterparty,
+			types.ErrUpgradeTimeoutFailed,
 		},
 	}
 
@@ -1846,10 +1846,10 @@ func (suite *KeeperTestSuite) assertUpgradeError(actualError, expError error) {
 	suite.Require().True(errorsmod.IsOf(actualError, expError), fmt.Sprintf("expected error: %s, actual error: %s", expError, actualError))
 }
 
-// TestAbortHandshake tests that when the channel handshake is aborted, the channel state
+// TestAbortUpgrade tests that when the channel handshake is aborted, the channel state
 // is restored the previous state and that an error receipt is written, and upgrade state which
 // is no longer required is deleted.
-func (suite *KeeperTestSuite) TestAbortHandshake() {
+func (suite *KeeperTestSuite) TestAbortUpgrade() {
 	var (
 		path         *ibctesting.Path
 		upgradeError error

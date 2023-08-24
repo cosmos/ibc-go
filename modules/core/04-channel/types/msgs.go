@@ -783,7 +783,7 @@ func (msg MsgChannelUpgradeTimeout) ValidateBasic() error {
 	}
 
 	if !collections.Contains(msg.CounterpartyChannel.State, []State{STATE_FLUSHING, OPEN}) {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", STATE_FLUSHING, OPEN, msg.CounterpartyChannel.State)
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected counterparty channel state to be one of: [%s, %s], got: %s", STATE_FLUSHING, OPEN, msg.CounterpartyChannel.State)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
