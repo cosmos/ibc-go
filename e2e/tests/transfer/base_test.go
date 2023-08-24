@@ -5,18 +5,20 @@ import (
 	"testing"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+
+	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestTransferTestSuite(t *testing.T) {
@@ -92,7 +94,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	t.Run("non-native IBC token transfer from chainB to chainA, receiver is source of tokens", func(t *testing.T) {
@@ -104,7 +106,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
-		s.Require().Equal(int64(0), actualBalance)
+		s.Require().Equal(sdkmath.ZeroInt(), actualBalance)
 
 		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainBVersion) {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
@@ -192,7 +194,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainBWallet.FormattedAddress(), // destination address
 		Denom:   chainA.Config().Denom,
-		Amount:  testvalues.IBCTransferAmount,
+		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
 	}
 
 	t.Run("IBC transfer packet timesout", func(t *testing.T) {
@@ -345,7 +347,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
-			s.Require().Equal(expected, actualBalance)
+			s.Require().Equal(expected, actualBalance.Int64())
 		})
 
 		t.Run("stop relayer", func(t *testing.T) {
@@ -464,7 +466,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		s.Require().NoError(err)
 
 		if testvalues.MemoFeatureReleases.IsSupported(chainBVersion) {
-			s.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
+			s.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
 		} else {
 			s.Require().Equal(int64(0), actualBalance)
 		}
