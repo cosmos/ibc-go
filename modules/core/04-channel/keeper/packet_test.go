@@ -380,7 +380,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			false,
 		},
 		{
-			"failure while upgrading channel, channel not flushing, packet sequence == counterparty last send sequence",
+			"failure while upgrading channel, channel in FLUSH_COMPLETE",
 			func() {
 				expError = types.ErrInvalidChannelState
 
@@ -393,8 +393,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channel := path.EndpointB.GetChannel()
 				channel.State = types.STATE_FLUSHCOMPLETE
 				path.EndpointB.SetChannel(channel)
-
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence)
 			},
 			false,
 		},
