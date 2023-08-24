@@ -144,7 +144,6 @@ func (k Keeper) ChanUpgradeTry(
 		ConnectionHops:  counterpartyConnectionHops,
 		Version:         channel.Version,
 		UpgradeSequence: counterpartyUpgradeSequence, // provided by the relayer
-		FlushStatus:     types.NOTINFLUSH,
 	}
 
 	// verify the counterparty channel state containing the upgrade sequence
@@ -894,7 +893,7 @@ func extractUpgradeFields(channel types.Channel) types.UpgradeFields {
 	}
 }
 
-// MustAbortUpgrade will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
+// MustAbortUpgrade will restore the channel state to its pre-upgrade state so that upgrade is aborted.
 // Any unnecessary state is deleted and an error receipt is written.
 // This function is expected to always succeed, a panic will occur if an error occurs.
 func (k Keeper) MustAbortUpgrade(ctx sdk.Context, portID, channelID string, err error) {
@@ -903,7 +902,7 @@ func (k Keeper) MustAbortUpgrade(ctx sdk.Context, portID, channelID string, err 
 	}
 }
 
-// abortUpgrade will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
+// abortUpgrade will restore the channel state to its pre-upgrade state so that upgrade is aborted.
 // Any unnecessary state is delete and an error receipt is written.
 func (k Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err error) error {
 	if err == nil {
@@ -928,7 +927,7 @@ func (k Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 	return nil
 }
 
-// restoreChannel will restore the channel state and flush status to their pre-upgrade state so that upgrade is aborted.
+// restoreChannel will restore the channel state to its pre-upgrade state so that upgrade is aborted.
 func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, channel types.Channel, err *types.UpgradeError) types.Channel {
 	channel.State = types.OPEN
 	channel.UpgradeSequence = upgradeSequence

@@ -1417,7 +1417,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(prevChannel.Version, channel.Version, "channel version should be reverted")
 				suite.Require().Equalf(channeltypes.OPEN, channel.State, "channel state should be %s", channeltypes.OPEN.String())
-				suite.Require().Equalf(channeltypes.NOTINFLUSH, channel.FlushStatus, "channel flush status should be %s", channeltypes.NOTINFLUSH.String())
 				suite.Require().Equal(errorReceipt.Sequence, channel.UpgradeSequence, "channel upgrade sequence should be set to error receipt sequence")
 			} else {
 				suite.Require().Nil(res)
@@ -1427,7 +1426,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 
 				suite.Require().Equal(prevChannel.Version, channel.Version, "channel version should not be changed")
 				suite.Require().Equalf(prevChannel.State, channel.State, "channel state should be %s", prevChannel.State.String())
-				suite.Require().Equalf(prevChannel.FlushStatus, channel.FlushStatus, "channel flush status should be %s", prevChannel.FlushStatus.String())
 				suite.Require().Equal(prevChannel.UpgradeSequence, channel.UpgradeSequence, "channel upgrade sequence should not incremented")
 			}
 		})
@@ -1572,7 +1570,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				}
 
 				suite.Require().Equalf(channeltypes.OPEN, channel.State, "channel state should be %s", channeltypes.OPEN.String())
-				suite.Require().Equalf(channeltypes.NOTINFLUSH, channel.FlushStatus, "channel flush status should be %s", channeltypes.NOTINFLUSH.String())
 
 				_, found := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found, "channel upgrade should be nil")
@@ -1586,7 +1583,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equalf(prevChannel.State, channel.State, "channel state should be %s", prevChannel.State.String())
-				suite.Require().Equalf(prevChannel.FlushStatus, channel.FlushStatus, "channel flush status should be %s", prevChannel.FlushStatus.String())
 				suite.Require().Equal(prevChannel.UpgradeSequence, channel.UpgradeSequence, "channel upgrade sequence should not incremented")
 
 				_, found := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
