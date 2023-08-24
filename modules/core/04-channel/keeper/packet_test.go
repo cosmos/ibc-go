@@ -344,6 +344,8 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"failure while upgrading channel, counterparty upgrade not found",
 			func() {
+				expError = types.ErrUpgradeNotFound
+
 				suite.coordinator.Setup(path)
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
@@ -359,6 +361,8 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"failure while upgrading channel, packet sequence > counterparty last send sequence",
 			func() {
+				expError = types.ErrInvalidPacket
+
 				suite.coordinator.Setup(path)
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
@@ -378,6 +382,8 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"failure while upgrading channel, channel not flushing, packet sequence == counterparty last send sequence",
 			func() {
+				expError = types.ErrInvalidChannelState
+
 				suite.coordinator.Setup(path)
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
@@ -389,23 +395,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				path.EndpointB.SetChannel(channel)
 
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence)
-			},
-			false,
-		},
-		{
-			"failure while upgrading channel, channel flushing, packet sequence > counterparty last send sequence",
-			func() {
-				suite.coordinator.Setup(path)
-				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-
-				channel := path.EndpointB.GetChannel()
-				channel.State = types.STATE_FLUSHING
-				path.EndpointB.SetChannel(channel)
-
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence-1)
 			},
 			false,
 		},
