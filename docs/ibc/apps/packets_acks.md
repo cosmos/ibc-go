@@ -68,6 +68,55 @@ packetData := DecodePacketData(packet.Data)
 // handle received custom packet data
 ```
 
+
+### Optional interfaces
+
+The following interfaces are optional and MAY be implemented by a custom packet type.
+They allow middlewares such as callbacks to access information stored within the packet data. 
+
+#### PacketData interface
+
+The `PacketData` interface is defined as follows:
+
+```go
+// PacketData defines an optional interface which an application's packet data structure may implement.
+type PacketData interface {
+	// GetPacketSender returns the sender address of the packet data.
+	// If the packet sender is unknown or undefined, an empty string should be returned.
+	GetPacketSender(sourcePortID string) string
+}
+```
+
+The implementation of `GetPacketSender` should return the sender of the packet data. 
+If the packet sender is unknown or undefined, an empty string should be returned.
+
+This interface is intended to give IBC middlewares access to the packet sender of a packet data type. 
+
+#### PacketDataProvider interface
+
+The `PacketDataProvider` interface is defined as follows:
+
+```go
+// PacketDataProvider defines an optional interfaces for retrieving custom packet data stored on behalf of another application.
+// An existing problem in the IBC middleware design is the inability for a middleware to define its own packet data type and insert packet sender provided information.
+// A short term solution was introduced into several application's packet data to utilize a memo field to carry this information on behalf of another application.
+// This interfaces standardizes that behaviour. Upon realization of the ability for middleware's to define their own packet data types, this interface will be deprecated and removed with time.
+type PacketDataProvider interface {
+	// GetCustomPacketData returns the packet data held on behalf of another application.
+	// The name the information is stored under should be provided as the key.
+	// If no custom packet data exists for the key, nil should be returned.
+	GetCustomPacketData(key string) interface{}
+}
+```
+
+The implementation of `GetCustomPacketData` should return packet data held on behalf of another application (if present and supported). 
+If this functionality is not supported, it should return nil. Otherwise it should return the packet data associated with the provided key. 
+
+This interface gives IBC applications access to the packet data information embedded into the base packet data type. 
+Within transfer and interchain accounts, the embedded packet data is stored within the Memo field. 
+
+Once all IBC applications within an IBC stack are capable of creating/maintaining their own packet data type's, this interface function will be deprecated and removed. 
+
 ## Acknowledgements
 
 Modules may commit an acknowledgement upon receiving and processing a packet in the case of synchronous packet processing.
