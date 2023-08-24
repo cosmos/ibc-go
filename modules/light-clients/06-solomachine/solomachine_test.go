@@ -9,8 +9,6 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-	storetypes "cosmossdk.io/store/types"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
