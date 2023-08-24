@@ -1546,7 +1546,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().NoError(err)
 
 				channel := path.EndpointA.GetChannel()
-				
+
 				//upgrade := path.EndpointA.GetProposedUpgrade()
 				//
 				//expEvents := ibctesting.EventsMap{
