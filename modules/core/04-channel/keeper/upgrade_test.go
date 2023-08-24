@@ -539,7 +539,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
 
-			// manually set packet commitment so that the chainB channel flush status is FLUSHING
+			// manually set packet commitment so that the chainB channel state is FLUSHING
 			sequence, err := path.EndpointB.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 			suite.Require().Equal(uint64(1), sequence)
