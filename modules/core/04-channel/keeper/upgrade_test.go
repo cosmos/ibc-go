@@ -1925,8 +1925,8 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 						"channel_id":              path.EndpointA.ChannelID,
 						"counterparty_port_id":    path.EndpointB.ChannelConfig.PortID,
 						"counterparty_channel_id": path.EndpointB.ChannelID,
-						"upgrade_sequence":        fmt.Sprintf("%d", path.EndpointB.GetChannel().UpgradeSequence),
-						"upgrade_error_receipt":   types.ErrInvalidChannel.Error(),
+						"upgrade_sequence":        fmt.Sprintf("%d", path.EndpointA.GetChannel().UpgradeSequence),
+						"upgrade_error_receipt":   upgradeError.Error(),
 					},
 				}
 
