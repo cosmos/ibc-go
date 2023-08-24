@@ -301,18 +301,13 @@ func GetExpectedEvent(
 		callbackData types.CallbackData
 		err          error
 	)
-	switch callbackType {
-	case types.CallbackTypeReceivePacket:
+	if callbackType == types.CallbackTypeReceivePacket {
 		callbackData, err = types.GetDestCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxCallbackGas)
-		if err != nil {
-			return abci.Event{}, false
-		}
-
-	default:
+	} else {
 		callbackData, err = types.GetSourceCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxCallbackGas)
-		if err != nil {
-			return abci.Event{}, false
-		}
+	}
+	if err != nil {
+		return abci.Event{}, false
 	}
 
 	newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
