@@ -128,15 +128,23 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if !collections.Contains(channel.State, []types.State{types.OPEN, types.TRYUPGRADE, types.ACKUPGRADE}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN.String(), types.TRYUPGRADE.String(), types.ACKUPGRADE.String(), channel.State.String())
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s], but got %s", types.OPEN, types.STATE_FLUSHING, channel.State)
 	}
 
-	// in the case of the channel being in TRYUPGRADE or ACKUPGRADE we need to ensure that the channel is not in flushing,
-	// and that the counterparty last sequence send is less than or equal to the packet sequence.
-	if counterpartyLastSequenceSend, found := k.GetCounterpartyLastPacketSequence(ctx, packet.GetDestPort(), packet.GetDestChannel()); found {
-		if channel.FlushStatus != types.FLUSHING || packet.GetSequence() > counterpartyLastSequenceSend {
-			return errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected channel flush status to be (%s) when counterparty last sequence send (%d) is set, failed to recv packet (%d)", types.FLUSHING, counterpartyLastSequenceSend, packet.GetSequence())
+	// in the case of the channel being in FLUSHING we need to ensure that the the counterparty last sequence send
+	// is less than or equal to the packet sequence.
+	if channel.State == types.STATE_FLUSHING {
+		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
+		if !found {
+			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetDestChannel())
+		}
+
+		if packet.GetSequence() > counterpartyUpgrade.LatestSequenceSend {
+			return errorsmod.Wrapf(
+				types.ErrInvalidPacket,
+				"failed to receive packet, cannot flush packet at sequence greater than counterparty last sequence send (%d) > (%d)", packet.GetSequence(), counterpartyUpgrade.LatestSequenceSend,
+			)
 		}
 	}
 
