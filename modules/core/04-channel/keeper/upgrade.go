@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"golang.org/x/exp/slices"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
@@ -643,13 +641,13 @@ func (k Keeper) ChanUpgradeTimeout(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
+	if !collections.Contains(channel.State, []types.State{types.STATE_FLUSHING, types.STATE_FLUSHCOMPLETE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.STATE_FLUSHING, types.STATE_FLUSHCOMPLETE, channel.State)
+	}
+
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
-	if !collections.Contains(channel.State, []types.State{types.STATE_FLUSHING, types.STATE_FLUSHCOMPLETE}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.STATE_FLUSHING, types.STATE_FLUSHCOMPLETE, channel.State)
 	}
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -667,22 +665,18 @@ func (k Keeper) ChanUpgradeTimeout(
 		)
 	}
 
-	// proof height must be from a height after timeout has elapsed.
-	if !upgrade.Timeout.Height.IsZero() && proofHeight.LT(upgrade.Timeout.Height) {
-		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "timeout height is not valid")
-	}
-
-	// proof must be from a height after timeout has elapsed. Either timeoutHeight or timeoutTimestamp must be defined.
-	// if timeoutHeight is defined and proof is from before timeout height, abort transaction
 	proofTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connection, proofHeight)
 	if err != nil {
 		return err
 	}
 
-	// if timeout timestamp is defined then the consensus time
-	// from proof height must be greater than timeout timestamp.
-	if upgrade.Timeout.Timestamp != 0 && proofTimestamp < upgrade.Timeout.Timestamp {
-		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "timeout timestamp is not valid")
+	// proof must be from a height after timeout has elapsed. Either timeoutHeight or timeoutTimestamp must be defined.
+	// if timeoutHeight is defined and proof is from before timeout height, abort transaction
+	timeoutHeight := upgrade.Timeout.Height
+	timeoutTimeStamp := upgrade.Timeout.Timestamp
+	if (timeoutHeight.IsZero() || proofHeight.LT(timeoutHeight)) &&
+		(timeoutTimeStamp == 0 || proofTimestamp < timeoutTimeStamp) {
+		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "upgrade timeout has not been reached for height or timestamp")
 	}
 
 	// counterparty channel must be proved to still be in OPEN state or FLUSHING state.
@@ -691,16 +685,16 @@ func (k Keeper) ChanUpgradeTimeout(
 	}
 
 	if counterpartyChannel.State == types.OPEN {
-		proposedConnection, found := k.connectionKeeper.GetConnection(ctx, upgrade.Fields.ConnectionHops[0])
+		upgradeConnection, found := k.connectionKeeper.GetConnection(ctx, upgrade.Fields.ConnectionHops[0])
 		if !found {
 			return errorsmod.Wrap(
 				connectiontypes.ErrConnectionNotFound,
 				upgrade.Fields.ConnectionHops[0],
 			)
 		}
-		counterpartyHops := []string{proposedConnection.GetCounterparty().GetConnectionID()}
+		counterpartyHops := []string{upgradeConnection.GetCounterparty().GetConnectionID()}
 
-		upgradeAlreadyComplete := upgrade.Fields.Version == counterpartyChannel.Version && upgrade.Fields.Ordering == counterpartyChannel.Ordering && slices.Compare(upgrade.Fields.ConnectionHops, counterpartyHops) == 0
+		upgradeAlreadyComplete := upgrade.Fields.Version == counterpartyChannel.Version && upgrade.Fields.Ordering == counterpartyChannel.Ordering && upgrade.Fields.ConnectionHops[0] == counterpartyHops[0]
 		if upgradeAlreadyComplete {
 			// counterparty has already successfully upgraded so we cannot timeout
 			return errorsmod.Wrap(types.ErrInvalidCounterparty, "counterparty channel is already upgraded")

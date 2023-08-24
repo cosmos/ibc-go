@@ -723,8 +723,8 @@ func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
 
-	if msg.CounterpartyChannelState != STATE_FLUSHCOMPLETE {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be: %s, got: %s", STATE_FLUSHCOMPLETE, msg.CounterpartyChannelState)
+	if !collections.Contains(msg.CounterpartyChannelState, []State{STATE_FLUSHCOMPLETE, OPEN}) {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", STATE_FLUSHCOMPLETE, OPEN, msg.CounterpartyChannelState)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -782,8 +782,8 @@ func (msg MsgChannelUpgradeTimeout) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
 	}
 
-	if msg.CounterpartyChannel.State != OPEN {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", OPEN, msg.CounterpartyChannel.State)
+	if !collections.Contains(msg.CounterpartyChannel.State, []State{STATE_FLUSHING, OPEN}) {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", STATE_FLUSHING, OPEN, msg.CounterpartyChannel.State)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
