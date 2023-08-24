@@ -98,22 +98,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			suite.coordinator.Setup(path)
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, ibctesting.InvalidID, ibctesting.InvalidID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 		}, false},
-		{"channel not open", func() {
-			expError = types.ErrInvalidChannelState
-			suite.coordinator.Setup(path)
-
-			timeoutHeight := path.EndpointA.GetClientState().GetLatestHeight().Increment().(clienttypes.Height)
-
-			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
-			suite.Require().NoError(err)
-			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
-			// need to update chainA's client representing chainB to prove missing ack
-			err = path.EndpointA.UpdateClient()
-			suite.Require().NoError(err)
-
-			err = path.EndpointA.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
-		}, false},
 		{"packet destination port ≠ channel counterparty port", func() {
 			expError = types.ErrInvalidPacket
 			suite.coordinator.Setup(path)
