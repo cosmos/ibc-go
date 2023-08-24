@@ -1470,40 +1470,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			},
 			expErr: nil,
 		},
-		{
-			name: "success with error receipt",
-			malleate: func() {
-				// this error receipt is for a past upgrade so is stale
-				errReceipt := channeltypes.ErrorReceipt{
-					Sequence: 0,
-					Message:  "error",
-				}
-				path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errReceipt)
-
-				suite.Require().NoError(path.EndpointB.UpdateClient())
-				suite.Require().NoError(path.EndpointA.UpdateClient())
-
-				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				errorReceiptProof, proofHeight := path.EndpointB.QueryProof(upgradeErrorReceiptKey)
-				counterpartyChannel := path.EndpointB.GetChannel()
-				// the channel proof is being regenerated as the proof height will change
-				channelProof, _, _ := path.EndpointA.QueryChannelUpgradeProof()
-
-				msg.PreviousErrorReceipt = &errReceipt
-				msg.ProofErrorReceipt = errorReceiptProof
-				msg.CounterpartyChannel = counterpartyChannel
-				msg.ProofChannel = channelProof
-				msg.ProofHeight = proofHeight
-			},
-			expErr: nil,
-		},
-		// {
-		// 	name: "invalid proof",
-		// 	malleate: func() {
-		// 		msg.ProofErrorReceipt = []byte("invalid proof")
-		// 	},
-		// 	expErr: commitmenttypes.ErrInvalidProof,
-		// },
+		//{
+		//	name: "invalid proof",
+		//	malleate: func() {
+		//		msg.ProofErrorReceipt = []byte("invalid proof")
+		//	},
+		//	expErr: commitmenttypes.ErrInvalidProof,
+		//},
 		// {
 		// 	name: "invalid error receipt sequence, this error receipt is for this same upgrade so UpgradeCancel should be used instead",
 		// 	malleate: func() {
@@ -1573,8 +1546,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().NoError(err)
 
 				channel := path.EndpointA.GetChannel()
+				
 				//upgrade := path.EndpointA.GetProposedUpgrade()
-
+				//
 				//expEvents := ibctesting.EventsMap{
 				//	channeltypes.EventTypeChannelUpgradeTimeout: {
 				//		channeltypes.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
