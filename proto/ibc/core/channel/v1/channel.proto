@@ -54,7 +54,7 @@ message IdentifiedChannel {
 }
 
 // State defines if a channel is in one of the following states:
-// CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or UNINITIALIZED.
+// CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or UNINITIALIZED.
 enum State {
   option (gogoproto.goproto_enum_prefix) = false;
 
