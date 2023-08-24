@@ -276,7 +276,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				path = merklePath
 
 				// modify the channel before marshalling to value bz
-				channel.Close()
+				channel.State = channeltypes.CLOSED
 				value = suite.chain.Codec.MustMarshal(&channel)
 			},
 			false,

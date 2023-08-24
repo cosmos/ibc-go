@@ -723,8 +723,8 @@ func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
 
-	if !collections.Contains(msg.CounterpartyChannelState, []State{TRYUPGRADE, ACKUPGRADE, OPEN}) {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: %s, %s or %s, got: %s", TRYUPGRADE, ACKUPGRADE, OPEN, msg.CounterpartyChannelState)
+	if !collections.Contains(msg.CounterpartyChannelState, []State{STATE_FLUSHCOMPLETE, OPEN}) {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", STATE_FLUSHCOMPLETE, OPEN, msg.CounterpartyChannelState)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -782,8 +782,8 @@ func (msg MsgChannelUpgradeTimeout) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
 	}
 
-	if msg.CounterpartyChannel.State != OPEN {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected: %s, got: %s", OPEN, msg.CounterpartyChannel.State)
+	if !collections.Contains(msg.CounterpartyChannel.State, []State{STATE_FLUSHING, OPEN}) {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected counterparty channel state to be one of: [%s, %s], got: %s", STATE_FLUSHING, OPEN, msg.CounterpartyChannel.State)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -859,4 +859,29 @@ func (msg MsgChannelUpgradeCancel) GetSigners() []sdk.AccAddress {
 	}
 
 	return []sdk.AccAddress{signer}
+}
+
+// NewMsgUpdateChannelParams creates a new instance of MsgUpdateParams.
+func NewMsgUpdateChannelParams(authority string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Authority: authority,
+		Params:    params,
+	}
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
+}
+
+// ValidateBasic performs basic checks on a MsgUpdateParams.
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return msg.Params.Validate()
 }

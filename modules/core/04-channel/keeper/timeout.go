@@ -125,6 +125,9 @@ func (k Keeper) TimeoutPacket(
 
 // TimeoutExecuted deletes the commitment send from this chain after it verifies timeout.
 // If the timed-out packet came from an ORDERED channel then this channel will be closed.
+// If the channel is in the FLUSHING state and there is a counterparty upgrade, then the
+// upgrade will be aborted if the upgrade has timed out. Otherwise, if there are no more inflight packets,
+// then the channel will be set to the FLUSHCOMPLETE state.
 //
 // CONTRACT: this function must be called in the IBC handler
 func (k Keeper) TimeoutExecuted(
@@ -147,14 +150,36 @@ func (k Keeper) TimeoutExecuted(
 
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
-	if channel.FlushStatus == types.FLUSHING && !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-		channel.FlushStatus = types.FLUSHCOMPLETE
+	if channel.Ordering == types.ORDERED {
+		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+		emitChannelClosedEvent(ctx, packet, channel)
 	}
 
-	if channel.Ordering == types.ORDERED {
-		channel.Close()
-		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+	// TODO: handle situation outlined in https://github.com/cosmos/ibc-go/issues/4454
+	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
+	if channel.State == types.STATE_FLUSHING {
+		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+		if !found {
+			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
+		}
+
+		timeout := counterpartyUpgrade.Timeout
+		// if the timeout is valid then use it, otherwise it has not been set in the upgrade handshake yet.
+		if timeout.IsValid() {
+			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
+				// packet flushing timeout has expired, abort the upgrade and return nil,
+				// committing an error receipt to state, restoring the channel and successfully timing out the packet.
+				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
+				return nil
+			}
+
+			// set the channel state to flush complete if all packets have been flushed.
+			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+				channel.State = types.STATE_FLUSHCOMPLETE
+				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			}
+		}
 	}
 
 	k.Logger(ctx).Info(
@@ -168,10 +193,6 @@ func (k Keeper) TimeoutExecuted(
 
 	// emit an event marking that we have processed the timeout
 	emitTimeoutPacketEvent(ctx, packet, channel)
-
-	if channel.Ordering == types.ORDERED && channel.IsClosed() {
-		emitChannelClosedEvent(ctx, packet, channel)
-	}
 
 	return nil
 }

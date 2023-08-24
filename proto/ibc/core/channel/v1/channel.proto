@@ -27,8 +27,6 @@ message Channel {
   // upgrade sequence indicates the latest upgrade attempt performed by this channel
   // the value of 0 indicates the channel has never been upgraded
   uint64 upgrade_sequence = 6;
-  // flush status indicates the current status of inflight packet flushing on the channel end
-  FlushStatus flush_status = 7;
 }
 
 // IdentifiedChannel defines a channel with additional port and channel
@@ -54,7 +52,7 @@ message IdentifiedChannel {
 }
 
 // State defines if a channel is in one of the following states:
-// CLOSED, INIT, TRYOPEN, OPEN, INITUPGRADE, TRYUPGRADE or UNINITIALIZED.
+// CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or UNINITIALIZED.
 enum State {
   option (gogoproto.goproto_enum_prefix) = false;
 
@@ -74,27 +72,6 @@ enum State {
   STATE_FLUSHING = 5;
   // A channel has just completed flushing any in-flight packets.
   STATE_FLUSHCOMPLETE = 6;
-  // A channel has just started the channel upgrade handshake.
-  // The chain that is proposing the upgrade should set the channel state from OPEN to UPGRADEINIT.
-  STATE_INITUPGRADE = 7 [(gogoproto.enumvalue_customname) = "INITUPGRADE"];
-  // A channel has acknowledged the upgrade handshake step on the counterparty chain.
-  // The counterparty chain that accepts the upgrade should set the channel state from OPEN to UPGRADETRY.
-  STATE_TRYUPGRADE = 8 [(gogoproto.enumvalue_customname) = "TRYUPGRADE"];
-  // A channel has verified the counterparty chain is in UPGRADETRY.
-  // However, there are still in-flight packets on both ends waiting to be flushed before it can move to OPEN.
-  STATE_ACKUPGRADE = 9 [(gogoproto.enumvalue_customname) = "ACKUPGRADE"];
-}
-
-// FlushStatus defines the status of a channel end pertaining to in-flight packets during an upgrade handshake.
-enum FlushStatus {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  // Default status, the channel is not in an upgrade handshake
-  FLUSH_STATUS_NOTINFLUSH_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "NOTINFLUSH"];
-  // The channel end is flushing in-flight packets
-  FLUSH_STATUS_FLUSHING = 1 [(gogoproto.enumvalue_customname) = "FLUSHING"];
-  // There are no in-flight packets left and the channel end is ready to move to OPEN
-  FLUSH_STATUS_FLUSHCOMPLETE = 2 [(gogoproto.enumvalue_customname) = "FLUSHCOMPLETE"];
 }
 
 // Order defines if a channel is ORDERED or UNORDERED
@@ -198,4 +175,10 @@ message Timeout {
   ibc.core.client.v1.Height height = 1 [(gogoproto.nullable) = false];
   // block timestamp (in nanoseconds) after which the packet or upgrade times out
   uint64 timestamp = 2;
+}
+
+// Params defines the set of IBC channel parameters.
+message Params {
+  // the relative timeout after which channel upgrades will time out.
+  Timeout upgrade_timeout = 1 [(gogoproto.nullable) = false];
 }

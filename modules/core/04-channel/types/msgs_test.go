@@ -780,21 +780,14 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 		expPass  bool
 	}{
 		{
-			"success",
+			"success: flushcomplete state",
 			func() {},
 			true,
 		},
 		{
-			"success: counterparty state set to TRYUPGRADE",
+			"success: open state",
 			func() {
-				msg.CounterpartyChannelState = types.TRYUPGRADE
-			},
-			true,
-		},
-		{
-			"success: counterparty state set to ACKUPGRADE",
-			func() {
-				msg.CounterpartyChannelState = types.ACKUPGRADE
+				msg.CounterpartyChannelState = types.OPEN
 			},
 			true,
 		},
@@ -840,7 +833,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 		suite.Run(tc.name, func() {
 			msg = types.NewMsgChannelUpgradeOpen(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.OPEN, suite.proof,
+				types.STATE_FLUSHCOMPLETE, suite.proof,
 				height, addr,
 			)
 
@@ -903,7 +896,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutValidateBasic() {
 		{
 			"invalid counterparty channel state",
 			func() {
-				msg.CounterpartyChannel.State = types.TRYUPGRADE
+				msg.CounterpartyChannel.State = types.CLOSED
 			},
 			false,
 		},

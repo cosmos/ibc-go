@@ -36,14 +36,7 @@ func (k Keeper) SendPacket(
 	}
 
 	if channel.State != types.OPEN {
-		return 0, errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel is not OPEN (got %s)", channel.State.String(),
-		)
-	}
-
-	if channel.FlushStatus != types.NOTINFLUSH {
-		return 0, errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected flush status to be %s during packet send, got %s", types.NOTINFLUSH, channel.FlushStatus)
+		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
@@ -135,15 +128,23 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if !collections.Contains(channel.State, []types.State{types.OPEN, types.TRYUPGRADE, types.ACKUPGRADE}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN.String(), types.TRYUPGRADE.String(), types.ACKUPGRADE.String(), channel.State.String())
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s], but got %s", types.OPEN, types.STATE_FLUSHING, channel.State)
 	}
 
-	// in the case of the channel being in TRYUPGRADE or ACKUPGRADE we need to ensure that the channel is not in flushing,
-	// and that the counterparty last sequence send is less than or equal to the packet sequence.
-	if counterpartyLastSequenceSend, found := k.GetCounterpartyLastPacketSequence(ctx, packet.GetDestPort(), packet.GetDestChannel()); found {
-		if channel.FlushStatus != types.FLUSHING || packet.GetSequence() > counterpartyLastSequenceSend {
-			return errorsmod.Wrapf(types.ErrInvalidFlushStatus, "expected channel flush status to be (%s) when counterparty last sequence send (%d) is set, failed to recv packet (%d)", types.FLUSHING, counterpartyLastSequenceSend, packet.GetSequence())
+	// in the case of the channel being in FLUSHING we need to ensure that the the counterparty last sequence send
+	// is less than or equal to the packet sequence.
+	if channel.State == types.STATE_FLUSHING {
+		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
+		if !found {
+			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetDestChannel())
+		}
+
+		if packet.GetSequence() > counterpartyUpgrade.LatestSequenceSend {
+			return errorsmod.Wrapf(
+				types.ErrInvalidPacket,
+				"failed to receive packet, cannot flush packet at sequence greater than counterparty last sequence send (%d) > (%d)", packet.GetSequence(), counterpartyUpgrade.LatestSequenceSend,
+			)
 		}
 	}
 
@@ -381,8 +382,7 @@ func (k Keeper) AcknowledgePacket(
 		)
 	}
 
-	// TODO(damian): update TRYUPGRADE to FLUSHING following https://github.com/cosmos/ibc-go/issues/4243
-	if !collections.Contains(channel.State, []types.State{types.OPEN, types.TRYUPGRADE}) {
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "packets cannot be acknowledged on channel with state (%s)", channel.State)
 	}
 
@@ -476,11 +476,6 @@ func (k Keeper) AcknowledgePacket(
 	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
-	if channel.FlushStatus == types.FLUSHING && !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-		channel.FlushStatus = types.FLUSHCOMPLETE
-		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-	}
-
 	// log that a packet has been acknowledged
 	k.Logger(ctx).Info(
 		"packet acknowledged",
@@ -493,6 +488,31 @@ func (k Keeper) AcknowledgePacket(
 
 	// emit an event marking that we have processed the acknowledgement
 	emitAcknowledgePacketEvent(ctx, packet, channel)
+
+	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
+	if channel.State == types.STATE_FLUSHING {
+		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+		if !found {
+			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
+		}
+
+		timeout := counterpartyUpgrade.Timeout
+		// if the timeout is valid then use it, otherwise it has not been set in the upgrade handshake yet.
+		if timeout.IsValid() {
+			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
+				// packet flushing timeout has expired, abort the upgrade and return nil,
+				// committing an error receipt to state, restoring the channel and successfully acknowledging the packet.
+				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
+				return nil
+			}
+
+			// set the channel state to flush complete if all packets have been acknowledged/flushed.
+			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+				channel.State = types.STATE_FLUSHCOMPLETE
+				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			}
+		}
+	}
 
 	return nil
 }
