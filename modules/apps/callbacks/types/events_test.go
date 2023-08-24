@@ -201,7 +201,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 				)
 			}
 			events := newCtx.EventManager().Events().ToABCIEvents()
-			ibctesting.AssertEvents(&s.Suite, tc.expEvents, events)
+			ibctesting.AssertEventsLegacy(&s.Suite, tc.expEvents, events)
 		})
 	}
 }
