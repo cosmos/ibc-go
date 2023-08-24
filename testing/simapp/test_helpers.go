@@ -22,6 +22,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
@@ -208,8 +209,8 @@ func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...ba
 //
 // CONTRACT: BeginBlock must be called before this function.
 func SignAndDeliver(
-	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header,
-	msgs []sdk.Msg, chainID string, accNums, accSeqs []uint64, priv ...cryptotypes.PrivKey,
+	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
+	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 	tx, err := simtestutil.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -222,9 +223,18 @@ func SignAndDeliver(
 		accSeqs,
 		priv...,
 	)
-	if err != nil {
-		return sdk.GasInfo{}, nil, err
+	require.NoError(t, err)
+
+	// Simulate a sending a transaction
+	gInfo, res, err := app.SimDeliver(txCfg.TxEncoder(), tx)
+
+	if expPass {
+		require.NoError(t, err)
+		require.NotNil(t, res)
+	} else {
+		require.Error(t, err)
+		require.Nil(t, res)
 	}
 
-	return app.SimDeliver(txCfg.TxEncoder(), tx)
+	return gInfo, res, err
 }
