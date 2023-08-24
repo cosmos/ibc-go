@@ -764,7 +764,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel upgrade try failed"))
 		if channeltypes.IsUpgradeError(err) {
-			_ = k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, upgrade.Fields, err.(*channeltypes.UpgradeError))
+			_ = k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, err.(*channeltypes.UpgradeError))
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
 			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
@@ -936,7 +936,7 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	err = k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.PreviousErrorReceipt, msg.ProofChannel, msg.ProofErrorReceipt, msg.ProofHeight)
+	err = k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.ProofChannel, msg.ProofHeight)
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "could not timeout upgrade for channel: %s", msg.ChannelId)
 	}
