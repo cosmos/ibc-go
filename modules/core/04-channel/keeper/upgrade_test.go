@@ -1489,7 +1489,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		{
 			"unable to retrieve timestamp at proof height",
 			func() {
-				//proofHeight = suite.chainA.GetTimeoutHeight()
 				// TODO: revert this when the upgrade timeout is not hard coded to 1000
 				proofHeight = clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainA.ChainID), uint64(suite.chainA.GetContext().BlockHeight())+1000)
 			},

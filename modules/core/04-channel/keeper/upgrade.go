@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"reflect"
 
+	"golang.org/x/exp/slices"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"golang.org/x/exp/slices"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -701,7 +702,7 @@ func (k Keeper) ChanUpgradeTimeout(
 
 		upgradeAlreadyComplete := upgrade.Fields.Version == counterpartyChannel.Version && upgrade.Fields.Ordering == counterpartyChannel.Ordering && slices.Compare(upgrade.Fields.ConnectionHops, counterpartyHops) == 0
 		if upgradeAlreadyComplete {
-			// counterparty has already succesfully upgraded so we cannot timeout
+			// counterparty has already successfully upgraded so we cannot timeout
 			return errorsmod.Wrap(types.ErrInvalidCounterparty, "counterparty channel is already upgraded")
 		}
 	}
@@ -919,7 +920,6 @@ func (k Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
-
 
 	// in the case of application callbacks, the error may not be an upgrade error.
 	// in this case we need to construct one in order to write the error receipt.
