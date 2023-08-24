@@ -605,8 +605,8 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 func (suite *SoloMachineTestSuite) TestSignBytesMarshalling() {
 	sm := suite.solomachine
-	merklePath := commitmenttypes.NewMerklePath("ibc", "solomachine")
-	key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	merklePath := commitmenttypes.NewMerklePath("solomachine")
+	key, err := merklePath.GetKey(0) // use index 0 because there is no key for IBC store
 	suite.Require().NoError(err)
 	signBytesNilData := solomachine.SignBytes{
 		Sequence:    sm.GetHeight().GetRevisionHeight(),

@@ -28,7 +28,6 @@ type Prefix interface {
 // Path implements spec:CommitmentPath.
 // A path is the additional information provided to the verification function.
 type Path interface {
-	String() string // deprecated
 	Empty() bool
 }
 

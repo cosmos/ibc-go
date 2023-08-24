@@ -202,7 +202,7 @@ func (solo *Solomachine) CreateHeader(newDiversifier string) *solomachine.Header
 // CreateMisbehaviour constructs testing misbehaviour for the solo machine client
 // by signing over two different data bytes at the same sequence.
 func (solo *Solomachine) CreateMisbehaviour() *solomachine.Misbehaviour {
-	merklePath := solo.GetClientStatePath("counterparty")
+	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath("counterparty"))
 	path, err := solo.cdc.Marshal(&merklePath)
 	require.NoError(solo.t, err)
 
@@ -231,7 +231,7 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachine.Misbehaviour {
 	// misbehaviour signaturess can have different timestamps
 	solo.Time++
 
-	merklePath = solo.GetConsensusStatePath("counterparty", clienttypes.NewHeight(0, 1))
+	merklePath = commitmenttypes.NewMerklePath(host.FullConsensusStatePath("counterparty", clienttypes.NewHeight(0, 1)))
 	path, err = solo.cdc.Marshal(&merklePath)
 	require.NoError(solo.t, err)
 
@@ -516,8 +516,8 @@ func (solo *Solomachine) GenerateClientStateProof(clientState exported.ClientSta
 	data, err := clienttypes.MarshalClientState(solo.cdc, clientState)
 	require.NoError(solo.t, err)
 
-	merklePath := solo.GetClientStatePath(clientIDSolomachine)
-	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(clientIDSolomachine))
+	key, err := merklePath.GetKey(0) // use index 0 because there is no key for IBC store
 	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
@@ -536,8 +536,8 @@ func (solo *Solomachine) GenerateConsensusStateProof(consensusState exported.Con
 	data, err := clienttypes.MarshalConsensusState(solo.cdc, consensusState)
 	require.NoError(solo.t, err)
 
-	merklePath := solo.GetConsensusStatePath(clientIDSolomachine, consensusHeight)
-	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(clientIDSolomachine, consensusHeight))
+	key, err := merklePath.GetKey(0) // use index 0 because there is no key for IBC store
 	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
@@ -559,8 +559,8 @@ func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterp
 	data, err := solo.cdc.Marshal(&connection)
 	require.NoError(solo.t, err)
 
-	merklePath := solo.GetConnectionStatePath(connectionIDSolomachine)
-	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	merklePath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionIDSolomachine))
+	key, err := merklePath.GetKey(0) // use index 0 because there is no key for IBC store
 	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
@@ -582,8 +582,8 @@ func (solo *Solomachine) GenerateChanOpenTryProof(portID, version, counterpartyC
 	data, err := solo.cdc.Marshal(&channel)
 	require.NoError(solo.t, err)
 
-	merklePath := solo.GetChannelStatePath(portID, channelIDSolomachine)
-	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelIDSolomachine))
+	key, err := merklePath.GetKey(0) // use index 0 because there is no key for IBC store
 	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
@@ -605,8 +605,8 @@ func (solo *Solomachine) GenerateChanClosedProof(portID, version, counterpartyCh
 	data, err := solo.cdc.Marshal(&channel)
 	require.NoError(solo.t, err)
 
-	merklePath := solo.GetChannelStatePath(portID, channelIDSolomachine)
-	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelIDSolomachine))
+	key, err := merklePath.GetKey(0) // use index 0 because there is no key for IBC store
 	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
@@ -623,8 +623,8 @@ func (solo *Solomachine) GenerateChanClosedProof(portID, version, counterpartyCh
 func (solo *Solomachine) GenerateCommitmentProof(packet channeltypes.Packet) []byte {
 	commitment := channeltypes.CommitPacket(solo.cdc, packet)
 
-	merklePath := solo.GetPacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence()))
+	key, err := merklePath.GetKey(0) // use index 0 because there is no key for IBC store
 	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
@@ -641,8 +641,8 @@ func (solo *Solomachine) GenerateCommitmentProof(packet channeltypes.Packet) []b
 func (solo *Solomachine) GenerateAcknowledgementProof(packet channeltypes.Packet) []byte {
 	transferAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 
-	merklePath := solo.GetPacketAcknowledgementPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()))
+	key, err := merklePath.GetKey(0) // use index 0 because there is no key for IBC store
 	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
@@ -657,8 +657,8 @@ func (solo *Solomachine) GenerateAcknowledgementProof(packet channeltypes.Packet
 
 // GenerateReceiptAbsenceProof generates a receipt absence proof for the provided packet.
 func (solo *Solomachine) GenerateReceiptAbsenceProof(packet channeltypes.Packet) []byte {
-	merklePath := solo.GetPacketReceiptPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()))
+	key, err := merklePath.GetKey(0) // use index 0 because there is no key for IBC store
 	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
