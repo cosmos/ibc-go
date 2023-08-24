@@ -709,8 +709,8 @@ func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUp
 	return &clienttypes.MsgUpdateParamsResponse{}, nil
 }
 
-// ScheduleIBCClientUpgrade defines a rpc handler method for MsgScheduleIBCClientUpgrade.
-func (Keeper) ScheduleIBCClientUpgrade(goCtx context.Context, msg *clienttypes.MsgScheduleIBCClientUpgrade) (*clienttypes.MsgScheduleIBCClientUpgradeResponse, error) {
+// IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
+func (Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
 	// TODO
 	return nil, nil
 }

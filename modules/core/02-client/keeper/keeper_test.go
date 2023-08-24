@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"errors"
 	"math/rand"
 	"testing"
 	"time"
@@ -487,23 +486,24 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	})
 }
 
-// TestScheduleIBCClientUpgrade tests that an IBC client upgrade has been properly scheduled
-func (suite *KeeperTestSuite) TestScheduleIBCClientUpgrade() {
+// TestIBCSoftwareUpgrade tests that an IBC client upgrade has been properly scheduled
+func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 	var (
 		upgradedClientState *ibctm.ClientState
 		oldPlan, plan       upgradetypes.Plan
-		expError            error
 	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
+		expError error
 	}{
 		{
 			"valid upgrade proposal",
 			func() {},
 			true,
+			nil,
 		},
 		{
 			"valid upgrade proposal with previous IBC state", func() {
@@ -511,15 +511,17 @@ func (suite *KeeperTestSuite) TestScheduleIBCClientUpgrade() {
 					Name:   "upgrade IBC clients",
 					Height: 100,
 				}
-			}, true,
+			},
+			true,
+			nil,
 		},
 		{
 			"fail: scheduling upgrade with plan height 0",
 			func() {
 				plan.Height = 0
-				expError = sdkerrors.ErrInvalidRequest
 			},
 			false,
+			sdkerrors.ErrInvalidRequest,
 		},
 	}
 
@@ -552,10 +554,10 @@ func (suite *KeeperTestSuite) TestScheduleIBCClientUpgrade() {
 				bz, err := types.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClientState)
 				suite.Require().NoError(err)
 
-				suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height, bz) //nolint:errcheck
+				suite.Require().NoError(suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height, bz))
 			}
 
-			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.ScheduleIBCClientUpgrade(suite.chainA.GetContext(), plan, upgradedClientState)
+			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.IBCSoftwareUpgrade(suite.chainA.GetContext(), plan, upgradedClientState)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -566,8 +568,9 @@ func (suite *KeeperTestSuite) TestScheduleIBCClientUpgrade() {
 				suite.Require().Equal(plan, storedPlan)
 
 				// check that old upgraded client state is cleared
-				_, found = suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height)
+				cs, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height)
 				suite.Require().False(found)
+				suite.Require().Empty(cs)
 
 				// check that client state was set
 				storedClientState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
@@ -576,8 +579,6 @@ func (suite *KeeperTestSuite) TestScheduleIBCClientUpgrade() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(upgradedClientState, clientState)
 			} else {
-				suite.Require().True(errors.Is(err, expError))
-
 				// check that the new plan wasn't stored
 				storedPlan, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
 				if oldPlan.Height != 0 {
@@ -591,7 +592,8 @@ func (suite *KeeperTestSuite) TestScheduleIBCClientUpgrade() {
 				}
 
 				// check that client state was not set
-				_, found = suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
+				cs, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
+				suite.Require().Empty(cs)
 				suite.Require().False(found)
 			}
 		})
