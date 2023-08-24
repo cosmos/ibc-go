@@ -125,10 +125,6 @@ func (cs *ClientState) VerifyMembership(
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-<<<<<<< HEAD
-	if merklePath.Empty() {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "path is empty")
-=======
 	if len(merklePath.GetKeyPath()) != 2 {
 		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
 	}
@@ -137,7 +133,6 @@ func (cs *ClientState) VerifyMembership(
 	key, err := merklePath.GetKey(1)
 	if err != nil {
 		return errorsmod.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
->>>>>>> 98b0c992 (fix(statemachine)!: use key within IBC store without escaping characters in solomachine (#4429))
 	}
 
 	signBytes := &SignBytes{

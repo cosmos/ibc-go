@@ -80,11 +80,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// construct clientState Merkle path
 	upgradeClientPath := constructUpgradeClientMerklePath(cs.UpgradePath, lastHeight)
 	if err := merkleProofClient.VerifyMembership(cs.ProofSpecs, consState.GetRoot(), upgradeClientPath, bz); err != nil {
-<<<<<<< HEAD
-		return sdkerrors.Wrapf(err, "client state proof failed. Path: %s", upgradeClientPath.Pretty())
-=======
 		return errorsmod.Wrapf(err, "client state proof failed. Path: %s", upgradeClientPath.GetKeyPath())
->>>>>>> 98b0c992 (fix(statemachine)!: use key within IBC store without escaping characters in solomachine (#4429))
 	}
 
 	// Verify consensus state proof
@@ -95,11 +91,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// construct consensus state Merkle path
 	upgradeConsStatePath := constructUpgradeConsStateMerklePath(cs.UpgradePath, lastHeight)
 	if err := merkleProofConsState.VerifyMembership(cs.ProofSpecs, consState.GetRoot(), upgradeConsStatePath, bz); err != nil {
-<<<<<<< HEAD
-		return sdkerrors.Wrapf(err, "consensus state proof failed. Path: %s", upgradeConsStatePath.Pretty())
-=======
 		return errorsmod.Wrapf(err, "consensus state proof failed. Path: %s", upgradeConsStatePath.GetKeyPath())
->>>>>>> 98b0c992 (fix(statemachine)!: use key within IBC store without escaping characters in solomachine (#4429))
 	}
 
 	// Construct new client state and consensus state

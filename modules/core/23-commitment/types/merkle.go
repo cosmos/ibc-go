@@ -112,7 +112,6 @@ func (mp MerklePath) Pretty() string {
 }
 
 // GetKey will return a byte representation of the key
-// after URL escaping the key element
 func (mp MerklePath) GetKey(i uint64) ([]byte, error) {
 	if i >= uint64(len(mp.KeyPath)) {
 		return nil, fmt.Errorf("index out of range. %d (index) >= %d (len)", i, len(mp.KeyPath))
