@@ -3,10 +3,20 @@ package client
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmjson "github.com/cometbft/cometbft/libs/json"
@@ -268,7 +278,12 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 
 	t.Run("ensure allowed clients are set to the default", func(t *testing.T) {
 		allowedClients := s.QueryAllowedClients(ctx, chainA)
-		s.Require().Equal(clienttypes.DefaultAllowedClients, allowedClients)
+
+		defaultAllowedClients := clienttypes.DefaultAllowedClients
+		if !testvalues.LocalhostClientFeatureReleases.IsSupported(chainAVersion) {
+			defaultAllowedClients = slices.DeleteFunc(defaultAllowedClients, func(s string) bool { return s == ibcexported.Localhost })
+		}
+		s.Require().Equal(defaultAllowedClients, allowedClients)
 	})
 
 	allowedClient := ibcexported.Solomachine

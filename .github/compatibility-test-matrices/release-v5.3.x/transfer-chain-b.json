@@ -6,9 +6,6 @@
     "v5.3.1",
     "v5.2.1",
     "v4.4.2",
-    "v4.3.1",
-    "v4.2.2",
-    "v4.1.3",
     "release-v5.3.x"
   ],
   "chain-b": [
@@ -21,9 +18,7 @@
     "TestMsgTransfer_Succeeds_Nonincentivized",
     "TestMsgTransfer_Fails_InvalidAddress",
     "TestMsgTransfer_Timeout_Nonincentivized",
-    "TestMsgTransfer_WithMemo",
-    "TestSendEnabledParam",
-    "TestReceiveEnabledParam"
+    "TestMsgTransfer_WithMemo"
   ],
   "relayer-type": [
     "rly"

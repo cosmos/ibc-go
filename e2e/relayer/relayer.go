@@ -17,8 +17,8 @@ const (
 
 	hermesRelayerRepository = "ghcr.io/informalsystems/hermes"
 	hermesRelayerUser       = "1000:1000"
-	rlyRelayerRepository    = "damiannolan/rly" //"ghcr.io/cosmos/relayer"
-	rlyRelayerUser          = "100:1000"        // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
+	rlyRelayerRepository    = "ghcr.io/cosmos/relayer"
+	rlyRelayerUser          = "100:1000" // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
 )
 
 // Config holds configuration values for the relayer used in the tests.
