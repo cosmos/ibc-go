@@ -1,22 +1,24 @@
 package upgrades
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"testing"
 	"time"
-	"bytes"
-	tmjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cosmos/ibc-go/e2e/testconfig"
-	"github.com/cosmos/ibc-go/e2e/testsuite"
+
 	"github.com/docker/docker/api/types"
 	cosmos "github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
 
+	tmjson "github.com/cometbft/cometbft/libs/json"
+
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
+	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
+
 type GenesisState map[string]json.RawMessage
 
 func TestGenesisTestSuite(t *testing.T) {
@@ -33,13 +35,13 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	configFileOverrides := make(map[string]any)
 	appTomlOverrides := make(test.Toml)
-	
+
 	appTomlOverrides["halt-height"] = haltHeight
 	configFileOverrides["config/app.toml"] = appTomlOverrides
-	chainOpts := func(options * testconfig.ChainOptions) {
-	    options.ChainAConfig.ConfigFileOverrides = configFileOverrides
+	chainOpts := func(options *testsuite.ChainOptions) {
+		options.ChainAConfig.ConfigFileOverrides = configFileOverrides
 	}
-	
+
 	// create chains with specified chain configuration options
 	chainA, chainB := s.GetChains(chainOpts)
 
@@ -61,9 +63,8 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(transferTxResp)
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.AssertTxSuccess(transferTxResp)
 	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
@@ -95,9 +96,8 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	})
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp, err := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(transferTxResp)
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.AssertTxSuccess(transferTxResp)
 	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
@@ -132,14 +132,14 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	genesisJson, err := tmjson.MarshalIndent(genesisState, "", "  ")
 	s.Require().NoError(err)
 
-	err = dockerutil.SetGenesisContentsToContainer(s.T(), ctx, s.E2ETestSuite.DockerClient ,chain.Config(), bytes.NewReader(genesisJson), types.CopyToContainerOptions{
+	err = dockerutil.SetGenesisContentsToContainer(s.T(), ctx, s.E2ETestSuite.DockerClient, chain.Config(), bytes.NewReader(genesisJson), types.CopyToContainerOptions{
 		AllowOverwriteDirWithFile: true,
 	})
 	s.Require().NoError(err)
 
 	for _, node := range chain.FullNodes {
 		err = node.UnsafeResetAll(ctx)
-		s.Require().NoError(err) 
+		s.Require().NoError(err)
 	}
 
 	// we are reinitializing the clients because we need to update the hostGRPCAddress after
