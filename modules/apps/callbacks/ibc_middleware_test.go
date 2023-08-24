@@ -560,15 +560,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			callbackFailed,
 			panicAck,
 		},
-		/*
-			TODO: https://github.com/cosmos/ibc-go/issues/4309
-			{
-				"failure: callback execution fails",
-				func() {},
-				callbackFailed,
-				successAck,
-			},
-		*/
 	}
 
 	for _, tc := range testCases {
