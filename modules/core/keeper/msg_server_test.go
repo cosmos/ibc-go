@@ -6,7 +6,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -831,11 +830,11 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 	}
 }
 
-// TestScheduleIBCClientUpgrade tests the ScheduleIBCClientUpgrade rpc handler
-func (suite *KeeperTestSuite) TestScheduleIBCClientUpgrade() {
+// TestIBCSoftwareUpgrade tests the IBCSoftwareUpgrade rpc handler
+func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 	var (
 		expError error
-		msg      *clienttypes.MsgScheduleIBCClientUpgrade
+		msg      *clienttypes.MsgIBCSoftwareUpgrade
 	)
 	testCases := []struct {
 		name     string
@@ -879,20 +878,20 @@ func (suite *KeeperTestSuite) TestScheduleIBCClientUpgrade() {
 			suite.SetupTest()
 			validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 			var err error
-			msg, err = clienttypes.NewMsgScheduleIBCClientUpgrade(
+			msg, err = clienttypes.NewMsgIBCSoftwareUpgrade(
 				validAuthority,
 				upgradetypes.Plan{
 					Name:   "upgrade IBC clients",
 					Height: 1000,
 				},
-				ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, types.NewHeight(1, 10), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+				ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clienttypes.NewHeight(1, 10), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 			)
 
 			suite.Require().NoError(err)
 
 			tc.malleate()
 
-			_, err = keeper.Keeper.ScheduleIBCClientUpgrade(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+			_, err = keeper.Keeper.IBCSoftwareUpgrade(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {
