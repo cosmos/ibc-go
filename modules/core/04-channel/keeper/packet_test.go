@@ -335,10 +335,26 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channel.State = types.STATE_FLUSHING
 				path.EndpointB.SetChannel(channel)
 
+				// set last packet sent sequence to sequence + 1
 				counterpartyUpgrade := types.NewUpgrade(types.UpgradeFields{}, types.Timeout{}, sequence+1)
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyUpgrade(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, counterpartyUpgrade)
 			},
 			true,
+		},
+		{
+			"failure while upgrading channel, counterparty upgrade not found",
+			func() {
+				suite.coordinator.Setup(path)
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				channel := path.EndpointB.GetChannel()
+				channel.State = types.STATE_FLUSHING
+				path.EndpointB.SetChannel(channel)
+			},
+			false,
 		},
 		{
 			"failure while upgrading channel, packet sequence > counterparty last send sequence",
@@ -350,11 +366,12 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 				channel := path.EndpointB.GetChannel()
-				channel.State = types.INITUPGRADE
-				channel.FlushStatus = types.FLUSHING
+				channel.State = types.STATE_FLUSHING
 				path.EndpointB.SetChannel(channel)
 
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyLastPacketSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence-1)
+				// set last packet sent sequence to sequence - 1
+				counterpartyUpgrade := types.NewUpgrade(types.UpgradeFields{}, types.Timeout{}, sequence-1)
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetCounterpartyUpgrade(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, counterpartyUpgrade)
 			},
 			false,
 		},
