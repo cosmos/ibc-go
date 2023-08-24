@@ -11,6 +11,8 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -88,7 +90,7 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_SuccessfulTransfer() {
 			// fund the host account account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)

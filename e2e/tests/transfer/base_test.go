@@ -94,7 +94,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	t.Run("non-native IBC token transfer from chainB to chainA, receiver is source of tokens", func(t *testing.T) {
@@ -106,7 +106,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
-		s.Require().Equal(int64(0), actualBalance)
+		s.Require().Equal(sdkmath.ZeroInt(), actualBalance)
 
 		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainBVersion) {
 			actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
@@ -194,7 +194,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainBWallet.FormattedAddress(), // destination address
 		Denom:   chainA.Config().Denom,
-		Amount:  testvalues.IBCTransferAmount,
+		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
 	}
 
 	t.Run("IBC transfer packet timesout", func(t *testing.T) {
@@ -347,7 +347,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
-			s.Require().Equal(expected, actualBalance)
+			s.Require().Equal(expected, actualBalance.Int64())
 		})
 
 		t.Run("stop relayer", func(t *testing.T) {
@@ -466,7 +466,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		s.Require().NoError(err)
 
 		if testvalues.MemoFeatureReleases.IsSupported(chainBVersion) {
-			s.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
+			s.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
 		} else {
 			s.Require().Equal(int64(0), actualBalance)
 		}

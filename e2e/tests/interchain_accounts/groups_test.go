@@ -11,6 +11,8 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
@@ -148,7 +150,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 	t.Run("fund interchain account wallet", func(t *testing.T) {
 		err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: interchainAccAddr,
-			Amount:  testvalues.StartingTokenAmount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 			Denom:   chainB.Config().Denom,
 		})
 		s.Require().NoError(err)
@@ -199,12 +201,12 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 
 		balance, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected = testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 	})
 }

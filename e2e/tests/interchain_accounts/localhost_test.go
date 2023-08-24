@@ -11,6 +11,8 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -122,7 +124,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 
 		walletAmount := ibc.WalletAmount{
 			Address: interchainAccAddress,
-			Amount:  testvalues.StartingTokenAmount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 			Denom:   chainADenom,
 		}
 
@@ -183,7 +185,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 	})
 }
 
@@ -277,7 +279,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 
 		walletAmount := ibc.WalletAmount{
 			Address: interchainAccAddress,
-			Amount:  testvalues.StartingTokenAmount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 			Denom:   chainADenom,
 		}
 
@@ -408,7 +410,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 	})
 
 	t.Run("send packet localhost interchain accounts", func(t *testing.T) {
@@ -467,6 +469,6 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 	})
 }

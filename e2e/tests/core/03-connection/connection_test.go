@@ -130,7 +130,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
-			s.Require().Equal(expected, actualBalance)
+			s.Require().Equal(expected, actualBalance.Int64())
 		})
 
 		t.Run("stop relayer", func(t *testing.T) {

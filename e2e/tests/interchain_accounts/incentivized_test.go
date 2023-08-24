@@ -11,6 +11,8 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -99,7 +101,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			// fund the interchain account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: interchainAcc,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
@@ -187,7 +189,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance)
+			s.Require().Equal(expected, balance.Int64())
 		})
 
 		t.Run("timeout fee is refunded", func(t *testing.T) {
@@ -356,7 +358,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance, "tokens should not have been sent as interchain account was not funded")
+			s.Require().Equal(expected, balance.Int64(), "tokens should not have been sent as interchain account was not funded")
 		})
 
 		t.Run("timeout fee is refunded", func(t *testing.T) {

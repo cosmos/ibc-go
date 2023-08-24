@@ -9,6 +9,8 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -69,7 +71,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	walletAmount := ibc.WalletAmount{
 		Address: chainAWallet.FormattedAddress(), // destination address
 		Denom:   chainADenom,
-		Amount:  testvalues.IBCTransferAmount,
+		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
 	}
 
 	t.Run("send IBC transfer", func(t *testing.T) {
@@ -82,7 +84,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - walletAmount.Amount
+		expected := testvalues.StartingTokenAmount - walletAmount.Amount.Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -117,7 +119,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - walletAmount.Amount - testFee.Total().AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount - walletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
 	})
@@ -137,7 +139,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 		s.Require().NoError(err)
 
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		expected := testvalues.StartingTokenAmount - walletAmount.Amount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+		expected := testvalues.StartingTokenAmount - walletAmount.Amount.Int64() - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 }
@@ -403,7 +405,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainBWallet.FormattedAddress(), // destination address
 		Denom:   chainA.Config().Denom,
-		Amount:  testvalues.IBCTransferAmount,
+		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
 	}
 
 	t.Run("Send IBC transfer", func(t *testing.T) {
@@ -417,7 +419,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount
+		expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -452,7 +454,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount - testFee.Total().AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
 	})
@@ -500,7 +502,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainAWallet.FormattedAddress(), // destination address
 		Denom:   chainADenom,
-		Amount:  testvalues.IBCTransferAmount,
+		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
 	}
 
 	t.Run("send IBC transfer", func(t *testing.T) {
@@ -514,7 +516,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount
+		expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -550,7 +552,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount - testFee.Total().AmountOf(chainADenom).Int64()
+		expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -570,7 +572,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 			s.Require().NoError(err)
 
 			// once the relayer has relayed the packets, the timeout and recv fee should be refunded.
-			expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount - testFee.AckFee.AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64() - testFee.AckFee.AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
 	})
@@ -618,7 +620,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	walletAmount1 := ibc.WalletAmount{
 		Address: chainAWallet1.FormattedAddress(), // destination address
 		Denom:   chainADenom,
-		Amount:  testvalues.IBCTransferAmount,
+		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
 	}
 
 	t.Run("send IBC transfer", func(t *testing.T) {
@@ -631,7 +633,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet1)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - walletAmount1.Amount
+		expected := testvalues.StartingTokenAmount - walletAmount1.Amount.Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -676,7 +678,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 			actualBalance1, err := s.GetChainANativeBalance(ctx, chainAWallet1)
 			s.Require().NoError(err)
 
-			expected1 := testvalues.StartingTokenAmount - walletAmount1.Amount - testFee.Total().AmountOf(chainADenom).Int64()
+			expected1 := testvalues.StartingTokenAmount - walletAmount1.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected1, actualBalance1)
 		})
 
@@ -704,7 +706,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 		s.Require().NoError(err)
 
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		expected1 := testvalues.StartingTokenAmount - walletAmount1.Amount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+		expected1 := testvalues.StartingTokenAmount - walletAmount1.Amount.Int64() - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected1, actualBalance1)
 
 		actualBalance2, err := s.GetChainANativeBalance(ctx, chainAWallet2)

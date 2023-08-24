@@ -12,6 +12,8 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -82,7 +84,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 			// fund the host account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
@@ -128,7 +130,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance)
+			s.Require().Equal(expected, balance.Int64())
 		})
 	})
 }
@@ -177,7 +179,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		t.Run("verify empty host wallet", func(t *testing.T) {
 			hostAccountBalance, err := chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
 			s.Require().NoError(err)
-			s.Require().Zero(hostAccountBalance)
+			s.Require().Zero(hostAccountBalance.Int64())
 		})
 
 		t.Run("broadcast MsgSendTx", func(t *testing.T) {
@@ -217,7 +219,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance)
+			s.Require().Equal(expected, balance.Int64())
 		})
 	})
 }
@@ -279,7 +281,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 			// fund the host account account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
@@ -339,7 +341,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 	})
 
 	// re-register interchain account to reopen the channel now that it has been closed due to timeout
@@ -399,6 +401,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 	})
 }

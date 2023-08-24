@@ -212,7 +212,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	t.Run("send funds to test wallet", func(t *testing.T) {
 		err := chain.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: userWalletAddr,
-			Amount:  testvalues.StartingTokenAmount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 			Denom:   chain.Config().Denom,
 		})
 		s.Require().NoError(err)
@@ -236,7 +236,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	t.Run("send funds to test wallet", func(t *testing.T) {
 		err := chain.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: userWalletAddr,
-			Amount:  testvalues.StartingTokenAmount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 			Denom:   chain.Config().Denom,
 		})
 		s.Require().NoError(err)
@@ -298,7 +298,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			// fund the host account, so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
