@@ -415,6 +415,52 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				suite.Require().Equal(channel.UpgradeSequence, errorReceipt.Sequence, "error receipt sequence should be equal to channel upgrade sequence")
 			},
 		},
+		{
+			"conterparty upgrade has not timed out with in-flight packets",
+			func() {
+				suite.coordinator.Setup(path)
+
+				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+
+				// we are sending two packets here as one will be removed in TimeoutExecuted. This is to ensure that
+				// there is still an in-flight packet so that the channel remains in the flushing state.
+				sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+
+				sequence, err = path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
+				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.STATE_FLUSHING
+				path.EndpointA.SetChannel(channel)
+				path.EndpointA.SetChannelUpgrade(types.Upgrade{
+					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
+					Timeout: types.DefaultTimeout,
+				})
+				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
+					Timeout: types.DefaultTimeout,
+				})
+			},
+			func(packetCommitment []byte, err error) {
+				suite.Require().NoError(err)
+
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(types.STATE_FLUSHING, channel.State, "channel state should still be FLUSHING")
+
+				_, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found, "upgrade should not be deleted")
+
+				_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found, "counterparty upgrade should not be deleted")
+
+				_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().False(found, "error receipt should not be written")
+			},
+		},
 	}
 
 	for i, tc := range testCases {
