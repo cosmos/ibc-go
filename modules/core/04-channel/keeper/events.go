@@ -408,7 +408,7 @@ func emitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID st
 func emitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, currentChannel types.Channel, upgradeFields types.UpgradeFields, err error) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeChannelUpgradeInit,
+			types.EventTypeChannelUpgradeInit, // TODO(bug): use correct const value
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
 			sdk.NewAttribute(types.AttributeCounterpartyPortID, currentChannel.Counterparty.PortId),
