@@ -25,8 +25,6 @@ func NewChannel(
 		Version:        version,
 		// UpgradeSequence is intentionally left empty as a new channel has not performed an upgrade.
 		UpgradeSequence: 0,
-		// FlushStatus is NOTINFLUSH as a new channel will not be in the upgrade process.
-		FlushStatus: NOTINFLUSH,
 	}
 }
 
@@ -83,12 +81,6 @@ func (ch Channel) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid connection hop ID")
 	}
 	return ch.Counterparty.ValidateBasic()
-}
-
-// Close modifies the Channel with the new State set to CLOSED and FlushStatus set to NOTINFLUSH.
-func (ch *Channel) Close() {
-	ch.State = CLOSED
-	ch.FlushStatus = NOTINFLUSH
 }
 
 // NewCounterparty returns a new Counterparty instance

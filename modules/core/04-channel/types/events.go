@@ -40,13 +40,12 @@ const (
 	AttributeKeyConnection       = "packet_connection"
 
 	// upgrade specific keys
-	AttributeKeyUpgradeSequence           = "upgrade_sequence"
-	AttributeKeyUpgradeVersion            = "upgrade_version"
-	AttributeKeyUpgradeConnectionHops     = "upgrade_connection_hops"
-	AttributeKeyUpgradeOrdering           = "upgrade_ordering"
-	AttributeKeyUpgradeErrorReceipt       = "upgrade_error_receipt"
-	AttributeKeyUpgradeChannelFlushStatus = "channel_flush_status"
-	AttributeKeyUpgradeTimeout            = "upgrade_timeout"
+	AttributeKeyUpgradeSequence       = "upgrade_sequence"
+	AttributeKeyUpgradeVersion        = "upgrade_version"
+	AttributeKeyUpgradeConnectionHops = "upgrade_connection_hops"
+	AttributeKeyUpgradeOrdering       = "upgrade_ordering"
+	AttributeKeyUpgradeErrorReceipt   = "upgrade_error_receipt"
+	AttributeKeyUpgradeTimeout        = "upgrade_timeout"
 )
 
 // IBC channel events vars
