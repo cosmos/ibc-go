@@ -1881,9 +1881,26 @@ func (suite *KeeperTestSuite) TestAbortHandshake() {
 			tc.malleate()
 
 			if tc.expPass {
+
+				ctx := suite.chainA.GetContext()
+
 				suite.Require().NotPanics(func() {
-					channelKeeper.MustAbortUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
+					channelKeeper.MustAbortUpgrade(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
 				})
+
+				events := ctx.EventManager().Events().ToABCIEvents()
+				expEvents := ibctesting.EventsMap{
+					"channel_upgrade_error": {
+						"port_id":                 path.EndpointA.ChannelConfig.PortID,
+						"channel_id":              path.EndpointA.ChannelID,
+						"counterparty_port_id":    path.EndpointB.ChannelConfig.PortID,
+						"counterparty_channel_id": path.EndpointB.ChannelID,
+						"upgrade_sequence":        fmt.Sprintf("%d", path.EndpointB.GetChannel().UpgradeSequence),
+						"upgrade_error_receipt":   types.ErrInvalidChannel.Error(),
+					},
+				}
+
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 
 				channel, found := channelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "channel should be found")
