@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -15,7 +15,7 @@ import (
 )
 
 type MigrationsTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -31,7 +31,7 @@ func (suite *MigrationsTestSuite) SetupTest() {
 }
 
 func TestTendermintTestSuite(t *testing.T) {
-	suite.Run(t, new(MigrationsTestSuite))
+	testifysuite.Run(t, new(MigrationsTestSuite))
 }
 
 // test pruning of multiple expired tendermint consensus states

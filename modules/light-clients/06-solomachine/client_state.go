@@ -30,7 +30,7 @@ func NewClientState(latestSequence uint64, consensusState *ConsensusState) *Clie
 }
 
 // ClientType is Solo Machine.
-func (cs ClientState) ClientType() string {
+func (ClientState) ClientType() string {
 	return exported.Solomachine
 }
 
@@ -75,7 +75,7 @@ func (cs ClientState) Validate() error {
 }
 
 // ZeroCustomFields is not implemented for solo machine
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
+func (ClientState) ZeroCustomFields() exported.ClientState {
 	panic("ZeroCustomFields is not implemented as the solo machine implementation does not support upgrades.")
 }
 
@@ -93,12 +93,12 @@ func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientSto
 }
 
 // ExportMetadata is a no-op since solomachine does not store any metadata in client store
-func (cs ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
+func (ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
 	return nil
 }
 
 // VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
-func (cs ClientState) VerifyUpgradeAndUpdateState(
+func (ClientState) VerifyUpgradeAndUpdateState(
 	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore,
 	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
 ) error {

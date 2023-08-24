@@ -1,8 +1,8 @@
 package keeper_test
 
-/// This file is a test driver for model-based tests generated from the TLA+ model of token transfer
-/// Written by Andrey Kuprianov within the scope of IBC Audit performed by Informal Systems.
-/// In case of any questions please don't hesitate to contact andrey@informal.systems.
+// This file is a test driver for model-based tests generated from the TLA+ model of token transfer
+// Written by Andrey Kuprianov within the scope of IBC Audit performed by Informal Systems.
+// In case of any questions please don't hesitate to contact andrey@informal.systems.
 
 import (
 	"encoding/json"
@@ -269,13 +269,13 @@ func BankOfChain(chain *ibctesting.TestChain) Bank {
 }
 
 // Check that the state of the bank is the bankBefore + expectedBankChange
-func (suite *KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefore *Bank, expectedBankChange *Bank) error {
+func (*KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefore *Bank, expectedBankChange *Bank) error {
 	bankAfter := BankOfChain(chain)
 	bankChange := bankAfter.Sub(bankBefore)
 	diff := bankChange.Sub(expectedBankChange)
-	NonZeroString := diff.NonZeroString()
-	if len(NonZeroString) != 0 {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+NonZeroString)
+	nonZeroString := diff.NonZeroString()
+	if len(nonZeroString) != 0 {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+nonZeroString)
 	}
 	return nil
 }

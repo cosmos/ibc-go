@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -79,16 +80,14 @@ func GetCmdPacketEvents() *cobra.Command {
 				fmt.Sprintf("%s.%s='%d'", channeltypes.EventTypeRecvPacket, channeltypes.AttributeKeySequence, seq),
 			}
 
-			results, err := processEvents(searchEvents, clientCtx)
+			result, err := tx.QueryTxsByEvents(clientCtx, 1, 1, strings.Join(searchEvents, " AND "), "")
 			if err != nil {
 				return err
 			}
 
 			var resEvents []abci.Event
-			for _, r := range results {
-				for _, tx := range r.Txs {
-					resEvents = append(resEvents, tx.Events...)
-				}
+			for _, r := range result.Txs {
+				resEvents = append(resEvents, r.Events...)
 			}
 
 			return clientCtx.PrintString(sdk.StringifyEvents(resEvents).String())
