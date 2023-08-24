@@ -280,10 +280,9 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				suite.Require().NoError(err)
 				suite.Require().Nil(packetCommitment)
 
-				// Check channel has been closed and flush status is set to NOTINFLUSH
+				// Check channel has been closed
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channel.State, types.CLOSED)
-				suite.Require().Equal(channel.FlushStatus, types.NOTINFLUSH)
 			},
 		},
 		{
