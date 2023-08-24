@@ -27,8 +27,6 @@ message Channel {
   // upgrade sequence indicates the latest upgrade attempt performed by this channel
   // the value of 0 indicates the channel has never been upgraded
   uint64 upgrade_sequence = 6;
-  // flush status indicates the current status of inflight packet flushing on the channel end
-  FlushStatus flush_status = 7;
 }
 
 // IdentifiedChannel defines a channel with additional port and channel

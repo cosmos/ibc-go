@@ -114,15 +114,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				events := ctx.EventManager().Events().ToABCIEvents()
 				expEvents := ibctesting.EventsMap{
 					types.EventTypeChannelUpgradeInit: {
-						types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
-						types.AttributeKeyChannelID:                 path.EndpointA.ChannelID,
-						types.AttributeCounterpartyPortID:           path.EndpointB.ChannelConfig.PortID,
-						types.AttributeCounterpartyChannelID:        path.EndpointB.ChannelID,
-						types.AttributeKeyUpgradeConnectionHops:     upgradeFields.ConnectionHops[0],
-						types.AttributeKeyUpgradeVersion:            upgradeFields.Version,
-						types.AttributeKeyUpgradeOrdering:           upgradeFields.Ordering.String(),
-						types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
-						types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
+						types.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+						types.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+						types.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+						types.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+						types.AttributeKeyUpgradeConnectionHops: upgradeFields.ConnectionHops[0],
+						types.AttributeKeyUpgradeVersion:        upgradeFields.Version,
+						types.AttributeKeyUpgradeOrdering:       upgradeFields.Ordering.String(),
+						types.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
 					},
 					sdk.EventTypeMessage: {
 						sdk.AttributeKeyModule: types.AttributeValueCategory,
@@ -373,15 +372,14 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{
 				types.EventTypeChannelUpgradeTry: {
-					types.AttributeKeyPortID:                    path.EndpointB.ChannelConfig.PortID,
-					types.AttributeKeyChannelID:                 path.EndpointB.ChannelID,
-					types.AttributeCounterpartyPortID:           path.EndpointA.ChannelConfig.PortID,
-					types.AttributeCounterpartyChannelID:        path.EndpointA.ChannelID,
-					types.AttributeKeyUpgradeConnectionHops:     upgrade.Fields.ConnectionHops[0],
-					types.AttributeKeyUpgradeVersion:            upgrade.Fields.Version,
-					types.AttributeKeyUpgradeOrdering:           upgrade.Fields.Ordering.String(),
-					types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
-					types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
+					types.AttributeKeyPortID:                path.EndpointB.ChannelConfig.PortID,
+					types.AttributeKeyChannelID:             path.EndpointB.ChannelID,
+					types.AttributeCounterpartyPortID:       path.EndpointA.ChannelConfig.PortID,
+					types.AttributeCounterpartyChannelID:    path.EndpointA.ChannelID,
+					types.AttributeKeyUpgradeConnectionHops: upgrade.Fields.ConnectionHops[0],
+					types.AttributeKeyUpgradeVersion:        upgrade.Fields.Version,
+					types.AttributeKeyUpgradeOrdering:       upgrade.Fields.Ordering.String(),
+					types.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
 				},
 				sdk.EventTypeMessage: {
 					sdk.AttributeKeyModule: types.AttributeValueCategory,
@@ -637,15 +635,14 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{
 				types.EventTypeChannelUpgradeAck: {
-					types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
-					types.AttributeKeyChannelID:                 path.EndpointA.ChannelID,
-					types.AttributeCounterpartyPortID:           path.EndpointB.ChannelConfig.PortID,
-					types.AttributeCounterpartyChannelID:        path.EndpointB.ChannelID,
-					types.AttributeKeyUpgradeConnectionHops:     upgrade.Fields.ConnectionHops[0],
-					types.AttributeKeyUpgradeVersion:            upgrade.Fields.Version,
-					types.AttributeKeyUpgradeOrdering:           upgrade.Fields.Ordering.String(),
-					types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
-					types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
+					types.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+					types.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+					types.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+					types.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+					types.AttributeKeyUpgradeConnectionHops: upgrade.Fields.ConnectionHops[0],
+					types.AttributeKeyUpgradeVersion:        upgrade.Fields.Version,
+					types.AttributeKeyUpgradeOrdering:       upgrade.Fields.Ordering.String(),
+					types.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
 				},
 				sdk.EventTypeMessage: {
 					sdk.AttributeKeyModule: types.AttributeValueCategory,
@@ -1120,16 +1117,15 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 				events := ctx.EventManager().Events().ToABCIEvents()
 				expEvents := ibctesting.EventsMap{
 					types.EventTypeChannelUpgradeOpen: {
-						types.AttributeKeyPortID:                    path.EndpointA.ChannelConfig.PortID,
-						types.AttributeKeyChannelID:                 path.EndpointA.ChannelID,
-						types.AttributeCounterpartyPortID:           path.EndpointB.ChannelConfig.PortID,
-						types.AttributeCounterpartyChannelID:        path.EndpointB.ChannelID,
-						types.AttributeKeyChannelState:              types.OPEN.String(),
-						types.AttributeKeyUpgradeConnectionHops:     channel.ConnectionHops[0],
-						types.AttributeKeyUpgradeVersion:            channel.Version,
-						types.AttributeKeyUpgradeOrdering:           channel.Ordering.String(),
-						types.AttributeKeyUpgradeSequence:           fmt.Sprintf("%d", channel.UpgradeSequence),
-						types.AttributeKeyUpgradeChannelFlushStatus: channel.FlushStatus.String(),
+						types.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+						types.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+						types.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+						types.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+						types.AttributeKeyChannelState:          types.OPEN.String(),
+						types.AttributeKeyUpgradeConnectionHops: channel.ConnectionHops[0],
+						types.AttributeKeyUpgradeVersion:        channel.Version,
+						types.AttributeKeyUpgradeOrdering:       channel.Ordering.String(),
+						types.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
 					},
 					sdk.EventTypeMessage: {
 						sdk.AttributeKeyModule: types.AttributeValueCategory,
@@ -1936,7 +1932,7 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 				suite.Require().True(found, "channel should be found")
 
 				suite.Require().Equal(types.OPEN, channel.State, "channel state should be %s", types.OPEN.String())
-				suite.Require().Equal(types.NOTINFLUSH, channel.FlushStatus, "channel flush status should be %s", types.NOTINFLUSH.String())
+
 				_, found = channelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found, "upgrade info should be deleted")
 

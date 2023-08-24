@@ -284,7 +284,6 @@ func emitChannelUpgradeInitEvent(ctx sdk.Context, portID string, channelID strin
 			sdk.NewAttribute(types.AttributeKeyUpgradeVersion, upgrade.Fields.Version),
 			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
-			sdk.NewAttribute(types.AttributeKeyUpgradeChannelFlushStatus, currentChannel.FlushStatus.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -306,7 +305,6 @@ func emitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string
 			sdk.NewAttribute(types.AttributeKeyUpgradeVersion, upgrade.Fields.Version),
 			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
-			sdk.NewAttribute(types.AttributeKeyUpgradeChannelFlushStatus, currentChannel.FlushStatus.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -328,7 +326,6 @@ func emitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string
 			sdk.NewAttribute(types.AttributeKeyUpgradeVersion, upgrade.Fields.Version),
 			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, upgrade.Fields.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
-			sdk.NewAttribute(types.AttributeKeyUpgradeChannelFlushStatus, currentChannel.FlushStatus.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -373,7 +370,6 @@ func emitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID strin
 			sdk.NewAttribute(types.AttributeKeyUpgradeVersion, currentChannel.Version),
 			sdk.NewAttribute(types.AttributeKeyUpgradeOrdering, currentChannel.Ordering.String()),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
-			sdk.NewAttribute(types.AttributeKeyUpgradeChannelFlushStatus, currentChannel.FlushStatus.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

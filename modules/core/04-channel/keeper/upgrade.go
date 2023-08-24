@@ -144,7 +144,6 @@ func (k Keeper) ChanUpgradeTry(
 		ConnectionHops:  counterpartyConnectionHops,
 		Version:         channel.Version,
 		UpgradeSequence: counterpartyUpgradeSequence, // provided by the relayer
-		FlushStatus:     types.NOTINFLUSH,
 	}
 
 	// verify the counterparty channel state containing the upgrade sequence
