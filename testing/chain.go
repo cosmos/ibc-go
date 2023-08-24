@@ -411,7 +411,9 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*cmttypes.ValidatorSet, b
 		return nil, false
 	}
 
-	valSet := stakingtypes.Validators(histInfo.Valset)
+	valSet := stakingtypes.Validators{
+		Validators: histInfo.Valset,
+	}
 
 	tmValidators, err := testutil.ToCmtValidators(valSet, sdk.DefaultPowerReduction)
 	if err != nil {
