@@ -67,11 +67,8 @@ The usage of `WithICS4Wrapper` after `transferStack`'s configuration is critical
 // SendPacket, since it is originating from the application to core IBC:
 // icaControllerKeeper.SendTx -> callbacks.SendPacket -> fee.SendPacket -> channel.SendPacket
 
-// initialize ICA module with mock module as the authentication module on the controller side
 var icaControllerStack porttypes.IBCModule
-icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
-app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
-icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
+icaControllerStack = icacontroller.NewIBCMiddleware(nil, app.ICAControllerKeeper)
 icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 // maxCallbackGas is a hard-coded value that is passed to the callbacks middleware
 icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
@@ -85,14 +82,9 @@ var icaHostStack porttypes.IBCModule
 icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
 icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
 
-// Add host, controller & ica auth modules to IBC router
-ibcRouter.
-// the ICA Controller middleware needs to be explicitly added to the IBC Router because the
-// ICA controller module owns the port capability for ICA. The ICA authentication module
-// owns the channel capability.
+// Add ICA host and controller to IBC router ibcRouter.
 AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 AddRoute(icahosttypes.SubModuleName, icaHostStack).
-AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
 ```
 
 ::: warning

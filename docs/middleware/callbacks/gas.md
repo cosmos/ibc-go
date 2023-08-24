@@ -61,7 +61,7 @@ During a callback execution, there are three types of gas limits that are enforc
 - Chain wide gas limit
 - Context gas limit (amount of gas that the relayer has left for this execution)
 
-Chain wide gas limit is only used as a maximum to the user defined gas limit as explained in the [previous section](#user-deifined-gas-limit). Therefore, we can ignore the chain wide gas limit for the rest of this section and work with the minimum of the chain wide gas limit and user defined gas limit. This minimum is called the commit gas limit.
+Chain wide gas limit is used as a maximum to the user defined gas limit as explained in the [previous section](#user-deifined-gas-limit). It may also be used as a default value if no user gas limit is provided. Therefore, we can ignore the chain wide gas limit for the rest of this section and work with the minimum of the chain wide gas limit and user defined gas limit. This minimum is called the commit gas limit.
 
 The gas limit enforcement is done by executing the callback inside a cached context with a new gas meter. The gas meter is initialized with the minimum of the commit gas limit and the context gas limit. This minimum is called the execution gas limit. We say that retries are allowed if `context gas limit < commit gas limit`. Otherwise, we say that retries are not allowed.
 
