@@ -886,7 +886,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutValidateBasic() {
 		{
 			"invalid counterparty channel state",
 			func() {
-				msg.CounterpartyChannel.State = types.TRYUPGRADE
+				msg.CounterpartyChannel.State = types.CLOSED
 			},
 			false,
 		},
