@@ -1529,18 +1529,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 
-			upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			errorReceiptProof, proofHeight := path.EndpointB.QueryProof(upgradeErrorReceiptKey)
-
-			channelProof, _, _ := path.EndpointA.QueryChannelUpgradeProof()
+			channelProof, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeTimeout{
 				PortId:               path.EndpointA.ChannelConfig.PortID,
 				ChannelId:            path.EndpointA.ChannelID,
 				CounterpartyChannel:  path.EndpointB.GetChannel(),
-				PreviousErrorReceipt: nil,
 				ProofChannel:         channelProof,
-				ProofErrorReceipt:    errorReceiptProof,
 				ProofHeight:          proofHeight,
 				Signer:               suite.chainA.SenderAccount.GetAddress().String(),
 			}

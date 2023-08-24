@@ -863,16 +863,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutValidateBasic() {
 			true,
 		},
 		{
-			"success with non-nil error receipt",
-			func() {
-				msg.PreviousErrorReceipt = &types.ErrorReceipt{
-					Sequence: 1,
-					Message:  "error message",
-				}
-			},
-			true,
-		},
-		{
 			"invalid port identifier",
 			func() {
 				msg.PortId = invalidPort
@@ -914,8 +904,8 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutValidateBasic() {
 		suite.Run(tc.name, func() {
 			msg = types.NewMsgChannelUpgradeTimeout(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.Channel{State: types.OPEN}, nil,
-				suite.proof, suite.proof,
+				types.Channel{State: types.OPEN},
+				suite.proof,
 				height, addr,
 			)
 
@@ -937,8 +927,8 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutGetSigners() {
 
 	msg := types.NewMsgChannelUpgradeTimeout(
 		ibctesting.MockPort, ibctesting.FirstChannelID,
-		types.Channel{}, nil,
-		suite.proof, suite.proof,
+		types.Channel{},
+		suite.proof,
 		height, addr,
 	)
 
