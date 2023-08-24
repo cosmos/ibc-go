@@ -47,10 +47,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * [\#4187](https://github.com/cosmos/ibc-go/pull/4187) Adds function 'WithICS4Wrapper' to keepers to allow to set the middleware after the keeper's creation.
+* (light-clients/06-solomachine) [\#4429](https://github.com/cosmos/ibc-go/pull/4429) Remove IBC key from path of bytes sign by solomachine and not escape the path.
 
 ### Features
 
-* [\#3796](https://github.com/cosmos/ibc-go/pull/3796) Adds support for json tx encoding for interchain accounts.
+* (apps/27-interchain-accounts) [\#3796](https://github.com/cosmos/ibc-go/pull/3796) Adds support for json tx encoding for interchain accounts.
 * [\#4188](https://github.com/cosmos/ibc-go/pull/4188) Adds optional `PacketDataUnmarshaler` interface that allows a middleware to request the packet data to be unmarshaled by the base application.
 * [\#4199](https://github.com/cosmos/ibc-go/pull/4199) Adds optional `PacketDataProvider` interface for retrieving custom packet data stored on behalf of another application.
 * [\#4200](https://github.com/cosmos/ibc-go/pull/4200) Adds optional `PacketData` interface which application's packet data may implement.
@@ -101,7 +102,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#2897](https://github.com/cosmos/ibc-go/pull/2897) Remove legacy migrations required for upgrading from Stargate release line to ibc-go >= v1.x.x.
 * (core/02-client) [\#2856](https://github.com/cosmos/ibc-go/pull/2856) Rename `IterateClients` to `IterateClientStates`. The function now takes a prefix argument which may be used for prefix iteration over the client store.
 * (light-clients/tendermint)[\#1768](https://github.com/cosmos/ibc-go/pull/1768) Removed `AllowUpdateAfterExpiry`, `AllowUpdateAfterMisbehaviour` booleans as they are deprecated (see ADR026)
-* (06-solomachine) [\#1679](https://github.com/cosmos/ibc-go/pull/1679) Remove `types` sub-package from `06-solomachine` lightclient directory.
+* c [\#1679](https://github.com/cosmos/ibc-go/pull/1679) Remove `types` sub-package from `06-solomachine` lightclient directory.
 * (07-tendermint) [\#1677](https://github.com/cosmos/ibc-go/pull/1677) Remove `types` sub-package from `07-tendermint` lightclient directory.
 * (06-solomachine) [\#1687](https://github.com/cosmos/ibc-go/pull/1687) Bump `06-solomachine` protobuf version from `v2` to `v3`.
 * (06-solomachine) [\#1687](https://github.com/cosmos/ibc-go/pull/1687) Removed `DataType` enum and associated message types from `06-solomachine`. `DataType` has been removed from `SignBytes` and `SignatureAndData` in favour of `path`.
