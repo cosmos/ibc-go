@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
@@ -34,25 +35,25 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		},
 		{
 			"success: dest callback",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.SuccessContract),
 			"none",
 			true,
 		},
 		{
 			"success: source callback",
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
 			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with other json fields",
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, simapp.SuccessContract),
 			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with malformed json",
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}, malformed}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}, malformed}`, simapp.SuccessContract),
 			"none",
 			true,
 		},
@@ -64,7 +65,13 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		},
 		{
 			"failure: source callback with low gas (panic)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogPanicContract),
+			types.CallbackTypeSendPacket,
+			false,
+		},
+		{
+			"failure: source callback with low gas (error)",
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogErrorContract),
 			types.CallbackTypeSendPacket,
 			false,
 		},
@@ -96,19 +103,25 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 		},
 		{
 			"success: dest callback",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, callbackAddr),
+			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.SuccessContract),
 			"none",
 			true,
 		},
 		{
 			"success: source callback",
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
 			types.CallbackTypeTimeoutPacket,
 			true,
 		},
 		{
 			"failure: source callback with low gas (panic)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "350000"}}`, callbackAddr),
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogPanicContract),
+			types.CallbackTypeSendPacket,
+			false,
+		},
+		{
+			"failure: source callback with low gas (error)",
+			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogErrorContract),
 			types.CallbackTypeSendPacket,
 			false,
 		},
