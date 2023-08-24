@@ -372,7 +372,7 @@ func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user ibc.Wallet
 	if err != nil {
 		return -1, err
 	}
-	return bal, nil
+	return bal.Int64(), nil
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel
