@@ -16,8 +16,7 @@
   ],
   "test": [
     "TestClientUpdateProposal_Succeeds",
-    "TestClient_Update_Misbehaviour",
-    "TestAllowedClientsParam"
+    "TestClient_Update_Misbehaviour"
   ],
   "relayer-type": [
     "rly"

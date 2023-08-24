@@ -6,7 +6,7 @@ module github.com/cosmos/ibc-go/v7
 
 require (
 	cosmossdk.io/api v0.7.0
-	cosmossdk.io/client/v2 v2.0.0-20230722073756-0fa85b7a424d
+	cosmossdk.io/client/v2 v2.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/core v0.10.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.0
