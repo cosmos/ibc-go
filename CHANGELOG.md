@@ -47,7 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * [\#4187](https://github.com/cosmos/ibc-go/pull/4187) Adds function 'WithICS4Wrapper' to keepers to allow to set the middleware after the keeper's creation.
-* (light-clients/06-solomachine) [\#4429](https://github.com/cosmos/ibc-go/pull/4429) Remove IBC key from path of bytes sign by solomachine and not escape the path.
+* (light-clients/06-solomachine) [\#4429](https://github.com/cosmos/ibc-go/pull/4429) Remove IBC key from path of bytes signed by solomachine and not escape the path.
 
 ### Features
 
