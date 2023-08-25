@@ -980,7 +980,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseInit() {
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack := icaControllerStack.(porttypes.ICS4Wrapper)
+	controllerStack := icaControllerStack.(porttypes.Middleware)
 	err := controllerStack.OnChanCloseInit(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller to return an error
 	s.Require().ErrorIs(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"), err)
@@ -994,7 +994,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack := icaControllerStack.(porttypes.ICS4Wrapper)
+	controllerStack := icaControllerStack.(porttypes.Middleware)
 	err := controllerStack.OnChanCloseConfirm(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller
 	s.Require().NoError(err)
@@ -1007,7 +1007,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 	s.Require().NoError(err)
 	cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	s.Require().True(ok)
-	mockFeeCallbackStack, ok := cbs.(porttypes.ICS4Wrapper)
+	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
 	s.Require().True(ok)
 
 	packet := channeltypes.NewPacket(
