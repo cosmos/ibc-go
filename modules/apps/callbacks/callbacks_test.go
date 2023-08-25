@@ -24,7 +24,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	simapp "github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 const maxCallbackGas = uint64(1000000)
@@ -69,6 +68,10 @@ func (s *CallbacksTestSuite) setupChains() {
 	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
 	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 	s.path = ibctesting.NewPath(s.chainA, s.chainB)
+
+	// override the SendMsgs function to not require a successful transaction
+	overrideSendMsg(s.chainA)
+	overrideSendMsg(s.chainB)
 }
 
 // SetupTransferTest sets up a transfer channel between chainA and chainB
@@ -291,23 +294,21 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 	s.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
 }
 
-// OverrideSendMsgWithAssertion overrides both chains' SendMsgsOverride function to assert whether the
-// transaction is successful or not.
-func OverrideSendMsgWithAssertion(chain *ibctesting.TestChain, expPass bool) {
+// overrideSendMsg overrides both chains' SendMsgs function to a version that doesn't require
+// that the transaction is successful.
+func overrideSendMsg(chain *ibctesting.TestChain) {
 	chain.SendMsgsOverride = func(msgs ...sdk.Msg) (*sdk.Result, error) {
 		// ensure the chain has the latest time
 		chain.Coordinator.UpdateTimeForChain(chain)
 
 		_, r, err := simapp.SignAndDeliver(
-			chain.T,
 			chain.TxConfig,
 			chain.App.GetBaseApp(),
-			chain.GetContext().BlockHeader(),
 			msgs,
 			chain.ChainID,
 			[]uint64{chain.SenderAccount.GetAccountNumber()},
 			[]uint64{chain.SenderAccount.GetSequence()},
-			true, expPass, chain.SenderPrivKey,
+			chain.SenderPrivKey,
 		)
 		if err != nil {
 			return nil, err

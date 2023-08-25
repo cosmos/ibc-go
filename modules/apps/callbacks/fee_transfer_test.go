@@ -100,15 +100,8 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 			fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 			s.ExecutePayPacketFeeMsg(fee)
-<<<<<<< HEAD
-			preRelaySenderBalance := sdk.NewCoins(s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-
-			expSendFailure := !tc.expSuccess && (tc.expCallback == types.CallbackTypeSendPacket)
-			s.ExecuteTransfer(tc.transferMemo, expSendFailure)
-=======
 			preRelaySenderBalance := sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
 			s.ExecuteTransfer(tc.transferMemo)
->>>>>>> 66104094 (Duplicate SimApp into callbacks directory (#4337))
 			// we manually subtract the transfer amount from the preRelaySenderBalance because ExecuteTransfer
 			// also relays the packet, which will trigger the fee payments.
 			preRelaySenderBalance = preRelaySenderBalance.Sub(ibctesting.TestCoin)
@@ -165,15 +158,8 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 			fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 			s.ExecutePayPacketFeeMsg(fee)
-<<<<<<< HEAD
-			preRelaySenderBalance := sdk.NewCoins(s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-
-			expSendFailure := !tc.expSuccess && (tc.expCallback == types.CallbackTypeSendPacket)
-			s.ExecuteTransferTimeout(tc.transferMemo, expSendFailure)
-=======
 			preRelaySenderBalance := sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-			s.ExecuteTransferTimeout(tc.transferMemo, 1)
->>>>>>> 66104094 (Duplicate SimApp into callbacks directory (#4337))
+			s.ExecuteTransferTimeout(tc.transferMemo)
 
 			// after incentivizing the packets
 			s.AssertHasExecutedExpectedCallbackWithFee(tc.expCallback, tc.expSuccess, true, preRelaySenderBalance, fee)
