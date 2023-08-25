@@ -98,15 +98,3 @@ func GetCmdPacketEvents() *cobra.Command {
 
 	return cmd
 }
-
-func processEvents(events []string, clientCtx client.Context) ([]sdk.SearchTxsResult, error) {
-	var results []sdk.SearchTxsResult
-	for _, event := range events {
-		result, err := tx.QueryTxsByEvents(clientCtx, 1, 1, event, "")
-		if err != nil {
-			return nil, err
-		}
-		results = append(results, *result)
-	}
-	return results, nil
-}
