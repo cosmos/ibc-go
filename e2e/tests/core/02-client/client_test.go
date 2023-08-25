@@ -14,8 +14,10 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
@@ -25,11 +27,6 @@ import (
 	tmprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	tmtypes "github.com/cometbft/cometbft/types"
 	tmversion "github.com/cometbft/cometbft/version"
-
-	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -378,7 +375,7 @@ func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight cl
 	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte(invalidHashValue)))
 	voteSet := tmtypes.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
 
-	commit, err := test.MakeCommit(blockID, blockHeight, 1, voteSet, signers, timestamp)
+	commit, err := tmtypes.MakeCommit(blockID, blockHeight, 1, voteSet, signers, timestamp)
 	if err != nil {
 		return nil, err
 	}
