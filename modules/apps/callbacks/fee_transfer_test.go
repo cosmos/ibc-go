@@ -184,7 +184,7 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferTimeoutCallbacks() {
 
 			s.ExecutePayPacketFeeMsg(fee)
 			preRelaySenderBalance := sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-			s.ExecuteTransferTimeout(tc.transferMemo, 1)
+			s.ExecuteTransferTimeout(tc.transferMemo)
 
 			// after incentivizing the packets
 			s.AssertHasExecutedExpectedCallbackWithFee(tc.expCallback, tc.expSuccess, true, preRelaySenderBalance, fee)

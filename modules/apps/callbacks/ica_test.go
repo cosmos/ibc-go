@@ -81,7 +81,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		s.Run(tc.name, func() {
 			icaAddr := s.SetupICATest()
 
-			s.ExecuteICATx(icaAddr, tc.icaMemo, 1)
+			s.ExecuteICATx(icaAddr, tc.icaMemo)
 			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
 		})
 	}
@@ -131,14 +131,14 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 		s.Run(tc.name, func() {
 			icaAddr := s.SetupICATest()
 
-			s.ExecuteICATimeout(icaAddr, tc.icaMemo, 1)
+			s.ExecuteICATimeout(icaAddr, tc.icaMemo)
 			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
 		})
 	}
 }
 
 // ExecuteICATx executes a stakingtypes.MsgDelegate on chainB by sending a packet containing the msg to chainB
-func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint64) {
+func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string) {
 	timeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	connectionID := s.path.EndpointA.ConnectionID
@@ -159,7 +159,7 @@ func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, seq uint64) {
 }
 
 // ExecuteICATx sends and times out an ICA tx
-func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, seq uint64) {
+func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string) {
 	relativeTimeout := uint64(1)
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	connectionID := s.path.EndpointA.ConnectionID
