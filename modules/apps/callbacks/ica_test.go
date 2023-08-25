@@ -74,8 +74,7 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 		s.Run(tc.name, func() {
 			icaAddr := s.SetupICATest()
 
-			expSendFailure := !tc.expSuccess && (tc.expCallback == types.CallbackTypeSendPacket)
-			s.ExecuteICATx(icaAddr, tc.icaMemo, expSendFailure)
+			s.ExecuteICATx(icaAddr, tc.icaMemo)
 			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
 		})
 	}
@@ -119,15 +118,14 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 		s.Run(tc.name, func() {
 			icaAddr := s.SetupICATest()
 
-			expSendFailure := !tc.expSuccess && (tc.expCallback == types.CallbackTypeSendPacket)
-			s.ExecuteICATimeout(icaAddr, tc.icaMemo, expSendFailure)
+			s.ExecuteICATimeout(icaAddr, tc.icaMemo)
 			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
 		})
 	}
 }
 
 // ExecuteICATx executes a stakingtypes.MsgDelegate on chainB by sending a packet containing the msg to chainB
-func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, expSendFailure bool) {
+func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string) {
 	timeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	connectionID := s.path.EndpointA.ConnectionID
@@ -135,12 +133,7 @@ func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, expSendFailur
 	packetData := s.buildICAMsgDelegatePacketData(icaAddress, memo)
 	msg := icacontrollertypes.NewMsgSendTx(icaOwner, connectionID, timeoutTimestamp, packetData)
 
-	if expSendFailure {
-		OverrideSendMsgWithAssertion(s.chainA, false)
-	}
-
 	res, err := s.chainA.SendMsgs(msg)
-	s.chainA.SendMsgsOverride = nil // undo override
 	if err != nil {
 		return // we return if send packet is rejected
 	}
@@ -153,7 +146,7 @@ func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string, expSendFailur
 }
 
 // ExecuteICATx sends and times out an ICA tx
-func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, expSendFailure bool) {
+func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string) {
 	relativeTimeout := uint64(1)
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	connectionID := s.path.EndpointA.ConnectionID
@@ -161,12 +154,7 @@ func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string, expSendF
 	packetData := s.buildICAMsgDelegatePacketData(icaAddress, memo)
 	msg := icacontrollertypes.NewMsgSendTx(icaOwner, connectionID, relativeTimeout, packetData)
 
-	if expSendFailure {
-		OverrideSendMsgWithAssertion(s.chainA, false)
-	}
-
 	res, err := s.chainA.SendMsgs(msg)
-	s.chainA.SendMsgsOverride = nil // undo override
 	if err != nil {
 		return // we return if send packet is rejected
 	}
@@ -194,9 +182,9 @@ func (s *CallbacksTestSuite) buildICAMsgDelegatePacketData(icaAddress string, me
 
 	// ensure chainB is allowed to execute stakingtypes.MsgDelegate
 	params := icahosttypes.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate)})
-	s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
+	GetSimApp(s.chainB).ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 
-	data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate})
+	data, err := icatypes.SerializeCosmosTx(GetSimApp(s.chainA).AppCodec(), []proto.Message{msgDelegate})
 	s.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{
