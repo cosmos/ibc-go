@@ -7,12 +7,7 @@ package ibccallbacks
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-<<<<<<< HEAD
-	"github.com/cosmos/ibc-go/v7/modules/apps/callbacks/types"
-=======
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
->>>>>>> a18159f7 (Give callbacks its own go.mod (#4341))
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 )
 
