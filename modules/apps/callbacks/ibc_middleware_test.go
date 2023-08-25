@@ -172,7 +172,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				err error
 			)
 			sendPacket := func() {
-				seq, err = transferStack.(porttypes.Middleware).SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+				seq, err = transferStack.(porttypes.ICS4Wrapper).SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
 			}
 
 			expPass := tc.expValue == nil
@@ -766,7 +766,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			err := transferStack.(porttypes.Middleware).WriteAcknowledgement(ctx, chanCap, packet, ack)
+			err := transferStack.(porttypes.ICS4Wrapper).WriteAcknowledgement(ctx, chanCap, packet, ack)
 
 			expPass := tc.expError == nil
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
@@ -966,7 +966,7 @@ func (s *CallbacksTestSuite) TestGetAppVersion() {
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack := icaControllerStack.(porttypes.Middleware)
+	controllerStack := icaControllerStack.(porttypes.ICS4Wrapper)
 	appVersion, found := controllerStack.GetAppVersion(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	s.Require().True(found)
 	s.Require().Equal(s.path.EndpointA.ChannelConfig.Version, appVersion)
@@ -980,7 +980,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseInit() {
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack := icaControllerStack.(porttypes.Middleware)
+	controllerStack := icaControllerStack.(porttypes.ICS4Wrapper)
 	err := controllerStack.OnChanCloseInit(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller to return an error
 	s.Require().ErrorIs(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"), err)
@@ -994,7 +994,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack := icaControllerStack.(porttypes.Middleware)
+	controllerStack := icaControllerStack.(porttypes.ICS4Wrapper)
 	err := controllerStack.OnChanCloseConfirm(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller
 	s.Require().NoError(err)
@@ -1007,7 +1007,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 	s.Require().NoError(err)
 	cbs, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	s.Require().True(ok)
-	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
+	mockFeeCallbackStack, ok := cbs.(porttypes.ICS4Wrapper)
 	s.Require().True(ok)
 
 	packet := channeltypes.NewPacket(

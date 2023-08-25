@@ -28,7 +28,7 @@ transferStack = transfer.NewIBCModule(app.TransferKeeper)
 transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 // Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
-app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.Middleware))
+app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.ICS4Wrapper))
 
 // Add transfer stack to IBC Router
 ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
