@@ -3,14 +3,15 @@ package upgrades
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	cosmos "github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
-
-	tmjson "github.com/cometbft/cometbft/libs/json"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -44,7 +45,6 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	ctx := context.Background()
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
-
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
@@ -89,7 +89,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
-		s.HaltChainAndExportGenesis(ctx, chainA, int64(haltHeight))
+		s.HaltChainAndExportGenesis(ctx, chainA, relayer, int64(haltHeight))
 	})
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
@@ -108,9 +108,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 }
 
-func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain, haltHeight int64) {
-	var genesisState GenesisState
-
+func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain, relayer ibc.Relayer, haltHeight int64) {
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
@@ -120,24 +118,37 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
+	// relayer should be stopped by now, but just in case
+	s.StopRelayer(ctx, relayer)
+
 	state, err := chain.ExportState(ctx, int64(haltHeight))
 	s.Require().NoError(err)
 
-	err = tmjson.Unmarshal([]byte(state), &genesisState)
-	s.Require().NoError(err)
+	fmt.Println(state)
+	// err = tmjson.Unmarshal([]byte(state), &genesisState)
+	// s.Require().NoError(err)
 
-	genesisJson, err := tmjson.MarshalIndent(genesisState, "", "  ")
-	s.Require().NoError(err)
+	// genesisJson, err := tmjson.MarshalIndent(genesisState, "", "  ")
+	// s.Require().NoError(err)
 
-	for _, node := range chain.Nodes() {
-		err := node.OverwriteGenesisFile(ctx, genesisJson)
+	newGenesisJson := strings.ReplaceAll(state, fmt.Sprintf("\"initial_height\":%d", 0), fmt.Sprintf("\"initial_height\":%d", haltHeight+2))
+
+	chainAN, _ := s.GetChains()
+	for _, node := range chainAN.Nodes() {
+		err := node.OverwriteGenesisFile(ctx, []byte(newGenesisJson))
 		s.Require().NoError(err)
 	}
+	fmt.Println([]byte(newGenesisJson))
+	// for _, node := range chain.Validators {
+	// 	err = node.UnsafeResetAll(ctx)
+	// 	s.Require().NoError(err)
+	// }
 
-	for _, node := range chain.FullNodes {
-		err = node.UnsafeResetAll(ctx)
-		s.Require().NoError(err)
-	}
+	node := chainAN.Validators[0]
+	err = node.CreateNodeContainer(ctx)
+	s.Require().NoError(err)
+	err = node.StartContainer(ctx)
+	s.Require().NoError(err)
 
 	// we are reinitializing the clients because we need to update the hostGRPCAddress after
 	// halt chain and subsequent restarting of nodes
