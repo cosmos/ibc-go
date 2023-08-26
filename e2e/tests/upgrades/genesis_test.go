@@ -101,7 +101,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		expected := testvalues.StartingTokenAmount - 2*testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 	})
 
@@ -117,9 +117,6 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
-
-	// relayer should be stopped by now, but just in case
-	s.StopRelayer(ctx, relayer)
 
 	state, err := chain.ExportState(ctx, int64(haltHeight))
 	s.Require().NoError(err)
@@ -140,29 +137,30 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 
 	appTomlOverrides["halt-height"] = 0
 	configFileOverrides["config/app.toml"] = appTomlOverrides
-	chainOpts := func(options *testsuite.ChainOptions) {
-		options.ChainAConfig.ConfigFileOverrides = configFileOverrides
-	}
+	// chainOpts := func(options *testsuite.ChainOptions) {
+	// 	options.ChainAConfig.ConfigFileOverrides = configFileOverrides
+	// }
 
-	chainAN, _ := s.GetChains(chainOpts)
-	for _, node := range chainAN.Nodes() {
+	for _, node := range chain.Nodes() {
 		err := node.OverwriteGenesisFile(ctx, []byte(newGenesisJson))
 		s.Require().NoError(err)
 	}
+	chain.Validators[0].CopyFile(ctx, "app.toml", "config/app.toml")
+	err = chain.StartAllNodes(ctx)
+	s.Require().NoError(err)
 
-	// for _, node := range chain.Validators {
-	// 	err = node.UnsafeResetAll(ctx)
-	// 	s.Require().NoError(err)
-	// }
+	// we are reinitializing the clients because we need to update the hostGRPCAddress after
+	// the upgrade and subsequent restarting of nodes
+	s.InitGRPCClients(chain)
 
 	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
-	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chainAN)
+	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
 	s.Require().NoError(err, "chain did not produce blocks after halt")
 
-	height, err := chainAN.Height(ctx)
+	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height after halt")
 
-	s.Require().Greater(height, haltHeight, "height did not increment after halt")
+	s.Require().Greater(int64(height), haltHeight, "height did not increment after halt")
 }
