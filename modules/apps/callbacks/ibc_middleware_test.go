@@ -164,12 +164,15 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 
 			tc.malleate()
 
+			ctx := s.chainA.GetContext()
+			gasLimit := ctx.GasMeter().Limit()
+
 			var (
 				seq uint64
 				err error
 			)
 			sendPacket := func() {
-				seq, err = transferStack.(porttypes.Middleware).SendPacket(s.chainA.GetContext(), chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+				seq, err = transferStack.(porttypes.Middleware).SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
 			}
 
 			expPass := tc.expValue == nil
@@ -178,8 +181,18 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				sendPacket()
 				s.Require().Nil(err)
 				s.Require().Equal(uint64(1), seq)
+
+				expEvent, exists := GetExpectedEvent(
+					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
+					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, seq, types.CallbackTypeSendPacket, nil,
+				)
+				if exists {
+					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+				}
+
 			case tc.expPanic:
 				s.Require().PanicsWithValue(tc.expValue, sendPacket)
+
 			default:
 				sendPacket()
 				s.Require().ErrorIs(tc.expValue.(error), err)
@@ -293,7 +306,9 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			}
 
 			ack = channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement()
+
 			ctx = s.chainA.GetContext()
+			gasLimit := ctx.GasMeter().Limit()
 
 			tc.malleate()
 
@@ -340,6 +355,12 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgementPacket])
 				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
+				expEvent, exists := GetExpectedEvent(
+					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeAcknowledgementPacket, nil,
+				)
+				s.Require().True(exists)
+				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
 			}
 		})
 	}
@@ -450,6 +471,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().NoError(err)
 
 			ctx = s.chainA.GetContext()
+			gasLimit := ctx.GasMeter().Limit()
 
 			tc.malleate()
 
@@ -494,6 +516,13 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().Equal(1, sourceCounters[types.CallbackTypeTimeoutPacket])
 				s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
 				s.Require().Equal(uint8(2), sourceStatefulCounter)
+
+				expEvent, exists := GetExpectedEvent(
+					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeTimeoutPacket, nil,
+				)
+				s.Require().True(exists)
+				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
 			}
 		})
 	}
@@ -602,6 +631,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			}
 
 			ctx = s.chainB.GetContext()
+			gasLimit := ctx.GasMeter().Limit()
 
 			tc.malleate()
 
@@ -647,6 +677,14 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				s.Require().Len(destCounters, 1)
 				s.Require().Equal(1, destCounters[types.CallbackTypeReceivePacket])
 				s.Require().Equal(uint8(1), destStatefulCounter)
+
+				expEvent, exists := GetExpectedEvent(
+					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
+				)
+				s.Require().True(exists)
+				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+
 			}
 		})
 	}
@@ -718,6 +756,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			}
 
 			ctx = s.chainB.GetContext()
+			gasLimit := ctx.GasMeter().Limit()
 
 			chanCap := s.chainB.GetChannelCapability(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
 
@@ -734,6 +773,15 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 
 			if expPass {
 				s.Require().NoError(err)
+
+				expEvent, exists := GetExpectedEvent(
+					transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
+				)
+				if exists {
+					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+				}
+
 			} else {
 				s.Require().ErrorIs(tc.expError, err)
 			}

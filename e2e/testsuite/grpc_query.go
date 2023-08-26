@@ -217,13 +217,13 @@ func (s *E2ETestSuite) QueryInterchainAccountLegacy(ctx context.Context, chain i
 func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
 	ctx context.Context,
 	chain *cosmos.CosmosChain,
-	portId,
-	channelId string,
+	portID,
+	channelID string,
 ) ([]*feetypes.IdentifiedPacketFees, error) {
 	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
 	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
-		PortId:    portId,
-		ChannelId: channelId,
+		PortId:    portID,
+		ChannelId: channelID,
 	})
 	if err != nil {
 		return nil, err
@@ -285,7 +285,7 @@ func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Cha
 	if res.SdkBlock != nil {
 		return &res.SdkBlock.Header, nil
 	}
-	return &res.Block.Header, nil
+	return &res.SdkBlock.Header, nil
 }
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators

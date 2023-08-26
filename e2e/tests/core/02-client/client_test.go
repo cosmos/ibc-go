@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -80,7 +81,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		subjectClientID    string
 		substituteClientID string
 		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
-		badTrustingPeriod = time.Duration(time.Second * 10)
+		badTrustingPeriod = time.Second * 10
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
@@ -269,7 +270,12 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 
 	t.Run("ensure allowed clients are set to the default", func(t *testing.T) {
 		allowedClients := s.QueryAllowedClients(ctx, chainA)
-		s.Require().Equal(clienttypes.DefaultAllowedClients, allowedClients)
+
+		defaultAllowedClients := clienttypes.DefaultAllowedClients
+		if !testvalues.LocalhostClientFeatureReleases.IsSupported(chainAVersion) {
+			defaultAllowedClients = slices.DeleteFunc(defaultAllowedClients, func(s string) bool { return s == ibcexported.Localhost })
+		}
+		s.Require().Equal(defaultAllowedClients, allowedClients)
 	})
 
 	allowedClient := ibcexported.Solomachine
@@ -308,7 +314,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 // extractChainPrivateKeys returns a slice of tmtypes.PrivValidator which hold the private keys for all validator
 // nodes for a given chain.
 func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *cosmos.CosmosChain) []tmtypes.PrivValidator {
-	testContainers, err := dockerutil.GetTestContainers(s.T(), ctx, s.DockerClient)
+	testContainers, err := dockerutil.GetTestContainers(ctx, s.T(), s.DockerClient)
 	s.Require().NoError(err)
 
 	var filePvs []privval.FilePVKey

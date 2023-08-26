@@ -533,6 +533,43 @@ module.exports = {
                 },
               ],
             },
+            {
+              title: "Callbacks Middleware",
+              directory: true,
+              path: "/middleware",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/middleware/callbacks/overview.html",
+                },
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/middleware/callbacks/integration.html",
+                },
+                {
+                  title: "Interfaces",
+                  directory: false,
+                  path: "/middleware/callbacks/interfaces.html",
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/middleware/callbacks/events.html",
+                },
+                {
+                  title: "End Users",
+                  directory: false,
+                  path: "/middleware/callbacks/end-users.html",
+                },
+                {
+                  title: "Gas Management",
+                  directory: false,
+                  path: "/middleware/callbacks/gas.html",
+                },
+              ],
+            },
           ],
         },
         {
