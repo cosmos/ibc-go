@@ -26,11 +26,11 @@ relayer:
   tag: latest # override with RELAYER_TAG
 
 cometbft:
-  logLevel: debug
+  logLevel: info
 
 debug:
   # setting this value to true will force log collection even if the test passes.
-  dumpLogs: true
+  dumpLogs: false
 
 # Required only for upgrade tests.
 # Chain A will be upgraded the specified tag.
