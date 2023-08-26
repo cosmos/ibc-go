@@ -124,6 +124,8 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	state, err := chain.ExportState(ctx, int64(haltHeight))
 	s.Require().NoError(err)
 
+	str := strings.SplitAfter(state, "server")
+	state = str[1]
 	fmt.Println(state)
 	// err = tmjson.Unmarshal([]byte(state), &genesisState)
 	// s.Require().NoError(err)
@@ -133,34 +135,33 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 
 	newGenesisJson := strings.ReplaceAll(state, fmt.Sprintf("\"initial_height\":%d", 0), fmt.Sprintf("\"initial_height\":%d", haltHeight+2))
 
-	chainAN, _ := s.GetChains()
+	configFileOverrides := make(map[string]any)
+	appTomlOverrides := make(test.Toml)
+
+	appTomlOverrides["halt-height"] = 0
+	configFileOverrides["config/app.toml"] = appTomlOverrides
+	chainOpts := func(options *testsuite.ChainOptions) {
+		options.ChainAConfig.ConfigFileOverrides = configFileOverrides
+	}
+
+	chainAN, _ := s.GetChains(chainOpts)
 	for _, node := range chainAN.Nodes() {
 		err := node.OverwriteGenesisFile(ctx, []byte(newGenesisJson))
 		s.Require().NoError(err)
 	}
-	fmt.Println([]byte(newGenesisJson))
+
 	// for _, node := range chain.Validators {
 	// 	err = node.UnsafeResetAll(ctx)
 	// 	s.Require().NoError(err)
 	// }
 
-	node := chainAN.Validators[0]
-	err = node.CreateNodeContainer(ctx)
-	s.Require().NoError(err)
-	err = node.StartContainer(ctx)
-	s.Require().NoError(err)
-
-	// we are reinitializing the clients because we need to update the hostGRPCAddress after
-	// halt chain and subsequent restarting of nodes
-	s.InitGRPCClients(chain)
-
 	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
-	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
+	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chainAN)
 	s.Require().NoError(err, "chain did not produce blocks after halt")
 
-	height, err := chain.Height(ctx)
+	height, err := chainAN.Height(ctx)
 	s.Require().NoError(err, "error fetching height after halt")
 
 	s.Require().Greater(height, haltHeight, "height did not increment after halt")
