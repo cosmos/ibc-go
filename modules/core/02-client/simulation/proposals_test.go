@@ -4,12 +4,14 @@ import (
 	"math/rand"
 	"testing"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"gotest.tools/v3/assert"
+	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
@@ -24,18 +26,18 @@ func TestProposalMsgs(t *testing.T) {
 
 	// execute ProposalMsgs function
 	weightedProposalMsgs := simulation.ProposalMsgs()
-	assert.Assert(t, len(weightedProposalMsgs) == 1)
+	require.Equal(t, len(weightedProposalMsgs), 1)
 
 	w0 := weightedProposalMsgs[0]
 
 	// tests w0 interface:
-	assert.Equal(t, simulation.OpWeightMsgUpdateParams, w0.AppParamsKey())
-	assert.Equal(t, simulation.DefaultWeightMsgUpdateParams, w0.DefaultWeight())
+	require.Equal(t, simulation.OpWeightMsgUpdateParams, w0.AppParamsKey())
+	require.Equal(t, simulation.DefaultWeightMsgUpdateParams, w0.DefaultWeight())
 
 	msg := w0.MsgSimulatorFn()(r, ctx, accounts)
 	msgUpdateParams, ok := msg.(*types.MsgUpdateParams)
-	assert.Assert(t, ok)
+	require.True(t, ok)
 
-	assert.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Authority)
-	assert.DeepEqual(t, msgUpdateParams.Params.AllowedClients, []string{"06-solomachine", "07-tendermint"})
+	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Authority)
+	require.EqualValues(t, msgUpdateParams.Params.AllowedClients, []string{"06-solomachine", "07-tendermint"})
 }

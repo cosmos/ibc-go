@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 )
 
@@ -14,7 +15,7 @@ import (
 const (
 	DefaultWeightMsgUpdateParams int = 100
 
-	OpWeightMsgUpdateParams = "op_weight_msg_update_params"
+	OpWeightMsgUpdateParams = "op_weight_msg_update_params" // #nosec
 )
 
 // ProposalMsgs defines the module weighted proposals' contents
