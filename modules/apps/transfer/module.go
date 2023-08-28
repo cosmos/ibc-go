@@ -119,7 +119,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	if err := cfg.RegisterMigration(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
-		panic(fmt.Sprintf("failed to migrate transfer app from version 4 to 5: %v", err))
+		panic(fmt.Sprintf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %v", err))
 	}
 }
 

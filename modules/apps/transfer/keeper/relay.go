@@ -310,40 +310,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	return nil
 }
 
-// SetDenomMetadata sets an IBC token denomination metadata
-func (k Keeper) SetDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
-	metadata := banktypes.Metadata{
-		Description: getMetadataDescription(denomTrace),
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    denomTrace.BaseDenom,
-				Exponent: 0,
-			},
-		},
-		// Setting base as IBC hash denom since bank keepers's SetDenomMetaData uses
-		// Base as storeKey and the bank keeper will only have the IBC hash to get
-		// the denom metadata
-		Base:    denomTrace.IBCDenom(),
-		Display: denomTrace.GetFullDenomPath(),
-		Name:    getMetadataName(denomTrace),
-		Symbol:  getMetadataSymbol(denomTrace),
-	}
-
-	k.bankKeeper.SetDenomMetaData(ctx, metadata)
-}
-
-func getMetadataDescription(denomTrace types.DenomTrace) string {
-	return fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath())
-}
-
-func getMetadataName(denomTrace types.DenomTrace) string {
-	return fmt.Sprintf("%s IBC token", denomTrace.GetFullDenomPath())
-}
-
-func getMetadataSymbol(denomTrace types.DenomTrace) string {
-	return strings.ToUpper(denomTrace.BaseDenom)
-}
-
 // OnAcknowledgementPacket responds to the the success or failure of a packet
 // acknowledgement written on the receiving chain. If the acknowledgement
 // was a success then nothing occurs. If the acknowledgement failed, then
@@ -461,4 +427,38 @@ func (k Keeper) DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
 
 	fullDenomPath := denomTrace.GetFullDenomPath()
 	return fullDenomPath, nil
+}
+
+// SetDenomMetadata sets an IBC token's denomination metadata
+func (k Keeper) SetDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
+	metadata := banktypes.Metadata{
+		Description: getMetadataDescription(denomTrace),
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    denomTrace.BaseDenom,
+				Exponent: 0,
+			},
+		},
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetaData uses
+		// Base as storeKey and the bank keeper will only have the IBC hash to get
+		// the denom metadata
+		Base:    denomTrace.IBCDenom(),
+		Display: denomTrace.GetFullDenomPath(),
+		Name:    getMetadataName(denomTrace),
+		Symbol:  getMetadataSymbol(denomTrace),
+	}
+
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+}
+
+func getMetadataDescription(denomTrace types.DenomTrace) string {
+	return fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath())
+}
+
+func getMetadataName(denomTrace types.DenomTrace) string {
+	return fmt.Sprintf("%s IBC token", denomTrace.GetFullDenomPath())
+}
+
+func getMetadataSymbol(denomTrace types.DenomTrace) string {
+	return strings.ToUpper(denomTrace.BaseDenom)
 }
