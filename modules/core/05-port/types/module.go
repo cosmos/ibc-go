@@ -140,6 +140,9 @@ type UpgradableModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID string,
+		order channeltypes.Order,
+		connectionHops []string,
+		version string,
 	)
 
 	// OnChanUpgradeRestore TODO
