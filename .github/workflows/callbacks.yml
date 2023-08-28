@@ -1,0 +1,35 @@
+name: Callbacks Module
+# This workflow runs when a PR is opened that targets code that is part of the callbacks module.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/callbacks.yml'
+      - 'modules/apps/callbacks/**'
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-arch: ['amd64', 'arm', 'arm64']
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - name: Build callbacks-module
+        run: |
+          cd modules/apps/callbacks
+          GOARCH=${{ matrix.go-arch }} go build ./...
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - name: Go Test
+        run: |
+          cd modules/apps/callbacks
+          go test -v -mod=readonly ./...
