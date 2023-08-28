@@ -778,13 +778,11 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
 		expError error
 	}{
 		{
 			"success",
 			func() {},
-			true,
 			nil,
 		},
 		{
@@ -792,7 +790,6 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 			func() {
 				authority = "invalid"
 			},
-			false,
 			ibcerrors.ErrInvalidAddress,
 		},
 		{
@@ -800,7 +797,6 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 			func() {
 				anyClient = &codectypes.Any{}
 			},
-			false,
 			ibcerrors.ErrUnpackAny,
 		},
 		{
@@ -808,7 +804,6 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 			func() {
 				plan.Height = 0
 			},
-			false,
 			sdkerrors.ErrInvalidRequest,
 		},
 	}
@@ -833,8 +828,9 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 		}
 
 		err = msg.ValidateBasic()
+		expPass := tc.expError == nil
 
-		if tc.expPass {
+		if expPass {
 			suite.Require().NoError(err)
 		}
 		if tc.expError != nil {
