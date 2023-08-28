@@ -164,13 +164,6 @@ func (k Keeper) TimeoutExecuted(
 				// packet flushing timeout has expired, abort the upgrade and return nil,
 				// committing an error receipt to state, restoring the channel and successfully timing out the packet.
 				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
-
-				// note: we continue to close the channel even if the upgrade has been aborted.
-				// the end desired state is:
-				// - the channel is closed for an ordered channel, open for an unordered.
-				// - the upgrade info is always deleted (the upgrade is aborted)
-				// - an error receipt is written to state
-
 			} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 				// set the channel state to flush complete if all packets have been flushed.
 				channel.State = types.STATE_FLUSHCOMPLETE
@@ -180,6 +173,12 @@ func (k Keeper) TimeoutExecuted(
 	}
 
 	if channel.Ordering == types.ORDERED {
+		// note: we continue to close the unordered channel even if the upgrade has been aborted.
+		// the end desired state is:
+		// - the channel is closed.
+		// - the upgrade info is always deleted (if the upgrade is aborted)
+		// - an error receipt is written to state (if the upgrade is aborted)
+
 		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 		emitChannelClosedEvent(ctx, packet, channel)
