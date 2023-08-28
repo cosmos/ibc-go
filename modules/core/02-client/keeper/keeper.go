@@ -436,8 +436,8 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store.Set([]byte(types.ParamsKey), bz)
 }
 
-// IBCSoftwareUpgrade schedules an upgrade for the IBC client.
-func (k Keeper) IBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Plan, upgradedClientState exported.ClientState) error {
+// ScheduleIBCSoftwareUpgrade schedules an upgrade for the IBC client.
+func (k Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Plan, upgradedClientState exported.ClientState) error {
 	// zero out any custom fields before setting
 	cs := upgradedClientState.ZeroCustomFields()
 	bz, err := types.MarshalClientState(k.cdc, cs)

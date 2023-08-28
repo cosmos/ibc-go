@@ -496,13 +496,11 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
 		expError error
 	}{
 		{
 			"valid upgrade proposal",
 			func() {},
-			true,
 			nil,
 		},
 		{
@@ -512,7 +510,6 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 					Height: 100,
 				}
 			},
-			true,
 			nil,
 		},
 		{
@@ -520,7 +517,6 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 			func() {
 				plan.Height = 0
 			},
-			false,
 			sdkerrors.ErrInvalidRequest,
 		},
 	}
@@ -557,9 +553,10 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				suite.Require().NoError(suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height, bz))
 			}
 
-			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.IBCSoftwareUpgrade(suite.chainA.GetContext(), plan, upgradedClientState)
+			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.ScheduleIBCSoftwareUpgrade(suite.chainA.GetContext(), plan, upgradedClientState)
+			expPass := tc.expError == nil
 
-			if tc.expPass {
+			if expPass {
 				suite.Require().NoError(err)
 
 				// check that the correct plan is returned
