@@ -1410,42 +1410,22 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		proofCounterpartyChannel []byte
 	)
 
+	timeoutUpgrade := func() {
+		upgrade := path.EndpointA.GetProposedUpgrade()
+		upgrade.Timeout = types.NewTimeout(clienttypes.ZeroHeight(), 1)
+		path.EndpointA.SetChannelUpgrade(upgrade)
+		suite.Require().NoError(path.EndpointA.Counterparty.UpdateClient())
+	}
+
 	testCases := []struct {
 		name     string
 		malleate func()
 		expError error
 	}{
 		{
-			"success: proof height has passed",
-			func() {
-				// force timeout as the default timeout is 1000.
-				// TODO: modify timeout in test to be lower.
-				//suite.coordinator.CommitNBlocks(suite.chainB, 1000)
-
-
-				upgrade := path.EndpointA.GetProposedUpgrade()
-				upgrade.Timeout = types.NewTimeout(clienttypes.ZeroHeight(), 1)
-				path.EndpointB.SetChannelUpgrade(upgrade)
-				path.EndpointA.SetChannelCounterpartyUpgrade(upgrade)
-
-				// ensure clients are up to date to receive valid proofs
-				suite.Require().NoError(path.EndpointA.UpdateClient())
-				suite.Require().NoError(path.EndpointB.UpdateClient())
-
-				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
-			},
-			nil,
-		},
-		{
 			"success: proof timestamp has passed",
 			func() {
-				upgrade := path.EndpointA.GetProposedUpgrade()
-				upgrade.Timeout.Height = clienttypes.ZeroHeight()
-				upgrade.Timeout.Timestamp = 1
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
-
-				suite.Require().NoError(path.EndpointA.UpdateClient())
-
+				timeoutUpgrade()
 				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
 			},
 			nil,
@@ -1504,7 +1484,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				channel.State = types.OPEN
 				path.EndpointB.SetChannel(channel)
 
-				suite.coordinator.CommitNBlocks(suite.chainB, 1000)
+				timeoutUpgrade()
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
@@ -1524,7 +1504,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				channel.UpgradeSequence = path.EndpointA.GetChannel().UpgradeSequence - 1
 				path.EndpointB.SetChannel(channel)
 
-				suite.coordinator.CommitNBlocks(suite.chainB, 1000)
+				timeoutUpgrade()
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
@@ -1533,24 +1513,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			types.ErrInvalidUpgradeSequence,
 		},
 		{
-			"timeout height has not passed",
-			func() {
-				upgrade := path.EndpointA.GetProposedUpgrade()
-				upgrade.Timeout.Height = suite.chainA.GetTimeoutHeight()
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
-
-				suite.Require().NoError(path.EndpointA.UpdateClient())
-
-				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
-			},
-			types.ErrInvalidUpgradeTimeout,
-		},
-		{
 			"timeout timestamp has not passed",
 			func() {
 				upgrade := path.EndpointA.GetProposedUpgrade()
 				upgrade.Timeout.Timestamp = math.MaxUint64
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
+				path.EndpointA.SetChannelUpgrade(upgrade)
 
 				suite.Require().NoError(path.EndpointB.UpdateClient())
 
@@ -1565,7 +1532,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				channel.State = types.STATE_FLUSHCOMPLETE
 				path.EndpointB.SetChannel(channel)
 
-				suite.coordinator.CommitNBlocks(suite.chainB, 1000)
+				timeoutUpgrade()
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
@@ -1580,11 +1547,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				channel.State = types.OPEN
 				path.EndpointB.SetChannel(channel)
 
-				upgrade := path.EndpointA.GetProposedUpgrade()
-				upgrade.Fields.ConnectionHops = []string{"connection-100"}
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
+				timeoutUpgrade()
 
-				suite.coordinator.CommitNBlocks(suite.chainB, 1000)
+				upgrade := path.EndpointA.GetChannelUpgrade()
+				upgrade.Fields.ConnectionHops = []string{"connection-100"}
+				path.EndpointA.SetChannelUpgrade(upgrade)
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 				suite.Require().NoError(path.EndpointB.UpdateClient())
@@ -1599,7 +1566,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				// put chainA channel into OPEN state since both sides are in FLUSHCOMPLETE
 				suite.Require().NoError(path.EndpointB.ChanUpgradeConfirm())
 
-				suite.coordinator.CommitNBlocks(suite.chainB, 1000)
+				timeoutUpgrade()
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
@@ -1726,8 +1693,7 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 				suite.Require().Equal(types.STATE_FLUSHING, channel.State)
 				suite.Require().Equal(nextSequenceSend-1, upgrade.LatestSequenceSend)
 
-				// TODO: fix in https://github.com/cosmos/ibc-go/issues/4313
-				suite.Require().Equal(types.NewTimeout(clienttypes.NewHeight(1, 1000), 0), upgrade.Timeout)
+				suite.Require().Equal(types.DefaultTimeout, upgrade.Timeout)
 				suite.Require().NoError(err)
 			}
 		})
