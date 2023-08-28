@@ -1351,7 +1351,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			func() {
 				msg.ProofErrorReceipt = []byte("invalid proof")
 				// Force set to STATE_FLUSHCOMPLETE to check that state is not changed.
-				path.EndpointA.SetChannelState(channeltypes.STATE_FLUSHCOMPLETE)
+				suite.Require().NoError(path.EndpointA.SetChannelState(channeltypes.STATE_FLUSHCOMPLETE))
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
 				suite.Require().Error(err)
@@ -1419,7 +1419,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			tc.expResult(res, err)
 		})
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
@@ -1499,30 +1498,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().True(found, "channel upgrade should not be nil")
 			},
 		},
-		// {
-		// 	name: "invalid error receipt sequence, this error receipt is for this same upgrade so UpgradeCancel should be used instead",
-		// 	malleate: func() {
-		// 		errReceipt := channeltypes.ErrorReceipt{
-		// 			Sequence: 1,
-		// 			Message:  "error",
-		// 		}
-		// 		path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errReceipt)
-		// 		suite.Require().NoError(path.EndpointB.UpdateClient())
-		// 		suite.Require().NoError(path.EndpointA.UpdateClient())
-
-		// 		upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-		// 		errorReceiptProof, proofHeight := path.EndpointB.QueryProof(upgradeErrorReceiptKey)
-		// 		counterpartyChannel := path.EndpointB.GetChannel()
-		// 		channelProof, _, _ := path.EndpointA.QueryChannelUpgradeProof()
-
-		// 		msg.PreviousErrorReceipt = &errReceipt
-		// 		msg.ProofErrorReceipt = errorReceiptProof
-		// 		msg.CounterpartyChannel = counterpartyChannel
-		// 		msg.ProofChannel = channelProof
-		// 		msg.ProofHeight = proofHeight
-		// 	},
-		// 	expErr: channeltypes.ErrInvalidUpgradeSequence,
-		// },
 	}
 
 	for _, tc := range cases {
@@ -1539,9 +1514,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 			suite.Require().NoError(path.EndpointA.ChanUpgradeAck())
-
-			//suite.Require().NoError(path.EndpointA.UpdateClient())
-			//suite.Require().NoError(path.EndpointB.UpdateClient())
 
 			channelProof, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
