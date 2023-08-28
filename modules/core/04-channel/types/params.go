@@ -2,13 +2,14 @@ package types
 
 import (
 	"fmt"
+	"time"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
-// TODO: determine sane default value for upgrade timeout.
+// TODO: determine sane default value for upgrade timeout. and make this relative.
 
-var DefaultTimeout = NewTimeout(clienttypes.NewHeight(1, 1000), 0)
+var DefaultTimeout = NewTimeout(clienttypes.ZeroHeight(), uint64(time.Now().Add(time.Hour).UnixNano()))
 
 // NewParams creates a new parameter configuration for the channel submodule
 func NewParams(upgradeTimeout Timeout) Params {
@@ -24,8 +25,11 @@ func DefaultParams() Params {
 
 // Validate the params.
 func (p Params) Validate() error {
-	if !p.UpgradeTimeout.IsValid() {
-		return fmt.Errorf("upgrade timeout invalid: %v", p.UpgradeTimeout)
+	if !p.UpgradeTimeout.Height.IsZero() {
+		return fmt.Errorf("upgrade timeout height must be zero: %v", p.UpgradeTimeout)
+	}
+	if p.UpgradeTimeout.Timestamp == 0 {
+		return fmt.Errorf("upgrade timeout timestamp invalid: %v", p.UpgradeTimeout)
 	}
 	return nil
 }

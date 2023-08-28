@@ -1420,10 +1420,17 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			func() {
 				// force timeout as the default timeout is 1000.
 				// TODO: modify timeout in test to be lower.
-				suite.coordinator.CommitNBlocks(suite.chainB, 1000)
+				//suite.coordinator.CommitNBlocks(suite.chainB, 1000)
+
+
+				upgrade := path.EndpointA.GetProposedUpgrade()
+				upgrade.Timeout = types.NewTimeout(clienttypes.ZeroHeight(), 1)
+				path.EndpointB.SetChannelUpgrade(upgrade)
+				path.EndpointA.SetChannelCounterpartyUpgrade(upgrade)
 
 				// ensure clients are up to date to receive valid proofs
 				suite.Require().NoError(path.EndpointA.UpdateClient())
+				suite.Require().NoError(path.EndpointB.UpdateClient())
 
 				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
 			},
