@@ -732,9 +732,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 		{
 			"success with in-flight packets on try chain",
 			func() {
-				seq, err := path.EndpointB.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-				suite.Require().Equal(uint64(1), seq)
+				portID, channelID := path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainB.GetContext(), portID, channelID, 1, []byte("hash"))
 			},
 			nil,
 		},

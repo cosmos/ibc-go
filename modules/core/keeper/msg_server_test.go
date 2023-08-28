@@ -1131,9 +1131,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 		{
 			"success, pending in-flight packets on try chain",
 			func() {
-				portID := path.EndpointB.ChannelConfig.PortID
-				channelID := path.EndpointB.ChannelID
-				// Set a dummy packet commitment to simulate in-flight packets
+				portID, channelID := path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainB.GetContext(), portID, channelID, 1, []byte("hash"))
 			},
 			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
