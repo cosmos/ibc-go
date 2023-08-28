@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"errors"
 	"fmt"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -656,7 +655,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				}
 			} else {
 				suite.Require().Error(err)
-				suite.Require().True(errors.Is(err, tc.expError))
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
