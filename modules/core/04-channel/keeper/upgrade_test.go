@@ -831,6 +831,95 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestWriteUpgradeConfirm() {
+	var (
+		path            *ibctesting.Path
+		proposedUpgrade types.Upgrade
+	)
+
+	testCases := []struct {
+		name                 string
+		malleate             func()
+		hasPacketCommitments bool
+	}{
+		{
+			"success with no packet commitments",
+			func() {},
+			false,
+		},
+		{
+			"success with packet commitments",
+			func() {
+				// manually set packet commitment
+				sequence, err := path.EndpointA.SendPacket(suite.chainB.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+				suite.Require().Equal(uint64(1), sequence)
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			tc.malleate()
+
+			// perform the upgrade handshake.
+			suite.Require().NoError(path.EndpointB.ChanUpgradeInit())
+
+			suite.Require().NoError(path.EndpointA.ChanUpgradeTry())
+
+			suite.Require().NoError(path.EndpointB.ChanUpgradeAck())
+
+			ctx := suite.chainA.GetContext()
+			proposedUpgrade = path.EndpointB.GetChannelUpgrade()
+
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeConfirmChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proposedUpgrade)
+
+			channel := path.EndpointA.GetChannel()
+			upgrade := path.EndpointA.GetChannelUpgrade()
+			suite.Require().Equal(mock.UpgradeVersion, upgrade.Fields.Version)
+
+			events := ctx.EventManager().Events().ToABCIEvents()
+			expEvents := ibctesting.EventsMap{
+				types.EventTypeChannelUpgradeConfirm: {
+					types.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
+					types.AttributeKeyChannelID:          path.EndpointA.ChannelID,
+					types.AttributeKeyChannelState:       channel.State.String(),
+					types.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
+					types.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
+					types.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+				},
+				sdk.EventTypeMessage: {
+					sdk.AttributeKeyModule: types.AttributeValueCategory,
+				},
+			}
+
+			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+
+			if !tc.hasPacketCommitments {
+				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
+				// Counterparty was set in UPGRADETRY but without timeout, latest sequence send set.
+				counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(ok)
+				suite.Require().NotEqual(proposedUpgrade, counterpartyUpgrade)
+			} else {
+				counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(ok)
+				suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 	var path *ibctesting.Path
 	testCases := []struct {
