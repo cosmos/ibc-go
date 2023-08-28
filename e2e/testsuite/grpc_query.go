@@ -6,6 +6,12 @@ import (
 	"sort"
 	"time"
 
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -14,11 +20,6 @@ import (
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
@@ -216,13 +217,13 @@ func (s *E2ETestSuite) QueryInterchainAccountLegacy(ctx context.Context, chain i
 func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
 	ctx context.Context,
 	chain *cosmos.CosmosChain,
-	portId,
-	channelId string,
+	portID,
+	channelID string,
 ) ([]*feetypes.IdentifiedPacketFees, error) {
 	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
 	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
-		PortId:    portId,
-		ChannelId: channelId,
+		PortId:    portID,
+		ChannelId: channelID,
 	})
 	if err != nil {
 		return nil, err
@@ -284,7 +285,7 @@ func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Cha
 	if res.SdkBlock != nil {
 		return &res.SdkBlock.Header, nil
 	}
-	return &res.Block.Header, nil
+	return &res.SdkBlock.Header, nil
 }
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators

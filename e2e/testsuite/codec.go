@@ -4,9 +4,12 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -15,9 +18,9 @@ import (
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	v7migrations "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
@@ -41,11 +44,23 @@ func EncodingConfig() simappparams.EncodingConfig {
 	return cfg
 }
 
+// SDKEncodingConfig returns the global E2E encoding config.
+func SDKEncodingConfig() *testutil.TestEncodingConfig {
+	_, cfg := codecAndEncodingConfig()
+	return &testutil.TestEncodingConfig{
+		InterfaceRegistry: cfg.InterfaceRegistry,
+		Codec:             cfg.Codec,
+		TxConfig:          cfg.TxConfig,
+		Amino:             cfg.Amino,
+	}
+}
+
 func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	cfg := simappparams.MakeTestEncodingConfig()
 
 	// ibc types
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	icahosttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	feetypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	intertxtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	solomachine.RegisterInterfaces(cfg.InterfaceRegistry)

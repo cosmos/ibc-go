@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := NewTransferPath(suite.chainA, suite.chainB)
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
 
 			// Verify events
 			events := ctx.EventManager().Events().ToABCIEvents()

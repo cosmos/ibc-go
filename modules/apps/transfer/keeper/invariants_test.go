@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func (suite *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
@@ -36,7 +37,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			path := NewTransferPath(suite.chainA, suite.chainB)
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
 			amount := sdkmath.NewInt(100)

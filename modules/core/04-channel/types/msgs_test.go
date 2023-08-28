@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
@@ -69,7 +69,7 @@ var (
 )
 
 type TypesTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	proof []byte
 }
@@ -104,7 +104,7 @@ func (suite *TypesTestSuite) SetupTest() {
 }
 
 func TestTypesTestSuite(t *testing.T) {
-	suite.Run(t, new(TypesTestSuite))
+	testifysuite.Run(t, new(TypesTestSuite))
 }
 
 func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {

@@ -139,7 +139,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 					connectiontypes.OPEN,
 					exported.LocalhostClientID,
 					connectiontypes.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, suite.chain.GetPrefix()),
-					connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions()), 0,
+					connectiontypes.GetCompatibleVersions(), 0,
 				)
 
 				suite.chain.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chain.GetContext(), exported.LocalhostConnectionID, connectionEnd)

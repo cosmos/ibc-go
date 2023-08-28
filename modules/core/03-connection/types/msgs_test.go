@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
@@ -34,7 +34,7 @@ var (
 )
 
 type MsgTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -79,7 +79,7 @@ func (suite *MsgTestSuite) SetupTest() {
 }
 
 func TestMsgTestSuite(t *testing.T) {
-	suite.Run(t, new(MsgTestSuite))
+	testifysuite.Run(t, new(MsgTestSuite))
 }
 
 func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {

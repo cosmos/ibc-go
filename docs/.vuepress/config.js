@@ -285,6 +285,11 @@ module.exports = {
                   path: "/apps/interchain-accounts/parameters.html",
                 },
                 {
+                  title: "Tx Encoding",
+                  directory: false,
+                  path: "/apps/interchain-accounts/tx-encoding.html",
+                },
+                {
                   title: "Client",
                   directory: false,
                   path: "/apps/interchain-accounts/client.html",
@@ -314,7 +319,7 @@ module.exports = {
                       directory: false,
                       path: "/apps/interchain-accounts/legacy/keeper-api.html",
                     },
-                  ]
+                  ],
                 },
               ],
             },
@@ -425,7 +430,7 @@ module.exports = {
                   directory: false,
                   path: "/ibc/light-clients/setup.html",
                 },
-              ]
+              ],
             },
             {
               title: "Localhost",
@@ -525,6 +530,43 @@ module.exports = {
                   title: "End Users",
                   directory: false,
                   path: "/middleware/ics29-fee/end-users.html",
+                },
+              ],
+            },
+            {
+              title: "Callbacks Middleware",
+              directory: true,
+              path: "/middleware",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/middleware/callbacks/overview.html",
+                },
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/middleware/callbacks/integration.html",
+                },
+                {
+                  title: "Interfaces",
+                  directory: false,
+                  path: "/middleware/callbacks/interfaces.html",
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/middleware/callbacks/events.html",
+                },
+                {
+                  title: "End Users",
+                  directory: false,
+                  path: "/middleware/callbacks/end-users.html",
+                },
+                {
+                  title: "Gas Management",
+                  directory: false,
+                  path: "/middleware/callbacks/gas.html",
                 },
               ],
             },

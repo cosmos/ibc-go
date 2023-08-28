@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -10,6 +11,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+)
+
+var (
+	_ ibcexported.PacketData         = (*FungibleTokenPacketData)(nil)
+	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
 )
 
 var (
@@ -63,4 +70,37 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 // GetBytes is a helper for serialising
 func (ftpd FungibleTokenPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpd))
+}
+
+// GetPacketSender returns the sender address embedded in the packet data.
+//
+// NOTE:
+//   - The sender address is set by the module which requested the packet to be sent,
+//     and this module may not have validated the sender address by a signature check.
+//   - The sender address must only be used by modules on the sending chain.
+//   - sourcePortID is not used in this implementation.
+func (ftpd FungibleTokenPacketData) GetPacketSender(sourcePortID string) string {
+	return ftpd.Sender
+}
+
+// GetCustomPacketData interprets the memo field of the packet data as a JSON object
+// and returns the value associated with the given key.
+// If the key is missing or the memo is not properly formatted, then nil is returned.
+func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} {
+	if len(ftpd.Memo) == 0 {
+		return nil
+	}
+
+	jsonObject := make(map[string]interface{})
+	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
+	if err != nil {
+		return nil
+	}
+
+	memoData, found := jsonObject[key]
+	if !found {
+		return nil
+	}
+
+	return memoData
 }

@@ -323,11 +323,10 @@ func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) str
 	require.NoError(solo.t, err)
 	require.NotNil(solo.t, res)
 
-	if res, ok := res.MsgResponses[0].GetCachedValue().(*channeltypes.MsgChannelOpenInitResponse); ok {
-		return res.ChannelId
-	}
+	channelID, err := ParseChannelIDFromEvents(res.Events)
+	require.NoError(solo.t, err)
 
-	return ""
+	return channelID
 }
 
 // ChanOpenAck performs the channel open ack handshake step on the tendermint chain for the associated
@@ -517,11 +516,14 @@ func (solo *Solomachine) GenerateClientStateProof(clientState exported.ClientSta
 	data, err := clienttypes.MarshalClientState(solo.cdc, clientState)
 	require.NoError(solo.t, err)
 
+	merklePath := solo.GetClientStatePath(clientIDSolomachine)
+	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetClientStatePath(clientIDSolomachine).String()),
+		Path:        key,
 		Data:        data,
 	}
 
@@ -534,11 +536,14 @@ func (solo *Solomachine) GenerateConsensusStateProof(consensusState exported.Con
 	data, err := clienttypes.MarshalConsensusState(solo.cdc, consensusState)
 	require.NoError(solo.t, err)
 
+	merklePath := solo.GetConsensusStatePath(clientIDSolomachine, consensusHeight)
+	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetConsensusStatePath(clientIDSolomachine, consensusHeight).String()),
+		Path:        key,
 		Data:        data,
 	}
 
@@ -554,11 +559,14 @@ func (solo *Solomachine) GenerateConnOpenTryProof(counterpartyClientID, counterp
 	data, err := solo.cdc.Marshal(&connection)
 	require.NoError(solo.t, err)
 
+	merklePath := solo.GetConnectionStatePath(connectionIDSolomachine)
+	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetConnectionStatePath(connectionIDSolomachine).String()),
+		Path:        key,
 		Data:        data,
 	}
 
@@ -574,11 +582,14 @@ func (solo *Solomachine) GenerateChanOpenTryProof(portID, version, counterpartyC
 	data, err := solo.cdc.Marshal(&channel)
 	require.NoError(solo.t, err)
 
+	merklePath := solo.GetChannelStatePath(portID, channelIDSolomachine)
+	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetChannelStatePath(portID, channelIDSolomachine).String()),
+		Path:        key,
 		Data:        data,
 	}
 
@@ -594,11 +605,14 @@ func (solo *Solomachine) GenerateChanClosedProof(portID, version, counterpartyCh
 	data, err := solo.cdc.Marshal(&channel)
 	require.NoError(solo.t, err)
 
+	merklePath := solo.GetChannelStatePath(portID, channelIDSolomachine)
+	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetChannelStatePath(portID, channelIDSolomachine).String()),
+		Path:        key,
 		Data:        data,
 	}
 
@@ -609,11 +623,14 @@ func (solo *Solomachine) GenerateChanClosedProof(portID, version, counterpartyCh
 func (solo *Solomachine) GenerateCommitmentProof(packet channeltypes.Packet) []byte {
 	commitment := channeltypes.CommitPacket(solo.cdc, packet)
 
+	merklePath := solo.GetPacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetPacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence()).String()),
+		Path:        key,
 		Data:        commitment,
 	}
 
@@ -623,11 +640,15 @@ func (solo *Solomachine) GenerateCommitmentProof(packet channeltypes.Packet) []b
 // GenerateAcknowledgementProof generates an acknowledgement proof.
 func (solo *Solomachine) GenerateAcknowledgementProof(packet channeltypes.Packet) []byte {
 	transferAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+
+	merklePath := solo.GetPacketAcknowledgementPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetPacketAcknowledgementPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()).String()),
+		Path:        key,
 		Data:        channeltypes.CommitAcknowledgement(transferAck),
 	}
 
@@ -636,11 +657,14 @@ func (solo *Solomachine) GenerateAcknowledgementProof(packet channeltypes.Packet
 
 // GenerateReceiptAbsenceProof generates a receipt absence proof for the provided packet.
 func (solo *Solomachine) GenerateReceiptAbsenceProof(packet channeltypes.Packet) []byte {
+	merklePath := solo.GetPacketReceiptPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	key, err := merklePath.GetKey(1) // index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	require.NoError(solo.t, err)
 	signBytes := &solomachine.SignBytes{
 		Sequence:    solo.Sequence,
 		Timestamp:   solo.Time,
 		Diversifier: solo.Diversifier,
-		Path:        []byte(solo.GetPacketReceiptPath(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()).String()),
+		Path:        key,
 		Data:        nil,
 	}
 	return solo.GenerateProof(signBytes)

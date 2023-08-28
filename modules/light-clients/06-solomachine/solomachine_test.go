@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -26,7 +26,7 @@ import (
 var channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
 
 type SoloMachineTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	solomachine      *ibctesting.Solomachine // singlesig public key
 	solomachineMulti *ibctesting.Solomachine // multisig public key
@@ -51,7 +51,7 @@ func (suite *SoloMachineTestSuite) SetupTest() {
 }
 
 func TestSoloMachineTestSuite(t *testing.T) {
-	suite.Run(t, new(SoloMachineTestSuite))
+	testifysuite.Run(t, new(SoloMachineTestSuite))
 }
 
 func (suite *SoloMachineTestSuite) SetupSolomachine() string {

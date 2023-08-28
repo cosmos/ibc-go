@@ -84,7 +84,7 @@ func (k Keeper) TimeoutPacket(
 		return types.ErrNoOpMsg
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel state is not OPEN (got %s)", channel.State.String(),
@@ -171,7 +171,7 @@ func (k Keeper) TimeoutExecuted(
 	// emit an event marking that we have processed the timeout
 	emitTimeoutPacketEvent(ctx, packet, channel)
 
-	if channel.Ordering == types.ORDERED && channel.State == types.CLOSED {
+	if channel.Ordering == types.ORDERED && channel.IsClosed() {
 		emitChannelClosedEvent(ctx, packet, channel)
 	}
 

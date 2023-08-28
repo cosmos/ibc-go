@@ -22,11 +22,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*exported.CounterpartyConnectionI)(nil),
 		&Counterparty{},
 	)
-	registry.RegisterInterface(
-		"ibc.core.connection.v1.Version",
-		(*exported.Version)(nil),
-		&Version{},
-	)
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgConnectionOpenInit{},
