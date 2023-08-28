@@ -554,9 +554,8 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 			}
 
 			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.ScheduleIBCSoftwareUpgrade(suite.chainA.GetContext(), plan, upgradedClientState)
-			expPass := tc.expError == nil
 
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				// check that the correct plan is returned

@@ -828,9 +828,8 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 		}
 
 		err = msg.ValidateBasic()
-		expPass := tc.expError == nil
 
-		if expPass {
+		if tc.expError == nil {
 			suite.Require().NoError(err)
 		}
 		if tc.expError != nil {
