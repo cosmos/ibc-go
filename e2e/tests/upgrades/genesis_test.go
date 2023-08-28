@@ -126,17 +126,15 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 
 	newGenesisJson := strings.ReplaceAll(state, fmt.Sprintf("\"initial_height\":%d", 0), fmt.Sprintf("\"initial_height\":%d", haltHeight+2))
 
-	configFileOverrides := make(map[string]any)
-	appTomlOverrides := make(test.Toml)
-
-	appTomlOverrides["halt-height"] = 0
-	configFileOverrides["config/app.toml"] = appTomlOverrides
-
 	for _, node := range chain.Nodes() {
 		err := node.OverwriteGenesisFile(ctx, []byte(newGenesisJson))
 		s.Require().NoError(err)
 	}
-	chain.Validators[0].CopyFile(ctx, "app.toml", "config/app.toml")
+	for _, node := range chain.Nodes() {
+		err := node.CopyFile(ctx, "app.toml", "config/app.toml")
+		s.Require().NoError(err)
+	}
+
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err)
 
