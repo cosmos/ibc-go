@@ -839,12 +839,10 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
 	}{
 		{
 			"success: valid authority and client upgrade",
 			func() {},
-			true,
 		},
 		{
 			"failure: invalid authority address",
@@ -852,7 +850,6 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				msg.Authority = suite.chainA.SenderAccount.GetAddress().String()
 				expError = ibcerrors.ErrUnauthorized
 			},
-			false,
 		},
 		{
 			"failure: invalid clientState",
@@ -860,7 +857,6 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				msg.UpgradedClientState = nil
 				expError = clienttypes.ErrInvalidClientType
 			},
-			false,
 		},
 		{
 			"failure: failed to schedule client upgrade",
@@ -868,7 +864,6 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				msg.Plan.Height = 0
 				expError = sdkerrors.ErrInvalidRequest
 			},
-			false,
 		},
 	}
 
@@ -892,7 +887,8 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 			tc.malleate()
 
 			_, err = keeper.Keeper.IBCSoftwareUpgrade(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
-			if tc.expPass {
+
+			if expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().True(errors.Is(err, expError))

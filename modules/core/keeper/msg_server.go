@@ -721,7 +721,7 @@ func (k Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIB
 		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot unpack client state: %s", err)
 	}
 
-	if err = k.ClientKeeper.IBCSoftwareUpgrade(ctx, msg.Plan, upgradedClientState); err != nil {
+	if err = k.ClientKeeper.ScheduleIBCSoftwareUpgrade(ctx, msg.Plan, upgradedClientState); err != nil {
 		return nil, errorsmod.Wrapf(err, "cannot schedule IBC client upgrade")
 	}
 
