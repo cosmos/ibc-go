@@ -12,9 +12,6 @@ ADD testing testing
 ADD modules modules
 ADD LICENSE LICENSE
 
-COPY go.mod .
-COPY go.sum .
-
 WORKDIR modules/apps/callbacks
 
 RUN go mod download
