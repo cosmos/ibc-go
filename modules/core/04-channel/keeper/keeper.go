@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/binary"
 	"strconv"
 	"strings"
 
@@ -516,30 +515,6 @@ func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upg
 	return upgrade, true
 }
 
-// GetCounterpartyLastPacketSequence gets the counterparty last packet sequence send from the store.
-func (k Keeper) GetCounterpartyLastPacketSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.ChannelCounterpartyLastPacketSequenceKey(portID, channelID))
-	if bz == nil {
-		return 0, false
-	}
-
-	return binary.BigEndian.Uint64(bz), true
-}
-
-// SetCounterpartyLastPacketSequence sets the counterparty last packet sequence in the store.
-func (k Keeper) SetCounterpartyLastPacketSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.ChannelCounterpartyLastPacketSequenceKey(portID, channelID), bz)
-}
-
-// deleteCounterpartyLastPacketSequence deletes the counterparty last packet sequence from the store.
-func (k Keeper) deleteCounterpartyLastPacketSequence(ctx sdk.Context, portID, channelID string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(host.ChannelCounterpartyLastPacketSequenceKey(portID, channelID))
-}
-
 // SetUpgrade sets the proposed upgrade using the provided port and channel identifiers.
 func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) {
 	store := ctx.KVStore(k.storeKey)
@@ -583,7 +558,6 @@ func (k Keeper) deleteCounterpartyUpgrade(ctx sdk.Context, portID, channelID str
 // deleteUpgradeInfo deletes all auxiliary upgrade information.
 func (k Keeper) deleteUpgradeInfo(ctx sdk.Context, portID, channelID string) {
 	k.deleteUpgrade(ctx, portID, channelID)
-	k.deleteCounterpartyLastPacketSequence(ctx, portID, channelID)
 	k.deleteCounterpartyUpgrade(ctx, portID, channelID)
 }
 
