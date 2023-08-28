@@ -84,13 +84,6 @@ func (k Keeper) TimeoutPacket(
 		return types.ErrNoOpMsg
 	}
 
-	if channel.State != types.OPEN {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
-		)
-	}
-
 	packetCommitment := types.CommitPacket(k.cdc, packet)
 
 	// verify we sent the packet and haven't cleared it out yet
@@ -158,7 +151,7 @@ func (k Keeper) TimeoutExecuted(
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if channel.Ordering == types.ORDERED {
-		channel.Close()
+		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 		emitChannelClosedEvent(ctx, packet, channel)
 	}
