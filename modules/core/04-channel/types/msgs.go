@@ -657,8 +657,8 @@ func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
 		return ErrInvalidChannelIdentifier
 	}
 
-	if !collections.Contains(msg.CounterpartyChannelState, []State{STATE_FLUSHING, STATE_FLUSHCOMPLETE}) {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: %s or %s, got: %s", STATE_FLUSHING, STATE_FLUSHCOMPLETE, msg.CounterpartyChannelState)
+	if !collections.Contains(msg.CounterpartyChannelState, []State{FLUSHING, FLUSHCOMPLETE}) {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: %s or %s, got: %s", FLUSHING, FLUSHCOMPLETE, msg.CounterpartyChannelState)
 	}
 
 	if len(msg.ProofChannel) == 0 {
@@ -723,8 +723,8 @@ func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
 
-	if !collections.Contains(msg.CounterpartyChannelState, []State{STATE_FLUSHCOMPLETE, OPEN}) {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", STATE_FLUSHCOMPLETE, OPEN, msg.CounterpartyChannelState)
+	if !collections.Contains(msg.CounterpartyChannelState, []State{FLUSHCOMPLETE, OPEN}) {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", FLUSHCOMPLETE, OPEN, msg.CounterpartyChannelState)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -779,8 +779,8 @@ func (msg MsgChannelUpgradeTimeout) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
 	}
 
-	if !collections.Contains(msg.CounterpartyChannel.State, []State{STATE_FLUSHING, OPEN}) {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected counterparty channel state to be one of: [%s, %s], got: %s", STATE_FLUSHING, OPEN, msg.CounterpartyChannel.State)
+	if !collections.Contains(msg.CounterpartyChannel.State, []State{FLUSHING, OPEN}) {
+		return errorsmod.Wrapf(ErrInvalidChannelState, "expected counterparty channel state to be one of: [%s, %s], got: %s", FLUSHING, OPEN, msg.CounterpartyChannel.State)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
