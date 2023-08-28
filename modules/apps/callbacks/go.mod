@@ -2,8 +2,6 @@ module github.com/cosmos/ibc-go/modules/apps/callbacks
 
 go 1.20
 
-replace github.com/cosmos/ibc-go/v7 => ../../../
-
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 require (
@@ -14,8 +12,10 @@ require (
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/cosmos/cosmos-sdk v0.47.4
 	github.com/cosmos/gogoproto v1.4.10
-	github.com/cosmos/ibc-go/v7 v7.3.0-rc0
+	github.com/cosmos/ibc-go/v7 v7.3.0-rc1
 	github.com/spf13/cast v1.5.1
+	github.com/spf13/cobra v1.7.0
+	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
 )
 
@@ -137,10 +137,8 @@ require (
 	github.com/rs/zerolog v1.29.1 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
-	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.16.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
