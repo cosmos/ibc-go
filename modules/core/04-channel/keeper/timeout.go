@@ -150,13 +150,6 @@ func (k Keeper) TimeoutExecuted(
 
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
-	if channel.Ordering == types.ORDERED {
-		channel.State = types.CLOSED
-		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-		emitChannelClosedEvent(ctx, packet, channel)
-	}
-
-	// TODO: handle situation outlined in https://github.com/cosmos/ibc-go/issues/4454
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.STATE_FLUSHING {
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
@@ -171,15 +164,25 @@ func (k Keeper) TimeoutExecuted(
 				// packet flushing timeout has expired, abort the upgrade and return nil,
 				// committing an error receipt to state, restoring the channel and successfully timing out the packet.
 				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
-				return nil
-			}
 
-			// set the channel state to flush complete if all packets have been flushed.
-			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+				// note: we continue to close the channel even if the upgrade has been aborted.
+				// the end desired state is:
+				// - the channel is closed for an ordered channel, open for an unordered.
+				// - the upgrade info is always deleted (the upgrade is aborted)
+				// - an error receipt is written to state
+
+			} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+				// set the channel state to flush complete if all packets have been flushed.
 				channel.State = types.STATE_FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
 		}
+	}
+
+	if channel.Ordering == types.ORDERED {
+		channel.State = types.CLOSED
+		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+		emitChannelClosedEvent(ctx, packet, channel)
 	}
 
 	k.Logger(ctx).Info(
