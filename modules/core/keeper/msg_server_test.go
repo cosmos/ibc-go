@@ -1351,7 +1351,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			func() {
 				msg.ProofErrorReceipt = []byte("invalid proof")
 				// Force set to STATE_FLUSHCOMPLETE to check that state is not changed.
-				suite.Require().NoError(path.EndpointA.SetChannelState(channeltypes.STATE_FLUSHCOMPLETE))
+				suite.Require().NoError(path.EndpointA.SetChannelState(channeltypes.FLUSHCOMPLETE))
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
 				suite.Require().Error(err)
@@ -1360,7 +1360,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().ErrorIs(err, commitmenttypes.ErrInvalidProof)
 				// Channel state should not be changed.
-				suite.Require().Equal(channeltypes.STATE_FLUSHCOMPLETE, channel.State)
+				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.State)
 				// Upgrade sequence should not be changed.
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 			},
@@ -1467,7 +1467,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
 
 				channel := path.EndpointA.GetChannel()
-				suite.Require().Equalf(channeltypes.STATE_FLUSHCOMPLETE, channel.State, "channel state should be %s", channeltypes.OPEN)
+				suite.Require().Equalf(channeltypes.FLUSHCOMPLETE, channel.State, "channel state should be %s", channeltypes.OPEN)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence, "channel upgrade sequence should not incremented")
 
 				_, found := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -1491,7 +1491,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().ErrorIs(err, commitmenttypes.ErrInvalidProof)
 
 				channel := path.EndpointA.GetChannel()
-				suite.Require().Equalf(channeltypes.STATE_FLUSHCOMPLETE, channel.State, "channel state should be %s", channeltypes.OPEN)
+				suite.Require().Equalf(channeltypes.FLUSHCOMPLETE, channel.State, "channel state should be %s", channeltypes.OPEN)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence, "channel upgrade sequence should not incremented")
 
 				_, found := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
