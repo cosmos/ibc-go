@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (04-channel) [\#4476](https://github.com/cosmos/ibc-go/pull/4476) Use UTC time in log messages for packet timeout error.
+
 ## [v7.2.0](https://github.com/cosmos/ibc-go/releases/tag/v7.2.0) - 2023-06-22
 
 ### Dependencies
