@@ -881,7 +881,7 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 
 	// Move channel to OPEN state if both chains have finished flushing in-flight packets.
 	// Counterparty channel state has been verified in ChanUpgradeConfirm.
-	if msg.CounterpartyChannelState == channeltypes.STATE_FLUSHCOMPLETE && !k.ChannelKeeper.HasInflightPackets(ctx, msg.PortId, msg.ChannelId) {
+	if msg.CounterpartyChannelState == channeltypes.FLUSHCOMPLETE && !k.ChannelKeeper.HasInflightPackets(ctx, msg.PortId, msg.ChannelId) {
 		cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId)
 		k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
 

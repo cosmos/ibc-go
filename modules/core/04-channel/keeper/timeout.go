@@ -158,7 +158,7 @@ func (k Keeper) TimeoutExecuted(
 
 	// TODO: handle situation outlined in https://github.com/cosmos/ibc-go/issues/4454
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
-	if channel.State == types.STATE_FLUSHING {
+	if channel.State == types.FLUSHING {
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 		if !found {
 			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
@@ -176,7 +176,7 @@ func (k Keeper) TimeoutExecuted(
 
 			// set the channel state to flush complete if all packets have been flushed.
 			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-				channel.State = types.STATE_FLUSHCOMPLETE
+				channel.State = types.FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
 		}
