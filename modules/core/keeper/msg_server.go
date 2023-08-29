@@ -101,7 +101,16 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 }
 
 // RecoverClient defines a rpc handler method for MsgRecoverClient.
-func (k Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecoverClient) (*clienttypes.MsgRecoverClientResponse, error) { //nolint:revive
+func (k Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecoverClient) (*clienttypes.MsgRecoverClientResponse, error) {
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := k.ClientKeeper.RecoverClient(ctx, msg.SubjectClientId, msg.SubstituteClientId); err != nil {
+		return nil, errorsmod.Wrap(err, "client recovery failed")
+	}
+
 	return &clienttypes.MsgRecoverClientResponse{}, nil
 }
 
