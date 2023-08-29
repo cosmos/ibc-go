@@ -2,8 +2,6 @@ package upgrades
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -12,12 +10,11 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
-
-type GenesisState map[string]json.RawMessage
 
 func TestGenesisTestSuite(t *testing.T) {
 	suite.Run(t, new(GenesisTestSuite))
@@ -25,7 +22,6 @@ func TestGenesisTestSuite(t *testing.T) {
 
 type GenesisTestSuite struct {
 	testsuite.E2ETestSuite
-	cosmos.ChainNode
 }
 
 func (s *GenesisTestSuite) TestIBCGenesis() {
@@ -121,17 +117,29 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	state, err := chain.ExportState(ctx, int64(haltHeight))
 	s.Require().NoError(err)
 
+	// I dont know why but the state be exported have 2 line notice about IAVL fast node, so we need delete it.
 	str := strings.SplitAfter(state, "server")
 	state = str[1]
 
-	newGenesisJson := strings.ReplaceAll(state, fmt.Sprintf("\"initial_height\":%d", 0), fmt.Sprintf("\"initial_height\":%d", haltHeight+2))
+	appTomlOverrides := make(testsuite.Toml)
+
+	appTomlOverrides["halt-height"] = 0
 
 	for _, node := range chain.Nodes() {
-		err := node.OverwriteGenesisFile(ctx, []byte(newGenesisJson))
+		err := node.OverwriteGenesisFile(ctx, []byte(state))
 		s.Require().NoError(err)
 	}
+
 	for _, node := range chain.Nodes() {
-		err := node.CopyFile(ctx, "app.toml", "config/app.toml")
+		err := testsuite.ModifyTomlConfigFile(
+			ctx,
+			zap.NewExample(),
+			node.DockerClient,
+			node.TestName,
+			node.VolumeName,
+			"config/app.toml",
+			appTomlOverrides,
+		)
 		s.Require().NoError(err)
 	}
 
