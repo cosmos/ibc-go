@@ -173,7 +173,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				err error
 			)
 			sendPacket := func() {
-				seq, err = transferStack.(porttypes.Middleware).SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+				seq, err = transferStack.(porttypes.ICS4Wrapper).SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
 			}
 
 			expPass := tc.expValue == nil
@@ -767,7 +767,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			transferStack, ok := s.chainB.App.GetIBCKeeper().Router.GetRoute(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			err := transferStack.(porttypes.Middleware).WriteAcknowledgement(ctx, chanCap, packet, ack)
+			err := transferStack.(porttypes.ICS4Wrapper).WriteAcknowledgement(ctx, chanCap, packet, ack)
 
 			expPass := tc.expError == nil
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
@@ -967,7 +967,7 @@ func (s *CallbacksTestSuite) TestGetAppVersion() {
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().Router.GetRoute(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
-	controllerStack := icaControllerStack.(porttypes.Middleware)
+	controllerStack := icaControllerStack.(porttypes.ICS4Wrapper)
 	appVersion, found := controllerStack.GetAppVersion(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	s.Require().True(found)
 	s.Require().Equal(s.path.EndpointA.ChannelConfig.Version, appVersion)

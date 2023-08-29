@@ -63,8 +63,8 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 // UpdateParams defines an rpc handler method for MsgUpdateParams. Updates the ibc-transfer module's parameters.
 func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
-	if k.authority != msg.Authority {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.authority, msg.Authority)
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)

@@ -163,7 +163,7 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 	for _, tc := range testCases {
 		s.SetupTransferTest()
 
-		s.ExecuteTransferTimeout(tc.transferMemo, 1)
+		s.ExecuteTransferTimeout(tc.transferMemo)
 		s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
 	}
 }
@@ -208,7 +208,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 
 // ExecuteTransferTimeout executes a transfer message on chainA for 100 denom.
 // This message is not relayed to chainB, and it times out on chainA.
-func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string, nextSeqRecv uint64) {
+func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string) {
 	timeoutHeight := clienttypes.GetSelfHeight(s.chainB.GetContext())
 	timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
 
