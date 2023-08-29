@@ -1,4 +1,4 @@
-package interchain_accounts
+package interchainaccounts
 
 import (
 	"context"
@@ -71,8 +71,8 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 			s.Require().NotNil(authority)
 
 			msg := controllertypes.MsgUpdateParams{
-				Authority: authority.String(),
-				Params:    controllertypes.NewParams(false),
+				Signer: authority.String(),
+				Params: controllertypes.NewParams(false),
 			}
 			s.ExecuteGovProposalV1(ctx, &msg, chainA, controllerAccount, 1)
 		} else {
@@ -128,8 +128,8 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 			s.Require().NotNil(authority)
 
 			msg := hosttypes.MsgUpdateParams{
-				Authority: authority.String(),
-				Params:    hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
+				Signer: authority.String(),
+				Params: hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
 			}
 			s.ExecuteGovProposalV1(ctx, &msg, chainB, chainBUser, 1)
 		} else {

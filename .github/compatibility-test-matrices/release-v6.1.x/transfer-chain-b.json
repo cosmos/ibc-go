@@ -18,9 +18,7 @@
     "TestMsgTransfer_Succeeds_Nonincentivized",
     "TestMsgTransfer_Fails_InvalidAddress",
     "TestMsgTransfer_Timeout_Nonincentivized",
-    "TestMsgTransfer_WithMemo",
-    "TestSendEnabledParam",
-    "TestReceiveEnabledParam"
+    "TestMsgTransfer_WithMemo"
   ],
   "relayer-type": [
     "rly"

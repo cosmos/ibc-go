@@ -52,6 +52,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	// createMsgGrantFn initializes a TransferAuthorization and broadcasts a MsgGrant message.
 	createMsgGrantFn := func(t *testing.T) {
+		t.Helper()
 		transferAuth := transfertypes.TransferAuthorization{
 			Allocations: []transfertypes.Allocation{
 				{
@@ -83,7 +84,9 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	// verifyGrantFn returns a test function which asserts chainA has a grant authorization
 	// with the given spend limit.
 	verifyGrantFn := func(expectedLimit int64) func(t *testing.T) {
+		t.Helper()
 		return func(t *testing.T) {
+			t.Helper()
 			grantAuths, err := suite.QueryGranterGrants(ctx, chainA, granterAddress)
 
 			suite.Require().NoError(err)
