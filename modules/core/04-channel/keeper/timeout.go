@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
@@ -169,11 +170,15 @@ func (k Keeper) TimeoutExecuted(
 				channel.State = types.STATE_FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
+			// upgrade fields have been set but the timeout has not. This can happen when the counterparty
+			// upgrade is partially written in WriteUpgradeTryChannel.
+		} else if counterpartyUpgrade.Fields.Version != "" {
+			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), fmt.Errorf("uh oh"))
 		}
 	}
 
 	if channel.Ordering == types.ORDERED {
-		// note: we continue to close the unordered channel even if the upgrade has been aborted.
+		// note: we continue to close the ordered channel even if the upgrade has been aborted.
 		// the end desired state is:
 		// - the channel is closed.
 		// - the upgrade info is always deleted (if the upgrade is aborted)
