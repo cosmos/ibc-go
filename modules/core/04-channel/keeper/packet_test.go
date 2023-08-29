@@ -222,7 +222,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				sourceChannel = path.EndpointA.ChannelID
 
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHCOMPLETE
+				channel.State = types.FLUSHCOMPLETE
 				path.EndpointA.SetChannel(channel)
 			},
 			false,
@@ -345,7 +345,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 				channel := path.EndpointB.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointB.SetChannel(channel)
 
 				// set last packet sent sequence to sequence + 1
@@ -364,7 +364,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 				channel := path.EndpointB.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointB.SetChannel(channel)
 			},
 			types.ErrUpgradeNotFound,
@@ -379,7 +379,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 				channel := path.EndpointB.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointB.SetChannel(channel)
 
 				// set last packet sent sequence to sequence - 1
@@ -398,7 +398,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 				channel := path.EndpointB.GetChannel()
-				channel.State = types.STATE_FLUSHCOMPLETE
+				channel.State = types.FLUSHCOMPLETE
 				path.EndpointB.SetChannel(channel)
 			},
 			types.ErrInvalidChannelState,
@@ -842,7 +842,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 
 				path.EndpointA.SetChannel(channel)
 
@@ -857,7 +857,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.Require().Nil(commitment)
 
 				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(types.STATE_FLUSHING, channel.State)
+				suite.Require().Equal(types.FLUSHING, channel.State)
 
 				nextSequenceAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
 				suite.Require().True(found)
@@ -882,7 +882,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 
 				path.EndpointA.SetChannel(channel)
 
@@ -897,7 +897,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.Require().Nil(commitment)
 
 				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(types.STATE_FLUSHCOMPLETE, channel.State)
+				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
 
 				nextSequenceAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
 				suite.Require().True(found)
@@ -922,7 +922,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 
 				path.EndpointA.SetChannel(channel)
 
@@ -1044,7 +1044,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHCOMPLETE
+				channel.State = types.FLUSHCOMPLETE
 
 				path.EndpointA.SetChannel(channel)
 			},

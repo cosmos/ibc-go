@@ -567,9 +567,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				suite.Require().NoError(err)
 
 				channel := path.EndpointA.GetChannel()
-				// ChanUpgradeAck will set the channel state to STATE_FLUSHING
+				// ChanUpgradeAck will set the channel state to FLUSHING
 				// It will be set to FLUSHING_COMPLETE in the write function.
-				suite.Require().Equal(types.STATE_FLUSHING, channel.State)
+				suite.Require().Equal(types.FLUSHING, channel.State)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
 			}
@@ -652,7 +652,7 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 
 			if !tc.hasPacketCommitments {
-				suite.Require().Equal(types.STATE_FLUSHCOMPLETE, channel.State)
+				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
 				_, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(ok)
 			} else {
@@ -854,7 +854,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 			"channel state is not FLUSHCOMPLETE",
 			func() {
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
 			},
 			types.ErrInvalidChannelState,
@@ -1160,7 +1160,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			name: "success with flushing state",
 			malleate: func() {
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
 			},
 			expError: nil,
@@ -1273,7 +1273,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			suite.Require().True(ok)
 
 			channel = path.EndpointA.GetChannel()
-			channel.State = types.STATE_FLUSHCOMPLETE
+			channel.State = types.FLUSHCOMPLETE
 			path.EndpointA.SetChannel(channel)
 
 			tc.malleate()
@@ -1504,7 +1504,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				proofCounterpartyChannel, _, proofHeight = path.EndpointA.QueryChannelUpgradeProof()
 
 				// modify state so the proof becomes invalid.
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointB.SetChannel(channel)
 				suite.coordinator.CommitNBlocks(suite.chainB, 1)
 			},
@@ -1555,7 +1555,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			"counterparty channel state is not OPEN or FLUSHING (crossing hellos)",
 			func() {
 				channel := path.EndpointB.GetChannel()
-				channel.State = types.STATE_FLUSHCOMPLETE
+				channel.State = types.FLUSHCOMPLETE
 				path.EndpointB.SetChannel(channel)
 
 				suite.coordinator.CommitNBlocks(suite.chainB, 1000)
@@ -1716,7 +1716,7 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 				nextSequenceSend, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
 
-				suite.Require().Equal(types.STATE_FLUSHING, channel.State)
+				suite.Require().Equal(types.FLUSHING, channel.State)
 				suite.Require().Equal(nextSequenceSend-1, upgrade.LatestSequenceSend)
 
 				// TODO: fix in https://github.com/cosmos/ibc-go/issues/4313
