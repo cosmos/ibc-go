@@ -717,7 +717,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade(
 
 		if tc.expPass {
 			suite.Require().NoError(err)
-			suite.Assert().Equal(ibctesting.TestAccAddress, msg.Authority)
+			suite.Assert().Equal(ibctesting.TestAccAddress, msg.Signer)
 			suite.Assert().Equal(plan, msg.Plan)
 			unpackedClientState, err := types.UnpackClientState(msg.UpgradedClientState)
 			suite.Require().NoError(err)
@@ -771,7 +771,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
 // TestMsgIBCSoftwareUpgrade_ValidateBasic tests ValidateBasic for MsgIBCSoftwareUpgrade
 func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 	var (
-		authority string
+		signer    string
 		plan      upgradetypes.Plan
 		anyClient *codectypes.Any
 	)
@@ -788,7 +788,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 		{
 			"failure: invalid authority address",
 			func() {
-				authority = "invalid"
+				signer = "invalid"
 			},
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -809,7 +809,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		authority = ibctesting.TestAccAddress
+		signer = ibctesting.TestAccAddress
 		plan = upgradetypes.Plan{
 			Name:   "upgrade IBC clients",
 			Height: 1000,
@@ -822,9 +822,9 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 		tc.malleate()
 
 		msg := types.MsgIBCSoftwareUpgrade{
-			authority,
 			plan,
 			anyClient,
+			signer,
 		}
 
 		err = msg.ValidateBasic()

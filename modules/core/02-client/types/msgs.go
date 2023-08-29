@@ -287,14 +287,14 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 }
 
 // NewMsgIBCSoftwareUpgrade creates a new MsgIBCSoftwareUpgrade instance
-func NewMsgIBCSoftwareUpgrade(authority string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (*MsgIBCSoftwareUpgrade, error) {
+func NewMsgIBCSoftwareUpgrade(signer string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (*MsgIBCSoftwareUpgrade, error) {
 	anyClient, err := PackClientState(upgradedClientState)
 	if err != nil {
 		return nil, err
 	}
 
 	return &MsgIBCSoftwareUpgrade{
-		Authority:           authority,
+		Signer:              signer,
 		Plan:                plan,
 		UpgradedClientState: anyClient,
 	}, nil
@@ -302,7 +302,7 @@ func NewMsgIBCSoftwareUpgrade(authority string, plan upgradetypes.Plan, upgraded
 
 // GetSigners returns the expected signers for a MsgIBCSoftwareUpgrade message.
 func (msg *MsgIBCSoftwareUpgrade) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
 	}
@@ -311,7 +311,7 @@ func (msg *MsgIBCSoftwareUpgrade) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic performs basic checks on a MsgIBCSoftwareUpgrade.
 func (msg *MsgIBCSoftwareUpgrade) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 

@@ -96,12 +96,8 @@ message MsgUpgradeClientResponse {}
 
 // MsgIBCSoftwareUpgrade defines an sdk.Msg to schedule an upgrade of an IBC client using a v1 governance proposal
 message MsgIBCSoftwareUpgrade {
-  option (cosmos.msg.v1.signer) = "authority";
-
-  // authority is the address of the governance account.
-  string                      authority = 1;
-  cosmos.upgrade.v1beta1.Plan plan      = 2 [(gogoproto.nullable) = false];
-
+  option (cosmos.msg.v1.signer)    = "signer";
+  cosmos.upgrade.v1beta1.Plan plan = 1 [(gogoproto.nullable) = false];
   // An UpgradedClientState must be provided to perform an IBC breaking upgrade.
   // This will make the chain commit to the correct upgraded (self) client state
   // before the upgrade occurs, so that connecting chains can verify that the
@@ -110,7 +106,9 @@ message MsgIBCSoftwareUpgrade {
   // planned chain upgrades. Correspondingly, the UpgradedClientState field has been
   // deprecated in the Cosmos SDK to allow for this logic to exist solely in
   // the 02-client module.
-  google.protobuf.Any upgraded_client_state = 3;
+  google.protobuf.Any upgraded_client_state = 2;
+  // signer defaults to the governance account address unless otherwise specified.
+  string signer = 3;
 }
 
 // MsgIBCSoftwareUpgradeResponse defines the Msg/IBCSoftwareUpgrade response type.
