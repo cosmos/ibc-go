@@ -34,9 +34,8 @@ A new `ChannelEnd` interface is defined after a channel upgrade, the scope of th
 
 The upgrade approval process can be represented in terms of the following parameters:
 
-- The set of port ID, channel ID pairs that specify the channels that can be upgraded. It can be possible to specify a single channel or a set of channels satisfying certain port ID, channel ID conditions. Examples: upgrading can be approved for
-  - channels with port ID, channel ID combinations (`transfer`, `channel-0`) & (`transfer`, `channel-1`),
-  - all channels for  a specified port ID e.g. `transfer`, or  `icacontroller` (so that all ICA channels on a controller chain, regardless of the owner address appended to the port ID, can be upgraded).
+- The set of port ID, channel ID pairs that specify the channels that can be upgraded. It can be possible to specify a single channel or a set of channels satisfying certain port ID, channel ID conditions. 
+  - Example: channels with port ID, channel ID combinations (`transfer`, `channel-0`) & (`transfer`, `channel-1`)
 - The upgrade parameters - these must be specified for each channel ID and port ID selected for the upgrade. The upgrade parameters are:
   - channel version
   - channel ordering
@@ -46,16 +45,16 @@ The upgrade approval process can be represented in terms of the following parame
   - Block height
   - Timestamp  
 
-The upgrade parameters and timestamp must be specified per specific pairs of port ID, channel ID (e.g. for channel (`transfer`, `channel-0`)) or for all channels using a certain port ID (e.g. for all channels on port ID `transfer`). An approval timeout can be left unspecified.
+The upgrade parameters and timestamp must be specified per specific pairs of port ID, channel ID (e.g. for channel (`transfer`, `channel-0`)). An approval timeout can be left unspecified.
 
 #### Examples
 
 | port ID, channel ID | version | ordering | hops | timeout| use case|
 | -- |  --- | ------ | ------ | ------ |------ |
-| (`transfer`, `channel-0`) | `ics20-2` |  |  | block height 1000 |Upgrading ics20 to v2 for 1 channel |
+| (`transfer`, `channel-0`) & (`transfer`, `channel-1`)| `ics20-2` |  |  | block height 1000 |Upgrading ics20 to v2 for 2 channels |
 | (`icacontroller-cosmos13fx6...`, `channel-2`)|  | `UNORDERED` |  | timestamp 1682288559 | Upgrading single ICA controller channel to be unordered |
-| (`transfer`, `*`)| `{"fee_version":"ics29-1", "app_version":"ics20-1"}`|  | | block height 1050 | Upgrade all transfer channels to have ics-29 enabled |
-| (`icacontroller-*`, `*`) | `{"fee_version":"ics29-1", "app_version":"ics27-1"}` |  |  | block height 1080 | Upgrade all ICA controller channels to have ics-29 enabled |
+| (`transfer`, `channel-1`)| `{"fee_version":"ics29-1", "app_version":"ics20-1"}`|  | | block height 1050 | Upgrade single transfer channel to have ics-29 enabled |
+| (`icacontroller-cosmos89y4...`, `channel-7`) | `{"fee_version":"ics29-1", "app_version":"ics27-1"}` |  |  | block height 1080 | Upgrade an ICA controller channel to have ics-29 enabled |
 
 Once an approved upgrade succeeds or the timeout window has passed, it is required that a new governance or groups proposal passes to approve a new upgrade to the channel.
 
@@ -63,13 +62,13 @@ Once an approved upgrade succeeds or the timeout window has passed, it is requir
 
 Upgrades can be initiated in two possible ways:
 
-- __Permissionless__: upgrade initiation is previously approved by governance or a groups proposal and a relayer can submit `MsgChannelUpgradeInit`.
+- __Permissionless__: upgrade initiation is previously approved by governance or a groups proposal, or upgrades are accepted from certain `ConnectionID`s and a relayer can submit `MsgChannelUpgradeInit`.
 - __Permissioned__: upgrade initiation is approved by governance or groups proposal and `MsgChannelUpgradeInit` is automatically submitted on proposal passing.
 
 Assuming that we have two chains, and that both chains approve a compatible upgrade (i.e. the proposed upgrade parameters are identical on both chains and a channel between them is in the upgrade scope), then the following upgrade initiation combinations are possible:
 
 - Permissionless upgrade initiation on both chain A and B.
-     In this scenario both chains approve a channel upgrade and a relayer can submit `MsgChannelUpgradeInit` on one side to start the handshake within the timeout period specified in the upgrade approval proposal. Upon successful execution of `MsgChannelUPgradeInit` a relayer can submit `MsgChannelUpgradeTry` on the counterparty.
+     In this scenario both chains approve a channel upgrade and a relayer can submit `MsgChannelUpgradeInit` on one side to start the handshake within the timeout period specified in the upgrade approval proposal. Upon successful execution of `MsgChannelUpgradeInit` a relayer can submit `MsgChannelUpgradeTry` on the counterparty.
 - Permissionless upgrade on chain A and permissioned upgrade on chain B (or vice versa).
   - Both sides approve a channel upgrade, but one chain automatically initiates the upgrade process by executing `MsgChannelUpgradeInit` and the other side needs a relayer to submit either `MsgChannelUpgradeInit` or `MsgChannelUpgradeTry`. If `MsgChannelUpgradeInit` is executed on both chains, then we would have a crossing hello situation.
 - Permissioned upgrade on both chain A and B.
@@ -99,8 +98,8 @@ A normal flow for upgrades, with both chains having granted approval for the upg
 9. Relayer starts flushing in-flight packets from chain B to chain A.
 10. Relayer completes packet lifecycle for in-flight packets from chain A to chain B.
 11. Relayer completes packet lifecycle for in-flight packets from chain B to chain A.
-12. Relayer submits `MsgChannelUpgradeOpen` on chain B.
-13. Execution of `MsgChannelUpgradeOpen` succeeds on chain B.
+12. Relayer submits `MsgChannelUpgradeConfirm` on chain B.
+13. Execution of `MsgChannelUpgradeConfirm` succeeds on chain B.
 14. Chain B disallows port ID `transfer`, channel ID `channel-0` to be further upgraded.
 15. Relayer submits `MsgChannelUpgradeOpen` on chain A.
 16. Execution of `MsgChannelUpgradeOpen` succeeds on chain A.
@@ -132,8 +131,8 @@ The crossing hello flow for upgrades, happens where approval is granted on both 
 9. Relayer starts flushing in-flight packets from chain B to chain A.
 10. Relayer completes packet lifecycle for in-flight packets from chain A to chain B.
 11. Relayer completes packet lifecycle for in-flight packets from chain B to chain A.
-12. Relayer submits `MsgChannelUpgradeOpen` on chain B.
-13. Execution of `MsgChannelUpgradeOpen` succeeds on chain B.
+12. Relayer submits `MsgChannelUpgradeConfirm` on chain B.
+13. Execution of `MsgChannelUpgradeConfirm` succeeds on chain B.
 14. Chain B disallows port ID `transfer`, channel ID `channel-0` to be further upgraded.
 15. Relayer submits `MsgChannelUpgradeOpen` on chain A.
 16. Execution of `MsgChannelUpgradeOpen` succeeds on chain A.
