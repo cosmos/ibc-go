@@ -31,6 +31,9 @@ service Msg {
 
   // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
   rpc UpdateClientParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // RecoverClient defines a rpc handler method for MsgRecoverClient.
+  rpc RecoverClient(MsgRecoverClient) returns (MsgRecoverClientResponse);
 }
 
 // MsgCreateClient defines a message to create an IBC client
@@ -96,12 +99,8 @@ message MsgUpgradeClientResponse {}
 
 // MsgIBCSoftwareUpgrade defines an sdk.Msg to schedule an upgrade of an IBC client using a v1 governance proposal
 message MsgIBCSoftwareUpgrade {
-  option (cosmos.msg.v1.signer) = "authority";
-
-  // authority is the address of the governance account.
-  string                      authority = 1;
-  cosmos.upgrade.v1beta1.Plan plan      = 2 [(gogoproto.nullable) = false];
-
+  option (cosmos.msg.v1.signer)    = "signer";
+  cosmos.upgrade.v1beta1.Plan plan = 1 [(gogoproto.nullable) = false];
   // An UpgradedClientState must be provided to perform an IBC breaking upgrade.
   // This will make the chain commit to the correct upgraded (self) client state
   // before the upgrade occurs, so that connecting chains can verify that the
@@ -110,7 +109,9 @@ message MsgIBCSoftwareUpgrade {
   // planned chain upgrades. Correspondingly, the UpgradedClientState field has been
   // deprecated in the Cosmos SDK to allow for this logic to exist solely in
   // the 02-client module.
-  google.protobuf.Any upgraded_client_state = 3;
+  google.protobuf.Any upgraded_client_state = 2;
+  // signer defaults to the governance account address unless otherwise specified.
+  string signer = 3;
 }
 
 // MsgIBCSoftwareUpgradeResponse defines the Msg/IBCSoftwareUpgrade response type.
@@ -154,3 +155,20 @@ message MsgUpdateParams {
 
 // MsgUpdateParamsResponse defines the MsgUpdateParams response type.
 message MsgUpdateParamsResponse {}
+
+// MsgRecoverClient defines the sdk.Msg type to recover a client.
+message MsgRecoverClient {
+  option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer)      = "signer";
+
+  // signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+  string signer = 1;
+  // the client identifier for the client to be updated if the proposal passes
+  string subject_client_id = 2;
+  // the substitute client identifier for the client which will replace the subject
+  // client
+  string substitute_client_id = 3;
+}
+
+// MsgRecoverClientResponse defines the MsgRecoverClient response type.
+message MsgRecoverClientResponse {}
