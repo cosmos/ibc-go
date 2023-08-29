@@ -203,9 +203,9 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
-		{"success: valid authority and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), true},
-		{"failure: invalid authority with valid params", types.NewMsgUpdateParams("invalidAddress", types.DefaultParams()), false},
-		{"failure: empty authority with valid params", types.NewMsgUpdateParams("", types.DefaultParams()), false},
+		{"success: valid signer and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), true},
+		{"failure: invalid signer with valid params", types.NewMsgUpdateParams("invalidAddress", types.DefaultParams()), false},
+		{"failure: empty signer with valid params", types.NewMsgUpdateParams("", types.DefaultParams()), false},
 	}
 
 	for i, tc := range testCases {

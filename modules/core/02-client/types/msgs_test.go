@@ -615,30 +615,30 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
 func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
-	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and params",
-			types.NewMsgUpdateParams(authority, types.DefaultParams()),
+			"success: valid signer and params",
+			types.NewMsgUpdateParams(signer, types.DefaultParams()),
 			true,
 		},
 		{
-			"success: valid authority empty params",
-			types.NewMsgUpdateParams(authority, types.Params{}),
+			"success: valid signer empty params",
+			types.NewMsgUpdateParams(signer, types.Params{}),
 			true,
 		},
 		{
-			"failure: invalid authority address",
+			"failure: invalid signer address",
 			types.NewMsgUpdateParams("invalid", types.DefaultParams()),
 			false,
 		},
 		{
 			"failure: invalid allowed client",
-			types.NewMsgUpdateParams(authority, types.NewParams("")),
+			types.NewMsgUpdateParams(signer, types.NewParams("")),
 			false,
 		},
 	}
