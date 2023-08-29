@@ -100,6 +100,11 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 	return &clienttypes.MsgSubmitMisbehaviourResponse{}, nil
 }
 
+// RecoverClient defines a rpc handler method for MsgRecoverClient.
+func (k Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecoverClient) (*clienttypes.MsgRecoverClientResponse, error) { //nolint:revive
+	return &clienttypes.MsgRecoverClientResponse{}, nil
+}
+
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
 func (k Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenInit) (*connectiontypes.MsgConnectionOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
