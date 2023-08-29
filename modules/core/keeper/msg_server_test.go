@@ -1120,11 +1120,11 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
 
 				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(channeltypes.STATE_FLUSHING, channel.State)
+				suite.Require().Equal(channeltypes.FLUSHING, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 
 				channel = path.EndpointB.GetChannel()
-				suite.Require().Equal(channeltypes.STATE_FLUSHCOMPLETE, channel.State)
+				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 			},
 		},
