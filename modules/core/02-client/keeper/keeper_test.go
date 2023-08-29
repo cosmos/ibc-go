@@ -12,7 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -482,4 +484,114 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	suite.Require().Panics(func() {
 		suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
 	})
+}
+
+// TestIBCSoftwareUpgrade tests that an IBC client upgrade has been properly scheduled
+func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
+	var (
+		upgradedClientState *ibctm.ClientState
+		oldPlan, plan       upgradetypes.Plan
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"valid upgrade proposal",
+			func() {},
+			nil,
+		},
+		{
+			"valid upgrade proposal with previous IBC state", func() {
+				oldPlan = upgradetypes.Plan{
+					Name:   "upgrade IBC clients",
+					Height: 100,
+				}
+			},
+			nil,
+		},
+		{
+			"fail: scheduling upgrade with plan height 0",
+			func() {
+				plan.Height = 0
+			},
+			sdkerrors.ErrInvalidRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()  // reset
+			oldPlan.Height = 0 // reset
+
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			upgradedClientState = suite.chainA.GetClientState(path.EndpointA.ClientID).ZeroCustomFields().(*ibctm.ClientState)
+
+			// use height 1000 to distinguish from old plan
+			plan = upgradetypes.Plan{
+				Name:   "upgrade IBC clients",
+				Height: 1000,
+			}
+
+			tc.malleate()
+
+			// set the old plan if it is not empty
+			if oldPlan.Height != 0 {
+				// set upgrade plan in the upgrade store
+				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(upgradetypes.StoreKey))
+				bz := suite.chainA.App.AppCodec().MustMarshal(&oldPlan)
+				store.Set(upgradetypes.PlanKey(), bz)
+
+				bz, err := types.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClientState)
+				suite.Require().NoError(err)
+
+				suite.Require().NoError(suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height, bz))
+			}
+
+			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.ScheduleIBCSoftwareUpgrade(suite.chainA.GetContext(), plan, upgradedClientState)
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+
+				// check that the correct plan is returned
+				storedPlan, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
+				suite.Require().True(found)
+				suite.Require().Equal(plan, storedPlan)
+
+				// check that old upgraded client state is cleared
+				cs, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height)
+				suite.Require().False(found)
+				suite.Require().Empty(cs)
+
+				// check that client state was set
+				storedClientState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
+				suite.Require().True(found)
+				clientState, err := types.UnmarshalClientState(suite.chainA.App.AppCodec(), storedClientState)
+				suite.Require().NoError(err)
+				suite.Require().Equal(upgradedClientState, clientState)
+			} else {
+				// check that the new plan wasn't stored
+				storedPlan, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
+				if oldPlan.Height != 0 {
+					// NOTE: this is only true if the ScheduleUpgrade function
+					// returns an error before clearing the old plan
+					suite.Require().True(found)
+					suite.Require().Equal(oldPlan, storedPlan)
+				} else {
+					suite.Require().False(found)
+					suite.Require().Empty(storedPlan)
+				}
+
+				// check that client state was not set
+				cs, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
+				suite.Require().Empty(cs)
+				suite.Require().False(found)
+			}
+		})
+	}
 }

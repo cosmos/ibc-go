@@ -5,6 +5,7 @@ package ibc.core.client.v1;
 option go_package = "github.com/cosmos/ibc-go/v7/modules/core/02-client/types";
 
 import "cosmos/msg/v1/msg.proto";
+import "cosmos/upgrade/v1beta1/upgrade.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "ibc/core/client/v1/client.proto";
@@ -21,6 +22,9 @@ service Msg {
 
   // UpgradeClient defines a rpc handler method for MsgUpgradeClient.
   rpc UpgradeClient(MsgUpgradeClient) returns (MsgUpgradeClientResponse);
+
+  // IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
+  rpc IBCSoftwareUpgrade(MsgIBCSoftwareUpgrade) returns (MsgIBCSoftwareUpgradeResponse);
 
   // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
   rpc SubmitMisbehaviour(MsgSubmitMisbehaviour) returns (MsgSubmitMisbehaviourResponse);
@@ -92,6 +96,26 @@ message MsgUpgradeClient {
 
 // MsgUpgradeClientResponse defines the Msg/UpgradeClient response type.
 message MsgUpgradeClientResponse {}
+
+// MsgIBCSoftwareUpgrade defines an sdk.Msg to schedule an upgrade of an IBC client using a v1 governance proposal
+message MsgIBCSoftwareUpgrade {
+  option (cosmos.msg.v1.signer)    = "signer";
+  cosmos.upgrade.v1beta1.Plan plan = 1 [(gogoproto.nullable) = false];
+  // An UpgradedClientState must be provided to perform an IBC breaking upgrade.
+  // This will make the chain commit to the correct upgraded (self) client state
+  // before the upgrade occurs, so that connecting chains can verify that the
+  // new upgraded client is valid by verifying a proof on the previous version
+  // of the chain. This will allow IBC connections to persist smoothly across
+  // planned chain upgrades. Correspondingly, the UpgradedClientState field has been
+  // deprecated in the Cosmos SDK to allow for this logic to exist solely in
+  // the 02-client module.
+  google.protobuf.Any upgraded_client_state = 2;
+  // signer defaults to the governance account address unless otherwise specified.
+  string signer = 3;
+}
+
+// MsgIBCSoftwareUpgradeResponse defines the Msg/IBCSoftwareUpgrade response type.
+message MsgIBCSoftwareUpgradeResponse {}
 
 // MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 // light client misbehaviour.

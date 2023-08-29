@@ -714,6 +714,12 @@ func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUp
 	return &clienttypes.MsgUpdateParamsResponse{}, nil
 }
 
+// IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
+func (Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
+	// TODO
+	return nil, nil
+}
+
 // UpdateConnectionParams defines a rpc handler method for MsgUpdateParams for the 03-connection submodule.
 func (k Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Authority {

@@ -8,6 +8,7 @@ import (
 	fmt "fmt"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
+	types1 "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
@@ -280,6 +281,113 @@ func (m *MsgUpgradeClientResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpgradeClientResponse proto.InternalMessageInfo
 
+// MsgIBCSoftwareUpgrade defines an sdk.Msg to schedule an upgrade of an IBC client using a v1 governance proposal
+type MsgIBCSoftwareUpgrade struct {
+	Plan types1.Plan `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan"`
+	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
+	// This will make the chain commit to the correct upgraded (self) client state
+	// before the upgrade occurs, so that connecting chains can verify that the
+	// new upgraded client is valid by verifying a proof on the previous version
+	// of the chain. This will allow IBC connections to persist smoothly across
+	// planned chain upgrades. Correspondingly, the UpgradedClientState field has been
+	// deprecated in the Cosmos SDK to allow for this logic to exist solely in
+	// the 02-client module.
+	UpgradedClientState *types.Any `protobuf:"bytes,2,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
+	// signer defaults to the governance account address unless otherwise specified.
+	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
+}
+
+func (m *MsgIBCSoftwareUpgrade) Reset()         { *m = MsgIBCSoftwareUpgrade{} }
+func (m *MsgIBCSoftwareUpgrade) String() string { return proto.CompactTextString(m) }
+func (*MsgIBCSoftwareUpgrade) ProtoMessage()    {}
+func (*MsgIBCSoftwareUpgrade) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cb5dc4651eb49a04, []int{6}
+}
+func (m *MsgIBCSoftwareUpgrade) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgIBCSoftwareUpgrade) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgIBCSoftwareUpgrade.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgIBCSoftwareUpgrade) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgIBCSoftwareUpgrade.Merge(m, src)
+}
+func (m *MsgIBCSoftwareUpgrade) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgIBCSoftwareUpgrade) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgIBCSoftwareUpgrade.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgIBCSoftwareUpgrade proto.InternalMessageInfo
+
+func (m *MsgIBCSoftwareUpgrade) GetPlan() types1.Plan {
+	if m != nil {
+		return m.Plan
+	}
+	return types1.Plan{}
+}
+
+func (m *MsgIBCSoftwareUpgrade) GetUpgradedClientState() *types.Any {
+	if m != nil {
+		return m.UpgradedClientState
+	}
+	return nil
+}
+
+func (m *MsgIBCSoftwareUpgrade) GetSigner() string {
+	if m != nil {
+		return m.Signer
+	}
+	return ""
+}
+
+// MsgIBCSoftwareUpgradeResponse defines the Msg/IBCSoftwareUpgrade response type.
+type MsgIBCSoftwareUpgradeResponse struct {
+}
+
+func (m *MsgIBCSoftwareUpgradeResponse) Reset()         { *m = MsgIBCSoftwareUpgradeResponse{} }
+func (m *MsgIBCSoftwareUpgradeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgIBCSoftwareUpgradeResponse) ProtoMessage()    {}
+func (*MsgIBCSoftwareUpgradeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cb5dc4651eb49a04, []int{7}
+}
+func (m *MsgIBCSoftwareUpgradeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgIBCSoftwareUpgradeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgIBCSoftwareUpgradeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgIBCSoftwareUpgradeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgIBCSoftwareUpgradeResponse.Merge(m, src)
+}
+func (m *MsgIBCSoftwareUpgradeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgIBCSoftwareUpgradeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgIBCSoftwareUpgradeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgIBCSoftwareUpgradeResponse proto.InternalMessageInfo
+
 // MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
 // light client misbehaviour.
 // This message has been deprecated. Use MsgUpdateClient instead.
@@ -298,7 +406,7 @@ func (m *MsgSubmitMisbehaviour) Reset()         { *m = MsgSubmitMisbehaviour{} }
 func (m *MsgSubmitMisbehaviour) String() string { return proto.CompactTextString(m) }
 func (*MsgSubmitMisbehaviour) ProtoMessage()    {}
 func (*MsgSubmitMisbehaviour) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb5dc4651eb49a04, []int{6}
+	return fileDescriptor_cb5dc4651eb49a04, []int{8}
 }
 func (m *MsgSubmitMisbehaviour) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -336,7 +444,7 @@ func (m *MsgSubmitMisbehaviourResponse) Reset()         { *m = MsgSubmitMisbehav
 func (m *MsgSubmitMisbehaviourResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSubmitMisbehaviourResponse) ProtoMessage()    {}
 func (*MsgSubmitMisbehaviourResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb5dc4651eb49a04, []int{7}
+	return fileDescriptor_cb5dc4651eb49a04, []int{9}
 }
 func (m *MsgSubmitMisbehaviourResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -379,7 +487,7 @@ func (m *MsgUpdateParams) Reset()         { *m = MsgUpdateParams{} }
 func (m *MsgUpdateParams) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateParams) ProtoMessage()    {}
 func (*MsgUpdateParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb5dc4651eb49a04, []int{8}
+	return fileDescriptor_cb5dc4651eb49a04, []int{10}
 }
 func (m *MsgUpdateParams) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -416,7 +524,7 @@ func (m *MsgUpdateParamsResponse) Reset()         { *m = MsgUpdateParamsResponse
 func (m *MsgUpdateParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateParamsResponse) ProtoMessage()    {}
 func (*MsgUpdateParamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb5dc4651eb49a04, []int{9}
+	return fileDescriptor_cb5dc4651eb49a04, []int{11}
 }
 func (m *MsgUpdateParamsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -533,6 +641,8 @@ func init() {
 	proto.RegisterType((*MsgUpdateClientResponse)(nil), "ibc.core.client.v1.MsgUpdateClientResponse")
 	proto.RegisterType((*MsgUpgradeClient)(nil), "ibc.core.client.v1.MsgUpgradeClient")
 	proto.RegisterType((*MsgUpgradeClientResponse)(nil), "ibc.core.client.v1.MsgUpgradeClientResponse")
+	proto.RegisterType((*MsgIBCSoftwareUpgrade)(nil), "ibc.core.client.v1.MsgIBCSoftwareUpgrade")
+	proto.RegisterType((*MsgIBCSoftwareUpgradeResponse)(nil), "ibc.core.client.v1.MsgIBCSoftwareUpgradeResponse")
 	proto.RegisterType((*MsgSubmitMisbehaviour)(nil), "ibc.core.client.v1.MsgSubmitMisbehaviour")
 	proto.RegisterType((*MsgSubmitMisbehaviourResponse)(nil), "ibc.core.client.v1.MsgSubmitMisbehaviourResponse")
 	proto.RegisterType((*MsgUpdateParams)(nil), "ibc.core.client.v1.MsgUpdateParams")
@@ -612,6 +722,8 @@ type MsgClient interface {
 	UpdateClient(ctx context.Context, in *MsgUpdateClient, opts ...grpc.CallOption) (*MsgUpdateClientResponse, error)
 	// UpgradeClient defines a rpc handler method for MsgUpgradeClient.
 	UpgradeClient(ctx context.Context, in *MsgUpgradeClient, opts ...grpc.CallOption) (*MsgUpgradeClientResponse, error)
+	// IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
+	IBCSoftwareUpgrade(ctx context.Context, in *MsgIBCSoftwareUpgrade, opts ...grpc.CallOption) (*MsgIBCSoftwareUpgradeResponse, error)
 	// SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 	SubmitMisbehaviour(ctx context.Context, in *MsgSubmitMisbehaviour, opts ...grpc.CallOption) (*MsgSubmitMisbehaviourResponse, error)
 	// UpdateClientParams defines a rpc handler method for MsgUpdateParams.
@@ -655,6 +767,15 @@ func (c *msgClient) UpgradeClient(ctx context.Context, in *MsgUpgradeClient, opt
 	return out, nil
 }
 
+func (c *msgClient) IBCSoftwareUpgrade(ctx context.Context, in *MsgIBCSoftwareUpgrade, opts ...grpc.CallOption) (*MsgIBCSoftwareUpgradeResponse, error) {
+	out := new(MsgIBCSoftwareUpgradeResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.client.v1.Msg/IBCSoftwareUpgrade", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) SubmitMisbehaviour(ctx context.Context, in *MsgSubmitMisbehaviour, opts ...grpc.CallOption) (*MsgSubmitMisbehaviourResponse, error) {
 	out := new(MsgSubmitMisbehaviourResponse)
 	err := c.cc.Invoke(ctx, "/ibc.core.client.v1.Msg/SubmitMisbehaviour", in, out, opts...)
@@ -690,6 +811,8 @@ type MsgServer interface {
 	UpdateClient(context.Context, *MsgUpdateClient) (*MsgUpdateClientResponse, error)
 	// UpgradeClient defines a rpc handler method for MsgUpgradeClient.
 	UpgradeClient(context.Context, *MsgUpgradeClient) (*MsgUpgradeClientResponse, error)
+	// IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
+	IBCSoftwareUpgrade(context.Context, *MsgIBCSoftwareUpgrade) (*MsgIBCSoftwareUpgradeResponse, error)
 	// SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 	SubmitMisbehaviour(context.Context, *MsgSubmitMisbehaviour) (*MsgSubmitMisbehaviourResponse, error)
 	// UpdateClientParams defines a rpc handler method for MsgUpdateParams.
@@ -710,6 +833,9 @@ func (*UnimplementedMsgServer) UpdateClient(ctx context.Context, req *MsgUpdateC
 }
 func (*UnimplementedMsgServer) UpgradeClient(ctx context.Context, req *MsgUpgradeClient) (*MsgUpgradeClientResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpgradeClient not implemented")
+}
+func (*UnimplementedMsgServer) IBCSoftwareUpgrade(ctx context.Context, req *MsgIBCSoftwareUpgrade) (*MsgIBCSoftwareUpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IBCSoftwareUpgrade not implemented")
 }
 func (*UnimplementedMsgServer) SubmitMisbehaviour(ctx context.Context, req *MsgSubmitMisbehaviour) (*MsgSubmitMisbehaviourResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitMisbehaviour not implemented")
@@ -775,6 +901,24 @@ func _Msg_UpgradeClient_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).UpgradeClient(ctx, req.(*MsgUpgradeClient))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_IBCSoftwareUpgrade_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgIBCSoftwareUpgrade)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).IBCSoftwareUpgrade(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.client.v1.Msg/IBCSoftwareUpgrade",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).IBCSoftwareUpgrade(ctx, req.(*MsgIBCSoftwareUpgrade))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -848,6 +992,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpgradeClient",
 			Handler:    _Msg_UpgradeClient_Handler,
+		},
+		{
+			MethodName: "IBCSoftwareUpgrade",
+			Handler:    _Msg_IBCSoftwareUpgrade_Handler,
 		},
 		{
 			MethodName: "SubmitMisbehaviour",
@@ -1106,6 +1254,81 @@ func (m *MsgUpgradeClientResponse) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *MsgUpgradeClientResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgIBCSoftwareUpgrade) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgIBCSoftwareUpgrade) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgIBCSoftwareUpgrade) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.UpgradedClientState != nil {
+		{
+			size, err := m.UpgradedClientState.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	{
+		size, err := m.Plan.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgIBCSoftwareUpgradeResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgIBCSoftwareUpgradeResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgIBCSoftwareUpgradeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1420,6 +1643,34 @@ func (m *MsgUpgradeClient) Size() (n int) {
 }
 
 func (m *MsgUpgradeClientResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgIBCSoftwareUpgrade) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Plan.Size()
+	n += 1 + l + sovTx(uint64(l))
+	if m.UpgradedClientState != nil {
+		l = m.UpgradedClientState.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgIBCSoftwareUpgradeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2203,6 +2454,207 @@ func (m *MsgUpgradeClientResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgUpgradeClientResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgIBCSoftwareUpgrade) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgIBCSoftwareUpgrade: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgIBCSoftwareUpgrade: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Plan", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Plan.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpgradedClientState", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UpgradedClientState == nil {
+				m.UpgradedClientState = &types.Any{}
+			}
+			if err := m.UpgradedClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgIBCSoftwareUpgradeResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgIBCSoftwareUpgradeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgIBCSoftwareUpgradeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

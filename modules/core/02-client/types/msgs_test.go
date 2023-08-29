@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -9,11 +10,13 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -760,6 +763,89 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 			require.Panics(t, func() {
 				msg.GetSigners()
 			})
+		}
+	}
+}
+
+// TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade tests NewMsgIBCSoftwareUpgrade
+func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade() {
+	testCases := []struct {
+		name                string
+		upgradedClientState exported.ClientState
+		expPass             bool
+	}{
+		{
+			"success",
+			ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+			true,
+		},
+		{
+			"fail: failed to pack ClientState",
+			nil,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		plan := upgradetypes.Plan{
+			Name:   "upgrade IBC clients",
+			Height: 1000,
+		}
+		msg, err := types.NewMsgIBCSoftwareUpgrade(
+			ibctesting.TestAccAddress,
+			plan,
+			tc.upgradedClientState,
+		)
+
+		if tc.expPass {
+			suite.Require().NoError(err)
+			suite.Assert().Equal(ibctesting.TestAccAddress, msg.Signer)
+			suite.Assert().Equal(plan, msg.Plan)
+			unpackedClientState, err := types.UnpackClientState(msg.UpgradedClientState)
+			suite.Require().NoError(err)
+			suite.Assert().Equal(tc.upgradedClientState, unpackedClientState)
+		} else {
+			suite.Require().True(errors.Is(err, ibcerrors.ErrPackAny))
+		}
+	}
+}
+
+// TestMsgIBCSoftwareUpgrade_GetSigners tests GetSigners for MsgIBCSoftwareUpgrade
+func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{
+			"success: valid address",
+			sdk.AccAddress(ibctesting.TestAccAddress),
+			true,
+		},
+		{
+			"failure: nil address",
+			nil,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+		plan := upgradetypes.Plan{
+			Name:   "upgrade IBC clients",
+			Height: 1000,
+		}
+		msg, err := types.NewMsgIBCSoftwareUpgrade(
+			tc.address.String(),
+			plan,
+			clientState,
+		)
+		suite.Require().NoError(err)
+
+		if tc.expPass {
+			suite.Require().Equal([]sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			suite.Require().Panics(func() { msg.GetSigners() })
 		}
 	}
 }

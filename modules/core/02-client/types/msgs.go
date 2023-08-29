@@ -5,6 +5,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
@@ -17,6 +18,7 @@ var (
 	_ sdk.Msg = (*MsgSubmitMisbehaviour)(nil)
 	_ sdk.Msg = (*MsgUpgradeClient)(nil)
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
+	_ sdk.Msg = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.Msg = (*MsgRecoverClient)(nil)
 
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
@@ -285,6 +287,48 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 	return msg.Params.Validate()
 }
 
+// NewMsgIBCSoftwareUpgrade creates a new MsgIBCSoftwareUpgrade instance
+func NewMsgIBCSoftwareUpgrade(signer string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (*MsgIBCSoftwareUpgrade, error) {
+	anyClient, err := PackClientState(upgradedClientState)
+	if err != nil {
+		return nil, err
+	}
+
+	return &MsgIBCSoftwareUpgrade{
+		Signer:              signer,
+		Plan:                plan,
+		UpgradedClientState: anyClient,
+	}, nil
+}
+
+// ValidateBasic performs basic checks on a MsgIBCSoftwareUpgrade.
+func (msg *MsgIBCSoftwareUpgrade) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	clientState, err := UnpackClientState(msg.UpgradedClientState)
+	if err != nil {
+		return err
+	}
+
+	// for the time being, we should implicitly be on tendermint when using ibc-go
+	if clientState.ClientType() != exported.Tendermint {
+		return errorsmod.Wrapf(ErrInvalidUpgradeClient, "upgraded client state must be a Tendermint client")
+	}
+
+	return msg.Plan.ValidateBasic()
+}
+
+// GetSigners returns the expected signers for a MsgIBCSoftwareUpgrade message.
+func (msg *MsgIBCSoftwareUpgrade) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
+}
+
 // NewMsgRecoverClient creates a new MsgRecoverClient instance
 func NewMsgRecoverClient(signer, subjectClientID, substituteClientID string) *MsgRecoverClient {
 	return &MsgRecoverClient{
@@ -292,15 +336,6 @@ func NewMsgRecoverClient(signer, subjectClientID, substituteClientID string) *Ms
 		SubjectClientId:    subjectClientID,
 		SubstituteClientId: substituteClientID,
 	}
-}
-
-// GetSigners returns the expected signers for a MsgRecoverClient message.
-func (msg *MsgRecoverClient) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
 }
 
 // ValidateBasic performs basic checks on a MsgRecoverClient.
@@ -314,4 +349,13 @@ func (msg *MsgRecoverClient) ValidateBasic() error {
 	}
 
 	return host.ClientIdentifierValidator(msg.SubstituteClientId)
+}
+
+// GetSigners returns the expected signers for a MsgRecoverClient message.
+func (msg *MsgRecoverClient) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
 }

@@ -826,6 +826,10 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 	}
 }
 
+// TestIBCSoftwareUpgrade tests the IBCSoftwareUpgrade rpc handler
+func (*KeeperTestSuite) TestIBCSoftwareUpgrade() {
+}
+
 // TestUpdateConnectionParams tests the UpdateConnectionParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
