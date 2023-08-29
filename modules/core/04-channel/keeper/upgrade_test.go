@@ -165,18 +165,17 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			nil,
 		},
-		// {
-		// 	"success: upgrade sequence is fast forwarded to counterparty upgrade sequence",
-		// 	func() {
-		// 		channel := path.EndpointA.GetChannel()
-		// 		channel.UpgradeSequence = 5
-		// 		path.EndpointA.SetChannel(channel)
+		{
+			"success: upgrade sequence is fast forwarded to counterparty upgrade sequence",
+			func() {
+				channel := path.EndpointA.GetChannel()
+				channel.UpgradeSequence = 5
+				path.EndpointA.SetChannel(channel)
 
-		// 		expSequence = 5
-		// 	},
-		// 	true,
-		// },
-		// {
+				suite.coordinator.CommitBlock(suite.chainA)
+			},
+			nil,
+		},
 		{
 			"channel not found",
 			func() {
@@ -303,9 +302,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				suite.Require().NotEmpty(upgrade)
 				suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
 
-				latestSequenceSend, found := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				nextSequenceSend, found := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(found)
-				suite.Require().Equal(latestSequenceSend-1, upgrade.LatestSequenceSend)
+				suite.Require().Equal(nextSequenceSend-1, upgrade.LatestSequenceSend)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
 			}
