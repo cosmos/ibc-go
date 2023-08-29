@@ -18,16 +18,16 @@ A new `ChannelEnd` interface is defined after a channel upgrade, the scope of th
 
 | Features  | Release |
 | --------- | ------- |
-| Performing a channel upgrade results in an application module changing from v1 to v2, claiming the same `channelID` and `portID` | v8 |
-| Performing a channel upgrade results in a channel with the same `channelID` and `portID` changing the channel ordering from a higher to lower degree of ordering | v8 |
-| Performing a channel upgrade results in a channel with the same `channelID` and `portID` having a new channel version, where the change is needed on both `ChannelEnd`s, for example additional middleware added to the application stack on both sides of the channel, or a change to the packet data or acknowledgement structure | v8 |
-| Performing a channel upgrade results in a channel with the same `channelID` and `portID` modifying the `connectionHops` | v8 |
+| Performing a channel upgrade results in an application module changing from v1 to v2, claiming the same `channelID` and `portID` | v9 |
+| Performing a channel upgrade results in a channel with the same `channelID` and `portID` changing the channel ordering | v9 |
+| Performing a channel upgrade results in a channel with the same `channelID` and `portID` having a new channel version, where the change is needed on both `ChannelEnd`s, for example additional middleware added to the application stack on both sides of the channel, or a change to the packet data or acknowledgement structure | v9 |
+| Performing a channel upgrade results in a channel with the same `channelID` and `portID` modifying the `connectionHops` | v9 |
 
 # User requirements
 
 ## Use cases
 
-- Upgrading an existing application module from v1 to v2, e.g. new features could be added to the existing ICS 20 application module which would result in a new version of the module.
+- Upgrading an existing application module from v1 to v2, e.g. new features could be added to the existing ICS 20 application module which would result in a new version of the module, e.g. enabling different coin types to be sent in a single packet.
 - Adding middleware on both sides of an existing channel, e.g. relayer incentivisation middleware, ICS 29, requires middleware to be added to both ends of a channel to incentivise the `recvPacket`, `acknowledgePacket` and `timeoutPacket`.
 
 ### Upgrade parameters
@@ -37,7 +37,7 @@ The upgrade approval process can be represented in terms of the following parame
 - The set of port ID, channel ID pairs that specify the channels that can be upgraded. It can be possible to specify a single channel or a set of channels satisfying certain port ID, channel ID conditions. Examples: upgrading can be approved for
   - channels with port ID, channel ID combinations (`transfer`, `channel-0`) & (`transfer`, `channel-1`),
   - all channels for  a specified port ID e.g. `transfer`, or  `icacontroller` (so that all ICA channels on a controller chain, regardless of the owner address appended to the port ID, can be upgraded).
-- The upgrade parameters. These must be specified for each channel ID and port ID selected for the upgrade. The upgrade parameters are:
+- The upgrade parameters - these must be specified for each channel ID and port ID selected for the upgrade. The upgrade parameters are:
   - channel version
   - channel ordering
   - connection hops
@@ -154,7 +154,7 @@ Exception flows:
 ## Assumptions and dependencies
 
 - Functional relayer infrastructure is required to perform a channel upgrade.
-- Chains wishing to successfully upgrade a channel must be using a minimum ibc-go version in the v8 line.
+- Chains wishing to successfully upgrade a channel must be using a minimum ibc-go version in the v9 line.
 - Chains proposing an upgrade must have the middleware or application module intended to be used in the channel upgrade configured.
 
 ## Features
@@ -177,24 +177,24 @@ Exception flows:
 | 2.01 | A channel upgrade can only be initiated before the specified timeout period for that type of upgrade | TBD | `Drafted` |
 | 2.02 | A chain can configure a channel upgrade to be initiated automatically after a successful governance proposal | TBD | `Drafted` |
 | 2.03 | After permission is granted for a specific type of upgrade, any relayer can initiate the upgrade | TBD |`Drafted` |
-| 2.04 | A channel upgrade will typically be initiated when both `ChannelEnd`s are in the `OPEN` state | TBD | `Drafted` |
-| 2.05 | A channel upgrade can be initiated when the counterparty `ChannelEnd` is already in the `INITUPGRADE` state, in the case of a crossing hello | TBD | `Drafted` |
+| 2.04 | A channel upgrade will be initiated when both `ChannelEnd`s are in the `OPEN` state | TBD | `Drafted` |
+| 2.05 | A channel upgrade can be initiated when the counterparty has also executed the `ChanUpgradeInit` datagram with compatible parameters in the case of a crossing hello, when both channel ends are permissioning the upgrade | TBD | `Drafted` |
 
 ### 3 - Upgrade Handshake
 
 | ID | Description | Verification | Status |
 | -- | ----------- | ------------ | ------ |
-| 3.01 | The upgrade proposing chain will go from channel state `OPEN` to `INITUPGRADE` after successful execution of the `ChanUpgradeInit` datagram | TBD | `Drafted` |
-| 3.02 | The upgrade proposing chain channel state will revert to `OPEN` from `INITUPGRADE` if `ChanUpgradeTry` is not successfully executed on the counterparty chain within a specified timeframe | TBD | `Drafted` |
-| 3.03 | If the counterparty chain accepts the upgrade its channel state will go from `OPEN` to `TRYUPGRADE` after successful execution of the `ChanUpgradeTry` datagram | TBD | `Drafted` |
-| 3.04 | A relayer must initiate the `ChanUpgradeAck` datagram | TBD | `Drafted` |
-| 3.05 | When there are in-flight packets, the upgrade proposing chain will go from `INITUPGRADE` to `ACKUPGRADE` after successful execution of the `ChanUpgradeAck` datagram | TBD | `Drafted` |
-| 3.05 | When there are no in-flight packets, the upgrade proposing chain will go from `INITUPGRADE` to `ACKUPGRADE` after successful execution of the `ChanUpgradeAck` datagram | TBD | `Drafted` |
-| 3.06 | A relayer must initiate the `ChanUpgradeConfirm` datagram | TBD | `Drafted` |
-| 3.07 | When all in-flight packets have been flushed, the counterparty chain state will go from `TRYUPGRADE` to `OPEN` after successful execution of the `ChanUpgradeOpen` datagram | TBD | `Drafted` |
-| 3.08 | When all in-flight packets have been flushed, the upgrade proposing chain state will go from `ACKUPGRADE` to `OPEN` after successful execution of the `ChanUpgradeOpen` datagram | TBD | `Drafted` |
+| 3.01 | The upgrade proposing chain channel state will remain `OPEN` after successful or unsuccessful execution of the `ChanUpgradeInit` datagram | TBD | `Drafted` |
+| 3.02 | If the counterparty chain accepts the upgrade its channel state will go from `OPEN` to `FLUSHING` after successful execution of the `ChanUpgradeTry` datagram, initiated by a relayer | TBD | `Drafted` |
+| 3.03 | A relayer must initiate the `ChanUpgradeAck` datagram on the upgrade proposing chain, on successful execution the channel state will go from `OPEN` to `FLUSHING`| TBD | `Drafted` |
+| 3.04 | Once in-flight packets have been flushed, the channel state shall change from `FLUSHING` to `FLUSHCOMPLETE` | TBD | `Drafted` |
+| 3.05 | A relayer must initiate the `ChanUpgradeConfirm` datagram on the counterparty to inform of the timeout period of the counterparty | TBD | `Drafted` |
+| 3.06 | Successful execution of the `ChanUpgradeConfirm` datagram when the channel state is `FLUSHCOMPLETE` changes the channel state to `OPEN` | TBD | `Drafted` |
+| 3.07 | If the channel state is `FLUSHING` when the `ChanUpgradeConfirm` datagram is called, `ChanUpgradeOpen` is later called to change the state to `OPEN` | TBD | `Drafted` |
+| 3.08 | When both channel ends are in the `FLUSHCOMPLETE` state, a relayer can submit the `ChanUpgradeOpen` datagram to move the channel state to `OPEN` | TBD | `Drafted` |
 | 3.09 | The counterparty chain may reject a proposed channel upgrade and the original channel will be restored | TBD | `Drafted` |
 | 3.10 | If an upgrade handshake is unsuccessful, the original channel will be restored | TBD | `Drafted` |
+| 3.11 | A relayer can submit the `ChanUpgradeCancel` to cancel an upgrade which will successfully execute if the counterparty wrote an `ErrorReciept`| TBD | `Drafted` |
 
 # External interface requirements
 
