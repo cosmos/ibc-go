@@ -6,6 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -870,16 +871,21 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 			validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+			plan := upgradetypes.Plan{
+				Name:   "upgrade IBC clients",
+				Height: 1000,
+			}
+			// update trusting period
+			clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod+100, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clienttypes.NewHeight(1, 10), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+
 			var err error
 			msg, err = clienttypes.NewMsgIBCSoftwareUpgrade(
 				validAuthority,
-				upgradetypes.Plan{
-					Name:   "upgrade IBC clients",
-					Height: 1000,
-				},
-				ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clienttypes.NewHeight(1, 10), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+				plan,
+				clientState,
 			)
 
 			suite.Require().NoError(err)
@@ -890,6 +896,17 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 
 			if expError == nil {
 				suite.Require().NoError(err)
+				// upgrade plan is stored
+				storedPlan, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
+				suite.Require().True(found)
+				suite.Require().Equal(plan, storedPlan)
+
+				// upgraded client state is stored
+				bz, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
+				suite.Require().True(found)
+				upgradedClientState, err := types.UnmarshalClientState(suite.chainA.App.AppCodec(), bz)
+				suite.Require().NoError(err)
+				suite.Require().Equal(clientState.ZeroCustomFields(), upgradedClientState)
 			} else {
 				suite.Require().True(errors.Is(err, expError))
 			}
