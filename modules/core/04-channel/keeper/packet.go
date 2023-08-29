@@ -128,22 +128,24 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if !collections.Contains(channel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s], but got %s", types.OPEN, types.STATE_FLUSHING, channel.State)
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.FLUSHING}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s], but got %s", types.OPEN, types.FLUSHING, channel.State)
 	}
 
 	// in the case of the channel being in FLUSHING we need to ensure that the the counterparty last sequence send
 	// is less than or equal to the packet sequence.
-	if channel.State == types.STATE_FLUSHING {
+	if channel.State == types.FLUSHING {
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
 		if !found {
 			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetDestChannel())
 		}
 
-		if packet.GetSequence() > counterpartyUpgrade.LatestSequenceSend {
+		// only error if the counterparty latest sequence send is set (> 0)
+		counterpartyLatestSequenceSend := counterpartyUpgrade.LatestSequenceSend
+		if counterpartyLatestSequenceSend != 0 && packet.GetSequence() > counterpartyLatestSequenceSend {
 			return errorsmod.Wrapf(
 				types.ErrInvalidPacket,
-				"failed to receive packet, cannot flush packet at sequence greater than counterparty last sequence send (%d) > (%d)", packet.GetSequence(), counterpartyUpgrade.LatestSequenceSend,
+				"failed to receive packet, cannot flush packet at sequence greater than counterparty last sequence send (%d) > (%d)", packet.GetSequence(), counterpartyLatestSequenceSend,
 			)
 		}
 	}
@@ -382,7 +384,7 @@ func (k Keeper) AcknowledgePacket(
 		)
 	}
 
-	if !collections.Contains(channel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.FLUSHING}) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "packets cannot be acknowledged on channel with state (%s)", channel.State)
 	}
 
@@ -490,7 +492,7 @@ func (k Keeper) AcknowledgePacket(
 	emitAcknowledgePacketEvent(ctx, packet, channel)
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
-	if channel.State == types.STATE_FLUSHING {
+	if channel.State == types.FLUSHING {
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 		if !found {
 			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
@@ -508,7 +510,7 @@ func (k Keeper) AcknowledgePacket(
 
 			// set the channel state to flush complete if all packets have been acknowledged/flushed.
 			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-				channel.State = types.STATE_FLUSHCOMPLETE
+				channel.State = types.FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
 		}

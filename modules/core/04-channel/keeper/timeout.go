@@ -152,7 +152,7 @@ func (k Keeper) TimeoutExecuted(
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
-	if channel.State == types.STATE_FLUSHING {
+	if channel.State == types.FLUSHING {
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 		if !found {
 			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
@@ -167,7 +167,7 @@ func (k Keeper) TimeoutExecuted(
 				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
 			} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 				// set the channel state to flush complete if all packets have been flushed.
-				channel.State = types.STATE_FLUSHCOMPLETE
+				channel.State = types.FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
 			// upgrade fields have been set but the timeout has not. This can happen when the counterparty

@@ -69,9 +69,9 @@ enum State {
   // packets.
   STATE_CLOSED = 4 [(gogoproto.enumvalue_customname) = "CLOSED"];
   // A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
-  STATE_FLUSHING = 5;
+  STATE_FLUSHING = 5 [(gogoproto.enumvalue_customname) = "FLUSHING"];
   // A channel has just completed flushing any in-flight packets.
-  STATE_FLUSHCOMPLETE = 6;
+  STATE_FLUSHCOMPLETE = 6 [(gogoproto.enumvalue_customname) = "FLUSHCOMPLETE"];
 }
 
 // Order defines if a channel is ORDERED or UNORDERED

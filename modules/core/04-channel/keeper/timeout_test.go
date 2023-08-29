@@ -315,7 +315,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
 				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
 					Timeout: types.DefaultTimeout,
@@ -325,7 +325,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				suite.Require().NoError(err)
 
 				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(types.STATE_FLUSHCOMPLETE, channel.State, "channel state should still be set to FLUSHCOMPLETE")
+				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State, "channel state should still be set to FLUSHCOMPLETE")
 			},
 		},
 		{
@@ -343,7 +343,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
 				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{})
 			},
@@ -351,7 +351,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				suite.Require().NoError(err)
 
 				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(types.STATE_FLUSHING, channel.State, "channel state should still be FLUSHING")
+				suite.Require().Equal(types.FLUSHING, channel.State, "channel state should still be FLUSHING")
 			},
 		},
 		{
@@ -369,7 +369,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
 				path.EndpointA.SetChannelUpgrade(types.Upgrade{
 					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
@@ -418,7 +418,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
 				path.EndpointA.SetChannelUpgrade(types.Upgrade{
 					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
@@ -432,7 +432,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				suite.Require().NoError(err)
 
 				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(types.STATE_FLUSHING, channel.State, "channel state should still be FLUSHING")
+				suite.Require().Equal(types.FLUSHING, channel.State, "channel state should still be FLUSHING")
 
 				_, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "upgrade should not be deleted")
