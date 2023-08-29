@@ -59,7 +59,7 @@ jobs:
             echo "relayer-tag=1.4.0" >> $GITHUB_OUTPUT
           else
             echo "relayer=rly" >> $GITHUB_OUTPUT
-            echo "relayer-tag=latest" >> $GITHUB_OUTPUT
+            echo "relayer-tag=colin-event-fix" >> $GITHUB_OUTPUT
           fi
   # build-e2e ensures that all test code compiles.
   build-e2e:
