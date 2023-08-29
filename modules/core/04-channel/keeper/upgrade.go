@@ -314,11 +314,10 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 
 	if !k.HasInflightPackets(ctx, portID, channelID) {
 		channel.State = types.STATE_FLUSHCOMPLETE
+		k.SetChannel(ctx, portID, channelID, channel)
 	} else {
 		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
-
-	k.SetChannel(ctx, portID, channelID, channel)
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
