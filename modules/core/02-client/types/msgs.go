@@ -18,6 +18,7 @@ var (
 	_ sdk.Msg = (*MsgSubmitMisbehaviour)(nil)
 	_ sdk.Msg = (*MsgUpgradeClient)(nil)
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
+	_ sdk.Msg = (*MsgIBCSoftwareUpgrade)(nil)
 
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
