@@ -716,8 +716,8 @@ func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUp
 
 // IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
 func (k Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
-	if k.GetAuthority() != msg.Authority {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)

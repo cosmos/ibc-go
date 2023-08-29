@@ -847,7 +847,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 		{
 			"failure: invalid authority address",
 			func() {
-				msg.Authority = suite.chainA.SenderAccount.GetAddress().String()
+				msg.Signer = suite.chainA.SenderAccount.GetAddress().String()
 				expError = ibcerrors.ErrUnauthorized
 			},
 		},
