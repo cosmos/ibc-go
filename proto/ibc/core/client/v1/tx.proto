@@ -28,7 +28,7 @@ service Msg {
   // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
   rpc UpdateClientParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
-  // Recover defines a rpc handler method for MsgRecoverClient.
+  // RecoverClient defines a rpc handler method for MsgRecoverClient.
   rpc RecoverClient(MsgRecoverClient) returns (MsgRecoverClientResponse);
 }
 
@@ -142,7 +142,7 @@ message MsgRecoverClient {
   string signer = 1;
   // the client identifier for the client to be updated if the proposal passes
   string subject_client_id = 2;
-  // the substitute client identifier for the client standing in for the subject
+  // the substitute client identifier for the client which will replace the subject
   // client
   string substitute_client_id = 3;
 }
