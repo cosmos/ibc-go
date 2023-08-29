@@ -140,10 +140,12 @@ func (k Keeper) RecvPacket(
 			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetDestChannel())
 		}
 
-		if packet.GetSequence() > counterpartyUpgrade.LatestSequenceSend {
+		// only error if the counterparty latest sequence send is set (> 0)
+		counterpartyLatestSequenceSend := counterpartyUpgrade.LatestSequenceSend
+		if counterpartyLatestSequenceSend != 0 && packet.GetSequence() > counterpartyLatestSequenceSend {
 			return errorsmod.Wrapf(
 				types.ErrInvalidPacket,
-				"failed to receive packet, cannot flush packet at sequence greater than counterparty last sequence send (%d) > (%d)", packet.GetSequence(), counterpartyUpgrade.LatestSequenceSend,
+				"failed to receive packet, cannot flush packet at sequence greater than counterparty last sequence send (%d) > (%d)", packet.GetSequence(), counterpartyLatestSequenceSend,
 			)
 		}
 	}
