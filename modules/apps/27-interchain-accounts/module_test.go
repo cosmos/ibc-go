@@ -37,7 +37,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	// setup and basic testing
 	chainID := "testchain"
 	app := simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
-	appModule, ok := app.GetModuleManager().Modules[types.ModuleName].(ica.AppModule)
+	appModule, ok := app.ModuleManager.Modules[types.ModuleName].(ica.AppModule)
 	suite.Require().True(ok)
 
 	ctx := app.GetBaseApp().NewContext(true)

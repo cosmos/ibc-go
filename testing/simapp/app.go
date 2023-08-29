@@ -290,14 +290,6 @@ func NewSimApp(
 	// }
 	// baseAppOptions = append(baseAppOptions, prepareOpt)
 
-	// ABOUT THIS HANDLER: Don't know yet if it is needed
-	// create and set dummy vote extension handler
-	//	voteExtOp := func(bApp *baseapp.BaseApp) {
-	//		voteExtHandler := NewVoteExtensionHandler()
-	//		voteExtHandler.SetHandlers(bApp)
-	//	}
-	//	baseAppOptions = append(baseAppOptions, voteExtOp)
-
 	bApp := baseapp.NewBaseApp(appName, logger, db, txConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
@@ -851,28 +843,6 @@ func (app *SimApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*ab
 // LoadHeight loads a particular height
 func (app *SimApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
-}
-
-// ModuleAccountAddrs returns all the app's module account addresses.
-func (*SimApp) ModuleAccountAddrs() map[string]bool {
-	modAccAddrs := make(map[string]bool)
-	for acc := range maccPerms {
-		// do not add the following modules to blocked addresses
-		// this is only used for testing
-		if acc == ibcmock.ModuleName {
-			continue
-		}
-
-		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
-	}
-
-	return modAccAddrs
-}
-
-// GetModuleManager returns the app module manager
-// NOTE: used for testing purposes
-func (app *SimApp) GetModuleManager() *module.Manager {
-	return app.ModuleManager
 }
 
 // LegacyAmino returns SimApp's amino codec.
