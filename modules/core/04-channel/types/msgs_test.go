@@ -688,7 +688,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 		{
 			"success: counterparty state set to FLUSHCOMPLETE",
 			func() {
-				msg.CounterpartyChannelState = types.STATE_FLUSHCOMPLETE
+				msg.CounterpartyChannelState = types.FLUSHCOMPLETE
 			},
 			true,
 		},
@@ -747,7 +747,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 
 			msg = types.NewMsgChannelUpgradeConfirm(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.STATE_FLUSHING, counterpartyUpgrade, suite.proof, suite.proof,
+				types.FLUSHING, counterpartyUpgrade, suite.proof, suite.proof,
 				height, addr,
 			)
 
@@ -833,7 +833,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 		suite.Run(tc.name, func() {
 			msg = types.NewMsgChannelUpgradeOpen(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.STATE_FLUSHCOMPLETE, suite.proof,
+				types.FLUSHCOMPLETE, suite.proof,
 				height, addr,
 			)
 
