@@ -308,10 +308,10 @@ func (msg *MsgRecoverClient) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	
+
 	if err := host.ClientIdentifierValidator(msg.SubjectClientId); err != nil {
 		return err
 	}
-	
+
 	return host.ClientIdentifierValidator(msg.SubstituteClientId)
 }

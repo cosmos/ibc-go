@@ -134,7 +134,6 @@ message MsgUpdateParamsResponse {}
 
 // MsgRecoverClient defines the sdk.Msg type to recover a client.
 message MsgRecoverClient {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
   option (cosmos.msg.v1.signer)      = "signer";
 

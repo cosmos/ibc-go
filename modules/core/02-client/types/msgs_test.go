@@ -685,7 +685,6 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 	var msg *types.MsgRecoverClient
 
-	signer := ibctesting.TestAccAddress
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -721,7 +720,7 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 
 	for _, tc := range testCases {
 		msg = types.NewMsgRecoverClient(
-			signer,
+			ibctesting.TestAccAddress,
 			ibctesting.FirstClientID,
 			ibctesting.FirstClientID,
 		)
