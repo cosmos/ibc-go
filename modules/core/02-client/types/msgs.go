@@ -306,8 +306,15 @@ func (msg *MsgIBCSoftwareUpgrade) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	if _, err := UnpackClientState(msg.UpgradedClientState); err != nil {
+
+	clientState, err := UnpackClientState(msg.UpgradedClientState)
+	if err != nil {
 		return err
+	}
+
+	// for the time being, we should implicitly be on tendermint when using ibc-go
+	if clientState.ClientType() != exported.Tendermint {
+		return errorsmod.Wrapf(ErrInvalidUpgradeClient, "upgraded client state must be a Tendermint client")
 	}
 
 	return msg.Plan.ValidateBasic()
