@@ -12,6 +12,8 @@ import (
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -668,6 +670,89 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 		msg := types.MsgUpdateParams{
 			Authority: tc.address.String(),
 			Params:    types.DefaultParams(),
+		}
+		if tc.expPass {
+			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			require.Panics(t, func() {
+				msg.GetSigners()
+			})
+		}
+	}
+}
+
+// TestMsgRecoverClientValidateBasic tests ValidateBasic for MsgRecoverClient
+func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
+	var msg *types.MsgRecoverClient
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: valid signer and client identifiers",
+			func() {},
+			nil,
+		},
+		{
+			"failure: invalid signer address",
+			func() {
+				msg.Signer = "invalid"
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: invalid subject client ID",
+			func() {
+				msg.SubjectClientId = ""
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"failure: invalid substitute client ID",
+			func() {
+				msg.SubjectClientId = ""
+			},
+			host.ErrInvalidID,
+		},
+	}
+
+	for _, tc := range testCases {
+		msg = types.NewMsgRecoverClient(
+			ibctesting.TestAccAddress,
+			ibctesting.FirstClientID,
+			ibctesting.FirstClientID,
+		)
+
+		tc.malleate()
+
+		err := msg.ValidateBasic()
+		expPass := tc.expError == nil
+		if expPass {
+			suite.Require().NoError(err, "valid case %s failed", tc.name)
+		} else {
+			suite.Require().Error(err, "invalid case %s passed", tc.name)
+			suite.Require().ErrorIs(err, tc.expError, "invalid case %s passed", tc.name)
+		}
+	}
+}
+
+// TestMsgRecoverClientGetSigners tests GetSigners for MsgRecoverClient
+func TestMsgRecoverClientGetSigners(t *testing.T) {
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
+	}
+
+	for _, tc := range testCases {
+		// Leave subject client ID and substitute client ID as empty strings
+		msg := types.MsgRecoverClient{
+			Signer: tc.address.String(),
 		}
 		if tc.expPass {
 			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
