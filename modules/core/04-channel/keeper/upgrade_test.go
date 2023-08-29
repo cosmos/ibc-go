@@ -1942,10 +1942,6 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 				if ue, ok := upgradeError.(*types.UpgradeError); ok {
 					suite.Require().Equal(ue.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
 				}
-
-				_, found = channelKeeper.GetCounterpartyLastPacketSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(found, "counterparty last packet sequence should not be found")
-
 			} else {
 
 				suite.Require().Panics(func() {
@@ -1964,8 +1960,6 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 				if found { // this should be all test cases except for when the upgrade is explicitly deleted.
 					suite.Require().Equal(actualUpgrade, upgrade, "upgrade info should not be deleted")
 				}
-
-				// TODO: assertion that GetCounterpartyLastPacketSequence is present and correct
 			}
 		})
 	}

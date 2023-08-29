@@ -3,14 +3,13 @@ package host
 import "fmt"
 
 const (
-	KeyChannelEndPrefix               = "channelEnds"
-	KeyChannelPrefix                  = "channels"
-	KeyChannelUpgradePrefix           = "channelUpgrades"
-	KeyUpgradePrefix                  = "upgrades"
-	KeyUpgradeErrorPrefix             = "upgradeError"
-	KeyCounterpartyLastPacketSequence = "counterpartyLastPacketSequence"
-	KeyCounterpartyUpgrade            = "counterpartyUpgrade"
-	KeyChannelCapabilityPrefix        = "capabilities"
+	KeyChannelEndPrefix        = "channelEnds"
+	KeyChannelPrefix           = "channels"
+	KeyChannelUpgradePrefix    = "channelUpgrades"
+	KeyUpgradePrefix           = "upgrades"
+	KeyUpgradeErrorPrefix      = "upgradeError"
+	KeyCounterpartyUpgrade     = "counterpartyUpgrade"
+	KeyChannelCapabilityPrefix = "capabilities"
 )
 
 // ICS04
@@ -50,16 +49,6 @@ func ChannelUpgradePath(portID, channelID string) string {
 // ChannelUpgradeKey returns the store key for a particular channel upgrade attempt
 func ChannelUpgradeKey(portID, channelID string) []byte {
 	return []byte(ChannelUpgradePath(portID, channelID))
-}
-
-// ChannelCounterpartyLastPacketSequenceKey returns the store key for the last packet sequence sent on the counterparty channel.
-func ChannelCounterpartyLastPacketSequenceKey(portID, channelID string) []byte {
-	return []byte(ChannelCounterpartyLastPacketSequencePath(portID, channelID))
-}
-
-// ChannelCounterpartyLastPacketSequencePath defines the path under which the last packet sequence sent on the counterparty channel is stored.
-func ChannelCounterpartyLastPacketSequencePath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyCounterpartyLastPacketSequence, channelPath(portID, channelID))
 }
 
 // ChannelCounterpartyUpgradeKey returns the store key for the upgrade used on the counterparty channel.
