@@ -190,6 +190,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				if exists {
 					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
 				}
+
 			case tc.expPanic:
 				s.Require().PanicsWithValue(tc.expValue, sendPacket)
 
@@ -780,6 +781,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				if exists {
 					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
 				}
+
 			} else {
 				s.Require().ErrorIs(tc.expError, err)
 			}
