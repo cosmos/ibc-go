@@ -17,8 +17,8 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			true,
 		},
 		{
-			"invalid authority address",
-			types.NewMsgUpdateParams("authority", types.DefaultParams()),
+			"invalid signer address",
+			types.NewMsgUpdateParams("signer", types.DefaultParams()),
 			false,
 		},
 	}
