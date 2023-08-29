@@ -96,6 +96,21 @@ func emitUpdateClientProposalEvent(ctx sdk.Context, clientID, clientType string)
 	})
 }
 
+// emitRecoverClientEvent emits a recover client event
+func emitRecoverClientEvent(ctx sdk.Context, clientID, clientType string) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRecoverClient,
+			sdk.NewAttribute(types.AttributeKeySubjectClientID, clientID),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
+
 // emitUpgradeClientProposalEvent emits an upgrade client proposal event
 func emitUpgradeClientProposalEvent(ctx sdk.Context, title string, height int64) {
 	ctx.EventManager().EmitEvents(sdk.Events{
