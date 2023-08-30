@@ -238,25 +238,25 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
 func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
-	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and params",
-			types.NewMsgUpdateParams(authority, types.DefaultParams()),
+			"success: valid signer and params",
+			types.NewMsgUpdateParams(signer, types.DefaultParams()),
 			true,
 		},
 		{
-			"failure: invalid authority address",
+			"failure: invalid signer address",
 			types.NewMsgUpdateParams("invalid", types.DefaultParams()),
 			false,
 		},
 		{
 			"failure: invalid time per block",
-			types.NewMsgUpdateParams(authority, types.NewParams(0)),
+			types.NewMsgUpdateParams(signer, types.NewParams(0)),
 			false,
 		},
 	}
@@ -284,8 +284,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 
 	for _, tc := range testCases {
 		msg := types.MsgUpdateParams{
-			Authority: tc.address.String(),
-			Params:    types.DefaultParams(),
+			Signer: tc.address.String(),
+			Params: types.DefaultParams(),
 		}
 		if tc.expPass {
 			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())

@@ -11,16 +11,16 @@ import (
 var _ sdk.Msg = (*MsgUpdateParams)(nil)
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
-func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
-		Authority: authority,
-		Params:    params,
+		Signer: signer,
+		Params: params,
 	}
 }
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgUpdateParams) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
@@ -30,7 +30,7 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 
 // GetSigners implements sdk.Msg
 func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
 	}
