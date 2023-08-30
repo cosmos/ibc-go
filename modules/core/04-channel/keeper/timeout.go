@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
@@ -150,15 +151,8 @@ func (k Keeper) TimeoutExecuted(
 
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
-	if channel.Ordering == types.ORDERED {
-		channel.State = types.CLOSED
-		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-		emitChannelClosedEvent(ctx, packet, channel)
-	}
-
-	// TODO: handle situation outlined in https://github.com/cosmos/ibc-go/issues/4454
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
-	if channel.State == types.FLUSHING {
+	if channel.State == types.FLUSHING && channel.Ordering == types.UNORDERED {
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 		if !found {
 			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
@@ -171,15 +165,29 @@ func (k Keeper) TimeoutExecuted(
 				// packet flushing timeout has expired, abort the upgrade and return nil,
 				// committing an error receipt to state, restoring the channel and successfully timing out the packet.
 				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
-				return nil
-			}
-
-			// set the channel state to flush complete if all packets have been flushed.
-			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+			} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+				// set the channel state to flush complete if all packets have been flushed.
 				channel.State = types.FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
+			// upgrade fields have been set but the timeout has not. This can happen when the counterparty
+			// upgrade is partially written in WriteUpgradeTryChannel.
+		} else if counterpartyUpgrade.Fields.Version != "" {
+			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), fmt.Errorf("uh oh"))
 		}
+	}
+
+	if channel.Ordering == types.ORDERED {
+		// NOTE: if the channel is ORDERED and a packet is timed out in FLUSHING state then
+		// the upgrade is aborted and the channel is set to CLOSED.
+		if channel.State == types.FLUSHING {
+			// an error receipt is written to state and the channel is restored to OPEN
+			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), types.ErrPacketTimeout)
+		}
+
+		channel.State = types.CLOSED
+		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+		emitChannelClosedEvent(ctx, packet, channel)
 	}
 
 	k.Logger(ctx).Info(
