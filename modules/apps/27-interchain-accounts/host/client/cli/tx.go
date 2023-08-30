@@ -29,7 +29,7 @@ func generatePacketDataCmd() *cobra.Command {
 		Long: `generate-packet-data accepts a message string and serializes it (depending on the
 encoding parameter) using protobuf or proto3 JSON into packet data which is outputted to stdout.
 It can be used in conjunction with send-tx which submits pre-built packet data containing messages 
-to be executed on the host chain.`,
+to be executed on the host chain. The encoding parameter must be equal to either "proto3" o "proto3json".`,
 		Example: fmt.Sprintf(`%s tx interchain-accounts host generate-packet-data proto3 '{
     "@type":"/cosmos.bank.v1beta1.MsgSend",
     "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",

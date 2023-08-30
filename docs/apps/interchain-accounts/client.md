@@ -84,16 +84,16 @@ simd tx interchain-accounts host --help
 
 ##### `generate-packet-data`
 
-The `generate-packet-data` command allows users to generate protobuf encoded interchain accounts packet data for input message(s). The packet data can then be used with the controller submodule's [`send-tx` command](#send-tx).
+The `generate-packet-data` command allows users to generate protobuf or proto3 JSON encoded interchain accounts packet data for input message(s). The packet data can then be used with the controller submodule's [`send-tx` command](#send-tx). The encoding parameter must be either `proto3` or `proto3json`.
 
 ```shell
-simd tx interchain-accounts host generate-packet-data [message]
+simd tx interchain-accounts host generate-packet-data [encoding] [message]
 ```
 
 Example:
 
 ```shell
-simd tx interchain-accounts host generate-packet-data '[{
+simd tx interchain-accounts host generate-packet-data proto3 '[{
   "@type":"/cosmos.bank.v1beta1.MsgSend",
   "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
   "to_address":"cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
