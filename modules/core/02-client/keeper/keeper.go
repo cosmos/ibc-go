@@ -455,8 +455,8 @@ func (k Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Pl
 		return err
 	}
 
-	// emitting an event for handling client upgrade proposal
-	emitUpgradeClientProposalEvent(ctx, plan.Name, plan.Height)
+	// emitting an event for scheduling an upgrade plan
+	emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height)
 
 	return nil
 }

@@ -111,6 +111,21 @@ func emitUpgradeClientProposalEvent(ctx sdk.Context, title string, height int64)
 	})
 }
 
+// emitScheduleIBCSoftwareUpgradeEvent emits a schedule IBC software upgrade event
+func emitScheduleIBCSoftwareUpgradeEvent(ctx sdk.Context, title string, height int64) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeScheduleIBCSoftwareUpgrade,
+			sdk.NewAttribute(types.AttributeKeyUpgradePlanTitle, title),
+			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprintf("%d", height)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
+
 // emitSubmitMisbehaviourEvent emits a client misbehaviour event
 func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	ctx.EventManager().EmitEvents(sdk.Events{

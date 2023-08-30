@@ -28,6 +28,7 @@ var (
 	EventTypeUpdateClientProposal  = "update_client_proposal"
 	EventTypeUpgradeChain          = "upgrade_chain"
 	EventTypeUpgradeClientProposal = "upgrade_client_proposal"
+	EventTypeScheduleIBCSoftwareUpgrade = "schedule_ibc_software_upgrade"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )
