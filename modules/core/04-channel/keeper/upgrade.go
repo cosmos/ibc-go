@@ -769,19 +769,17 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 	}
 
 	upgrade.LatestSequenceSend = nextSequenceSend - 1
-	upgrade.Timeout = k.getUpgradeTimeout(ctx)
+	upgrade.Timeout = k.getAbsoluteUpgradeTimeout(ctx)
 	k.SetUpgrade(ctx, portID, channelID, *upgrade)
 
 	return nil
 }
 
-// getUpgradeTimeout returns the absolute timeout for the given upgrade.
-func (k Keeper) getUpgradeTimeout(ctx sdk.Context) types.Timeout {
-	// relativeTimeout := k.GetParams(ctx).UpgradeTimeout
-	// absoluteTimeoutHeight := clienttypes.NewHeight(clienttypes.ParseChainID(ctx.ChainID()), uint64(ctx.BlockHeight())+relativeTimeout.Height.RevisionHeight)
-	// absoluteTimeoutTimestamp := uint64(ctx.BlockTime().UnixNano()) + relativeTimeout.Timestamp
-	// return types.NewTimeout(absoluteTimeoutHeight, absoluteTimeoutTimestamp)
-	return k.GetParams(ctx).UpgradeTimeout
+// getAbsoluteUpgradeTimeout returns the absolute timeout for the given upgrade.
+func (k Keeper) getAbsoluteUpgradeTimeout(ctx sdk.Context) types.Timeout {
+	channelParams := k.GetParams(ctx)
+	relativeTimeout := channelParams.UpgradeTimeout
+	return types.NewTimeout(channelParams.UpgradeTimeout.Height, uint64(ctx.BlockTime().UnixNano())+relativeTimeout.Timestamp)
 }
 
 // syncUpgradeSequence ensures current upgrade handshake only continues if both channels are using the same upgrade sequence,
