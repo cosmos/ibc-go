@@ -7,9 +7,9 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
-// TODO: determine sane default value for upgrade timeout. and make this relative.
+// TODO: determine sane default value for upgrade timeout.
 
-var DefaultTimeout = NewTimeout(clienttypes.ZeroHeight(), uint64(time.Now().Add(time.Hour).UnixNano()))
+var DefaultTimeout = NewTimeout(clienttypes.ZeroHeight(), uint64(time.Hour.Nanoseconds()))
 
 // NewParams creates a new parameter configuration for the channel submodule
 func NewParams(upgradeTimeout Timeout) Params {
