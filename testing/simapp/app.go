@@ -485,8 +485,9 @@ func NewSimApp(
 	// Function DefaultWasmConfig can also be used to use default values.
 	//
 	// In the code below we use the second method because we are not using x/wasm in this app.go.
+	wasmDir := filepath.Join(homePath, "ibc_08-wasm_client_data")
 	wasmConfig := wasmtypes.WasmConfig{
-		DataDir:           "ibc_08-wasm_client_data",
+		DataDir:           wasmDir,
 		SupportedFeatures: "iterator",
 		MemoryCacheSize:   uint32(math.Pow(2, 8)),
 		ContractDebugMode: false,

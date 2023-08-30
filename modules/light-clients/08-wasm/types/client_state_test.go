@@ -1,8 +1,8 @@
 package types_test
 
 import (
-	//"crypto/sha256"
-	//"encoding/base64"
+	"crypto/sha256"
+	"encoding/base64"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	//connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -20,7 +20,7 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-/*func (suite *TypesTestSuite) TestStatusGrandpa() {
+func (suite *TypesTestSuite) TestStatusGrandpa() {
 	var (
 		ok          bool
 		clientState exported.ClientState
@@ -36,6 +36,7 @@ import (
 			func() {},
 			exported.Active,
 		},
+		/*Steve:
 		{
 			"client is frozen",
 			func() {
@@ -59,7 +60,7 @@ import (
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 			},
 			exported.Expired,
-		},
+		},*/
 		{
 			"client state for unexisting contract",
 			func() {
@@ -87,7 +88,7 @@ import (
 			suite.Require().Equal(tc.expStatus, status)
 		})
 	}
-}*/
+}
 
 func (suite *TypesTestSuite) TestStatusTendermint() {
 	var (
@@ -224,22 +225,23 @@ func (suite *TypesTestSuite) TestValidate() {
 	}
 }
 
-/*func (suite *TypesTestSuite) TestInitializeGrandpa() {
+func (suite *TypesTestSuite) TestInitializeGrandpa() {
 	testCases := []struct {
 		name           string
 		consensusState exported.ConsensusState
 		expPass        bool
 	}{
+		/*Steve: This probably need a real consensus state now
 		{
 			name:           "valid consensus",
 			consensusState: types.NewConsensusState([]byte("data"), uint64(1678304292)),
 			expPass:        true,
-		},
-		{
+		},*/
+		/*{
 			name:           "invalid consensus: consensus state is solomachine consensus",
 			consensusState: ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState(),
 			expPass:        false,
-		},
+		},*/
 	}
 
 	for _, tc := range testCases {
@@ -261,7 +263,7 @@ func (suite *TypesTestSuite) TestValidate() {
 			}
 		})
 	}
-}*/
+}
 
 func (suite *TypesTestSuite) TestInitializeTendermint() {
 	var consensusState exported.ConsensusState
@@ -324,7 +326,7 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 	}
 }
 
-/*func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
+func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 	const (
 		prefix       = "ibc/"
 		connectionID = "connection-0"
@@ -373,7 +375,7 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 						ConnectionId: connectionID,
 						Prefix:       suite.chainA.GetPrefix(),
 					},
-					DelayPeriod: 0,
+					DelayPeriod: 1000000000,
 					State:       connectiontypes.TRYOPEN,
 					Versions:    []*connectiontypes.Version{connectiontypes.DefaultIBCVersion},
 				})
@@ -414,10 +416,10 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["packet_commitment_data"])
 				suite.Require().NoError(err)
 
-				proofHeight = clienttypes.NewHeight(2000, 32)
+				proofHeight = clienttypes.NewHeight(2000, 44)
 				packet := channeltypes.NewPacket(
 					data,
-					1, portID, channelID, portID, channelID, clienttypes.NewHeight(0, 3000),
+					2, portID, channelID, portID, channelID, clienttypes.NewHeight(0, 3000),
 					0,
 				)
 				key := host.PacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -439,11 +441,11 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["ack_data"])
 				suite.Require().NoError(err)
 
-				proofHeight = clienttypes.NewHeight(2000, 29)
+				proofHeight = clienttypes.NewHeight(2000, 33)
 				packet := channeltypes.NewPacket(
 					data,
 					uint64(1), portID, channelID, portID, channelID, clienttypes.NewHeight(2000, 1022),
-					1678733040575532477,
+					1693432290702126952,
 				)
 				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
@@ -462,7 +464,7 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 		},
 		{
 			"delay time period has passed", func() {
-				delayTimePeriod = uint64(time.Second.Nanoseconds())
+				delayTimePeriod = uint64(time.Second.Nanoseconds()*2)
 			},
 			true,
 		},
@@ -520,7 +522,7 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
 			suite.Require().True(ok)
 
-			delayTimePeriod = 0
+			delayTimePeriod = 1000000000
 			delayBlockPeriod = 0
 
 			proofHeight = clienttypes.NewHeight(2000, 11)
@@ -543,7 +545,7 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 				UnbondingPeriod:              time.Second * 1814400,
 				MaxClockDrift:                time.Second * 15,
 				FrozenHeight:                 clienttypes.ZeroHeight(),
-				LatestHeight:                 clienttypes.NewHeight(0, 46),
+				LatestHeight:                 clienttypes.NewHeight(0, 41),
 				ProofSpecs:                   commitmenttypes.GetSDKSpecs(),
 				UpgradePath:                  []string{"upgrade", "upgradedIBCState"},
 				AllowUpdateAfterExpiry:       false,
@@ -568,7 +570,7 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 			}
 		})
 	}
-}*/
+}
 
 func (suite *TypesTestSuite) TestVerifyMembershipTendermint() {
 	var (
@@ -823,7 +825,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipTendermint() {
 	}
 }
 
-/*func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
+func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 	const (
 		prefix              = "ibc/"
 		portID              = "transfer"
@@ -1018,7 +1020,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipTendermint() {
 			}
 		})
 	}
-}*/
+}
 
 func (suite *TypesTestSuite) TestVerifyNonMembershipTendermint() {
 	const (

@@ -105,7 +105,7 @@ type statusResult struct {
 
 type exportMetadataResult struct {
 	contractResult
-	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
+	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
 }
 
 type timestampAtHeightResult struct {
