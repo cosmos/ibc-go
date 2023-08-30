@@ -570,7 +570,7 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			clienttypes.ErrClientNotFound,
 		},
 		{
-			"subject height is equal than substitute height",
+			"subject and substitute have equal latest height",
 			func() {
 				tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
@@ -646,10 +646,6 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			tmClientState.AllowUpdateAfterExpiry = true
 
 			tc.malleate()
-
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
-			tmClientState = subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
-			fmt.Printf("Client status: %s", tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()))
 
 			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.RecoverClient(suite.chainA.GetContext(), subject, substitute)
 
