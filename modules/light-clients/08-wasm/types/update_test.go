@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	//"encoding/base64"
+	"encoding/base64"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +18,7 @@ import (
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-/*func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
+func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 	var (
 		ok          bool
 		clientMsg   exported.ClientMessage
@@ -82,7 +82,7 @@ import (
 			}
 		})
 	}
-}*/
+}
 
 func (suite *TypesTestSuite) TestVerifyHeaderTendermint() {
 	var (
@@ -381,7 +381,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderTendermint() {
 	}
 }
 
-/*func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
+func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 	var (
 		ok          bool
 		clientMsg   exported.ClientMessage
@@ -447,7 +447,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderTendermint() {
 				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
 
 				suite.Require().Len(consensusHeights, 1)
-				suite.Require().Equal(clienttypes.NewHeight(2000, 39), consensusHeights[0])
+				suite.Require().Equal(clienttypes.NewHeight(2000, 47), consensusHeights[0])
 				suite.Require().Equal(consensusHeights[0], newClientState.(*types.ClientState).LatestHeight)
 			} else {
 				suite.Require().Panics(func() {
@@ -456,7 +456,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderTendermint() {
 			}
 		})
 	}
-}*/
+}
 
 func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 	var (

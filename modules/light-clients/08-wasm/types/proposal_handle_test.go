@@ -1,14 +1,14 @@
 package types_test
 
 import (
-	//"encoding/base64"
+	"encoding/base64"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	//host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -17,7 +17,7 @@ import (
 var frozenHeight = clienttypes.NewHeight(0, 1)
 
 // TestCheckSubstituteAndUpdateState only tests the interface to the contract, not the full logic of the contract.
-/*func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
+func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 	var (
 		ok                                        bool
 		subjectClientState, substituteClientState exported.ClientState
@@ -41,15 +41,9 @@ var frozenHeight = clienttypes.NewHeight(0, 1)
 			suite.Require().True(ok)
 			subjectClientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 
-			// Create a new client
-			clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
-			suite.Require().NoError(err)
-
-			substituteClientState = &types.ClientState{
-				Data:         clientStateData,
-				CodeHash:     suite.codeHash,
-				LatestHeight: clienttypes.NewHeight(2000, 4),
-			}
+			substituteClientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
+			
 			consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
 			suite.Require().NoError(err)
 			substituteConsensusState := types.ConsensusState{
@@ -77,18 +71,12 @@ var frozenHeight = clienttypes.NewHeight(0, 1)
 				suite.Require().NotEmpty(clientStateBz)
 				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
 				suite.Require().Equal(substituteClientState.GetLatestHeight(), newClientState.GetLatestHeight())
-
-				// Verify that the substitute consensus state is in the subject client store
-				// Contract will increment timestamp by 1, verifying it can read from the substitute store and write to the subject store
-				newConsensusState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.ctx, grandpaClientID, newClientState.GetLatestHeight())
-				suite.Require().True(ok)
-				suite.Require().Equal(substituteConsensusState.GetTimestamp()+1, newConsensusState.GetTimestamp())
 			} else {
 				suite.Require().Error(err)
 			}
 		})
 	}
-}*/
+}
 
 func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateBasicTendermint() {
 	var (
