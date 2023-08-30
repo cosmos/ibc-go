@@ -881,7 +881,7 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 
 	// Move channel to OPEN state if both chains have finished flushing in-flight packets.
 	// Counterparty channel state has been verified in ChanUpgradeConfirm.
-	if msg.CounterpartyChannelState == channeltypes.STATE_FLUSHCOMPLETE && !k.ChannelKeeper.HasInflightPackets(ctx, msg.PortId, msg.ChannelId) {
+	if msg.CounterpartyChannelState == channeltypes.FLUSHCOMPLETE && !k.ChannelKeeper.HasInflightPackets(ctx, msg.PortId, msg.ChannelId) {
 		upgrade, found := k.ChannelKeeper.GetUpgrade(ctx, msg.PortId, msg.ChannelId)
 		if !found {
 			return nil, errorsmod.Wrapf(channeltypes.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)

@@ -223,8 +223,8 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !collections.Contains(channel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.STATE_FLUSHING, channel.State)
+	if !collections.Contains(channel.State, []types.State{types.OPEN, types.FLUSHING}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.FLUSHING, channel.State)
 	}
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -238,7 +238,7 @@ func (k Keeper) ChanUpgradeAck(
 
 	counterpartyHops := []string{connection.GetCounterparty().GetConnectionID()}
 	counterpartyChannel := types.Channel{
-		State:           types.STATE_FLUSHING,
+		State:           types.FLUSHING,
 		Ordering:        channel.Ordering,
 		ConnectionHops:  counterpartyHops,
 		Counterparty:    types.NewCounterparty(portID, channelID),
@@ -313,12 +313,11 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	}
 
 	if !k.HasInflightPackets(ctx, portID, channelID) {
-		channel.State = types.STATE_FLUSHCOMPLETE
+		channel.State = types.FLUSHCOMPLETE
+		k.SetChannel(ctx, portID, channelID, channel)
 	} else {
 		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
-
-	k.SetChannel(ctx, portID, channelID, channel)
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
@@ -350,12 +349,12 @@ func (k Keeper) ChanUpgradeConfirm(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if channel.State != types.STATE_FLUSHING {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.STATE_FLUSHING, channel.State)
+	if channel.State != types.FLUSHING {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.FLUSHING, channel.State)
 	}
 
-	if !collections.Contains(counterpartyChannelState, []types.State{types.STATE_FLUSHING, types.STATE_FLUSHCOMPLETE}) {
-		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "expected one of [%s, %s], got %s", types.STATE_FLUSHING, types.STATE_FLUSHCOMPLETE, counterpartyChannelState)
+	if !collections.Contains(counterpartyChannelState, []types.State{types.FLUSHING, types.FLUSHCOMPLETE}) {
+		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "expected one of [%s, %s], got %s", types.FLUSHING, types.FLUSHCOMPLETE, counterpartyChannelState)
 	}
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -421,7 +420,7 @@ func (k Keeper) WriteUpgradeConfirmChannel(ctx sdk.Context, portID, channelID st
 
 	if !k.HasInflightPackets(ctx, portID, channelID) {
 		previousState := channel.State
-		channel.State = types.STATE_FLUSHCOMPLETE
+		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
 
 		k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
@@ -448,8 +447,8 @@ func (k Keeper) ChanUpgradeOpen(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if channel.State != types.STATE_FLUSHCOMPLETE {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.STATE_FLUSHCOMPLETE, channel.State)
+	if channel.State != types.FLUSHCOMPLETE {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.FLUSHCOMPLETE, channel.State)
 	}
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -487,9 +486,9 @@ func (k Keeper) ChanUpgradeOpen(
 			UpgradeSequence: channel.UpgradeSequence,
 		}
 
-	case types.STATE_FLUSHCOMPLETE:
+	case types.FLUSHCOMPLETE:
 		counterpartyChannel = types.Channel{
-			State:           types.STATE_FLUSHCOMPLETE,
+			State:           types.FLUSHCOMPLETE,
 			Ordering:        channel.Ordering,
 			ConnectionHops:  []string{connection.GetCounterparty().GetConnectionID()},
 			Counterparty:    types.NewCounterparty(portID, channelID),
@@ -498,7 +497,7 @@ func (k Keeper) ChanUpgradeOpen(
 		}
 
 	default:
-		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "counterparty channel state must be one of [%s, %s], got %s", types.OPEN, types.STATE_FLUSHCOMPLETE, counterpartyChannelState)
+		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "counterparty channel state must be one of [%s, %s], got %s", types.OPEN, types.FLUSHCOMPLETE, counterpartyChannelState)
 	}
 
 	if err := k.connectionKeeper.VerifyChannelState(
@@ -564,7 +563,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
 	// then we can restore immediately without any additional checks
 	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
-	if k.isAuthorizedUpgrader(signer) && channel.State != types.STATE_FLUSHCOMPLETE {
+	if k.isAuthorizedUpgrader(signer) && channel.State != types.FLUSHCOMPLETE {
 		return nil
 	}
 
@@ -640,8 +639,8 @@ func (k Keeper) ChanUpgradeTimeout(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !collections.Contains(channel.State, []types.State{types.STATE_FLUSHING, types.STATE_FLUSHCOMPLETE}) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.STATE_FLUSHING, types.STATE_FLUSHCOMPLETE, channel.State)
+	if !collections.Contains(channel.State, []types.State{types.FLUSHING, types.FLUSHCOMPLETE}) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -679,8 +678,8 @@ func (k Keeper) ChanUpgradeTimeout(
 	}
 
 	// counterparty channel must be proved to still be in OPEN state or FLUSHING state.
-	if !collections.Contains(counterpartyChannel.State, []types.State{types.OPEN, types.STATE_FLUSHING}) {
-		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "expected one of [%s, %s], got %s", types.OPEN, types.STATE_FLUSHING, counterpartyChannel.State)
+	if !collections.Contains(counterpartyChannel.State, []types.State{types.OPEN, types.FLUSHING}) {
+		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "expected one of [%s, %s], got %s", types.OPEN, types.FLUSHING, counterpartyChannel.State)
 	}
 
 	if counterpartyChannel.State == types.OPEN {
@@ -761,7 +760,7 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String())
 	}
 
-	channel.State = types.STATE_FLUSHING
+	channel.State = types.FLUSHING
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
