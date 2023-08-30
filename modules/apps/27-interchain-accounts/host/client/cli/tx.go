@@ -2,16 +2,19 @@ package cli
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
 
@@ -21,13 +24,13 @@ const (
 
 func generatePacketDataCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "generate-packet-data [message]",
-		Short: "Generates protobuf encoded ICA packet data.",
-		Long: `generate-packet-data accepts a message string and serializes it using protobuf
-into packet data which is outputted to stdout. It can be used in conjunction with send-tx"
-which submits pre-built packet data containing messages to be executed on the host chain.
-`,
-		Example: fmt.Sprintf(`%s tx interchain-accounts host generate-packet-data '{
+		Use:   "generate-packet-data [encoding] [message]",
+		Short: "Generates protobuf or proto3 JSON encoded ICA packet data.",
+		Long: `generate-packet-data accepts a message string and serializes it (depending on the
+encoding parameter) using protobuf or proto3 JSON into packet data which is outputted to stdout.
+It can be used in conjunction with send-tx which submits pre-built packet data containing messages 
+to be executed on the host chain.`,
+		Example: fmt.Sprintf(`%s tx interchain-accounts host generate-packet-data proto3 '{
     "@type":"/cosmos.bank.v1beta1.MsgSend",
     "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
     "to_address":"cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
@@ -40,7 +43,7 @@ which submits pre-built packet data containing messages to be executed on the ho
 }' --memo memo
 
 
-%s tx interchain-accounts host generate-packet-data '[{
+%s tx interchain-accounts host generate-packet-data proto3 '[{
     "@type":"/cosmos.bank.v1beta1.MsgSend",
     "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
     "to_address":"cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
@@ -74,7 +77,12 @@ which submits pre-built packet data containing messages to be executed on the ho
 				return err
 			}
 
-			packetDataBytes, err := generatePacketData(cdc, []byte(args[0]), memo)
+			encoding := args[0]
+			if !slices.Contains([]string{types.EncodingProtobuf, types.EncodingProto3JSON}, encoding) {
+				return errors.New(fmt.Sprintf("unsupported encoding type: %s", encoding))
+			}
+
+			packetDataBytes, err := generatePacketData(cdc, []byte(args[0]), memo, encoding)
 			if err != nil {
 				return err
 			}
@@ -91,13 +99,13 @@ which submits pre-built packet data containing messages to be executed on the ho
 
 // generatePacketData takes in message bytes and a memo and serializes the message into an
 // instance of InterchainAccountPacketData which is returned as bytes.
-func generatePacketData(cdc *codec.ProtoCodec, msgBytes []byte, memo string) ([]byte, error) {
+func generatePacketData(cdc *codec.ProtoCodec, msgBytes []byte, memo string, encoding string) ([]byte, error) {
 	protoMessages, err := convertBytesIntoProtoMessages(cdc, msgBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	return generateIcaPacketDataFromProtoMessages(cdc, protoMessages, memo)
+	return generateIcaPacketDataFromProtoMessages(cdc, protoMessages, memo, encoding)
 }
 
 // convertBytesIntoProtoMessages returns a list of proto messages from bytes. The bytes can be in the form of a single
@@ -129,8 +137,8 @@ func convertBytesIntoProtoMessages(cdc *codec.ProtoCodec, msgBytes []byte) ([]pr
 }
 
 // generateIcaPacketDataFromProtoMessages generates ica packet data as bytes from a given set of proto encoded sdk messages and a memo.
-func generateIcaPacketDataFromProtoMessages(cdc *codec.ProtoCodec, sdkMessages []proto.Message, memo string) ([]byte, error) {
-	icaPacketDataBytes, err := icatypes.SerializeCosmosTx(cdc, sdkMessages, icatypes.EncodingProtobuf)
+func generateIcaPacketDataFromProtoMessages(cdc *codec.ProtoCodec, sdkMessages []proto.Message, memo string, encoding string) ([]byte, error) {
+	icaPacketDataBytes, err := icatypes.SerializeCosmosTx(cdc, sdkMessages, encoding)
 	if err != nil {
 		return nil, err
 	}
