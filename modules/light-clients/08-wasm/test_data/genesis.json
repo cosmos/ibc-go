@@ -844,16 +844,6 @@
               {
                 "consensus_state": {
                   "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
-                  "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwj2776nBhCA0coIEiAJpnurAU/lj+ZQ/Wt9b7DxJlxWLxuJLnrWVhz8kUEFiA=="
-                },
-                "height": {
-                  "revision_height": "36",
-                  "revision_number": "2000"
-                }
-              },
-              {
-                "consensus_state": {
-                  "@type": "/ibc.lightclients.wasm.v1.ConsensusState",
                   "data": "CisvaWJjLmxpZ2h0Y2xpZW50cy5ncmFuZHBhLnYxLkNvbnNlbnN1c1N0YXRlEi8KCwiO8L6nBhCAyNAHEiDsGCUamd53DHdAy5sootGKvuEo8Tl0+O7VGMJ8X6QdYA=="
                 },
                 "height": {
