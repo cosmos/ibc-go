@@ -366,8 +366,6 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
-		// fee version is unable to be parsed from upgrade version, disable fee
-		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
 		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
 		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
 		return im.app.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
@@ -387,8 +385,6 @@ func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID stri
 	if err != nil {
 		return "", err
 	}
-
-	im.keeper.SetFeeEnabled(ctx, portID, channelID)
 
 	return string(versionBz), nil
 }
