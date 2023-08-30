@@ -28,7 +28,7 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	subjectClientStore := k.ClientStore(ctx, p.SubjectClientId)
 
 	if status := k.GetClientStatus(ctx, subjectClientState, p.SubjectClientId); status == exported.Active {
-		return errorsmod.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update Active subject client")
+		return errorsmod.Wrap(types.ErrInvalidRecoveryClient, "cannot update Active subject client")
 	}
 
 	substituteClientState, found := k.GetClientState(ctx, p.SubstituteClientId)

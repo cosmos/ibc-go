@@ -150,6 +150,13 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 	return nil
 }
 
+// RecoverClient will retrieve the subject and substitute client.
+// A callback will occur to the subject client state with the client
+// prefixed store being provided for both the subject and the substitute client.
+// The IBC client implementations are responsible for validating the parameters of the
+// substitute (ensuring they match the subject's parameters) as well as copying
+// the necessary consensus states from the substitute to the subject client
+// store. The substitute must be Active and the subject must not be Active.
 func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClientID string) error {
 	subjectClientState, found := k.GetClientState(ctx, subjectClientID)
 	if !found {
@@ -184,11 +191,12 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 	k.Logger(ctx).Info("client recovered", "client-id", subjectClientID)
 
 	defer telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "client", "recover"},
+		[]string{"ibc", "client", "update"},
 		1,
 		[]metrics.Label{
 			telemetry.NewLabel(types.LabelClientType, substituteClientState.ClientType()),
 			telemetry.NewLabel(types.LabelClientID, subjectClientID),
+			telemetry.NewLabel(types.LabelUpdateType, "recovery"),
 		},
 	)
 
