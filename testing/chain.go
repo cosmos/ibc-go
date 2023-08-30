@@ -369,10 +369,24 @@ func (chain *TestChain) GetConsensusState(clientID string, height exported.Heigh
 	return chain.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(chain.GetContext(), clientID, height)
 }
 
-// GetValsAtHeight will return the validator set of the chain at a given height. It will return
+// GetValsAtHeight will return the trusted validator set of the chain for the given trusted height. It will return
 // a success boolean depending on if the validator set exists or not at that height.
-func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bool) {
-	histInfo, ok := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), height)
+func (chain *TestChain) GetValsAtHeight(trustedHeight int64) (*tmtypes.ValidatorSet, bool) {
+	// historical information does not store the validator set which committed the header at
+	// height h. During BeginBlock, it stores the last updated validator set. This is equivalent to
+	// the next validator set at height h. This is because cometbft processes the validator set
+	// as follows:
+	//
+	// valSetChanges := endBlock()
+	// chain.Vals = chain.NextVals
+	// chain.NextVals = applyValSetChanges(chain.NextVals, valSetChanges)
+	//
+	// At height h, the validators in the historical information are the:
+	// validators used to sign height h + 1 (next validator set)
+	//
+	// Since we want to return the trusted validator set, which is the next validator set
+	// for height h, we can simply query using the trusted height.
+	histInfo, ok := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), trustedHeight)
 	if !ok {
 		return nil, false
 	}
@@ -418,21 +432,12 @@ func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterpa
 		tmTrustedVals *tmtypes.ValidatorSet
 		ok            bool
 	)
-	// Once we get TrustedHeight from client, we must query the validators from the counterparty chain
-	// If the LatestHeight == LastHeader.Height, then TrustedValidators are current validators
-	// If LatestHeight < LastHeader.Height, we can query the historical validator set from HistoricalInfo
-	if trustedHeight == counterparty.LastHeader.GetHeight() {
-		tmTrustedVals = counterparty.Vals
-	} else {
-		// NOTE: We need to get validators from counterparty at height: trustedHeight+1
-		// since the last trusted validators for a header at height h
-		// is the NextValidators at h+1 committed to in header h by
-		// NextValidatorsHash
-		tmTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight + 1))
-		if !ok {
-			return nil, sdkerrors.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
-		}
+
+	tmTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
+	if !ok {
+		return nil, sdkerrors.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
 	}
+
 	// inject trusted fields into last header
 	// for now assume revision number is 0
 	header.TrustedHeight = trustedHeight
