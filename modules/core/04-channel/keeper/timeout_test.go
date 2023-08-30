@@ -318,7 +318,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
 				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
-					Timeout: types.DefaultTimeout,
+					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), uint64(suite.chainA.GetContext().BlockTime().UnixNano())+types.DefaultTimeout.Timestamp),
 				})
 			},
 			func(packetCommitment []byte, err error) {
@@ -422,10 +422,10 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				path.EndpointA.SetChannel(channel)
 				path.EndpointA.SetChannelUpgrade(types.Upgrade{
 					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
-					Timeout: types.DefaultTimeout,
+					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), uint64(suite.chainA.GetContext().BlockTime().UnixNano())+types.DefaultTimeout.Timestamp),
 				})
 				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
-					Timeout: types.DefaultTimeout,
+					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), uint64(suite.chainB.GetContext().BlockTime().UnixNano())+types.DefaultTimeout.Timestamp),
 				})
 			},
 			func(packetCommitment []byte, err error) {
