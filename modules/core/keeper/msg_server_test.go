@@ -1074,11 +1074,64 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			},
 		},
 		{
-			"success, pending in-flight packets",
+			"success, pending in-flight packets on init chain",
 			func() {
-				portID := path.EndpointB.ChannelConfig.PortID
-				channelID := path.EndpointB.ChannelID
-				// Set a dummy packet commitment to simulate in-flight packets
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+				err := path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointB.ChanUpgradeTry()
+				suite.Require().NoError(err)
+
+				seq, err := path.EndpointA.SendPacket(path.EndpointB.Chain.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
+				suite.Require().Equal(uint64(1), seq)
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeAck()
+				suite.Require().NoError(err)
+
+				err = path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+
+				counterpartyChannelState := path.EndpointA.GetChannel().State
+				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
+
+				proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+
+				msg = &channeltypes.MsgChannelUpgradeConfirm{
+					PortId:                   path.EndpointB.ChannelConfig.PortID,
+					ChannelId:                path.EndpointB.ChannelID,
+					CounterpartyChannelState: counterpartyChannelState,
+					CounterpartyUpgrade:      counterpartyUpgrade,
+					ProofChannel:             proofChannel,
+					ProofUpgrade:             proofUpgrade,
+					ProofHeight:              proofHeight,
+					Signer:                   suite.chainA.SenderAccount.GetAddress().String(),
+				}
+			},
+			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
+
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(channeltypes.FLUSHING, channel.State)
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+
+				channel = path.EndpointB.GetChannel()
+				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.State)
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+			},
+		},
+		{
+			"success, pending in-flight packets on try chain",
+			func() {
+				portID, channelID := path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainB.GetContext(), portID, channelID, 1, []byte("hash"))
 			},
 			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
