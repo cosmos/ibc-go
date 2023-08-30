@@ -363,7 +363,7 @@ func (chain *TestChain) GetConsensusState(clientID string, height exported.Heigh
 
 // GetValsAtHeight will return the trusted validator set of the chain for the given trusted height. It will return
 // a success boolean depending on if the validator set exists or not at that height.
-func (chain *TestChain) GetValsAtHeight(trustedHeight int64) (*cmttypes.ValidatorSet, bool) {
+func (chain *TestChain) GetValsAtHeight(trustedHeight int64) (*tmtypes.ValidatorSet, bool) {
 	// historical information does not store the validator set which committed the header at
 	// height h. During BeginBlock, it stores the last updated validator set. This is equivalent to
 	// the next validator set at height h. This is because cometbft processes the validator set
@@ -427,7 +427,7 @@ func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterpa
 
 	tmTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 	if !ok {
-		return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
+		return nil, sdkerrors.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
 	}
 
 	// inject trusted fields into last header
