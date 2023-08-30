@@ -1427,6 +1427,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 		msg  *channeltypes.MsgChannelUpgradeTimeout
 	)
 
+	timeoutUpgrade := func() {
+		upgrade := path.EndpointA.GetProposedUpgrade()
+		upgrade.Timeout = channeltypes.NewTimeout(clienttypes.ZeroHeight(), 1)
+		path.EndpointA.SetChannelUpgrade(upgrade)
+		suite.Require().NoError(path.EndpointA.Counterparty.UpdateClient())
+	}
+
 	cases := []struct {
 		name      string
 		malleate  func()
@@ -1435,8 +1442,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 		{
 			"success",
 			func() {
-				// timeout the upgrade
-				suite.coordinator.CommitNBlocks(suite.chainB, 1000)
+				timeoutUpgrade()
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
@@ -1477,8 +1483,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 		{
 			"core handler fails: invalid proof",
 			func() {
-				// timeout the upgrade
-				suite.coordinator.CommitNBlocks(suite.chainB, 1000)
+				timeoutUpgrade()
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
