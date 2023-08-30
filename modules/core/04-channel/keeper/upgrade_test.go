@@ -699,6 +699,44 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 			nil,
 		},
 		{
+			"success with in-flight packets on init chain",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+				err := path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointB.ChanUpgradeTry()
+				suite.Require().NoError(err)
+
+				seq, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
+				suite.Require().Equal(uint64(1), seq)
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeAck()
+				suite.Require().NoError(err)
+
+				err = path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+
+				counterpartyChannelState = path.EndpointA.GetChannel().State
+				counterpartyUpgrade = path.EndpointA.GetChannelUpgrade()
+			},
+			nil,
+		},
+		{
+			"success with in-flight packets on try chain",
+			func() {
+				portID, channelID := path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID
+				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainB.GetContext(), portID, channelID, 1, []byte("hash"))
+			},
+			nil,
+		},
+		{
 			"channel not found",
 			func() {
 				path.EndpointB.ChannelID = ibctesting.InvalidID

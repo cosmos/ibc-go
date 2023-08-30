@@ -416,9 +416,9 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) {
+func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
 	// call underlying app's OnChanUpgradeOpen callback.
-	im.app.OnChanUpgradeOpen(ctx, portID, channelID)
+	im.app.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, version)
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface

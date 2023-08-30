@@ -882,7 +882,12 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 	// Move channel to OPEN state if both chains have finished flushing in-flight packets.
 	// Counterparty channel state has been verified in ChanUpgradeConfirm.
 	if msg.CounterpartyChannelState == channeltypes.FLUSHCOMPLETE && !k.ChannelKeeper.HasInflightPackets(ctx, msg.PortId, msg.ChannelId) {
-		cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId)
+		upgrade, found := k.ChannelKeeper.GetUpgrade(ctx, msg.PortId, msg.ChannelId)
+		if !found {
+			return nil, errorsmod.Wrapf(channeltypes.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
+		}
+
+		cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 		k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
 
 		ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
@@ -912,7 +917,12 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "channel upgrade open failed")
 	}
 
-	cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId)
+	upgrade, found := k.ChannelKeeper.GetUpgrade(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		return nil, errorsmod.Wrapf(channeltypes.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
+	}
+
+	cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 
 	k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
 
