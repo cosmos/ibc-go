@@ -204,9 +204,9 @@ func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counter
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string) {
+func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
 	if im.IBCApp.OnChanUpgradeOpen != nil {
-		im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID)
+		im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, version)
 	}
 }
 
