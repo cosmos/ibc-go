@@ -121,7 +121,7 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	str := strings.SplitAfter(state, "server")
 	state = str[1]
 
-	appTomlOverrides := make(testsuite.Toml)
+	appTomlOverrides := make(test.Toml)
 
 	appTomlOverrides["halt-height"] = 0
 
@@ -131,7 +131,7 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	}
 
 	for _, node := range chain.Nodes() {
-		err := testsuite.ModifyTomlConfigFile(
+		err := test.ModifyTomlConfigFile(
 			ctx,
 			zap.NewExample(),
 			node.DockerClient,
