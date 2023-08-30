@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"errors"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -8,6 +11,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
@@ -827,7 +831,86 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 }
 
 // TestIBCSoftwareUpgrade tests the IBCSoftwareUpgrade rpc handler
-func (*KeeperTestSuite) TestIBCSoftwareUpgrade() {
+func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
+	var msg *clienttypes.MsgIBCSoftwareUpgrade
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: valid authority and client upgrade",
+			func() {},
+			nil,
+		},
+		{
+			"failure: invalid authority address",
+			func() {
+				msg.Signer = suite.chainA.SenderAccount.GetAddress().String()
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: invalid clientState",
+			func() {
+				msg.UpgradedClientState = nil
+			},
+			clienttypes.ErrInvalidClientType,
+		},
+		{
+			"failure: failed to schedule client upgrade",
+			func() {
+				msg.Plan.Height = 0
+			},
+			sdkerrors.ErrInvalidRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+			plan := upgradetypes.Plan{
+				Name:   "upgrade IBC clients",
+				Height: 1000,
+			}
+			// update trusting period
+			clientState := path.EndpointB.GetClientState()
+			clientState.(*ibctm.ClientState).TrustingPeriod += 100
+
+			var err error
+			msg, err = clienttypes.NewMsgIBCSoftwareUpgrade(
+				validAuthority,
+				plan,
+				clientState,
+			)
+
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			_, err = keeper.Keeper.IBCSoftwareUpgrade(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+				// upgrade plan is stored
+				storedPlan, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
+				suite.Require().True(found)
+				suite.Require().Equal(plan, storedPlan)
+
+				// upgraded client state is stored
+				bz, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
+				suite.Require().True(found)
+				upgradedClientState, err := clienttypes.UnmarshalClientState(suite.chainA.App.AppCodec(), bz)
+				suite.Require().NoError(err)
+				suite.Require().Equal(clientState.ZeroCustomFields(), upgradedClientState)
+			} else {
+				suite.Require().True(errors.Is(err, tc.expError))
+			}
+		})
+	}
 }
 
 // TestUpdateConnectionParams tests the UpdateConnectionParams rpc handler
