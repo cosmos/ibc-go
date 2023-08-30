@@ -621,6 +621,11 @@ module.exports = {
               directory: false,
               path: "/migrations/v7-to-v7_1.html",
             },
+            {
+              title: "IBC-Go v7.2 to v7.3",
+              directory: false,
+              path: "/migrations/v7_2-to-v7_3.html",
+            },
           ],
         },
         {
