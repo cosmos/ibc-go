@@ -1484,7 +1484,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 		upgrade := path.EndpointA.GetProposedUpgrade()
 		upgrade.Timeout = channeltypes.NewTimeout(clienttypes.ZeroHeight(), 1)
 		path.EndpointA.SetChannelUpgrade(upgrade)
-		suite.Require().NoError(path.EndpointA.Counterparty.UpdateClient())
+		suite.Require().NoError(path.EndpointB.UpdateClient())
 	}
 
 	cases := []struct {
