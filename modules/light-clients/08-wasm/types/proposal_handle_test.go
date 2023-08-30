@@ -43,7 +43,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 
 			substituteClientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
 			suite.Require().True(ok)
-			
+
 			consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
 			suite.Require().NoError(err)
 			substituteConsensusState := types.ConsensusState{

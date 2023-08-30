@@ -237,11 +237,11 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 			expPass:  true,
 		},
 		{
-			name:     "invalid consensus: consensus state is solomachine consensus",
+			name: "invalid consensus: consensus state is solomachine consensus",
 			malleate: func() {
 				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
 			},
-			expPass:  false,
+			expPass: false,
 		},
 	}
 
@@ -282,22 +282,22 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 		expPass  bool
 	}{
 		{
-			name:     "valid consensus",
+			name: "valid consensus",
 			malleate: func() {
 				tmConsensusState := tmtypes.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte{0}), []byte("01234567012345670123456701234567"))
 				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
-	
+
 				consensusState = types.NewConsensusState(tmConsensusStateData, 1)
 			},
-			expPass:  true,
+			expPass: true,
 		},
 		{
-			name:     "invalid consensus: consensus state is solomachine consensus",
+			name: "invalid consensus: consensus state is solomachine consensus",
 			malleate: func() {
 				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
 			},
-			expPass:  false,
+			expPass: false,
 		},
 	}
 
@@ -473,7 +473,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 		},
 		{
 			"delay time period has passed", func() {
-				delayTimePeriod = uint64(time.Second.Nanoseconds()*2)
+				delayTimePeriod = uint64(time.Second.Nanoseconds() * 2)
 			},
 			true,
 		},
