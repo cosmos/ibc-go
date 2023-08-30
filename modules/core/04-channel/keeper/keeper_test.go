@@ -506,7 +506,7 @@ func (suite *KeeperTestSuite) TestParams() {
 	}{
 		{"success: set default params", types.DefaultParams(), true},
 		{"success: zero timeout height", types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), 10000)), true},
-		{"success: zero timestamp timestamp", types.NewParams(types.NewTimeout(types.DefaultTimeout.Height, 0)), true},
+		{"fail: zero timeout timestamp", types.NewParams(types.NewTimeout(clienttypes.NewHeight(1, 1000), 0)), false},
 		{"fail: zero timeout", types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), 0)), false},
 	}
 
