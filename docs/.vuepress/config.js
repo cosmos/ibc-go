@@ -235,6 +235,11 @@ module.exports = {
               path: "/ibc/proto-docs.html",
             },
             {
+              title: "Capability Module",
+              directory: false,
+              path: "/ibc/capability-module.html",
+            },
+            {
               title: "Roadmap",
               directory: false,
               path: "/roadmap/roadmap.html",
