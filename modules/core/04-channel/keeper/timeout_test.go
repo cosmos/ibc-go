@@ -460,7 +460,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				channel := path.EndpointA.GetChannel()
-				channel.State = types.STATE_FLUSHING
+				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
 				path.EndpointA.SetChannelUpgrade(types.Upgrade{
 					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
