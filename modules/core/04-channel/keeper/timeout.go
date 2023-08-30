@@ -152,7 +152,7 @@ func (k Keeper) TimeoutExecuted(
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
-	if channel.State == types.FLUSHING {
+	if channel.State == types.FLUSHING && channel.Ordering == types.UNORDERED {
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 		if !found {
 			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
@@ -178,11 +178,12 @@ func (k Keeper) TimeoutExecuted(
 	}
 
 	if channel.Ordering == types.ORDERED {
-		// note: we continue to close the ordered channel even if the upgrade has been aborted.
-		// the end desired state is:
-		// - the channel is closed.
-		// - the upgrade info is always deleted (if the upgrade is aborted)
-		// - an error receipt is written to state (if the upgrade is aborted)
+		// NOTE: if the channel is ORDERED and a packet is timed out in FLUSHING state then
+		// the upgrade is aborted and the channel is set to CLOSED.
+		if channel.State == types.FLUSHING {
+			// an error receipt is written to state and the channel is restored to OPEN
+			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), types.ErrPacketTimeout)
+		}
 
 		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
