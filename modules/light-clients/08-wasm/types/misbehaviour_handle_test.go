@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	//"encoding/base64"
+	// "encoding/base64"
 	"fmt"
 	"strings"
 	"time"
