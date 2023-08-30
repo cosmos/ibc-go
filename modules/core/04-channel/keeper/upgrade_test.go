@@ -1764,7 +1764,9 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 				suite.Require().Equal(types.FLUSHING, channel.State)
 				suite.Require().Equal(nextSequenceSend-1, upgrade.LatestSequenceSend)
 
-				suite.Require().Equal(types.DefaultTimeout, upgrade.Timeout)
+				expectedTimeoutTimestamp := types.DefaultTimeout.Timestamp + uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+				suite.Require().Equal(expectedTimeoutTimestamp, upgrade.Timeout.Timestamp)
+				suite.Require().Equal(clienttypes.ZeroHeight(), upgrade.Timeout.Height, "only timestamp should be set")
 				suite.Require().NoError(err)
 			}
 		})
