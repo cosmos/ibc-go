@@ -777,8 +777,7 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 
 // getAbsoluteUpgradeTimeout returns the absolute timeout for the given upgrade.
 func (k Keeper) getAbsoluteUpgradeTimeout(ctx sdk.Context) types.Timeout {
-	channelParams := k.GetParams(ctx)
-	upgradeTimeout := channelParams.UpgradeTimeout
+	upgradeTimeout := k.GetParams(ctx).UpgradeTimeout
 	return types.NewTimeout(clienttypes.ZeroHeight(), uint64(ctx.BlockTime().UnixNano())+upgradeTimeout.Timestamp)
 }
 
