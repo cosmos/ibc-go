@@ -779,7 +779,7 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 func (k Keeper) getAbsoluteUpgradeTimeout(ctx sdk.Context) types.Timeout {
 	channelParams := k.GetParams(ctx)
 	upgradeTimeout := channelParams.UpgradeTimeout
-	return types.NewTimeout(upgradeTimeout.Height, uint64(ctx.BlockTime().UnixNano())+upgradeTimeout.Timestamp)
+	return types.NewTimeout(clienttypes.ZeroHeight(), uint64(ctx.BlockTime().UnixNano())+upgradeTimeout.Timestamp)
 }
 
 // syncUpgradeSequence ensures current upgrade handshake only continues if both channels are using the same upgrade sequence,
