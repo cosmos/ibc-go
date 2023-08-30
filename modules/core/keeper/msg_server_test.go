@@ -832,38 +832,37 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 
 // TestIBCSoftwareUpgrade tests the IBCSoftwareUpgrade rpc handler
 func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
-	var (
-		expError error
-		msg      *clienttypes.MsgIBCSoftwareUpgrade
-	)
+	var msg *clienttypes.MsgIBCSoftwareUpgrade
 	testCases := []struct {
 		name     string
 		malleate func()
+		expError error
 	}{
 		{
 			"success: valid authority and client upgrade",
 			func() {},
+			nil,
 		},
 		{
 			"failure: invalid authority address",
 			func() {
 				msg.Signer = suite.chainA.SenderAccount.GetAddress().String()
-				expError = ibcerrors.ErrUnauthorized
 			},
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: invalid clientState",
 			func() {
 				msg.UpgradedClientState = nil
-				expError = clienttypes.ErrInvalidClientType
 			},
+			clienttypes.ErrInvalidClientType,
 		},
 		{
 			"failure: failed to schedule client upgrade",
 			func() {
 				msg.Plan.Height = 0
-				expError = sdkerrors.ErrInvalidRequest
 			},
+			sdkerrors.ErrInvalidRequest,
 		},
 	}
 
@@ -878,7 +877,8 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				Height: 1000,
 			}
 			// update trusting period
-			clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod+100, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clienttypes.NewHeight(1, 10), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+			clientState := path.EndpointB.GetClientState()
+			clientState.(*ibctm.ClientState).TrustingPeriod += 100
 
 			var err error
 			msg, err = clienttypes.NewMsgIBCSoftwareUpgrade(
@@ -893,7 +893,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 
 			_, err = keeper.Keeper.IBCSoftwareUpgrade(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
 
-			if expError == nil {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				// upgrade plan is stored
 				storedPlan, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
@@ -907,7 +907,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(clientState.ZeroCustomFields(), upgradedClientState)
 			} else {
-				suite.Require().True(errors.Is(err, expError))
+				suite.Require().True(errors.Is(err, tc.expError))
 			}
 		})
 	}
