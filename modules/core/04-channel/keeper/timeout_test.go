@@ -444,6 +444,51 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				suite.Require().False(found, "error receipt should not be written")
 			},
 		},
+		{
+			"ordered channel is closed and upgrade is aborted when timeout is executed",
+			func() {
+				path.SetChannelOrdered()
+				suite.coordinator.Setup(path)
+
+				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+
+				sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
+				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.FLUSHING
+				path.EndpointA.SetChannel(channel)
+				path.EndpointA.SetChannelUpgrade(types.Upgrade{
+					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
+					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
+				})
+				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
+					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
+				})
+			},
+			func(packetCommitment []byte, err error) {
+				suite.Require().NoError(err)
+
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(types.CLOSED, channel.State, "channel state should be CLOSED")
+
+				upgrade, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().False(found, "upgrade should not be present")
+				suite.Require().Equal(types.Upgrade{}, upgrade, "upgrade should be zero value")
+
+				upgrade, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().False(found, "counterparty upgrade should not be present")
+				suite.Require().Equal(types.Upgrade{}, upgrade, "counterparty upgrade should be zero value")
+
+				errorReceipt, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found, "error receipt should be present")
+				suite.Require().Equal(channel.UpgradeSequence, errorReceipt.Sequence, "error receipt sequence should be equal to channel upgrade sequence")
+			},
+		},
 	}
 
 	for i, tc := range testCases {
