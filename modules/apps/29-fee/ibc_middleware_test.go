@@ -1224,9 +1224,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 }
 
 func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
