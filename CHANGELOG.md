@@ -34,15 +34,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v7.3.0](https://github.com/cosmos/ibc-go/releases/tag/v7.3.0) - 2023-08-31
 
 ### Dependencies
 
 * [\#4122](https://github.com/cosmos/ibc-go/pull/4122) Update Cosmos SDK to v0.47.4.
-
-### API Breaking
-
-### State Machine Breaking
 
 ### Improvements
 
