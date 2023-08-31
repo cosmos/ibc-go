@@ -14,10 +14,6 @@ type ContractKeeper interface {
 	// packetSenderAddress is determined by the underlying module, and may be empty if the sender is
 	// unknown or undefined. The contract is expected to handle the callback within the user defined
 	// gas limit, and handle any errors, or panics gracefully.
-<<<<<<< HEAD
-	// If an error is returned, the transaction will be reverted by the callbacks middleware, and the
-	// packet will not be sent.
-=======
 	// This entry point is called with a cached context. If an error is returned, then the changes in
 	// this context will not be persisted, and the error will be propagated to the underlying IBC
 	// application, resulting in a packet send failure.
@@ -26,7 +22,6 @@ type ContractKeeper interface {
 	// validation on the origin of a given packet. It is recommended to perform the same validation
 	// on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This
 	// defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
->>>>>>> 7985bbd2 (docs(callbacks): improved godocs for ContractKeeper state reversion (#4516))
 	IBCSendPacketCallback(
 		cachedCtx sdk.Context,
 		sourcePort string,
@@ -41,9 +36,6 @@ type ContractKeeper interface {
 	// is received. The packetSenderAddress is determined by the underlying module, and may be empty if
 	// the sender is unknown or undefined. The contract is expected to handle the callback within the
 	// user defined gas limit, and handle any errors, or panics gracefully.
-<<<<<<< HEAD
-	// If an error is returned, state will be reverted by the callbacks middleware.
-=======
 	// This entry point is called with a cached context. If an error is returned, then the changes in
 	// this context will not be persisted, but the packet lifecycle will not be blocked.
 	//
@@ -51,7 +43,6 @@ type ContractKeeper interface {
 	// validation on the origin of a given packet. It is recommended to perform the same validation
 	// on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This
 	// defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
->>>>>>> 7985bbd2 (docs(callbacks): improved godocs for ContractKeeper state reversion (#4516))
 	IBCOnAcknowledgementPacketCallback(
 		cachedCtx sdk.Context,
 		packet channeltypes.Packet,
@@ -64,9 +55,6 @@ type ContractKeeper interface {
 	// the timeout height. The packetSenderAddress is determined by the underlying module, and may be
 	// empty if the sender is unknown or undefined. The contract is expected to handle the callback
 	// within the user defined gas limit, and handle any error, out of gas, or panics gracefully.
-<<<<<<< HEAD
-	// If an error is returned, state will be reverted by the callbacks middleware.
-=======
 	// This entry point is called with a cached context. If an error is returned, then the changes in
 	// this context will not be persisted, but the packet lifecycle will not be blocked.
 	//
@@ -74,7 +62,6 @@ type ContractKeeper interface {
 	// validation on the origin of a given packet. It is recommended to perform the same validation
 	// on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This
 	// defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
->>>>>>> 7985bbd2 (docs(callbacks): improved godocs for ContractKeeper state reversion (#4516))
 	IBCOnTimeoutPacketCallback(
 		cachedCtx sdk.Context,
 		packet channeltypes.Packet,
