@@ -113,7 +113,7 @@ not own.
 
 ## State
 
-### In-persisted KV store
+### Persisted KV store
 
 1. Global unique capability index
 2. Capability owners
