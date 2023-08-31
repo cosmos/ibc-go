@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/version"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -20,6 +21,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
+
+const FlagAuthority = "authority"
 
 // NewCreateClientCmd defines the command to create a new IBC light client.
 func NewCreateClientCmd() *cobra.Command {
@@ -238,6 +241,62 @@ func NewUpgradeClientCmd() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+// NewCmdRecoverClientProposal defines the command to recover an IBC light client
+func NewCmdRecoverClientProposal() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "recover [subject-client-id] [substitute-client-id] [flags]",
+		Args:  cobra.ExactArgs(2),
+		Short: "recover an IBC client",
+		Long: "Submit a recover IBC client proposal along with an initial deposit.\n" +
+			"Please specify a subject client identifier you want to recover..\n" +
+			"Please specify the substitute client the subject client will be recovered to.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := govcli.ReadGovPropFlags(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			subjectClientID := args[0]
+			substituteClientID := args[1]
+
+			authority, _ := cmd.Flags().GetString(FlagAuthority)
+			if authority != "" {
+				if _, err = sdk.AccAddressFromBech32(authority); err != nil {
+					return fmt.Errorf("invalid authority address: %w", err)
+				}
+			} else {
+				authority = sdk.AccAddress(address.Module("gov")).String()
+			}
+
+			msg := types.NewMsgRecoverClient(authority, subjectClientID, substituteClientID)
+
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			if err := proposal.SetMsgs([]sdk.Msg{msg}); err != nil {
+				return fmt.Errorf("failed to create recover client proposal message: %w", err)
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), proposal)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	govcli.AddGovPropFlagsToCmd(cmd)
+	err := cmd.MarkFlagRequired(govcli.FlagTitle)
+	if err != nil {
+		panic(err)
+	}
+
 	return cmd
 }
 
