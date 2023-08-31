@@ -93,7 +93,7 @@ func (k Keeper) SendPacket(
 	if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
 		return 0, errorsmod.Wrapf(
 			types.ErrPacketTimeout,
-			"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
+			"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)).UTC(), time.Unix(0, int64(packet.GetTimeoutTimestamp())).UTC(),
 		)
 	}
 
@@ -190,7 +190,7 @@ func (k Keeper) RecvPacket(
 	if packet.GetTimeoutTimestamp() != 0 && uint64(ctx.BlockTime().UnixNano()) >= packet.GetTimeoutTimestamp() {
 		return errorsmod.Wrapf(
 			types.ErrPacketTimeout,
-			"block timestamp >= packet timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
+			"block timestamp >= packet timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(packet.GetTimeoutTimestamp())).UTC(),
 		)
 	}
 
