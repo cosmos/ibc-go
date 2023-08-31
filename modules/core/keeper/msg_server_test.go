@@ -781,9 +781,9 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 func (suite *KeeperTestSuite) TestRecoverClient() {
 	var (
-		subject, substitute                       string
-		subjectClientState, substituteClientState exported.ClientState
-		msg                                       *clienttypes.MsgRecoverClient
+		subject, substitute string
+		subjectClientState  exported.ClientState
+		msg                 *clienttypes.MsgRecoverClient
 	)
 
 	testCases := []struct {
@@ -831,19 +831,11 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			suite.Require().NoError(err)
 			err = substitutePath.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
-			substituteClientState = suite.chainA.GetClientState(substitute)
 
 			tmClientState, ok := subjectClientState.(*ibctm.ClientState)
 			suite.Require().True(ok)
-			tmClientState.AllowUpdateAfterMisbehaviour = true
-			tmClientState.AllowUpdateAfterExpiry = true
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
-
-			tmClientState, ok = substituteClientState.(*ibctm.ClientState)
-			suite.Require().True(ok)
-			tmClientState.AllowUpdateAfterMisbehaviour = true
-			tmClientState.AllowUpdateAfterExpiry = true
 
 			msg = clienttypes.NewMsgRecoverClient(suite.chainA.App.GetIBCKeeper().GetAuthority(), subject, substitute)
 
