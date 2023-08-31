@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -188,6 +189,40 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 			break
 		}
 	}
+}
+
+// setDenomMetadata sets an IBC token's denomination metadata
+func (k Keeper) setDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
+	metadata := banktypes.Metadata{
+		Description: getMetadataDescription(denomTrace),
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    denomTrace.BaseDenom,
+				Exponent: 0,
+			},
+		},
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
+		// Base as storeKey and the IBC hash is what gives this token uniqueness
+		// on the executing chain
+		Base:    denomTrace.IBCDenom(),
+		Display: denomTrace.GetFullDenomPath(),
+		Name:    getMetadataName(denomTrace),
+		Symbol:  getMetadataSymbol(denomTrace),
+	}
+
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+}
+
+func getMetadataDescription(denomTrace types.DenomTrace) string {
+	return fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath())
+}
+
+func getMetadataName(denomTrace types.DenomTrace) string {
+	return fmt.Sprintf("%s IBC token", denomTrace.GetFullDenomPath())
+}
+
+func getMetadataSymbol(denomTrace types.DenomTrace) string {
+	return strings.ToUpper(denomTrace.BaseDenom)
 }
 
 // GetTotalEscrowForDenom gets the total amount of source chain tokens that

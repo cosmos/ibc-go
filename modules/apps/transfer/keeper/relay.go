@@ -11,7 +11,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -279,7 +278,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
-		k.SetDenomMetadata(ctx, denomTrace)
+		k.setDenomMetadata(ctx, denomTrace)
 	}
 
 	// send to receiver
@@ -427,38 +426,4 @@ func (k Keeper) DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
 
 	fullDenomPath := denomTrace.GetFullDenomPath()
 	return fullDenomPath, nil
-}
-
-// SetDenomMetadata sets an IBC token's denomination metadata
-func (k Keeper) SetDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
-	metadata := banktypes.Metadata{
-		Description: getMetadataDescription(denomTrace),
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    denomTrace.BaseDenom,
-				Exponent: 0,
-			},
-		},
-		// Setting base as IBC hash denom since bank keepers's SetDenomMetaData uses
-		// Base as storeKey and the bank keeper will only have the IBC hash to get
-		// the denom metadata
-		Base:    denomTrace.IBCDenom(),
-		Display: denomTrace.GetFullDenomPath(),
-		Name:    getMetadataName(denomTrace),
-		Symbol:  getMetadataSymbol(denomTrace),
-	}
-
-	k.bankKeeper.SetDenomMetaData(ctx, metadata)
-}
-
-func getMetadataDescription(denomTrace types.DenomTrace) string {
-	return fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath())
-}
-
-func getMetadataName(denomTrace types.DenomTrace) string {
-	return fmt.Sprintf("%s IBC token", denomTrace.GetFullDenomPath())
-}
-
-func getMetadataSymbol(denomTrace types.DenomTrace) string {
-	return strings.ToUpper(denomTrace.BaseDenom)
 }

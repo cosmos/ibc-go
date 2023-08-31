@@ -16,7 +16,7 @@ func (suite *KeeperTestSuite) TestGenesis() {
 	}
 
 	var (
-		traces                types.Traces
+		denomTraces           types.Traces
 		escrows               sdk.Coins
 		pathsAndEscrowAmounts = []struct {
 			path   string
@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) TestGenesis() {
 			BaseDenom: "uatom",
 			Path:      pathAndEscrowAmount.path,
 		}
-		traces = append(types.Traces{denomTrace}, traces...)
+		denomTraces = append(types.Traces{denomTrace}, denomTraces...)
 		suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
 
 		denom := denomTrace.IBCDenom()
@@ -48,10 +48,16 @@ func (suite *KeeperTestSuite) TestGenesis() {
 	genesis := suite.chainA.GetSimApp().TransferKeeper.ExportGenesis(suite.chainA.GetContext())
 
 	suite.Require().Equal(types.PortID, genesis.PortId)
-	suite.Require().Equal(traces.Sort(), genesis.DenomTraces)
+	suite.Require().Equal(denomTraces.Sort(), genesis.DenomTraces)
 	suite.Require().Equal(escrows.Sort(), genesis.TotalEscrowed)
 
 	suite.Require().NotPanics(func() {
 		suite.chainA.GetSimApp().TransferKeeper.InitGenesis(suite.chainA.GetContext(), *genesis)
 	})
+
+	ctx := suite.chainA.GetContext()
+	for _, denomTrace := range denomTraces {
+		_, ok := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(ctx, denomTrace.IBCDenom())
+		suite.Require().True(ok)
+	}
 }
