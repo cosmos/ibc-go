@@ -28,6 +28,7 @@ var (
 	EventTypeUpdateClientProposal  = "update_client_proposal"
 	EventTypeUpgradeChain          = "upgrade_chain"
 	EventTypeUpgradeClientProposal = "upgrade_client_proposal"
+	EventTypeRecoverClient         = "recover_client"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )

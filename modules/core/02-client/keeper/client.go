@@ -149,3 +149,59 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 
 	return nil
 }
+
+// RecoverClient will retrieve the subject and substitute client.
+// A callback will occur to the subject client state with the client
+// prefixed store being provided for both the subject and the substitute client.
+// The IBC client implementations are responsible for validating the parameters of the
+// substitute (ensuring they match the subject's parameters) as well as copying
+// the necessary consensus states from the substitute to the subject client
+// store. The substitute must be Active and the subject must not be Active.
+func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClientID string) error {
+	subjectClientState, found := k.GetClientState(ctx, subjectClientID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrClientNotFound, "subject client with ID %s", subjectClientID)
+	}
+
+	subjectClientStore := k.ClientStore(ctx, subjectClientID)
+
+	if status := k.GetClientStatus(ctx, subjectClientState, subjectClientID); status == exported.Active {
+		return errorsmod.Wrap(types.ErrInvalidRecoveryClient, "cannot recover Active subject client")
+	}
+
+	substituteClientState, found := k.GetClientState(ctx, substituteClientID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrClientNotFound, "substitute client with ID %s", substituteClientID)
+	}
+
+	if subjectClientState.GetLatestHeight().GTE(substituteClientState.GetLatestHeight()) {
+		return errorsmod.Wrapf(types.ErrInvalidHeight, "subject client state latest height is greater or equal to substitute client state latest height (%s >= %s)", subjectClientState.GetLatestHeight(), substituteClientState.GetLatestHeight())
+	}
+
+	substituteClientStore := k.ClientStore(ctx, substituteClientID)
+
+	if status := k.GetClientStatus(ctx, substituteClientState, substituteClientID); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
+	}
+
+	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {
+		return err
+	}
+
+	k.Logger(ctx).Info("client recovered", "client-id", subjectClientID)
+
+	defer telemetry.IncrCounterWithLabels(
+		[]string{"ibc", "client", "update"},
+		1,
+		[]metrics.Label{
+			telemetry.NewLabel(types.LabelClientType, substituteClientState.ClientType()),
+			telemetry.NewLabel(types.LabelClientID, subjectClientID),
+			telemetry.NewLabel(types.LabelUpdateType, "recovery"),
+		},
+	)
+
+	// emitting events in the keeper for recovering clients
+	emitRecoverClientEvent(ctx, subjectClientID, substituteClientState.ClientType())
+
+	return nil
+}
