@@ -279,9 +279,9 @@ func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Cha
 		return nil, err
 	}
 
-	// Clean up when v6 is not supported, see: https://github.com/cosmos/ibc-go/issues/3540
-	// versions newer than 0.47 SDK use the SdkBlock field while versions older
-	// than 0.47 SDK, which do not have the SdkBlock field, use the Block field.
+	// Clean up when v4 is not supported, see: https://github.com/cosmos/ibc-go/issues/3540
+	// versions newer than 0.46 SDK use the SdkBlock field while versions older
+	// than 0.46 SDK, which do not have the SdkBlock field, use the Block field.
 	if res.SdkBlock != nil {
 		return &res.SdkBlock.Header, nil
 	}
