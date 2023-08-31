@@ -404,6 +404,7 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 
 // OnChanUpgradeOpen implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+	// discard the version metadata returned as upgrade fields have already been validated in previous handshake steps.
 	_, err := types.MetadataFromVersion(version)
 	if err != nil {
 		// set fee disabled and passthrough to the next middleware or application in callstack.
