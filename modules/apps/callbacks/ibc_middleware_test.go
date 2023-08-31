@@ -685,7 +685,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				)
 				s.Require().True(exists)
 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
-
 			}
 		})
 	}

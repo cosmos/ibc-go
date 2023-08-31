@@ -19,9 +19,6 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	tmjson "github.com/cometbft/cometbft/libs/json"
-	tmtypes "github.com/cometbft/cometbft/types"
-
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
@@ -420,13 +417,13 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 // are functional for e2e testing purposes.
 func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		genDoc, err := tmtypes.GenesisDocFromJSON(genbz)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
+		var appGenesis genutiltypes.AppGenesis
+		if err := json.Unmarshal(genbz, &appGenesis); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into SDK AppGenesis: %w", err)
 		}
 
 		var appState genutiltypes.AppMap
-		if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
+		if err := json.Unmarshal(appGenesis.AppState, &appState); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
@@ -437,12 +434,12 @@ func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 
 		appState[govtypes.ModuleName] = govGenBz
 
-		genDoc.AppState, err = json.Marshal(appState)
+		appGenesis.AppState, err = json.Marshal(appState)
 		if err != nil {
 			return nil, err
 		}
 
-		bz, err := tmjson.MarshalIndent(genDoc, "", "  ")
+		bz, err := json.MarshalIndent(appGenesis, "", "  ")
 		if err != nil {
 			return nil, err
 		}
