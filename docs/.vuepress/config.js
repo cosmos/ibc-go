@@ -235,6 +235,11 @@ module.exports = {
               path: "/ibc/proto-docs.html",
             },
             {
+              title: "Capability Module",
+              directory: false,
+              path: "/ibc/capability-module.html",
+            },
+            {
               title: "Roadmap",
               directory: false,
               path: "/roadmap/roadmap.html",
@@ -620,6 +625,11 @@ module.exports = {
               title: "IBC-Go v7 to v7.1",
               directory: false,
               path: "/migrations/v7-to-v7_1.html",
+            },
+            {
+              title: "IBC-Go v7.2 to v7.3",
+              directory: false,
+              path: "/migrations/v7_2-to-v7_3.html",
             },
           ],
         },
