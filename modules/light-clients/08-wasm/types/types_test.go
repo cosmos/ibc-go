@@ -19,11 +19,11 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	tmtypes "github.com/cometbft/cometbft/types"
 
+	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
 )
 
 const (
@@ -53,8 +53,28 @@ type TypesTestSuite struct {
 	testData map[string]string
 }
 
+func init() {
+	ibctesting.DefaultTestingAppInit = setupTestingApp
+}
+
 func (*TypesTestSuite) SetupTest() {
 	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
+}
+
+func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
+	app, ok := chain.App.(*simapp.SimApp)
+	if !ok {
+		panic("chain is not a simapp.SimApp")
+	}
+	return app
+}
+
+// setupTestingApp provides the duplicated simapp which is specific to the callbacks module on chain creation.
+func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
+	db := dbm.NewMemDB()
+	encCdc := simapp.MakeTestEncodingConfig()
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
 }
 
 // SetupWasmTendermint sets up 2 chains and stores the tendermint/cometbft light client wasm contract on both.

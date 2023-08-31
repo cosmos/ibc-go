@@ -724,7 +724,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipTendermint() {
 				clientState := testingpath.EndpointA.GetClientState()
 				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(clientState.GetLatestHeight().GetRevisionHeight()))
 
-				value = []byte(suite.chainB.GetSimApp().TransferKeeper.GetPort(suite.chainB.GetContext()))
+				value = []byte(GetSimApp(suite.chainB).TransferKeeper.GetPort(suite.chainB.GetContext()))
 				suite.Require().NoError(err)
 			},
 			true,
