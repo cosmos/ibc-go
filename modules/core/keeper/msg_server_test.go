@@ -780,11 +780,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 }
 
 func (suite *KeeperTestSuite) TestRecoverClient() {
-	var (
-		subject, substitute string
-		subjectClientState  exported.ClientState
-		msg                 *clienttypes.MsgRecoverClient
-	)
+	var msg *clienttypes.MsgRecoverClient
 
 	testCases := []struct {
 		name     string
@@ -819,12 +815,12 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(subjectPath)
-			subject = subjectPath.EndpointA.ClientID
-			subjectClientState = suite.chainA.GetClientState(subject)
+			subject := subjectPath.EndpointA.ClientID
+			subjectClientState := suite.chainA.GetClientState(subject)
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(substitutePath)
-			substitute = substitutePath.EndpointA.ClientID
+			substitute := substitutePath.EndpointA.ClientID
 
 			// update substitute twice
 			err := substitutePath.EndpointA.UpdateClient()
