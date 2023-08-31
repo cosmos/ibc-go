@@ -63,7 +63,7 @@ to be executed on the host chain. The encoding parameter must be equal to either
 		"amount": "1000"
 	}
 }]'`, version.AppName, version.AppName),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -82,7 +82,7 @@ to be executed on the host chain. The encoding parameter must be equal to either
 				return errors.New(fmt.Sprintf("unsupported encoding type: %s", encoding))
 			}
 
-			packetDataBytes, err := generatePacketData(cdc, []byte(args[0]), memo, encoding)
+			packetDataBytes, err := generatePacketData(cdc, []byte(args[1]), memo, encoding)
 			if err != nil {
 				return err
 			}
