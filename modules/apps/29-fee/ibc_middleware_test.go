@@ -1331,6 +1331,94 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 	}
 }
 
+func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name          string
+		malleate      func()
+		expFeeEnabled bool
+	}{
+		{
+			"success: enable fees",
+			func() {},
+			true,
+		},
+		{
+			"success: disable fees",
+			func() {
+				// create a new path using a fee enabled channel and downgrade it to disable fees
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+				mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+				path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+				path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+				path.EndpointA.ChannelConfig.Version = mockFeeVersion
+				path.EndpointB.ChannelConfig.Version = mockFeeVersion
+
+				upgradeVersion := ibcmock.Version
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+
+				suite.coordinator.Setup(path)
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			// configure the initial path to create an unincentivized mock channel
+			path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointA.ChannelConfig.Version = ibcmock.Version
+			path.EndpointB.ChannelConfig.Version = ibcmock.Version
+
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version to enabled ics29 fee middleware
+			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+
+			tc.malleate()
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeConfirm()
+			suite.Require().NoError(err)
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			upgrade := path.EndpointA.GetChannelUpgrade()
+			cbs.OnChanUpgradeOpen(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
+
+			isFeeEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			if tc.expFeeEnabled {
+				suite.Require().True(isFeeEnabled)
+			} else {
+				suite.Require().False(isFeeEnabled)
+			}
+		})
+	}
+}
+
 func (suite *FeeTestSuite) TestGetAppVersion() {
 	var (
 		portID        string
