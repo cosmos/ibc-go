@@ -779,6 +779,82 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestRecoverClient() {
+	var msg *clienttypes.MsgRecoverClient
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success: recover client",
+			func() {},
+			nil,
+		},
+		{
+			"signer doesn't match authority",
+			func() {
+				msg.Signer = ibctesting.InvalidID
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"invalid subject client",
+			func() {
+				msg.SubjectClientId = ibctesting.InvalidID
+			},
+			clienttypes.ErrClientNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(subjectPath)
+			subject := subjectPath.EndpointA.ClientID
+			subjectClientState := suite.chainA.GetClientState(subject)
+
+			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(substitutePath)
+			substitute := substitutePath.EndpointA.ClientID
+
+			// update substitute twice
+			err := substitutePath.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+			err = substitutePath.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			tmClientState, ok := subjectClientState.(*ibctm.ClientState)
+			suite.Require().True(ok)
+			tmClientState.FrozenHeight = tmClientState.LatestHeight
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
+
+			msg = clienttypes.NewMsgRecoverClient(suite.chainA.App.GetIBCKeeper().GetAuthority(), subject, substitute)
+
+			tc.malleate()
+
+			_, err = keeper.Keeper.RecoverClient(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				// Assert that client status is now Active
+				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
+				tmClientState := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().Equal(tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()), exported.Active)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
+
 // TestUpdateClientParams tests the UpdateClientParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateClientParams() {
 	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
