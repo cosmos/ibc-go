@@ -746,7 +746,7 @@ func (suite *TypesTestSuite) TestPruneConsensusStateTendermint() {
 	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
 }
 
-/*func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
+/* func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
 	var (
 		ok          bool
 		clientMsg   exported.ClientMessage

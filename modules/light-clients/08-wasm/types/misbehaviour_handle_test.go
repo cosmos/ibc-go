@@ -18,7 +18,7 @@ import (
 	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
-/*func (suite *TypesTestSuite) TestVerifyMisbehaviourGrandpa() {
+/* func (suite *TypesTestSuite) TestVerifyMisbehaviourGrandpa() {
 	var (
 		ok          bool
 		clientMsg   exported.ClientMessage
@@ -513,7 +513,7 @@ func (suite *TypesTestSuite) TestVerifyMisbehaviourTendermint() {
 	}
 }
 
-/*func (suite *TypesTestSuite) TestCheckForMisbehaviourGrandpa() {
+/* func (suite *TypesTestSuite) TestCheckForMisbehaviourGrandpa() {
 	var (
 		ok          bool
 		clientMsg   exported.ClientMessage
