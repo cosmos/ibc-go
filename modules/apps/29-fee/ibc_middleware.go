@@ -387,24 +387,19 @@ func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID stri
 
 // OnChanUpgradeAck implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	// If upgrade handshake was initialized with fee enabled it must complete with fee enabled.
-	// If upgrade handshake was initialized with fee disabled it must complete with fee disabled.
-	if im.keeper.IsFeeEnabled(ctx, portID, channelID) {
-		versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
-		if err != nil {
-			return errorsmod.Wrapf(err, "invalid counterparty version")
-		}
+	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
+		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
+		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
+		return im.app.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
+	}
 
-		if versionMetadata.FeeVersion != types.Version {
-			return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
-		}
-
-		// call underlying app's OnChanUpgradeAck callback with the counterparty app version.
-		return im.app.OnChanUpgradeAck(ctx, portID, channelID, versionMetadata.AppVersion)
+	if versionMetadata.FeeVersion != types.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected counterparty fee version: %s, got: %s", types.Version, versionMetadata.FeeVersion)
 	}
 
 	// call underlying app's OnChanUpgradeAck callback with the counterparty app version.
-	return im.app.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
+	return im.app.OnChanUpgradeAck(ctx, portID, channelID, versionMetadata.AppVersion)
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
