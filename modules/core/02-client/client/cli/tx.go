@@ -265,8 +265,7 @@ func NewCmdRecoverClientProposal() *cobra.Command {
 				return err
 			}
 
-			subjectClientID := args[0]
-			substituteClientID := args[1]
+			subjectClientID, substituteClientID := args[0], args[1]
 
 			authority, _ := cmd.Flags().GetString(FlagAuthority)
 			if authority != "" {
