@@ -285,7 +285,7 @@ func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Cha
 	if res.SdkBlock != nil {
 		return &res.SdkBlock.Header, nil
 	}
-	return &res.SdkBlock.Header, nil
+	return &res.Block.Header, nil // needed for v4 (uses SDK v0.45)
 }
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
