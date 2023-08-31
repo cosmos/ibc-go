@@ -245,10 +245,10 @@ func NewUpgradeClientCmd() *cobra.Command {
 	return cmd
 }
 
-// NewCmdRecoverClientProposal defines the command to recover an IBC light client
-func NewCmdRecoverClientProposal() *cobra.Command {
+// NewCmdSubmitRecoverClientProposal defines the command to recover an IBC light client
+func NewCmdSubmitRecoverClientProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "recover [subject-client-id] [substitute-client-id] [flags]",
+		Use:   "recover-client [subject-client-id] [substitute-client-id] [flags]",
 		Args:  cobra.ExactArgs(2),
 		Short: "recover an IBC client",
 		Long: "Submit a recover IBC client proposal along with an initial deposit.\n" +
