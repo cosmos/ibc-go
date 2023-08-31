@@ -290,6 +290,8 @@ func NewCmdRecoverClientProposal() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(FlagAuthority, "", "The address of the client module authority (defaults to gov)")
+
 	flags.AddTxFlagsToCmd(cmd)
 	govcli.AddGovPropFlagsToCmd(cmd)
 	err := cmd.MarkFlagRequired(govcli.FlagTitle)
