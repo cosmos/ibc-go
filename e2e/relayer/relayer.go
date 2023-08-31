@@ -15,7 +15,7 @@ const (
 	Rly    = "rly"
 	Hermes = "hermes"
 
-	hermesRelayerRepository = "ghcr.io/informalsystems/hermes"
+	hermesRelayerRepository = "colinaxner/hermes"
 	hermesRelayerUser       = "1000:1000"
 	rlyRelayerRepository    = "ghcr.io/cosmos/relayer"
 	rlyRelayerUser          = "100:1000" // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
