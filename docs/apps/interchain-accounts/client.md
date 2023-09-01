@@ -93,7 +93,7 @@ simd tx interchain-accounts host generate-packet-data [message]
 Example:
 
 ```shell
-simd tx interchain-accounts host generate-packet-data proto3 '[{
+simd tx interchain-accounts host generate-packet-data '[{
   "@type":"/cosmos.bank.v1beta1.MsgSend",
   "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
   "to_address":"cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
