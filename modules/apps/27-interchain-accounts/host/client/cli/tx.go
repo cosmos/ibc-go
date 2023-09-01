@@ -17,18 +17,20 @@ import (
 )
 
 const (
-	memoFlag string = "memo"
+	memoFlag     string = "memo"
+	encodingFlag string = "encoding"
 )
 
 func generatePacketDataCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "generate-packet-data [encoding] [message]",
+		Use:   "generate-packet-data [message]",
 		Short: "Generates protobuf or proto3 JSON encoded ICA packet data.",
 		Long: `generate-packet-data accepts a message string and serializes it (depending on the
 encoding parameter) using protobuf or proto3 JSON into packet data which is outputted to stdout.
 It can be used in conjunction with send-tx which submits pre-built packet data containing messages 
-to be executed on the host chain. The encoding parameter must be equal to either "proto3" o "proto3json".`,
-		Example: fmt.Sprintf(`%s tx interchain-accounts host generate-packet-data proto3 '{
+to be executed on the host chain. The default encoding format is protobuf is none is specified;
+otherwise the encoding flag can be sued in combination with either "proto3" or "proto3json".`,
+		Example: fmt.Sprintf(`%s tx interchain-accounts host generate-packet-data '{
     "@type":"/cosmos.bank.v1beta1.MsgSend",
     "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
     "to_address":"cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
@@ -38,10 +40,10 @@ to be executed on the host chain. The encoding parameter must be equal to either
             "amount": "1000"
         }
     ]
-}' --memo memo
+}' --memo memo --encoding proto3json
 
 
-%s tx interchain-accounts host generate-packet-data proto3 '[{
+%s tx interchain-accounts host generate-packet-data '[{
     "@type":"/cosmos.bank.v1beta1.MsgSend",
     "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
     "to_address":"cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw",
@@ -61,7 +63,7 @@ to be executed on the host chain. The encoding parameter must be equal to either
 		"amount": "1000"
 	}
 }]'`, version.AppName, version.AppName),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -75,12 +77,16 @@ to be executed on the host chain. The encoding parameter must be equal to either
 				return err
 			}
 
-			encoding := args[0]
+			encoding, err := cmd.Flags().GetString(encodingFlag)
+			if err != nil {
+				return err
+			}
+
 			if !slices.Contains([]string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}, encoding) {
 				return fmt.Errorf("unsupported encoding type: %s", encoding)
 			}
 
-			packetDataBytes, err := generatePacketData(cdc, []byte(args[1]), memo, encoding)
+			packetDataBytes, err := generatePacketData(cdc, []byte(args[0]), memo, encoding)
 			if err != nil {
 				return err
 			}
@@ -91,7 +97,8 @@ to be executed on the host chain. The encoding parameter must be equal to either
 		},
 	}
 
-	cmd.Flags().String(memoFlag, "", "an optional memo to be included in the interchain account packet data")
+	cmd.Flags().String(memoFlag, "", "an optional memo to be included in the interchain accounts packet data")
+	cmd.Flags().String(encodingFlag, "", "optional encoding format of the messages in the interchain accounts packet data")
 	return cmd
 }
 
