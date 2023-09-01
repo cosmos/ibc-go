@@ -22,7 +22,7 @@ As mentioned in [IBC middleware development](../../ibc/middleware/develop.md) an
 These layers form the complete set of application logic that enable developers to build composable and flexible IBC application stacks.
 For example, an application stack may just be a single base application like `transfer`, however, the same application stack composed with `29-fee` and `callbacks` will nest the `transfer` base application twice by wrapping it with the Fee Middleware module and then callbacks middleware.
 
-The callbacks middleware also **requires** a secondary application that will receive the callbacks to implement the [`ContractKeeper`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/callbacks/types/expected_keepers.go#L11-L64). Since the wasm module does not yet support the callbacks middleware, we will use the `mockContractKeeper` module in the examples below. You should replace this with a module that implements `ContractKeeper`.
+The callbacks middleware also **requires** a secondary application that will receive the callbacks to implement the [`ContractKeeper`](https://github.com/cosmos/ibc-go/blob/v7.3.0/modules/apps/callbacks/types/expected_keepers.go#L11-L83). Since the wasm module does not yet support the callbacks middleware, we will use the `mockContractKeeper` module in the examples below. You should replace this with a module that implements `ContractKeeper`.
 
 ### Transfer
 
