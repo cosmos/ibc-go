@@ -53,7 +53,7 @@ func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 		relayerImage = rlyRelayerRepository
 	}
 
-	customImageOption := relayer.CustomDockerImage(rlyRelayerRepository, tag, rlyRelayerUser)
+	customImageOption := relayer.CustomDockerImage(relayerImage, tag, rlyRelayerUser)
 	relayerProcessingOption := relayer.StartupFlags("-p", "events") // relayer processes via events
 
 	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, customImageOption, relayerProcessingOption)
