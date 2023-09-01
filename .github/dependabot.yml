@@ -22,3 +22,11 @@ updates:
     labels:
       - dependencies
 
+  - package-ecosystem: gomod
+     directory: "/modules/light-clients/08-wasm"
+     schedule:
+       interval: daily
+     open-pull-requests-limit: 10
+     labels:
+       - dependencies 
+
