@@ -1,14 +1,12 @@
----
-sidebar_position: 1
----
+<!--
+order: 8
+-->
 
 # Capability Module
 
 ## Overview
 
-`modules/capability` is an implementation of a Cosmos SDK module, per [ADR 003](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-003-dynamic-capability-store.md),
-that allows for provisioning, tracking, and authenticating multi-owner capabilities
-at runtime.
+`modules/capability` is an implementation of a Cosmos SDK module, per [ADR 003](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-003-dynamic-capability-store.md), that allows for provisioning, tracking, and authenticating multi-owner capabilities at runtime.
 
 The keeper maintains two states: persistent and ephemeral in-memory. The persistent
 store maintains a globally unique auto-incrementing index and a mapping from
@@ -43,7 +41,7 @@ type App struct {
 func NewApp(...) *App {
   // ...
 
-  app.capabilityKeeper = capability.NewKeeper(codec, persistentStoreKey, memStoreKey)
+  app.capabilityKeeper = capabilitykeeper.NewKeeper(codec, persistentStoreKey, memStoreKey)
 }
 ```
 
@@ -110,20 +108,20 @@ not own.
 
 ### Stores
 
-* MemStore
-* KeyStore
+- MemStore
+- KeyStore
 
 ## State
 
-### In persisted KV store
+### Persisted KV store
 
 1. Global unique capability index
 2. Capability owners
 
 Indexes:
 
-* Unique index: `[]byte("index") -> []byte(currentGlobalIndex)`
-* Capability Index: `[]byte("capability_index") | []byte(index) -> ProtocolBuffer(CapabilityOwners)`
+- Unique index: `[]byte("index") -> []byte(currentGlobalIndex)`
+- Capability Index: `[]byte("capability_index") | []byte(index) -> ProtocolBuffer(CapabilityOwners)`
 
 ### In-memory KV store
 
@@ -133,6 +131,6 @@ Indexes:
 
 Indexes:
 
-* Initialized flag: `[]byte("mem_initialized")`
-* RevCapabilityKey: `[]byte(moduleName + "/rev/" + capabilityName) -> []byte(index)`
-* FwdCapabilityKey: `[]byte(moduleName + "/fwd/" + capabilityPointerAddress) -> []byte(capabilityName)`
+- Initialized flag: `[]byte("mem_initialized")`
+- RevCapabilityKey: `[]byte(moduleName + "/rev/" + capabilityName) -> []byte(index)`
+- FwdCapabilityKey: `[]byte(moduleName + "/fwd/" + capabilityPointerAddress) -> []byte(capabilityName)`
