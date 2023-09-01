@@ -218,6 +218,11 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
+// ProposalMsgs returns msgs used for governance proposals for simulations.
+func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+	return simulation.ProposalMsgs()
+}
+
 // WeightedOperations is unimplemented.
 func (AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return nil

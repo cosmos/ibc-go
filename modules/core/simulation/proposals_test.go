@@ -12,8 +12,8 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/02-client/simulation"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/simulation"
 )
 
 func TestProposalMsgs(t *testing.T) {
