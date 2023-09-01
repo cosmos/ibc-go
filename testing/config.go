@@ -39,15 +39,13 @@ type WasmTendermintConfig struct {
 	CodeHash []byte
 }
 
+// NewWasmTendermintConfig create a new Tendermint Wasm client configuration.
+// It assumes the Wasm contract uses the same default values as a regular
+// Tendermint light client.
 func NewWasmTendermintConfig(codeHash []byte) *WasmTendermintConfig {
 	return &WasmTendermintConfig{
-		CodeHash: codeHash,
-		TendermintConfig: TendermintConfig{
-			TrustLevel:      DefaultTrustLevel,
-			TrustingPeriod:  TrustingPeriod,
-			UnbondingPeriod: UnbondingPeriod,
-			MaxClockDrift:   MaxClockDrift,
-		},
+		CodeHash:         codeHash,
+		TendermintConfig: *NewTendermintConfig(),
 	}
 }
 

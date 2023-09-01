@@ -158,12 +158,12 @@ func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) 
 	return map[string]tmtypes.PrivValidator{altVal.Address.String(): altPrivVal}
 }
 
-// NewPathWithWasmTendermint constructs an endpoint for each chain using
+// NewWasmTendermintPath constructs an endpoint for each chain using
 // the default values for the endpoints, expect for the client config, for
 // which it uses the Wasm Tendermint config, so that both endpoints use the
 // Tendermint Wasm light client contract.
 // Each endpoint is updated to have a pointer to the counterparty endpoint.
-func NewPathWithWasmTendermint(chainA, chainB *ibctesting.TestChain, codeHash []byte) *ibctesting.Path {
+func NewWasmTendermintPath(chainA, chainB *ibctesting.TestChain, codeHash []byte) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.WithClientConfig(ibctesting.NewWasmTendermintConfig(codeHash))
 	path.EndpointB.WithClientConfig(ibctesting.NewWasmTendermintConfig(codeHash))

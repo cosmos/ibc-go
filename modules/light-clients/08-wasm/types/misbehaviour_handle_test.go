@@ -494,7 +494,7 @@ func (suite *TypesTestSuite) TestVerifyMisbehaviourTendermint() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint()
-			path = NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			path = NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)
@@ -824,7 +824,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 		suite.Run(tc.name, func() {
 			// reset suite to create fresh application state
 			suite.SetupWasmTendermint()
-			path = NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			path = NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)

@@ -111,12 +111,12 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		//		clientState = solo.ClientState()
 		//		consensusState = solo.ConsensusState()
 	case exported.Wasm:
-		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
+		wasmTmConfig, ok := endpoint.ClientConfig.(*WasmTendermintConfig)
 		require.True(endpoint.Chain.TB, ok)
 
 		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
 		tmClientState := ibctm.NewClientState(
-			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+			endpoint.Counterparty.Chain.ChainID, wasmTmConfig.TrustLevel, wasmTmConfig.TrustingPeriod, wasmTmConfig.UnbondingPeriod, wasmTmConfig.MaxClockDrift,
 			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
 		tmConsensusState := endpoint.Counterparty.Chain.LastHeader.ConsensusState()
 		wasmClientState, err := endpoint.Chain.Codec.MarshalInterface(tmClientState)
@@ -124,11 +124,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 			return err
 		}
 
-		wasmTendermintConfig, ok := endpoint.ClientConfig.(*WasmTendermintConfig)
-		if !ok {
-			return fmt.Errorf("invalid client config type, expected %T, got: %T", (*WasmTendermintConfig)(nil), endpoint.ClientConfig)
-		}
-		clientState = wasmtypes.NewClientState(wasmClientState, wasmTendermintConfig.CodeHash, height)
+		clientState = wasmtypes.NewClientState(wasmClientState, wasmTmConfig.CodeHash, height)
 
 		wasmConsensusState, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
 		if err != nil {

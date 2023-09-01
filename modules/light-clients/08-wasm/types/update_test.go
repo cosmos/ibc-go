@@ -357,7 +357,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderTendermint() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint()
-			path = NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			path = NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)
@@ -633,7 +633,7 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint() // reset
-			path = NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			path = NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)
@@ -688,7 +688,7 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 func (suite *TypesTestSuite) TestPruneConsensusStateTendermint() {
 	suite.SetupWasmTendermint()
 	// create path and setup clients
-	path := NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+	path := NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 	suite.coordinator.SetupClients(path)
 
 	// get the first height as it will be pruned first.
@@ -841,7 +841,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
 		suite.Run(tc.name, func() {
 			// reset suite to create fresh application state
 			suite.SetupWasmTendermint()
-			path = NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			path = NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 
 			err := path.EndpointA.CreateClient()
 			suite.Require().NoError(err)

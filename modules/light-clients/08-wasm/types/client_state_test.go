@@ -147,7 +147,7 @@ func (suite *TypesTestSuite) TestStatusTendermint() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint()
-			path = NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			path = NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 			suite.coordinator.SetupClients(path)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
@@ -285,7 +285,7 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint()
-			path := NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			path := NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 
 			tmConfig, ok := path.EndpointB.ClientConfig.(*ibctesting.TendermintConfig)
 			suite.Require().True(ok)
@@ -774,7 +774,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipTendermint() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint() // reset
-			testingpath = NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			testingpath = NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 			testingpath.SetChannelOrdered()
 			suite.coordinator.Setup(testingpath)
 
@@ -1189,7 +1189,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipTendermint() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmTendermint() // reset
-			testingpath = NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			testingpath = NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 			testingpath.SetChannelOrdered()
 			suite.coordinator.Setup(testingpath)
 

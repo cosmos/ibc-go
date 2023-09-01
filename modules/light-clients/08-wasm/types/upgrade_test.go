@@ -571,7 +571,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeTendermint() {
 		suite.Run(tc.name, func() {
 			// reset suite
 			suite.SetupWasmTendermint()
-			path = NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+			path = NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 
 			suite.coordinator.SetupClients(path)
 

@@ -29,7 +29,7 @@ func (suite *TypesTestSuite) TestExportMetadataTendermint() {
 	suite.SetupWasmTendermint()
 
 	// test intializing client and exporting metadata
-	path := NewPathWithWasmTendermint(suite.chainA, suite.chainB, suite.codeHash)
+	path := NewWasmTendermintPath(suite.chainA, suite.chainB, suite.codeHash)
 	suite.coordinator.SetupClients(path)
 	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	clientState := path.EndpointA.GetClientState()
