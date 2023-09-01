@@ -2,7 +2,6 @@ package cli
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -14,7 +13,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
 
@@ -78,8 +76,8 @@ to be executed on the host chain. The encoding parameter must be equal to either
 			}
 
 			encoding := args[0]
-			if !slices.Contains([]string{types.EncodingProtobuf, types.EncodingProto3JSON}, encoding) {
-				return errors.New(fmt.Sprintf("unsupported encoding type: %s", encoding))
+			if !slices.Contains([]string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}, encoding) {
+				return fmt.Errorf("unsupported encoding type: %s", encoding)
 			}
 
 			packetDataBytes, err := generatePacketData(cdc, []byte(args[1]), memo, encoding)
