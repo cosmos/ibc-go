@@ -321,7 +321,7 @@ docs-lint-changed:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.13.2
+protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
