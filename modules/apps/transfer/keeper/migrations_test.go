@@ -411,8 +411,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 			suite.Require().NoError(err)
 
 			for _, expMetadata := range expectedMetadata {
-				denomMetadata, ok := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(ctx, expMetadata.Base)
-				suite.Require().True(ok)
+				denomMetadata, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(ctx, expMetadata.Base)
+				suite.Require().True(found)
 				suite.Require().Equal(expMetadata, denomMetadata)
 			}
 		})
