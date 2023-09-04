@@ -3,6 +3,7 @@ package ibccallbacks
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -284,8 +285,11 @@ func (IBCMiddleware) processCallback(
 		}
 
 		// if the callback ran out of gas and the relayer has not reserved enough gas, then revert the state
-		if cachedCtx.GasMeter().IsPastLimit() && callbackData.AllowRetry() {
-			panic(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
+		if cachedCtx.GasMeter().IsPastLimit() {
+			if callbackData.AllowRetry() {
+				panic(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
+			}
+			err = errorsmod.Wrapf(types.ErrCallbackOutOfGas, "ibc %s callback out of gas", callbackType)
 		}
 
 		// allow the transaction to be committed, continuing the packet lifecycle
