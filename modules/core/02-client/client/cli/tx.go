@@ -7,8 +7,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	addresscodec "cosmossdk.io/core/address"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -514,16 +512,16 @@ func NewCmdScheduleIBCUpgradeProposal() *cobra.Command {
 				}
 			}
 
-			signer, _ := cmd.Flags().GetString(FlagAuthority)
-			if signer != "" {
-				if _, err = addresscodec.StringToBytes(signer); err != nil {
-					return fmt.Errorf("invalid signer (authority) address: %w", err)
+			authority, _ := cmd.Flags().GetString(FlagAuthority)
+			if authority != "" {
+				if _, err = sdk.AccAddressFromBech32(authority); err != nil {
+					return fmt.Errorf("invalid authority address: %w", err)
 				}
 			} else {
-				signer = sdk.AccAddress(address.Module("gov")).String()
+				authority = sdk.AccAddress(address.Module(govtypes.ModuleName)).String()
 			}
 
-			msg, err := types.NewMsgIBCSoftwareUpgrade(signer, plan, clientState)
+			msg, err := types.NewMsgIBCSoftwareUpgrade(authority, plan, clientState)
 			if err != nil {
 				return err
 			}
