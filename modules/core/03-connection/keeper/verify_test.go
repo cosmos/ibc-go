@@ -272,8 +272,8 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 			channel := path.EndpointB.GetChannel()
 
 			err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyChannelState(
-				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
-				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel,
+				suite.chainA.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, connection,
+				malleateHeight(proofHeight, heightDiff), proof, channel,
 			)
 
 			if tc.expPass {
@@ -363,8 +363,8 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 
 			commitment := channeltypes.CommitPacket(suite.chainB.App.GetIBCKeeper().Codec(), packet)
 			err = suite.chainB.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketCommitment(
-				suite.chainB.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
-				packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitment,
+				suite.chainB.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), connection,
+				malleateHeight(proofHeight, heightDiff), proof, packet.GetSequence(), commitment,
 			)
 
 			if tc.expPass {
@@ -464,8 +464,8 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			}
 
 			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketAcknowledgement(
-				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
-				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack.Acknowledgement(),
+				suite.chainA.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), connection,
+				malleateHeight(proofHeight, heightDiff), proof, packet.GetSequence(), ack.Acknowledgement(),
 			)
 
 			if tc.expPass {
@@ -570,8 +570,8 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			}
 
 			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketReceiptAbsence(
-				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
-				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
+				suite.chainA.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), connection,
+				malleateHeight(proofHeight, heightDiff), proof, packet.GetSequence(),
 			)
 
 			if tc.expPass {
@@ -669,8 +669,8 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			connection := path.EndpointA.GetConnection()
 			connection.DelayPeriod = delayTimePeriod
 			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyNextSequenceRecv(
-				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
-				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()+offsetSeq,
+				suite.chainA.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), connection,
+				malleateHeight(proofHeight, heightDiff), proof, packet.GetSequence()+offsetSeq,
 			)
 
 			if tc.expPass {

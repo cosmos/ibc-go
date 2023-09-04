@@ -104,13 +104,13 @@ func (k Keeper) TimeoutPacket(
 
 		// check that the recv sequence is as claimed
 		err = k.connectionKeeper.VerifyNextSequenceRecv(
-			ctx, connectionEnd, proofHeight, proof,
-			packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv,
+			ctx, packet.GetDestPort(), packet.GetDestChannel(), connectionEnd,
+			proofHeight, proof, nextSequenceRecv,
 		)
 	case types.UNORDERED:
 		err = k.connectionKeeper.VerifyPacketReceiptAbsence(
-			ctx, connectionEnd, proofHeight, proof,
-			packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
+			ctx, packet.GetDestPort(), packet.GetDestChannel(), connectionEnd,
+			proofHeight, proof, packet.GetSequence(),
 		)
 	default:
 		panic(errorsmod.Wrapf(types.ErrInvalidChannelOrdering, channel.Ordering.String()))
@@ -276,8 +276,8 @@ func (k Keeper) TimeoutOnClose(
 
 	// check that the opposing channel end has closed
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofClosed,
-		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
+		ctx, channel.Counterparty.PortId, channel.Counterparty.ChannelId,
+		connectionEnd, proofHeight, proofClosed,
 		expectedChannel,
 	); err != nil {
 		return err
@@ -293,13 +293,13 @@ func (k Keeper) TimeoutOnClose(
 
 		// check that the recv sequence is as claimed
 		err = k.connectionKeeper.VerifyNextSequenceRecv(
-			ctx, connectionEnd, proofHeight, proof,
-			packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv,
+			ctx, packet.GetDestPort(), packet.GetDestChannel(), connectionEnd,
+			proofHeight, proof, nextSequenceRecv,
 		)
 	case types.UNORDERED:
 		err = k.connectionKeeper.VerifyPacketReceiptAbsence(
-			ctx, connectionEnd, proofHeight, proof,
-			packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
+			ctx, packet.GetDestPort(), packet.GetDestChannel(), connectionEnd,
+			proofHeight, proof, packet.GetSequence(),
 		)
 	default:
 		panic(errorsmod.Wrapf(types.ErrInvalidChannelOrdering, channel.Ordering.String()))

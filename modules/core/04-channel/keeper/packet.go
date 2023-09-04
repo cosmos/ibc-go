@@ -211,8 +211,8 @@ func (k Keeper) RecvPacket(
 
 	// verify that the counterparty did commit to sending this packet
 	if err := k.connectionKeeper.VerifyPacketCommitment(
-		ctx, connectionEnd, proofHeight, proof,
-		packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
+		ctx, packet.GetSourcePort(), packet.GetSourceChannel(), connectionEnd,
+		proofHeight, proof, packet.GetSequence(),
 		commitment,
 	); err != nil {
 		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
@@ -443,7 +443,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	if err := k.connectionKeeper.VerifyPacketAcknowledgement(
-		ctx, connectionEnd, proofHeight, proof, packet.GetDestPort(), packet.GetDestChannel(),
+		ctx, packet.GetDestPort(), packet.GetDestChannel(), connectionEnd, proofHeight, proof,
 		packet.GetSequence(), acknowledgement,
 	); err != nil {
 		return err

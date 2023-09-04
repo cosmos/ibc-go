@@ -166,8 +166,8 @@ func (k Keeper) ChanOpenTry(
 	)
 
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofInit,
-		counterparty.PortId, counterparty.ChannelId, expectedChannel,
+		ctx, counterparty.PortId, counterparty.ChannelId, connectionEnd,
+		proofHeight, proofInit, expectedChannel,
 	); err != nil {
 		return "", nil, err
 	}
@@ -259,9 +259,8 @@ func (k Keeper) ChanOpenAck(
 	)
 
 	return k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofTry,
-		channel.Counterparty.PortId, counterpartyChannelID,
-		expectedChannel)
+		ctx, channel.Counterparty.PortId, counterpartyChannelID,
+		connectionEnd, proofHeight, proofTry, expectedChannel)
 }
 
 // WriteOpenAckChannel writes an updated channel state for the successful OpenAck handshake step.
@@ -337,9 +336,8 @@ func (k Keeper) ChanOpenConfirm(
 	)
 
 	return k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofAck,
-		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
-		expectedChannel)
+		ctx, channel.Counterparty.PortId, channel.Counterparty.ChannelId,
+		connectionEnd, proofHeight, proofAck, expectedChannel)
 }
 
 // WriteOpenConfirmChannel writes an updated channel state for the successful OpenConfirm handshake step.
@@ -466,8 +464,8 @@ func (k Keeper) ChanCloseConfirm(
 	)
 
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofInit,
-		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
+		ctx, channel.Counterparty.PortId, channel.Counterparty.ChannelId,
+		connectionEnd, proofHeight, proofInit,
 		expectedChannel,
 	); err != nil {
 		return err

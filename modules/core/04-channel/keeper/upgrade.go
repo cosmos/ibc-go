@@ -149,10 +149,10 @@ func (k Keeper) ChanUpgradeTry(
 	// verify the counterparty channel state containing the upgrade sequence
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
-		connection,
-		proofHeight, proofCounterpartyChannel,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, proofCounterpartyChannel,
 		counterpartyChannel,
 	); err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
@@ -249,10 +249,10 @@ func (k Keeper) ChanUpgradeAck(
 	// verify the counterparty channel state containing the upgrade sequence
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
-		connection,
-		proofHeight, proofChannel,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, proofChannel,
 		counterpartyChannel,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
@@ -378,10 +378,10 @@ func (k Keeper) ChanUpgradeConfirm(
 
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
-		connection,
-		proofHeight, proofChannel,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, proofChannel,
 		counterpartyChannel,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
@@ -502,10 +502,10 @@ func (k Keeper) ChanUpgradeOpen(
 
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
-		connection,
-		proofHeight, proofCounterpartyChannel,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, proofCounterpartyChannel,
 		counterpartyChannel,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty channel")
@@ -706,10 +706,10 @@ func (k Keeper) ChanUpgradeTimeout(
 	// verify the counterparty channel state
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
-		connection,
-		proofHeight, proofCounterpartyChannel,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
+		connection,
+		proofHeight, proofCounterpartyChannel,
 		counterpartyChannel,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty channel state")
