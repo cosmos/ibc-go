@@ -4,7 +4,10 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,7 +31,6 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 )
 
 // Codec returns the global E2E protobuf codec.

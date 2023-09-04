@@ -17,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
