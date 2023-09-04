@@ -2,11 +2,13 @@ package keeper_test
 
 import (
 	"fmt"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -321,7 +323,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"failure: receive on module account",
 			func() {
-				receiver = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+				receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
 			}, false, false,
 		},
 
@@ -348,6 +350,23 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			memo = ""                           // can be explicitly changed in malleate
 			amount = sdkmath.NewInt(100)        // must be explicitly changed in malleate
 			expEscrowAmount = sdkmath.ZeroInt() // total amount in escrow of voucher denom on receiving chain
+
+			// denom trace of tokens received on chain B and the associated expected metadata
+			denomTraceOnB := types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.DefaultBondDenom))
+			expDenomMetadataOnB := banktypes.Metadata{
+				Description: fmt.Sprintf("IBC token from %s", denomTraceOnB.GetFullDenomPath()),
+				DenomUnits: []*banktypes.DenomUnit{
+					{
+						Denom:    denomTraceOnB.GetBaseDenom(),
+						Exponent: 0,
+					},
+				},
+				Base:    denomTraceOnB.IBCDenom(),
+				Display: denomTraceOnB.GetFullDenomPath(),
+				Name:    fmt.Sprintf("%s IBC token", denomTraceOnB.GetFullDenomPath()),
+				Symbol:  strings.ToUpper(denomTraceOnB.GetBaseDenom()),
+			}
+
 			seq := uint64(1)
 
 			if tc.recvIsSource {
@@ -385,22 +404,25 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 
 			// check total amount in escrow of received token denom on receiving chain
-			var (
-				denom       string
-				totalEscrow sdk.Coin
-			)
-			if tc.recvIsSource {
-				denom = sdk.DefaultBondDenom
-			} else {
-				denom = trace.IBCDenom()
-			}
-			totalEscrow = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), denom)
+			totalEscrow := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), sdk.DefaultBondDenom)
 			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
+
+				if tc.recvIsSource {
+					_, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), denomTraceOnB.IBCDenom())
+					suite.Require().False(found)
+				} else {
+					denomMetadata, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), denomTraceOnB.IBCDenom())
+					suite.Require().True(found)
+					suite.Require().Equal(expDenomMetadataOnB, denomMetadata)
+				}
 			} else {
 				suite.Require().Error(err)
+
+				_, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), denomTraceOnB.IBCDenom())
+				suite.Require().False(found)
 			}
 		})
 	}
