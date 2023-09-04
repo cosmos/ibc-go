@@ -537,7 +537,7 @@ func NewSimApp(
 	app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.ICS4Wrapper))
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
-	// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket
+	// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
 
 	var icaHostStack porttypes.IBCModule
 	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
@@ -556,7 +556,7 @@ func NewSimApp(
 	// SendPacket, mock module cannot send packets
 
 	// OnRecvPacket, message that originates from core IBC and goes down to app, the flow is the otherway
-	// channel.RecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket
+	// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket
 
 	// OnAcknowledgementPacket as this is where fee's are paid out
 	// mockModule.OnAcknowledgementPacket -> callbacks.OnAcknowledgementPacket -> fee.OnAcknowledgementPacket -> channel.OnAcknowledgementPacket
