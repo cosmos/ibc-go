@@ -1,6 +1,6 @@
 run:
   tests: true
-  timeout: 15m
+  timeout: 10m
 
 linters:
   disable-all: true
