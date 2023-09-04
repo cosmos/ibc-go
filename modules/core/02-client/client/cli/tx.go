@@ -252,7 +252,7 @@ func NewCmdSubmitRecoverClientProposal() *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		Short: "recover an IBC client",
 		Long: "Submit a recover IBC client proposal along with an initial deposit.\n" +
-			"Please specify a subject client identifier you want to recover..\n" +
+			"Please specify a subject client identifier you want to recover.\n" +
 			"Please specify the substitute client the subject client will be recovered to.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -305,7 +305,7 @@ func NewCmdSubmitUpdateClientProposal() *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		Short: "Submit an update IBC client proposal",
 		Long: "Submit an update IBC client proposal along with an initial deposit.\n" +
-			"Please specify a subject client identifier you want to update..\n" +
+			"Please specify a subject client identifier you want to update.\n" +
 			"Please specify the substitute client the subject client will be updated to.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
