@@ -14,7 +14,7 @@ import (
 )
 
 // registerUpgradeHandlers registers all supported upgrade handlers
-func (app SimApp) registerUpgradeHandlers() {
+func (app *SimApp) registerUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V5,
 		upgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
