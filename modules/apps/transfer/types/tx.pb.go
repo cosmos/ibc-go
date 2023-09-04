@@ -129,7 +129,7 @@ var xxx_messageInfo_MsgTransferResponse proto.InternalMessageInfo
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 type MsgUpdateParams struct {
-	// signer is the address that controls the module (defaults to x/gov unless overwritten).
+	// signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	// params defines the transfer parameters to update.
 	//
