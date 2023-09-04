@@ -50,7 +50,7 @@ on:
       relayer-type:
         description: 'The type of relayer to use'
         required: false
-        default: 'rly'
+        default: 'hermes'
         type: string
       relayer-tag:
         description: 'The tag to use for the relayer'
