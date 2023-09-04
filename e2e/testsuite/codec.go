@@ -28,6 +28,7 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
+	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 )
 
 // Codec returns the global E2E protobuf codec.
@@ -63,6 +64,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	solomachine.RegisterInterfaces(cfg.InterfaceRegistry)
 	v7migrations.RegisterInterfaces(cfg.InterfaceRegistry)
 	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	intertxtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	channeltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
