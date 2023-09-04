@@ -57,9 +57,11 @@ jobs:
           then
             echo "relayer=hermes" >> $GITHUB_OUTPUT
             echo "relayer-tag=1.4.0" >> $GITHUB_OUTPUT
+            echo "relayer-image=ghcr.io/informalsystems/hermes" >> $GITHUB_OUTPUT
           else
             echo "relayer=rly" >> $GITHUB_OUTPUT
             echo "relayer-tag=latest" >> $GITHUB_OUTPUT
+            echo "relayer-image=" >> $GITHUB_OUTPUT
           fi
   # build-e2e ensures that all test code compiles.
   build-e2e:
@@ -108,3 +110,4 @@ jobs:
       # Temporarily, see: https://github.com/cosmos/ibc-go/issues/3981
       relayer-type: '${{ needs.determine-image-tag.outputs.relayer }}'
       relayer-tag: '${{ needs.determine-image-tag.outputs.relayer-tag }}'
+      relayer-image: '${{ needs.determine-image-tag.outputs.relayer-image }}'
