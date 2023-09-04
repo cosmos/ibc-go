@@ -947,7 +947,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			},
 			expResult: func(commitment []byte, err error) {
 				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrNoOpMsg)
+				suite.Require().ErrorIs(err, types.ErrNoOpMsg) // NOTE: ibc core does not distinguish between unsent and already relayed packets.
 				suite.Require().Nil(commitment)
 			},
 		},
