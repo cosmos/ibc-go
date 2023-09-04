@@ -1,19 +1,23 @@
-package interchain_accounts
+package interchainaccounts
 
 import (
 	"context"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 func TestIncentivizedInterTxTestSuite(t *testing.T) {
@@ -90,7 +94,7 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_SuccessfulBankSend_Incent
 			// fund the interchain account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: interchainAcc,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)

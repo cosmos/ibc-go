@@ -7,8 +7,10 @@ import (
 	"path"
 	"strings"
 
-	tmjson "github.com/cometbft/cometbft/libs/json"
-	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"gopkg.in/yaml.v2"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -16,9 +18,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"gopkg.in/yaml.v2"
+
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -35,6 +37,9 @@ const (
 	ChainBTagEnv = "CHAIN_B_TAG"
 	// RelayerTagEnv specifies the relayer version. Defaults to "main"
 	RelayerTagEnv = "RELAYER_TAG"
+	// RelayerImageEnv specifies the image that the relayer will use. If left unspecified, it will default
+	// to values set for hermesRelayerRepository or rlyRelayerRepository.
+	RelayerImageEnv = "RELAYER_IMAGE"
 	// RelayerTypeEnv specifies the type of relayer that should be used.
 	RelayerTypeEnv = "RELAYER_TYPE"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
@@ -202,6 +207,10 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 
 	if os.Getenv(RelayerTypeEnv) != "" {
 		fromFile.RelayerConfig.Type = envTc.RelayerConfig.Type
+	}
+
+	if os.Getenv(RelayerImageEnv) != "" {
+		fromFile.RelayerConfig.Image = envTc.RelayerConfig.Image
 	}
 
 	if os.Getenv(ChainUpgradePlanEnv) != "" {

@@ -18,8 +18,8 @@ import (
 // If the transaction is successfully executed, the transaction response bytes will be returned.
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byte, error) {
 	var data icatypes.InterchainAccountPacketData
-
-	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	err := data.UnmarshalJSON(packet.GetData())
+	if err != nil {
 		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
 		return nil, errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
 	}
