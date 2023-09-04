@@ -63,7 +63,9 @@ The beginning of a new major release series is marked by the release of a new ma
 
 For example, if the current major release series is v1 and was released on January 1st, 2022, then v1 will be supported at least until January 1st, 2023. If v2 is published on August 1st 2022, then v1's end of life will be March 1st, 2023.
 
-Only the following major release series have a stable release status:
+Only the following major release series have a stable release status. All missing minor release versions have been discontinued.
+
+### ibc-go 
 
 |Release|End of Life Date|
 |-------|----------------|
@@ -73,8 +75,13 @@ Only the following major release series have a stable release status:
 |`v6.1.x`|December 09, 2023|
 |`v6.2.x`|December 09, 2023|
 |`v7.2.x`|March 17, 2024|
+|`v7.3.x`|March 17, 2024|
 
-All missing minor release versions have been discontinued.
+### Callbacks middleware
+
+|Release|End of Life Date|
+|-------|----------------|
+|`v0.1.x-ibc-go-v7.3.x`|August 31, 2024|
 
 ### What pull requests will be included in stable patch-releases?
 
@@ -99,7 +106,9 @@ As rule of thumb, the following changes will **NOT** be automatically accepted i
 
 ## Version matrix
 
-Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently active releases:
+### ibc-go
+
+Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently active releases:
 
 | Go | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|--------|------------|---------------------|
@@ -110,6 +119,16 @@ Versions of Golang, Cosmos SDK and Tendermint used by ibc-go in the currently ac
 | 1.18 | v6.1.1 | v0.46.7  | v0.34.24 |
 | 1.19 | v6.2.0 | v0.46.12 | v0.34.27 |
 | 1.19 | v7.2.0 | v0.47.3  | v0.37.2  |
+| 1.19 | v7.2.1 | v0.47.3  | v0.37.2  |
+| 1.19 | v7.3.0 | v0.47.4  | v0.37.2  |
+
+### Callbacks middleware
+
+Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by callbacks middleware in the currently active releases:
+
+| Go | callbacks | ibc-go | Cosmos SDK | Tendermint/CometBFT |
+|----|-----------|--------|------------|---------------------|
+| 1.19 | v0.1.0-ibc-go-v7.3 | v7.3.0 | v0.47.4 | v0.37.2 |
 
 ## Graphics
 

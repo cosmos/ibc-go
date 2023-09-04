@@ -184,6 +184,10 @@ module.exports = {
         label: "v7.2.0",
         key: "v7.2.0",
       },
+      {
+        label: "v7.3.0",
+        key: "v7.3.0",
+      },
     ],
     topbar: {
       banner: true,
@@ -233,6 +237,11 @@ module.exports = {
               title: "Protobuf Documentation",
               directory: false,
               path: "/ibc/proto-docs.html",
+            },
+            {
+              title: "Capability Module",
+              directory: false,
+              path: "/ibc/capability-module.html",
             },
             {
               title: "Roadmap",

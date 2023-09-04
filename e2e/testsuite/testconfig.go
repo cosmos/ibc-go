@@ -37,6 +37,9 @@ const (
 	ChainBTagEnv = "CHAIN_B_TAG"
 	// RelayerTagEnv specifies the relayer version. Defaults to "main"
 	RelayerTagEnv = "RELAYER_TAG"
+	// RelayerImageEnv specifies the image that the relayer will use. If left unspecified, it will default
+	// to values set for hermesRelayerRepository or rlyRelayerRepository.
+	RelayerImageEnv = "RELAYER_IMAGE"
 	// RelayerTypeEnv specifies the type of relayer that should be used.
 	RelayerTypeEnv = "RELAYER_TYPE"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
@@ -204,6 +207,10 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 
 	if os.Getenv(RelayerTypeEnv) != "" {
 		fromFile.RelayerConfig.Type = envTc.RelayerConfig.Type
+	}
+
+	if os.Getenv(RelayerImageEnv) != "" {
+		fromFile.RelayerConfig.Image = envTc.RelayerConfig.Image
 	}
 
 	if os.Getenv(ChainUpgradePlanEnv) != "" {
