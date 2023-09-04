@@ -174,7 +174,7 @@ func (MsgPayPacketFee) Route() string {
 
 // GetSignBytes implements legacytx.LegacyMsg
 func (msg MsgPayPacketFee) GetSignBytes() []byte {
-	return sdk.MustSortJSON((amino.MustMarshalJSON(&msg)))
+	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg))
 }
 
 // NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
