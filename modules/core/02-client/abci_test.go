@@ -6,10 +6,10 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	client "github.com/cosmos/ibc-go/v7/modules/core/02-client"
@@ -69,12 +69,12 @@ func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 	err := suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
 	suite.Require().NoError(err)
 
-	req := abci.RequestBeginBlock{Header: newCtx.BlockHeader()}
-	suite.chainA.App.BeginBlock(req)
+	client.BeginBlocker(newCtx, suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
 	// plan Height is at ctx.BlockHeight+1
-	consState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
-	suite.Require().True(found)
+	consState, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
+	suite.Require().NoError(err)
+
 	bz, err = types.MarshalConsensusState(suite.chainA.App.AppCodec(), &ibctm.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
 	suite.Require().NoError(err)
 	suite.Require().Equal(bz, consState)
