@@ -288,18 +288,39 @@ func getRelayerConfigFromEnv() relayer.Config {
 		relayerType = defaultRelayerType
 	}
 
-	rlyTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
-	if rlyTag == "" {
-		if relayerType == relayer.Rly {
-			rlyTag = defaultRlyTag
-		}
-		if relayerType == relayer.Hermes {
-			rlyTag = defaultHermesTag
-		}
+	relayerConfig := getDefaultRlyRelayerConfig()
+	if relayerType == relayer.Hermes {
+		relayerConfig = getDefaultHermesRelayerConfig()
 	}
+
+	relayerTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
+	if relayerTag == "" {
+		relayerConfig.Tag = relayerTag
+	}
+
+	relayerImage := strings.TrimSpace(os.Getenv(RelayerImageEnv))
+	if relayerImage == "" {
+		relayerConfig.Image = relayerImage
+	}
+
+	return relayerConfig
+}
+
+// getDefaultHermesRelayerConfig returns the default config for the hermes relayer.
+func getDefaultHermesRelayerConfig() relayer.Config {
 	return relayer.Config{
-		Tag:  rlyTag,
-		Type: relayerType,
+		Tag:   defaultHermesTag,
+		Type:  relayer.Hermes,
+		Image: relayer.HermesRelayerRepository,
+	}
+}
+
+// getDefaultRlyRelayerConfig returns the default config for the golang relayer.
+func getDefaultRlyRelayerConfig() relayer.Config {
+	return relayer.Config{
+		Tag:   defaultRlyTag,
+		Type:  relayer.Rly,
+		Image: relayer.RlyRelayerRepository,
 	}
 }
 
