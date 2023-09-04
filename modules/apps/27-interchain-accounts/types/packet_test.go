@@ -180,3 +180,24 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 		suite.Require().Equal(tc.expCustomData, customData)
 	}
 }
+
+func (suite *TypesTestSuite) TestPacketDataUnmarshalerInterface() {
+	expPacketData := types.InterchainAccountPacketData{
+		Type: types.EXECUTE_TX,
+		Data: []byte("data"),
+		Memo: "some memo",
+	}
+
+	var packetData types.InterchainAccountPacketData
+	err := packetData.UnmarshalJSON(expPacketData.GetBytes())
+	suite.Require().NoError(err)
+	suite.Require().Equal(expPacketData, packetData)
+
+	// test invalid packet data
+	invalidPacketDataBytes := []byte("invalid packet data")
+
+	var invalidPacketData types.InterchainAccountPacketData
+	err = packetData.UnmarshalJSON(invalidPacketDataBytes)
+	suite.Require().Error(err)
+	suite.Require().Equal(types.InterchainAccountPacketData{}, invalidPacketData)
+}

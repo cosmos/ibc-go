@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -298,11 +297,9 @@ func (suite *KeeperTestSuite) TestGetAuthority() {
 func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	suite.SetupTest()
 
-	// test if the ics4 wrapper is the fee keeper initially
+	// test if the ics4 wrapper is the channel keeper initially
 	ics4Wrapper := suite.chainA.GetSimApp().ICAControllerKeeper.GetICS4Wrapper()
 
-	_, isFeeKeeper := ics4Wrapper.(ibcfeekeeper.Keeper)
-	suite.Require().True(isFeeKeeper)
 	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
 	suite.Require().False(isChannelKeeper)
 
@@ -312,6 +309,4 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 
 	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
 	suite.Require().True(isChannelKeeper)
-	_, isFeeKeeper = ics4Wrapper.(ibcfeekeeper.Keeper)
-	suite.Require().False(isFeeKeeper)
 }
