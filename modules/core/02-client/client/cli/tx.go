@@ -7,6 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	addresscodec "cosmossdk.io/core/address"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -294,10 +296,6 @@ func NewCmdSubmitRecoverClientProposal() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	govcli.AddGovPropFlagsToCmd(cmd)
-	err := cmd.MarkFlagRequired(govcli.FlagTitle)
-	if err != nil {
-		panic(err)
-	}
 
 	return cmd
 }
@@ -458,6 +456,99 @@ func NewCmdSubmitUpgradeProposal() *cobra.Command {
 	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")             //nolint:staticcheck // need this till full govv1 conversion.
 	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal") //nolint:staticcheck // need this till full govv1 conversion.
 	cmd.Flags().String(govcli.FlagDeposit, "", "deposit of proposal")
+
+	return cmd
+}
+
+// NewCmdSubmitScheduleIBCUpgradeProposal defines the command for submitting an IBC software upgrade proposal.
+func NewCmdScheduleIBCUpgradeProposal() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "schedule-ibc-upgrade [name] [height] [path/to/upgraded_client_state.json] [flags]",
+		Args:  cobra.ExactArgs(3),
+		Short: "Submit an IBC software upgrade proposal",
+		Long: "Please specify a unique name and height for the upgrade to take effect.\n" +
+			"The client state specified is the upgraded client state representing the upgraded chain\n" +
+			`Example Upgraded Client State JSON: 
+{
+"@type":"/ibc.lightclients.tendermint.v1.ClientState",
+ "chain_id":"testchain1",
+"unbonding_period":"1814400s",
+"latest_height":{"revision_number":"0","revision_height":"2"},
+"proof_specs":[{"leaf_spec":{"hash":"SHA256","prehash_key":"NO_HASH","prehash_value":"SHA256","length":"VAR_PROTO","prefix":"AA=="},"inner_spec":{"child_order":[0,1],"child_size":33,"min_prefix_length":4,"max_prefix_length":12,"empty_child":null,"hash":"SHA256"},"max_depth":0,"min_depth":0},{"leaf_spec":{"hash":"SHA256","prehash_key":"NO_HASH","prehash_value":"SHA256","length":"VAR_PROTO","prefix":"AA=="},"inner_spec":{"child_order":[0,1],"child_size":32,"min_prefix_length":1,"max_prefix_length":1,"empty_child":null,"hash":"SHA256"},"max_depth":0,"min_depth":0}],
+"upgrade_path":["upgrade","upgradedIBCState"],
+}
+		`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
+
+			name := args[0]
+
+			height, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			plan := upgradetypes.Plan{
+				Name:   name,
+				Height: height,
+			}
+
+			// attempt to unmarshal client state argument
+			var clientState exported.ClientState
+			clientContentOrFileName := args[2]
+			if err := cdc.UnmarshalInterfaceJSON([]byte(clientContentOrFileName), &clientState); err != nil {
+
+				// check for file path if JSON input is not provided
+				contents, err := os.ReadFile(clientContentOrFileName)
+				if err != nil {
+					return fmt.Errorf("neither JSON input nor path to .json file for client state were provided: %w", err)
+				}
+
+				if err := cdc.UnmarshalInterfaceJSON(contents, &clientState); err != nil {
+					return fmt.Errorf("error unmarshalling client state file: %w", err)
+				}
+			}
+
+			signer, _ := cmd.Flags().GetString(FlagAuthority)
+			if signer != "" {
+				if _, err = addresscodec.StringToBytes(signer); err != nil {
+					return fmt.Errorf("invalid signer (authority) address: %w", err)
+				}
+			} else {
+				signer = sdk.AccAddress(address.Module("gov")).String()
+			}
+
+			msg, err := types.NewMsgIBCSoftwareUpgrade(signer, plan, clientState)
+			if err != nil {
+				return err
+			}
+
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			proposal, err := govcli.ReadGovPropFlags(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			if err := proposal.SetMsgs([]sdk.Msg{msg}); err != nil {
+				return fmt.Errorf("failed to create message for scheduling an IBC software upgrade: %w", err)
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), proposal)
+		},
+	}
+
+	cmd.Flags().String(FlagAuthority, "", "The address of the client module authority (defaults to gov)")
+
+	flags.AddTxFlagsToCmd(cmd)
+	govcli.AddGovPropFlagsToCmd(cmd)
 
 	return cmd
 }
