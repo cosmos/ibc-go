@@ -46,8 +46,7 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			continue
 		}
 
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
-		if !isAllowedAddress(sdkCtx, msgTransfer.Receiver, allocation.AllowList) {
+		if !isAllowedAddress(sdk.UnwrapSDKContext(ctx), msgTransfer.Receiver, allocation.AllowList) {
 			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
 

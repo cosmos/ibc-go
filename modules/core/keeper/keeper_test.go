@@ -49,7 +49,7 @@ type MockStakingKeeper struct {
 	mockField string
 }
 
-func (MockStakingKeeper) GetHistoricalInfo(_ context.Context, height int64) (stakingtypes.HistoricalInfo, error) {
+func (MockStakingKeeper) GetHistoricalInfo(_ context.Context, _ int64) (stakingtypes.HistoricalInfo, error) {
 	return stakingtypes.HistoricalInfo{}, nil
 }
 
