@@ -294,12 +294,12 @@ func getRelayerConfigFromEnv() relayer.Config {
 	}
 
 	relayerTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
-	if relayerTag == "" {
+	if relayerTag != "" {
 		relayerConfig.Tag = relayerTag
 	}
 
 	relayerImage := strings.TrimSpace(os.Getenv(RelayerImageEnv))
-	if relayerImage == "" {
+	if relayerImage != "" {
 		relayerConfig.Image = relayerImage
 	}
 
