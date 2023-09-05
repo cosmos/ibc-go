@@ -7,13 +7,12 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -269,11 +268,9 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	suite.SetupTest()
 
-	// test if the ics4 wrapper is the fee keeper initially
+	// test if the ics4 wrapper is the channel keeper initially
 	ics4Wrapper := suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
-	_, isFeeKeeper := ics4Wrapper.(ibcfeekeeper.Keeper)
 
-	suite.Require().True(isFeeKeeper)
 	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
 	suite.Require().False(isChannelKeeper)
 
@@ -283,6 +280,4 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 
 	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
 	suite.Require().True(isChannelKeeper)
-	_, isFeeKeeper = ics4Wrapper.(ibcfeekeeper.Keeper)
-	suite.Require().False(isFeeKeeper)
 }

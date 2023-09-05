@@ -18,8 +18,8 @@ import (
 // If the transaction is successfully executed, the transaction response bytes will be returned.
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byte, error) {
 	var data icatypes.InterchainAccountPacketData
-
-	if err := icatypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	err := data.UnmarshalJSON(packet.GetData())
+	if err != nil {
 		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
 		return nil, errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain account packet data")
 	}
@@ -68,8 +68,10 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 	// writeCache is called only if all msgs succeed, performing state transitions atomically
 	cacheCtx, writeCache := ctx.CacheContext()
 	for i, msg := range msgs {
-		if err := msg.ValidateBasic(); err != nil {
-			return nil, err
+		if m, ok := msg.(sdk.HasValidateBasic); ok {
+			if err := m.ValidateBasic(); err != nil {
+				return nil, err
+			}
 		}
 
 		protoAny, err := k.executeMsg(cacheCtx, msg)
@@ -104,9 +106,19 @@ func (k Keeper) authenticateTx(ctx sdk.Context, msgs []sdk.Msg, connectionID, po
 			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "message type not allowed: %s", sdk.MsgTypeURL(msg))
 		}
 
-		for _, signer := range msg.GetSigners() {
-			if interchainAccountAddr != signer.String() {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", interchainAccountAddr, signer.String())
+		// obtain the message signers using the proto signer annotations
+		// the msgv2 return value is discarded as it is not used
+		signers, _, err := k.cdc.GetMsgV1Signers(msg)
+		if err != nil {
+			return errorsmod.Wrapf(err, "failed to obtain message signers for message type %s", sdk.MsgTypeURL(msg))
+		}
+
+		for _, signer := range signers {
+			// the interchain account address is stored as the string value of the sdk.AccAddress type
+			// thus we must cast the signer to a sdk.AccAddress to obtain the comparison value
+			// the stored interchain account address must match the signer for every message to be executed
+			if interchainAccountAddr != sdk.AccAddress(signer).String() {
+				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", interchainAccountAddr, sdk.AccAddress(signer).String())
 			}
 		}
 	}

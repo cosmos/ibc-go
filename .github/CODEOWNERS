@@ -40,3 +40,7 @@
 
 # CODEOWNERS for docs
 /docs/ @colin-axner @AdityaSripal @crodriguezvega @charleenfei @damiannolan @chatton @DimitrisJim @srdtrk
+
+# CODEOWNERS for callbacks middleware
+
+/modules/apps/callbacks/ @colin-axner @AdityaSripal @damiannolan @srdtrk

@@ -4,10 +4,10 @@ import (
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
@@ -128,15 +128,21 @@ func (cs *ClientState) VerifyMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	if merklePath.Empty() {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "path is empty")
+	if len(merklePath.GetKeyPath()) != 2 {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+	}
+
+	// in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	key, err := merklePath.GetKey(1)
+	if err != nil {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
 	}
 
 	signBytes := &SignBytes{
 		Sequence:    sequence,
 		Timestamp:   timestamp,
 		Diversifier: cs.ConsensusState.Diversifier,
-		Path:        []byte(merklePath.String()),
+		Path:        key,
 		Data:        value,
 	}
 
@@ -178,11 +184,21 @@ func (cs *ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
+	if len(merklePath.GetKeyPath()) != 2 {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+	}
+
+	// in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	key, err := merklePath.GetKey(1)
+	if err != nil {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
+	}
+
 	signBytes := &SignBytes{
 		Sequence:    sequence,
 		Timestamp:   timestamp,
 		Diversifier: cs.ConsensusState.Diversifier,
-		Path:        []byte(merklePath.String()),
+		Path:        key,
 		Data:        nil,
 	}
 

@@ -3,14 +3,13 @@ package ica_test
 import (
 	"testing"
 
+	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -41,13 +40,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	appModule, ok := app.ModuleManager.Modules[types.ModuleName].(ica.AppModule)
 	suite.Require().True(ok)
 
-	header := tmproto.Header{
-		ChainID: chainID,
-		Height:  1,
-		Time:    suite.coordinator.CurrentTime.UTC(),
-	}
-
-	ctx := app.GetBaseApp().NewContext(true, header)
+	ctx := app.GetBaseApp().NewContext(true)
 
 	// ensure params are not set
 	suite.Require().Panics(func() {
@@ -105,13 +98,8 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 			// reset app state
 			chainID := "testchain"
 			app = simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
-			header := tmproto.Header{
-				ChainID: chainID,
-				Height:  1,
-				Time:    suite.coordinator.CurrentTime.UTC(),
-			}
 
-			ctx := app.GetBaseApp().NewContext(true, header)
+			ctx := app.GetBaseApp().NewContext(true)
 
 			tc.malleate()
 
