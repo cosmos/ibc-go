@@ -143,6 +143,9 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 			appTomlOverrides,
 		)
 		s.Require().NoError(err)
+
+		_, _, err = node.ExecBin(ctx, "comet", "unsafe-reset-all")
+		s.Require().NoError(err)
 	}
 
 	err = chain.StartAllNodes(ctx)

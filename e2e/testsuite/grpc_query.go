@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -52,7 +52,7 @@ type GRPCClients struct {
 	AuthQueryClient   authtypes.QueryClient
 	AuthZQueryClient  authz.QueryClient
 
-	ConsensusServiceClient tmservice.ServiceClient
+	ConsensusServiceClient cmtservice.ServiceClient
 }
 
 // InitGRPCClients establishes GRPC clients with the given chain.
@@ -89,7 +89,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		ParamsQueryClient:        paramsproposaltypes.NewQueryClient(grpcConn),
 		AuthQueryClient:          authtypes.NewQueryClient(grpcConn),
 		AuthZQueryClient:         authz.NewQueryClient(grpcConn),
-		ConsensusServiceClient:   tmservice.NewServiceClient(grpcConn),
+		ConsensusServiceClient:   cmtservice.NewServiceClient(grpcConn),
 	}
 }
 
@@ -271,8 +271,8 @@ func (s *E2ETestSuite) QueryProposalV1(ctx context.Context, chain ibc.Chain, pro
 
 // GetBlockHeaderByHeight fetches the block header at a given height.
 func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Chain, height uint64) (Header, error) {
-	tmService := s.GetChainGRCPClients(chain).ConsensusServiceClient
-	res, err := tmService.GetBlockByHeight(ctx, &tmservice.GetBlockByHeightRequest{
+	consensusService := s.GetChainGRCPClients(chain).ConsensusServiceClient
+	res, err := consensusService.GetBlockByHeight(ctx, &cmtservice.GetBlockByHeightRequest{
 		Height: int64(height),
 	})
 	if err != nil {
@@ -290,9 +290,9 @@ func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Cha
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
 // are sorted by address.
-func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*tmservice.Validator, error) {
-	tmService := s.GetChainGRCPClients(chain).ConsensusServiceClient
-	res, err := tmService.GetValidatorSetByHeight(ctx, &tmservice.GetValidatorSetByHeightRequest{
+func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*cmtservice.Validator, error) {
+	consensusService := s.GetChainGRCPClients(chain).ConsensusServiceClient
+	res, err := consensusService.GetValidatorSetByHeight(ctx, &cmtservice.GetValidatorSetByHeightRequest{
 		Height: int64(height),
 	})
 	if err != nil {
@@ -319,7 +319,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 
 	cfg := EncodingConfig()
 
-	var account authtypes.AccountI
+	var account sdk.AccountI
 	if err := cfg.InterfaceRegistry.UnpackAny(resp.Account, &account); err != nil {
 		return nil, err
 	}

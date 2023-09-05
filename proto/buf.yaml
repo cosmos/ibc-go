@@ -1,7 +1,7 @@
 version: v1
 name: buf.build/cosmos/ibc
 deps:
-  - buf.build/cosmos/cosmos-sdk:v0.47.0
+  - buf.build/cosmos/cosmos-sdk:aa25660f4ff746388669ce36b3778442
   - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
   - buf.build/cosmos/gogo-proto:a14993478f40695898ed8a86931094b6656e8a5d
   - buf.build/googleapis/googleapis:8d7204855ec14631a499bd7393ce1970

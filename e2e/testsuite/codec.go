@@ -6,6 +6,8 @@ import (
 
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,7 +19,6 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"

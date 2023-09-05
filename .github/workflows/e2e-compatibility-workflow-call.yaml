@@ -16,7 +16,7 @@ jobs:
       test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: andstor/file-existence-action@v2
         with:
           files: '.github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json'
@@ -38,7 +38,7 @@ jobs:
       matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}
     steps:
       - name: Checkout the ibc-go repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v4
