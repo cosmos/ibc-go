@@ -3,6 +3,8 @@ package ibccallbacks_test
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
@@ -191,7 +193,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 		return // we return if send packet is rejected
 	}
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
 	// relay send
@@ -201,7 +203,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	// check that the escrow address balance increased by 100
 	s.Require().Equal(escrowBalance.Add(amount), GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
 	// check that the receiving address balance increased by 100
-	s.Require().Equal(receiverBalance.AddAmount(sdk.NewInt(100)), GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom()))
+	s.Require().Equal(receiverBalance.AddAmount(sdkmath.NewInt(100)), GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom()))
 }
 
 // ExecuteTransferTimeout executes a transfer message on chainA for 100 denom.
@@ -225,7 +227,7 @@ func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string) {
 		return // we return if send packet is rejected
 	}
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err) // packet committed
 	s.Require().NotNil(packet)
 

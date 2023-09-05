@@ -132,7 +132,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.Require().Equal(expSequence, channel.UpgradeSequence)
 				suite.Require().Equal(mock.Version, channel.Version)
 				suite.Require().Equal(types.OPEN, channel.State)
-				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -385,7 +385,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 				},
 			}
 
-			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+			ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 		})
 	}
 }
@@ -648,7 +648,7 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 				},
 			}
 
-			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+			ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 
 			if !tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
@@ -940,7 +940,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeConfirm() {
 				},
 			}
 
-			ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+			ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 
 			if !tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
@@ -1202,7 +1202,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 						sdk.AttributeKeyModule: types.AttributeValueCategory,
 					},
 				}
-				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			}
 		})
 	}
@@ -1468,7 +1468,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 					},
 				}
 
-				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			}
 		})
 	}
@@ -1972,7 +1972,7 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 					},
 				}
 
-				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 
 				channel, found := channelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "channel should be found")

@@ -166,9 +166,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
 
-			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
@@ -335,9 +335,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
 
-			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
 		t.Run("start relayer", func(t *testing.T) {

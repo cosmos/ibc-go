@@ -3,6 +3,8 @@ package ibccallbacks
 import (
 	"fmt"
 
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
@@ -268,7 +270,7 @@ func (IBCMiddleware) processCallback(
 	callbackData types.CallbackData, callbackExecutor func(sdk.Context) error,
 ) (err error) {
 	cachedCtx, writeFn := ctx.CacheContext()
-	cachedCtx = cachedCtx.WithGasMeter(sdk.NewGasMeter(callbackData.ExecutionGasLimit))
+	cachedCtx = cachedCtx.WithGasMeter(storetypes.NewGasMeter(callbackData.ExecutionGasLimit))
 
 	defer func() {
 		// consume the minimum of g.consumed and g.limit
@@ -283,7 +285,7 @@ func (IBCMiddleware) processCallback(
 
 		// if the callback ran out of gas and the relayer has not reserved enough gas, then revert the state
 		if cachedCtx.GasMeter().IsPastLimit() && callbackData.AllowRetry() {
-			panic(sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
+			panic(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
 		}
 
 		// allow the transaction to be committed, continuing the packet lifecycle
@@ -348,6 +350,31 @@ func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID strin
 // OnChanCloseConfirm defers to the underlying application
 func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
+}
+
+// OnChanUpgradeInit implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+	panic("implement me")
+}
+
+// OnChanUpgradeTry implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+	panic("implement me")
+}
+
+// OnChanUpgradeAck implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+	panic("implement me")
+}
+
+// OnChanUpgradeOpen implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+	panic("implement me")
+}
+
+// OnChanUpgradeRestore implements the IBCModule interface
+func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
+	panic("implement me")
 }
 
 // GetAppVersion implements the ICS4Wrapper interface. Callbacks has no version,

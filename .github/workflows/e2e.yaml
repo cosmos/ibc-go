@@ -35,7 +35,7 @@ jobs:
       relayer: ${{ steps.get-relayer.outputs.relayer }}
       relayer-tag: ${{ steps.get-relayer.outputs.relayer-tag }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: '1.21'
@@ -55,18 +55,18 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "schedule" ]
           then
-            echo "relayer=hermes" >> $GITHUB_OUTPUT
-            echo "relayer-tag=1.4.0" >> $GITHUB_OUTPUT
-          else
             echo "relayer=rly" >> $GITHUB_OUTPUT
-            echo "relayer-tag=latest" >> $GITHUB_OUTPUT
+            echo "relayer-tag=colin-event-fix" >> $GITHUB_OUTPUT
+          else
+            echo "relayer=hermes" >> $GITHUB_OUTPUT
+            echo "relayer-tag=v1.6.0" >> $GITHUB_OUTPUT
           fi
   # build-e2e ensures that all test code compiles.
   build-e2e:
     if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: '1.21'

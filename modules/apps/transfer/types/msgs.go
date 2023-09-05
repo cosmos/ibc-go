@@ -111,7 +111,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 
 // GetSignBytes implements legacytx.LegacyMsg
 func (msg MsgTransfer) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg))
 }
 
 // GetSigners implements sdk.Msg

@@ -35,6 +35,8 @@ on:
         default: main
         options:
           - main
+          - v7.3.0
+          - v7.2.1
           - v7.2.0
           - v6.2.0
           - v6.1.1
@@ -46,12 +48,14 @@ on:
         required: false
         type: string
       chain-b-tag:
-        default: v7.2.0
+        default: v7.3.0
         description: 'The tag to use for chain B'
         required: true
         type: choice
         options:
           - main
+          - v7.3.0
+          - v7.2.1
           - v7.2.0
           - v6.2.0
           - v6.1.1
