@@ -50,7 +50,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chain
 		return
 	}
 
-	testContainers, err := dockerutil.GetTestContainers(t, ctx, dc)
+	testContainers, err := dockerutil.GetTestContainers(ctx, t, dc)
 	if err != nil {
 		t.Logf("failed listing containers test cleanup: %s", err)
 		return

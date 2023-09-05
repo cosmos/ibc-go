@@ -1,6 +1,8 @@
 {
   "chain-a": [
     "main",
+    "v7.3.0",
+    "v7.2.1",
     "v7.2.0",
     "v6.2.0",
     "v6.1.1"
@@ -15,7 +17,6 @@
     "TestMsgSendTx_SuccessfulTransfer",
     "TestMsgSendTx_FailedTransfer_InsufficientFunds",
     "TestMsgSendTx_SuccessfulTransfer_AfterReopeningICA",
-    "TestControllerEnabledParam",
     "TestHostEnabledParam"
   ],
   "relayer-type": [
