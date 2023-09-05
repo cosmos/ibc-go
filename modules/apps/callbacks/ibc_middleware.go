@@ -262,6 +262,11 @@ func (im IBCMiddleware) WriteAcknowledgement(
 
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
 //
+// Error Precedence and Returns:
+//   - oogErr: Takes the highest precedence. If the callback runs out of gas, an error wrapped with types.ErrCallbackOutOfGas is returned.
+//   - panicErr: Takes the second-highest precedence. If a panic occurs and it is not propagated, an error wrapped with types.ErrCallbackPanic is returned.
+//   - callbackErr: If the callbackExecutor returns an error, it is returned as-is.
+//
 // panics if
 //   - the contractExecutor panics for any reason, and the callbackType is SendPacket, or
 //   - the contractExecutor runs out of gas and the relayer has not reserved gas grater than or equal to
