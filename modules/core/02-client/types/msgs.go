@@ -2,10 +2,10 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
@@ -263,16 +263,16 @@ func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 }
 
 // NewMsgUpdateParams creates a new instance of MsgUpdateParams.
-func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
-		Authority: authority,
-		Params:    params,
+		Signer: signer,
+		Params: params,
 	}
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
 	}
@@ -281,7 +281,7 @@ func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic performs basic checks on a MsgUpdateParams.
 func (msg *MsgUpdateParams) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Params.Validate()

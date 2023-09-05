@@ -184,6 +184,10 @@ module.exports = {
         label: "v7.2.0",
         key: "v7.2.0",
       },
+      {
+        label: "v7.3.0",
+        key: "v7.3.0",
+      },
     ],
     topbar: {
       banner: true,
@@ -233,6 +237,11 @@ module.exports = {
               title: "Protobuf Documentation",
               directory: false,
               path: "/ibc/proto-docs.html",
+            },
+            {
+              title: "Capability Module",
+              directory: false,
+              path: "/ibc/capability-module.html",
             },
             {
               title: "Roadmap",
@@ -533,6 +542,43 @@ module.exports = {
                 },
               ],
             },
+            {
+              title: "Callbacks Middleware",
+              directory: true,
+              path: "/middleware",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/middleware/callbacks/overview.html",
+                },
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/middleware/callbacks/integration.html",
+                },
+                {
+                  title: "Interfaces",
+                  directory: false,
+                  path: "/middleware/callbacks/interfaces.html",
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/middleware/callbacks/events.html",
+                },
+                {
+                  title: "End Users",
+                  directory: false,
+                  path: "/middleware/callbacks/end-users.html",
+                },
+                {
+                  title: "Gas Management",
+                  directory: false,
+                  path: "/middleware/callbacks/gas.html",
+                },
+              ],
+            },
           ],
         },
         {
@@ -583,6 +629,11 @@ module.exports = {
               title: "IBC-Go v7 to v7.1",
               directory: false,
               path: "/migrations/v7-to-v7_1.html",
+            },
+            {
+              title: "IBC-Go v7.2 to v7.3",
+              directory: false,
+              path: "/migrations/v7_2-to-v7_3.html",
             },
           ],
         },
