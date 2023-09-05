@@ -45,13 +45,6 @@ var (
 	timeoutHeight = clienttypes.NewHeight(0, 10)
 )
 
-// TestMsgTransferRoute tests Route for MsgTransfer
-func TestMsgTransferRoute(t *testing.T) {
-	msg := types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, "")
-
-	require.Equal(t, types.RouterKey, msg.Route())
-}
-
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
 func TestMsgTransferValidation(t *testing.T) {
 	testCases := []struct {

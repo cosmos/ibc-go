@@ -12,11 +12,6 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
-// msg types
-const (
-	TypeMsgTransfer = "transfer"
-)
-
 var (
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
 	_ sdk.Msg = (*MsgTransfer)(nil)
@@ -67,16 +62,6 @@ func NewMsgTransfer(
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             memo,
 	}
-}
-
-// Type implements legacytx.LegacyMsg
-func (MsgTransfer) Type() string {
-	return TypeMsgTransfer
-}
-
-// Route implements legacytx.LegacyMsg
-func (MsgTransfer) Route() string {
-	return RouterKey
 }
 
 // ValidateBasic performs a basic check of the MsgTransfer fields.

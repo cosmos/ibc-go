@@ -12,12 +12,6 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
-// msg types
-const (
-	TypeMsgPayPacketFee      = "payPacketFee"
-	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
-)
-
 var (
 	_ sdk.Msg = (*MsgRegisterPayee)(nil)
 	_ sdk.Msg = (*MsgRegisterCounterpartyPayee)(nil)
@@ -159,16 +153,6 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-// Type implements legacytx.LegacyMsg
-func (MsgPayPacketFee) Type() string {
-	return TypeMsgPayPacketFee
-}
-
-// Route implements legacytx.LegacyMsg
-func (MsgPayPacketFee) Route() string {
-	return RouterKey
-}
-
 // NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
 func NewMsgPayPacketFeeAsync(packetID channeltypes.PacketId, packetFee PacketFee) *MsgPayPacketFeeAsync {
 	return &MsgPayPacketFeeAsync{
@@ -194,14 +178,4 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
-}
-
-// Type implements legacytx.LegacyMsg
-func (MsgPayPacketFeeAsync) Type() string {
-	return TypeMsgPayPacketFeeAsync
-}
-
-// Route implements legacytx.LegacyMsg
-func (MsgPayPacketFeeAsync) Route() string {
-	return RouterKey
 }

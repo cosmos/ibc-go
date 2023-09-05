@@ -234,11 +234,6 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 	require.Equal(t, []sdk.AccAddress{refundAddr}, msg.GetSigners())
 }
 
-func TestMsgPayPacketFeeRoute(t *testing.T) {
-	var msg types.MsgPayPacketFee
-	require.Equal(t, types.RouterKey, msg.Route())
-}
-
 func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 	var msg *types.MsgPayPacketFeeAsync
 
@@ -372,9 +367,4 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
 
 	require.Equal(t, []sdk.AccAddress{refundAddr}, msg.GetSigners())
-}
-
-func TestMsgPayPacketFeeAsyncRoute(t *testing.T) {
-	var msg types.MsgPayPacketFeeAsync
-	require.Equal(t, types.RouterKey, msg.Route())
 }
