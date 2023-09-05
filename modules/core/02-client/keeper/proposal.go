@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	metrics "github.com/armon/go-metrics"
+	metrics "github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
 

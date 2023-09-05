@@ -347,3 +347,26 @@ func (im IBCModule) OnTimeoutPacket(
   // do custom timeout logic
 }
 ```
+
+### Optional interfaces
+
+The following interface are optional and MAY be implemented by an IBCModule.
+
+#### PacketDataUnmarshaler
+
+The `PacketDataUnmarshaler` interface is defined as follows:
+
+```go
+// PacketDataUnmarshaler defines an optional interface which allows a middleware to
+// request the packet data to be unmarshaled by the base application.
+type PacketDataUnmarshaler interface {
+	// UnmarshalPacketData unmarshals the packet data into a concrete type
+	UnmarshalPacketData([]byte) (interface{}, error)
+}
+```
+
+The implementation of `UnmarshalPacketData` should unmarshal the bytes into the packet data type defined for an IBC stack. 
+The base application of an IBC stack should unmarshal the bytes into its packet data type, while a middleware may simply defer the call to the underlying application.
+
+This interface allows middlewares to unmarshal a packet data in order to make use of interfaces the packet data type implements. 
+For example, the callbacks middleware makes use of this function to access packet data types which implement the `PacketData` and `PacketDataProvider` interfaces. 
