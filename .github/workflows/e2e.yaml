@@ -25,9 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
-      # Temporarily, see: https://github.com/cosmos/ibc-go/issues/3981
-      relayer: ${{ steps.get-relayer.outputs.relayer }}
-      relayer-tag: ${{ steps.get-relayer.outputs.relayer-tag }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
@@ -43,12 +40,6 @@ jobs:
             echo "Using tag $tag"
             echo "simd-tag=$tag" >> $GITHUB_OUTPUT
           fi
-      # get-relayer will assign information about the relayer as outputs for the job.
-      - id: get-relayer
-        run: |
-          echo "relayer=hermes" >> $GITHUB_OUTPUT
-          echo "relayer-tag=v1.6.0" >> $GITHUB_OUTPUT
-          echo "relayer-image=" >> $GITHUB_OUTPUT 
   # build-e2e ensures that all test code compiles.
   build-e2e:
     if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
@@ -93,7 +84,3 @@ jobs:
       chain-binary: 'simd'
       # on regular PRs we won't run interchain account or upgrade tests.
       test-exclusions: 'TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite'
-      # Temporarily, see: https://github.com/cosmos/ibc-go/issues/3981
-      relayer-type: '${{ needs.determine-image-tag.outputs.relayer }}'
-      relayer-tag: '${{ needs.determine-image-tag.outputs.relayer-tag }}'
-      relayer-image: '${{ needs.determine-image-tag.outputs.relayer-image }}'
