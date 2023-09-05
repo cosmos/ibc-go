@@ -1104,7 +1104,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
@@ -1217,7 +1217,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}

@@ -367,7 +367,7 @@ var xxx_messageInfo_MsgSubmitMisbehaviourResponse proto.InternalMessageInfo
 
 // MsgUpdateParams defines the sdk.Msg type to update the client parameters.
 type MsgUpdateParams struct {
-	// signer is the address of the governance account.
+	// signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	// params defines the client parameters to update.
 	//

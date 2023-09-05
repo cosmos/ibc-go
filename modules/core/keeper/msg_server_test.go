@@ -3,8 +3,9 @@ package keeper_test
 import (
 	"fmt"
 
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

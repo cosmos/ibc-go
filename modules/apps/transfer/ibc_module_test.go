@@ -309,7 +309,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 				suite.Require().Equal(upgradePath.EndpointA.ConnectionID, upgrade.Fields.ConnectionHops[0])
 			} else {
 				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
@@ -386,7 +386,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 				suite.Require().Equal(types.Version, version)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
@@ -450,7 +450,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}

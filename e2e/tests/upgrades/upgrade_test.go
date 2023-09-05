@@ -15,10 +15,10 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"

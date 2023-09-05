@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -92,7 +91,7 @@ func (suite *TendermintTestSuite) SetupTest() {
 	suite.valSet = tmtypes.NewValidatorSet([]*tmtypes.Validator{val})
 	suite.valsHash = suite.valSet.Hash()
 	suite.header = suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-	suite.ctx = app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now})
+	suite.ctx = app.BaseApp.NewContext(checkTx)
 }
 
 func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) map[string]tmtypes.PrivValidator {
