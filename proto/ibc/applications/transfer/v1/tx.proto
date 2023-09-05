@@ -26,7 +26,7 @@ service Msg {
 // ICS20 enabled chains. See ICS Spec here:
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
 message MsgTransfer {
-  option (amino.name)           = "transfer";
+  option (amino.name)           = "cosmos-sdk/MsgTransfer";
   option (cosmos.msg.v1.signer) = "sender";
 
   option (gogoproto.goproto_getters) = false;
