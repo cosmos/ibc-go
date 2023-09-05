@@ -97,7 +97,7 @@ otherwise the encoding flag can be used in combination with either "proto3" or "
 		},
 	}
 
-	cmd.Flags().String(memoFlag, "", "an optional memo to be included in the interchain accounts packet data")
+	cmd.Flags().String(memoFlag, "", "optional memo to be included in the interchain accounts packet data")
 	cmd.Flags().String(encodingFlag, "", "optional encoding format of the messages in the interchain accounts packet data")
 	return cmd
 }
