@@ -4,7 +4,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
@@ -124,8 +123,13 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				suite.Require().True(found)
 
 				accAddress := sdk.MustAccAddressFromBech32(addr)
-				baseAcc := authtypes.NewBaseAccountWithAddress(accAddress)
-				suite.chainB.GetSimApp().AccountKeeper.SetAccount(suite.chainB.GetContext(), baseAcc)
+				acc := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), accAddress)
+
+				icaAcc, ok := acc.(*icatypes.InterchainAccount)
+				suite.Require().True(ok)
+
+				// overwrite existing account with only base account type, not intercahin account type
+				suite.chainB.GetSimApp().AccountKeeper.SetAccount(suite.chainB.GetContext(), icaAcc.BaseAccount)
 			}, false,
 		},
 		{

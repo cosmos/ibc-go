@@ -42,7 +42,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"valid fork misbehaviour", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -61,7 +61,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"valid time misbehaviour", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				misbehaviour = &ibctm.Misbehaviour{
@@ -75,7 +75,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"valid time misbehaviour, header 1 time stricly less than header 2 time", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				misbehaviour = &ibctm.Misbehaviour{
@@ -89,7 +89,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"valid misbehavior at height greater than last consensusState", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				misbehaviour = &ibctm.Misbehaviour{
@@ -102,7 +102,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"valid misbehaviour with different trusted heights", func() {
 				trustedHeight1 := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals1, found := suite.chainB.GetValsAtHeight(int64(trustedHeight1.RevisionHeight) + 1)
+				trustedVals1, found := suite.chainB.GetValsAtHeight(int64(trustedHeight1.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -110,7 +110,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 
 				trustedHeight2 := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals2, found := suite.chainB.GetValsAtHeight(int64(trustedHeight2.RevisionHeight) + 1)
+				trustedVals2, found := suite.chainB.GetValsAtHeight(int64(trustedHeight2.RevisionHeight))
 				suite.Require().True(found)
 
 				misbehaviour = &ibctm.Misbehaviour{
@@ -124,7 +124,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"valid misbehaviour at a previous revision", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -147,7 +147,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"valid misbehaviour at a future revision", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
@@ -165,7 +165,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"valid misbehaviour with trusted heights at a previous revision", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				// increment revision of chainID
@@ -185,7 +185,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"consensus state's valset hash different from misbehaviour should still pass", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -208,7 +208,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"invalid misbehaviour: misbehaviour from different chain", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -241,7 +241,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"trusted consensus state does not exist", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				misbehaviour = &ibctm.Misbehaviour{
@@ -259,7 +259,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"trusting period expired", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -279,7 +279,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"header 1 valset has too much change", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -297,7 +297,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"header 2 valset has too much change", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -315,7 +315,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			"both header 1 and header 2 valsets have too much change", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -390,7 +390,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"valid fork misbehaviour", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -409,7 +409,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"valid time misbehaviour", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				misbehaviour = &ibctm.Misbehaviour{
@@ -423,7 +423,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"valid time misbehaviour, header 1 time stricly less than header 2 time", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				misbehaviour = &ibctm.Misbehaviour{
@@ -437,7 +437,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"valid misbehavior at height greater than last consensusState", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				misbehaviour = &ibctm.Misbehaviour{
@@ -450,7 +450,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"valid misbehaviour with different trusted heights", func() {
 				trustedHeight1 := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals1, found := suite.chainB.GetValsAtHeight(int64(trustedHeight1.RevisionHeight) + 1)
+				trustedVals1, found := suite.chainB.GetValsAtHeight(int64(trustedHeight1.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -458,7 +458,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 
 				trustedHeight2 := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals2, found := suite.chainB.GetValsAtHeight(int64(trustedHeight2.RevisionHeight) + 1)
+				trustedVals2, found := suite.chainB.GetValsAtHeight(int64(trustedHeight2.RevisionHeight))
 				suite.Require().True(found)
 
 				misbehaviour = &ibctm.Misbehaviour{
@@ -472,7 +472,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"consensus state's valset hash different from misbehaviour should still pass", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -495,7 +495,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"invalid misbehaviour: misbehaviour from different chain", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -528,7 +528,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"trusted consensus state does not exist", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				misbehaviour = &ibctm.Misbehaviour{
@@ -546,7 +546,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"trusting period expired", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -566,7 +566,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"header 1 valset has too much change", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -584,7 +584,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"header 2 valset has too much change", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
@@ -602,7 +602,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			"both header 1 and header 2 valsets have too much change", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
-				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight) + 1)
+				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 				suite.Require().True(found)
 
 				err := path.EndpointA.UpdateClient()
