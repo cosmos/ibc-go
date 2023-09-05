@@ -458,7 +458,7 @@ func NewCmdSubmitUpgradeProposal() *cobra.Command {
 	return cmd
 }
 
-// NewCmdSubmitScheduleIBCUpgradeProposal defines the command for submitting an IBC software upgrade proposal.
+// NewCmdScheduleIBCUpgradeProposal defines the command for submitting an IBC software upgrade proposal.
 func NewCmdScheduleIBCUpgradeProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "schedule-ibc-upgrade [name] [height] [path/to/upgraded_client_state.json] [flags]",
@@ -536,7 +536,7 @@ func NewCmdScheduleIBCUpgradeProposal() *cobra.Command {
 			}
 
 			if err := proposal.SetMsgs([]sdk.Msg{msg}); err != nil {
-				return fmt.Errorf("failed to create message for scheduling an IBC software upgrade: %w", err)
+				return fmt.Errorf("failed to create proposal message for scheduling an IBC software upgrade: %w", err)
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), proposal)
