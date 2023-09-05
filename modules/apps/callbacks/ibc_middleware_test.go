@@ -830,7 +830,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				}
 			},
 			false,
-			nil,
+			errorsmod.Wrapf(types.ErrCallbackPanic, "ibc %s callback panicked with: %v", callbackType, "callbackExecutor panic"),
 		},
 		{
 			"success: callbackExecutor oog panic, but retry is not allowed",

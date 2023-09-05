@@ -282,6 +282,7 @@ func (IBCMiddleware) processCallback(
 			if callbackType == types.CallbackTypeSendPacket {
 				panic(r)
 			}
+			err = errorsmod.Wrapf(types.ErrCallbackPanic, "ibc %s callback panicked with: %v", callbackType, r)
 		}
 
 		// if the callback ran out of gas and the relayer has not reserved enough gas, then revert the state
