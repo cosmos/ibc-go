@@ -93,7 +93,7 @@ If the chain is on an ibc-go version older than v8, please see the [relevant doc
         "@type": "/ibc.core.client.v1.MsgRecoverClient",
         "subject_client_id": "expired_client_id_string",
         "substitute_client_id": "active_client_id_string",
-        "signer": <gov-address>
+        "signer": "<gov-address>"
       }
     ],
     "metadata": "<metadata>",
