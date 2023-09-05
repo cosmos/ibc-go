@@ -51,7 +51,6 @@ See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](.
 
 ## Preconditions
 
-- The chain is updated with ibc-go >= v1.1.0.
 - There exists an active client (with a known client identifier) for the same counterparty chain as the expired client.
 - The governance deposit.
 
@@ -76,11 +75,10 @@ The client is attached to the expected Akash `chain-id`. Note that although the 
 
 ### Step 2
 
-If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governance proposal to recover the client by executing this via CLI.
+Anyone can submit the governance proposal to recover the client by executing the following via CLI.
+If the chain is on an ibc-go version older than v8, please see the [relevant documentation](https://ibc.cosmos.network/v6.1.0/ibc/proposals.html).
 
-> Note that the Cosmos SDK has updated how governance proposals are submitted in SDK v0.46, now requiring to pass a .json proposal file
-
-- From SDK v0.46.x onwards
+- From ibc-go v8 onwards
 
   ```shell
   <binary> tx gov submit-proposal [path-to-proposal-json]
@@ -92,28 +90,18 @@ If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governa
   {
     "messages": [
       {
-        "@type": "/ibc.core.client.v1.ClientUpdateProposal",
-        "title": "title_string",
-        "description": "description_string",
+        "@type": "/ibc.core.client.v1.MsgRecoverClient",
         "subject_client_id": "expired_client_id_string",
-        "substitute_client_id": "active_client_id_string"
+        "substitute_client_id": "active_client_id_string",
+        "signer": <gov-address>
       }
     ],
     "metadata": "<metadata>",
     "deposit": "10stake"
+    "title": "My proposal",
+    "summary": "A short summary of my proposal",
+    "expedited": false
   }
-  ```
-
-  Alternatively there's a legacy command (that is no longer recommended though):
-
-  ```shell
-  <binary> tx gov submit-legacy-proposal update-client <expired-client-id> <active-client-id>
-  ```
-
-- Until SDK v0.45.x
-
-  ```shell
-  <binary> tx gov submit-proposal update-client <expired-client-id> <active-client-id>
   ```
 
 The `<expired-client-id>` identifier is the proposed client to be updated. This client must be either frozen or expired.
@@ -124,6 +112,4 @@ After this, all that remains is deciding who funds the governance deposit and en
 
 ## Important considerations
 
-Please note that from v1.0.0 of ibc-go it will not be allowed for transactions to go to expired clients anymore, so please update to at least this version to prevent similar issues in the future.
-
-Please also note that if the client on the other end of the transaction is also expired, that client will also need to update. This process updates only one client.
+Please note that if the client on the other end of the transaction is also expired, that client will also need to update. This process updates only one client.
