@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (apps/27-interchain-accounts) [\#4537](https://github.com/cosmos/ibc-go/pull/4537) Add argument to `generate-packet-data` cli to choose the encoding format for the messages in the ICA packet data.
+
 ### Features
 
 ### Bug Fixes
