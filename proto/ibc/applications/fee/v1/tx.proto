@@ -4,6 +4,7 @@ package ibc.applications.fee.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types";
 
+import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
 import "ibc/core/channel/v1/channel.proto";
@@ -82,6 +83,7 @@ message MsgRegisterCounterpartyPayeeResponse {}
 // This Msg can be used to pay for a packet at the next sequence send & should be combined with the Msg that will be
 // paid for
 message MsgPayPacketFee {
+  option (amino.name)           = "payPacketFee";
   option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.goproto_getters) = false;
@@ -104,6 +106,7 @@ message MsgPayPacketFeeResponse {}
 // MsgPayPacketFeeAsync defines the request type for the PayPacketFeeAsync rpc
 // This Msg can be used to pay for a packet at a specified sequence (instead of the next sequence send)
 message MsgPayPacketFeeAsync {
+  option (amino.name)                = "payPacketFeeAsync";
   option (cosmos.msg.v1.signer)      = "packet_fee";
   option (gogoproto.goproto_getters) = false;
 
