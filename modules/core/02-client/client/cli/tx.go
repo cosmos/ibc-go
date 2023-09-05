@@ -245,8 +245,8 @@ func NewUpgradeClientCmd() *cobra.Command {
 	return cmd
 }
 
-// NewCmdSubmitRecoverClientProposal defines the command to recover an IBC light client
-func NewCmdSubmitRecoverClientProposal() *cobra.Command {
+// newCmdSubmitRecoverClientProposal defines the command to recover an IBC light client
+func newCmdSubmitRecoverClientProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "recover-client [subject-client-id] [substitute-client-id] [flags]",
 		Args:  cobra.ExactArgs(2),
@@ -458,8 +458,8 @@ func NewCmdSubmitUpgradeProposal() *cobra.Command {
 	return cmd
 }
 
-// NewCmdScheduleIBCUpgradeProposal defines the command for submitting an IBC software upgrade proposal.
-func NewCmdScheduleIBCUpgradeProposal() *cobra.Command {
+// newCmdScheduleIBCUpgradeProposal defines the command for submitting an IBC software upgrade proposal.
+func newCmdScheduleIBCUpgradeProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "schedule-ibc-upgrade [name] [height] [path/to/upgraded_client_state.json] [flags]",
 		Args:  cobra.ExactArgs(3),
