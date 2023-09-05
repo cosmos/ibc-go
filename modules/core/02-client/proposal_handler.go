@@ -15,8 +15,6 @@ import (
 func NewClientProposalHandler(k keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
-		case *types.ClientUpdateProposal:
-			return k.ClientUpdateProposal(ctx, c)
 		case *types.UpgradeProposal:
 			return k.HandleUpgradeProposal(ctx, c)
 

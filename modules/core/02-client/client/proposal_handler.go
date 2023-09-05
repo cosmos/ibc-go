@@ -7,6 +7,5 @@ import (
 )
 
 var (
-	UpdateClientProposalHandler = govclient.NewProposalHandler(cli.NewCmdSubmitUpdateClientProposal)
-	UpgradeProposalHandler      = govclient.NewProposalHandler(cli.NewCmdSubmitUpgradeProposal)
+	UpgradeProposalHandler = govclient.NewProposalHandler(cli.NewCmdSubmitUpgradeProposal)
 )
