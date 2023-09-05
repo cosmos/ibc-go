@@ -673,6 +673,8 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	})
 }
 
+func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {}
+
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
 func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) {
 	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)

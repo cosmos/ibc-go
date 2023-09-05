@@ -57,3 +57,16 @@ jobs:
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV7ToV7_1ChainUpgrade"
       upload-logs: true
+
+  upgrade-v8:
+    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: v7.0.0
+      chain-b-tag: v7.0.0
+      chain-upgrade-tag: main # TODO: update this to a real tag once v8 is released
+      upgrade-plan-name: "v8"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV7ToV8ChainUpgrade"
+      upload-logs: true
