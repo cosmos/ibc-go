@@ -50,7 +50,7 @@ on:
       relayer-image:
         description: 'The image to use for the relayer'
         required: false
-        default: 'ghcr.io/cosmos/relayer'
+        default: '' # the tests themselves will choose a sensible default when unset.
         type: string
       relayer-type:
         description: 'The type of relayer to use'
