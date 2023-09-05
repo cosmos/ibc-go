@@ -1,37 +1,43 @@
 package simapp
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	"errors"
+
+	circuitante "cosmossdk.io/x/circuit/ante"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
 )
 
-// HandlerOptions extend the SDK's AnteHandler options by requiring the IBC keeper.
+// HandlerOptions are the options required for constructing a default SDK AnteHandler.
 type HandlerOptions struct {
 	ante.HandlerOptions
-
-	IBCKeeper *keeper.Keeper
+	CircuitKeeper circuitante.CircuitBreaker
+	IBCKeeper     *keeper.Keeper
 }
 
-// NewAnteHandler creates a new ante handler
+// NewAnteHandler returns an AnteHandler that checks and increments sequence
+// numbers, checks signatures & account numbers, and deducts fees from the first
+// signer.
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
-		return nil, errorsmod.Wrap(ibcerrors.ErrLogic, "account keeper is required for AnteHandler")
+		return nil, errors.New("account keeper is required for ante builder")
 	}
+
 	if options.BankKeeper == nil {
-		return nil, errorsmod.Wrap(ibcerrors.ErrLogic, "bank keeper is required for AnteHandler")
+		return nil, errors.New("bank keeper is required for ante builder")
 	}
+
 	if options.SignModeHandler == nil {
-		return nil, errorsmod.Wrap(ibcerrors.ErrLogic, "sign mode handler is required for AnteHandler")
+		return nil, errors.New("sign mode handler is required for ante builder")
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+		circuitante.NewCircuitBreakerDecorator(options.CircuitKeeper),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),

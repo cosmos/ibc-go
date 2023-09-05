@@ -8,16 +8,15 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
@@ -39,8 +38,6 @@ const (
 	testClientID  = "tendermint-0"
 	testClientID2 = "tendermint-1"
 	testClientID3 = "tendermint-2"
-
-	height = 5
 
 	trustingPeriod time.Duration = time.Hour * 24 * 7 * 2
 	ubdPeriod      time.Duration = time.Hour * 24 * 7 * 3
@@ -83,11 +80,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	isCheckTx := false
 	suite.now = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	suite.past = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	now2 := suite.now.Add(time.Hour)
 	app := simapp.Setup(suite.T(), isCheckTx)
 
 	suite.cdc = app.AppCodec()
-	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testClientID, Time: now2})
+	suite.ctx = app.BaseApp.NewContext(isCheckTx)
 	suite.keeper = &app.IBCKeeper.ClientKeeper
 	suite.privVal = ibctestingmock.NewPV()
 	pubKey, err := suite.privVal.GetPubKey()
@@ -107,17 +103,18 @@ func (suite *KeeperTestSuite) SetupTest() {
 		privVal := ibctestingmock.NewPV()
 		tmPk, err := privVal.GetPubKey()
 		suite.Require().NoError(err)
-		pk, err := cryptocodec.FromTmPubKeyInterface(tmPk)
+		pk, err := cryptocodec.FromCmtPubKeyInterface(tmPk)
 		suite.Require().NoError(err)
-		val, err := stakingtypes.NewValidator(sdk.ValAddress(pk.Address()), pk, stakingtypes.Description{})
+		val, err := stakingtypes.NewValidator(pk.Address().String(), pk, stakingtypes.Description{})
 		suite.Require().NoError(err)
 
 		val.Status = stakingtypes.Bonded
 		val.Tokens = sdkmath.NewInt(rand.Int63())
-		validators = append(validators, val)
+		validators.Validators = append(validators.Validators, val)
 
 		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
-		app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
+		err = app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
+		suite.Require().NoError(err)
 	}
 
 	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
@@ -559,38 +556,38 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				suite.Require().NoError(err)
 
 				// check that the correct plan is returned
-				storedPlan, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
-				suite.Require().True(found)
+				storedPlan, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
+				suite.Require().NoError(err)
 				suite.Require().Equal(plan, storedPlan)
 
 				// check that old upgraded client state is cleared
-				cs, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height)
-				suite.Require().False(found)
+				cs, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), oldPlan.Height)
+				suite.Require().ErrorIs(err, upgradetypes.ErrNoUpgradedClientFound)
 				suite.Require().Empty(cs)
 
 				// check that client state was set
-				storedClientState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
-				suite.Require().True(found)
+				storedClientState, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
+				suite.Require().NoError(err)
 				clientState, err := types.UnmarshalClientState(suite.chainA.App.AppCodec(), storedClientState)
 				suite.Require().NoError(err)
 				suite.Require().Equal(upgradedClientState, clientState)
 			} else {
 				// check that the new plan wasn't stored
-				storedPlan, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
+				storedPlan, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
 				if oldPlan.Height != 0 {
 					// NOTE: this is only true if the ScheduleUpgrade function
 					// returns an error before clearing the old plan
-					suite.Require().True(found)
+					suite.Require().NoError(err)
 					suite.Require().Equal(oldPlan, storedPlan)
 				} else {
-					suite.Require().False(found)
+					suite.Require().ErrorIs(err, upgradetypes.ErrNoUpgradePlanFound)
 					suite.Require().Empty(storedPlan)
 				}
 
 				// check that client state was not set
-				cs, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
+				cs, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
 				suite.Require().Empty(cs)
-				suite.Require().False(found)
+				suite.Require().ErrorIs(err, upgradetypes.ErrNoUpgradedClientFound)
 			}
 		})
 	}
