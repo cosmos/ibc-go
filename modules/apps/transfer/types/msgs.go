@@ -6,7 +6,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	legacytx "github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -19,9 +18,8 @@ const (
 )
 
 var (
-	_ sdk.Msg            = (*MsgUpdateParams)(nil)
-	_ sdk.Msg            = (*MsgTransfer)(nil)
-	_ legacytx.LegacyMsg = (*MsgTransfer)(nil)
+	_ sdk.Msg = (*MsgUpdateParams)(nil)
+	_ sdk.Msg = (*MsgTransfer)(nil)
 )
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
@@ -107,11 +105,6 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing recipient address")
 	}
 	return ValidateIBCDenom(msg.Token.Denom)
-}
-
-// GetSignBytes implements legacytx.LegacyMsg
-func (msg MsgTransfer) GetSignBytes() []byte {
-	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg))
 }
 
 // GetSigners implements sdk.Msg
