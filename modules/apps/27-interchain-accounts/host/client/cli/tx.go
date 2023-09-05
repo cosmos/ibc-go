@@ -6,13 +6,13 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/slices"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 )
 
@@ -82,7 +82,7 @@ otherwise the encoding flag can be used in combination with either "proto3" or "
 				return err
 			}
 
-			if !slices.Contains([]string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}, encoding) {
+			if !collections.Contains(encoding, []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}) {
 				return fmt.Errorf("unsupported encoding type: %s", encoding)
 			}
 
