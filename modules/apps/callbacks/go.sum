@@ -199,8 +199,8 @@ cosmossdk.io/depinject v1.0.0-alpha.4 h1:PLNp8ZYAMPTUKyG9IK2hsbciDWqna2z1Wsl98ok
 cosmossdk.io/depinject v1.0.0-alpha.4/go.mod h1:HeDk7IkR5ckZ3lMGs/o91AVUc7E596vMaOmslGFM3yU=
 cosmossdk.io/errors v1.0.0 h1:nxF07lmlBbB8NKQhtJ+sJm6ef5uV1XkvPXG2bUntb04=
 cosmossdk.io/errors v1.0.0/go.mod h1:+hJZLuhdDE0pYN8HkOrVNwrIOYvUGnn6+4fjnJs/oV0=
-cosmossdk.io/log v1.2.0 h1:BbykkDsutXPSy8RojFB3KZEWyvMsToLy0ykb/ZhsLqQ=
-cosmossdk.io/log v1.2.0/go.mod h1:GNSCc/6+DhFIj1aLn/j7Id7PaO8DzNylUZoOYBL9+I4=
+cosmossdk.io/log v1.2.1 h1:Xc1GgTCicniwmMiKwDxUjO4eLhPxoVdI9vtMW8Ti/uk=
+cosmossdk.io/log v1.2.1/go.mod h1:GNSCc/6+DhFIj1aLn/j7Id7PaO8DzNylUZoOYBL9+I4=
 cosmossdk.io/math v1.1.2 h1:ORZetZCTyWkI5GlZ6CZS28fMHi83ZYf+A2vVnHNzZBM=
 cosmossdk.io/math v1.1.2/go.mod h1:l2Gnda87F0su8a/7FEKJfFdJrM0JZRXQaohlgJeyQh0=
 cosmossdk.io/store v1.0.0-alpha.1.0.20230728080422-54ed7dab3982 h1:61YFeW2AhwwPfoJWzNJWvVubCj32sm5jZkJfraS9pDQ=
@@ -364,8 +364,8 @@ github.com/cosmos/gogoproto v1.4.11 h1:LZcMHrx4FjUgrqQSWeaGC1v/TeuVFqSLa43CC6aWR
 github.com/cosmos/gogoproto v1.4.11/go.mod h1:/g39Mh8m17X8Q/GDEs5zYTSNaNnInBSohtaxzQnYq1Y=
 github.com/cosmos/iavl v1.0.0-beta.2 h1:XOsIM80Yyml/KifCXEYOy9tWCXwMAbLa91n6pReW07Y=
 github.com/cosmos/iavl v1.0.0-beta.2/go.mod h1:EA97dJ07TBktRlG/iGzK6g1eCXNj1q3MGoFYkVzrwHE=
-github.com/cosmos/ibc-go/modules/capability v1.0.0-rc3 h1:jEq48O/lE7dT34U6dJLLl8PaHSwerFrRqgaVVPg7J4A=
-github.com/cosmos/ibc-go/modules/capability v1.0.0-rc3/go.mod h1:h+HXgDnFpzthSy7mKw3xCeOG1QZDiwlz7Vuw8eSevjg=
+github.com/cosmos/ibc-go/modules/capability v1.0.0-rc4 h1:SYxmGRCkpXUXxyb3eAQNomeSe26moo9XPfY5dC2HGTw=
+github.com/cosmos/ibc-go/modules/capability v1.0.0-rc4/go.mod h1:YriReKrNl7ZKBW6FSmgV7v4BhrN84tm672YjU0Y2C2I=
 github.com/cosmos/ics23/go v0.10.0 h1:iXqLLgp2Lp+EdpIuwXTYIQU+AiHj9mOC2X9ab++bZDM=
 github.com/cosmos/ics23/go v0.10.0/go.mod h1:ZfJSmng/TBNTBkFemHHHj5YY7VAU/MBU980F4VU1NG0=
 github.com/cosmos/ledger-cosmos-go v0.13.0 h1:ex0CvCxToSR7j5WjrghPu2Bu9sSXKikjnVvUryNnx4s=
