@@ -24,6 +24,7 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	"github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -147,6 +148,61 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
+	})
+}
+
+// TestScheduleIBCUpgrade_Succeeds tests that a governance proposal to schedule an IBC software upgrade is successful.
+func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
+	t := s.T()
+	ctx := context.TODO()
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	chainA, chainB := s.GetChains()
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
+
+	authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	s.Require().NoError(err)
+	s.Require().NotNil(authority)
+
+	t.Run("send schedule IBC upgrade message", func(t *testing.T) {
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
+
+		clientState, err := s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		originalTrustingPeriod := clientState.(*ibctm.ClientState).TrustingPeriod
+		newTrustingPeriod := originalTrustingPeriod + time.Duration(time.Hour*24)
+
+		upgradedClientState := clientState.(*ibctm.ClientState)
+		upgradedClientState.TrustingPeriod = newTrustingPeriod
+
+		latestHeight := clientState.GetLatestHeight().GetRevisionHeight()
+
+		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
+			authority.String(),
+			types.Plan{
+				Name:   "upgrade-ibc",
+				Height: int64(latestHeight),
+			},
+			upgradedClientState,
+		)
+		s.Require().NoError(err)
+		s.ExecuteGovProposalV1(ctx, scheduleUpgradeMsg, chainA, chainAWallet, 1)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("check that the upgrade has been scheduled", func(t *testing.T) {
+
+		cs, err := s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		fmt.Printf("CLIENTSTATE: %v", cs)
+
 	})
 }
 
