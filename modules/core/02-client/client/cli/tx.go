@@ -294,6 +294,10 @@ func newCmdSubmitRecoverClientProposal() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	govcli.AddGovPropFlagsToCmd(cmd)
+	err := cmd.MarkFlagRequired(govcli.FlagTitle)
+	if err != nil {
+		panic(err)
+	}
 
 	return cmd
 }
@@ -482,6 +486,11 @@ func newCmdScheduleIBCUpgradeProposal() *cobra.Command {
 				return err
 			}
 
+			proposal, err := govcli.ReadGovPropFlags(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
 			name := args[0]
@@ -530,11 +539,6 @@ func newCmdScheduleIBCUpgradeProposal() *cobra.Command {
 				return err
 			}
 
-			proposal, err := govcli.ReadGovPropFlags(clientCtx, cmd.Flags())
-			if err != nil {
-				return err
-			}
-
 			if err := proposal.SetMsgs([]sdk.Msg{msg}); err != nil {
 				return fmt.Errorf("failed to create proposal message for scheduling an IBC software upgrade: %w", err)
 			}
@@ -547,6 +551,10 @@ func newCmdScheduleIBCUpgradeProposal() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	govcli.AddGovPropFlagsToCmd(cmd)
+	err := cmd.MarkFlagRequired(govcli.FlagTitle)
+	if err != nil {
+		panic(err)
+	}
 
 	return cmd
 }
