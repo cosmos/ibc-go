@@ -506,6 +506,7 @@ func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 			return nil, err
 		}
 
+		// TODO: use regular marshal indent in the case of < 8.0.0
 		bz, err := tmjson.MarshalIndent(appGenesis, "", "  ")
 		if err != nil {
 			return nil, err
