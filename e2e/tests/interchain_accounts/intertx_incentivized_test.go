@@ -16,8 +16,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestIncentivizedInterTxTestSuite(t *testing.T) {

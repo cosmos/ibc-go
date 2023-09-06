@@ -17,9 +17,9 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestConnectionTestSuite(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 )
 
 const (

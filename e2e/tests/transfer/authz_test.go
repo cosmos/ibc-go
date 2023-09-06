@@ -16,8 +16,8 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 func TestAuthzTransferTestSuite(t *testing.T) {

@@ -9,14 +9,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	clientsims "github.com/cosmos/ibc-go/v7/modules/core/02-client/simulation"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectionsims "github.com/cosmos/ibc-go/v7/modules/core/03-connection/simulation"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channelsims "github.com/cosmos/ibc-go/v7/modules/core/04-channel/simulation"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/modules/core/types"
+	clientsims "github.com/cosmos/ibc-go/v8/modules/core/02-client/simulation"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectionsims "github.com/cosmos/ibc-go/v8/modules/core/03-connection/simulation"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channelsims "github.com/cosmos/ibc-go/v8/modules/core/04-channel/simulation"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
 // Simulation parameter constants

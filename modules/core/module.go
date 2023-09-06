@@ -19,17 +19,17 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
-	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectionkeeper "github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/client/cli"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/core/simulation"
-	"github.com/cosmos/ibc-go/v7/modules/core/types"
+	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
+	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v8/modules/core/03-connection/keeper"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/client/cli"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/simulation"
+	"github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
 var (
