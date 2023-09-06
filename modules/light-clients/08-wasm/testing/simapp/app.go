@@ -129,8 +129,8 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
-	upgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
+	simappparams "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/params"
+	upgrades "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/upgrades"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 )
 
