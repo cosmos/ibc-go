@@ -584,11 +584,11 @@ func newScheduleIBCUpgradeProposalCmd() *cobra.Command {
 
 			msg, err := types.NewMsgIBCSoftwareUpgrade(authority, plan, clientState)
 			if err != nil {
-				return err
+				return fmt.Errorf("error in NewMsgIBCSoftwareUpgrade: %w", err)
 			}
 
 			if err = msg.ValidateBasic(); err != nil {
-				return err
+				return fmt.Errorf("error validating MsgIBCSoftwareUpgrade: %w", err)
 			}
 
 			if err := proposal.SetMsgs([]sdk.Msg{msg}); err != nil {
