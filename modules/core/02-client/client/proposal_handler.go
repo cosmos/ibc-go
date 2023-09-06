@@ -6,6 +6,4 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/client/cli"
 )
 
-var (
-	UpgradeProposalHandler = govclient.NewProposalHandler(cli.NewCmdSubmitUpgradeProposal)
-)
+var UpgradeProposalHandler = govclient.NewProposalHandler(cli.NewCmdSubmitUpgradeProposal)
