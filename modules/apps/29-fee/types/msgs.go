@@ -8,9 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	legacytx "github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 // msg types
@@ -174,7 +174,7 @@ func (MsgPayPacketFee) Route() string {
 
 // GetSignBytes implements legacytx.LegacyMsg
 func (msg MsgPayPacketFee) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg))
 }
 
 // NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
@@ -216,5 +216,5 @@ func (MsgPayPacketFeeAsync) Route() string {
 
 // GetSignBytes implements legacytx.LegacyMsg
 func (msg MsgPayPacketFeeAsync) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg))
 }

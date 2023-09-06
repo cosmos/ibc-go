@@ -10,10 +10,10 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 // test sending from chainA to chainB using both coin that orignate on
@@ -498,8 +498,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
-			suite.chainB.GetSimApp().BankKeeper,
 			suite.chainB.GetContext(),
+			suite.chainB.GetSimApp().BankKeeper,
 			escrowAddress,
 			sdk.NewCoins(coin),
 		),
@@ -554,7 +554,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				trace = types.ParseDenomTrace(sdk.DefaultBondDenom)
 				coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrow, sdk.NewCoins(coin)))
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
@@ -579,7 +579,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				trace = types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 				coin := sdk.NewCoin(trace.IBCDenom(), amount)
 
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrow, sdk.NewCoins(coin)))
 			}, false, true,
 		},
 	}
@@ -674,8 +674,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
-			suite.chainB.GetSimApp().BankKeeper,
 			suite.chainB.GetContext(),
+			suite.chainB.GetSimApp().BankKeeper,
 			escrowAddress,
 			sdk.NewCoins(coin),
 		),
@@ -736,7 +736,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				expEscrowAmount = sdkmath.ZeroInt()
 
 				// funds the escrow account to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrow, sdk.NewCoins(coin)))
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), coin)
 			}, true,
@@ -750,7 +750,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				expEscrowAmount = sdkmath.ZeroInt()
 
 				// funds the escrow account to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrow, sdk.NewCoins(coin)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrow, sdk.NewCoins(coin)))
 			}, true,
 		},
 		{
@@ -868,8 +868,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 	coin := sdk.NewCoin(denomTrace.IBCDenom(), amount)
 	suite.Require().NoError(
 		banktestutil.FundAccount(
-			suite.chainB.GetSimApp().BankKeeper,
 			suite.chainB.GetContext(),
+			suite.chainB.GetSimApp().BankKeeper,
 			escrowAddress,
 			sdk.NewCoins(coin),
 		),

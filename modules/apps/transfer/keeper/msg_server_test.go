@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 // TestMsgTransfer tests Transfer rpc handler
@@ -119,7 +119,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().NotEqual(res.Sequence, uint64(0))
-				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
