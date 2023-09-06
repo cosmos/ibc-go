@@ -36,6 +36,7 @@ var (
 	_ module.AppModule           = (*AppModule)(nil)
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
+	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 )
 
@@ -182,8 +183,9 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 5 }
 
 // BeginBlock returns the begin blocker for the ibc module.
-func (am AppModule) BeginBlock(ctx sdk.Context) {
-	ibcclient.BeginBlocker(ctx, am.keeper.ClientKeeper)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	ibcclient.BeginBlocker(sdk.UnwrapSDKContext(ctx), am.keeper.ClientKeeper)
+	return nil
 }
 
 // AppModuleSimulation functions

@@ -364,8 +364,8 @@ github.com/cosmos/gogoproto v1.4.11 h1:LZcMHrx4FjUgrqQSWeaGC1v/TeuVFqSLa43CC6aWR
 github.com/cosmos/gogoproto v1.4.11/go.mod h1:/g39Mh8m17X8Q/GDEs5zYTSNaNnInBSohtaxzQnYq1Y=
 github.com/cosmos/iavl v1.0.0-beta.2 h1:XOsIM80Yyml/KifCXEYOy9tWCXwMAbLa91n6pReW07Y=
 github.com/cosmos/iavl v1.0.0-beta.2/go.mod h1:EA97dJ07TBktRlG/iGzK6g1eCXNj1q3MGoFYkVzrwHE=
-github.com/cosmos/ibc-go/modules/capability v1.0.0-rc3 h1:jEq48O/lE7dT34U6dJLLl8PaHSwerFrRqgaVVPg7J4A=
-github.com/cosmos/ibc-go/modules/capability v1.0.0-rc3/go.mod h1:h+HXgDnFpzthSy7mKw3xCeOG1QZDiwlz7Vuw8eSevjg=
+github.com/cosmos/ibc-go/modules/capability v1.0.0-rc5 h1:OwYsRIM2gwe3ifuvi2sriEvDBd3t43vTF2GEi1SOchM=
+github.com/cosmos/ibc-go/modules/capability v1.0.0-rc5/go.mod h1:YriReKrNl7ZKBW6FSmgV7v4BhrN84tm672YjU0Y2C2I=
 github.com/cosmos/ics23/go v0.10.0 h1:iXqLLgp2Lp+EdpIuwXTYIQU+AiHj9mOC2X9ab++bZDM=
 github.com/cosmos/ics23/go v0.10.0/go.mod h1:ZfJSmng/TBNTBkFemHHHj5YY7VAU/MBU980F4VU1NG0=
 github.com/cosmos/ledger-cosmos-go v0.13.0 h1:ex0CvCxToSR7j5WjrghPu2Bu9sSXKikjnVvUryNnx4s=
