@@ -261,6 +261,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	voucherDenom := denomTrace.IBCDenom()
+	if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
+		k.setDenomMetadata(ctx, denomTrace)
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDenomTrace,
@@ -275,10 +279,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		ctx, types.ModuleName, sdk.NewCoins(voucher),
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to mint IBC tokens")
-	}
-
-	if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
-		k.setDenomMetadata(ctx, denomTrace)
 	}
 
 	// send to receiver
