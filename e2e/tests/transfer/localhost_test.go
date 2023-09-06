@@ -50,6 +50,18 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
+	t.Run("verify begin blocker was executed", func(t *testing.T) {
+		cs, err := s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
+		s.Require().NoError(err)
+		originalHeight := cs.GetLatestHeight()
+
+		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
+
+		cs, err = s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
+		s.Require().NoError(err)
+		s.Require().True(cs.GetLatestHeight().GT(originalHeight), "client state height was not incremented")
+	})
+
 	t.Run("channel open init localhost", func(t *testing.T) {
 		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
 			transfertypes.PortID, transfertypes.Version,
@@ -159,4 +171,5 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
+
 }

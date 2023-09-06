@@ -57,6 +57,14 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
+	t.Run("ensure capability module BeginBlock is executed", func(t *testing.T) {
+		// by restarting the chain we ensure that the capability module's BeginBlocker is executed.
+		s.Require().NoError(chainA.StopAllNodes(ctx))
+		s.Require().NoError(chainA.StartAllNodes(ctx))
+		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
+		s.InitGRPCClients(chainA)
+	})
+
 	chainAVersion := chainA.Config().Images[0].Version
 	chainBVersion := chainB.Config().Images[0].Version
 
