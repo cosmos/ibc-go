@@ -169,6 +169,11 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	s.Require().NoError(err)
 	s.Require().NotNil(authority)
 
+	var (
+		originalTrustingPeriod time.Duration
+		newTrustingPeriod      time.Duration
+	)
+
 	t.Run("send schedule IBC upgrade message", func(t *testing.T) {
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
@@ -177,8 +182,8 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		clientState, err := s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
-		originalTrustingPeriod := clientState.(*ibctm.ClientState).TrustingPeriod
-		newTrustingPeriod := originalTrustingPeriod + time.Duration(time.Hour*24)
+		originalTrustingPeriod = clientState.(*ibctm.ClientState).TrustingPeriod
+		newTrustingPeriod = originalTrustingPeriod + time.Duration(time.Hour*24)
 
 		upgradedClientState := clientState.(*ibctm.ClientState)
 		upgradedClientState.TrustingPeriod = newTrustingPeriod
@@ -189,26 +194,13 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 			authority.String(),
 			types.Plan{
 				Name:   "upgrade-client",
-				Height: int64(latestHeight),
+				Height: int64(latestHeight + 100),
 			},
 			upgradedClientState,
 		)
 		s.Require().NoError(err)
 		s.ExecuteGovProposalV1(ctx, scheduleUpgradeMsg, chainA, chainAWallet, 1)
 	})
-
-	// t.Run("check that the upgrade has been scheduled", func(t *testing.T) {
-
-	// cs, err := s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
-	// s.Require().NoError(err)
-
-	// fmt.Printf("CLIENTSTATE: %v", cs)
-
-	// proposal, err := s.QueryProposalV1(ctx, chainA, 1)
-	// s.Require().NoError(err)
-	// s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
-	// })
-
 }
 
 // TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
