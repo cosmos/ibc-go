@@ -14,8 +14,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
+	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
