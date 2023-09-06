@@ -25,6 +25,7 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgSubmitMisbehaviour)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpgradeClient)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgIBCSoftwareUpgrade)(nil)
 )
 
 // NewMsgCreateClient creates a new MsgCreateClient instance
@@ -327,6 +328,11 @@ func (msg *MsgIBCSoftwareUpgrade) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{accAddr}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg *MsgIBCSoftwareUpgrade) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	return unpacker.UnpackAny(msg.UpgradedClientState, new(exported.ClientState))
 }
 
 // NewMsgRecoverClient creates a new MsgRecoverClient instance
