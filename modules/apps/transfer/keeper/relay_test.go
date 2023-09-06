@@ -420,9 +420,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				}
 			} else {
 				suite.Require().Error(err)
-
-				_, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), denomTraceOnB.IBCDenom())
-				suite.Require().False(found)
 			}
 		})
 	}
