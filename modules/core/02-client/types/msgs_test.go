@@ -923,3 +923,31 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 		}
 	}
 }
+
+// tests a MsgIBCSoftwareUpgrade can be marshaled and unmarshaled, and the
+// client state can be unpacked
+func (suite *TypesTestSuite) TestMarshalMsgIBCSoftwareUpgrade() {
+	cdc := suite.chainA.App.AppCodec()
+
+	// create proposal
+	plan := upgradetypes.Plan{
+		Name:   "upgrade ibc",
+		Height: 1000,
+	}
+
+	msg, err := types.NewMsgIBCSoftwareUpgrade(ibctesting.TestAccAddress, plan, &ibctm.ClientState{})
+	suite.Require().NoError(err)
+
+	// marshal message
+	bz, err := cdc.MarshalJSON(msg)
+	suite.Require().NoError(err)
+
+	// unmarshal proposal
+	newMsg := &types.MsgIBCSoftwareUpgrade{}
+	err = cdc.UnmarshalJSON(bz, newMsg)
+	suite.Require().NoError(err)
+
+	// unpack client state
+	_, err = types.UnpackClientState(newMsg.UpgradedClientState)
+	suite.Require().NoError(err)
+}
