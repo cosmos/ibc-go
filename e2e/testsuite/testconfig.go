@@ -8,9 +8,11 @@ import (
 	"os"
 	"path"
 	"strings"
-
+	"github.com/cosmos/gogoproto/jsonpb"
+	"github.com/cosmos/gogoproto/proto"
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	cmttypes "github.com/cometbft/cometbft/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"
@@ -25,7 +27,6 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
-	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
@@ -441,7 +442,7 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 	icadSupportsGovV1Genesis := testvalues.IcadGovGenesisFeatureReleases.IsSupported(version)
 
 	if simdSupportsGovV1Genesis || icadSupportsGovV1Genesis {
-		return defaultGovv1ModifyGenesis(version)
+		return defaultGovv1ModifyGenesis()
 	}
 
 	return defaultGovv1Beta1ModifyGenesis()
@@ -482,8 +483,9 @@ func AppGenesisFromReader(reader io.Reader) (*genutiltypes.AppGenesis, error) {
 
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
-func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
+func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
+
 		appGenesis, err := AppGenesisFromReader(bytes.NewReader(genbz))
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
@@ -494,7 +496,7 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
-		govGenBz, err := modifyGovAppState(chainConfig, version, appState[govtypes.ModuleName])
+		govGenBz, err := modifyGovAppState(chainConfig, appState[govtypes.ModuleName])
 		if err != nil {
 			return nil, err
 		}
@@ -559,8 +561,9 @@ func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, err
 	}
 }
 
+
 // modifyGovAppState takes the existing gov app state and marshals it to a govv1 GenesisState.
-func modifyGovAppState(chainConfig ibc.ChainConfig, chainVersion string, govAppState []byte) ([]byte, error) {
+func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
 	cfg := testutil.MakeTestEncodingConfig()
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
@@ -576,16 +579,11 @@ func modifyGovAppState(chainConfig ibc.ChainConfig, chainVersion string, govAppS
 		govGenesisState.Params = &govv1.Params{}
 	}
 
-	govGenesisState.Params = sanitize.GovV1Params(chainVersion, govGenesisState.Params)
-
 	govGenesisState.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
 	vp := testvalues.VotingPeriod
 	govGenesisState.Params.VotingPeriod = &vp
 
-	govGenBz, err := cdc.MarshalJSON(govGenesisState)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
-	}
+	govGenBz := MustProtoMarshalJSON(govGenesisState)
 
 	return govGenBz, nil
 }
