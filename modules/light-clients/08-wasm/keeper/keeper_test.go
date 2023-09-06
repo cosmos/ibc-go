@@ -29,6 +29,28 @@ type KeeperTestSuite struct {
 	chainC *ibctesting.TestChain
 }
 
+func init() {
+	ibctesting.DefaultTestingAppInit = setupTestingApp
+}
+
+// setupTestingApp provides the duplicated simapp which is specific to the 08-wasm module on chain creation.
+func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
+	db := dbm.NewMemDB()
+	encCdc := simapp.MakeTestEncodingConfig()
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
+}
+
+// GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
+// This must be used instead of chain.GetSimApp() for tests within this directory.
+func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
+	app, ok := chain.App.(*simapp.SimApp)
+	if !ok {
+		panic("chain is not a simapp.SimApp")
+	}
+	return app
+}
+
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -41,24 +63,4 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
-}
-
-// setupTestingApp provides the duplicated simapp which is specific to the callbacks module on chain creation.
-func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
-	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
-}
-
-func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
-	app, ok := chain.App.(*simapp.SimApp)
-	if !ok {
-		panic("chain is not a simapp.SimApp")
-	}
-	return app
-}
-
-func init() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
 }

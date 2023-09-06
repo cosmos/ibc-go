@@ -57,10 +57,8 @@ func init() {
 	ibctesting.DefaultTestingAppInit = setupTestingApp
 }
 
-func (*TypesTestSuite) SetupTest() {
-	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
-}
-
+// GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
+// This must be used instead of chain.GetSimApp() for tests within this directory.
 func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 	app, ok := chain.App.(*simapp.SimApp)
 	if !ok {
@@ -69,7 +67,7 @@ func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 	return app
 }
 
-// setupTestingApp provides the duplicated simapp which is specific to the callbacks module on chain creation.
+// setupTestingApp provides the duplicated simapp which is specific to the 08-wasm module on chain creation.
 func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
