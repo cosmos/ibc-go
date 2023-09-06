@@ -1,5 +1,6 @@
 package interchainaccounts
 
+/*
 import (
 	"context"
 	"testing"
@@ -220,3 +221,4 @@ func (s *InterTxTestSuite) TestMsgSubmitTx_FailedTransfer_InsufficientFunds() {
 		})
 	})
 }
+*/

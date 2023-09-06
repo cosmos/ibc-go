@@ -12,7 +12,7 @@ require (
 	github.com/cosmos/ibc-go/v7 v7.3.0
 	github.com/cosmos/interchain-accounts v0.5.1
 	github.com/docker/docker v24.0.5+incompatible
-	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230817191535-cc35cd35adbc
+	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20230817191535-cc35cd35adbc
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.25.0
 	golang.org/x/mod v0.12.0
@@ -274,4 +274,4 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/strangelove-ventures/interchaintest/v7 => github.com/notional-labs/interchaintest/v7 v7.0.0-20230831143727-c9539fd05629
+replace github.com/strangelove-ventures/interchaintest/v8 => github.com/notional-labs/interchaintest/v8 v8.0.0-20230905211440-c2dc240d2221

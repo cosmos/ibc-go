@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	// intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -64,7 +64,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	icahosttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	feetypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	intertxtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	// intertxtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	solomachine.RegisterInterfaces(cfg.InterfaceRegistry)
 	v7migrations.RegisterInterfaces(cfg.InterfaceRegistry)
 	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)

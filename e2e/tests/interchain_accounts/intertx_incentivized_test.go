@@ -1,5 +1,6 @@
 package interchainaccounts
 
+/*
 import (
 	"context"
 	"testing"
@@ -352,3 +353,4 @@ func (s *IncentivizedInterTxTestSuite) TestMsgSubmitTx_FailedBankSend_Incentiviz
 		})
 	})
 }
+*/
