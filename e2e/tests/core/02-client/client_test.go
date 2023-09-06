@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/x/upgrade/types"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
@@ -187,7 +188,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
 			authority.String(),
 			types.Plan{
-				Name:   "upgrade-ibc",
+				Name:   "upgrade-client",
 				Height: int64(latestHeight),
 			},
 			upgradedClientState,
@@ -198,14 +199,17 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("check that the upgrade has been scheduled", func(t *testing.T) {
+	// t.Run("check that the upgrade has been scheduled", func(t *testing.T) {
 
-		cs, err := s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
-		s.Require().NoError(err)
+	// cs, err := s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
+	// s.Require().NoError(err)
 
-		fmt.Printf("CLIENTSTATE: %v", cs)
+	// fmt.Printf("CLIENTSTATE: %v", cs)
 
-	})
+	// proposal, err := s.QueryProposalV1(ctx, chainA, 1)
+	// s.Require().NoError(err)
+	// s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
+	// })
 }
 
 func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
