@@ -19,9 +19,9 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/client/cli"
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/client/cli"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 )
 
 var (
