@@ -671,10 +671,10 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) {
-	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
-	s.AssertTxSuccess(txResp)
-}
+// func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) {
+// 	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
+// 	s.AssertTxSuccess(txResp)
+// }
 
 // ClientState queries the current ClientState by clientID
 func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, clientID string) (*clienttypes.QueryClientStateResponse, error) {
