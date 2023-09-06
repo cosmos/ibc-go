@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"

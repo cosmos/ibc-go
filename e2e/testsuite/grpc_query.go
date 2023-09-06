@@ -7,8 +7,8 @@ import (
 	"time"
 
 	// intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 

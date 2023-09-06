@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
