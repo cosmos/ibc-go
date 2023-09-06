@@ -167,6 +167,8 @@ func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessag
 }
 
 func (suite *TypesTestSuite) SetupWasmGrandpaWithChannel() {
+	// Setup is assigned in init  and will be overwritten by this. SetupTestingWithChannel does use the same simapp
+	// in 08-wasm directory so this should not affect what test app we use.
 	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
 	suite.SetupWasmGrandpa()
 }
