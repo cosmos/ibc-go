@@ -96,12 +96,12 @@ func (suite *TypesTestSuite) SetupWasmTendermint() {
 	suite.Require().NoError(err)
 
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-	response, err := suite.chainA.App.GetWasmKeeper().StoreCode(suite.chainA.GetContext(), msg)
+	response, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.Checksum)
 	suite.codeHash = response.Checksum
 
-	response, err = suite.chainB.App.GetWasmKeeper().StoreCode(suite.chainB.GetContext(), msg)
+	response, err = GetSimApp(suite.chainB).WasmClientKeeper.StoreCode(suite.chainB.GetContext(), msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.Checksum)
 	suite.codeHash = response.Checksum
@@ -131,7 +131,7 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 	suite.Require().NoError(err)
 
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-	response, err := suite.chainA.App.GetWasmKeeper().StoreCode(suite.ctx, msg)
+	response, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.ctx, msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.Checksum)
 	suite.codeHash = response.Checksum
