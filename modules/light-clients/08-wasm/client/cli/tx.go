@@ -24,7 +24,7 @@ const FlagAuthority = "authority"
 // newStoreCodeCmd returns the command to create a MsgStoreCode transaction
 func newStoreCodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "store-code [path/to/wasm-file]",
+		Use:     "legacy-store-code [path/to/wasm-file]",
 		Short:   "Reads wasm code from the file and creates transaction to store code",
 		Long:    "Reads wasm code from the file and creates transaction to store code",
 		Example: fmt.Sprintf("%s tx %s wasm [path/to/wasm_file]", version.AppName, ibcexported.ModuleName),
@@ -60,8 +60,8 @@ func newStoreCodeCmd() *cobra.Command {
 	return cmd
 }
 
-// newStoreCodeGovCmd returns the command to send a proposal to store new wasm bytecode.
-func newStoreCodeGovCmd() *cobra.Command {
+// newSubmitStoreCodeProposalCmd returns the command to send a proposal to store new wasm bytecode.
+func newSubmitStoreCodeProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "store-code [path/to/wasm-file]",
 		Short:   "Reads wasm code from the file and creates a proposal to store the wasm code",
