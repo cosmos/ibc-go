@@ -19,7 +19,7 @@ require (
 	github.com/cometbft/cometbft v0.38.0-rc3
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.50.0-rc.0.0.20230819070346-e8164be94954
+	github.com/cosmos/cosmos-sdk v0.50.0-rc.0.0.20230905141004-6a9777fff287
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc3
 	github.com/cosmos/ics23/go v0.10.0
