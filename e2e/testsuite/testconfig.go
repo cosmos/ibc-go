@@ -8,11 +8,9 @@ import (
 	"os"
 	"path"
 	"strings"
-	"github.com/cosmos/gogoproto/jsonpb"
-	"github.com/cosmos/gogoproto/proto"
+
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	cmttypes "github.com/cometbft/cometbft/types"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"

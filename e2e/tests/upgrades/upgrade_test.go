@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/gogoproto/proto"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
@@ -727,6 +728,25 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 		s.UpgradeChain(ctx, chainA, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
+	t.Run("update params", func(t *testing.T) {
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
+
+		msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(exported.Tendermint, "some-client"))
+		s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet)
+	})
+
+	t.Run("query params", func(t *testing.T) {
+		clientParams, err := s.GetChainGRCPClients(chainA).ClientQueryClient.ClientParams(ctx, &clienttypes.QueryClientParamsRequest{})
+		s.Require().NoError(err)
+
+		allowedClients := clientParams.Params.AllowedClients
+
+		s.Require().Len(allowedClients, 2)
+		s.Require().Contains(allowedClients, exported.Tendermint)
+		s.Require().Contains(allowedClients, "some-client")
+	})
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
