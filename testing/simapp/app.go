@@ -612,7 +612,6 @@ func NewSimApp(
 			govtypes.ModuleName: gov.NewAppModuleBasic(
 				[]govclient.ProposalHandler{
 					paramsclient.ProposalHandler,
-					ibcclientclient.UpdateClientProposalHandler,
 					ibcclientclient.UpgradeProposalHandler,
 				},
 			),
