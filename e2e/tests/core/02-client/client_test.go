@@ -107,12 +107,28 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 			authority.String(),
 			types.Plan{
 				Name:   "upgrade-client",
-				Height: int64(latestHeight + 50),
+				Height: int64(latestHeight + 30),
 			},
 			upgradedClientState,
 		)
 		s.Require().NoError(err)
 		s.ExecuteGovProposalV1(ctx, scheduleUpgradeMsg, chainA, chainAWallet, 1)
+	})
+
+	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(t *testing.T) {
+		// checks there is an upgraded client state stored
+		cs, err := s.QueryUpgradedClientState(ctx, chainA, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		upgradedClientState := cs.(*ibctm.ClientState)
+		upgradedClientState.TrustingPeriod = newTrustingPeriod
+		s.Require().Equal(newTrustingPeriod, upgradedClientState.TrustingPeriod)
+
+		plan, err := s.QueryCurrentPlan(ctx, chainA)
+		s.Require().NoError(err)
+
+		s.Assert().Equal("upgrade-client", plan.Name)
+		s.Assert().Equal(int64(500), plan.Height)
 	})
 }
 
