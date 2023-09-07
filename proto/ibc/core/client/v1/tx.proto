@@ -140,12 +140,12 @@ message MsgSubmitMisbehaviourResponse {}
 
 // MsgUpdateParams defines the sdk.Msg type to update the client parameters.
 message MsgUpdateParams {
-  option (cosmos.msg.v1.signer) = "authority";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.goproto_getters) = false;
 
-  // authority is the address of the governance account.
-  string authority = 1;
+  // signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+  string signer = 1;
 
   // params defines the client parameters to update.
   //
@@ -161,13 +161,14 @@ message MsgRecoverClient {
   option (gogoproto.goproto_getters) = false;
   option (cosmos.msg.v1.signer)      = "signer";
 
-  // signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
-  string signer = 1;
   // the client identifier for the client to be updated if the proposal passes
-  string subject_client_id = 2;
+  string subject_client_id = 1;
   // the substitute client identifier for the client which will replace the subject
   // client
-  string substitute_client_id = 3;
+  string substitute_client_id = 2;
+
+  // signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+  string signer = 3;
 }
 
 // MsgRecoverClientResponse defines the MsgRecoverClient response type.

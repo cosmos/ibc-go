@@ -18,12 +18,12 @@ service Msg {
 
 // MsgUpdateParams defines the payload for Msg/UpdateParams
 message MsgUpdateParams {
-  option (cosmos.msg.v1.signer) = "authority";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.goproto_getters) = false;
 
-  // authority is the address that controls the module (defaults to x/gov unless overwritten).
-  string authority = 1;
+  // signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+  string signer = 1;
 
   // params defines the 27-interchain-accounts/host parameters to update.
   //

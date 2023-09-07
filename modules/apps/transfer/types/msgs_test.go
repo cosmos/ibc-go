@@ -112,9 +112,9 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
-		{"success: valid authority and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), true},
-		{"failure: invalid authority with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), false},
-		{"failure: empty authority with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), false},
+		{"success: valid signer and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), true},
+		{"failure: invalid signer with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), false},
+		{"failure: empty signer with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), false},
 	}
 
 	for i, tc := range testCases {
@@ -140,8 +140,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 
 	for _, tc := range testCases {
 		msg := types.MsgUpdateParams{
-			Authority: tc.address.String(),
-			Params:    types.DefaultParams(),
+			Signer: tc.address.String(),
+			Params: types.DefaultParams(),
 		}
 		if tc.expPass {
 			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())

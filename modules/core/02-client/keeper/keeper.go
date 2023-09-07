@@ -6,15 +6,15 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/light"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -267,9 +267,9 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 	if revision != height.GetRevisionNumber() {
 		return nil, errorsmod.Wrapf(types.ErrInvalidHeight, "chainID revision number does not match height revision number: expected %d, got %d", revision, height.GetRevisionNumber())
 	}
-	histInfo, found := k.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
-	if !found {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrNotFound, "no historical info found at height %d", selfHeight.RevisionHeight)
+	histInfo, err := k.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "height %d", selfHeight.RevisionHeight)
 	}
 
 	consensusState := &ibctm.ConsensusState{
@@ -323,7 +323,11 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 		return errorsmod.Wrapf(types.ErrInvalidClient, "trust-level invalid: %v", err)
 	}
 
-	expectedUbdPeriod := k.stakingKeeper.UnbondingTime(ctx)
+	expectedUbdPeriod, err := k.stakingKeeper.UnbondingTime(ctx)
+	if err != nil {
+		return errorsmod.Wrapf(err, "failed to retrieve unbonding period")
+	}
+
 	if expectedUbdPeriod != tmClient.UnbondingPeriod {
 		return errorsmod.Wrapf(types.ErrInvalidClient, "invalid unbonding period. expected: %s, got: %s",
 			expectedUbdPeriod, tmClient.UnbondingPeriod)
@@ -346,17 +350,17 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 }
 
 // GetUpgradePlan executes the upgrade keeper GetUpgradePlan function.
-func (k Keeper) GetUpgradePlan(ctx sdk.Context) (plan upgradetypes.Plan, havePlan bool) {
+func (k Keeper) GetUpgradePlan(ctx sdk.Context) (upgradetypes.Plan, error) {
 	return k.upgradeKeeper.GetUpgradePlan(ctx)
 }
 
 // GetUpgradedClient executes the upgrade keeper GetUpgradeClient function.
-func (k Keeper) GetUpgradedClient(ctx sdk.Context, planHeight int64) ([]byte, bool) {
+func (k Keeper) GetUpgradedClient(ctx sdk.Context, planHeight int64) ([]byte, error) {
 	return k.upgradeKeeper.GetUpgradedClient(ctx, planHeight)
 }
 
 // GetUpgradedConsensusState returns the upgraded consensus state
-func (k Keeper) GetUpgradedConsensusState(ctx sdk.Context, planHeight int64) ([]byte, bool) {
+func (k Keeper) GetUpgradedConsensusState(ctx sdk.Context, planHeight int64) ([]byte, error) {
 	return k.upgradeKeeper.GetUpgradedConsensusState(ctx, planHeight)
 }
 
@@ -456,7 +460,7 @@ func (k Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Pl
 	}
 
 	// emitting an event for scheduling an upgrade plan
-	emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height)
+	emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height, cs)
 
 	return nil
 }

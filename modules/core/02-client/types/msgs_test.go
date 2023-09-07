@@ -9,8 +9,11 @@ import (
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -620,30 +623,30 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
 func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
-	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and params",
-			types.NewMsgUpdateParams(authority, types.DefaultParams()),
+			"success: valid signer and params",
+			types.NewMsgUpdateParams(signer, types.DefaultParams()),
 			true,
 		},
 		{
-			"success: valid authority empty params",
-			types.NewMsgUpdateParams(authority, types.Params{}),
+			"success: valid signer empty params",
+			types.NewMsgUpdateParams(signer, types.Params{}),
 			true,
 		},
 		{
-			"failure: invalid authority address",
+			"failure: invalid signer address",
 			types.NewMsgUpdateParams("invalid", types.DefaultParams()),
 			false,
 		},
 		{
 			"failure: invalid allowed client",
-			types.NewMsgUpdateParams(authority, types.NewParams("")),
+			types.NewMsgUpdateParams(signer, types.NewParams("")),
 			false,
 		},
 	}
@@ -671,8 +674,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 
 	for _, tc := range testCases {
 		msg := types.MsgUpdateParams{
-			Authority: tc.address.String(),
-			Params:    types.DefaultParams(),
+			Signer: tc.address.String(),
+			Params: types.DefaultParams(),
 		}
 		if tc.expPass {
 			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
@@ -848,4 +851,103 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
 			suite.Require().Panics(func() { msg.GetSigners() })
 		}
 	}
+}
+
+// TestMsgIBCSoftwareUpgrade_ValidateBasic tests ValidateBasic for MsgIBCSoftwareUpgrade
+func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
+	var (
+		signer    string
+		plan      upgradetypes.Plan
+		anyClient *codectypes.Any
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: invalid authority address",
+			func() {
+				signer = "invalid"
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: error unpacking client state",
+			func() {
+				anyClient = &codectypes.Any{}
+			},
+			ibcerrors.ErrUnpackAny,
+		},
+		{
+			"failure: error validating upgrade plan, height is not greater than zero",
+			func() {
+				plan.Height = 0
+			},
+			sdkerrors.ErrInvalidRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		signer = ibctesting.TestAccAddress
+		plan = upgradetypes.Plan{
+			Name:   "upgrade IBC clients",
+			Height: 1000,
+		}
+		upgradedClientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+		var err error
+		anyClient, err = types.PackClientState(upgradedClientState)
+		suite.Require().NoError(err)
+
+		tc.malleate()
+
+		msg := types.MsgIBCSoftwareUpgrade{
+			plan,
+			anyClient,
+			signer,
+		}
+
+		err = msg.ValidateBasic()
+		expPass := tc.expError == nil
+
+		if expPass {
+			suite.Require().NoError(err)
+		}
+		if tc.expError != nil {
+			suite.Require().True(errors.Is(err, tc.expError))
+		}
+	}
+}
+
+// tests a MsgIBCSoftwareUpgrade can be marshaled and unmarshaled, and the
+// client state can be unpacked
+func (suite *TypesTestSuite) TestMarshalMsgIBCSoftwareUpgrade() {
+	cdc := suite.chainA.App.AppCodec()
+
+	// create proposal
+	plan := upgradetypes.Plan{
+		Name:   "upgrade ibc",
+		Height: 1000,
+	}
+
+	msg, err := types.NewMsgIBCSoftwareUpgrade(ibctesting.TestAccAddress, plan, &ibctm.ClientState{})
+	suite.Require().NoError(err)
+
+	// marshal message
+	bz, err := cdc.MarshalJSON(msg)
+	suite.Require().NoError(err)
+
+	// unmarshal proposal
+	newMsg := &types.MsgIBCSoftwareUpgrade{}
+	err = cdc.UnmarshalJSON(bz, newMsg)
+	suite.Require().NoError(err)
+
+	// unpack client state
+	_, err = types.UnpackClientState(newMsg.UpgradedClientState)
+	suite.Require().NoError(err)
 }
