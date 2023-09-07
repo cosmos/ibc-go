@@ -163,12 +163,6 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
-
-	authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
-	s.Require().NoError(err)
-	s.Require().NotNil(authority)
-
 	var (
 		originalTrustingPeriod time.Duration
 		newTrustingPeriod      time.Duration
@@ -179,7 +173,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
 
-		clientState, err := s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
+		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
 		originalTrustingPeriod = clientState.(*ibctm.ClientState).TrustingPeriod
@@ -188,13 +182,14 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		upgradedClientState := clientState.(*ibctm.ClientState)
 		upgradedClientState.TrustingPeriod = newTrustingPeriod
 
-		latestHeight := clientState.GetLatestHeight().GetRevisionHeight()
+		latestHeight, err := chainA.Height(ctx)
+		s.Require().NoError(err)
 
 		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
 			authority.String(),
 			types.Plan{
 				Name:   "upgrade-client",
-				Height: int64(latestHeight + 100),
+				Height: int64(latestHeight + 50),
 			},
 			upgradedClientState,
 		)
