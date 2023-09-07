@@ -27,10 +27,11 @@ import (
 )
 
 var (
-	_ module.AppModule      = (*AppModule)(nil)
-	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
-	_ appmodule.AppModule   = (*AppModule)(nil)
-	_ porttypes.IBCModule   = (*IBCModule)(nil)
+	_ module.AppModule       = (*AppModule)(nil)
+	_ module.AppModuleBasic  = (*AppModuleBasic)(nil)
+	_ module.HasProposalMsgs = (*AppModuleBasic)(nil)
+	_ appmodule.AppModule    = (*AppModule)(nil)
+	_ porttypes.IBCModule    = (*IBCModule)(nil)
 )
 
 // AppModuleBasic is the IBC Transfer AppModuleBasic
