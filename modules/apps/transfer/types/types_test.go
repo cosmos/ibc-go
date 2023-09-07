@@ -3,14 +3,14 @@ package types_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 type TypesTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -36,5 +36,5 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 }
 
 func TestTypesTestSuite(t *testing.T) {
-	suite.Run(t, new(TypesTestSuite))
+	testifysuite.Run(t, new(TypesTestSuite))
 }

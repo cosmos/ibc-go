@@ -31,7 +31,7 @@ func (k Keeper) ConnOpenInit(
 			return "", errorsmod.Wrap(types.ErrInvalidVersion, "version is not supported")
 		}
 
-		versions = []exported.Version{version}
+		versions = []*types.Version{version}
 	}
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
@@ -49,7 +49,7 @@ func (k Keeper) ConnOpenInit(
 	}
 
 	// connection defines chain A's ConnectionEnd
-	connection := types.NewConnectionEnd(types.INIT, clientID, counterparty, types.ExportedVersionsToProto(versions), delayPeriod)
+	connection := types.NewConnectionEnd(types.INIT, clientID, counterparty, versions, delayPeriod)
 	k.SetConnection(ctx, connectionID, connection)
 
 	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED.String(), "new-state", types.INIT.String())
@@ -73,7 +73,7 @@ func (k Keeper) ConnOpenTry(
 	delayPeriod uint64,
 	clientID string, // clientID of chainA
 	clientState exported.ClientState, // clientState that chainA has for chainB
-	counterpartyVersions []exported.Version, // supported versions of chain A
+	counterpartyVersions []*types.Version, // supported versions of chain A
 	proofInit []byte, // proof that chainA stored connectionEnd in state (on ConnOpenInit)
 	proofClient []byte, // proof that chainA stored a light client of chainB
 	proofConsensus []byte, // proof that chainA stored chainB's consensus state at consensus height
@@ -108,7 +108,7 @@ func (k Keeper) ConnOpenTry(
 	// NOTE: chainA and chainB must have the same delay period
 	prefix := k.GetCommitmentPrefix()
 	expectedCounterparty := types.NewCounterparty(clientID, "", commitmenttypes.NewMerklePrefix(prefix.Bytes()))
-	expectedConnection := types.NewConnectionEnd(types.INIT, counterparty.ClientId, expectedCounterparty, types.ExportedVersionsToProto(counterpartyVersions), delayPeriod)
+	expectedConnection := types.NewConnectionEnd(types.INIT, counterparty.ClientId, expectedCounterparty, counterpartyVersions, delayPeriod)
 
 	// chain B picks a version from Chain A's available versions that is compatible
 	// with Chain B's supported IBC versions. PickVersion will select the intersection
@@ -197,7 +197,7 @@ func (k Keeper) ConnOpenAck(
 	}
 
 	// ensure selected version is supported
-	if !types.IsSupportedVersion(types.ProtoVersionsToExported(connection.Versions), version) {
+	if !types.IsSupportedVersion(connection.Versions, version) {
 		return errorsmod.Wrapf(
 			types.ErrInvalidConnectionState,
 			"the counterparty selected version %s is not supported by versions selected on INIT", version,

@@ -1,5 +1,5 @@
 <!--
-order: 7
+order: 8
 -->
 
 # Client
@@ -58,7 +58,7 @@ See below for example contents of `packet-data.json`. The CLI handler will unmar
 }
 ```
 
-Note the `data` field is a base64 encoded byte string as per the [proto3 JSON encoding specification](https://developers.google.com/protocol-buffers/docs/proto3#json).
+Note the `data` field is a base64 encoded byte string as per the tx encoding agreed upon during the channel handshake.
 
 A helper CLI is provided in the host submodule which can be used to generate the packet data JSON using the counterparty chain's binary. See the [`generate-packet-data` command](#generate-packet-data) for an example.
 
@@ -84,7 +84,7 @@ simd tx interchain-accounts host --help
 
 ##### `generate-packet-data`
 
-The `generate-packet-data` command allows users to generate interchain accounts packet data for input message(s). The packet data can then be used with the controller submodule's [`send-tx` command](#send-tx).
+The `generate-packet-data` command allows users to generate protobuf encoded interchain accounts packet data for input message(s). The packet data can then be used with the controller submodule's [`send-tx` command](#send-tx).
 
 ```shell
 simd tx interchain-accounts host generate-packet-data [message]

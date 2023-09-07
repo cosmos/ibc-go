@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine3.18 as builder
+FROM golang:1.21-alpine3.18 as builder
 ARG IBC_GO_VERSION
 
 RUN set -eux; apk add --no-cache git libusb-dev linux-headers gcc musl-dev make;
@@ -40,3 +40,4 @@ LABEL "org.cosmos.ibc-go" "${IBC_GO_VERSION}"
 COPY --from=builder /go/build/simd /bin/simd
 
 ENTRYPOINT ["simd"]
+

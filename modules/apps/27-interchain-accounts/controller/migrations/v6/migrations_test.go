@@ -3,7 +3,7 @@ package v6_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -18,7 +18,7 @@ import (
 )
 
 type MigrationsTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
@@ -58,7 +58,7 @@ func (suite *MigrationsTestSuite) SetupPath() error {
 	return suite.path.EndpointB.ChanOpenConfirm()
 }
 
-func (suite *MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
+func (*MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) error {
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func (suite *MigrationsTestSuite) RegisterInterchainAccount(endpoint *ibctesting
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(MigrationsTestSuite))
+	testifysuite.Run(t, new(MigrationsTestSuite))
 }
 
 func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {

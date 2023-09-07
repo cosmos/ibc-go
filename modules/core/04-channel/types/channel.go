@@ -51,6 +51,16 @@ func (ch Channel) GetVersion() string {
 	return ch.Version
 }
 
+// IsOpen returns true if the channel state is OPEN
+func (ch Channel) IsOpen() bool {
+	return ch.State == OPEN
+}
+
+// IsClosed returns true if the channel state is CLOSED
+func (ch Channel) IsClosed() bool {
+	return ch.State == CLOSED
+}
+
 // ValidateBasic performs a basic validation of the channel fields
 func (ch Channel) ValidateBasic() error {
 	if ch.State == UNINITIALIZED {

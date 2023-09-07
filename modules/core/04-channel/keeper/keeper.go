@@ -54,7 +54,7 @@ func NewKeeper(
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -242,7 +242,7 @@ func (k Keeper) HasPacketAcknowledgement(ctx sdk.Context, portID, channelID stri
 // IteratePacketSequence provides an iterator over all send, receive or ack sequences.
 // For each sequence, cb will be called. If the cb returns true, the iterator
 // will close and stop.
-func (k Keeper) IteratePacketSequence(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64) bool) {
+func (Keeper) IteratePacketSequence(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64) bool) {
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		portID, channelID, err := host.ParseChannelPath(string(iterator.Key()))
@@ -481,7 +481,7 @@ func (k Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string)
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
-func (k Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
+func (Keeper) iterateHashes(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	for ; iterator.Valid(); iterator.Next() {

@@ -166,7 +166,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	case exported.Tendermint:
 		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 	case exported.Wasm:
-		header, err = endpoint.Chain.ConstructUpdateWasmClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		header, _, err = endpoint.Chain.ConstructUpdateWasmClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -246,8 +246,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		wasmData, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
 		require.NoError(endpoint.Chain.TB, err)
 		consensusState = &wasmtypes.ConsensusState{
-			Data:      wasmData,
-			Timestamp: tmConsensusState.GetTimestamp(),
+			Data: wasmData,
 		}
 	}
 	endpoint.Counterparty.SetConsensusState(consensusState, clientState.GetLatestHeight())
@@ -364,7 +363,7 @@ func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
 	proofConnection, _ = endpoint.Counterparty.QueryProofAtHeight(connectionKey, proofHeight.GetRevisionHeight())
 
-	return
+	return clientState, proofClient, proofConsensus, consensusHeight, proofConnection, proofHeight
 }
 
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
@@ -576,8 +575,9 @@ func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
 		return fmt.Errorf("unsupported order type %s", endpoint.ChannelConfig.Order)
 	}
 
-	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
-	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	counterparty := endpoint.Counterparty
+	proof, proofHeight := counterparty.QueryProof(packetKey)
+	nextSeqRecv, found := counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(counterparty.Chain.GetContext(), counterparty.ChannelConfig.PortID, counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
 
 	timeoutMsg := channeltypes.NewMsgTimeout(

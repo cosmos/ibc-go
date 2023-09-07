@@ -14,43 +14,51 @@ import (
 
 // ConstructUpdateWasmClientHeader will construct a valid 08-wasm Header with a zero height
 // to update the light client on the source chain.
-func (chain *TestChain) ConstructUpdateWasmClientHeader(counterparty *TestChain, clientID string) (*wasmtypes.Header, error) {
+func (chain *TestChain) ConstructUpdateWasmClientHeader(counterparty *TestChain, clientID string) (*wasmtypes.ClientMessage, clienttypes.Height, error) {
 	return chain.ConstructUpdateWasmClientHeaderWithTrustedHeight(counterparty, clientID, clienttypes.ZeroHeight())
 }
 
 // ConstructUpdateWasmClientHeaderWithTrustedHeight will construct a valid 08-wasm Header
 // to update the light client on the source chain.
-func (chain *TestChain) ConstructUpdateWasmClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*wasmtypes.Header, error) {
+func (chain *TestChain) ConstructUpdateWasmClientHeaderWithTrustedHeight(
+	counterparty *TestChain,
+	clientID string,
+	trustedHeight clienttypes.Height,
+) (*wasmtypes.ClientMessage, clienttypes.Height, error) {
 	tmHeader, err := chain.ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, trustedHeight)
 	if err != nil {
-		return nil, err
+		return nil, clienttypes.ZeroHeight(), err
 	}
 
 	tmWasmHeaderData, err := chain.Codec.MarshalInterface(tmHeader)
 	if err != nil {
-		return nil, err
+		return nil, clienttypes.ZeroHeight(), err
 	}
 
 	height, ok := tmHeader.GetHeight().(clienttypes.Height)
 	if !ok {
-		return nil, fmt.Errorf("error casting exported height to clienttypes height")
-	}
-	wasmHeader := wasmtypes.Header{
-		Data:   tmWasmHeaderData,
-		Height: height,
+		return nil, clienttypes.ZeroHeight(), fmt.Errorf("error casting exported height to clienttypes height")
 	}
 
-	return &wasmHeader, nil
+	wasmHeader := wasmtypes.ClientMessage{
+		Data: tmWasmHeaderData,
+	}
+
+	return &wasmHeader, height, nil
 }
 
-func (chain *TestChain) CreateWasmClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, nextVals, tmTrustedVals *tmtypes.ValidatorSet, signers map[string]tmtypes.PrivValidator) *wasmtypes.Header {
+func (chain *TestChain) CreateWasmClientHeader(
+	chainID string,
+	blockHeight int64,
+	trustedHeight clienttypes.Height,
+	timestamp time.Time,
+	tmValSet, nextVals, tmTrustedVals *tmtypes.ValidatorSet,
+	signers map[string]tmtypes.PrivValidator,
+) *wasmtypes.ClientMessage {
 	tmHeader := chain.CreateTMClientHeader(chainID, blockHeight, trustedHeight, timestamp, tmValSet, nextVals, tmTrustedVals, signers)
 	tmWasmHeaderData, err := chain.Codec.MarshalInterface(tmHeader)
 	require.NoError(chain.TB, err)
-	height, ok := tmHeader.GetHeight().(clienttypes.Height)
-	require.True(chain.TB, ok)
-	return &wasmtypes.Header{
-		Data:   tmWasmHeaderData,
-		Height: height,
+	return &wasmtypes.ClientMessage{
+		Data: tmWasmHeaderData,
 	}
 }

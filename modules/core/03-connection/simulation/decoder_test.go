@@ -22,7 +22,7 @@ func TestDecodeStore(t *testing.T) {
 
 	connection := types.ConnectionEnd{
 		ClientId: "clientidone",
-		Versions: types.ExportedVersionsToProto(types.GetCompatibleVersions()),
+		Versions: types.GetCompatibleVersions(),
 	}
 
 	paths := types.ClientPaths{

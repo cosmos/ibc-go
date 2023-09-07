@@ -44,7 +44,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace pa
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -201,7 +201,7 @@ func (k Keeper) GetAllConnections(ctx sdk.Context) (connections []types.Identifi
 // CreateSentinelLocalhostConnection creates and sets the sentinel localhost connection end in the IBC store.
 func (k Keeper) CreateSentinelLocalhostConnection(ctx sdk.Context) {
 	counterparty := types.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
-	connectionEnd := types.NewConnectionEnd(types.OPEN, exported.LocalhostClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+	connectionEnd := types.NewConnectionEnd(types.OPEN, exported.LocalhostClientID, counterparty, types.GetCompatibleVersions(), 0)
 
 	k.SetConnection(ctx, exported.LocalhostConnectionID, connectionEnd)
 }

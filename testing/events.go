@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
@@ -137,7 +137,7 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 // AssertEvents asserts that expected events are present in the actual events.
 // Expected map needs to be a subset of actual events to pass.
 func AssertEvents(
-	suite *suite.Suite,
+	suite *testifysuite.Suite,
 	expected EventsMap,
 	actual []abci.Event,
 ) {

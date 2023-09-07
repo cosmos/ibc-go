@@ -304,9 +304,6 @@ lint:
 lint-fix:
 	golangci-lint run --fix --out-format=tab --issues-exit-code=0
 
-lint-fix-changed:
-	./scripts/linting/lint-changed-go-files.sh
-
 format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w
@@ -318,13 +315,13 @@ docs-lint:
 docs-lint-changed:
 	./scripts/linting/lint-changed-md-files.sh
 
-.PHONY: lint lint-fix lint-fix-changed docs-lint docs-lint-changed
+.PHONY: lint lint-fix docs-lint docs-lint-changed
 
 ###############################################################################
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.13.2
+protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 

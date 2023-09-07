@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -54,8 +53,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 			consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
 			suite.Require().NoError(err)
 			substituteConsensusState := types.ConsensusState{
-				Data:      consensusStateData,
-				Timestamp: uint64(1678732170022000000),
+				Data: consensusStateData,
 			}
 
 			substituteClientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, "08-wasm-1")

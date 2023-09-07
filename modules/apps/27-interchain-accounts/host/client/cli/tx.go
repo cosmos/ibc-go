@@ -22,8 +22,8 @@ const (
 func generatePacketDataCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate-packet-data [message]",
-		Short: "Generates ICA packet data.",
-		Long: `generate-packet-data accepts a message string and serializes it
+		Short: "Generates protobuf encoded ICA packet data.",
+		Long: `generate-packet-data accepts a message string and serializes it using protobuf
 into packet data which is outputted to stdout. It can be used in conjunction with send-tx"
 which submits pre-built packet data containing messages to be executed on the host chain.
 `,

@@ -49,7 +49,7 @@ func (cs ClientState) GetChainID() string {
 }
 
 // ClientType is tendermint.
-func (cs ClientState) ClientType() string {
+func (ClientState) ClientType() string {
 	return exported.Tendermint
 }
 
@@ -59,7 +59,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 }
 
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
-func (cs ClientState) GetTimestampAtHeight(
+func (ClientState) GetTimestampAtHeight(
 	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,

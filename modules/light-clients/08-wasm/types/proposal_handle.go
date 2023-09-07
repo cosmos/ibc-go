@@ -12,13 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-type (
-	checkSubstituteAndUpdateStateInnerPayload struct{}
-	checkSubstituteAndUpdateStatePayload      struct {
-		CheckSubstituteAndUpdateState checkSubstituteAndUpdateStateInnerPayload `json:"check_substitute_and_update_state"`
-	}
-)
-
 // CheckSubstituteAndUpdateState will try to update the client with the state of the
 // substitute.
 func (cs ClientState) CheckSubstituteAndUpdateState(
@@ -28,8 +21,8 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	substituteClient exported.ClientState,
 ) error {
 	var (
-		SubjectPrefix    = []byte("subject/")
-		SubstitutePrefix = []byte("substitute/")
+		subjectPrefix    = []byte("subject/")
+		substitutePrefix = []byte("substitute/")
 	)
 
 	_, ok := substituteClient.(*ClientState)
@@ -40,12 +33,12 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		)
 	}
 
-	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, SubjectPrefix, SubstitutePrefix)
+	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, subjectPrefix, substitutePrefix)
 
-	payload := checkSubstituteAndUpdateStatePayload{
-		CheckSubstituteAndUpdateState: checkSubstituteAndUpdateStateInnerPayload{},
+	payload := sudoMsg{
+		CheckSubstituteAndUpdateState: &checkSubstituteAndUpdateStateMsg{},
 	}
 
-	_, err := call[contractResult](ctx, store, &cs, payload)
+	_, err := wasmCall[contractResult](ctx, store, &cs, payload)
 	return err
 }

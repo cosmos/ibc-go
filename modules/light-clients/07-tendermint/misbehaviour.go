@@ -28,7 +28,7 @@ func NewMisbehaviour(clientID string, header1, header2 *Header) *Misbehaviour {
 }
 
 // ClientType is Tendermint light client
-func (misbehaviour Misbehaviour) ClientType() string {
+func (Misbehaviour) ClientType() string {
 	return exported.Tendermint
 }
 

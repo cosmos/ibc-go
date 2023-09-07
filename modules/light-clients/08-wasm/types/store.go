@@ -6,18 +6,11 @@ import (
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
-	errorsmod "cosmossdk.io/errors"
-
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/cachekv"
 	"github.com/cosmos/cosmos-sdk/store/listenkv"
 	"github.com/cosmos/cosmos-sdk/store/tracekv"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // updateProposalWrappedStore combines two KVStores into one while transparently routing the calls based on key prefix
@@ -94,41 +87,6 @@ func (ws updateProposalWrappedStore) getStore(key []byte) sdk.KVStore {
 	}
 
 	return ws.substituteStore
-}
-
-// setClientState stores the client state.
-func setClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec, clientState *ClientState) {
-	key := host.ClientStateKey()
-	val := clienttypes.MustMarshalClientState(cdc, clientState)
-	clientStore.Set(key, val)
-}
-
-// setConsensusState stores the consensus state at the given height.
-func setConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensusState *ConsensusState, height exported.Height) {
-	key := host.ConsensusStateKey(height)
-	val := clienttypes.MustMarshalConsensusState(cdc, consensusState)
-	clientStore.Set(key, val)
-}
-
-// getConsensusState retrieves the consensus state from the client prefixed
-// store. An error is returned if the consensus state does not exist or it cannot be unmarshalled.
-func GetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
-	bz := clientStore.Get(host.ConsensusStateKey(height))
-	if len(bz) == 0 {
-		return nil, errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state does not exist for height %s", height)
-	}
-
-	consensusStateI, err := clienttypes.UnmarshalConsensusState(cdc, bz)
-	if err != nil {
-		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "unmarshal error: %v", err)
-	}
-
-	consensusState, ok := consensusStateI.(*ConsensusState)
-	if !ok {
-		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid consensus type. expected %T, got %T", &ConsensusState{}, consensusState)
-	}
-
-	return consensusState, nil
 }
 
 var _ wasmvmtypes.KVStore = &storeAdapter{}

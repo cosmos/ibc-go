@@ -4,12 +4,11 @@ import (
 	"encoding/base64"
 	"time"
 
-	tmtypes "github.com/cometbft/cometbft/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
@@ -53,9 +52,8 @@ func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 			"unsuccessful verify header: head height < consensus height", func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header_old"])
 				suite.Require().NoError(err)
-				clientMsg = &types.Header{
-					Data:   data,
-					Height: clienttypes.NewHeight(2000, 39),
+				clientMsg = &types.ClientMessage{
+					Data: data,
 				}
 			},
 			false,
@@ -70,9 +68,8 @@ func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 
 			data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
 			suite.Require().NoError(err)
-			clientMsg = &types.Header{
-				Data:   data,
-				Height: clienttypes.NewHeight(2000, 39),
+			clientMsg = &types.ClientMessage{
+				Data: data,
 			}
 
 			tc.setup()
@@ -90,7 +87,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 func (suite *TypesTestSuite) TestVerifyHeaderTendermint() {
 	var (
 		path   *ibctesting.Path
-		header *types.Header
+		header *types.ClientMessage
 	)
 
 	// Setup different validators and signers for testing different types of updates
@@ -364,7 +361,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderTendermint() {
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
-			header, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			header, height, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -401,9 +398,8 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
 				suite.Require().NoError(err)
-				clientMsg = &types.Header{
-					Data:   data,
-					Height: clienttypes.NewHeight(2000, 39),
+				clientMsg = &types.ClientMessage{
+					Data: data,
 				}
 				// VerifyClientMessage must be run first
 				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
@@ -416,9 +412,8 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
 				suite.Require().NoError(err)
-				clientMsg = &types.Header{
-					Data:   data,
-					Height: clienttypes.NewHeight(2000, 39),
+				clientMsg = &types.ClientMessage{
+					Data: data,
 				}
 			},
 			true,
@@ -427,7 +422,7 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 			"invalid ClientMessage type", func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
-				clientMsg = &types.Misbehaviour{
+				clientMsg = &types.ClientMessage{
 					Data: data,
 				}
 			},
@@ -482,16 +477,11 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 	}{
 		{
 			"success with height later than latest height", func() {
-				wasmHeader, ok := clientMessage.(*types.Header)
-				suite.Require().True(ok)
-				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(wasmHeader.Height))
+				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(height))
 			},
 			func() {
-				wasmHeader, ok := clientMessage.(*types.Header)
-				suite.Require().True(ok)
-
 				clientState := path.EndpointA.GetClientState()
-				suite.Require().True(clientState.GetLatestHeight().EQ(wasmHeader.Height)) // new update, updated client state should have changed
+				suite.Require().True(clientState.GetLatestHeight().EQ(height)) // new update, updated client state should have changed
 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
 			}, true,
 		},
@@ -503,9 +493,7 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				wasmHeader, ok := clientMessage.(*types.Header)
-				suite.Require().True(ok)
-				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().GT(wasmHeader.Height))
+				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().GT(height))
 
 				prevClientState = path.EndpointA.GetClientState()
 			},
@@ -522,24 +510,18 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 				suite.Require().NoError(err)
 
 				// use the same header which just updated the client
-				clientMessage, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				clientMessage, height, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
-
-				wasmHeader, ok := clientMessage.(*types.Header)
-				suite.Require().True(ok)
-				suite.Require().Equal(path.EndpointA.GetClientState().GetLatestHeight(), wasmHeader.Height)
+				suite.Require().Equal(path.EndpointA.GetClientState().GetLatestHeight(), height)
 
 				prevClientState = path.EndpointA.GetClientState()
-				prevConsensusState = path.EndpointA.GetConsensusState(wasmHeader.Height)
+				prevConsensusState = path.EndpointA.GetConsensusState(height)
 			},
 			func() {
 				clientState := path.EndpointA.GetClientState()
 				suite.Require().Equal(clientState, prevClientState)
 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
-
-				wasmHeader, ok := clientMessage.(*types.Header)
-				suite.Require().True(ok)
-				suite.Require().Equal(path.EndpointA.GetConsensusState(wasmHeader.Height), prevConsensusState)
+				suite.Require().Equal(path.EndpointA.GetConsensusState(height), prevConsensusState)
 			}, true,
 		},
 		{
@@ -564,15 +546,12 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 
 				// ensure counterparty state is committed
 				suite.coordinator.CommitBlock(suite.chainB)
-				clientMessage, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				clientMessage, height, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 			},
 			func() {
-				wasmHeader, ok := clientMessage.(*types.Header)
-				suite.Require().True(ok)
-
 				clientState := path.EndpointA.GetClientState()
-				suite.Require().True(clientState.GetLatestHeight().EQ(wasmHeader.Height)) // new update, updated client state should have changed
+				suite.Require().True(clientState.GetLatestHeight().EQ(height)) // new update, updated client state should have changed
 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
 
 				// ensure consensus state was pruned
@@ -606,15 +585,12 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 				suite.Require().NoError(err)
 
 				// use the same header which just updated the client
-				clientMessage, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+				clientMessage, height, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 				suite.Require().NoError(err)
 			},
 			func() {
-				wasmHeader, ok := clientMessage.(*types.Header)
-				suite.Require().True(ok)
-
 				clientState := path.EndpointA.GetClientState()
-				suite.Require().True(clientState.GetLatestHeight().EQ(wasmHeader.Height)) // new update, updated client state should have changed
+				suite.Require().True(clientState.GetLatestHeight().EQ(height)) // new update, updated client state should have changed
 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
 
 				// ensure consensus state was pruned
@@ -640,7 +616,7 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 
 			// ensure counterparty state is committed
 			suite.coordinator.CommitBlock(suite.chainB)
-			clientMessage, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			clientMessage, height, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -651,9 +627,10 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 			if tc.expPass {
 				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
 
-				header := clientMessage.(*types.Header)
+				clientMessage, ok := clientMessage.(*types.ClientMessage)
+				suite.Require().True(ok)
 				var eHeader exported.ClientMessage
-				err := suite.chainA.Codec.UnmarshalInterface(header.Data, &eHeader)
+				err := suite.chainA.Codec.UnmarshalInterface(clientMessage.Data, &eHeader)
 				tmHeader := eHeader.(*ibctm.Header)
 				suite.Require().NoError(err)
 				expTmConsensusState := &ibctm.ConsensusState{
@@ -664,11 +641,10 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 				wasmData, err := suite.chainA.Codec.MarshalInterface(expTmConsensusState)
 				suite.Require().NoError(err)
 				expWasmConsensusState := &types.ConsensusState{
-					Data:      wasmData,
-					Timestamp: expTmConsensusState.GetTimestamp(),
+					Data: wasmData,
 				}
 
-				bz := clientStore.Get(host.ConsensusStateKey(header.Height))
+				bz := clientStore.Get(host.ConsensusStateKey(height))
 				updatedConsensusState := clienttypes.MustUnmarshalConsensusState(suite.chainA.App.AppCodec(), bz)
 
 				suite.Require().Equal(expWasmConsensusState, updatedConsensusState)
@@ -787,7 +763,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
 			func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
-				clientMsg = &types.Misbehaviour{
+				clientMsg = &types.ClientMessage{
 					Data: data,
 				}
 
@@ -859,7 +835,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
 			}
 			wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
 			suite.Require().NoError(err)
-			clientMessage := &types.Misbehaviour{
+			clientMessage := &types.ClientMessage{
 				Data: wasmData,
 			}
 			clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)

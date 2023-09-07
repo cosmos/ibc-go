@@ -11,18 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-type (
-	verifyUpgradeAndUpdateStateInnerPayload struct {
-		UpgradeClientState         exported.ClientState    `json:"upgrade_client_state"`
-		UpgradeConsensusState      exported.ConsensusState `json:"upgrade_consensus_state"`
-		ProofUpgradeClient         []byte                  `json:"proof_upgrade_client"`
-		ProofUpgradeConsensusState []byte                  `json:"proof_upgrade_consensus_state"`
-	}
-	verifyUpgradeAndUpdateStatePayload struct {
-		VerifyUpgradeAndUpdateState verifyUpgradeAndUpdateStateInnerPayload `json:"verify_upgrade_and_update_state"`
-	}
-)
-
 // VerifyUpgradeAndUpdateState, on a successful verification expects the contract to update
 // the new client state, consensus state, and any other client metadata.
 func (cs ClientState) VerifyUpgradeAndUpdateState(
@@ -54,16 +42,8 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 			upgradedClient.GetLatestHeight(), lastHeight)
 	}
 
-	// Must prove against latest consensus state to ensure we are verifying against latest upgrade plan
-	// This verifies that upgrade is intended for the provided revision, since committed client must exist
-	// at this consensus state
-	_, err := GetConsensusState(clientStore, cdc, lastHeight)
-	if err != nil {
-		return errorsmod.Wrapf(err, "could not retrieve consensus state for height %s", lastHeight)
-	}
-
-	payload := verifyUpgradeAndUpdateStatePayload{
-		VerifyUpgradeAndUpdateState: verifyUpgradeAndUpdateStateInnerPayload{
+	payload := sudoMsg{
+		VerifyUpgradeAndUpdateState: &verifyUpgradeAndUpdateStateMsg{
 			UpgradeClientState:         upgradedClient,
 			UpgradeConsensusState:      upgradedConsState,
 			ProofUpgradeClient:         proofUpgradeClient,
@@ -71,6 +51,6 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		},
 	}
 
-	_, err = call[contractResult](ctx, clientStore, &cs, payload)
+	_, err := wasmCall[contractResult](ctx, clientStore, &cs, payload)
 	return err
 }

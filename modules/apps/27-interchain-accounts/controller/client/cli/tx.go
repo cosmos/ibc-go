@@ -80,7 +80,6 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 			var icaMsgData icatypes.InterchainAccountPacketData
 			msgContentOrFileName := args[1]
 			if err := cdc.UnmarshalJSON([]byte(msgContentOrFileName), &icaMsgData); err != nil {
-
 				// check for file path if JSON input is not provided
 				contents, err := os.ReadFile(msgContentOrFileName)
 				if err != nil {

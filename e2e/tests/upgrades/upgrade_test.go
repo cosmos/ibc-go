@@ -6,19 +6,20 @@ import (
 	"testing"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/gogoproto/proto"
 	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/e2e/semverutil"
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
@@ -42,7 +43,7 @@ func TestUpgradeTestSuite(t *testing.T) {
 		t.Fatalf("%s and %s must be set when running an upgrade test", testsuite.ChainUpgradeTagEnv, testsuite.ChainUpgradePlanEnv)
 	}
 
-	suite.Run(t, new(UpgradeTestSuite))
+	testifysuite.Run(t, new(UpgradeTestSuite))
 }
 
 type UpgradeTestSuite struct {
@@ -211,7 +212,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	t.Run("send funds to test wallet", func(t *testing.T) {
 		err := chain.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: userWalletAddr,
-			Amount:  testvalues.StartingTokenAmount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 			Denom:   chain.Config().Denom,
 		})
 		s.Require().NoError(err)
@@ -235,7 +236,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	t.Run("send funds to test wallet", func(t *testing.T) {
 		err := chain.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: userWalletAddr,
-			Amount:  testvalues.StartingTokenAmount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 			Denom:   chain.Config().Denom,
 		})
 		s.Require().NoError(err)
@@ -297,7 +298,7 @@ func (s *UpgradeTestSuite) TestV5ToV6ChainUpgrade() {
 			// fund the host account, so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
@@ -676,18 +677,6 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 func (s *UpgradeTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *intertxtypes.MsgRegisterAccount) {
 	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
 	s.AssertTxSuccess(txResp)
-}
-
-// getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
-// controller chain.
-func getICAVersion(chainAVersion, chainBVersion string) string {
-	chainBIsGreaterThanOrEqualToChainA := semverutil.GTE(chainBVersion, chainAVersion)
-	if chainBIsGreaterThanOrEqualToChainA {
-		// allow version to be specified by the controller chain
-		return ""
-	}
-	// explicitly set the version string because the host chain might not yet support incentivized channels.
-	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 }
 
 // ClientState queries the current ClientState by clientID

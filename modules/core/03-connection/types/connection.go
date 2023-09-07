@@ -38,8 +38,8 @@ func (c ConnectionEnd) GetCounterparty() exported.CounterpartyConnectionI {
 }
 
 // GetVersions implements the Connection interface
-func (c ConnectionEnd) GetVersions() []exported.Version {
-	return ProtoVersionsToExported(c.Versions)
+func (c ConnectionEnd) GetVersions() []*Version {
+	return c.Versions
 }
 
 // GetDelayPeriod implements the Connection interface

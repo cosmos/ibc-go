@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"math"
-	"strings"
+	"fmt"
+	"reflect"
 
-	cosmwasm "github.com/CosmWasm/wasmvm"
+	wasmvm "github.com/CosmWasm/wasmvm"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -25,24 +25,25 @@ type Keeper struct {
 
 	storeKey  storetypes.StoreKey
 	cdc       codec.BinaryCodec
-	wasmVM    *cosmwasm.VM
+	wasmVM    *wasmvm.VM
 	authority string
 }
 
-// NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string) Keeper {
-	// Wasm VM
-	const wasmDataDir = "ibc_08-wasm_client_data"
-	wasmSupportedFeatures := strings.Join([]string{"storage", "iterator"}, ",")
-	wasmMemoryLimitMb := uint32(math.Pow(2, 12))
-	wasmPrintDebug := true
-	wasmCacheSizeMb := uint32(math.Pow(2, 8))
-
-	vm, err := cosmwasm.NewVM(wasmDataDir, wasmSupportedFeatures, wasmMemoryLimitMb, wasmPrintDebug, wasmCacheSizeMb)
-	if err != nil {
-		panic(err)
+// NewKeeperWithVM creates a new Keeper instance with the provided Wasm VM.
+// This constructor function is meant to be used when the chain uses x/wasm
+// and the same Wasm VM instance should be shared with it.
+func NewKeeperWithVM(
+	cdc codec.BinaryCodec,
+	key storetypes.StoreKey,
+	authority string,
+	vm *wasmvm.VM,
+) Keeper {
+	if types.WasmVM != nil && !reflect.DeepEqual(types.WasmVM, vm) {
+		panic("global Wasm VM instance should not be set to a different instance")
 	}
+
 	types.WasmVM = vm
+	types.WasmStoreKey = key
 
 	return Keeper{
 		cdc:       cdc,
@@ -50,6 +51,23 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string)
 		wasmVM:    vm,
 		authority: authority,
 	}
+}
+
+// NewKeeperWithConfig creates a new Keeper instance with the provided Wasm configuration.
+// This constructor function is meant to be used when the chain does not use x/wasm
+// and a Wasm VM needs to be instantiated using the provided parameters.
+func NewKeeperWithConfig(
+	cdc codec.BinaryCodec,
+	key storetypes.StoreKey,
+	authority string,
+	wasmConfig types.WasmConfig,
+) Keeper {
+	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedFeatures, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, wasmConfig.MemoryCacheSize)
+	if err != nil {
+		panic(fmt.Sprintf("failed to instantiate new Wasm VM instance: %v", err))
+	}
+
+	return NewKeeperWithVM(cdc, key, authority, vm)
 }
 
 // GetAuthority returns the 08-wasm module's authority.

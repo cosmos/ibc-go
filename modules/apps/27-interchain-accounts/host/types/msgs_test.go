@@ -18,18 +18,18 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 		expPass bool
 	}{
 		{
-			"success: valid authority address",
+			"success: valid signer address",
 			types.NewMsgUpdateParams(sdk.AccAddress(ibctesting.TestAccAddress).String(), types.DefaultParams()),
 			true,
 		},
 		{
-			"failure: invalid authority address",
-			types.NewMsgUpdateParams("authority", types.DefaultParams()),
+			"failure: invalid signer address",
+			types.NewMsgUpdateParams("signer", types.DefaultParams()),
 			false,
 		},
 		{
 			"failure: invalid allowed message",
-			types.NewMsgUpdateParams("authority", types.Params{
+			types.NewMsgUpdateParams("signer", types.Params{
 				AllowMessages: []string{""},
 			}),
 			false,

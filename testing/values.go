@@ -57,7 +57,7 @@ var (
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
 
-	ConnectionVersion = connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions())[0]
+	ConnectionVersion = connectiontypes.GetCompatibleVersions()[0]
 
 	MockAcknowledgement          = mock.MockAcknowledgement.Acknowledgement()
 	MockPacketData               = mock.MockPacketData

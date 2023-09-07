@@ -51,7 +51,7 @@ func (k Keeper) OnChanOpenTry(
 			panic(fmt.Sprintf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
-		if channel.State == channeltypes.OPEN {
+		if channel.IsOpen() {
 			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
 		}
 
@@ -123,7 +123,7 @@ func (k Keeper) OnChanOpenConfirm(
 }
 
 // OnChanCloseConfirm removes the active channel stored in state
-func (k Keeper) OnChanCloseConfirm(
+func (Keeper) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,

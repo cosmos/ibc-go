@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -465,7 +466,32 @@ func NewSimApp(
 		),
 	)
 
-	app.WasmClientKeeper = wasmkeeper.NewKeeper(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	// 08-wasm's Keeper can be instantiated in two different ways:
+	// 1. If the chain uses x/wasm:
+	// Both x/wasm's Keeper and 08-wasm Keeper should share the same Wasm VM instance.
+	// - Instantiate the Wasm VM in app.go with the parameters of your choice.
+	// - Create an Option with this Wasm VM instance (see https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/options.go#L26-L32).
+	// - Pass the option to the x/wasm NewKeeper contructor function (https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/keeper_cgo.go#L36).
+	// - Pass a pointer to the Wasm VM instance to 08-wasm NewKeeperWithVM constructor function.
+	//
+	// 2. If the chain does not use x/wasm:
+	// Even though it is still possible to use method 1 above
+	// (e.g. instantiating a Wasm VM in app.go an pass it in 08-wasm NewKeeper),
+	// since there is no need to share the Wasm VM instance with another module
+	// you can use NewKeeperWithConfig constructor function and provide
+	// the Wasm VM configuration parameters of your choice.
+	// Check out the WasmConfig type definition for more information on
+	// each parameter. Some parameters allow node-leve configurations.
+	// Function DefaultWasmConfig can also be used to use default values.
+	//
+	// In the code below we use the second method because we are not using x/wasm in this app.go.
+	wasmConfig := wasmtypes.WasmConfig{
+		DataDir:           "ibc_08-wasm_client_data",
+		SupportedFeatures: "iterator",
+		MemoryCacheSize:   uint32(math.Pow(2, 8)),
+		ContractDebugMode: false,
+	}
+	app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig)
 
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
@@ -540,7 +566,7 @@ func NewSimApp(
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> fee.SendPacket -> channel.SendPacket
+	// icaControllerKeeper.SendTx -> fee.SendPacket -> channel.SendPacket
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
@@ -566,8 +592,7 @@ func NewSimApp(
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
 
 	// Create Mock IBC Fee module stack for testing
-	// SendPacket, since it is originating from the application to core IBC:
-	// mockModule.SendPacket -> fee.SendPacket -> channel.SendPacket
+	// SendPacket, mock module cannot send packets
 
 	// OnRecvPacket, message that originates from core IBC and goes down to app, the flow is the otherway
 	// channel.RecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket
@@ -591,7 +616,7 @@ func NewSimApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
-	/****  Module Options ****/
+	// ****  Module Options ****
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
 	// we prefer to be more strict in what arguments the modules expect.
@@ -799,8 +824,8 @@ func (app *SimApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Re
 }
 
 // Configurator returns the configurator for the app
-func (a *SimApp) Configurator() module.Configurator {
-	return a.configurator
+func (app *SimApp) Configurator() module.Configurator {
+	return app.configurator
 }
 
 // InitChainer application update at chain initialization
@@ -845,8 +870,8 @@ func (app *SimApp) TxConfig() client.TxConfig {
 }
 
 // DefaultGenesis returns a default genesis from the registered AppModuleBasic's.
-func (a *SimApp) DefaultGenesis() map[string]json.RawMessage {
-	return ModuleBasics.DefaultGenesis(a.appCodec)
+func (app *SimApp) DefaultGenesis() map[string]json.RawMessage {
+	return ModuleBasics.DefaultGenesis(app.appCodec)
 }
 
 // GetKey returns the KVStoreKey for the provided store key.
@@ -885,7 +910,7 @@ func (app *SimApp) SimulationManager() *module.SimulationManager {
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+func (*SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
