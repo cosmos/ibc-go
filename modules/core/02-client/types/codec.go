@@ -39,7 +39,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),
-		&ClientUpdateProposal{},
 		&UpgradeProposal{},
 	)
 	registry.RegisterImplementations(

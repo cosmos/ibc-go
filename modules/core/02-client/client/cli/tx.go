@@ -303,63 +303,6 @@ func newSubmitRecoverClientProposalCmd() *cobra.Command {
 	return cmd
 }
 
-// NewCmdSubmitUpdateClientProposal implements a command handler for submitting an update IBC client proposal transaction.
-func NewCmdSubmitUpdateClientProposal() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "update-client [subject-client-id] [substitute-client-id]",
-		Args:  cobra.ExactArgs(2),
-		Short: "Submit an update IBC client proposal",
-		Long: "Submit an update IBC client proposal along with an initial deposit.\n" +
-			"Please specify a subject client identifier you want to update.\n" +
-			"Please specify the substitute client the subject client will be updated to.",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			title, err := cmd.Flags().GetString(govcli.FlagTitle) //nolint:staticcheck // need this till full govv1 conversion.
-			if err != nil {
-				return err
-			}
-
-			description, err := cmd.Flags().GetString(govcli.FlagDescription) //nolint:staticcheck // need this till full govv1 conversion.
-			if err != nil {
-				return err
-			}
-
-			subjectClientID := args[0]
-			substituteClientID := args[1]
-
-			content := types.NewClientUpdateProposal(title, description, subjectClientID, substituteClientID)
-
-			from := clientCtx.GetFromAddress()
-
-			depositStr, err := cmd.Flags().GetString(govcli.FlagDeposit)
-			if err != nil {
-				return err
-			}
-			deposit, err := sdk.ParseCoinsNormalized(depositStr)
-			if err != nil {
-				return err
-			}
-
-			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
-			if err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")             //nolint:staticcheck // need this till full govv1 conversion.
-	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal") //nolint:staticcheck // need this till full govv1 conversion.
-	cmd.Flags().String(govcli.FlagDeposit, "", "deposit of proposal")
-
-	return cmd
-}
-
 // NewCmdSubmitUpgradeProposal implements a command handler for submitting an upgrade IBC client proposal transaction.
 func NewCmdSubmitUpgradeProposal() *cobra.Command {
 	cmd := &cobra.Command{
