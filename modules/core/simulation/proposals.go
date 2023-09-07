@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 )
 
 // Simulation operation weights constants
@@ -24,18 +25,35 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 		simulation.NewWeightedProposalMsg(
 			OpWeightMsgUpdateParams,
 			DefaultWeightMsgUpdateParams,
-			SimulateMsgUpdateParams,
+			SimulateClientMsgUpdateParams,
+		),
+		simulation.NewWeightedProposalMsg(
+			OpWeightMsgUpdateParams,
+			DefaultWeightMsgUpdateParams,
+			SimulateConnectionMsgUpdateParams,
 		),
 	}
 }
 
-// SimulateMsgUpdateParams returns a random MsgUpdateParams
-func SimulateMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
+// SimulateClientMsgUpdateParams returns a random MsgUpdateParams for 02-client
+func SimulateClientMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
 	var authority sdk.AccAddress = address.Module("gov")
 	params := types.DefaultParams()
 	params.AllowedClients = []string{"06-solomachine", "07-tendermint"}
 
 	return &types.MsgUpdateParams{
+		Authority: authority.String(),
+		Params:    params,
+	}
+}
+
+// SimulateConnectionMsgUpdateParams returns a random MsgUpdateParams 03-connection
+func SimulateConnectionMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
+	var authority sdk.AccAddress = address.Module("gov")
+	params := connectiontypes.DefaultParams()
+	params.MaxExpectedTimePerBlock = uint64(100)
+
+	return &connectiontypes.MsgUpdateParams{
 		Authority: authority.String(),
 		Params:    params,
 	}

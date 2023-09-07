@@ -13,6 +13,7 @@ import (
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/simulation"
 )
 
@@ -26,7 +27,7 @@ func TestProposalMsgs(t *testing.T) {
 
 	// execute ProposalMsgs function
 	weightedProposalMsgs := simulation.ProposalMsgs()
-	require.Equal(t, len(weightedProposalMsgs), 1)
+	require.Equal(t, 2, len(weightedProposalMsgs))
 
 	w0 := weightedProposalMsgs[0]
 
@@ -39,5 +40,18 @@ func TestProposalMsgs(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Authority)
-	require.EqualValues(t, msgUpdateParams.Params.AllowedClients, []string{"06-solomachine", "07-tendermint"})
+	require.EqualValues(t, []string{"06-solomachine", "07-tendermint"}, msgUpdateParams.Params.AllowedClients)
+
+	w1 := weightedProposalMsgs[1]
+
+	// tests w1 interface:
+	require.Equal(t, simulation.OpWeightMsgUpdateParams, w1.AppParamsKey())
+	require.Equal(t, simulation.DefaultWeightMsgUpdateParams, w1.DefaultWeight())
+
+	msg1 := w1.MsgSimulatorFn()(r, ctx, accounts)
+	msgUpdateConnectionParams, ok := msg1.(*connectiontypes.MsgUpdateParams)
+	require.True(t, ok)
+
+	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Authority)
+	require.EqualValues(t, uint64(100), msgUpdateConnectionParams.Params.MaxExpectedTimePerBlock)
 }

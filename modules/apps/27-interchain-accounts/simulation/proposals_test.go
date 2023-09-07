@@ -12,6 +12,7 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/simulation"
 )
@@ -26,7 +27,7 @@ func TestProposalMsgs(t *testing.T) {
 
 	// execute ProposalMsgs function
 	weightedProposalMsgs := simulation.ProposalMsgs()
-	require.Equal(t, len(weightedProposalMsgs), 1)
+	require.Equal(t, 2, len(weightedProposalMsgs))
 	w0 := weightedProposalMsgs[0]
 
 	// tests w0 interface:
@@ -34,9 +35,22 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.DefaultWeightMsgUpdateParams, w0.DefaultWeight())
 
 	msg := w0.MsgSimulatorFn()(r, ctx, accounts)
-	msgUpdateParams, ok := msg.(*types.MsgUpdateParams)
+	msgUpdateHostParams, ok := msg.(*types.MsgUpdateParams)
 	require.True(t, ok)
 
-	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Authority)
-	require.Equal(t, msgUpdateParams.Params.HostEnabled, false)
+	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateHostParams.Authority)
+	require.Equal(t, msgUpdateHostParams.Params.HostEnabled, false)
+
+	w1 := weightedProposalMsgs[1]
+
+	// tests w1 interface:
+	require.Equal(t, simulation.OpWeightMsgUpdateParams, w1.AppParamsKey())
+	require.Equal(t, simulation.DefaultWeightMsgUpdateParams, w1.DefaultWeight())
+
+	msg1 := w1.MsgSimulatorFn()(r, ctx, accounts)
+	msgUpdateControllerParams, ok := msg1.(*controllertypes.MsgUpdateParams)
+	require.True(t, ok)
+
+	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateControllerParams.Authority)
+	require.Equal(t, msgUpdateControllerParams.Params.ControllerEnabled, false)
 }
