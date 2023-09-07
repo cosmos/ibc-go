@@ -234,20 +234,6 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 	require.Equal(t, []sdk.AccAddress{refundAddr}, msg.GetSigners())
 }
 
-func TestMsgPayPacketFeeRoute(t *testing.T) {
-	var msg types.MsgPayPacketFee
-	require.Equal(t, types.RouterKey, msg.Route())
-}
-
-func TestMsgPayPacketFeeGetSignBytes(t *testing.T) {
-	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
-	msg := types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, defaultAccAddress, nil)
-
-	require.NotPanics(t, func() {
-		_ = msg.GetSignBytes()
-	})
-}
-
 func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 	var msg *types.MsgPayPacketFeeAsync
 
@@ -381,21 +367,4 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
 
 	require.Equal(t, []sdk.AccAddress{refundAddr}, msg.GetSigners())
-}
-
-func TestMsgPayPacketFeeAsyncRoute(t *testing.T) {
-	var msg types.MsgPayPacketFeeAsync
-	require.Equal(t, types.RouterKey, msg.Route())
-}
-
-func TestMsgPayPacketFeeAsyncGetSignBytes(t *testing.T) {
-	packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
-	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
-	packetFee := types.NewPacketFee(fee, defaultAccAddress, nil)
-
-	msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
-
-	require.NotPanics(t, func() {
-		_ = msg.GetSignBytes()
-	})
 }
