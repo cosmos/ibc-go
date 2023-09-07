@@ -93,6 +93,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		AuthQueryClient:          authtypes.NewQueryClient(grpcConn),
 		AuthZQueryClient:         authz.NewQueryClient(grpcConn),
 		ConsensusServiceClient:   cmtservice.NewServiceClient(grpcConn),
+		UpgradeQueryClient:       upgradetypes.NewQueryClient(grpcConn),
 	}
 }
 
