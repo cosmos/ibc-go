@@ -411,7 +411,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.Require().NoError(err)
 
 				if tc.recvIsSource {
-					_, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), denomTraceOnB.IBCDenom())
+					_, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), sdk.DefaultBondDenom)
 					suite.Require().False(found)
 				} else {
 					denomMetadata, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), denomTraceOnB.IBCDenom())
