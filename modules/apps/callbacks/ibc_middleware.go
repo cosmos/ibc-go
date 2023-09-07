@@ -2,13 +2,10 @@ package ibccallbacks
 
 import (
 	"fmt"
-
-<<<<<<< HEAD
-=======
+	
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
-
->>>>>>> e1928999 (fix(callbacks)!: SendPacket validation bypass and erroneous event emission are fixed (#4568))
+	
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
@@ -274,16 +271,11 @@ func (IBCMiddleware) processCallback(
 		}
 
 		// if the callback ran out of gas and the relayer has not reserved enough gas, then revert the state
-<<<<<<< HEAD
-		if cachedCtx.GasMeter().IsPastLimit() && callbackData.AllowRetry() {
-			panic(sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
-=======
 		if cachedCtx.GasMeter().IsPastLimit() {
 			if callbackData.AllowRetry() {
 				panic(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
 			}
 			err = errorsmod.Wrapf(types.ErrCallbackOutOfGas, "ibc %s callback out of gas", callbackType)
->>>>>>> e1928999 (fix(callbacks)!: SendPacket validation bypass and erroneous event emission are fixed (#4568))
 		}
 
 		// allow the transaction to be committed, continuing the packet lifecycle
