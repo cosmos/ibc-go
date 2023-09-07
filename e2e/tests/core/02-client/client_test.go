@@ -84,6 +84,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	var (
 		originalTrustingPeriod time.Duration
 		newTrustingPeriod      time.Duration
+		planHeight             int64
 	)
 
 	t.Run("send schedule IBC upgrade message", func(t *testing.T) {
@@ -99,12 +100,13 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 
 		upgradedClientState := clientState.(*ibctm.ClientState)
 		upgradedClientState.TrustingPeriod = newTrustingPeriod
+		planHeight = int64(75)
 
 		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
 			authority.String(),
 			types.Plan{
 				Name:   "upgrade-client",
-				Height: int64(75),
+				Height: planHeight,
 			},
 			upgradedClientState,
 		)
@@ -118,14 +120,13 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().NoError(err)
 
 		upgradedClientState := cs.(*ibctm.ClientState)
-		upgradedClientState.TrustingPeriod = newTrustingPeriod
 		s.Require().Equal(newTrustingPeriod, upgradedClientState.TrustingPeriod)
 
 		plan, err := s.QueryCurrentPlan(ctx, chainA)
 		s.Require().NoError(err)
 
 		s.Assert().Equal("upgrade-client", plan.Name)
-		s.Assert().Equal(int64(75), plan.Height)
+		s.Assert().Equal(planHeight, plan.Height)
 	})
 }
 
