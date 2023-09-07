@@ -37,24 +37,24 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 
 // SimulateClientMsgUpdateParams returns a random MsgUpdateParams for 02-client
 func SimulateClientMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var authority sdk.AccAddress = address.Module("gov")
+	var signer sdk.AccAddress = address.Module("gov")
 	params := types.DefaultParams()
 	params.AllowedClients = []string{"06-solomachine", "07-tendermint"}
 
 	return &types.MsgUpdateParams{
-		Authority: authority.String(),
+		Signer: signer.String(),
 		Params:    params,
 	}
 }
 
 // SimulateConnectionMsgUpdateParams returns a random MsgUpdateParams 03-connection
 func SimulateConnectionMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var authority sdk.AccAddress = address.Module("gov")
+	var signer sdk.AccAddress = address.Module("gov")
 	params := connectiontypes.DefaultParams()
 	params.MaxExpectedTimePerBlock = uint64(100)
 
 	return &connectiontypes.MsgUpdateParams{
-		Authority: authority.String(),
+		Signer: signer.String(),
 		Params:    params,
 	}
 }

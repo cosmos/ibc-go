@@ -38,7 +38,7 @@ func TestProposalMsgs(t *testing.T) {
 	msgUpdateHostParams, ok := msg.(*types.MsgUpdateParams)
 	require.True(t, ok)
 
-	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateHostParams.Authority)
+	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateHostParams.Signer)
 	require.Equal(t, msgUpdateHostParams.Params.HostEnabled, false)
 
 	w1 := weightedProposalMsgs[1]
@@ -51,6 +51,6 @@ func TestProposalMsgs(t *testing.T) {
 	msgUpdateControllerParams, ok := msg1.(*controllertypes.MsgUpdateParams)
 	require.True(t, ok)
 
-	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateControllerParams.Authority)
+	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateControllerParams.Signer)
 	require.Equal(t, msgUpdateControllerParams.Params.ControllerEnabled, false)
 }

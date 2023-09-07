@@ -38,6 +38,6 @@ func TestProposalMsgs(t *testing.T) {
 	msgUpdateParams, ok := msg.(*types.MsgUpdateParams)
 	require.True(t, ok)
 
-	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Authority)
+	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Signer)
 	require.EqualValues(t, msgUpdateParams.Params.SendEnabled, false)
 }

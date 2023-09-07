@@ -39,7 +39,7 @@ func TestProposalMsgs(t *testing.T) {
 	msgUpdateParams, ok := msg.(*types.MsgUpdateParams)
 	require.True(t, ok)
 
-	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Authority)
+	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Signer)
 	require.EqualValues(t, []string{"06-solomachine", "07-tendermint"}, msgUpdateParams.Params.AllowedClients)
 
 	w1 := weightedProposalMsgs[1]
@@ -52,6 +52,6 @@ func TestProposalMsgs(t *testing.T) {
 	msgUpdateConnectionParams, ok := msg1.(*connectiontypes.MsgUpdateParams)
 	require.True(t, ok)
 
-	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Authority)
+	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Signer)
 	require.EqualValues(t, uint64(100), msgUpdateConnectionParams.Params.MaxExpectedTimePerBlock)
 }
