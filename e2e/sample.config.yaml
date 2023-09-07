@@ -21,9 +21,9 @@ chains:
   binary: simd # override with CHAIN_BINARY
 
 relayer:
-  type: rly # override with RELAYER_TYPE
-  image: ghcr.io/cosmos/relayer
-  tag: latest # override with RELAYER_TAG
+  type: hermes # override with RELAYER_TYPE
+  image: colinaxner/hermes # override with RELAYER_IMAGE
+  tag: "v1.6.0" # override with RELAYER_TAG
 
 cometbft:
   logLevel: info
