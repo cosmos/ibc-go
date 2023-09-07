@@ -4,18 +4,17 @@ import (
 	"encoding/json"
 	"testing"
 
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 type KeeperTestSuite struct {

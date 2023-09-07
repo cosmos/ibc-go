@@ -2,7 +2,6 @@ package simapp
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"math"
 	"os"
@@ -97,13 +96,13 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
-	tmos "github.com/cometbft/cometbft/libs/os"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	simappparams "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/params"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller"
@@ -129,8 +128,6 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	simappparams "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/params"
-	upgrades "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/upgrades"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 )
 
@@ -1001,64 +998,10 @@ func makeEncodingConfig() simappparams.EncodingConfig {
 
 // IBC Upgrade examples
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
-func (app *SimApp) setupUpgradeHandlers() {
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V5,
-		upgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
-	)
-
-	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
-	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
-	// See: https://github.com/cosmos/ibc-go/blob/v6.1.0/testing/simapp/app.go#L310
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V6,
-		upgrades.CreateV6UpgradeHandler(
-			app.ModuleManager,
-			app.configurator,
-			app.appCodec,
-			app.keys[capabilitytypes.ModuleName],
-			app.CapabilityKeeper,
-			ibcmock.ModuleName+icacontrollertypes.SubModuleName,
-		),
-	)
-
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V7,
-		upgrades.CreateV7UpgradeHandler(
-			app.ModuleManager,
-			app.configurator,
-			app.appCodec,
-			app.IBCKeeper.ClientKeeper,
-			app.ConsensusParamsKeeper,
-			app.ParamsKeeper,
-		),
-	)
-
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V7_1,
-		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, app.IBCKeeper.ClientKeeper),
-	)
-}
+func (*SimApp) setupUpgradeHandlers() {}
 
 // setupUpgradeStoreLoaders sets all necessary store loaders required by upgrades.
-func (app *SimApp) setupUpgradeStoreLoaders() {
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		tmos.Exit(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if upgradeInfo.Name == upgrades.V7 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{
-				consensusparamtypes.StoreKey,
-				crisistypes.StoreKey,
-			},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
-}
+func (*SimApp) setupUpgradeStoreLoaders() {}
 
 // IBC TestingApp functions
 
