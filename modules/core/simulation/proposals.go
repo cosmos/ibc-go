@@ -43,7 +43,7 @@ func SimulateClientMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Acc
 
 	return &types.MsgUpdateParams{
 		Signer: signer.String(),
-		Params:    params,
+		Params: params,
 	}
 }
 
@@ -55,6 +55,6 @@ func SimulateConnectionMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes
 
 	return &connectiontypes.MsgUpdateParams{
 		Signer: signer.String(),
-		Params:    params,
+		Params: params,
 	}
 }

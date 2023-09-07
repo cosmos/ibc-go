@@ -37,6 +37,6 @@ func SimulateMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) 
 
 	return &types.MsgUpdateParams{
 		Signer: signer.String(),
-		Params:    params,
+		Params: params,
 	}
 }
