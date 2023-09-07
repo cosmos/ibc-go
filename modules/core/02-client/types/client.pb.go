@@ -4,7 +4,6 @@
 package types
 
 import (
-	types1 "cosmossdk.io/x/upgrade/types"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
@@ -194,53 +193,6 @@ func (m *ClientConsensusStates) GetConsensusStates() []ConsensusStateWithHeight 
 	return nil
 }
 
-// UpgradeProposal is a gov Content type for initiating an IBC breaking
-// upgrade.
-type UpgradeProposal struct {
-	Title       string      `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Description string      `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	Plan        types1.Plan `protobuf:"bytes,3,opt,name=plan,proto3" json:"plan"`
-	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
-	// This will make the chain commit to the correct upgraded (self) client state
-	// before the upgrade occurs, so that connecting chains can verify that the
-	// new upgraded client is valid by verifying a proof on the previous version
-	// of the chain. This will allow IBC connections to persist smoothly across
-	// planned chain upgrades
-	UpgradedClientState *types.Any `protobuf:"bytes,4,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
-}
-
-func (m *UpgradeProposal) Reset()      { *m = UpgradeProposal{} }
-func (*UpgradeProposal) ProtoMessage() {}
-func (*UpgradeProposal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b6bc4c8185546947, []int{3}
-}
-func (m *UpgradeProposal) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *UpgradeProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_UpgradeProposal.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *UpgradeProposal) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeProposal.Merge(m, src)
-}
-func (m *UpgradeProposal) XXX_Size() int {
-	return m.Size()
-}
-func (m *UpgradeProposal) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeProposal.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpgradeProposal proto.InternalMessageInfo
-
 // Height is a monotonically increasing data type
 // that can be compared against another Height for the purposes of updating and
 // freezing clients
@@ -342,7 +294,6 @@ func init() {
 	proto.RegisterType((*IdentifiedClientState)(nil), "ibc.core.client.v1.IdentifiedClientState")
 	proto.RegisterType((*ConsensusStateWithHeight)(nil), "ibc.core.client.v1.ConsensusStateWithHeight")
 	proto.RegisterType((*ClientConsensusStates)(nil), "ibc.core.client.v1.ClientConsensusStates")
-	proto.RegisterType((*UpgradeProposal)(nil), "ibc.core.client.v1.UpgradeProposal")
 	proto.RegisterType((*Height)(nil), "ibc.core.client.v1.Height")
 	proto.RegisterType((*Params)(nil), "ibc.core.client.v1.Params")
 }
@@ -390,39 +341,6 @@ var fileDescriptor_b6bc4c8185546947 = []byte{
 	0x00,
 }
 
-func (this *UpgradeProposal) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*UpgradeProposal)
-	if !ok {
-		that2, ok := that.(UpgradeProposal)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.Title != that1.Title {
-		return false
-	}
-	if this.Description != that1.Description {
-		return false
-	}
-	if !this.Plan.Equal(&that1.Plan) {
-		return false
-	}
-	if !this.UpgradedClientState.Equal(that1.UpgradedClientState) {
-		return false
-	}
-	return true
-}
 func (m *IdentifiedClientState) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -554,64 +472,6 @@ func (m *ClientConsensusStates) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *UpgradeProposal) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *UpgradeProposal) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *UpgradeProposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.UpgradedClientState != nil {
-		{
-			size, err := m.UpgradedClientState.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintClient(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	{
-		size, err := m.Plan.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintClient(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x1a
-	if len(m.Description) > 0 {
-		i -= len(m.Description)
-		copy(dAtA[i:], m.Description)
-		i = encodeVarintClient(dAtA, i, uint64(len(m.Description)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Title) > 0 {
-		i -= len(m.Title)
-		copy(dAtA[i:], m.Title)
-		i = encodeVarintClient(dAtA, i, uint64(len(m.Title)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
 
 func (m *Height) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
@@ -736,29 +596,6 @@ func (m *ClientConsensusStates) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovClient(uint64(l))
 		}
-	}
-	return n
-}
-
-func (m *UpgradeProposal) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Title)
-	if l > 0 {
-		n += 1 + l + sovClient(uint64(l))
-	}
-	l = len(m.Description)
-	if l > 0 {
-		n += 1 + l + sovClient(uint64(l))
-	}
-	l = m.Plan.Size()
-	n += 1 + l + sovClient(uint64(l))
-	if m.UpgradedClientState != nil {
-		l = m.UpgradedClientState.Size()
-		n += 1 + l + sovClient(uint64(l))
 	}
 	return n
 }
@@ -1128,189 +965,6 @@ func (m *ClientConsensusStates) Unmarshal(dAtA []byte) error {
 			}
 			m.ConsensusStates = append(m.ConsensusStates, ConsensusStateWithHeight{})
 			if err := m.ConsensusStates[len(m.ConsensusStates)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipClient(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthClient
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *UpgradeProposal) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowClient
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: UpgradeProposal: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: UpgradeProposal: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowClient
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthClient
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthClient
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Title = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowClient
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthClient
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthClient
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Description = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Plan", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowClient
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthClient
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthClient
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.Plan.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UpgradedClientState", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowClient
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthClient
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthClient
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.UpgradedClientState == nil {
-				m.UpgradedClientState = &types.Any{}
-			}
-			if err := m.UpgradedClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
