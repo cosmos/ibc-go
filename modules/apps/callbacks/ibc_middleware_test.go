@@ -136,13 +136,22 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			ibcmock.MockApplicationCallbackError, // execution failure on SendPacket should prevent packet sends
 		},
 		{
-			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
+			"failure: callback execution reach out of gas panic, but sufficient gas provided",
 			func() {
 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, callbackAddr)
 			},
 			types.CallbackTypeSendPacket,
 			true,
 			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeSendPacket)},
+		},
+		{
+			"failure: callback execution reach out of gas error, but sufficient gas provided",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, simapp.OogErrorContract)
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			errorsmod.Wrapf(types.ErrCallbackOutOfGas, "ibc %s callback out of gas", types.CallbackTypeSendPacket),
 		},
 	}
 
@@ -756,7 +765,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				}
 			},
 			false,
-			nil,
+			errorsmod.Wrapf(types.ErrCallbackPanic, "ibc %s callback panicked with: %v", callbackType, "callbackExecutor panic"),
 		},
 		{
 			"success: callbackExecutor oog panic, but retry is not allowed",
@@ -768,7 +777,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				}
 			},
 			false,
-			nil,
+			errorsmod.Wrapf(types.ErrCallbackOutOfGas, "ibc %s callback out of gas", callbackType),
 		},
 		{
 			"failure: callbackExecutor error",
