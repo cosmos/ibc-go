@@ -286,7 +286,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			s.Require().NotNil(authority)
 
 			msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(allowedClient))
-			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet)
 		} else {
 			value, err := tmjson.Marshal([]string{allowedClient})
 			s.Require().NoError(err)

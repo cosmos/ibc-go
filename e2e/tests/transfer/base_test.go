@@ -275,7 +275,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
 		if isSelfManagingParams {
 			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
-			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
@@ -366,7 +366,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	t.Run("change receive enabled parameter to disabled ", func(t *testing.T) {
 		if isSelfManagingParams {
 			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, false))
-			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),
