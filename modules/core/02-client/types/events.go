@@ -21,13 +21,14 @@ const (
 
 // IBC client events vars
 var (
-	EventTypeCreateClient          = "create_client"
-	EventTypeUpdateClient          = "update_client"
-	EventTypeUpgradeClient         = "upgrade_client"
-	EventTypeSubmitMisbehaviour    = "client_misbehaviour"
-	EventTypeUpgradeChain          = "upgrade_chain"
-	EventTypeUpgradeClientProposal = "upgrade_client_proposal"
-	EventTypeRecoverClient         = "recover_client"
+	EventTypeCreateClient               = "create_client"
+	EventTypeUpdateClient               = "update_client"
+	EventTypeUpgradeClient              = "upgrade_client"
+	EventTypeSubmitMisbehaviour         = "client_misbehaviour"
+	EventTypeUpgradeChain               = "upgrade_chain"
+	EventTypeUpgradeClientProposal      = "upgrade_client_proposal"
+	EventTypeScheduleIBCSoftwareUpgrade = "schedule_ibc_software_upgrade"
+	EventTypeRecoverClient              = "recover_client"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )
