@@ -61,7 +61,6 @@ func (app *SimApp) registerUpgradeHandlers() {
 		),
 	)
 
-
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(err)
