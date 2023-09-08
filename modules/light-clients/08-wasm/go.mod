@@ -1,6 +1,8 @@
 module github.com/cosmos/ibc-go/modules/light-clients/08-wasm
 
-go 1.19
+go 1.21
+
+toolchain go1.21.0
 
 replace github.com/cosmos/ibc-go/v7 => ../../../
 
@@ -8,7 +10,7 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 
 require (
 	cosmossdk.io/errors v1.0.0
-	github.com/CosmWasm/wasmvm v1.2.4
+	github.com/CosmWasm/wasmvm v1.4.0
 	github.com/cometbft/cometbft v0.37.2
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/cosmos/cosmos-sdk v0.47.5
