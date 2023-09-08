@@ -82,9 +82,9 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	var (
-		originalTrustingPeriod time.Duration
-		newTrustingPeriod      time.Duration
-		planHeight             int64
+		originalChainId string
+		newChainId      string
+		planHeight      int64
 	)
 
 	t.Run("send schedule IBC upgrade message", func(t *testing.T) {
@@ -95,11 +95,11 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
-		originalTrustingPeriod = clientState.(*ibctm.ClientState).TrustingPeriod
-		newTrustingPeriod = originalTrustingPeriod + time.Duration(time.Hour*24)
+		originalChainId = clientState.(*ibctm.ClientState).ChainId
+		s.Assert().NotEqual(originalChainId, newChainId)
 
 		upgradedClientState := clientState.(*ibctm.ClientState)
-		upgradedClientState.TrustingPeriod = newTrustingPeriod
+		upgradedClientState.ChainId = newChainId
 		planHeight = int64(75)
 
 		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
@@ -120,7 +120,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().NoError(err)
 
 		upgradedClientState := cs.(*ibctm.ClientState)
-		s.Require().Equal(newTrustingPeriod, upgradedClientState.TrustingPeriod)
+		s.Require().Equal(upgradedClientState.ChainId, newChainId)
 
 		plan, err := s.QueryCurrentPlan(ctx, chainA)
 		s.Require().NoError(err)
