@@ -8,6 +8,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/core/appmodule"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -24,7 +25,14 @@ import (
 var (
 	_ module.AppModule      = (*AppModule)(nil)
 	_ module.AppModuleBasic = (*AppModule)(nil)
+	_ appmodule.AppModule   = (*AppModule)(nil)
 )
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModule) IsAppModule() {}
 
 // AppModuleBasic defines the basic application module used by the tendermint light client.
 // Only the RegisterInterfaces function needs to be implemented. All other function perform
