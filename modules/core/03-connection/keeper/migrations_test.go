@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // TestMigrateParams tests that the params for the connection are properly migrated

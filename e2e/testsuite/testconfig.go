@@ -12,8 +12,8 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	interchaintestutil "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -559,7 +559,6 @@ func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, err
 		return finalGenesisDocBytes, nil
 	}
 }
-
 
 // modifyGovAppState takes the existing gov app state and marshals it to a govv1 GenesisState.
 func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
