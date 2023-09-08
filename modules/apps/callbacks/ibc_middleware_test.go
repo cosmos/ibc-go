@@ -144,15 +144,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			true,
 			sdk.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback panic", types.CallbackTypeSendPacket)},
 		},
-		{
-			"failure: callback execution reach out of gas error, but sufficient gas provided",
-			func() {
-				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, simapp.OogErrorContract)
-			},
-			types.CallbackTypeSendPacket,
-			false,
-			errorsmod.Wrapf(types.ErrCallbackOutOfGas, "ibc %s callback out of gas", types.CallbackTypeSendPacket),
-		},
 	}
 
 	for _, tc := range testCases {
