@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"cosmossdk.io/x/upgrade/types"
+
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
