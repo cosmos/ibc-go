@@ -30,6 +30,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
 )
 
@@ -71,6 +72,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	channeltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	ibctmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	localhost.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	// all other types
 	upgradetypes.RegisterInterfaces(cfg.InterfaceRegistry)
