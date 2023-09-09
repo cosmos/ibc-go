@@ -192,7 +192,7 @@ var xxx_messageInfo_MsgSendTxResponse proto.InternalMessageInfo
 
 // MsgUpdateParams defines the payload for Msg/UpdateParams
 type MsgUpdateParams struct {
-	// signer is the address that controls the module (defaults to x/gov unless overwritten).
+	// signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	// params defines the 27-interchain-accounts/controller parameters to update.
 	//
