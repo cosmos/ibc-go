@@ -9,7 +9,7 @@ require (
 	github.com/cometbft/cometbft v0.38.0-rc3
 	github.com/cosmos/cosmos-sdk v0.50.0-rc.0.0.20230905141004-6a9777fff287
 	github.com/cosmos/gogoproto v1.4.11
-	github.com/cosmos/ibc-go/v8 v8.0.0-20230906115913-46ee5f92e1af
+	github.com/cosmos/ibc-go/v8 v8.0.0-alpha.1
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20230817191535-cc35cd35adbc
 	github.com/stretchr/testify v1.8.4
@@ -111,8 +111,6 @@ require (
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-playground/validator/v10 v10.14.0 // indirect
-	github.com/gobwas/httphead v0.1.0 // indirect
-	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
