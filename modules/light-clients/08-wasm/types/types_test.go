@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	storetypes "cosmossdk.io/store/types"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -14,9 +15,10 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
 	tmjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
+	dbm "github.com/cosmos/cosmos-db"
+
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -47,7 +49,7 @@ type TypesTestSuite struct {
 	chainB      *ibctesting.TestChain
 
 	ctx      sdk.Context
-	store    sdk.KVStore
+	store    storetypes.KVStore
 	codeHash []byte
 	testData map[string]string
 }
@@ -68,7 +70,7 @@ func (suite *TypesTestSuite) SetupWasmTendermint() {
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 
-	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
+	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 
 	wasmContract, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
@@ -103,7 +105,7 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 	err = json.Unmarshal(testData, &suite.testData)
 	suite.Require().NoError(err)
 
-	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
+	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 
 	wasmContract, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")

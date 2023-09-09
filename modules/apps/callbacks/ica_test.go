@@ -151,7 +151,7 @@ func (s *CallbacksTestSuite) ExecuteICATx(icaAddress, memo string) {
 		return // we return if send packet is rejected
 	}
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
 	err = s.path.RelayPacket(packet)
@@ -172,7 +172,7 @@ func (s *CallbacksTestSuite) ExecuteICATimeout(icaAddress, memo string) {
 		return // we return if send packet is rejected
 	}
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents().ToABCIEvents())
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
 	// proof query requires up to date client

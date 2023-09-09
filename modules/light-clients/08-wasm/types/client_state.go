@@ -3,6 +3,7 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -59,7 +60,7 @@ func (cs ClientState) Validate() error {
 //
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
-func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.BinaryCodec) exported.Status {
+func (cs ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
 	payload := queryMsg{Status: &statusMsg{}}
 
 	result, err := wasmQuery[statusResult](ctx, clientStore, &cs, payload)
@@ -79,7 +80,7 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
@@ -100,7 +101,7 @@ func (cs ClientState) GetTimestampAtHeight(
 // Initialize checks that the initial consensus state is an 08-wasm consensus state and
 // sets the client state, consensus state in the provided client store.
 // It also initializes the wasm contract for the client.
-func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
+func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore storetypes.KVStore, state exported.ConsensusState) error {
 	consensusState, ok := state.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
@@ -123,7 +124,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 func (cs ClientState) VerifyMembership(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -163,7 +164,7 @@ func (cs ClientState) VerifyMembership(
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 func (cs ClientState) VerifyNonMembership(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	delayTimePeriod uint64,

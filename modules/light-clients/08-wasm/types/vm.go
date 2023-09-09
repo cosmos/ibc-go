@@ -10,7 +10,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -25,7 +25,7 @@ var (
 )
 
 // initContract calls vm.Init with appropriate arguments.
-func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func initContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -44,7 +44,7 @@ func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg
 }
 
 // callContract calls vm.Sudo with internally constructed gas meter and environment.
-func callContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func callContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -57,7 +57,7 @@ func callContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg
 }
 
 // queryContract calls vm.Query.
-func queryContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg []byte) ([]byte, error) {
+func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) ([]byte, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -71,7 +71,7 @@ func queryContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, ms
 }
 
 // wasmInit accepts a message to instantiate a wasm contract, JSON encodes it and calls initContract.
-func wasmInit(ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload instantiateMessage) error {
+func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload instantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
@@ -84,7 +84,7 @@ func wasmInit(ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload
 }
 
 // wasmCall calls the contract with the given payload and returns the result.
-func wasmCall[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload sudoMsg) (T, error) {
+func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload sudoMsg) (T, error) {
 	var result T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
@@ -114,7 +114,7 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Cl
 }
 
 // wasmQuery queries the contract with the given payload and returns the result.
-func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload queryMsg) (T, error) {
+func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload queryMsg) (T, error) {
 	var result T
 	encodedData, err := json.Marshal(payload)
 	if err != nil {

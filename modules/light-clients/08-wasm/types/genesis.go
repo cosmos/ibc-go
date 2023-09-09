@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -17,7 +18,7 @@ func NewGenesisState(contracts []Contract) *GenesisState {
 
 // ExportMetadata exports all the consensus metadata in the client store so they
 // can be included in clients genesis and imported by a ClientKeeper
-func (cs ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
+func (cs ClientState) ExportMetadata(store storetypes.KVStore) []exported.GenesisMetadata {
 	payload := queryMsg{
 		ExportMetadata: &exportMetadataMsg{},
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,7 +18,7 @@ import (
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context,
 	_ codec.BinaryCodec,
-	subjectClientStore, substituteClientStore sdk.KVStore,
+	subjectClientStore, substituteClientStore storetypes.KVStore,
 	substituteClient exported.ClientState,
 ) error {
 	var (

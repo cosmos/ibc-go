@@ -4,8 +4,7 @@ import (
 	"encoding/base64"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	storetypes "cosmossdk.io/store/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -462,7 +461,7 @@ func (suite *TypesTestSuite) TestUpdateStateTendermint() {
 	var (
 		path               *ibctesting.Path
 		clientMessage      exported.ClientMessage
-		clientStore        sdk.KVStore
+		clientStore        storetypes.KVStore
 		consensusHeights   []exported.Height
 		pruneHeight        clienttypes.Height
 		prevClientState    exported.ClientState

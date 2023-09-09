@@ -7,7 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -82,7 +83,7 @@ func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte,
 // NOTE: a solo machine client will be created with an empty diversifier.
 func (endpoint *Endpoint) CreateClient() (err error) {
 	// ensure counterparty has committed state
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
+	endpoint.Counterparty.Chain.NextBlock()
 
 	var (
 		clientState    exported.ClientState
@@ -506,7 +507,7 @@ func (endpoint *Endpoint) RecvPacket(packet channeltypes.Packet) error {
 
 // RecvPacketWithResult receives a packet on the associated endpoint and the result
 // of the transaction is returned. The counterparty client is updated.
-func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*sdk.Result, error) {
+func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*abci.ExecTxResult, error) {
 	// get proof of packet commitment on source
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)

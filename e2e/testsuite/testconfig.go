@@ -19,9 +19,6 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	tmjson "github.com/cometbft/cometbft/libs/json"
-	tmtypes "github.com/cometbft/cometbft/types"
-
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
@@ -57,11 +54,11 @@ const (
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
 	defaultRlyTag = "latest" // "andrew-tendermint_v0.37" // "v2.2.0"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "v1.4.0"
+	defaultHermesTag = "v1.6.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
-	defaultRelayerType = relayer.Rly
+	defaultRelayerType = relayer.Hermes
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
@@ -291,18 +288,39 @@ func getRelayerConfigFromEnv() relayer.Config {
 		relayerType = defaultRelayerType
 	}
 
-	rlyTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
-	if rlyTag == "" {
-		if relayerType == relayer.Rly {
-			rlyTag = defaultRlyTag
-		}
-		if relayerType == relayer.Hermes {
-			rlyTag = defaultHermesTag
-		}
+	relayerConfig := getDefaultRlyRelayerConfig()
+	if relayerType == relayer.Hermes {
+		relayerConfig = getDefaultHermesRelayerConfig()
 	}
+
+	relayerTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
+	if relayerTag != "" {
+		relayerConfig.Tag = relayerTag
+	}
+
+	relayerImage := strings.TrimSpace(os.Getenv(RelayerImageEnv))
+	if relayerImage != "" {
+		relayerConfig.Image = relayerImage
+	}
+
+	return relayerConfig
+}
+
+// getDefaultHermesRelayerConfig returns the default config for the hermes relayer.
+func getDefaultHermesRelayerConfig() relayer.Config {
 	return relayer.Config{
-		Tag:  rlyTag,
-		Type: relayerType,
+		Tag:   defaultHermesTag,
+		Type:  relayer.Hermes,
+		Image: relayer.HermesRelayerRepository,
+	}
+}
+
+// getDefaultRlyRelayerConfig returns the default config for the golang relayer.
+func getDefaultRlyRelayerConfig() relayer.Config {
+	return relayer.Config{
+		Tag:   defaultRlyTag,
+		Type:  relayer.Rly,
+		Image: relayer.RlyRelayerRepository,
 	}
 }
 
@@ -427,13 +445,13 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 // are functional for e2e testing purposes.
 func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		genDoc, err := tmtypes.GenesisDocFromJSON(genbz)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
+		var appGenesis genutiltypes.AppGenesis
+		if err := json.Unmarshal(genbz, &appGenesis); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into SDK AppGenesis: %w", err)
 		}
 
 		var appState genutiltypes.AppMap
-		if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
+		if err := json.Unmarshal(appGenesis.AppState, &appState); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
@@ -444,12 +462,12 @@ func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 
 		appState[govtypes.ModuleName] = govGenBz
 
-		genDoc.AppState, err = json.Marshal(appState)
+		appGenesis.AppState, err = json.Marshal(appState)
 		if err != nil {
 			return nil, err
 		}
 
-		bz, err := tmjson.MarshalIndent(genDoc, "", "  ")
+		bz, err := json.MarshalIndent(appGenesis, "", "  ")
 		if err != nil {
 			return nil, err
 		}

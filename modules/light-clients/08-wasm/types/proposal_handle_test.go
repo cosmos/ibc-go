@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"time"
 
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -21,7 +22,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 	var (
 		ok                                        bool
 		subjectClientState, substituteClientState exported.ClientState
-		subjectClientStore, substituteClientStore sdk.KVStore
+		subjectClientStore, substituteClientStore storetypes.KVStore
 	)
 	testCases := []struct {
 		name    string
@@ -275,7 +276,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateTendermint() {
 	}
 }
 
-func GetProcessedHeight(clientStore sdk.KVStore, height exported.Height) (uint64, bool) {
+func GetProcessedHeight(clientStore storetypes.KVStore, height exported.Height) (uint64, bool) {
 	key := ibctm.ProcessedHeightKey(height)
 	bz := clientStore.Get(key)
 	if len(bz) == 0 {

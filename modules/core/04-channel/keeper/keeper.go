@@ -4,14 +4,14 @@ import (
 	"strconv"
 	"strings"
 
+	db "github.com/cosmos/cosmos-db"
+
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	db "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"

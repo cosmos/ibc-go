@@ -184,6 +184,10 @@ module.exports = {
         label: "v7.2.0",
         key: "v7.2.0",
       },
+      {
+        label: "v7.3.0",
+        key: "v7.3.0",
+      },
     ],
     topbar: {
       banner: true,
