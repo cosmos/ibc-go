@@ -15,7 +15,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.47.5
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc1
-	github.com/cosmos/ibc-go/v7 v7.2.0
+	github.com/cosmos/ibc-go/v7 v7.3.0
 	github.com/spf13/cast v1.5.1
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0

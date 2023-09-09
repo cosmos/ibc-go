@@ -8,7 +8,7 @@ require (
 	github.com/cometbft/cometbft v0.37.2
 	github.com/cosmos/cosmos-sdk v0.47.5
 	github.com/cosmos/gogoproto v1.4.10
-	github.com/cosmos/ibc-go/v7 v7.2.0
+	github.com/cosmos/ibc-go/v7 v7.3.0
 	github.com/cosmos/interchain-accounts v0.5.1
 	github.com/docker/docker v24.0.5+incompatible
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230817191535-cc35cd35adbc
