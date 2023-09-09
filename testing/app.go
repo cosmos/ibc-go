@@ -29,9 +29,9 @@ import (
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
-	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
+	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 )
 
 var DefaultTestingAppInit = SetupTestingApp
