@@ -133,7 +133,7 @@ func (k Keeper) IterateCode(ctx sdk.Context, cb func([]byte) bool) {
 
 	for ; iter.Valid(); iter.Next() {
 		// cb returns true to stop early
-		if cb(iter.Value()[types.AbsoluteCodePositionLen:]) {
+		if cb(iter.Value()) {
 			return
 		}
 	}
