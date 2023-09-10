@@ -14,6 +14,7 @@ const (
 
 	KeyCodeHashPrefix = "codeHash"
 )
+const AbsoluteCodePositionLen = 73
 
 // CodeHashKey returns a store key under which the wasm code for a light client
 // is stored in a client prefixed store
