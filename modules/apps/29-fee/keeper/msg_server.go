@@ -118,8 +118,8 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 	return &types.MsgPayPacketFeeResponse{}, nil
 }
 
-// PayPacketFee defines a rpc handler method for MsgPayPacketFee
-// PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to
+// PayPacketFeeAsync defines a rpc handler method for MsgPayPacketFeeAsync
+// PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to
 // incentivize the relaying of a known packet. Only packets which have been sent and have not gone through the
 // packet life cycle may be incentivized.
 func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacketFeeAsync) (*types.MsgPayPacketFeeAsyncResponse, error) {
