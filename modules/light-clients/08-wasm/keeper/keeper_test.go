@@ -42,18 +42,17 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) TestIterateCode() {
 	testCases := []struct {
-		name    string
-		fileDir []string
-		expPass bool
+		name      string
+		wasmFiles []string
 	}{
 		{
-			name:    "single contract",
-			fileDir: []string{"../test_data/ics10_grandpa_cw.wasm.gz"},
+			name:      "single contract",
+			wasmFiles: []string{"../test_data/ics10_grandpa_cw.wasm.gz"},
 		},
 
 		{
-			name:    "multiple contract",
-			fileDir: []string{"../test_data/ics07_tendermint_cw.wasm.gz", "../test_data/ics10_grandpa_cw.wasm.gz"},
+			name:      "multiple contract",
+			wasmFiles: []string{"../test_data/ics07_tendermint_cw.wasm.gz", "../test_data/ics10_grandpa_cw.wasm.gz"},
 		},
 	}
 
@@ -61,7 +60,7 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 		suite.SetupTest()
 		suite.Run(spec.name, func() {
 			var expectedAllCodeHash []byte
-			for _, contractDir := range spec.fileDir {
+			for _, contractDir := range spec.wasmFiles {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 				code, _ := os.ReadFile(contractDir)
 				msg := types.NewMsgStoreCode(signer, code)
