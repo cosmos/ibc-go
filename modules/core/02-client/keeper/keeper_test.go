@@ -15,19 +15,18 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 const (
@@ -37,8 +36,6 @@ const (
 	testClientID  = "tendermint-0"
 	testClientID2 = "tendermint-1"
 	testClientID3 = "tendermint-2"
-
-	height = 5
 
 	trustingPeriod time.Duration = time.Hour * 24 * 7 * 2
 	ubdPeriod      time.Duration = time.Hour * 24 * 7 * 3
@@ -81,11 +78,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	isCheckTx := false
 	suite.now = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	suite.past = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	now2 := suite.now.Add(time.Hour)
 	app := simapp.Setup(suite.T(), isCheckTx)
 
 	suite.cdc = app.AppCodec()
-	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testClientID, Time: now2})
+	suite.ctx = app.BaseApp.NewContext(isCheckTx)
 	suite.keeper = &app.IBCKeeper.ClientKeeper
 	suite.privVal = ibctestingmock.NewPV()
 	pubKey, err := suite.privVal.GetPubKey()
@@ -105,17 +101,18 @@ func (suite *KeeperTestSuite) SetupTest() {
 		privVal := ibctestingmock.NewPV()
 		tmPk, err := privVal.GetPubKey()
 		suite.Require().NoError(err)
-		pk, err := cryptocodec.FromTmPubKeyInterface(tmPk)
+		pk, err := cryptocodec.FromCmtPubKeyInterface(tmPk)
 		suite.Require().NoError(err)
-		val, err := stakingtypes.NewValidator(sdk.ValAddress(pk.Address()), pk, stakingtypes.Description{})
+		val, err := stakingtypes.NewValidator(pk.Address().String(), pk, stakingtypes.Description{})
 		suite.Require().NoError(err)
 
 		val.Status = stakingtypes.Bonded
 		val.Tokens = sdkmath.NewInt(rand.Int63())
-		validators = append(validators, val)
+		validators.Validators = append(validators.Validators, val)
 
 		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
-		app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
+		err = app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
+		suite.Require().NoError(err)
 	}
 
 	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)

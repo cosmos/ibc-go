@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/relayer"
 	"go.uber.org/zap"
 )
 
@@ -15,9 +15,9 @@ const (
 	Rly    = "rly"
 	Hermes = "hermes"
 
-	hermesRelayerRepository = "ghcr.io/informalsystems/hermes"
+	HermesRelayerRepository = "colinaxner/hermes"
 	hermesRelayerUser       = "1000:1000"
-	rlyRelayerRepository    = "ghcr.io/cosmos/relayer"
+	RlyRelayerRepository    = "ghcr.io/cosmos/relayer"
 	rlyRelayerUser          = "100:1000" // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
 )
 
@@ -50,7 +50,7 @@ func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 	t.Helper()
 
 	if relayerImage == "" {
-		relayerImage = rlyRelayerRepository
+		relayerImage = RlyRelayerRepository
 	}
 
 	customImageOption := relayer.CustomDockerImage(relayerImage, tag, rlyRelayerUser)
@@ -68,7 +68,7 @@ func newHermesRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 	t.Helper()
 
 	if relayerImage == "" {
-		relayerImage = hermesRelayerRepository
+		relayerImage = HermesRelayerRepository
 	}
 
 	customImageOption := relayer.CustomDockerImage(relayerImage, tag, hermesRelayerUser)

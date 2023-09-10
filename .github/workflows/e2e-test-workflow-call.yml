@@ -50,7 +50,7 @@ on:
       relayer-type:
         description: 'The type of relayer to use'
         required: false
-        default: 'rly'
+        default: 'hermes'
         type: string
       relayer-tag:
         description: 'The tag to use for the relayer'
@@ -96,7 +96,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: ${{ inputs.build-and-push-docker-image }}
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image }}
@@ -115,7 +115,7 @@ jobs:
 
       - name: Build and push Docker image
         if: ${{ inputs.build-and-push-docker-image }}
-        uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
+        uses: docker/build-push-action@4e4ee680f69700760d5620a94c020aef883043aa
         with:
           context: .
           push: true
@@ -133,7 +133,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v4
@@ -167,7 +167,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v4

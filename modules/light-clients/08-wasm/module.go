@@ -125,10 +125,10 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // BeginBlock implements the AppModule interface
-func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
+func (AppModule) BeginBlock(_ sdk.Context) {
 }
 
 // EndBlock implements the AppModule interface
-func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (AppModule) EndBlock(_ sdk.Context) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }

@@ -8,9 +8,10 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/internal/collections"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 type EventsMap map[string]map[string]string
@@ -134,9 +135,9 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	return nil, fmt.Errorf("acknowledgement event attribute not found")
 }
 
-// AssertEvents asserts that expected events are present in the actual events.
+// AssertEventsLegacy asserts that expected events are present in the actual events.
 // Expected map needs to be a subset of actual events to pass.
-func AssertEvents(
+func AssertEventsLegacy(
 	suite *testifysuite.Suite,
 	expected EventsMap,
 	actual []abci.Event,
@@ -161,5 +162,40 @@ func AssertEvents(
 
 	for eventName, hasEvent := range hasEvents {
 		suite.Require().True(hasEvent, "event: %s was not found in events", eventName)
+	}
+}
+
+// AssertEvents asserts that expected events are present in the actual events.
+func AssertEvents(
+	suite *testifysuite.Suite,
+	expected []abci.Event,
+	actual []abci.Event,
+) {
+	foundEvents := make(map[int]bool)
+
+	for i, expectedEvent := range expected {
+		for _, actualEvent := range actual {
+			// the actual event will have an extra attribute added automatically
+			// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
+			// with the number of attributes in the expected event.
+			if expectedEvent.Type == actualEvent.Type && (len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1) {
+				// multiple events with the same type may be emitted, only mark the expected event as found
+				// if all of the attributes match
+				attributeMatch := true
+				for _, expectedAttr := range expectedEvent.Attributes {
+					// any expected attributes that are not contained in the actual events will cause this event
+					// not to match
+					attributeMatch = attributeMatch && collections.Contains(expectedAttr, actualEvent.Attributes)
+				}
+
+				if attributeMatch {
+					foundEvents[i] = true
+				}
+			}
+		}
+	}
+
+	for i, expectedEvent := range expected {
+		suite.Require().True(foundEvents[i], "event: %s was not found in events", expectedEvent.Type)
 	}
 }
