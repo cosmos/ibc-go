@@ -74,6 +74,15 @@ TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to trans
 	)
 ```
 
+- Params are now self managed in the following submodules
+  - ica/controller [#3590](https://github.com/cosmos/ibc-go/pull/3590)
+  - ica/host [#3520](https://github.com/cosmos/ibc-go/pull/3520)
+  - ibc/connection [#3650](https://github.com/cosmos/ibc-go/pull/3650)
+  - ibc/client [#3640](https://github.com/cosmos/ibc-go/pull/3640)
+  - ibc/transfer [#3553](https://github.com/cosmos/ibc-go/pull/3553)
+
+Each module has a corresponding `MsgUpdateParams` message with a `Params` which can be specified in full to update the modules' `Params`.
+
 ## IBC Apps
 
 TODO: 
