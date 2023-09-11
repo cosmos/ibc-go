@@ -621,72 +621,6 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 	}
 }
 
-// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
-func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
-	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
-	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
-	}{
-		{
-			"success: valid signer and params",
-			types.NewMsgUpdateParams(signer, types.DefaultParams()),
-			true,
-		},
-		{
-			"success: valid signer empty params",
-			types.NewMsgUpdateParams(signer, types.Params{}),
-			true,
-		},
-		{
-			"failure: invalid signer address",
-			types.NewMsgUpdateParams("invalid", types.DefaultParams()),
-			false,
-		},
-		{
-			"failure: invalid allowed client",
-			types.NewMsgUpdateParams(signer, types.NewParams("")),
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		err := tc.msg.ValidateBasic()
-		if tc.expPass {
-			suite.Require().NoError(err, "valid case %s failed", tc.name)
-		} else {
-			suite.Require().Error(err, "invalid case %s passed", tc.name)
-		}
-	}
-}
-
-// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
-func TestMsgUpdateParamsGetSigners(t *testing.T) {
-	testCases := []struct {
-		name    string
-		address sdk.AccAddress
-		expPass bool
-	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
-	}
-
-	for _, tc := range testCases {
-		msg := types.MsgUpdateParams{
-			Signer: tc.address.String(),
-			Params: types.DefaultParams(),
-		}
-		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
-		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
-		}
-	}
-}
-
 // TestMsgRecoverClientValidateBasic tests ValidateBasic for MsgRecoverClient
 func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 	var msg *types.MsgRecoverClient
@@ -950,4 +884,70 @@ func (suite *TypesTestSuite) TestMarshalMsgIBCSoftwareUpgrade() {
 	// unpack client state
 	_, err = types.UnpackClientState(newMsg.UpgradedClientState)
 	suite.Require().NoError(err)
+}
+
+// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
+func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	testCases := []struct {
+		name    string
+		msg     *types.MsgUpdateParams
+		expPass bool
+	}{
+		{
+			"success: valid signer and params",
+			types.NewMsgUpdateParams(signer, types.DefaultParams()),
+			true,
+		},
+		{
+			"success: valid signer empty params",
+			types.NewMsgUpdateParams(signer, types.Params{}),
+			true,
+		},
+		{
+			"failure: invalid signer address",
+			types.NewMsgUpdateParams("invalid", types.DefaultParams()),
+			false,
+		},
+		{
+			"failure: invalid allowed client",
+			types.NewMsgUpdateParams(signer, types.NewParams("")),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			suite.Require().NoError(err, "valid case %s failed", tc.name)
+		} else {
+			suite.Require().Error(err, "invalid case %s passed", tc.name)
+		}
+	}
+}
+
+// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
+	}
+
+	for _, tc := range testCases {
+		msg := types.MsgUpdateParams{
+			Signer: tc.address.String(),
+			Params: types.DefaultParams(),
+		}
+		if tc.expPass {
+			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			require.Panics(t, func() {
+				msg.GetSigners()
+			})
+		}
+	}
 }

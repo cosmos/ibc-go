@@ -114,6 +114,25 @@ func (k Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecover
 	return &clienttypes.MsgRecoverClientResponse{}, nil
 }
 
+// IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
+func (k Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)
+	if err != nil {
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot unpack client state: %s", err)
+	}
+
+	if err = k.ClientKeeper.ScheduleIBCSoftwareUpgrade(ctx, msg.Plan, upgradedClientState); err != nil {
+		return nil, errorsmod.Wrapf(err, "cannot schedule IBC client upgrade")
+	}
+
+	return &clienttypes.MsgIBCSoftwareUpgradeResponse{}, nil
+}
+
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
 func (k Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenInit) (*connectiontypes.MsgConnectionOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -724,25 +743,6 @@ func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUp
 	k.ClientKeeper.SetParams(ctx, msg.Params)
 
 	return &clienttypes.MsgUpdateParamsResponse{}, nil
-}
-
-// IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
-func (k Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
-	if k.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
-	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)
-	if err != nil {
-		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot unpack client state: %s", err)
-	}
-
-	if err = k.ClientKeeper.ScheduleIBCSoftwareUpgrade(ctx, msg.Plan, upgradedClientState); err != nil {
-		return nil, errorsmod.Wrapf(err, "cannot schedule IBC client upgrade")
-	}
-
-	return &clienttypes.MsgIBCSoftwareUpgradeResponse{}, nil
 }
 
 // UpdateConnectionParams defines a rpc handler method for MsgUpdateParams for the 03-connection submodule.

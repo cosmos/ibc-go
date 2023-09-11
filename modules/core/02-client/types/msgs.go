@@ -263,29 +263,35 @@ func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 	return unpacker.UnpackAny(msg.Misbehaviour, &misbehaviour)
 }
 
-// NewMsgUpdateParams creates a new instance of MsgUpdateParams.
-func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
-	return &MsgUpdateParams{
-		Signer: signer,
-		Params: params,
+// NewMsgRecoverClient creates a new MsgRecoverClient instance
+func NewMsgRecoverClient(signer, subjectClientID, substituteClientID string) *MsgRecoverClient {
+	return &MsgRecoverClient{
+		Signer:             signer,
+		SubjectClientId:    subjectClientID,
+		SubstituteClientId: substituteClientID,
 	}
 }
 
-// GetSigners returns the expected signers for a MsgUpdateParams message.
-func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+// ValidateBasic performs basic checks on a MsgRecoverClient.
+func (msg *MsgRecoverClient) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	if err := host.ClientIdentifierValidator(msg.SubjectClientId); err != nil {
+		return err
+	}
+
+	return host.ClientIdentifierValidator(msg.SubstituteClientId)
+}
+
+// GetSigners returns the expected signers for a MsgRecoverClient message.
+func (msg *MsgRecoverClient) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{accAddr}
-}
-
-// ValidateBasic performs basic checks on a MsgUpdateParams.
-func (msg *MsgUpdateParams) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-	return msg.Params.Validate()
 }
 
 // NewMsgIBCSoftwareUpgrade creates a new MsgIBCSoftwareUpgrade instance
@@ -335,33 +341,27 @@ func (msg *MsgIBCSoftwareUpgrade) UnpackInterfaces(unpacker codectypes.AnyUnpack
 	return unpacker.UnpackAny(msg.UpgradedClientState, new(exported.ClientState))
 }
 
-// NewMsgRecoverClient creates a new MsgRecoverClient instance
-func NewMsgRecoverClient(signer, subjectClientID, substituteClientID string) *MsgRecoverClient {
-	return &MsgRecoverClient{
-		Signer:             signer,
-		SubjectClientId:    subjectClientID,
-		SubstituteClientId: substituteClientID,
+// NewMsgUpdateParams creates a new instance of MsgUpdateParams.
+func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Signer: signer,
+		Params: params,
 	}
 }
 
-// ValidateBasic performs basic checks on a MsgRecoverClient.
-func (msg *MsgRecoverClient) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	if err := host.ClientIdentifierValidator(msg.SubjectClientId); err != nil {
-		return err
-	}
-
-	return host.ClientIdentifierValidator(msg.SubstituteClientId)
-}
-
-// GetSigners returns the expected signers for a MsgRecoverClient message.
-func (msg *MsgRecoverClient) GetSigners() []sdk.AccAddress {
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{accAddr}
+}
+
+// ValidateBasic performs basic checks on a MsgUpdateParams.
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return msg.Params.Validate()
 }

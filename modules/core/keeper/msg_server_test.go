@@ -856,57 +856,6 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 	}
 }
 
-// TestUpdateClientParams tests the UpdateClientParams rpc handler
-func (suite *KeeperTestSuite) TestUpdateClientParams() {
-	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
-	testCases := []struct {
-		name    string
-		msg     *clienttypes.MsgUpdateParams
-		expPass bool
-	}{
-		{
-			"success: valid signer and default params",
-			clienttypes.NewMsgUpdateParams(signer, clienttypes.DefaultParams()),
-			true,
-		},
-		{
-			"failure: malformed signer address",
-			clienttypes.NewMsgUpdateParams(ibctesting.InvalidID, clienttypes.DefaultParams()),
-			false,
-		},
-		{
-			"failure: empty signer address",
-			clienttypes.NewMsgUpdateParams("", clienttypes.DefaultParams()),
-			false,
-		},
-		{
-			"failure: whitespace signer address",
-			clienttypes.NewMsgUpdateParams("    ", clienttypes.DefaultParams()),
-			false,
-		},
-		{
-			"failure: unauthorized signer address",
-			clienttypes.NewMsgUpdateParams(ibctesting.TestAccAddress, clienttypes.DefaultParams()),
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			_, err := keeper.Keeper.UpdateClientParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
-			if tc.expPass {
-				suite.Require().NoError(err)
-				p := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
-				suite.Require().Equal(tc.msg.Params, p)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
-
 // TestIBCSoftwareUpgrade tests the IBCSoftwareUpgrade rpc handler
 func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 	var msg *clienttypes.MsgIBCSoftwareUpgrade
@@ -985,6 +934,57 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				suite.Require().Equal(clientState.ZeroCustomFields(), upgradedClientState)
 			} else {
 				suite.Require().True(errors.Is(err, tc.expError))
+			}
+		})
+	}
+}
+
+// TestUpdateClientParams tests the UpdateClientParams rpc handler
+func (suite *KeeperTestSuite) TestUpdateClientParams() {
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	testCases := []struct {
+		name    string
+		msg     *clienttypes.MsgUpdateParams
+		expPass bool
+	}{
+		{
+			"success: valid signer and default params",
+			clienttypes.NewMsgUpdateParams(signer, clienttypes.DefaultParams()),
+			true,
+		},
+		{
+			"failure: malformed signer address",
+			clienttypes.NewMsgUpdateParams(ibctesting.InvalidID, clienttypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: empty signer address",
+			clienttypes.NewMsgUpdateParams("", clienttypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: whitespace signer address",
+			clienttypes.NewMsgUpdateParams("    ", clienttypes.DefaultParams()),
+			false,
+		},
+		{
+			"failure: unauthorized signer address",
+			clienttypes.NewMsgUpdateParams(ibctesting.TestAccAddress, clienttypes.DefaultParams()),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			_, err := keeper.Keeper.UpdateClientParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				p := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.msg.Params, p)
+			} else {
+				suite.Require().Error(err)
 			}
 		})
 	}

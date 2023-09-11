@@ -82,6 +82,21 @@ func emitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState export
 	})
 }
 
+// emitSubmitMisbehaviourEvent emits a client misbehaviour event
+func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeSubmitMisbehaviour,
+			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
+
 // emitRecoverClientEvent emits a recover client event
 func emitRecoverClientEvent(ctx sdk.Context, clientID, clientType string) {
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -106,21 +121,6 @@ func emitScheduleIBCSoftwareUpgradeEvent(ctx sdk.Context, title string, height i
 			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprintf("%d", height)),
 			sdk.NewAttribute(types.AttributeKeyClientType, upgradeClientState.ClientType()),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, upgradeClientState.GetLatestHeight().String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
-}
-
-// emitSubmitMisbehaviourEvent emits a client misbehaviour event
-func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeSubmitMisbehaviour,
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
