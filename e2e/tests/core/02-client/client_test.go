@@ -83,7 +83,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	const planHeight = int64(75)
-	var newChainId string
+	var newChainID string
 
 	t.Run("send schedule IBC upgrade message", func(t *testing.T) {
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
@@ -93,15 +93,15 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
-		originalChainId := clientState.(*ibctm.ClientState).ChainId
-		revisionNumber := clienttypes.ParseChainID(fmt.Sprintf("%s-%d", originalChainId, 1))
+		originalChainID := clientState.(*ibctm.ClientState).ChainId
+		revisionNumber := clienttypes.ParseChainID(fmt.Sprintf("%s-%d", originalChainID, 1))
 		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
-		newChainId, err = clienttypes.SetRevisionNumber(fmt.Sprintf("%s-%d", originalChainId, 1), revisionNumber+1)
+		newChainID, err = clienttypes.SetRevisionNumber(fmt.Sprintf("%s-%d", originalChainID, 1), revisionNumber+1)
 		s.Require().NoError(err)
-		s.Assert().NotEqual(originalChainId, newChainId)
+		s.Assert().NotEqual(originalChainID, newChainID)
 
 		upgradedClientState := clientState.(*ibctm.ClientState)
-		upgradedClientState.ChainId = newChainId
+		upgradedClientState.ChainId = newChainID
 
 		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
 			authority.String(),
@@ -121,7 +121,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().NoError(err)
 
 		upgradedClientState := cs.(*ibctm.ClientState)
-		s.Assert().Equal(upgradedClientState.ChainId, newChainId)
+		s.Assert().Equal(upgradedClientState.ChainId, newChainID)
 
 		plan, err := s.QueryCurrentPlan(ctx, chainA)
 		s.Require().NoError(err)
