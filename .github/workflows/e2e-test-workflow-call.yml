@@ -47,6 +47,11 @@ on:
         description: 'The upgrade plan name'
         required: false
         type: string
+      relayer-image:
+        description: 'The image to use for the relayer'
+        required: false
+        default: '' # the tests themselves will choose a sensible default when unset.
+        type: string
       relayer-type:
         description: 'The type of relayer to use'
         required: false
@@ -84,6 +89,7 @@ jobs:
           echo "Chain B Tag:       ${{ inputs.chain-b-tag }}"
           echo "Chain Upgrade Tag: ${{ inputs.chain-upgrade-tag }}"
           echo "Upgrade Plan Name: ${{ inputs.upgrade-plan-name }}"
+          echo "Relayer Image:"    ${{ inputs.relayer-image }}
           echo "Relayer Type:      ${{ inputs.relayer-type }}"
           echo "Relayer Tag:       ${{ inputs.relayer-tag }}"
           echo "Test Entry Point:  ${{ inputs.test-entry-point }}"
@@ -115,7 +121,7 @@ jobs:
 
       - name: Build and push Docker image
         if: ${{ inputs.build-and-push-docker-image }}
-        uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
+        uses: docker/build-push-action@4e4ee680f69700760d5620a94c020aef883043aa
         with:
           context: .
           push: true
@@ -158,6 +164,7 @@ jobs:
       CHAIN_IMAGE: '${{ inputs.chain-image }}'
       CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
       CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
+      RELAYER_IMAGE: '${{ inputs.relayer-image }}'
       RELAYER_TAG: '${{ inputs.relayer-tag }}'
       RELAYER_TYPE: '${{ inputs.relayer-type }}'
       CHAIN_BINARY: '${{ inputs.chain-binary }}'
