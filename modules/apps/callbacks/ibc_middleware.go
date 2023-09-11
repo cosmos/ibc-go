@@ -3,6 +3,7 @@ package ibccallbacks
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -261,6 +262,11 @@ func (im IBCMiddleware) WriteAcknowledgement(
 
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
 //
+// Error Precedence and Returns:
+//   - oogErr: Takes the highest precedence. If the callback runs out of gas, an error wrapped with types.ErrCallbackOutOfGas is returned.
+//   - panicErr: Takes the second-highest precedence. If a panic occurs and it is not propagated, an error wrapped with types.ErrCallbackPanic is returned.
+//   - callbackErr: If the callbackExecutor returns an error, it is returned as-is.
+//
 // panics if
 //   - the contractExecutor panics for any reason, and the callbackType is SendPacket, or
 //   - the contractExecutor runs out of gas and the relayer has not reserved gas grater than or equal to
@@ -281,11 +287,15 @@ func (IBCMiddleware) processCallback(
 			if callbackType == types.CallbackTypeSendPacket {
 				panic(r)
 			}
+			err = errorsmod.Wrapf(types.ErrCallbackPanic, "ibc %s callback panicked with: %v", callbackType, r)
 		}
 
 		// if the callback ran out of gas and the relayer has not reserved enough gas, then revert the state
-		if cachedCtx.GasMeter().IsPastLimit() && callbackData.AllowRetry() {
-			panic(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
+		if cachedCtx.GasMeter().IsPastLimit() {
+			if callbackData.AllowRetry() {
+				panic(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
+			}
+			err = errorsmod.Wrapf(types.ErrCallbackOutOfGas, "ibc %s callback out of gas", callbackType)
 		}
 
 		// allow the transaction to be committed, continuing the packet lifecycle
