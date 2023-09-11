@@ -31,7 +31,26 @@ This message is expected to fail if:
 - `Sender` is empty.
 - `Receiver` is empty.
 - `TimeoutHeight` and `TimeoutTimestamp` are both zero.
+- `Memo` is longer than 256 characters.
 
 This message will send a fungible token to the counterparty chain represented by the counterparty Channel End connected to the Channel End with the identifiers `SourcePort` and `SourceChannel`.
 
 The denomination provided for transfer should correspond to the same denomination represented on this chain. The prefixes will be added as necessary upon by the receiving chain.
+
+### Memo
+
+The memo field was added to allow applications and users to attach metadata to transfer packets. The field is optional and can be left empty. When it is used to attach metadata for a particular middleware, the memo field should be represented as a json object where different middlewares add different json keys.
+
+For example, the following memo field is used by the [callbacks middleware](../middleware/callbacks/overview.md) to attach a source callback to a transfer packet:
+
+```jsonc
+{
+  "src_callback": {
+    "address": "callbackAddressString",
+    // optional
+    "gas_limit": "userDefinedGasLimitString",
+  }
+}
+```
+
+You can find more information about other applications that use the memo field in the [chain registry](https://github.com/cosmos/chain-registry/blob/master/_memo_keys/ICS20_memo_keys.json).
