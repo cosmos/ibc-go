@@ -25,6 +25,7 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
@@ -440,7 +441,7 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 	icadSupportsGovV1Genesis := testvalues.IcadGovGenesisFeatureReleases.IsSupported(version)
 
 	if simdSupportsGovV1Genesis || icadSupportsGovV1Genesis {
-		return defaultGovv1ModifyGenesis()
+		return defaultGovv1ModifyGenesis(version)
 	}
 
 	return defaultGovv1Beta1ModifyGenesis()
@@ -481,7 +482,8 @@ func AppGenesisFromReader(reader io.Reader) (*genutiltypes.AppGenesis, error) {
 
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
-func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
+func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	var stdlibJSONMarshalling = semverutil.FeatureReleases{MajorVersion: "v8"}
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
 
 		appGenesis, err := AppGenesisFromReader(bytes.NewReader(genbz))
@@ -506,8 +508,15 @@ func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 			return nil, err
 		}
 
-		// TODO: use regular marshal indent in the case of < 8.0.0
-		bz, err := tmjson.MarshalIndent(appGenesis, "", "  ")
+		// in older version < v8, tmjson marshal must be used.
+		// regular json marshalling must be used for v8 and above as the
+		// sdk is de-coupled from comet.
+		marshalIndentFn := tmjson.MarshalIndent
+		if stdlibJSONMarshalling.IsSupported(version) {
+			marshalIndentFn = json.MarshalIndent
+		}
+
+		bz, err := marshalIndentFn(appGenesis, "", "  ")
 		if err != nil {
 			return nil, err
 		}
