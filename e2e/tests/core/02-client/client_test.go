@@ -88,7 +88,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t.Run("send schedule IBC upgrade message", func(t *testing.T) {
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
-		s.Assert().NotNil(authority)
+		s.Require().NotNil(authority)
 
 		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
 		s.Require().NoError(err)
@@ -98,7 +98,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
 		newChainID, err = clienttypes.SetRevisionNumber(fmt.Sprintf("%s-%d", originalChainID, 1), revisionNumber+1)
 		s.Require().NoError(err)
-		s.Assert().NotEqual(originalChainID, newChainID)
+		s.Require().NotEqual(originalChainID, newChainID)
 
 		upgradedClientState := clientState.(*ibctm.ClientState)
 		upgradedClientState.ChainId = newChainID
@@ -121,13 +121,13 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().NoError(err)
 
 		upgradedClientState := cs.(*ibctm.ClientState)
-		s.Assert().Equal(upgradedClientState.ChainId, newChainID)
+		s.Require().Equal(upgradedClientState.ChainId, newChainID)
 
 		plan, err := s.QueryCurrentPlan(ctx, chainA)
 		s.Require().NoError(err)
 
-		s.Assert().Equal("upgrade-client", plan.Name)
-		s.Assert().Equal(planHeight, plan.Height)
+		s.Require().Equal("upgrade-client", plan.Name)
+		s.Require().Equal(planHeight, plan.Height)
 	})
 }
 
