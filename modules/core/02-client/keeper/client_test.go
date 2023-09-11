@@ -638,9 +638,6 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
 
-			tmClientState, ok = substituteClientState.(*ibctm.ClientState)
-			suite.Require().True(ok)
-
 			tc.malleate()
 
 			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.RecoverClient(suite.chainA.GetContext(), subject, substitute)
