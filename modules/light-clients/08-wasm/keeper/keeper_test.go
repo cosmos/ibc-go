@@ -40,6 +40,11 @@ func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
+func generateWasmCodeHash(code []byte) []byte {
+	hash := sha256.Sum256(code)
+	return hash[:]
+}
+
 func (suite *KeeperTestSuite) TestIterateCode() {
 	testCases := []struct {
 		name      string
@@ -81,7 +86,6 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 			suite.chainA.GetSimApp().WasmClientKeeper.IterateCode(
 				suite.chainA.GetContext(), func(b []byte) bool {
 					allCodeHash = append(allCodeHash, generateWasmCodeHash(b)...)
-
 					return false
 				},
 			)
@@ -92,7 +96,4 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 
 }
 
-func generateWasmCodeHash(code []byte) []byte {
-	hash := sha256.Sum256(code)
-	return hash[:]
-}
+

@@ -138,3 +138,7 @@ func (k Keeper) IterateCode(ctx sdk.Context, cb func([]byte) bool) {
 		}
 	}
 }
+
+func (k Keeper) GetCodeByCodeHash(ctx sdk.Context, codeHash []byte) ([]byte, error) {
+	return k.wasmVM.GetCode(codeHash)
+}

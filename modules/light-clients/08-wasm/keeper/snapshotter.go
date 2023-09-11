@@ -82,7 +82,7 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(errorsmod.Wrap(err, "failed to store contract"), err.Error())
 	}
 
-	_, err = k.storeWasmCode(ctx, wasmCode)
+	_, err = k.wasmVM.StoreCode(wasmCode)
 	if err != nil {
 		return errorsmod.Wrap(errorsmod.Wrap(err, "failed to store contract"), err.Error())
 	}

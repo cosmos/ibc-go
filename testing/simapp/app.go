@@ -485,8 +485,9 @@ func NewSimApp(
 	// Function DefaultWasmConfig can also be used to use default values.
 	//
 	// In the code below we use the second method because we are not using x/wasm in this app.go.
+	wasmDir := filepath.Join(homePath, "ibc_08-wasm_client_data")
 	wasmConfig := wasmtypes.WasmConfig{
-		DataDir:           "ibc_08-wasm_client_data",
+		DataDir:           wasmDir,
 		SupportedFeatures: "iterator",
 		MemoryCacheSize:   uint32(math.Pow(2, 8)),
 		ContractDebugMode: false,
@@ -735,6 +736,15 @@ func NewSimApp(
 	app.SetEndBlocker(app.EndBlocker)
 	app.setAnteHandler(encodingConfig.TxConfig)
 
+	// must be before Loading version
+	if manager := app.SnapshotManager(); manager != nil {
+		err := manager.RegisterExtensions(
+			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmClientKeeper),
+		)
+		if err != nil {
+			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
+		}
+	}
 	// In v0.46, the SDK introduces _postHandlers_. PostHandlers are like
 	// antehandlers, but are run _after_ the `runMsgs` execution. They are also
 	// defined as a chain, and have the same signature as antehandlers.
