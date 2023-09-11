@@ -145,7 +145,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
@@ -173,7 +173,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount * 2
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
@@ -191,7 +191,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
-			s.Require().Equal(expected, actualBalance)
+			s.Require().Equal(expected, actualBalance.Int64())
 		})
 	})
 }
@@ -552,7 +552,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	// create separate user specifically for the upgrade proposal to more easily verify starting
@@ -585,7 +585,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount * 2
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	t.Run("check that the v2 solo machine clientstate has been updated to the v3 solo machine clientstate", func(t *testing.T) {
@@ -639,7 +639,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
