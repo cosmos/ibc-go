@@ -38,7 +38,7 @@ The denomination provided for transfer should correspond to the same denominatio
 
 ### Memo
 
-The memo field was added to allow applications and users to attach metadata to transfer packets. The field is optional and can be left empty. When it is used to attach metadata for a particular middleware, the memo field should be represented as a json object where different middlewares add different json keys.
+The memo field was added to allow applications and users to attach metadata to transfer packets. The field is optional and may be left empty. When it is used to attach metadata for a particular middleware, the memo field should be represented as a json object where different middlewares use different json keys.
 
 For example, the following memo field is used by the [callbacks middleware](../../middleware/callbacks/overview.md) to attach a source callback to a transfer packet:
 
