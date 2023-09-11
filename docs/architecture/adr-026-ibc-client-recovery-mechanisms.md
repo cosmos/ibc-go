@@ -56,7 +56,7 @@ We elect not to deal with chains which have actually halted, which is necessaril
 
     In addition, `TrustingPeriod` was initally not allowed to be updated by a client upgrade proposal. However, due to the number of situations experienced in production where the `TrustingPeriod` of a client should be allowed to be updated because of ie: initial misconfiguration for a canonical channel, governance should be allowed to update this client parameter.
 
-    In versions older than ibc-go v8, `MsgRecoverClient` was a governance proposal type `ClientUpdateProposal`. It has been removed and replaced by `MsgRecoverClient` in the migration from goverance v1beta1 to governacne v1.
+    In versions older than ibc-go v8, `MsgRecoverClient` was a governance proposal type `ClientUpdateProposal`. It has been removed and replaced by `MsgRecoverClient` in the migration from governance v1beta1 to governance v1.
 
     Note that this should NOT be lightly updated, as there may be a gap in time between when misbehaviour has occured and when the evidence of misbehaviour is submitted. For example, if the `UnbondingPeriod` is 2 weeks and the `TrustingPeriod` has also been set to two weeks, a validator could wait until right before `UnbondingPeriod` finishes, submit false information, then unbond and exit without being slashed for misbehaviour. Therefore, we recommend that the trusting period for the 07-tendermint client be set to 2/3 of the `UnbondingPeriod`.
 
