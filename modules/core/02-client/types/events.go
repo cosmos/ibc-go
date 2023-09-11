@@ -26,7 +26,6 @@ var (
 	EventTypeUpgradeClient              = "upgrade_client"
 	EventTypeSubmitMisbehaviour         = "client_misbehaviour"
 	EventTypeUpgradeChain               = "upgrade_chain"
-	EventTypeUpgradeClientProposal      = "upgrade_client_proposal"
 	EventTypeScheduleIBCSoftwareUpgrade = "schedule_ibc_software_upgrade"
 	EventTypeRecoverClient              = "recover_client"
 
