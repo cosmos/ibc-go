@@ -5,22 +5,29 @@ set -eo pipefail
 TEST="${1}"
 ENTRY_POINT="${2:-}"
 
+function _verify_dependencies() {
+      if ! command -v fzf > /dev/null || ! command -v jq > /dev/null ; then
+          echo "fzf and jq are required to interactively select a test."
+          exit 1
+      fi
+}
+
 # _get_test returns the test that should be used in the e2e test. If an argument is provided, that argument
 # is returned. Otherwise, fzf is used to interactively choose from all available tests.
 function _get_test(){
+    # if an argument is provided, it is used directly. This enables the drop down selection with fzf.
     if [ -n "$1" ]; then
         echo "$1"
         return
     # if fzf and jq are installed, we can use them to provide an interactive mechanism to select from all available tests.
-    elif command -v fzf > /dev/null && command -v jq > /dev/null; then
+    else
         cd ..
         go run -mod=readonly cmd/build_test_matrix/main.go | jq  -r '.include[] | .test' | fzf
         cd - > /dev/null
-    else
-        echo "TEST was not provided and both fzf and jq are not present. Unable to determine which test should be used."
-        exit 1
     fi
 }
+
+_verify_dependencies
 
 # if test is set, that is used directly, otherwise the test can be interactively provided if fzf is installed.
 TEST="$(_get_test ${TEST})"
