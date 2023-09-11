@@ -82,27 +82,26 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	var (
-		originalChainId string
-		newChainId      string
-		planHeight      int64
-	)
+	const planHeight = int64(75)
+	var newChainId string
 
 	t.Run("send schedule IBC upgrade message", func(t *testing.T) {
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
-		s.Require().NotNil(authority)
+		s.Assert().NotNil(authority)
 
 		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
-		originalChainId = clientState.(*ibctm.ClientState).ChainId
-		newChainId = "new-chain-id"
+		originalChainId := clientState.(*ibctm.ClientState).ChainId
+		revisionNumber := clienttypes.ParseChainID(fmt.Sprintf("%s-%d", originalChainId, 1))
+		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
+		newChainId, err = clienttypes.SetRevisionNumber(fmt.Sprintf("%s-%d", originalChainId, 1), revisionNumber+1)
+		s.Require().NoError(err)
 		s.Assert().NotEqual(originalChainId, newChainId)
 
 		upgradedClientState := clientState.(*ibctm.ClientState)
 		upgradedClientState.ChainId = newChainId
-		planHeight = int64(75)
 
 		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
 			authority.String(),
@@ -122,7 +121,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().NoError(err)
 
 		upgradedClientState := cs.(*ibctm.ClientState)
-		s.Require().Equal(upgradedClientState.ChainId, newChainId)
+		s.Assert().Equal(upgradedClientState.ChainId, newChainId)
 
 		plan, err := s.QueryCurrentPlan(ctx, chainA)
 		s.Require().NoError(err)
