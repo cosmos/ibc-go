@@ -112,4 +112,4 @@ After this, all that remains is deciding who funds the governance deposit and en
 
 ## Important considerations
 
-Please note that if the client on the other end of the transaction is also expired, that client will also need to update. This process updates only one client.
+Please note that if the counterparty client is also expired, that client will also need to update. This process updates only one client.
