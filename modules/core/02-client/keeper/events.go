@@ -113,14 +113,12 @@ func emitRecoverClientEvent(ctx sdk.Context, clientID, clientType string) {
 }
 
 // emitScheduleIBCSoftwareUpgradeEvent emits a schedule IBC software upgrade event
-func emitScheduleIBCSoftwareUpgradeEvent(ctx sdk.Context, title string, height int64, upgradeClientState exported.ClientState) {
+func emitScheduleIBCSoftwareUpgradeEvent(ctx sdk.Context, title string, height int64) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeScheduleIBCSoftwareUpgrade,
 			sdk.NewAttribute(types.AttributeKeyUpgradePlanTitle, title),
 			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprintf("%d", height)),
-			sdk.NewAttribute(types.AttributeKeyClientType, upgradeClientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, upgradeClientState.GetLatestHeight().String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
