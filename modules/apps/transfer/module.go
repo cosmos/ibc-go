@@ -29,7 +29,7 @@ import (
 var (
 	_ module.AppModule       = (*AppModule)(nil)
 	_ module.AppModuleBasic  = (*AppModuleBasic)(nil)
-	_ module.HasProposalMsgs = AppModule{}
+	_ module.HasProposalMsgs = (*AppModule)(nil)
 	_ appmodule.AppModule    = (*AppModule)(nil)
 	_ porttypes.IBCModule    = (*IBCModule)(nil)
 )

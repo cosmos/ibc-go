@@ -36,7 +36,7 @@ var (
 	_ module.AppModule           = (*AppModule)(nil)
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
-	_ module.HasProposalMsgs     = AppModule{}
+	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 )
