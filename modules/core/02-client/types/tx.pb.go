@@ -281,7 +281,7 @@ func (m *MsgUpgradeClientResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpgradeClientResponse proto.InternalMessageInfo
 
-// MsgIBCSoftwareUpgrade defines an sdk.Msg to schedule an upgrade of an IBC client using a v1 governance proposal
+// MsgIBCSoftwareUpgrade defines the message used to schedule an upgrade of an IBC client using a v1 governance proposal
 type MsgIBCSoftwareUpgrade struct {
 	Plan types1.Plan `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan"`
 	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
@@ -553,7 +553,7 @@ func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
-// MsgRecoverClient defines the sdk.Msg type to recover a client.
+// MsgRecoverClient defines the message used to recover a frozen or expired client.
 type MsgRecoverClient struct {
 	// the client identifier for the client to be updated if the proposal passes
 	SubjectClientId string `protobuf:"bytes,1,opt,name=subject_client_id,json=subjectClientId,proto3" json:"subject_client_id,omitempty"`
