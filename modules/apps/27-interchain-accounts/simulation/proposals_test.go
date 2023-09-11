@@ -12,9 +12,9 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/simulation"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/simulation"
 )
 
 func TestProposalMsgs(t *testing.T) {

@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,9 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 // define constants used for testing
@@ -45,22 +44,6 @@ var (
 
 	timeoutHeight = clienttypes.NewHeight(0, 10)
 )
-
-// TestMsgTransferRoute tests Route for MsgTransfer
-func TestMsgTransferRoute(t *testing.T) {
-	msg := types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, "")
-
-	require.Equal(t, types.RouterKey, msg.Route())
-}
-
-func TestMsgTransferGetSignBytes(t *testing.T) {
-	msg := types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, "")
-	expected := fmt.Sprintf(`{"type":"cosmos-sdk/MsgTransfer","value":{"receiver":"%s","sender":"%s","source_channel":"testchannel","source_port":"testportid","timeout_height":{"revision_height":"10"},"token":{"amount":"100","denom":"atom"}}}`, receiver, sender)
-	require.NotPanics(t, func() {
-		res := msg.GetSignBytes()
-		require.Equal(t, expected, string(res))
-	})
-}
 
 // TestMsgTransferValidation tests ValidateBasic for MsgTransfer
 func TestMsgTransferValidation(t *testing.T) {

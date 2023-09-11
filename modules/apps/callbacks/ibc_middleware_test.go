@@ -11,16 +11,16 @@ import (
 	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
@@ -137,13 +137,22 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			ibcmock.MockApplicationCallbackError, // execution failure on SendPacket should prevent packet sends
 		},
 		{
-			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
+			"failure: callback execution reach out of gas panic, but sufficient gas provided",
 			func() {
 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, simapp.OogPanicContract)
 			},
 			types.CallbackTypeSendPacket,
 			true,
 			storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("mock %s callback oog panic", types.CallbackTypeSendPacket)},
+		},
+		{
+			"failure: callback execution reach out of gas error, but sufficient gas provided",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, simapp.OogErrorContract)
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			errorsmod.Wrapf(types.ErrCallbackOutOfGas, "ibc %s callback out of gas", types.CallbackTypeSendPacket),
 		},
 	}
 
@@ -821,7 +830,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				}
 			},
 			false,
-			nil,
+			errorsmod.Wrapf(types.ErrCallbackPanic, "ibc %s callback panicked with: %v", callbackType, "callbackExecutor panic"),
 		},
 		{
 			"success: callbackExecutor oog panic, but retry is not allowed",
@@ -834,7 +843,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				}
 			},
 			false,
-			nil,
+			errorsmod.Wrapf(types.ErrCallbackOutOfGas, "ibc %s callback out of gas", callbackType),
 		},
 		{
 			"failure: callbackExecutor error",

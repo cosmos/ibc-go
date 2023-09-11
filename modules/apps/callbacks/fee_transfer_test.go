@@ -9,8 +9,8 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 var (

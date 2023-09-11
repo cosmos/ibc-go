@@ -5,8 +5,8 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type TypesTestSuite struct {

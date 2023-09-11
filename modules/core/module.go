@@ -19,17 +19,17 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
-	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectionkeeper "github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/client/cli"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/core/simulation"
-	"github.com/cosmos/ibc-go/v7/modules/core/types"
+	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
+	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v8/modules/core/03-connection/keeper"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/client/cli"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/simulation"
+	"github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
 var (
@@ -37,6 +37,7 @@ var (
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
 	_ module.HasProposalMsgs     = AppModule{}
+	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 )
 
@@ -183,8 +184,9 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 5 }
 
 // BeginBlock returns the begin blocker for the ibc module.
-func (am AppModule) BeginBlock(ctx sdk.Context) {
-	ibcclient.BeginBlocker(ctx, am.keeper.ClientKeeper)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	ibcclient.BeginBlocker(sdk.UnwrapSDKContext(ctx), am.keeper.ClientKeeper)
+	return nil
 }
 
 // AppModuleSimulation functions
