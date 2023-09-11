@@ -83,6 +83,8 @@ TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to trans
 
 Each module has a corresponding `MsgUpdateParams` message with a `Params` which can be specified in full to update the modules' `Params`.
 
+Legacy params subspaces must still be initialised in app.go in order to successfully migrate from x/params to the new self-contained approach. See reference: https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go#L1001-L1006
+
 ## IBC Apps
 
 TODO: 
