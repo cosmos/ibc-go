@@ -66,11 +66,11 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	return nil
 }
 
-// MigrateMigrateDenomMetadataMetadata sets token metadata for all the IBC denom traces
+// MigrateDenomMetadata sets token metadata for all the IBC denom traces
 func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
 	m.keeper.IterateDenomTraces(ctx,
 		func(dt types.DenomTrace) (stop bool) {
-			// check if the metadata for the given denom trace already exists
+			// check if the metadata for the given denom trace does not already exist
 			if !m.keeper.bankKeeper.HasDenomMetaData(ctx, dt.IBCDenom()) {
 				m.keeper.setDenomMetadata(ctx, dt)
 			}

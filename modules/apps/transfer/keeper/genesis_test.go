@@ -55,9 +55,8 @@ func (suite *KeeperTestSuite) TestGenesis() {
 		suite.chainA.GetSimApp().TransferKeeper.InitGenesis(suite.chainA.GetContext(), *genesis)
 	})
 
-	ctx := suite.chainA.GetContext()
 	for _, denomTrace := range denomTraces {
-		_, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(ctx, denomTrace.IBCDenom())
+		_, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainA.GetContext(), denomTrace.IBCDenom())
 		suite.Require().True(found)
 	}
 }
