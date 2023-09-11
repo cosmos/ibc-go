@@ -14,6 +14,8 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/x/upgrade/types"
+
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -69,6 +71,64 @@ func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Cha
 	s.Require().NoError(err)
 
 	return res.Params.AllowedClients
+}
+
+// TestScheduleIBCUpgrade_Succeeds tests that a governance proposal to schedule an IBC software upgrade is successful.
+func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
+	t := s.T()
+	ctx := context.TODO()
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	chainA, chainB := s.GetChains()
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	const planHeight = int64(75)
+	var newChainID string
+
+	t.Run("send schedule IBC upgrade message", func(t *testing.T) {
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Assert().NotNil(authority)
+
+		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		originalChainID := clientState.(*ibctm.ClientState).ChainId
+		revisionNumber := clienttypes.ParseChainID(fmt.Sprintf("%s-%d", originalChainID, 1))
+		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
+		newChainID, err = clienttypes.SetRevisionNumber(fmt.Sprintf("%s-%d", originalChainID, 1), revisionNumber+1)
+		s.Require().NoError(err)
+		s.Assert().NotEqual(originalChainID, newChainID)
+
+		upgradedClientState := clientState.(*ibctm.ClientState)
+		upgradedClientState.ChainId = newChainID
+
+		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
+			authority.String(),
+			types.Plan{
+				Name:   "upgrade-client",
+				Height: planHeight,
+			},
+			upgradedClientState,
+		)
+		s.Require().NoError(err)
+		s.ExecuteGovProposalV1(ctx, scheduleUpgradeMsg, chainA, chainAWallet, 1)
+	})
+
+	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(t *testing.T) {
+		// checks there is an upgraded client state stored
+		cs, err := s.QueryUpgradedClientState(ctx, chainA, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		upgradedClientState := cs.(*ibctm.ClientState)
+		s.Assert().Equal(upgradedClientState.ChainId, newChainID)
+
+		plan, err := s.QueryCurrentPlan(ctx, chainA)
+		s.Require().NoError(err)
+
+		s.Assert().Equal("upgrade-client", plan.Name)
+		s.Assert().Equal(planHeight, plan.Height)
+	})
 }
 
 // TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
