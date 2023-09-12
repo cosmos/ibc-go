@@ -99,26 +99,26 @@ Remove legacy proposal registration from app.go ref: [#4602](https://github.com/
 Remove the ibcclient ProposalHandler from the govRouter.
 
 ```diff
-	govRouter := govv1beta1.NewRouter()
-	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
--		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+govRouter := govv1beta1.NewRouter()
+govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
+  AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
+- AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 ```
 
 Remove the UpgradeProposalHandler from the BasicModuleManager
 
 ```diff
-	app.BasicModuleManager = module.NewBasicManagerFromManager(
-		app.ModuleManager,
-		map[string]module.AppModuleBasic{
-			genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-			govtypes.ModuleName: gov.NewAppModuleBasic(
-				[]govclient.ProposalHandler{
-					paramsclient.ProposalHandler,
--					ibcclientclient.UpgradeProposalHandler,
-				},
-			),
-		})
+app.BasicModuleManager = module.NewBasicManagerFromManager(
+  app.ModuleManager,
+  map[string]module.AppModuleBasic{
+    genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+    govtypes.ModuleName: gov.NewAppModuleBasic(
+      []govclient.ProposalHandler{
+      paramsclient.ProposalHandler,
+-     ibcclientclient.UpgradeProposalHandler,
+    },
+  ),
+})
 ```
 
 ### Transfer migration
