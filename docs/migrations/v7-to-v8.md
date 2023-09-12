@@ -92,6 +92,8 @@ Legacy params subspaces must still be initialised in app.go in order to successf
 
 Proposals have been migrated to [gov v1 messages](https://docs.cosmos.network/v0.50/modules/gov#messages) ref: [#4620](https://github.com/cosmos/ibc-go/pull/4620).
 
+Ensure that the correct authority field is provided to the ibc keeper. The default authority will be `gov` if not specified.
+
 Remove legacy proposal registration from app.go ref: [#4602](https://github.com/cosmos/ibc-go/pull/4602).
 
 Remove the ibcclient ProposalHandler from the govRouter.
