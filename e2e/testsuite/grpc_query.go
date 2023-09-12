@@ -153,8 +153,8 @@ func (s *E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, c
 	return res.Status, nil
 }
 
-// QueryCurrentPlan queries the currently scheduled plans, if any
-func (s *E2ETestSuite) QueryCurrentPlan(ctx context.Context, chain ibc.Chain) (upgradetypes.Plan, error) {
+// QueryCurrentUpgradePlan queries the currently scheduled upgrade plans.
+func (s *E2ETestSuite) QueryCurrentUpgradePlan(ctx context.Context, chain ibc.Chain) (upgradetypes.Plan, error) {
 	queryClient := s.GetChainGRCPClients(chain).UpgradeQueryClient
 	res, err := queryClient.CurrentPlan(ctx, &upgradetypes.QueryCurrentPlanRequest{})
 	if err != nil {

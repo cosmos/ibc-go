@@ -127,7 +127,7 @@ func (k Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIB
 	}
 
 	if err = k.ClientKeeper.ScheduleIBCSoftwareUpgrade(ctx, msg.Plan, upgradedClientState); err != nil {
-		return nil, errorsmod.Wrapf(err, "cannot schedule IBC client upgrade")
+		return nil, errorsmod.Wrapf(clienttypes.ErrSchedulingIBCUpgrade, "cannot schedule IBC client upgrade: %s", err)
 	}
 
 	return &clienttypes.MsgIBCSoftwareUpgradeResponse{}, nil

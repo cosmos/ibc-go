@@ -120,10 +120,11 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		cs, err := s.QueryUpgradedClientState(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
-		upgradedClientState := cs.(*ibctm.ClientState)
+		upgradedClientState, ok := cs.(*ibctm.ClientState)
+		s.Require().True(ok)
 		s.Require().Equal(upgradedClientState.ChainId, newChainID)
 
-		plan, err := s.QueryCurrentPlan(ctx, chainA)
+		plan, err := s.QueryCurrentUpgradePlan(ctx, chainA)
 		s.Require().NoError(err)
 
 		s.Require().Equal("upgrade-client", plan.Name)
@@ -142,7 +143,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		subjectClientID    string
 		substituteClientID string
 		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
-		badTrustingPeriod = time.Duration(time.Second * 10)
+		badTrustingPeriod = time.Second * 10
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
@@ -198,6 +199,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
+		s.Require().NotNil(recoverClientMsg)
 		s.ExecuteGovV1Proposal(ctx, recoverClientMsg, chainA, chainAWallet, 1)
 	})
 
