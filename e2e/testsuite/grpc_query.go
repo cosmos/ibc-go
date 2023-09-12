@@ -276,8 +276,8 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 	return res.CounterpartyPayee, nil
 }
 
-// QueryProposal queries the governance proposal on the given chain with the given proposal ID.
-func (s *E2ETestSuite) QueryProposal(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
+// QueryProposalV1Beta1 queries the governance proposal on the given chain with the given proposal ID.
+func (s *E2ETestSuite) QueryProposalV1Beta1(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
 	queryClient := s.GetChainGRCPClients(chain).GovQueryClient
 	res, err := queryClient.Proposal(ctx, &govtypesv1beta1.QueryProposalRequest{
 		ProposalId: proposalID,
