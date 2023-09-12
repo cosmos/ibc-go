@@ -5,11 +5,27 @@ set -eo pipefail
 TEST="${1}"
 ENTRY_POINT="${2:-}"
 
-function _verify_dependencies() {
-      if ! command -v fzf > /dev/null || ! command -v jq > /dev/null ; then
-          echo "fzf and jq are required to interactively select a test."
+function _verify_jq() {
+      if ! command -v jq > /dev/null ; then
+          echo "jq is required to extract test entrypoint."
           exit 1
       fi
+}
+
+function _verify_fzf() {
+      if ! command -v fzf > /dev/null ; then
+          echo "fzf is required to interactively select a test."
+          exit 1
+      fi
+}
+
+function _verify_dependencies() {
+    if [ -z "${TEST}" ]; then
+        # fzf is only required if we are not explicitly specifying a test.
+        _verify_fzf
+    fi
+    # jq is always required to determine the entrypoint of the test.
+    _verify_jq
 }
 
 # _get_test returns the test that should be used in the e2e test. If an argument is provided, that argument
