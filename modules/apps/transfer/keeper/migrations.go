@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -55,6 +55,7 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 			if !equalTraces(newTrace, dt) {
 				newTraces = append(newTraces, newTrace)
 			}
+
 			return false
 		})
 
@@ -62,6 +63,21 @@ func (m Migrator) MigrateTraces(ctx sdk.Context) error {
 	for _, nt := range newTraces {
 		m.keeper.SetDenomTrace(ctx, nt)
 	}
+	return nil
+}
+
+// MigrateDenomMetadata sets token metadata for all the IBC denom traces
+func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
+	m.keeper.IterateDenomTraces(ctx,
+		func(dt types.DenomTrace) (stop bool) {
+			// check if the metadata for the given denom trace does not already exist
+			if !m.keeper.bankKeeper.HasDenomMetaData(ctx, dt.IBCDenom()) {
+				m.keeper.setDenomMetadata(ctx, dt)
+			}
+			return false
+		})
+
+	m.keeper.Logger(ctx).Info("successfully added metadata to IBC voucher denominations")
 	return nil
 }
 

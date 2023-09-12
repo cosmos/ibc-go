@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 // TestMsgTransfer tests Transfer rpc handler
@@ -119,7 +119,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().NotEqual(res.Sequence, uint64(0))
-				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
@@ -131,34 +131,34 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 // TestUpdateParams tests UpdateParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateParams() {
-	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
+	signer := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and default params",
-			types.NewMsgUpdateParams(validAuthority, types.DefaultParams()),
+			"success: valid signer and default params",
+			types.NewMsgUpdateParams(signer, types.DefaultParams()),
 			true,
 		},
 		{
-			"failure: malformed authority address",
+			"failure: malformed signer address",
 			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
 			false,
 		},
 		{
-			"failure: empty authority address",
+			"failure: empty signer address",
 			types.NewMsgUpdateParams("", types.DefaultParams()),
 			false,
 		},
 		{
-			"failure: whitespace authority address",
+			"failure: whitespace signer address",
 			types.NewMsgUpdateParams("    ", types.DefaultParams()),
 			false,
 		},
 		{
-			"failure: unauthorized authority address",
+			"failure: unauthorized signer address",
 			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
 			false,
 		},
