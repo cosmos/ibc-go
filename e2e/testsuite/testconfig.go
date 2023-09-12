@@ -4,14 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"strings"
 
 	tmjson "github.com/cometbft/cometbft/libs/json"
-	cmttypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"gopkg.in/yaml.v2"
@@ -447,46 +444,13 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 	return defaultGovv1Beta1ModifyGenesis()
 }
 
-// AppGenesisFromReader reads the AppGenesis from the reader.
-// TODO: this function is a duplicate of one that was added in the SDK. Remove this function in https://github.com/cosmos/ibc-go/issues/4556
-func AppGenesisFromReader(reader io.Reader) (*genutiltypes.AppGenesis, error) {
-	jsonBlob, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, err
-	}
-
-	var appGenesis genutiltypes.AppGenesis
-	if err := json.Unmarshal(jsonBlob, &appGenesis); err != nil {
-		// fallback to CometBFT genesis
-		var ctmGenesis cmttypes.GenesisDoc
-		if err2 := tmjson.Unmarshal(jsonBlob, &ctmGenesis); err2 != nil {
-			return nil, fmt.Errorf("error unmarshalling AppGenesis: %w\n failed fallback to CometBFT GenDoc: %w", err, err2)
-		}
-
-		appGenesis = genutiltypes.AppGenesis{
-			AppName: version.AppName,
-			// AppVersion is not filled as we do not know it from a CometBFT genesis
-			GenesisTime:   ctmGenesis.GenesisTime,
-			ChainID:       ctmGenesis.ChainID,
-			InitialHeight: ctmGenesis.InitialHeight,
-			AppHash:       ctmGenesis.AppHash,
-			AppState:      ctmGenesis.AppState,
-			Consensus: &genutiltypes.ConsensusGenesis{
-				Validators: ctmGenesis.Validators,
-				Params:     ctmGenesis.ConsensusParams,
-			},
-		}
-	}
-	return &appGenesis, nil
-}
-
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
 func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
 	var stdlibJSONMarshalling = semverutil.FeatureReleases{MajorVersion: "v8"}
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
 
-		appGenesis, err := AppGenesisFromReader(bytes.NewReader(genbz))
+		appGenesis, err := genutiltypes.AppGenesisFromReader(bytes.NewReader(genbz))
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
 		}
