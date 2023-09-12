@@ -14,6 +14,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 
 	for _, trace := range state.DenomTraces {
 		k.SetDenomTrace(ctx, trace)
+		k.setDenomMetadata(ctx, trace)
 	}
 
 	// Only try to bind to port if it is not already bound, since we may already own
