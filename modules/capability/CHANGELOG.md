@@ -39,7 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* [\#4068](https://github.com/cosmos/ibc-go/pull/4068) Variuos improvements made to testing to reduce the dependency tree and use new cosmos-sdk test utils.
+* [\#4068](https://github.com/cosmos/ibc-go/pull/4068) Various improvements made to testing to reduce the dependency tree and use new cosmos-sdk test utils.
 
 ### Features
 
