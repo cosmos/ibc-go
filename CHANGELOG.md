@@ -50,6 +50,36 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+## [v7.3.0](https://github.com/cosmos/ibc-go/releases/tag/v7.3.0) - 2023-08-31
+
+### Dependencies
+
+* [\#4122](https://github.com/cosmos/ibc-go/pull/4122) Update Cosmos SDK to v0.47.4.
+
+### Improvements
+
+* [\#4187](https://github.com/cosmos/ibc-go/pull/4187) Adds function `WithICS4Wrapper` to keepers to allow to set the middleware after the keeper's creation.
+* (light-clients/06-solomachine) [\#4429](https://github.com/cosmos/ibc-go/pull/4429) Remove IBC key from path of bytes signed by solomachine and not escape the path.
+
+### Features
+
+* (apps/27-interchain-accounts) [\#3796](https://github.com/cosmos/ibc-go/pull/3796) Adds support for json tx encoding for interchain accounts.
+* [\#4188](https://github.com/cosmos/ibc-go/pull/4188) Adds optional `PacketDataUnmarshaler` interface that allows a middleware to request the packet data to be unmarshaled by the base application.
+* [\#4199](https://github.com/cosmos/ibc-go/pull/4199) Adds optional `PacketDataProvider` interface for retrieving custom packet data stored on behalf of another application.
+* [\#4200](https://github.com/cosmos/ibc-go/pull/4200) Adds optional `PacketData` interface which application's packet data may implement.
+
+### Bug Fixes
+
+* (04-channel) [\#4476](https://github.com/cosmos/ibc-go/pull/4476) Use UTC time in log messages for packet timeout error.
+* (testing) [\#4483](https://github.com/cosmos/ibc-go/pull/4483) Use the correct revision height when querying trusted validator set.
+
+## [v7.2.1](https://github.com/cosmos/ibc-go/releases/tag/v7.2.1) - 2023-08-31
+
+### Bug Fixes
+
+* (04-channel) [\#4476](https://github.com/cosmos/ibc-go/pull/4476) Use UTC time in log messages for packet timeout error.
+* (testing) [\#4483](https://github.com/cosmos/ibc-go/pull/4483) Use the correct revision height when querying trusted validator set.
+
 ## [v7.2.0](https://github.com/cosmos/ibc-go/releases/tag/v7.2.0) - 2023-06-22
 
 ### Dependencies

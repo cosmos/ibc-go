@@ -5,25 +5,25 @@ import (
 	"testing"
 	"time"
 
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/cosmos-sdk/store/iavl"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	log "cosmossdk.io/log"
+	"cosmossdk.io/store/iavl"
+	"cosmossdk.io/store/metrics"
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	dbm "github.com/cometbft/cometbft-db"
-	abci "github.com/cometbft/cometbft/abci/types"
-	log "github.com/cometbft/cometbft/libs/log"
-
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 var (
@@ -52,8 +52,7 @@ func (suite *MsgTestSuite) SetupTest() {
 
 	app := simapp.Setup(suite.T(), false)
 	db := dbm.NewMemDB()
-	dblog := log.TestingLogger()
-	store := rootmulti.NewStore(db, dblog)
+	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
@@ -64,11 +63,12 @@ func (suite *MsgTestSuite) SetupTest() {
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
 
-	res := store.Query(abci.RequestQuery{
-		Path:  fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
+	res, err := store.Query(&storetypes.RequestQuery{
 		Data:  []byte("KEY"),
+		Path:  fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
 		Prove: true,
 	})
+	suite.Require().NoError(err)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	suite.Require().NoError(err)
@@ -238,25 +238,25 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
 func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
-	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and params",
-			types.NewMsgUpdateParams(authority, types.DefaultParams()),
+			"success: valid signer and params",
+			types.NewMsgUpdateParams(signer, types.DefaultParams()),
 			true,
 		},
 		{
-			"failure: invalid authority address",
+			"failure: invalid signer address",
 			types.NewMsgUpdateParams("invalid", types.DefaultParams()),
 			false,
 		},
 		{
 			"failure: invalid time per block",
-			types.NewMsgUpdateParams(authority, types.NewParams(0)),
+			types.NewMsgUpdateParams(signer, types.NewParams(0)),
 			false,
 		},
 	}
@@ -284,8 +284,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 
 	for _, tc := range testCases {
 		msg := types.MsgUpdateParams{
-			Authority: tc.address.String(),
-			Params:    types.DefaultParams(),
+			Signer: tc.address.String(),
+			Params: types.DefaultParams(),
 		}
 		if tc.expPass {
 			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())

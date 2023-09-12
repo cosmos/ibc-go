@@ -27,9 +27,9 @@ var DefaultMaxAddrLength = 128
 // strictly alphanumeric characters and is non empty.
 var isValidAddr = regexp.MustCompile("^[a-zA-Z0-9]+$").MatchString
 
-// InterchainAccountI wraps the authtypes.AccountI interface
+// InterchainAccountI wraps the sdk.AccountI interface
 type InterchainAccountI interface {
-	authtypes.AccountI
+	sdk.AccountI
 }
 
 // interchainAccountPretty defines an unexported struct used for encoding the InterchainAccount details

@@ -5,12 +5,12 @@ import (
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 const (
@@ -139,7 +139,7 @@ func (up UpgradeProposal) String() string {
   Title: %s
   Description: %s
   %s
-  Upgraded IBC Client: %s`, up.Title, up.Description, up.Plan, upgradedClientStr)
+  Upgraded IBC Client: %s`, up.Title, up.Description, up.Plan.String(), upgradedClientStr)
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces

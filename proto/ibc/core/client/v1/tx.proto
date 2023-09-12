@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.client.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/core/02-client/types";
+option go_package = "github.com/cosmos/ibc-go/v8/modules/core/02-client/types";
 
 import "cosmos/msg/v1/msg.proto";
 import "gogoproto/gogo.proto";
@@ -113,12 +113,12 @@ message MsgSubmitMisbehaviourResponse {}
 
 // MsgUpdateParams defines the sdk.Msg type to update the client parameters.
 message MsgUpdateParams {
-  option (cosmos.msg.v1.signer) = "authority";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.goproto_getters) = false;
 
-  // authority is the address of the governance account.
-  string authority = 1;
+  // signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+  string signer = 1;
 
   // params defines the client parameters to update.
   //

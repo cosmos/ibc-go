@@ -1,18 +1,18 @@
 package keeper_test
 
 import (
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 var (
@@ -777,34 +777,34 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 // TestUpdateClientParams tests the UpdateClientParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateClientParams() {
-	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *clienttypes.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and default params",
-			clienttypes.NewMsgUpdateParams(validAuthority, clienttypes.DefaultParams()),
+			"success: valid signer and default params",
+			clienttypes.NewMsgUpdateParams(signer, clienttypes.DefaultParams()),
 			true,
 		},
 		{
-			"failure: malformed authority address",
+			"failure: malformed signer address",
 			clienttypes.NewMsgUpdateParams(ibctesting.InvalidID, clienttypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: empty authority address",
+			"failure: empty signer address",
 			clienttypes.NewMsgUpdateParams("", clienttypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: whitespace authority address",
+			"failure: whitespace signer address",
 			clienttypes.NewMsgUpdateParams("    ", clienttypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: unauthorized authority address",
+			"failure: unauthorized signer address",
 			clienttypes.NewMsgUpdateParams(ibctesting.TestAccAddress, clienttypes.DefaultParams()),
 			false,
 		},
@@ -828,34 +828,34 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 
 // TestUpdateConnectionParams tests the UpdateConnectionParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
-	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *connectiontypes.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and default params",
-			connectiontypes.NewMsgUpdateParams(validAuthority, connectiontypes.DefaultParams()),
+			"success: valid signer and default params",
+			connectiontypes.NewMsgUpdateParams(signer, connectiontypes.DefaultParams()),
 			true,
 		},
 		{
-			"failure: malformed authority address",
+			"failure: malformed signer address",
 			connectiontypes.NewMsgUpdateParams(ibctesting.InvalidID, connectiontypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: empty authority address",
+			"failure: empty signer address",
 			connectiontypes.NewMsgUpdateParams("", connectiontypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: whitespace authority address",
+			"failure: whitespace signer address",
 			connectiontypes.NewMsgUpdateParams("    ", connectiontypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: unauthorized authority address",
+			"failure: unauthorized signer address",
 			connectiontypes.NewMsgUpdateParams(ibctesting.TestAccAddress, connectiontypes.DefaultParams()),
 			false,
 		},

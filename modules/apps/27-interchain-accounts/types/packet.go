@@ -10,7 +10,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
@@ -55,6 +55,11 @@ func (iapd InterchainAccountPacketData) ValidateBasic() error {
 // GetBytes returns the JSON marshalled interchain account packet data.
 func (iapd InterchainAccountPacketData) GetBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&iapd))
+}
+
+// UnmarshalJSON unmarshals raw JSON bytes into an InterchainAccountPacketData.
+func (iapd *InterchainAccountPacketData) UnmarshalJSON(bz []byte) error {
+	return ModuleCdc.UnmarshalJSON(bz, iapd)
 }
 
 // GetBytes returns the JSON marshalled interchain account CosmosTx.

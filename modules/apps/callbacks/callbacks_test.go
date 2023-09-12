@@ -5,25 +5,27 @@ import (
 	"fmt"
 	"testing"
 
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	simapp "github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const maxCallbackGas = uint64(1000000)
@@ -35,9 +37,8 @@ func init() {
 // SetupTestingApp provides the duplicated simapp which is specific to the callbacks module on chain creation.
 func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
-	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
+	return app, app.DefaultGenesis()
 }
 
 // GetSimApp returns the duplicated SimApp from within the callbacks directory.
@@ -288,4 +289,27 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 		)
 	}
 	s.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
+}
+
+// GetExpectedEvent returns the expected event for a callback.
+func GetExpectedEvent(
+	packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte, srcPortID,
+	eventPortID, eventChannelID string, seq uint64, callbackType types.CallbackType, expError error,
+) (abci.Event, bool) {
+	var (
+		callbackData types.CallbackData
+		err          error
+	)
+	if callbackType == types.CallbackTypeReceivePacket {
+		callbackData, err = types.GetDestCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxCallbackGas)
+	} else {
+		callbackData, err = types.GetSourceCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxCallbackGas)
+	}
+	if err != nil {
+		return abci.Event{}, false
+	}
+
+	newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
+	types.EmitCallbackEvent(newCtx, eventPortID, eventChannelID, seq, callbackType, callbackData, expError)
+	return newCtx.EventManager().Events().ToABCIEvents()[0], true
 }

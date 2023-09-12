@@ -7,10 +7,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
@@ -178,7 +179,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 				coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 
 				// funds the escrow account to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrowAddress, sdk.NewCoins(coin)))
 			},
 			sdkmath.NewInt(100),
 		},
@@ -195,8 +196,8 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 				coin2 := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 
 				// funds the escrow accounts to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress1, sdk.NewCoins(coin1)))
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress2, sdk.NewCoins(coin2)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrowAddress1, sdk.NewCoins(coin1)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrowAddress2, sdk.NewCoins(coin2)))
 			},
 			sdkmath.NewInt(200),
 		},
@@ -211,7 +212,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), trace)
 
 				// funds the escrow account to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetSimApp().BankKeeper, suite.chainA.GetContext(), escrowAddress, sdk.NewCoins(coin)))
+				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrowAddress, sdk.NewCoins(coin)))
 			},
 			sdkmath.NewInt(100),
 		},
@@ -232,6 +233,188 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			// check that the migration set the expected amount for both native and IBC tokens
 			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom)
 			suite.Require().Equal(tc.expectedEscrowAmt, amount.Amount)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
+	var (
+		denomTraces      []transfertypes.DenomTrace
+		expectedMetadata []banktypes.Metadata
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+	}{
+		{
+			"success with one denom trace with one hop",
+			func() {
+				denomTraces = []transfertypes.DenomTrace{
+					{
+						BaseDenom: "foo",
+						Path:      "transfer/channel-0",
+					},
+				}
+
+				expectedMetadata = []banktypes.Metadata{
+					{
+						Description: "IBC token from transfer/channel-0/foo",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "foo",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
+						Display: "transfer/channel-0/foo",
+						Name:    "transfer/channel-0/foo IBC token",
+						Symbol:  "FOO",
+					},
+				}
+			},
+		},
+		{
+			"success with one denom trace with two hops",
+			func() {
+				denomTraces = []transfertypes.DenomTrace{
+					{
+						BaseDenom: "ubar",
+						Path:      "transfer/channel-1/transfer/channel-2",
+					},
+				}
+
+				expectedMetadata = []banktypes.Metadata{
+					{
+						Description: "IBC token from transfer/channel-1/transfer/channel-2/ubar",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "ubar",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[0].IBCDenom(), // ibc/8243B3EAA19BAB1DB3B0020B81C0C5A953E7B22C042CEE44E639A11A238BA57C
+						Display: "transfer/channel-1/transfer/channel-2/ubar",
+						Name:    "transfer/channel-1/transfer/channel-2/ubar IBC token",
+						Symbol:  "UBAR",
+					},
+				}
+			},
+		},
+		{
+			"success with two denom traces with one hop",
+			func() {
+				denomTraces = []transfertypes.DenomTrace{
+					{
+						BaseDenom: "foo",
+						Path:      "transfer/channel-0",
+					},
+					{
+						BaseDenom: "bar",
+						Path:      "transfer/channel-0",
+					},
+				}
+
+				expectedMetadata = []banktypes.Metadata{
+					{
+						Description: "IBC token from transfer/channel-0/foo",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "foo",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
+						Display: "transfer/channel-0/foo",
+						Name:    "transfer/channel-0/foo IBC token",
+						Symbol:  "FOO",
+					},
+					{
+						Description: "IBC token from transfer/channel-0/bar",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "bar",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[1].IBCDenom(), // ibc/E1530E21F1848B6C29C9E89256D43E294976897611A61741CACBA55BE21736F5
+						Display: "transfer/channel-0/bar",
+						Name:    "transfer/channel-0/bar IBC token",
+						Symbol:  "BAR",
+					},
+				}
+			},
+		},
+		{
+			"success with two denom traces, metadata for one of them already exists",
+			func() {
+				denomTraces = []transfertypes.DenomTrace{
+					{
+						BaseDenom: "foo",
+						Path:      "transfer/channel-0",
+					},
+					{
+						BaseDenom: "bar",
+						Path:      "transfer/channel-0",
+					},
+				}
+
+				expectedMetadata = []banktypes.Metadata{
+					{
+						Description: "IBC token from transfer/channel-0/foo",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "foo",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
+						Display: "transfer/channel-0/foo",
+						Name:    "transfer/channel-0/foo IBC token",
+						Symbol:  "FOO",
+					},
+					{
+						Description: "IBC token from transfer/channel-0/bar",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "bar",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[1].IBCDenom(), // ibc/E1530E21F1848B6C29C9E89256D43E294976897611A61741CACBA55BE21736F5
+						Display: "transfer/channel-0/bar",
+						Name:    "transfer/channel-0/bar IBC token",
+						Symbol:  "BAR",
+					},
+				}
+
+				// set metadata for one of the tokens, so that it exists already in state before doing the migration
+				suite.chainA.GetSimApp().BankKeeper.SetDenomMetaData(suite.chainA.GetContext(), expectedMetadata[1])
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
+
+			tc.malleate()
+
+			for _, denomTrace := range denomTraces {
+				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(ctx, denomTrace)
+			}
+
+			// run migration
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+			err := migrator.MigrateDenomMetadata(ctx)
+			suite.Require().NoError(err)
+
+			for _, expMetadata := range expectedMetadata {
+				denomMetadata, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(ctx, expMetadata.Base)
+				suite.Require().True(found)
+				suite.Require().Equal(expMetadata, denomMetadata)
+			}
 		})
 	}
 }

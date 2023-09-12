@@ -55,7 +55,7 @@ jobs:
           - release/v7.3.x
           - main
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: env.RELEASE_BRANCH == matrix.release-branch
         with:
           ref: "${{ matrix.release-branch }}"

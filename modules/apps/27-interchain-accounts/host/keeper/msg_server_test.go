@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 )
 
 func (suite *KeeperTestSuite) TestUpdateParams() {
@@ -17,8 +17,8 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 			true,
 		},
 		{
-			"invalid authority address",
-			types.NewMsgUpdateParams("authority", types.DefaultParams()),
+			"invalid signer address",
+			types.NewMsgUpdateParams("signer", types.DefaultParams()),
 			false,
 		},
 	}

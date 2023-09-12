@@ -7,7 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,16 +20,13 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
@@ -133,14 +135,22 @@ If this is a compatibility test, ensure that the fields are being sanitized in t
 	return errorMsg
 }
 
-// ExecuteGovProposalV1 submits a governance proposal using the provided user and message and uses all validators
+// ExecuteGovV1Proposal submits a v1 governance proposal using the provided user and message and uses all validators
 // to vote yes on the proposal. It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user ibc.Wallet, proposalID uint64) {
+func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user ibc.Wallet, proposalID uint64) {
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
 	msgs := []sdk.Msg{msg}
-	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "", fmt.Sprintf("e2e gov proposal: %d", proposalID), fmt.Sprintf("executing gov proposal %d", proposalID))
+	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
+		msgs,
+		sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)),
+		sender.String(),
+		"",
+		fmt.Sprintf("e2e gov proposal: %d", proposalID),
+		fmt.Sprintf("executing gov proposal %d", proposalID),
+		false,
+	)
 	s.Require().NoError(err)
 
 	resp := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
@@ -155,9 +165,9 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 	s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
 }
 
-// ExecuteGovProposal submits the given governance proposal using the provided user and uses all validators to vote yes on the proposal.
+// ExecuteGovV1Beta1Proposal submits the given v1beta1 governance proposal using the provided user and uses all validators to vote yes on the proposal.
 // It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
+func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
@@ -170,7 +180,7 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// https://github.com/cosmos/ibc-go/issues/2122
 
-	proposal, err := s.QueryProposal(ctx, chain, 1)
+	proposal, err := s.QueryProposalV1Beta1(ctx, chain, 1)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
@@ -178,13 +188,13 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	s.Require().NoError(err)
 
 	// ensure voting period has not passed before validators finished voting
-	proposal, err = s.QueryProposal(ctx, chain, 1)
+	proposal, err = s.QueryProposalV1Beta1(ctx, chain, 1)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
 	time.Sleep(testvalues.VotingPeriod) // pass proposal
 
-	proposal, err = s.QueryProposal(ctx, chain, 1)
+	proposal, err = s.QueryProposalV1Beta1(ctx, chain, 1)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
 }
