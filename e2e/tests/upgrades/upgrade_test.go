@@ -731,7 +731,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 		s.Require().NotNil(authority)
 
 		msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(exported.Tendermint, "some-client"))
-		s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet)
+		s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet)
 	})
 
 	t.Run("query params", func(t *testing.T) {
