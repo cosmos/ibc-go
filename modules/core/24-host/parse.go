@@ -1,21 +1,11 @@
 package host
 
 import (
-	"regexp"
 	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 )
-
-// pathRegex defines a regular expression to extract values between forward slashes (/) from a path.
-// [^/] is a negated set to match any character which is not a forward slash.
-// + matches one or more occurrences of the preceding token (up to n slashes).
-//
-// Examples:
-// - a/b/c matches a, b, and c
-// - /a matches a
-var pathRegex = regexp.MustCompile("[^/]+")
 
 // ParseIdentifier parses the sequence from the identifier using the provided prefix. This function
 // does not need to be used by counterparty chains. SDK generated connection and channel identifiers
@@ -56,46 +46,35 @@ func MustParseClientStatePath(path string) string {
 // parseClientStatePath returns the client ID from a client state path. It returns
 // an error if the provided path is invalid.
 func parseClientStatePath(path string) (string, error) {
-	matches := pathRegex.FindAllString(path, -1)
-
-	if len(matches) != 3 {
-		return "", errorsmod.Wrapf(ErrInvalidPath, "cannot parse client state path %s, %v", path, matches)
+	split := strings.Split(path, "/")
+	if len(split) != 3 {
+		return "", errorsmod.Wrapf(ErrInvalidPath, "cannot parse client state path %s", path)
 	}
 
-	if matches[0] != string(KeyClientStorePrefix) {
-		return "", errorsmod.Wrapf(ErrInvalidPath, "path does not begin with client store prefix: expected %s, got %s", KeyClientStorePrefix, matches[0])
+	if split[0] != string(KeyClientStorePrefix) {
+		return "", errorsmod.Wrapf(ErrInvalidPath, "path does not begin with client store prefix: expected %s, got %s", KeyClientStorePrefix, split[0])
 	}
 
-	if matches[2] != KeyClientState {
-		return "", errorsmod.Wrapf(ErrInvalidPath, "path does not end with client state key: expected %s, got %s", KeyClientState, matches[2])
+	if split[2] != KeyClientState {
+		return "", errorsmod.Wrapf(ErrInvalidPath, "path does not end with client state key: expected %s, got %s", KeyClientState, split[2])
 	}
 
-	if strings.TrimSpace(matches[1]) == "" {
+	if strings.TrimSpace(split[1]) == "" {
 		return "", errorsmod.Wrap(ErrInvalidPath, "clientID is empty")
 	}
 
-	clientID := matches[1]
-
-	return clientID, nil
+	return split[1], nil
 }
 
 // ParseConnectionPath returns the connection ID from a full path. It returns
 // an error if the provided path is invalid.
 func ParseConnectionPath(path string) (string, error) {
-	matches := pathRegex.FindAllString(path, -1)
-
-	// localhost connection paths are just /path
-	if len(matches) == 1 {
-		return matches[0], nil
-	}
-
-	if len(matches) != 2 {
+	split := strings.Split(path, "/")
+	if len(split) != 2 {
 		return "", errorsmod.Wrapf(ErrInvalidPath, "cannot parse connection path %s", path)
 	}
 
-	connectionID := matches[1]
-
-	return connectionID, nil
+	return split[1], nil
 }
 
 // ParseChannelPath returns the port and channel ID from a full path. It returns
