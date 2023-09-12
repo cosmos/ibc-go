@@ -94,9 +94,9 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().NoError(err)
 
 		originalChainID := clientState.(*ibctm.ClientState).ChainId
-		revisionNumber := clienttypes.ParseChainID(fmt.Sprintf("%s-%d", originalChainID, 1))
+		revisionNumber := clienttypes.ParseChainID(originalChainID)
 		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
-		newChainID, err = clienttypes.SetRevisionNumber(fmt.Sprintf("%s-%d", originalChainID, 1), revisionNumber+1)
+		newChainID, err = clienttypes.SetRevisionNumber(originalChainID, revisionNumber+1)
 		s.Require().NoError(err)
 		s.Require().NotEqual(originalChainID, newChainID)
 
