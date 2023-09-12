@@ -110,7 +110,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 			balances, err := chainB.AllBalances(ctx, chainBAddress, true)
 			s.Require().NoError(err)
 
-			// balance for IBC token returns a humand-readable denomination
+			// balance for IBC token returns a human-readable denomination
 			s.Require().Equal(chainBIBCToken.GetFullDenomPath(), balances[1].Denom)
 		})
 	}
