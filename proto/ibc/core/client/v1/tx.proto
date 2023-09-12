@@ -133,7 +133,7 @@ message MsgRecoverClient {
   string signer = 3;
 }
 
-// MsgRecoverClientResponse defines the MsgRecoverClient response type.
+// MsgRecoverClientResponse defines the Msg/RecoverClient response type.
 message MsgRecoverClientResponse {}
 
 // MsgIBCSoftwareUpgrade defines the message used to schedule an upgrade of an IBC client using a v1 governance proposal

@@ -652,9 +652,16 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 		{
 			"failure: invalid substitute client ID",
 			func() {
-				msg.SubjectClientId = ""
+				msg.SubstituteClientId = ""
 			},
 			host.ErrInvalidID,
+		},
+		{
+			"failure: subject and substribute client IDs are the same",
+			func() {
+				msg.SubstituteClientId = ibctesting.FirstClientID
+			},
+			types.ErrInvalidSubstitute,
 		},
 	}
 
@@ -662,7 +669,7 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 		msg = types.NewMsgRecoverClient(
 			ibctesting.TestAccAddress,
 			ibctesting.FirstClientID,
-			ibctesting.FirstClientID,
+			ibctesting.SecondClientID,
 		)
 
 		tc.malleate()

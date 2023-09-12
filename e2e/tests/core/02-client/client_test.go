@@ -85,7 +85,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	const planHeight = int64(75)
 	var newChainID string
 
-	t.Run("send schedule IBC upgrade message", func(t *testing.T) {
+	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
@@ -194,7 +194,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		})
 	})
 
-	t.Run("send recover client message", func(t *testing.T) {
+	t.Run("execute proposal for MsgRecoverClient", func(t *testing.T) {
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)

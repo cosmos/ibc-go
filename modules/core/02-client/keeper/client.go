@@ -166,7 +166,7 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 	subjectClientStore := k.ClientStore(ctx, subjectClientID)
 
 	if status := k.GetClientStatus(ctx, subjectClientState, subjectClientID); status == exported.Active {
-		return errorsmod.Wrap(types.ErrInvalidRecoveryClient, "cannot recover Active subject client")
+		return errorsmod.Wrapf(types.ErrInvalidRecoveryClient, "cannot recover %s subject client", exported.Active)
 	}
 
 	substituteClientState, found := k.GetClientState(ctx, substituteClientID)
@@ -181,7 +181,7 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 	substituteClientStore := k.ClientStore(ctx, substituteClientID)
 
 	if status := k.GetClientStatus(ctx, substituteClientState, substituteClientID); status != exported.Active {
-		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not Active, status is %s", status)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not %s, status is %s", status, exported.Active)
 	}
 
 	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {

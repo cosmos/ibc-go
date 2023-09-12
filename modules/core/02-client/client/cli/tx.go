@@ -279,7 +279,7 @@ func newSubmitRecoverClientProposalCmd() *cobra.Command {
 			msg := types.NewMsgRecoverClient(authority, subjectClientID, substituteClientID)
 
 			if err = msg.ValidateBasic(); err != nil {
-				return err
+				return fmt.Errorf("error validating %T: %w", types.MsgRecoverClient{}, err)
 			}
 
 			if err := proposal.SetMsgs([]sdk.Msg{msg}); err != nil {
@@ -424,11 +424,11 @@ func newScheduleIBCUpgradeProposalCmd() *cobra.Command {
 
 			msg, err := types.NewMsgIBCSoftwareUpgrade(authority, plan, clientState)
 			if err != nil {
-				return fmt.Errorf("error in NewMsgIBCSoftwareUpgrade: %w", err)
+				return fmt.Errorf("error in %T: %w", types.MsgIBCSoftwareUpgrade{}, err)
 			}
 
 			if err = msg.ValidateBasic(); err != nil {
-				return fmt.Errorf("error validating MsgIBCSoftwareUpgrade: %w", err)
+				return fmt.Errorf("error validating %T: %w", types.MsgIBCSoftwareUpgrade{}, err)
 			}
 
 			if err := proposal.SetMsgs([]sdk.Msg{msg}); err != nil {
