@@ -135,7 +135,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 
 	t.Run("pass client update proposal", func(t *testing.T) {
 		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
-		s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+		s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 	})
 
 	t.Run("check status of each client", func(t *testing.T) {
@@ -286,7 +286,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			s.Require().NotNil(authority)
 
 			msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(allowedClient))
-			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet, 1)
 		} else {
 			value, err := tmjson.Marshal([]string{allowedClient})
 			s.Require().NoError(err)
@@ -295,7 +295,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+			s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 
