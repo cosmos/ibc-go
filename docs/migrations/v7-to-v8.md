@@ -74,6 +74,10 @@ TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to trans
 	)
 ```
 
+### Transfer migration
+
+An automatic migration handler (TODO: add link after https://github.com/cosmos/ibc-go/pull/3104 is merged) is configured in the transfer module to set the [denomination metadata](https://github.com/cosmos/cosmos-sdk/blob/95178ce036741ae6aa7af131fa9fccf3e13fff7a/proto/cosmos/bank/v1beta1/bank.proto#L96-L125) for the IBC denominations of all vouchers minted by the transfer module.
+
 ## IBC Apps
 
 TODO: 
