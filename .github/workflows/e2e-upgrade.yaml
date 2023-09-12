@@ -1,7 +1,12 @@
 name: Tests / E2E Upgrade
 on: 
   workflow_dispatch:
-  
+  pull_request:
+    branches:
+      - main
+    paths:
+        # upgrade tests will run on any changes to the upgrade_test.go file.
+      - 'e2e/tests/upgrades/upgrade_test.go'
   schedule:
     - cron: '0 0 * * *'
 
