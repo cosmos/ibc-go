@@ -63,7 +63,9 @@ func parseClientStatePath(path string) (string, error) {
 		return "", errorsmod.Wrap(ErrInvalidPath, "clientID is empty")
 	}
 
-	return split[1], nil
+	clientID := split[1]
+
+	return clientID, nil
 }
 
 // ParseConnectionPath returns the connection ID from a full path. It returns
@@ -74,7 +76,9 @@ func ParseConnectionPath(path string) (string, error) {
 		return "", errorsmod.Wrapf(ErrInvalidPath, "cannot parse connection path %s", path)
 	}
 
-	return split[1], nil
+	connectionID := split[1]
+
+	return connectionID, nil
 }
 
 // ParseChannelPath returns the port and channel ID from a full path. It returns
