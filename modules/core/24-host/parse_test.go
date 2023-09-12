@@ -93,8 +93,8 @@ func TestMustParseConnectionPath(t *testing.T) {
 	for _, tc := range testCases {
 		if tc.expPass {
 			require.NotPanics(t, func() {
-				connId := host.MustParseConnectionPath(tc.path)
-				require.Equal(t, connId, tc.expected)
+				connID := host.MustParseConnectionPath(tc.path)
+				require.Equal(t, connID, tc.expected)
 			})
 		} else {
 			require.Panics(t, func() {
