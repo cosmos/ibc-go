@@ -118,10 +118,10 @@ func UnmarshalMsgResponses(txResp sdk.TxResponse, msgs ...codec.ProtoMarshaler) 
 }
 
 // MustProtoMarshalJSON provides an auxiliary function to return Proto3 JSON encoded
-// bytes of a message.
-// NOTE: Copied from https://github.com/cosmos/cosmos-sdk/blob/971c542453e0972ef1dfc5a80159ad5049c7211c/codec/json.go
-// and modified in order to allow `EmitDefaults` to be set to false for ics20 packet marshalling.
-// This allows for the introduction of the memo field to be backwards compatible.
+// bytes of a message. This function should be used when marshalling a proto.Message
+// from the e2e tests. This function strips out unknown fields. This is useful for
+// backwards compatibility tests where the the types imported by the e2e package have
+// new fields that older versions do not recognize.
 func MustProtoMarshalJSON(msg proto.Message) []byte {
 	anyResolver := codectypes.NewInterfaceRegistry()
 
