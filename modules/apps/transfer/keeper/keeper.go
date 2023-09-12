@@ -4,22 +4,23 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
-	"github.com/cometbft/cometbft/libs/log"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Keeper defines the IBC fungible transfer keeper
@@ -77,13 +78,20 @@ func NewKeeper(
 	}
 }
 
+// WithICS4Wrapper sets the ICS4Wrapper. This function may be used after
+// the keepers creation to set the middleware which is above this module
+// in the IBC application stack.
+func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = wrapper
+}
+
 // GetAuthority returns the transfer module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }
 
@@ -172,7 +180,7 @@ func (k Keeper) GetAllDenomTraces(ctx sdk.Context) types.Traces {
 // and performs a callback function.
 func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.DenomTrace) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.DenomTraceKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -181,6 +189,28 @@ func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace types.Den
 			break
 		}
 	}
+}
+
+// setDenomMetadata sets an IBC token's denomination metadata
+func (k Keeper) setDenomMetadata(ctx sdk.Context, denomTrace types.DenomTrace) {
+	metadata := banktypes.Metadata{
+		Description: fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath()),
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    denomTrace.BaseDenom,
+				Exponent: 0,
+			},
+		},
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
+		// Base as key path and the IBC hash is what gives this token uniqueness
+		// on the executing chain
+		Base:    denomTrace.IBCDenom(),
+		Display: denomTrace.GetFullDenomPath(),
+		Name:    fmt.Sprintf("%s IBC token", denomTrace.GetFullDenomPath()),
+		Symbol:  strings.ToUpper(denomTrace.BaseDenom),
+	}
+
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 }
 
 // GetTotalEscrowForDenom gets the total amount of source chain tokens that
@@ -235,9 +265,9 @@ func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 // IterateTokensInEscrow iterates over the denomination escrows in the store
 // and performs a callback function. Denominations for which an invalid value
 // (i.e. not integer) is stored, will be skipped.
-func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, prefix []byte, cb func(denomEscrow sdk.Coin) bool) {
+func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, storeprefix []byte, cb func(denomEscrow sdk.Coin) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, prefix)
+	iterator := storetypes.KVStorePrefixIterator(store, storeprefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {

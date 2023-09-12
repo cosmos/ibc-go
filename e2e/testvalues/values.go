@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 )
 
 const (
@@ -72,7 +74,7 @@ var SimdNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
-// TransferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
+// SelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
 var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
@@ -98,4 +100,11 @@ var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
 // IbcErrorsFeatureReleases represents the releases the IBC module level errors was released in.
 var IbcErrorsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8.0",
+}
+
+// LocalhostClientFeatureReleases represents the releases the localhost client was released in.
+var LocalhostClientFeatureReleases = semverutil.FeatureReleases{
+	MinorVersions: []string{
+		"v7.1",
+	},
 }

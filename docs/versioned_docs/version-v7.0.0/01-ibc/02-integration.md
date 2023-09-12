@@ -42,17 +42,16 @@ All light clients must be registered with `module.BasicManager` in a chain's app
 
 The following code example shows how to register the existing `ibctm.AppModuleBasic{}` light client implementation.
 
-```diff
-
+```go
 import (
   ...
+  // highlight-next-line
 + ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
   ...
 )
 
 // app.go
 var (
-
   ModuleBasics = module.NewBasicManager(
     // ...
     capability.AppModuleBasic{},
@@ -60,6 +59,7 @@ var (
     transfer.AppModuleBasic{}, // i.e ibc-transfer module
 
     // register light clients on IBC
+    // highlight-next-line
 +   ibctm.AppModuleBasic{},
   )
 
@@ -76,8 +76,7 @@ var (
 
 Then, we need to register the `Keepers` as follows:
 
-```go
-// app.go
+```go title="app.go"
 type App struct {
   // baseapp, keys and subspaces definitions
 
@@ -147,8 +146,7 @@ channel handshake or a packet.
 Currently, a `Router` is static so it must be initialized and set correctly on app initialization.
 Once the `Router` has been set, no new routes can be added.
 
-```go
-// app.go
+```go title="app.go"
 func NewApp(...args) *App {
   // .. continuation from above
 
@@ -166,8 +164,7 @@ func NewApp(...args) *App {
 
 In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/building-modules/14-simulator.md).
 
-```go
-// app.go
+```go title="app.go"
 func NewApp(...args) *App {
   // .. continuation from above
 
@@ -200,8 +197,7 @@ at each height during the `BeginBlock` call. The historical info is required to 
 past historical info at any given height in order to verify the light client `ConsensusState` during the
 connection handhake.
 
-```go
-// app.go
+```go title="app.go"
 func NewApp(...args) *App {
   // .. continuation from above
 

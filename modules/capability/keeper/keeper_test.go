@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	storetypes "cosmossdk.io/store/types"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -20,15 +22,15 @@ var (
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	ctx    sdk.Context
 	keeper *keeper.Keeper
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	key := sdk.NewKVStoreKey(types.StoreKey)
-	testCtx := testutil.DefaultContextWithDB(suite.T(), key, sdk.NewTransientStoreKey("transient_test"))
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(suite.T(), key, storetypes.NewTransientStoreKey("transient_test"))
 	suite.ctx = testCtx.Ctx
 	encCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
 	suite.keeper = keeper.NewKeeper(encCfg.Codec, key, key)
@@ -140,7 +142,8 @@ func (suite *KeeperTestSuite) TestAuthenticateCapability() {
 	suite.Require().False(sk2.AuthenticateCapability(suite.ctx, cap2, "invalid"))
 	suite.Require().False(sk2.AuthenticateCapability(suite.ctx, cap1, "bond"))
 
-	sk2.ReleaseCapability(suite.ctx, cap2)
+	err = sk2.ReleaseCapability(suite.ctx, cap2)
+	suite.Require().NoError(err)
 	suite.Require().False(sk2.AuthenticateCapability(suite.ctx, cap2, "bond"))
 
 	badCap := types.NewCapability(100)
@@ -272,7 +275,7 @@ func (suite *KeeperTestSuite) TestReleaseCapability() {
 	suite.Require().Error(sk1.ReleaseCapability(suite.ctx, nil))
 }
 
-func (suite KeeperTestSuite) TestRevertCapability() {
+func (suite *KeeperTestSuite) TestRevertCapability() {
 	sk := suite.keeper.ScopeToModule(bankModuleName)
 
 	ms := suite.ctx.MultiStore()
@@ -304,5 +307,5 @@ func (suite KeeperTestSuite) TestRevertCapability() {
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	testifysuite.Run(t, new(KeeperTestSuite))
 }

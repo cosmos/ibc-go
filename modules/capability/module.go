@@ -1,6 +1,7 @@
 package capability
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -10,8 +11,6 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -20,16 +19,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
 	"github.com/cosmos/ibc-go/modules/capability/simulation"
 	"github.com/cosmos/ibc-go/modules/capability/types"
 )
 
 var (
-	_ module.BeginBlockAppModule = (*AppModule)(nil)
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
+	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -54,7 +55,7 @@ func (AppModuleBasic) Name() string {
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // RegisterInterfaces registers the module's interface types
-func (a AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
+func (AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 
 // DefaultGenesis returns the capability module's default genesis state.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
@@ -71,11 +72,11 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the capability module.
-func (a AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *gwruntime.ServeMux) {
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *gwruntime.ServeMux) {
 }
 
 // GetTxCmd returns the capability module's root tx command.
-func (a AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
+func (AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
 
 // GetQueryCmd returns the capability module's root query command.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
@@ -93,19 +94,19 @@ type AppModule struct {
 	sealKeeper bool
 }
 
-func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, sealKeeper bool) AppModule {
+func NewAppModule(cdc codec.Codec, capabilityKeeper keeper.Keeper, sealKeeper bool) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
-		keeper:         keeper,
+		keeper:         capabilityKeeper,
 		sealKeeper:     sealKeeper,
 	}
 }
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (am AppModule) IsOnePerModuleType() {}
+func (AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
-func (am AppModule) IsAppModule() {}
+func (AppModule) IsAppModule() {}
 
 // Name returns the capability module's name.
 func (am AppModule) Name() string {
@@ -114,10 +115,10 @@ func (am AppModule) Name() string {
 
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
-func (am AppModule) RegisterServices(module.Configurator) {}
+func (AppModule) RegisterServices(module.Configurator) {}
 
 // RegisterInvariants registers the capability module's invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.
@@ -143,14 +144,16 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 // BeginBlocker calls InitMemStore to assert that the memory store is initialized.
 // It's safe to run multiple times.
-func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+func (am AppModule) BeginBlock(ctx context.Context) error {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 
-	am.keeper.InitMemStore(ctx)
+	am.keeper.InitMemStore(sdk.UnwrapSDKContext(ctx))
 
 	if am.sealKeeper && !am.keeper.IsSealed() {
 		am.keeper.Seal()
 	}
+
+	return nil
 }
 
 // GenerateGenesisState creates a randomized GenState of the capability module.
@@ -159,11 +162,11 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // RegisterStoreDecoder registers a decoder for capability module's types
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+func (AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }

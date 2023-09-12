@@ -9,8 +9,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // OnChanOpenInit performs basic validation of channel initialization.
@@ -67,7 +67,7 @@ func (k Keeper) OnChanOpenInit(
 			panic(fmt.Sprintf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
-		if channel.State == channeltypes.OPEN {
+		if channel.IsOpen() {
 			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
 		}
 
@@ -129,7 +129,7 @@ func (k Keeper) OnChanOpenAck(
 }
 
 // OnChanCloseConfirm removes the active channel stored in state
-func (k Keeper) OnChanCloseConfirm(
+func (Keeper) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,

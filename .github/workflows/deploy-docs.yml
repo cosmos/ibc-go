@@ -22,8 +22,9 @@ jobs:
       image: ghcr.io/cosmos/website-deployment
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
+          ref: "main"
           persist-credentials: false
           fetch-depth: 0
           path: "."
@@ -34,7 +35,7 @@ jobs:
           make build-docs LEDGER_ENABLED=false
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.4.2
+        uses: JamesIves/github-pages-deploy-action@v4.4.3
         with:
           branch: gh-pages
           folder: ~/output

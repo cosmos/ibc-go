@@ -4,15 +4,16 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // VerifyUpgradeAndUpdateState checks if the upgraded client has been committed by the current client
@@ -27,7 +28,7 @@ import (
 //   - any Tendermint chain specified parameter in upgraded client such as ChainID, UnbondingPeriod,
 //     and ProofSpecs do not match parameters set by committed client
 func (cs ClientState) VerifyUpgradeAndUpdateState(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
 	upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState,
 	proofUpgradeClient, proofUpgradeConsState []byte,
 ) error {
@@ -82,7 +83,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// construct clientState Merkle path
 	upgradeClientPath := constructUpgradeClientMerklePath(cs.UpgradePath, lastHeight)
 	if err := merkleProofClient.VerifyMembership(cs.ProofSpecs, consState.GetRoot(), upgradeClientPath, bz); err != nil {
-		return errorsmod.Wrapf(err, "client state proof failed. Path: %s", upgradeClientPath.Pretty())
+		return errorsmod.Wrapf(err, "client state proof failed. Path: %s", upgradeClientPath.GetKeyPath())
 	}
 
 	// Verify consensus state proof
@@ -93,7 +94,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// construct consensus state Merkle path
 	upgradeConsStatePath := constructUpgradeConsStateMerklePath(cs.UpgradePath, lastHeight)
 	if err := merkleProofConsState.VerifyMembership(cs.ProofSpecs, consState.GetRoot(), upgradeConsStatePath, bz); err != nil {
-		return errorsmod.Wrapf(err, "consensus state proof failed. Path: %s", upgradeConsStatePath.Pretty())
+		return errorsmod.Wrapf(err, "consensus state proof failed. Path: %s", upgradeConsStatePath.GetKeyPath())
 	}
 
 	// Construct new client state and consensus state

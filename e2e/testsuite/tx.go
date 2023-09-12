@@ -7,7 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,17 +20,13 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
 
-	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
@@ -63,6 +64,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.Cosm
 
 	chainA, chainB := s.GetChains()
 	s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))
+
 	return resp
 }
 
@@ -101,7 +103,7 @@ func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *error
 	errorMsg := fmt.Sprintf("%+v", resp)
 	// In older versions, the codespace and abci codes were different. So in compatibility tests
 	// we can not make assertions on them.
-	if testconfig.GetChainATag() == testconfig.GetChainBTag() {
+	if GetChainATag() == GetChainBTag() {
 		s.Require().Equal(expectedError.ABCICode(), resp.Code, errorMsg)
 		s.Require().Equal(expectedError.Codespace(), resp.Codespace, errorMsg)
 	}
@@ -140,7 +142,15 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 	s.Require().NoError(err)
 
 	msgs := []sdk.Msg{msg}
-	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)), sender.String(), "", fmt.Sprintf("e2e gov proposal: %d", proposalID), fmt.Sprintf("executing gov proposal %d", proposalID))
+	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
+		msgs,
+		sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)),
+		sender.String(),
+		"",
+		fmt.Sprintf("e2e gov proposal: %d", proposalID),
+		fmt.Sprintf("executing gov proposal %d", proposalID),
+		false,
+	)
 	s.Require().NoError(err)
 
 	resp := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)

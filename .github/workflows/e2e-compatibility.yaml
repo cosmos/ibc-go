@@ -7,9 +7,6 @@ on:
         required: true
         type: choice
         options:
-          - release/v4.1.x
-          - release/v4.2.x
-          - release/v4.3.x
           - release/v4.4.x
           - release/v5.2.x
           - release/v5.3.x
@@ -49,9 +46,6 @@ jobs:
     strategy:
       matrix:
         release-branch:
-          - release/v4.1.x
-          - release/v4.2.x
-          - release/v4.3.x
           - release/v4.4.x
           - release/v5.2.x
           - release/v5.3.x
@@ -61,7 +55,7 @@ jobs:
           - release/v7.3.x
           - main
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: env.RELEASE_BRANCH == matrix.release-branch
         with:
           ref: "${{ matrix.release-branch }}"
@@ -256,15 +250,6 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "localhost-transfer-chain-a"
 
-  localhost-transfer-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "localhost-transfer-chain-b"
-
   localhost-ica-chain-a:
     needs:
       - build-release-images
@@ -273,12 +258,3 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "localhost-ica-chain-a"
-
-  localhost-ica-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "localhost-ica-chain-b"

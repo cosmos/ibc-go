@@ -3,17 +3,17 @@ package tendermint_test
 import (
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "cosmossdk.io/store/types"
 
 	tmtypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *TendermintTestSuite) TestVerifyHeader() {
@@ -308,7 +308,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 	var (
 		path               *ibctesting.Path
 		clientMessage      exported.ClientMessage
-		clientStore        sdk.KVStore
+		clientStore        storetypes.KVStore
 		consensusHeights   []exported.Height
 		pruneHeight        clienttypes.Height
 		prevClientState    exported.ClientState

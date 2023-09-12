@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestCreateClient() {
@@ -149,8 +149,6 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			updateHeader = createPastUpdateFn(fillHeight, trustedHeight)
 		}, true, false},
 		{"valid duplicate update", func() {
-			clientID := path.EndpointA.ClientID
-
 			height1 := clienttypes.NewHeight(1, 1)
 
 			// store previous consensus state
@@ -158,22 +156,27 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 				Timestamp:          suite.past,
 				NextValidatorsHash: suite.chainB.Vals.Hash(),
 			}
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientID, height1, prevConsState)
+			path.EndpointA.SetConsensusState(prevConsState, height1)
 
 			height5 := clienttypes.NewHeight(1, 5)
-			// store next consensus state to check that trustedHeight does not need to be hightest consensus state before header height
+			// store next consensus state to check that trustedHeight does not need to be highest consensus state before header height
 			nextConsState := &ibctm.ConsensusState{
 				Timestamp:          suite.past.Add(time.Minute),
 				NextValidatorsHash: suite.chainB.Vals.Hash(),
 			}
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientID, height5, nextConsState)
+			path.EndpointA.SetConsensusState(nextConsState, height5)
+
+			// update client state latest height
+			clientState := path.EndpointA.GetClientState()
+			clientState.(*ibctm.ClientState).LatestHeight = height5
+			path.EndpointA.SetClientState(clientState)
 
 			height3 := clienttypes.NewHeight(1, 3)
 			// updateHeader will fill in consensus state between prevConsState and suite.consState
 			// clientState should not be updated
 			updateHeader = createPastUpdateFn(height3, height1)
 			// set updateHeader's consensus state in store to create duplicate UpdateClient scenario
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientID, updateHeader.GetHeight(), updateHeader.ConsensusState())
+			path.EndpointA.SetConsensusState(updateHeader.ConsensusState(), updateHeader.GetHeight())
 		}, true, false},
 		{"misbehaviour detection: conflicting header", func() {
 			clientID := path.EndpointA.ClientID

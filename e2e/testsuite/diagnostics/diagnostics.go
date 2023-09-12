@@ -11,10 +11,8 @@ import (
 
 	dockertypes "github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
-	"github.com/cosmos/ibc-go/e2e/testconfig"
 )
 
 const (
@@ -25,11 +23,10 @@ const (
 
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
 // into e2e/<test-suite>/<test-name>.log. These log files will be uploaded to GH upon test failure.
-func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions) {
+func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chainNames ...string) {
 	t.Helper()
 
-	debugCfg := testconfig.LoadConfig().DebugConfig
-	if !debugCfg.DumpLogs {
+	if !debugModeEnabled {
 		// when we are not forcing log collection, we only upload upon test failing.
 		if !t.Failed() {
 			t.Logf("test passed, not uploading logs")
@@ -53,7 +50,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 		return
 	}
 
-	testContainers, err := dockerutil.GetTestContainers(t, ctx, dc)
+	testContainers, err := dockerutil.GetTestContainers(ctx, t, dc)
 	if err != nil {
 		t.Logf("failed listing containers test cleanup: %s", err)
 		return
@@ -80,8 +77,11 @@ func Collect(t *testing.T, dc *dockerclient.Client, cfg testconfig.ChainOptions)
 		}
 
 		t.Logf("successfully wrote log file %s", logFile)
-		diagnosticFiles := chainDiagnosticAbsoluteFilePaths(*cfg.ChainAConfig)
-		diagnosticFiles = append(diagnosticFiles, chainDiagnosticAbsoluteFilePaths(*cfg.ChainBConfig)...)
+
+		var diagnosticFiles []string
+		for _, chainName := range chainNames {
+			diagnosticFiles = append(diagnosticFiles, chainDiagnosticAbsoluteFilePaths(chainName)...)
+		}
 
 		for _, absoluteFilePathInContainer := range diagnosticFiles {
 			localFilePath := ospath.Join(containerDir, ospath.Base(absoluteFilePathInContainer))
@@ -147,12 +147,12 @@ func fetchAndWriteDockerInspectOutput(ctx context.Context, dc *dockerclient.Clie
 
 // chainDiagnosticAbsoluteFilePaths returns a slice of absolute file paths (in the containers) which are the files that should be
 // copied locally when fetching diagnostics.
-func chainDiagnosticAbsoluteFilePaths(cfg ibc.ChainConfig) []string {
+func chainDiagnosticAbsoluteFilePaths(chainName string) []string {
 	return []string{
-		fmt.Sprintf("/var/cosmos-chain/%s/config/genesis.json", cfg.Name),
-		fmt.Sprintf("/var/cosmos-chain/%s/config/app.toml", cfg.Name),
-		fmt.Sprintf("/var/cosmos-chain/%s/config/config.toml", cfg.Name),
-		fmt.Sprintf("/var/cosmos-chain/%s/config/client.toml", cfg.Name),
+		fmt.Sprintf("/var/cosmos-chain/%s/config/genesis.json", chainName),
+		fmt.Sprintf("/var/cosmos-chain/%s/config/app.toml", chainName),
+		fmt.Sprintf("/var/cosmos-chain/%s/config/config.toml", chainName),
+		fmt.Sprintf("/var/cosmos-chain/%s/config/client.toml", chainName),
 	}
 }
 

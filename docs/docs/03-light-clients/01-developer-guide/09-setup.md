@@ -121,7 +121,7 @@ where `proposal.json` contains:
   "messages": [
     {
       "@type": "/ibc.core.client.v1.MsgUpdateParams",
-      "authority": "cosmos1...", // The gov module account address
+      "signer": "cosmos1...", // The gov module account address
       "params": {
         "allowed_clients": ["06-solomachine", "07-tendermint", "0x-new-client"]
       }

@@ -27,9 +27,9 @@ var DefaultMaxAddrLength = 128
 // strictly alphanumeric characters and is non empty.
 var isValidAddr = regexp.MustCompile("^[a-zA-Z0-9]+$").MatchString
 
-// InterchainAccountI wraps the authtypes.AccountI interface
+// InterchainAccountI wraps the sdk.AccountI interface
 type InterchainAccountI interface {
-	authtypes.AccountI
+	sdk.AccountI
 }
 
 // interchainAccountPretty defines an unexported struct used for encoding the InterchainAccount details
@@ -77,12 +77,12 @@ func NewInterchainAccount(ba *authtypes.BaseAccount, accountOwner string) *Inter
 }
 
 // SetPubKey implements the authtypes.AccountI interface
-func (ia InterchainAccount) SetPubKey(pubKey crypto.PubKey) error {
+func (InterchainAccount) SetPubKey(pubkey crypto.PubKey) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set public key for interchain account")
 }
 
 // SetSequence implements the authtypes.AccountI interface
-func (ia InterchainAccount) SetSequence(seq uint64) error {
+func (InterchainAccount) SetSequence(seq uint64) error {
 	return errorsmod.Wrap(ErrUnsupported, "cannot set sequence number for interchain account")
 }
 

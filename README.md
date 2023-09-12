@@ -120,6 +120,8 @@ The following audits have been performed on the `ibc-go` source code:
 
    3.1 [ICS 29 Fee Middleware](https://github.com/cosmos/ibc-go/tree/main/modules/apps/29-fee)
 
+    3.2 [Callbacks Middleware](https://github.com/cosmos/ibc-go/tree/main/modules/apps/callbacks)
+
 4. **Light Clients**
 
    4.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)

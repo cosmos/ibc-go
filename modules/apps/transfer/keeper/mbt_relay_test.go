@@ -1,8 +1,8 @@
 package keeper_test
 
-/// This file is a test driver for model-based tests generated from the TLA+ model of token transfer
-/// Written by Andrey Kuprianov within the scope of IBC Audit performed by Informal Systems.
-/// In case of any questions please don't hesitate to contact andrey@informal.systems.
+// This file is a test driver for model-based tests generated from the TLA+ model of token transfer
+// Written by Andrey Kuprianov within the scope of IBC Audit performed by Informal Systems.
+// In case of any questions please don't hesitate to contact andrey@informal.systems.
 
 import (
 	"encoding/json"
@@ -18,11 +18,11 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type TlaBalance struct {
@@ -269,13 +269,13 @@ func BankOfChain(chain *ibctesting.TestChain) Bank {
 }
 
 // Check that the state of the bank is the bankBefore + expectedBankChange
-func (suite *KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefore *Bank, expectedBankChange *Bank) error {
+func (*KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefore *Bank, expectedBankChange *Bank) error {
 	bankAfter := BankOfChain(chain)
 	bankChange := bankAfter.Sub(bankBefore)
 	diff := bankChange.Sub(expectedBankChange)
-	NonZeroString := diff.NonZeroString()
-	if len(NonZeroString) != 0 {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+NonZeroString)
+	nonZeroString := diff.NonZeroString()
+	if len(nonZeroString) != 0 {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+nonZeroString)
 	}
 	return nil
 }
@@ -301,8 +301,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		}
 
 		suite.SetupTest()
-		pathAtoB := NewTransferPath(suite.chainA, suite.chainB)
-		pathBtoC := NewTransferPath(suite.chainB, suite.chainC)
+		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 		suite.coordinator.Setup(pathAtoB)
 		suite.coordinator.Setup(pathBtoC)
 
@@ -354,7 +354,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							"",
 						)
 
-						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
+						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
 
 					}
 				case "OnRecvPacket":

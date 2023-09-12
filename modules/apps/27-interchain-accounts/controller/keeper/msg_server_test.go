@@ -10,12 +10,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
@@ -204,34 +204,34 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 
 // TestUpdateParams tests UpdateParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateParams() {
-	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
+	signer := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and default params",
-			types.NewMsgUpdateParams(validAuthority, types.NewParams(!types.DefaultControllerEnabled)),
+			"success: valid signer and default params",
+			types.NewMsgUpdateParams(signer, types.NewParams(!types.DefaultControllerEnabled)),
 			true,
 		},
 		{
-			"failure: malformed authority address",
+			"failure: malformed signer address",
 			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
 			false,
 		},
 		{
-			"failure: empty authority address",
+			"failure: empty signer address",
 			types.NewMsgUpdateParams("", types.DefaultParams()),
 			false,
 		},
 		{
-			"failure: whitespace authority address",
+			"failure: whitespace signer address",
 			types.NewMsgUpdateParams("    ", types.DefaultParams()),
 			false,
 		},
 		{
-			"failure: unauthorized authority address",
+			"failure: unauthorized signer address",
 			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
 			false,
 		},

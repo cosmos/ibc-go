@@ -79,8 +79,8 @@ To change the parameter values, you must make a governance proposal that execute
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
-  // authority is the address that controls the module (defaults to x/gov unless overwritten).
-  string authority = 1;
+  // signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+  string signer = 1;
 
   // params defines the transfer parameters to update.
   //

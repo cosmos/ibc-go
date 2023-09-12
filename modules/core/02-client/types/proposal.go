@@ -5,12 +5,12 @@ import (
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 const (
@@ -47,10 +47,10 @@ func (cup *ClientUpdateProposal) GetTitle() string { return cup.Title }
 func (cup *ClientUpdateProposal) GetDescription() string { return cup.Description }
 
 // ProposalRoute returns the routing key of a client update proposal.
-func (cup *ClientUpdateProposal) ProposalRoute() string { return RouterKey }
+func (*ClientUpdateProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a client update proposal.
-func (cup *ClientUpdateProposal) ProposalType() string { return ProposalTypeClientUpdate }
+func (*ClientUpdateProposal) ProposalType() string { return ProposalTypeClientUpdate }
 
 // ValidateBasic runs basic stateless validity checks
 func (cup *ClientUpdateProposal) ValidateBasic() error {
@@ -94,10 +94,10 @@ func (up *UpgradeProposal) GetTitle() string { return up.Title }
 func (up *UpgradeProposal) GetDescription() string { return up.Description }
 
 // ProposalRoute returns the routing key of a upgrade proposal.
-func (up *UpgradeProposal) ProposalRoute() string { return RouterKey }
+func (*UpgradeProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the upgrade proposal type.
-func (up *UpgradeProposal) ProposalType() string { return ProposalTypeUpgrade }
+func (*UpgradeProposal) ProposalType() string { return ProposalTypeUpgrade }
 
 // ValidateBasic runs basic stateless validity checks
 func (up *UpgradeProposal) ValidateBasic() error {
@@ -139,7 +139,7 @@ func (up UpgradeProposal) String() string {
   Title: %s
   Description: %s
   %s
-  Upgraded IBC Client: %s`, up.Title, up.Description, up.Plan, upgradedClientStr)
+  Upgraded IBC Client: %s`, up.Title, up.Description, up.Plan.String(), upgradedClientStr)
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces

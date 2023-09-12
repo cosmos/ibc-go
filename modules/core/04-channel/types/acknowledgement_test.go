@@ -8,11 +8,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
-	tmprotostate "github.com/cometbft/cometbft/proto/tendermint/state"
 	tmstate "github.com/cometbft/cometbft/state"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 const (
@@ -108,30 +107,18 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// different ABCI error code used
 	errDifferentABCICode := ibcerrors.ErrNotFound
 
-	deliverTx := sdkerrors.ResponseDeliverTxWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responses := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseDeliverTx{
-			&deliverTx,
-		},
-	}
+	deliverTx := sdkerrors.ResponseExecTxResultWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	execTxResults := []*abcitypes.ExecTxResult{deliverTx}
 
-	deliverTxSameABCICode := sdkerrors.ResponseDeliverTxWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responsesSameABCICode := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseDeliverTx{
-			&deliverTxSameABCICode,
-		},
-	}
+	deliverTxSameABCICode := sdkerrors.ResponseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	resultsSameABCICode := []*abcitypes.ExecTxResult{deliverTxSameABCICode}
 
-	deliverTxDifferentABCICode := sdkerrors.ResponseDeliverTxWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	responsesDifferentABCICode := tmprotostate.ABCIResponses{
-		DeliverTxs: []*abcitypes.ResponseDeliverTx{
-			&deliverTxDifferentABCICode,
-		},
-	}
+	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
+	resultsDifferentABCICode := []*abcitypes.ExecTxResult{deliverTxDifferentABCICode}
 
-	hash := tmstate.ABCIResponsesResultsHash(&responses)
-	hashSameABCICode := tmstate.ABCIResponsesResultsHash(&responsesSameABCICode)
-	hashDifferentABCICode := tmstate.ABCIResponsesResultsHash(&responsesDifferentABCICode)
+	hash := tmstate.TxResultsHash(execTxResults)
+	hashSameABCICode := tmstate.TxResultsHash(resultsSameABCICode)
+	hashDifferentABCICode := tmstate.TxResultsHash(resultsDifferentABCICode)
 
 	suite.Require().Equal(hash, hashSameABCICode)
 	suite.Require().NotEqual(hash, hashDifferentABCICode)
