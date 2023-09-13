@@ -27,8 +27,11 @@ import (
 )
 
 var (
+	_ module.AppModule           = (*AppModule)(nil)
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
+	_ module.HasName             = (*AppModule)(nil)
+	_ module.HasConsensusVersion = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
 )
@@ -112,13 +115,6 @@ func (AppModule) IsAppModule() {}
 func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
 }
-
-// RegisterServices registers a GRPC query service to respond to the
-// module-specific GRPC queries.
-func (AppModule) RegisterServices(module.Configurator) {}
-
-// RegisterInvariants registers the capability module's invariants.
-func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.
