@@ -80,13 +80,15 @@ func SimulateClientMsgScheduleIBCSoftwareUpgrade(r *rand.Rand, _ sdk.Context, _ 
 	var signer sdk.AccAddress = address.Module("gov")
 
 	chainID := "chain-a-0"
-	trustingPeriod := time.Hour * 24 * 7 * 2
-	// two week unbonding period instead of default three week unbonding period
 	ubdPeriod := time.Hour * 24 * 7 * 2
-	maxClockDrift := time.Second * 10
 	upgradePath := []string{"upgrade", "upgradedIBCState"}
 
-	upgradedClientState := ibctm.NewClientState(chainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), upgradePath)
+	upgradedClientState := &ibctm.ClientState{
+		ChainId:         chainID,
+		UnbondingPeriod: ubdPeriod,
+		ProofSpecs:      commitmenttypes.GetSDKSpecs(),
+		UpgradePath:     upgradePath,
+	}
 	anyClient, err := types.PackClientState(upgradedClientState)
 	if err != nil {
 		panic(err)
