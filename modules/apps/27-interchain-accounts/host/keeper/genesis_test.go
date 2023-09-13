@@ -4,7 +4,6 @@ import (
 	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -44,7 +43,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
 	suite.Require().Equal(expParams, params)
 
-	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(icahosttypes.StoreKey))
+	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.StoreKey))
 	suite.Require().True(store.Has(icatypes.KeyPort(icatypes.HostPortID)))
 
 	capability, found := suite.chainA.GetSimApp().ScopedICAHostKeeper.GetCapability(suite.chainA.GetContext(), host.PortPath(icatypes.HostPortID))
