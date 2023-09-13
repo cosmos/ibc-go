@@ -185,7 +185,7 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 	}
 
 	if err := subjectClientState.CheckSubstituteAndUpdateState(ctx, k.cdc, subjectClientStore, substituteClientStore, substituteClientState); err != nil {
-		return errorsmod.Wrapf(types.ErrValidatingSubstituteClient, "failed to validate substitute client: %s", err)
+		return errorsmod.Wrap(err, "failed to validate substitute client")
 	}
 
 	k.Logger(ctx).Info("client recovered", "client-id", subjectClientID)
