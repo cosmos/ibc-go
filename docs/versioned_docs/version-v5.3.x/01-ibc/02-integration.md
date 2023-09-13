@@ -21,7 +21,7 @@ Integrating the IBC module to your SDK-based application is straighforward. The 
 
 - Add required modules to the `module.BasicManager`
 - Define additional `Keeper` fields for the new modules on the `App` type
-- Add the module's `StoreKey`s and initialize their `Keeper`s
+- Add the module's `StoreKeys` and initialize their `Keepers`
 - Set up corresponding routers and routes for the `ibc` module
 - Add the modules to the module `Manager`
 - Add modules to `Begin/EndBlockers` and `InitGenesis`
@@ -33,34 +33,15 @@ The first step is to add the following modules to the `BasicManager`: `x/capabil
 and `x/ibc-transfer`. After that, we need to grant `Minter` and `Burner` permissions to
 the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
 
-### Integrating light clients
-
-> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below.
-> This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box.
-
-All light clients must be registered with `module.BasicManager` in a chain's app.go file.
-
-The following code example shows how to register the existing `ibctm.AppModuleBasic{}` light client implementation.
-
 ```go
-import (
-  ...
-  // highlight-next-line
-+ ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-  ...
-)
-
 // app.go
 var (
+
   ModuleBasics = module.NewBasicManager(
     // ...
     capability.AppModuleBasic{},
     ibc.AppModuleBasic{},
     transfer.AppModuleBasic{}, // i.e ibc-transfer module
-
-    // register light clients on IBC
-    // highlight-next-line
-+   ibctm.AppModuleBasic{},
   )
 
   // module account permissions
@@ -68,7 +49,6 @@ var (
     // other module accounts permissions
     // ...
     ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-  }
 )
 ```
 
@@ -76,7 +56,8 @@ var (
 
 Then, we need to register the `Keepers` as follows:
 
-```go title="app.go"
+```go
+// app.go
 type App struct {
   // baseapp, keys and subspaces definitions
 
@@ -109,14 +90,14 @@ func NewApp(...args) *App {
   app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 
   // grant capabilities for the ibc and ibc-transfer modules
-  scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
+  scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
   scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 
   // ... other modules keepers
 
   // Create IBC Keeper
   app.IBCKeeper = ibckeeper.NewKeeper(
-    appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
+    appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
   )
 
   // Create Transfer Keepers
@@ -146,7 +127,8 @@ channel handshake or a packet.
 Currently, a `Router` is static so it must be initialized and set correctly on app initialization.
 Once the `Router` has been set, no new routes can be added.
 
-```go title="app.go"
+```go
+// app.go
 func NewApp(...args) *App {
   // .. continuation from above
 
@@ -164,7 +146,8 @@ func NewApp(...args) *App {
 
 In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/build/building-modules/14-simulator.md).
 
-```go title="app.go"
+```go
+// app.go
 func NewApp(...args) *App {
   // .. continuation from above
 
@@ -197,14 +180,23 @@ at each height during the `BeginBlock` call. The historical info is required to 
 past historical info at any given height in order to verify the light client `ConsensusState` during the
 connection handhake.
 
-```go title="app.go"
+The IBC module also has
+[`BeginBlock`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/abci.go) logic as well. This is optional as it is only required if your application uses the localhost client to connect two different modules from the same chain.
+
+:::tip
+Only register the ibc module to the `SetOrderBeginBlockers` if your application will use the
+localhost (*aka* loopback) client.
+:::
+
+```go
+// app.go
 func NewApp(...args) *App {
   // .. continuation from above
 
   // add staking and ibc modules to BeginBlockers
   app.mm.SetOrderBeginBlockers(
     // other modules ...
-    stakingtypes.ModuleName, ibcexported.ModuleName,
+    stakingtypes.ModuleName, ibchost.ModuleName,
   )
 
   // ...
@@ -215,7 +207,7 @@ func NewApp(...args) *App {
   app.mm.SetOrderInitGenesis(
     capabilitytypes.ModuleName,
     // other modules ...
-    ibcexported.ModuleName, ibctransfertypes.ModuleName,
+    ibchost.ModuleName, ibctransfertypes.ModuleName,
   )
 
   // .. continues

@@ -5,10 +5,11 @@ sidebar_position: 2
 slug: /ibc/integration
 ---
 
+
 # Integration
 
 :::note Synopsis
-Learn how to integrate IBC to your application and send data packets to other chains.
+Learn how to integrate IBC to your application and send data packets to other chains. 
 :::
 
 This document outlines the required steps to integrate and configure the [IBC
@@ -35,23 +36,24 @@ the `ibc-transfer` `ModuleAccount` to mint and burn relayed tokens.
 
 ### Integrating light clients
 
-> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below.
-> This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box.
+> Note that from v7 onwards, all light clients have to be explicitly registered in a chain's app.go and follow the steps listed below. 
+  This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box.
 
 All light clients must be registered with `module.BasicManager` in a chain's app.go file.
 
 The following code example shows how to register the existing `ibctm.AppModuleBasic{}` light client implementation.
 
-```go
+```diff
+
 import (
   ...
-  // highlight-next-line
 + ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
   ...
 )
 
 // app.go
 var (
+
   ModuleBasics = module.NewBasicManager(
     // ...
     capability.AppModuleBasic{},
@@ -59,7 +61,6 @@ var (
     transfer.AppModuleBasic{}, // i.e ibc-transfer module
 
     // register light clients on IBC
-    // highlight-next-line
 +   ibctm.AppModuleBasic{},
   )
 
@@ -76,7 +77,8 @@ var (
 
 Then, we need to register the `Keepers` as follows:
 
-```go title="app.go"
+```go
+// app.go
 type App struct {
   // baseapp, keys and subspaces definitions
 
@@ -146,7 +148,8 @@ channel handshake or a packet.
 Currently, a `Router` is static so it must be initialized and set correctly on app initialization.
 Once the `Router` has been set, no new routes can be added.
 
-```go title="app.go"
+```go
+// app.go
 func NewApp(...args) *App {
   // .. continuation from above
 
@@ -164,7 +167,8 @@ func NewApp(...args) *App {
 
 In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/build/building-modules/14-simulator.md).
 
-```go title="app.go"
+```go
+// app.go
 func NewApp(...args) *App {
   // .. continuation from above
 
@@ -197,7 +201,8 @@ at each height during the `BeginBlock` call. The historical info is required to 
 past historical info at any given height in order to verify the light client `ConsensusState` during the
 connection handhake.
 
-```go title="app.go"
+```go
+// app.go
 func NewApp(...args) *App {
   // .. continuation from above
 
@@ -228,3 +233,4 @@ func NewApp(...args) *App {
 That's it! You have now wired up the IBC module and are now able to send fungible tokens across
 different chains. If you want to have a broader view of the changes take a look into the SDK's
 [`SimApp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go).
+

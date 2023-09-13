@@ -27,7 +27,7 @@ This release main addtions are:
 
 Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/40).
 
-The first release of this new module will add support for Wasm light clients. The first Wasm client developed on top of ibc-go/v7 02-client refactor and stored as Wasm bytecode will be the GRANDPA light client used for Cosmos <> Substrate IBC connections. This feature will be used also for a NEAR light client in the future.
+The first release of this new module will add support for Wasm light clients. The first Wasm client developed on top of ibc-go/v7 02-client refactor and stored as Wasm bytecode will be the GRANDPA light client used for Cosmos x Substrate IBC connections. This feature will be used also for a NEAR light client in the future.
 
 This feature has been developed by Composable and Strangelove.
 
