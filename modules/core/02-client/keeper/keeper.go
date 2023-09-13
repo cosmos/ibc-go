@@ -439,3 +439,28 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	bz := k.cdc.MustMarshal(&params)
 	store.Set([]byte(types.ParamsKey), bz)
 }
+
+// ScheduleIBCSoftwareUpgrade schedules an upgrade for the IBC client.
+func (k Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Plan, upgradedClientState exported.ClientState) error {
+	// zero out any custom fields before setting
+	cs := upgradedClientState.ZeroCustomFields()
+	bz, err := types.MarshalClientState(k.cdc, cs)
+	if err != nil {
+		return errorsmod.Wrap(err, "could not marshal UpgradedClientState")
+	}
+
+	if err := k.upgradeKeeper.ScheduleUpgrade(ctx, plan); err != nil {
+		return err
+	}
+
+	// sets the new upgraded client last height committed on this chain at plan.Height,
+	// since the chain will panic at plan.Height and new chain will resume at plan.Height
+	if err = k.upgradeKeeper.SetUpgradedClient(ctx, plan.Height, bz); err != nil {
+		return err
+	}
+
+	// emitting an event for scheduling an upgrade plan
+	emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height)
+
+	return nil
+}
