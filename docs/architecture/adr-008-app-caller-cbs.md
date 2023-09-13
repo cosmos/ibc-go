@@ -4,6 +4,7 @@
 
 * 2022-08-10: Initial Draft
 * 2023-03-22: Merged
+* 2023-09-13: Updated with decisions made in implementation
 
 ## Status
 
