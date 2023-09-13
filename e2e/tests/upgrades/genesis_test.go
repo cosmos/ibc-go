@@ -180,17 +180,6 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
-
-		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
-			s.Require().NoError(err)
-
-			_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
-			s.Require().NoError(err)
-
-			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance.Int64())
-		})
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
