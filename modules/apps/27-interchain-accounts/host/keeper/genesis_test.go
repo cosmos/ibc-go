@@ -4,14 +4,30 @@ import (
 	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
-	suite.SetupTest()
-
 	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+	testCases := []struct {
+		name     string
+		malleate func()
+	}{
+		{
+			"sucess", func() {},
+		},
+		{
+			"success: capabilities already initialized",
+			func() {
+				capability := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
+				err := suite.chainA.GetSimApp().ICAHostKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(TestPortID))
+				suite.Require().NoError(err)
+			},
+		},
+	}
 
 	genesisState := genesistypes.HostGenesisState{
 		ActiveChannels: []genesistypes.ActiveChannel{
@@ -31,19 +47,36 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		Port: icatypes.HostPortID,
 	}
 
-	keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
+	for _, tc := range testCases {
+		tc := tc
 
-	channelID, found := suite.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
-	suite.Require().True(found)
-	suite.Require().Equal(ibctesting.FirstChannelID, channelID)
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-	accountAdrr, found := suite.chainA.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
-	suite.Require().True(found)
-	suite.Require().Equal(interchainAccAddr.String(), accountAdrr)
+			tc.malleate()
 
-	expParams := genesisState.GetParams()
-	params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
-	suite.Require().Equal(expParams, params)
+			keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
+
+			channelID, found := suite.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+			suite.Require().True(found)
+			suite.Require().Equal(ibctesting.FirstChannelID, channelID)
+
+			accountAdrr, found := suite.chainA.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+			suite.Require().True(found)
+			suite.Require().Equal(interchainAccAddr.String(), accountAdrr)
+
+			expParams := genesisState.GetParams()
+			params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
+			suite.Require().Equal(expParams, params)
+
+			store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(icahosttypes.StoreKey))
+			suite.Require().True(store.Has(icatypes.KeyPort(icatypes.HostPortID)))
+
+			capability, found := suite.chainA.GetSimApp().ScopedICAHostKeeper.GetCapability(suite.chainA.GetContext(), host.PortPath(icatypes.HostPortID))
+			suite.Require().True(found)
+			suite.Require().NotNil(capability)
+		})
+	}
 }
 
 func (suite *KeeperTestSuite) TestGenesisParams() {
