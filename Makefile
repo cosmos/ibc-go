@@ -145,8 +145,8 @@ godocs:
 build-docs:
 	@cd docs && npm install && npm run build
 
-view-docs: 
-	@cd docs && npm install && npm start
+serve-docs:
+	@cd docs && npm run serve
 
 changelog:
 	docker run --rm -v "$$(pwd)"/.git:/app/ -v "$$(pwd)/cliff.toml":/app/cliff.toml orhunp/git-cliff:latest --unreleased --tag $(tag)
@@ -290,7 +290,7 @@ docs-lint-fix:
 	markdownlint-cli2-fix "**.md"
 
 docs-link-check:
-	find . -name \*.md -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
+	find . -name 'node_modules' -prune -o -name '*.md' -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
 
 .PHONY: lint lint-fix docs-lint docs-lint-changed
 
