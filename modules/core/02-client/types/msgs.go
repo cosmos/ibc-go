@@ -282,7 +282,15 @@ func (msg *MsgRecoverClient) ValidateBasic() error {
 		return err
 	}
 
-	return host.ClientIdentifierValidator(msg.SubstituteClientId)
+	if err := host.ClientIdentifierValidator(msg.SubstituteClientId); err != nil {
+		return err
+	}
+
+	if msg.SubjectClientId == msg.SubstituteClientId {
+		return errorsmod.Wrapf(ErrInvalidSubstitute, "subject and substitute clients must be different")
+	}
+
+	return nil
 }
 
 // GetSigners returns the expected signers for a MsgRecoverClient message.

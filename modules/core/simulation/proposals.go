@@ -52,7 +52,7 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 	}
 }
 
-// SimulateClientMsgUpdateParams returns a random MsgUpdateParams for 02-client
+// SimulateClientMsgUpdateParams returns a MsgUpdateParams for 02-client
 func SimulateClientMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
 	var signer sdk.AccAddress = address.Module("gov")
 	params := types.DefaultParams()
@@ -64,7 +64,7 @@ func SimulateClientMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Acc
 	}
 }
 
-// SimulateClientMsgRecoverClient returns a random MsgRecoverClient for 02-client
+// SimulateClientMsgRecoverClient returns a MsgRecoverClient for 02-client
 func SimulateClientMsgRecoverClient(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
 	var signer sdk.AccAddress = address.Module("gov")
 
@@ -75,7 +75,7 @@ func SimulateClientMsgRecoverClient(r *rand.Rand, _ sdk.Context, _ []simtypes.Ac
 	}
 }
 
-// SimulateClientMsgScheduleIBCSoftwareUpgrade returns a random MsgScheduleIBCSoftwareUpgrade for 02-client
+// SimulateClientMsgScheduleIBCSoftwareUpgrade returns a MsgScheduleIBCSoftwareUpgrade for 02-client
 func SimulateClientMsgScheduleIBCSoftwareUpgrade(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
 	var signer sdk.AccAddress = address.Module("gov")
 
@@ -104,7 +104,7 @@ func SimulateClientMsgScheduleIBCSoftwareUpgrade(r *rand.Rand, _ sdk.Context, _ 
 	}
 }
 
-// SimulateConnectionMsgUpdateParams returns a random MsgUpdateParams 03-connection
+// SimulateConnectionMsgUpdateParams returns a MsgUpdateParams 03-connection
 func SimulateConnectionMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
 	var signer sdk.AccAddress = address.Module("gov")
 	params := connectiontypes.DefaultParams()

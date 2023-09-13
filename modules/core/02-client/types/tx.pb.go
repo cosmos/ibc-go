@@ -410,7 +410,7 @@ func (m *MsgRecoverClient) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRecoverClient proto.InternalMessageInfo
 
-// MsgRecoverClientResponse defines the MsgRecoverClient response type.
+// MsgRecoverClientResponse defines the Msg/RecoverClient response type.
 type MsgRecoverClientResponse struct {
 }
 

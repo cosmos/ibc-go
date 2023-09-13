@@ -76,7 +76,7 @@ The client is attached to the expected Akash `chain-id`. Note that although the 
 ### Step 2
 
 Anyone can submit the governance proposal to recover the client by executing the following via CLI.
-If the chain is on an ibc-go version older than v8, please see the [relevant documentation](https://ibc.cosmos.network/v6.1.0/ibc/proposals.html).
+If the chain is on an ibc-go version older than v8, please see the [relevant documentation](https://ibc.cosmos.network/v7.3.0/ibc/proposals.html).
 
 - From ibc-go v8 onwards
 

@@ -85,7 +85,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	const planHeight = int64(75)
 	var newChainID string
 
-	t.Run("send schedule IBC upgrade message", func(t *testing.T) {
+	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
@@ -112,7 +112,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 			upgradedClientState,
 		)
 		s.Require().NoError(err)
-		s.ExecuteGovProposalV1(ctx, scheduleUpgradeMsg, chainA, chainAWallet, 1)
+		s.ExecuteGovV1Proposal(ctx, scheduleUpgradeMsg, chainA, chainAWallet, 1)
 	})
 
 	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(t *testing.T) {
@@ -120,10 +120,11 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		cs, err := s.QueryUpgradedClientState(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 
-		upgradedClientState := cs.(*ibctm.ClientState)
+		upgradedClientState, ok := cs.(*ibctm.ClientState)
+		s.Require().True(ok)
 		s.Require().Equal(upgradedClientState.ChainId, newChainID)
 
-		plan, err := s.QueryCurrentPlan(ctx, chainA)
+		plan, err := s.QueryCurrentUpgradePlan(ctx, chainA)
 		s.Require().NoError(err)
 
 		s.Require().Equal("upgrade-client", plan.Name)
@@ -194,11 +195,12 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		})
 	})
 
-	t.Run("send recover client message", func(t *testing.T) {
+	t.Run("execute proposal for MsgRecoverClient", func(t *testing.T) {
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
-		s.ExecuteGovProposalV1(ctx, recoverClientMsg, chainA, chainAWallet, 1)
+		s.Require().NotNil(recoverClientMsg)
+		s.ExecuteGovV1Proposal(ctx, recoverClientMsg, chainA, chainAWallet, 1)
 	})
 
 	t.Run("check status of each client", func(t *testing.T) {
@@ -349,7 +351,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			s.Require().NotNil(authority)
 
 			msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(allowedClient))
-			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet, 1)
 		} else {
 			value, err := tmjson.Marshal([]string{allowedClient})
 			s.Require().NoError(err)
@@ -358,7 +360,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+			s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 

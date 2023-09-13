@@ -127,6 +127,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err := cfg.RegisterMigration(types.ModuleName, 3, m.MigrateParams); err != nil {
 		panic(fmt.Sprintf("failed to migrate transfer app version 3 to 4 (self-managed params migration): %v", err))
 	}
+
+	if err := cfg.RegisterMigration(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
+		panic(fmt.Sprintf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the ibc-transfer module. It returns
@@ -146,7 +150,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion defining the current version of transfer.
-func (AppModule) ConsensusVersion() uint64 { return 4 }
+func (AppModule) ConsensusVersion() uint64 { return 5 }
 
 // AppModuleSimulation functions
 

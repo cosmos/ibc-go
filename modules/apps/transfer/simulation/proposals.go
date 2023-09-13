@@ -29,14 +29,14 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 	}
 }
 
-// SimulateMsgUpdateParams returns a random MsgUpdateParams
-func SimulateMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var signer sdk.AccAddress = address.Module("gov")
+// SimulateMsgUpdateParams returns a MsgUpdateParams
+func SimulateMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
+	var gov sdk.AccAddress = address.Module("gov")
 	params := types.DefaultParams()
 	params.SendEnabled = false
 
 	return &types.MsgUpdateParams{
-		Signer: signer.String(),
+		Signer: gov.String(),
 		Params: params,
 	}
 }
