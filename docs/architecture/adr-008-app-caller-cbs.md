@@ -29,70 +29,17 @@ This requires a second layer of callbacks. The IBC application already gets the 
 
 ## Decision
 
-Create a standardized callback interface that actors can implement. IBC applications (or middleware that wraps IBC applications) can now call this callback to route the result of the packet/channel handshake from core IBC to the IBC application to the original actor on the sending chain. IBC applications can route the packet receipt to the destination actor on the receiving chain.
+Create a middleware that can interface between IBC applications and smart contract VMs. The IBC applications and smart contract VMs will implement respective interfaces that will then be composed together by the callback middleware to allow a smart contract of any compatible VM to interact programatically with an IBC application.
 
-IBC actors may implement the following interface:
+## Data structures
 
-```go
-type IBCActor interface {
-    // OnChannelOpen will be called on the IBCActor when the channel opens
-    // this will happen either on ChanOpenAck or ChanOpenConfirm
-    OnChannelOpen(ctx sdk.Context, portID, channelID, version string)
-
-    // OnChannelClose will be called on the IBCActor if the channel closes
-    // this will be called on either ChanCloseInit or ChanCloseConfirm and if the channel handshake fails on our end
-    // NOTE: currently the channel does not automatically close if the counterparty fails the handhshake so actors must be prepared for an OpenInit to never return a callback for the time being
-    OnChannelClose(ctx sdk.Context, portID, channelID string)
-
-    // IBCActor must also implement PacketActor interface
-    PacketActor
-}
-
-// PacketActor is split out into its own separate interface since implementors may choose
-// to only support callbacks for packet methods rather than supporting the full IBCActor interface
-type PacketActor interface {
-    // OnSendPacket will be called on the IBCActor after the IBC application SendPacket handler is run
-    OnSendPacket(
-        ctx sdk.Context,
-        sourcePort string,
-        sourceChannel string,
-        timeoutHeight clienttypes.Height,
-        timeoutTimestamp uint64,
-        data []byte,
-    ) (uint64, error)
-
-    // OnRecvPacket will be called on the IBCActor after the IBC Application
-    // handles the RecvPacket callback if the packet has an IBC Actor as a receiver.
-    OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement
-
-    // OnAcknowledgementPacket will be called on the IBC Actor
-    // after the IBC Application handles its own OnAcknowledgementPacket callback
-    OnAcknowledgmentPacket(
-        ctx sdk.Context,
-        packet channeltypes.Packet,
-        ack []byte,
-        relayer sdk.AccAddress,
-    ) error
-
-    // OnTimeoutPacket will be called on the IBC Actor
-    // after the IBC Application handles its own OnTimeoutPacket callback
-    OnTimeoutPacket(
-        ctx sdk.Context,
-        packet channeltypes.Packet,
-        relayer sdk.AccAddress,
-    ) error
-}
-```
-
-The `CallbackPacketData` struct will get retrieved from the application packet. The `CallbackAddress` is the IBC Actor address on which the callback should be called on. The `SenderAddress` is also provided to optionally allow a VM to ensure that the sender is the same as the callback address.
+The `CallbackPacketData` struct will get constructed from custom callback data in the application packet. The `CallbackAddress` is the IBC Actor address on which the callback should be called on. The `SenderAddress` is also provided to optionally allow a VM to ensure that the sender is the same as the callback address.
 
 The struct also defines a `CommitGasLimit` which is the maximum gas a callback is allowed to use. If the callback exceeds this limit, the callback will panic and the tx will commit without the callback's state changes.
 
 The `ExecutionGasLimit` is the practical limit of the tx execution that is set in the context gas meter. It is the minimum of the `CommitGasLimit` and the gas left in the context gas meter which is determined by the relayer's choice of tx gas limit. If `ExecutionGasLimit < CommitGasLimit`, then an out-of-gas error will revert the entire transaction without commiting anything, allowing for a different relayer to retry with a larger tx gas limit.
 
 Any middleware targeting this interface for callback handling should define a global limit that caps the gas that a callback is allowed to take (especially on AcknowledgePacket and TimeoutPacket) so that a custom callback does not prevent the packet lifecycle from completing. However, since this is a global cap it is likely to be very large. Thus, users may specify a smaller limit to cap the amount of fees a relayer must pay in order to complete the packet lifecycle on the user's behalf.
-
-IBC applications which provide the base packet data type must implement the `CallbackPacketData` interface to allow `PacketActor` callbacks.
 
 ```go
 // Implemented by any packet data type that wants to support PacketActor callbacks
@@ -129,6 +76,8 @@ type IBCMiddleware struct {
 }
 ```
 
+### Callback-Compatible IBC Application
+
 The `CallbacksCompatibleModule` extends `porttypes.IBCModule` to include an `UnmarshalPacketData` function that allows the middleware to request that the underlying app unmarshal the packet data. This will then allow the middleware to retrieve the callback specific data from an arbitrary set of IBC application packets.
 
 ```go
@@ -146,6 +95,68 @@ type PacketDataUnmarshaler interface {
 	UnmarshalPacketData([]byte) (interface{}, error)
 }
 ```
+
+The application's packet data must additionally implement the following interfaces:
+
+```go
+// PacketData defines an optional interface which an application's packet data structure may implement.
+type PacketData interface {
+	// GetPacketSender returns the sender address of the packet data.
+	// If the packet sender is unknown or undefined, an empty string should be returned.
+	GetPacketSender(sourcePortID string) string
+}
+
+// PacketDataProvider defines an optional interfaces for retrieving custom packet data stored on behalf of another application.
+// An existing problem in the IBC middleware design is the inability for a middleware to define its own packet data type and insert packet sender provided information.
+// A short term solution was introduced into several application's packet data to utilize a memo field to carry this information on behalf of another application.
+// This interfaces standardizes that behaviour. Upon realization of the ability for middleware's to define their own packet data types, this interface will be deprecated and removed with time.
+type PacketDataProvider interface {
+	// GetCustomPacketData returns the packet data held on behalf of another application.
+	// The name the information is stored under should be provided as the key.
+	// If no custom packet data exists for the key, nil should be returned.
+	GetCustomPacketData(key string) interface{}
+}
+```
+
+The callback data can be embedded in an application packet by providing custom packet data for source and destination callback datain the custom packet data under the appropriate key.
+
+```json
+// Custom Packet data embedded as a JSON object in the packet data
+
+// src callback custom data
+{
+  "src_callback": {
+    "address": "callbackAddressString",
+    // optional
+    "gas_limit": "userDefinedGasLimitString",
+  }
+}
+
+// dest callback custom data
+{
+  "dest_callback": {
+    "address": "callbackAddressString",
+    // optional
+    "gas_limit": "userDefinedGasLimitString",
+  }
+}
+
+// src and dest callback custom data embedded together
+{
+  "src_callback": {
+    "address": "callbackAddressString",
+    // optional
+    "gas_limit": "userDefinedGasLimitString",
+  },
+  "dest_callback": {
+    "address": "callbackAddressString",
+    // optional
+    "gas_limit": "userDefinedGasLimitString",
+  }
+}
+```
+
+## ContractKeeper
 
 The `ContractKeeper` interface must be implemented by any VM that wants to support IBC callbacks. This allows for separation of concerns
 between the middleware which is handling logic intended for all VMs (e.g. setting gas meter, extracting callback data, emitting events), 
