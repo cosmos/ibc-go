@@ -27,10 +27,11 @@ import (
 )
 
 var (
-	_ module.AppModule      = (*AppModule)(nil)
-	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
-	_ appmodule.AppModule   = (*AppModule)(nil)
-	_ porttypes.IBCModule   = (*IBCModule)(nil)
+	_ module.AppModule       = (*AppModule)(nil)
+	_ module.AppModuleBasic  = (*AppModuleBasic)(nil)
+	_ module.HasProposalMsgs = (*AppModule)(nil)
+	_ appmodule.AppModule    = (*AppModule)(nil)
+	_ porttypes.IBCModule    = (*IBCModule)(nil)
 )
 
 // AppModuleBasic is the IBC Transfer AppModuleBasic
@@ -156,6 +157,11 @@ func (AppModule) ConsensusVersion() uint64 { return 5 }
 // GenerateGenesisState creates a randomized GenState of the transfer module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
+}
+
+// ProposalMsgs returns msgs used for governance proposals for simulations.
+func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+	return simulation.ProposalMsgs()
 }
 
 // RegisterStoreDecoder registers a decoder for transfer module's types

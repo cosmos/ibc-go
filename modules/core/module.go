@@ -36,6 +36,7 @@ var (
 	_ module.AppModule           = (*AppModule)(nil)
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
+	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 )
@@ -193,6 +194,11 @@ func (am AppModule) BeginBlock(ctx context.Context) error {
 // GenerateGenesisState creates a randomized GenState of the ibc module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
+}
+
+// ProposalMsgs returns msgs used for governance proposals for simulations.
+func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+	return simulation.ProposalMsgs()
 }
 
 // RegisterStoreDecoder registers a decoder for ibc module's types
