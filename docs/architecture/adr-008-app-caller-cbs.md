@@ -245,7 +245,7 @@ type ContractKeeper interface {
 
 The packet callbacks implemented in the middleware will first call the underlying application and then route to the IBC actor callback in the post-processing step. 
 It will extract the callback data from the application packet and set the callback gas meter depending on the global limit, the user limit, and the gas left in the transaction gas meter. 
-The callback will then be routed through the callback keeper which will either panic or return a result (success or failure). In the event of a panic or an error, the callback state changes 
+The callback will then be routed through the callback keeper which will either panic or return a result (success or failure). In the event of a (non-oog) panic or an error, the callback state changes 
 are discarded and the transaction is committed.
 
 If the transaction runs out of gas because the relayer-defined limit was exceeded the entire transaction is reverted to allow for resubmission. If the chain-defined or user-defined gas limit is reached, 
@@ -525,6 +525,7 @@ Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that
 ### Negative
 
 - Callbacks may now have unbounded gas consumption since the actor may execute arbitrary logic. Chains implementing this feature should take care to place limitations on how much gas an actor callback can consume.
+- The relayer pays for the callback gas instead of the IBCActor
 
 ### Neutral
 
