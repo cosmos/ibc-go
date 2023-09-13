@@ -20,7 +20,6 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.ControllerGe
 			capability := keeper.portKeeper.BindPort(ctx, portID)
 
 			// use the controller scoped keeper to claim the port capability
-
 			if err := keeper.ClaimCapability(ctx, capability, host.PortPath(portID)); err != nil {
 				panic(fmt.Sprintf("could not claim port capability: %v", err))
 			}
