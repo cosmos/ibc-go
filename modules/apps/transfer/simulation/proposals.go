@@ -29,7 +29,7 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 	}
 }
 
-// SimulateMsgUpdateParams returns a random MsgUpdateParams
+// SimulateMsgUpdateParams returns a MsgUpdateParams
 func SimulateMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
 	var gov sdk.AccAddress = address.Module("gov")
 	params := types.DefaultParams()
