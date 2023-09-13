@@ -108,3 +108,10 @@ var LocalhostClientFeatureReleases = semverutil.FeatureReleases{
 		"v7.1",
 	},
 }
+
+// HumanReadableDenomFeatureReleases represents the releases the human readable denom feature was released in.
+var HumanReadableDenomFeatureReleases = semverutil.FeatureReleases{
+	MinorVersions: []string{
+		"v8",
+	},
+}
