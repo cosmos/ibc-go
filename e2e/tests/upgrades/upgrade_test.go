@@ -8,6 +8,7 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/gogoproto/proto"
+
 	// intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -20,6 +21,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	e2erelayer "github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	v7migrations "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
@@ -563,6 +565,17 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
+	// note: after the restart caused when the chain was upgraded, due to the refresh rate of the hermes relayer,
+	// existing existing clients will not be refreshed.
+	// ref: https://github.com/informalsystems/hermes/blob/master/config.toml#L24-L30
+	// by restarting them, and by having `clear_on_start = true` in the config.toml,
+	// existing packets will be cleared and the relayer will start relaying packets again.
+	tc := testsuite.LoadConfig()
+	if tc.RelayerConfig.Type == e2erelayer.Hermes {
+		s.StopRelayer(ctx, relayer)
+		s.StartRelayer(relayer)
+	}
+
 	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {
 		status, err := s.QueryClientStatus(ctx, chainA, testvalues.TendermintClientID(0))
 		s.Require().NoError(err)
@@ -669,6 +682,21 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 		expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
 		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow) // migration has run and total escrow amount has been set
 	})
+
+	t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.AssertTxSuccess(transferTxResp)
+	})
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+
+		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount * 2
+		s.Require().Equal(expected, actualBalance.Int64())
+	})
 }
 
 func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
@@ -747,6 +775,21 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 
 	t.Run("query human readable ibc denom", func(t *testing.T) {
 		s.AssertHumanReadableDenom(ctx, chainB, chainADenom, channelA)
+	})
+
+	t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.AssertTxSuccess(transferTxResp)
+	})
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+
+		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount * 2
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 }
 
