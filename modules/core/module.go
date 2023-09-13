@@ -36,6 +36,9 @@ var (
 	_ module.AppModule           = (*AppModule)(nil)
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
+	_ module.HasName             = (*AppModule)(nil)
+	_ module.HasConsensusVersion = (*AppModule)(nil)
+	_ module.HasServices         = (*AppModule)(nil)
 	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
@@ -121,11 +124,6 @@ func NewAppModule(k *keeper.Keeper) AppModule {
 // Name returns the ibc module's name.
 func (AppModule) Name() string {
 	return exported.ModuleName
-}
-
-// RegisterInvariants registers the ibc module invariants.
-func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// TODO:
 }
 
 // RegisterServices registers module services.
