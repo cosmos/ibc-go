@@ -22,6 +22,8 @@ func TestValidateVersion(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		t, tc := t, tc
+
 		err := types.ValidateVersion(tc.version)
 
 		if tc.expPass {
@@ -56,6 +58,8 @@ func TestIsSupportedVersion(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		require.Equal(t, tc.expPass, types.IsSupportedVersion(types.GetCompatibleVersions(), tc.version))
 	}
 }
@@ -77,6 +81,8 @@ func TestFindSupportedVersion(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		tc := tc
+
 		version, found := types.FindSupportedVersion(tc.version, tc.supportedVersions)
 		if tc.expFound {
 			require.Equal(t, tc.expVersion.GetIdentifier(), version.GetIdentifier(), "test case %d: %s", i, tc.name)
@@ -105,6 +111,8 @@ func TestPickVersion(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		i, tc := i, tc
+
 		version, err := types.PickVersion(tc.supportedVersions, tc.counterpartyVersions)
 
 		if tc.expPass {
@@ -132,6 +140,8 @@ func TestVerifyProposedVersion(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		i, tc := i, tc
+
 		err := tc.supportedVersion.VerifyProposedVersion(tc.proposedVersion)
 
 		if tc.expPass {
@@ -158,6 +168,8 @@ func TestVerifySupportedFeature(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		i, tc := i, tc
+
 		supported := types.VerifySupportedFeature(tc.version, tc.feature)
 
 		require.Equal(t, tc.expPass, supported, "test case %d: %s", i, tc.name)

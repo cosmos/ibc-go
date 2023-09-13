@@ -39,6 +39,8 @@ func TestParseDenomTrace(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		trace := types.ParseDenomTrace(tc.denom)
 		require.Equal(t, tc.expTrace, trace, tc.name)
 	}
@@ -55,6 +57,8 @@ func TestDenomTrace_IBCDenom(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		denom := tc.trace.IBCDenom()
 		require.Equal(t, tc.expDenom, denom, tc.name)
 	}
@@ -79,6 +83,8 @@ func TestDenomTrace_Validate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.trace.Validate()
 		if tc.expError {
 			require.Error(t, err, tc.name)
@@ -108,6 +114,8 @@ func TestTraces_Validate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.traces.Validate()
 		if tc.expError {
 			require.Error(t, err, tc.name)
@@ -136,6 +144,8 @@ func TestValidatePrefixedDenom(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := types.ValidatePrefixedDenom(tc.denom)
 		if tc.expError {
 			require.Error(t, err, tc.name)
@@ -164,6 +174,8 @@ func TestValidateIBCDenom(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := types.ValidateIBCDenom(tc.denom)
 		if tc.expError {
 			require.Error(t, err, tc.name)

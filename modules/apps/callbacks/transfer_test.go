@@ -102,10 +102,13 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 	}
 
 	for _, tc := range testCases {
-		s.SetupTransferTest()
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupTransferTest()
 
-		s.ExecuteTransfer(tc.transferMemo)
-		s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
+			s.ExecuteTransfer(tc.transferMemo)
+			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
+		})
 	}
 }
 
@@ -161,10 +164,14 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 	}
 
 	for _, tc := range testCases {
-		s.SetupTransferTest()
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupTransferTest()
 
-		s.ExecuteTransferTimeout(tc.transferMemo)
-		s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
+			s.ExecuteTransferTimeout(tc.transferMemo)
+			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
+		})
+
 	}
 }
 

@@ -68,7 +68,8 @@ func TestRandomizedGenState1(t *testing.T) {
 			}, "assignment to entry in nil map"},
 	}
 
-	for _, tt := range tests {
+	for _, tc := range tests {
+		tc := tc
 		require.Panicsf(t, func() { simulation.RandomizedGenState(&tt.simState) }, tt.panicMsg)
 	}
 }

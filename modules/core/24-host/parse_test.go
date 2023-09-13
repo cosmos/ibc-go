@@ -37,6 +37,7 @@ func TestParseIdentifier(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 
 		seq, err := host.ParseIdentifier(tc.identifier, tc.prefix)
 		require.Equal(t, tc.expSeq, seq)
@@ -65,6 +66,8 @@ func TestMustParseClientStatePath(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		if tc.expPass {
 			require.NotPanics(t, func() {
 				clientID := host.MustParseClientStatePath(tc.path)

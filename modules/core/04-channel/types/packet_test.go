@@ -44,6 +44,8 @@ func TestPacketValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		tc := tc
+
 		err := tc.packet.ValidateBasic()
 		if tc.expPass {
 			require.NoError(t, err, "Msg %d failed: %s", i, tc.errMsg)

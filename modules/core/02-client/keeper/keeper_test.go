@@ -213,12 +213,16 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 	}
 
 	for _, tc := range testCases {
-		err := suite.chainA.App.GetIBCKeeper().ClientKeeper.ValidateSelfClient(suite.chainA.GetContext(), tc.clientState)
-		if tc.expPass {
-			suite.Require().NoError(err, "expected valid client for case: %s", tc.name)
-		} else {
-			suite.Require().Error(err, "expected invalid client for case: %s", tc.name)
-		}
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.ValidateSelfClient(suite.chainA.GetContext(), tc.clientState)
+			if tc.expPass {
+				suite.Require().NoError(err, "expected valid client for case: %s", tc.name)
+			} else {
+				suite.Require().Error(err, "expected invalid client for case: %s", tc.name)
+			}
+		})
 	}
 }
 
