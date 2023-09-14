@@ -1,12 +1,14 @@
 package testsuite
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path"
 	"strings"
 
+	tmjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"gopkg.in/yaml.v2"
@@ -20,6 +22,7 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
+	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
@@ -435,7 +438,7 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 	icadSupportsGovV1Genesis := testvalues.IcadGovGenesisFeatureReleases.IsSupported(version)
 
 	if simdSupportsGovV1Genesis || icadSupportsGovV1Genesis {
-		return defaultGovv1ModifyGenesis()
+		return defaultGovv1ModifyGenesis(version)
 	}
 
 	return defaultGovv1Beta1ModifyGenesis()
@@ -443,11 +446,13 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
-func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
+func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	var stdlibJSONMarshalling = semverutil.FeatureReleases{MajorVersion: "v8"}
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		var appGenesis genutiltypes.AppGenesis
-		if err := json.Unmarshal(genbz, &appGenesis); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis bytes into SDK AppGenesis: %w", err)
+
+		appGenesis, err := genutiltypes.AppGenesisFromReader(bytes.NewReader(genbz))
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
 		}
 
 		var appState genutiltypes.AppMap
@@ -467,7 +472,15 @@ func defaultGovv1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 			return nil, err
 		}
 
-		bz, err := json.MarshalIndent(appGenesis, "", "  ")
+		// in older version < v8, tmjson marshal must be used.
+		// regular json marshalling must be used for v8 and above as the
+		// sdk is de-coupled from comet.
+		marshalIndentFn := tmjson.MarshalIndent
+		if stdlibJSONMarshalling.IsSupported(version) {
+			marshalIndentFn = json.MarshalIndent
+		}
+
+		bz, err := marshalIndentFn(appGenesis, "", "  ")
 		if err != nil {
 			return nil, err
 		}
@@ -541,10 +554,7 @@ func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte,
 	vp := testvalues.VotingPeriod
 	govGenesisState.Params.VotingPeriod = &vp
 
-	govGenBz, err := cdc.MarshalJSON(govGenesisState)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
-	}
+	govGenBz := MustProtoMarshalJSON(govGenesisState)
 
 	return govGenBz, nil
 }
