@@ -335,10 +335,12 @@ func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain *cosm
 	denomMetadata, err := s.QueryDenomMetdata(ctx, chain, chainIBCDenom.IBCDenom())
 	s.Require().NoError(err)
 
-	s.Require().Equal(chainIBCDenom.IBCDenom(), denomMetadata.Base)
-	s.Require().Equal(fmt.Sprintf("%s/%s/%s IBC token", counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID, counterpartyNativeDenom), denomMetadata.Name)
-	s.Require().Equal(fmt.Sprintf("%s/%s/%s", counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID, counterpartyNativeDenom), denomMetadata.Display)
-	s.Require().Equal(strings.ToUpper(counterpartyNativeDenom), denomMetadata.Symbol)
+	s.Require().Equal(chainIBCDenom.IBCDenom(), denomMetadata.Base, "denom metadata base does not match expected %s: got %s", chainIBCDenom.IBCDenom(), denomMetadata.Base)
+	expectedName := fmt.Sprintf("%s/%s/%s IBC token", counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID, counterpartyNativeDenom)
+	s.Require().Equal(expectedName, denomMetadata.Name, "denom metadata name does not match expected %s: got %s", expectedName, denomMetadata.Name)
+	expectedDisplay := fmt.Sprintf("%s/%s/%s", counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID, counterpartyNativeDenom)
+	s.Require().Equal(expectedDisplay, denomMetadata.Display, "denom metadata display does not match expected %s: got %s", expectedDisplay, denomMetadata.Display)
+	s.Require().Equal(strings.ToUpper(counterpartyNativeDenom), denomMetadata.Symbol, "denom metadata symbol does not match expected %s: got %s", strings.ToUpper(counterpartyNativeDenom), denomMetadata.Symbol)
 }
 
 // createCosmosChains creates two separate chains in docker containers.
