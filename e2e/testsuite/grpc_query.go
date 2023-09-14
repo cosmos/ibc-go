@@ -12,6 +12,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -45,12 +47,13 @@ type GRPCClients struct {
 	// InterTxQueryClient       intertxtypes.QueryClient
 
 	// SDK query clients
-	GovQueryClient    govtypesv1beta1.QueryClient
-	GovQueryClientV1  govtypesv1.QueryClient
-	GroupsQueryClient grouptypes.QueryClient
-	ParamsQueryClient paramsproposaltypes.QueryClient
-	AuthQueryClient   authtypes.QueryClient
-	AuthZQueryClient  authz.QueryClient
+	GovQueryClient     govtypesv1beta1.QueryClient
+	GovQueryClientV1   govtypesv1.QueryClient
+	GroupsQueryClient  grouptypes.QueryClient
+	ParamsQueryClient  paramsproposaltypes.QueryClient
+	AuthQueryClient    authtypes.QueryClient
+	AuthZQueryClient   authz.QueryClient
+	UpgradeQueryClient upgradetypes.QueryClient
 
 	ConsensusServiceClient cmtservice.ServiceClient
 }
@@ -90,6 +93,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		AuthQueryClient:        authtypes.NewQueryClient(grpcConn),
 		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
 		ConsensusServiceClient: cmtservice.NewServiceClient(grpcConn),
+		UpgradeQueryClient:     upgradetypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -119,6 +123,23 @@ func (s *E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, cl
 	return clientState, nil
 }
 
+// QueryUpgradedClientState queries the upgraded client state on the given chain for the provided clientID.
+func (s *E2ETestSuite) QueryUpgradedClientState(ctx context.Context, chain ibc.Chain, clientID string) (ibcexported.ClientState, error) {
+	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
+	res, err := queryClient.UpgradedClientState(ctx, &clienttypes.QueryUpgradedClientStateRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := EncodingConfig()
+	var clientState ibcexported.ClientState
+	if err := cfg.InterfaceRegistry.UnpackAny(res.UpgradedClientState, &clientState); err != nil {
+		return nil, err
+	}
+
+	return clientState, nil
+}
+
 // QueryClientStatus queries the status of the client by clientID
 func (s *E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
 	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
@@ -130,6 +151,17 @@ func (s *E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, c
 	}
 
 	return res.Status, nil
+}
+
+// QueryCurrentUpgradePlan queries the currently scheduled upgrade plans.
+func (s *E2ETestSuite) QueryCurrentUpgradePlan(ctx context.Context, chain ibc.Chain) (upgradetypes.Plan, error) {
+	queryClient := s.GetChainGRCPClients(chain).UpgradeQueryClient
+	res, err := queryClient.CurrentPlan(ctx, &upgradetypes.QueryCurrentPlanRequest{})
+	if err != nil {
+		return upgradetypes.Plan{}, err
+	}
+
+	return *res.Plan, nil
 }
 
 // QueryConnection queries the connection end using the given chain and connection id.
@@ -244,8 +276,8 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 	return res.CounterpartyPayee, nil
 }
 
-// QueryProposal queries the governance proposal on the given chain with the given proposal ID.
-func (s *E2ETestSuite) QueryProposal(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
+// QueryProposalV1Beta1 queries the governance proposal on the given chain with the given proposal ID.
+func (s *E2ETestSuite) QueryProposalV1Beta1(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
 	queryClient := s.GetChainGRCPClients(chain).GovQueryClient
 	res, err := queryClient.Proposal(ctx, &govtypesv1beta1.QueryProposalRequest{
 		ProposalId: proposalID,
