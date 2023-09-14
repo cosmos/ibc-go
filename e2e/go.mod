@@ -241,4 +241,4 @@ replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alp
 
 //replace github.com/strangelove-ventures/interchaintest/v8 => github.com/notional-labs/interchaintest/v8 v8.0.0-20230905211440-c2dc240d2221
 
-replace github.com/strangelove-ventures/interchaintest/v8 => github.com/crodriguezvega/interchaintest/v8 v8.0.0-20230912182717-55add1fb6aff
+replace github.com/strangelove-ventures/interchaintest/v8 => github.com/colin-axner/interchaintest/v8 v8.0.0-20230906142353-5d89200aad4a

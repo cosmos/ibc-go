@@ -107,7 +107,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 	if testvalues.TokenMetadataFeatureReleases.IsSupported(chainBVersion) {
 		t.Run("metadata for token exists on chainB", func(t *testing.T) {
-			balances, err := chainB.AllBalances(ctx, chainBAddress, true)
+			balances, err := s.QueryAllBalances(ctx, chainB, chainBAddress, true)
 			s.Require().NoError(err)
 
 			// balance for IBC token returns a human-readable denomination
