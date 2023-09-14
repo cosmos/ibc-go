@@ -721,21 +721,21 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
 
 	t.Run("upgrade chain", func(t *testing.T) {
-		govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainB, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+		s.UpgradeChain(ctx, chainA, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("update params", func(t *testing.T) {
-		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
 
 		msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(exported.Tendermint, "some-client"))
-		s.ExecuteGovV1Proposal(ctx, msg, chainB, chainBWallet)
+		s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet)
 	})
 
 	t.Run("query params", func(t *testing.T) {
-		clientParams, err := s.GetChainGRCPClients(chainB).ClientQueryClient.ClientParams(ctx, &clienttypes.QueryClientParamsRequest{})
+		clientParams, err := s.GetChainGRCPClients(chainA).ClientQueryClient.ClientParams(ctx, &clienttypes.QueryClientParamsRequest{})
 		s.Require().NoError(err)
 
 		allowedClients := clientParams.Params.AllowedClients
