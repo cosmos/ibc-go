@@ -90,13 +90,13 @@ Legacy params subspaces must still be initialised in app.go in order to successf
 
 ### Governance V1 migration
 
-Proposals have been migrated to [gov v1 messages](https://docs.cosmos.network/v0.50/modules/gov#messages) ref: [#4620](https://github.com/cosmos/ibc-go/pull/4620).
+Proposals have been migrated to [gov v1 messages](https://docs.cosmos.network/v0.50/modules/gov#messages) ref: [#4620](https://github.com/cosmos/ibc-go/pull/4620). The proposal `ClientUpdateProposal` has been removed and replaced with `MsgRecoverClient` and the proposal `UpgradeProposal` has been removed and replaced with `MsgIBCSoftwareUpgrade`.
 
-Ensure that the correct authority field is provided to the ibc keeper. The default authority will be `gov` if not specified.
+Ensure that the correct authority field is provided to the ibc keeper.
 
 Remove legacy proposal registration from app.go ref: [#4602](https://github.com/cosmos/ibc-go/pull/4602).
 
-Remove the ibcclient ProposalHandler from the govRouter.
+Remove the 02-client proposal handler from the `govRouter`.
 
 ```diff
 govRouter := govv1beta1.NewRouter()
