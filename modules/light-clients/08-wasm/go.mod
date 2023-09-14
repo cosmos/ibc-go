@@ -2,13 +2,12 @@ module github.com/cosmos/ibc-go/modules/light-clients/08-wasm
 
 go 1.21
 
-toolchain go1.21.1
-
 replace github.com/cosmos/ibc-go/v7 => ../../../
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 require (
+	cosmossdk.io/core v0.5.1
 	cosmossdk.io/errors v1.0.0
 	github.com/CosmWasm/wasmvm v1.2.4
 	github.com/cometbft/cometbft v0.37.2
@@ -31,7 +30,6 @@ require (
 	cloud.google.com/go/iam v1.1.0 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	cosmossdk.io/api v0.3.1 // indirect
-	cosmossdk.io/core v0.5.1 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/log v1.2.1 // indirect
 	cosmossdk.io/math v1.1.2 // indirect
