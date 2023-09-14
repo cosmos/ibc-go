@@ -29,7 +29,7 @@ var (
 	_ module.AppModule       = (*AppModule)(nil)
 	_ module.AppModuleBasic  = (*AppModule)(nil)
 	_ module.HasProposalMsgs = (*AppModule)(nil)
-  _ appmodule.AppModule    = (*AppModule)(nil)
+	_ appmodule.AppModule    = (*AppModule)(nil)
 )
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
