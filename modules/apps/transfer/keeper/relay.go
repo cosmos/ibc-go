@@ -261,6 +261,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	voucherDenom := denomTrace.IBCDenom()
+	if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
+		k.setDenomMetadata(ctx, denomTrace)
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDenomTrace,

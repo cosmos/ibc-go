@@ -528,6 +528,7 @@ Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that
 ### Negative
 
 - Callbacks may now have unbounded gas consumption since the actor may execute arbitrary logic. Chains implementing this feature should take care to place limitations on how much gas an actor callback can consume.
+- The relayer pays for the callback gas instead of the IBCActor
 
 ### Neutral
 

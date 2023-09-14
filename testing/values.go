@@ -21,6 +21,7 @@ import (
 
 const (
 	FirstClientID     = "07-tendermint-0"
+	SecondClientID    = "07-tendermint-1"
 	FirstChannelID    = "channel-0"
 	FirstConnectionID = "connection-0"
 
