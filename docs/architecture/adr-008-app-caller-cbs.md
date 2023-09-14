@@ -523,7 +523,7 @@ Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that
 
 - IBC Actors can now programatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete
 - Middleware implementing ADR-8 can be generally used for any application
-- Leverages the same callback architecture used between core IBC and IBC applications
+- Leverages a similar callback architecture to the one used between core IBC and IBC applications
 
 ### Negative
 
