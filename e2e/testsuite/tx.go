@@ -141,8 +141,7 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
-	proposalID := s.proposalIds[chain.Config().ChainID]
-	s.proposalIds[chain.Config().ChainID]++
+	nextProposalID := s.proposalIds[chain.Config().ChainID] + 1
 
 	msgs := []sdk.Msg{msg}
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
@@ -150,8 +149,8 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 		sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)),
 		sender.String(),
 		"",
-		fmt.Sprintf("e2e gov proposal: %d", proposalID),
-		fmt.Sprintf("executing gov proposal %d", proposalID),
+		fmt.Sprintf("e2e gov proposal: %d", nextProposalID),
+		fmt.Sprintf("executing gov proposal %d", nextProposalID),
 		false,
 	)
 	s.Require().NoError(err)
@@ -159,20 +158,21 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	resp := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
 	s.AssertTxSuccess(resp)
 
-	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
+	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(nextProposalID)), cosmos.ProposalVoteYes))
 
 	time.Sleep(testvalues.VotingPeriod)
 
-	proposal, err := s.QueryProposalV1(ctx, chain, proposalID)
+	proposal, err := s.QueryProposalV1(ctx, chain, nextProposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
+
+	s.proposalIds[chain.Config().ChainID] = nextProposalID
 }
 
 // ExecuteGovV1Beta1Proposal submits the given v1beta1 governance proposal using the provided user and uses all validators to vote yes on the proposal.
 // It ensures the proposal successfully passes.
 func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
-	proposalID := s.proposalIds[chain.Config().ChainID]
-	s.proposalIds[chain.Config().ChainID]++
+	nextProposalID := s.proposalIds[chain.Config().ChainID] + 1
 
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
@@ -186,23 +186,25 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cos
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// https://github.com/cosmos/ibc-go/issues/2122
 
-	proposal, err := s.QueryProposalV1Beta1(ctx, chain, proposalID)
+	proposal, err := s.QueryProposalV1Beta1(ctx, chain, nextProposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
-	err = chain.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", proposalID), cosmos.ProposalVoteYes)
+	err = chain.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", nextProposalID), cosmos.ProposalVoteYes)
 	s.Require().NoError(err)
 
 	// ensure voting period has not passed before validators finished voting
-	proposal, err = s.QueryProposalV1Beta1(ctx, chain, proposalID)
+	proposal, err = s.QueryProposalV1Beta1(ctx, chain, nextProposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
 	time.Sleep(testvalues.VotingPeriod) // pass proposal
 
-	proposal, err = s.QueryProposalV1Beta1(ctx, chain, 1)
+	proposal, err = s.QueryProposalV1Beta1(ctx, chain, nextProposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
+
+	s.proposalIds[chain.Config().ChainID] = nextProposalID
 }
 
 // Transfer broadcasts a MsgTransfer message.
