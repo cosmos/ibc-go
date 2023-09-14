@@ -74,7 +74,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 				Signer: authority.String(),
 				Params: controllertypes.NewParams(false),
 			}
-			s.ExecuteGovV1Proposal(ctx, &msg, chainA, controllerAccount, 1)
+			s.ExecuteGovV1Proposal(ctx, &msg, chainA, controllerAccount)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(controllertypes.StoreKey, string(controllertypes.KeyControllerEnabled), "false"),
@@ -131,7 +131,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 				Signer: authority.String(),
 				Params: hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
 			}
-			s.ExecuteGovV1Proposal(ctx, &msg, chainB, chainBUser, 1)
+			s.ExecuteGovV1Proposal(ctx, &msg, chainB, chainBUser)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(hosttypes.StoreKey, string(hosttypes.KeyHostEnabled), "false"),
