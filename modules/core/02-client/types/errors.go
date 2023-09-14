@@ -28,7 +28,7 @@ var (
 	ErrFailedNextSeqRecvVerification          = errorsmod.Register(SubModuleName, 21, "next sequence receive verification failed")
 	ErrSelfConsensusStateNotFound             = errorsmod.Register(SubModuleName, 22, "self consensus state not found")
 	ErrUpdateClientFailed                     = errorsmod.Register(SubModuleName, 23, "unable to update light client")
-	ErrInvalidUpdateClientProposal            = errorsmod.Register(SubModuleName, 24, "invalid update client proposal")
+	ErrInvalidRecoveryClient                  = errorsmod.Register(SubModuleName, 24, "invalid recovery client")
 	ErrInvalidUpgradeClient                   = errorsmod.Register(SubModuleName, 25, "invalid client upgrade")
 	ErrInvalidHeight                          = errorsmod.Register(SubModuleName, 26, "invalid height")
 	ErrInvalidSubstitute                      = errorsmod.Register(SubModuleName, 27, "invalid client state substitute")
