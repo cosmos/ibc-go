@@ -246,11 +246,13 @@ type ContractKeeper interface {
 
 The packet callbacks implemented in the middleware will first call the underlying application and then route to the IBC actor callback in the post-processing step. 
 It will extract the callback data from the application packet and set the callback gas meter depending on the global limit, the user limit, and the gas left in the transaction gas meter. 
-The callback will then be routed through the callback keeper which will either panic or return a result (success or failure). In the event of a panic or an error, the callback state changes 
+The callback will then be routed through the callback keeper which will either panic or return a result (success or failure). In the event of a (non-oog) panic or an error, the callback state changes 
 are discarded and the transaction is committed.
 
-If the transaction runs out of gas because the relayer-defined limit was exceeded the entire transaction is reverted to allow for resubmission. If the chain-defined or user-defined gas limit is reached, 
+If the relayer-defined gas limit is exceeded before the user-defined gas limit or global callback gas limit is exceeded, then the entire transaction is reverted to allow for resubmission. If the chain-defined or user-defined gas limit is reached, 
 the callback state changes are reverted and the transaction is committed.
+
+For the `SendPacket` callback, we will revert the entire transaction on any kind of error or panic. This is because the packet lifecycle has not yet started, so we can revert completely to avoid starting the packet lifecycle if the callback is not successsful.
 
 ```go
 // SendPacket implements source callbacks for sending packets.
@@ -529,7 +531,8 @@ Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that
 
 ### Neutral
 
-- Application packets that want to support ADR-8 must additionally have their packet data implement the `CallbackPacketData` interface and register their implementation on the chain codec
+- Application packets that want to support ADR-8 must additionally have their packet data implement `PacketDataProvider` and `PacketData` interfaces.
+- Applications must implement `PacketDataUnmarshaler` interface
 
 ## References
 
