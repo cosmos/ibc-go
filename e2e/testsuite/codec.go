@@ -1,10 +1,13 @@
 package testsuite
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 
-	// intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/gogoproto/jsonpb"
+	"github.com/cosmos/gogoproto/proto"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -64,7 +67,6 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	icahosttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	feetypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	// intertxtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	solomachine.RegisterInterfaces(cfg.InterfaceRegistry)
 	v7migrations.RegisterInterfaces(cfg.InterfaceRegistry)
 	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
@@ -113,4 +115,33 @@ func UnmarshalMsgResponses(txResp sdk.TxResponse, msgs ...codec.ProtoMarshaler) 
 	}
 
 	return nil
+}
+
+// MustProtoMarshalJSON provides an auxiliary function to return Proto3 JSON encoded
+// bytes of a message. This function should be used when marshalling a proto.Message
+// from the e2e tests. This function strips out unknown fields. This is useful for
+// backwards compatibility tests where the the types imported by the e2e package have
+// new fields that older versions do not recognize.
+func MustProtoMarshalJSON(msg proto.Message) []byte {
+	anyResolver := codectypes.NewInterfaceRegistry()
+
+	// EmitDefaults is set to false to prevent marshalling of unpopulated fields (memo)
+	// OrigName and the anyResovler match the fields the original SDK function would expect
+	// in order to minimize changes.
+
+	// OrigName is true since there is no particular reason to use camel case
+	// The any resolver is empty, but provided anyways.
+	jm := &jsonpb.Marshaler{OrigName: true, EmitDefaults: false, AnyResolver: anyResolver}
+
+	err := codectypes.UnpackInterfaces(msg, codectypes.ProtoJSONPacker{JSONPBMarshaler: jm})
+	if err != nil {
+		panic(err)
+	}
+
+	buf := new(bytes.Buffer)
+	if err := jm.Marshal(buf, msg); err != nil {
+		panic(err)
+	}
+
+	return buf.Bytes()
 }
