@@ -70,6 +70,6 @@ func TestRandomizedGenState1(t *testing.T) {
 
 	for _, tc := range tests {
 		tc := tc
-		require.Panicsf(t, func() { simulation.RandomizedGenState(&tt.simState) }, tt.panicMsg)
+		require.Panicsf(t, func() { simulation.RandomizedGenState(&tc.simState) }, tc.panicMsg)
 	}
 }
