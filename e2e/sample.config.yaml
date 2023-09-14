@@ -23,7 +23,7 @@ chains:
 relayer:
   type: hermes # override with RELAYER_TYPE
   image: ghcr.io/informalsystems/hermes # override with RELAYER_IMAGE
-  tag: "master" # override with RELAYER_TAG
+  tag: "bef2f53" # override with RELAYER_TAG
 
 cometbft:
   logLevel: info
