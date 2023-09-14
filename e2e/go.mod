@@ -235,4 +235,3 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-//replace github.com/strangelove-ventures/interchaintest/v8 => github.com/notional-labs/interchaintest/v8 v8.0.0-20230905211440-c2dc240d2221
