@@ -565,15 +565,12 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
-	// note: after the restart caused when the chain was upgraded, due to the refresh rate of the hermes relayer,
-	// existing existing clients will not be refreshed.
-	// ref: https://github.com/informalsystems/hermes/blob/master/config.toml#L24-L30
-	// by restarting them, and by having `clear_on_start = true` in the config.toml,
-	// existing packets will be cleared and the relayer will start relaying packets again.
+	// see this issue https://github.com/informalsystems/hermes/issues/3579
+	// this restart is a temporary workaround to a limitation in hermes requiring a restart
+	// in some cases after an upgrade.
 	tc := testsuite.LoadConfig()
 	if tc.RelayerConfig.Type == e2erelayer.Hermes {
-		s.StopRelayer(ctx, relayer)
-		s.StartRelayer(relayer)
+		s.RestartRelayer(ctx, relayer)
 	}
 
 	t.Run("check that the tendermint clients are active again after upgrade", func(t *testing.T) {
