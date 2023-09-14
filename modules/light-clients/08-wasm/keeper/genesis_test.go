@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		{
 			"success",
 			func() {
-				codeHash := "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"
+				codeHash := "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64" //nolint:gosec // these are not hard-coded credentials
 				contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
 				suite.Require().NoError(err)
 
@@ -70,7 +70,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.SetupTest()
 	ctx := suite.chainA.GetContext()
 
-	expCodeHash := "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"
+	expCodeHash := "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64" //nolint:gosec // these are not hard-coded credentials
 
 	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
