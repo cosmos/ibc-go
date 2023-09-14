@@ -15,6 +15,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/x/gov/simulation"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
@@ -24,9 +26,10 @@ import (
 )
 
 var (
-	_ module.AppModule      = (*AppModule)(nil)
-	_ module.AppModuleBasic = (*AppModule)(nil)
-	_ appmodule.AppModule   = (*AppModule)(nil)
+	_ module.AppModule       = (*AppModule)(nil)
+	_ module.AppModuleBasic  = (*AppModule)(nil)
+	_ module.HasProposalMsgs = (*AppModule)(nil)
+  _ appmodule.AppModule    = (*AppModule)(nil)
 )
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
@@ -105,6 +108,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 1 }
+
+// ProposalMsgs returns msgs used for governance proposals for simulations.
+func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+	return simulation.ProposalMsgs()
+}
 
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.RawMessage) []abci.ValidatorUpdate {
 	var gs types.GenesisState
