@@ -141,8 +141,10 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
-	proposalID := s.proposalIds[chain.Config().ChainID]
-	s.proposalIds[chain.Config().ChainID]++
+	proposalID := s.proposalIDs[chain.Config().ChainID]
+	defer func() {
+		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
+	}()
 
 	msgs := []sdk.Msg{msg}
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
@@ -171,8 +173,10 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 // ExecuteGovV1Beta1Proposal submits the given v1beta1 governance proposal using the provided user and uses all validators to vote yes on the proposal.
 // It ensures the proposal successfully passes.
 func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
-	proposalID := s.proposalIds[chain.Config().ChainID]
-	s.proposalIds[chain.Config().ChainID]++
+	proposalID := s.proposalIDs[chain.Config().ChainID]
+	defer func() {
+		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
+	}()
 
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
@@ -200,7 +204,7 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cos
 
 	time.Sleep(testvalues.VotingPeriod) // pass proposal
 
-	proposal, err = s.QueryProposalV1Beta1(ctx, chain, 1)
+	proposal, err = s.QueryProposalV1Beta1(ctx, chain, proposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
 }
