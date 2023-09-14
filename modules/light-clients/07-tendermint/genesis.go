@@ -9,7 +9,7 @@ import (
 
 // ExportMetadata exports all the consensus metadata in the client store so they can be included in clients genesis
 // and imported by a ClientKeeper
-func (cs ClientState) ExportMetadata(store storetypes.KVStore) []exported.GenesisMetadata {
+func (ClientState) ExportMetadata(store storetypes.KVStore) []exported.GenesisMetadata {
 	gm := make([]exported.GenesisMetadata, 0)
 	IterateConsensusMetadata(store, func(key, val []byte) bool {
 		gm = append(gm, clienttypes.NewGenesisMetadata(key, val))

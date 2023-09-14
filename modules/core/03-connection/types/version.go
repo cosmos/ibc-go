@@ -5,7 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	collections "github.com/cosmos/ibc-go/v7/internal/collections"
+	"github.com/cosmos/ibc-go/v7/internal/collections"
 )
 
 var (
@@ -100,12 +100,7 @@ func (version Version) VerifyProposedVersion(proposedVersion *Version) error {
 // VerifySupportedFeature takes in a version and feature string and returns
 // true if the feature is supported by the version and false otherwise.
 func VerifySupportedFeature(version *Version, feature string) bool {
-	for _, f := range version.GetFeatures() {
-		if f == feature {
-			return true
-		}
-	}
-	return false
+	return collections.Contains(feature, version.GetFeatures())
 }
 
 // GetCompatibleVersions returns a descending ordered set of compatible IBC

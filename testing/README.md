@@ -152,7 +152,7 @@ Here is an example of how to setup your testing environment in every package you
 ```go
 // KeeperTestSuite is a testing suite to test keeper functions.
 type KeeperTestSuite struct {
-  suite.Suite
+  testifysuite.Suite
 
   coordinator *ibctesting.Coordinator
 
@@ -163,7 +163,7 @@ type KeeperTestSuite struct {
 
 // TestKeeperTestSuite runs all the tests within this package.
 func TestKeeperTestSuite(t *testing.T) {
-  suite.Run(t, new(KeeperTestSuite))
+  testifysuite.Run(t, new(KeeperTestSuite))
 }
 
 // SetupTest creates a coordinator with 2 test chains.

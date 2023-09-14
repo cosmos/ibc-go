@@ -3,7 +3,7 @@ package transfer_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -15,7 +15,7 @@ import (
 )
 
 type TransferTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -134,5 +134,5 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 }
 
 func TestTransferTestSuite(t *testing.T) {
-	suite.Run(t, new(TransferTestSuite))
+	testifysuite.Run(t, new(TransferTestSuite))
 }

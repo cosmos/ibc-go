@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -41,7 +41,7 @@ var (
 )
 
 type TypesTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
 	chainB      *ibctesting.TestChain
@@ -52,7 +52,7 @@ type TypesTestSuite struct {
 	testData map[string]string
 }
 
-func (suite *TypesTestSuite) SetupTest() {
+func (*TypesTestSuite) SetupTest() {
 	ibctesting.DefaultTestingAppInit = ibctesting.SetupTestingApp
 }
 
@@ -153,7 +153,7 @@ func (suite *TypesTestSuite) SetupWasmGrandpaWithChannel() {
 }
 
 func TestWasmTestSuite(t *testing.T) {
-	suite.Run(t, new(TypesTestSuite))
+	testifysuite.Run(t, new(TypesTestSuite))
 }
 
 func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) map[string]tmtypes.PrivValidator {

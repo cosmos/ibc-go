@@ -21,8 +21,8 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	substituteClient exported.ClientState,
 ) error {
 	var (
-		SubjectPrefix    = []byte("subject/")
-		SubstitutePrefix = []byte("substitute/")
+		subjectPrefix    = []byte("subject/")
+		substitutePrefix = []byte("substitute/")
 	)
 
 	_, ok := substituteClient.(*ClientState)
@@ -33,12 +33,12 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		)
 	}
 
-	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, SubjectPrefix, SubstitutePrefix)
+	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, subjectPrefix, substitutePrefix)
 
 	payload := sudoMsg{
 		CheckSubstituteAndUpdateState: &checkSubstituteAndUpdateStateMsg{},
 	}
 
-	_, err := call[contractResult](ctx, store, &cs, payload)
+	_, err := wasmCall[contractResult](ctx, store, &cs, payload)
 	return err
 }

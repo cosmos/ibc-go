@@ -25,7 +25,7 @@ func (h Header) ConsensusState() *ConsensusState {
 }
 
 // ClientType defines that the Header is a Tendermint consensus algorithm
-func (h Header) ClientType() string {
+func (Header) ClientType() string {
 	return exported.Tendermint
 }
 

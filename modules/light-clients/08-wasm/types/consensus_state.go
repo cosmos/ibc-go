@@ -16,12 +16,12 @@ func NewConsensusState(data []byte, timestamp uint64) *ConsensusState {
 }
 
 // ClientType returns Wasm type.
-func (cs ConsensusState) ClientType() string {
+func (ConsensusState) ClientType() string {
 	return exported.Wasm
 }
 
 // GetTimestamp returns block time in nanoseconds of the header that created consensus state.
-func (cs ConsensusState) GetTimestamp() uint64 {
+func (ConsensusState) GetTimestamp() uint64 {
 	return 0
 }
 

@@ -1,10 +1,6 @@
 package types
 
 import (
-	"encoding/hex"
-	"encoding/json"
-	"errors"
-
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -28,7 +24,7 @@ func NewClientState(data []byte, codeHash []byte, height clienttypes.Height) *Cl
 }
 
 // ClientType is Wasm light client.
-func (cs ClientState) ClientType() string {
+func (ClientState) ClientType() string {
 	return exported.Wasm
 }
 
@@ -116,19 +112,10 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 		ConsensusState: consensusState,
 	}
 
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
-	}
-
 	// The global store key can be used here to implement #4085
 	// wasmStore := ctx.KVStore(WasmStoreKey)
 
-	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
-	if err != nil {
-		return errorsmod.Wrapf(err, "failed to initialize contract")
-	}
-	return nil
+	return wasmInit(ctx, clientStore, &cs, payload)
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
@@ -207,54 +194,4 @@ func (cs ClientState) VerifyNonMembership(
 	}
 	_, err := wasmQuery[contractResult](ctx, clientStore, &cs, payload)
 	return err
-}
-
-// call calls the contract with the given payload and returns the result.
-func call[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload any) (T, error) {
-	var result T
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return result, errorsmod.Wrapf(err, "failed to marshal payload for wasm execution")
-	}
-	resp, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
-	if err != nil {
-		return result, errorsmod.Wrapf(err, "call to wasm contract failed")
-	}
-	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
-	if len(resp.Messages) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmSubMessagesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-	}
-	if len(resp.Events) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmEventsNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-	}
-	if len(resp.Attributes) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmAttributesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-	}
-	if err := json.Unmarshal(resp.Data, &result); err != nil {
-		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm execution")
-	}
-	if !result.Validate() {
-		return result, errorsmod.Wrapf(errors.New(result.Error()), "error occurred while executing contract with code hash %s", hex.EncodeToString(cs.CodeHash))
-	}
-	return result, nil
-}
-
-// wasmQuery queries the contract with the given payload and returns the result.
-func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload any) (T, error) {
-	var result T
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return result, errorsmod.Wrapf(err, "failed to marshal payload for wasm query")
-	}
-	resp, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
-	if err != nil {
-		return result, errorsmod.Wrapf(err, "query to wasm contract failed")
-	}
-	if err := json.Unmarshal(resp, &result); err != nil {
-		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm query")
-	}
-	if !result.Validate() {
-		return result, errorsmod.Wrapf(errors.New(result.Error()), "error occurred while querying contract with code hash %s", hex.EncodeToString(cs.CodeHash))
-	}
-	return result, nil
 }

@@ -9,7 +9,7 @@ import (
 var _ exported.ClientMessage = &ClientMessage{}
 
 // ClientType is a Wasm light client.
-func (c ClientMessage) ClientType() string {
+func (ClientMessage) ClientType() string {
 	return exported.Wasm
 }
 

@@ -123,7 +123,7 @@ func (k Keeper) OnChanOpenConfirm(
 }
 
 // OnChanCloseConfirm removes the active channel stored in state
-func (k Keeper) OnChanCloseConfirm(
+func (Keeper) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
