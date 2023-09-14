@@ -141,7 +141,10 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
-	nextProposalID := s.proposalIds[chain.Config().ChainID] + 1
+	nextProposalID := s.proposalIDs[chain.Config().ChainID] + 1
+	defer func() {
+		s.proposalIDs[chain.Config().ChainID] = nextProposalID
+	}()
 
 	msgs := []sdk.Msg{msg}
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
@@ -165,14 +168,15 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	proposal, err := s.QueryProposalV1(ctx, chain, nextProposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
-
-	s.proposalIds[chain.Config().ChainID] = nextProposalID
 }
 
 // ExecuteGovV1Beta1Proposal submits the given v1beta1 governance proposal using the provided user and uses all validators to vote yes on the proposal.
 // It ensures the proposal successfully passes.
 func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
-	nextProposalID := s.proposalIds[chain.Config().ChainID] + 1
+	nextProposalID := s.proposalIDs[chain.Config().ChainID] + 1
+	defer func() {
+		s.proposalIDs[chain.Config().ChainID] = nextProposalID
+	}()
 
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
@@ -203,8 +207,6 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cos
 	proposal, err = s.QueryProposalV1Beta1(ctx, chain, nextProposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
-
-	s.proposalIds[chain.Config().ChainID] = nextProposalID
 }
 
 // Transfer broadcasts a MsgTransfer message.
