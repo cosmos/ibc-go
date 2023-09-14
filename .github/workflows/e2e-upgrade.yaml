@@ -95,6 +95,7 @@ jobs:
       test: "TestIBCChainUpgrade"
       upload-logs: true
       relayer-type: rly
+      relayer-image: ghcr.io/cosmos/relayer
 
   upgrade-v6-rly:
     uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
@@ -109,6 +110,7 @@ jobs:
       test: "TestV5ToV6ChainUpgrade"
       upload-logs: true
       relayer-type: rly
+      relayer-image: ghcr.io/cosmos/relayer
 
   upgrade-v7-rly:
     uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
@@ -123,6 +125,7 @@ jobs:
       test: "TestV6ToV7ChainUpgrade"
       upload-logs: true
       relayer-type: rly
+      relayer-image: ghcr.io/cosmos/relayer
 
   upgrade-v7_1-rly:
     uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
@@ -137,6 +140,7 @@ jobs:
       test: "TestV7ToV7_1ChainUpgrade"
       upload-logs: true
       relayer-type: rly
+      relayer-image: ghcr.io/cosmos/relayer
 
   upgrade-v8-rly:
     uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
@@ -151,3 +155,4 @@ jobs:
       test: "TestV7ToV8ChainUpgrade"
       upload-logs: true
       relayer-type: rly
+      relayer-image: ghcr.io/cosmos/relayer
