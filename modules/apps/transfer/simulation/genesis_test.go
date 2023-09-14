@@ -66,14 +66,17 @@ func TestRandomizedGenState1(t *testing.T) {
 		{ // panic => reason: incomplete initialization of the simState
 			"nil pointer dereference",
 			module.SimulationState{},
-			"invalid memory address or nil pointer dereference"},
+			"invalid memory address or nil pointer dereference",
+		},
 		{ // panic => reason: incomplete initialization of the simState
 			"assignment to entry in nil map",
 			module.SimulationState{
 				AppParams: make(simtypes.AppParams),
 				Cdc:       cdc,
 				Rand:      r,
-			}, "assignment to entry in nil map"},
+			},
+			"assignment to entry in nil map",
+		},
 	}
 
 	for _, tc := range tests {

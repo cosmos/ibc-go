@@ -66,7 +66,6 @@ func (suite *TendermintTestSuite) TestStatus() {
 
 			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 			suite.Require().Equal(tc.expStatus, status)
-
 		})
 
 	}
