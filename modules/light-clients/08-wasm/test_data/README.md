@@ -1,6 +1,6 @@
-How to regenerate grandpa test data
+# How to regenerate grandpa test data
 
-Note: this is a general outline of the process and the actions to take are dependent on the changes that were implemented. The changes could be from any of the following: ibc-go, hyperspace, parachain, polkadot, grandpa light client contract, heighliner, or interchaintest.
+This is a general outline of the process and the actions to take are dependent on the changes that were implemented. The changes could be from any of the following: ibc-go, hyperspace, parachain, polkadot, grandpa light client contract, heighliner, or interchaintest.
 
 1. Make your code changes
 2. Build local docker images for the e2e test with all modifications
