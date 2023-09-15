@@ -105,6 +105,16 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
+	if testvalues.TokenMetadataFeatureReleases.IsSupported(chainBVersion) {
+		t.Run("metadata for token exists on chainB", func(t *testing.T) {
+			balances, err := s.QueryAllBalances(ctx, chainB, chainBAddress, true)
+			s.Require().NoError(err)
+
+			// balance for IBC token returns a human-readable denomination
+			s.Require().Equal(chainBIBCToken.GetFullDenomPath(), balances[1].Denom)
+		})
+	}
+
 	t.Run("non-native IBC token transfer from chainB to chainA, receiver is source of tokens", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(transferTxResp)
