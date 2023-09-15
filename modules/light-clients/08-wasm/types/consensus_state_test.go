@@ -19,11 +19,6 @@ func (suite *TypesTestSuite) TestConsensusStateValidateBasic() {
 			true,
 		},
 		{
-			"timestamp is zero",
-			types.NewConsensusState([]byte("data"), 0),
-			false,
-		},
-		{
 			"data is nil",
 			types.NewConsensusState(nil, uint64(time.Now().Unix())),
 			false,

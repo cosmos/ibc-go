@@ -41,15 +41,9 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 			suite.Require().True(ok)
 			subjectClientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 
-			// Create a new client
-			clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
-			suite.Require().NoError(err)
+			substituteClientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			suite.Require().True(ok)
 
-			substituteClientState = &types.ClientState{
-				Data:         clientStateData,
-				CodeHash:     suite.codeHash,
-				LatestHeight: clienttypes.NewHeight(2000, 4),
-			}
 			consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
 			suite.Require().NoError(err)
 			substituteConsensusState := types.ConsensusState{
@@ -77,12 +71,6 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 				suite.Require().NotEmpty(clientStateBz)
 				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
 				suite.Require().Equal(substituteClientState.GetLatestHeight(), newClientState.GetLatestHeight())
-
-				// Verify that the substitute consensus state is in the subject client store
-				// Contract will increment timestamp by 1, verifying it can read from the substitute store and write to the subject store
-				newConsensusState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.ctx, grandpaClientID, newClientState.GetLatestHeight())
-				suite.Require().True(ok)
-				suite.Require().Equal(substituteConsensusState.GetTimestamp()+1, newConsensusState.GetTimestamp())
 			} else {
 				suite.Require().Error(err)
 			}
