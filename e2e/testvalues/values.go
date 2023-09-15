@@ -48,6 +48,11 @@ func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
 }
 
+// TokenMetadataFeatureReleases represents the releases the token metadata was released in.
+var TokenMetadataFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
+}
+
 // GovGenesisFeatureReleases represents the releases the governance module genesis
 // was upgraded from v1beta1 to v1.
 var GovGenesisFeatureReleases = semverutil.FeatureReleases{
