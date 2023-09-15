@@ -47,7 +47,7 @@ _note_ two of these parameters: `AllowUpdateAfterExpiry` and `AllowUpdateAfterMi
 
 # How to recover an expired client with a governance proposal
 
-See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](../../architecture/adr-026-ibc-client-recovery-mechanisms.md)
+See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](/architecture/adr-026-ibc-client-recovery-mechanisms)
 
 > **Who is this information for?**
 > Although technically anyone can submit the governance proposal to recover an expired client, often it will be **relayer operators** (at least coordinating the submission).
