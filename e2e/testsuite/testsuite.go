@@ -326,7 +326,7 @@ func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.Co
 func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain *cosmos.CosmosChain, counterpartyNativeDenom string, counterpartyChannel ibc.ChannelOutput) {
 	chainIBCDenom := GetIBCToken(counterpartyNativeDenom, counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID)
 
-	denomMetadata, err := s.QueryDenomMetdata(ctx, chain, chainIBCDenom.IBCDenom())
+	denomMetadata, err := s.QueryDenomMetadata(ctx, chain, chainIBCDenom.IBCDenom())
 	s.Require().NoError(err)
 
 	s.Require().Equal(chainIBCDenom.IBCDenom(), denomMetadata.Base, "denom metadata base does not match expected %s: got %s", chainIBCDenom.IBCDenom(), denomMetadata.Base)

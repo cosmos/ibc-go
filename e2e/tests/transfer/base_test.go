@@ -103,14 +103,12 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
-
-		if testvalues.DenomMetadataFeatureReleases.IsSupported(chainBVersion) {
-			s.AssertHumanReadableDenom(ctx, chainB, chainADenom, channelA)
-		}
 	})
 
-	if testvalues.TokenMetadataFeatureReleases.IsSupported(chainBVersion) {
-		t.Run("metadata for token exists on chainB", func(t *testing.T) {
+	if testvalues.DenomMetadataFeatureReleases.IsSupported(chainBVersion) {
+		t.Run("metadata for IBC denomination exists on chainB", func(t *testing.T) {
+			s.AssertHumanReadableDenom(ctx, chainB, chainADenom, channelA)
+
 			balances, err := s.QueryAllBalances(ctx, chainB, chainBAddress, true)
 			s.Require().NoError(err)
 
