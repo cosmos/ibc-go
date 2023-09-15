@@ -5,10 +5,11 @@ sidebar_position: 1
 slug: /ibc/upgrades/quick-guide
 ---
 
+
 # How to Upgrade IBC Chains and their Clients
 
 :::note Synopsis
-Learn how to upgrade your chain and counterparty clients.
+Learn how to upgrade your chain and counterparty clients. 
 :::
 
 The information in this doc for upgrading chains is relevant to SDK chains. However, the guide for counterparty clients is relevant to any Tendermint client that enables upgrades.
@@ -35,10 +36,10 @@ Note: Since upgrades are only implemented for Tendermint clients, this doc only 
 
 If the IBC-connected chain is conducting an upgrade that will break counterparty clients, it must ensure that the upgrade is first supported by IBC using the list above and then execute the upgrade process described below in order to prevent counterparty clients from breaking.
 
-1. Create a 02-client [`UpgradeProposal`](../08-proto-docs.md)with an `UpgradePlan` and a new IBC ClientState in the `UpgradedClientState` field. Note that the `UpgradePlan` must specify an upgrade height **only** (no upgrade time), and the `ClientState` should only include the fields common to all valid clients and zero out any client-customizable fields (such as TrustingPeriod).
-2. Vote on and pass the `UpgradeProposal`.
+1. Create a governance proposal with the [`MsgIBCSoftwareUpgrade`](https://buf.build/cosmos/ibc/docs/main:ibc.core.client.v1#ibc.core.client.v1.MsgIBCSoftwareUpgrade) message which contains an `UpgradePlan` and a new IBC `ClientState` in the `UpgradedClientState` field. Note that the `UpgradePlan` must specify an upgrade height **only** (no upgrade time), and the `ClientState` should only include the fields common to all valid clients (chain-specified parameters) and zero out any client-customizable fields (such as `TrustingPeriod`).
+2. Vote on and pass the governance proposal.
 
-Upon the `UpgradeProposal` passing, the upgrade module will commit the UpgradedClient under the key: `upgrade/UpgradedIBCState/{upgradeHeight}/upgradedClient`. On the block right before the upgrade height, the upgrade module will also commit an initial consensus state for the next chain under the key: `upgrade/UpgradedIBCState/{upgradeHeight}/upgradedConsState`.
+Upon passing the governance proposal, the upgrade module will commit the `UpgradedClient` under the key: `upgrade/UpgradedIBCState/{upgradeHeight}/upgradedClient`. On the block right before the upgrade height, the upgrade module will also commit an initial consensus state for the next chain under the key: `upgrade/UpgradedIBCState/{upgradeHeight}/upgradedConsState`.
 
 Once the chain reaches the upgrade height and halts, a relayer can upgrade the counterparty clients to the last block of the old chain. They can then submit the proofs of the `UpgradedClient` and `UpgradedConsensusState` against this last block and upgrade the counterparty client.
 
