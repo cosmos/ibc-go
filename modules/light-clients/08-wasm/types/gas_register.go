@@ -8,10 +8,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 // Copied subset of gas features from wasmd
@@ -74,31 +74,31 @@ func DefaultPerByteUncompressCost() wasmvmtypes.UFraction {
 // GasRegister abstract source for gas costs
 type GasRegister interface {
 	// NewContractInstanceCosts costs to create a new contract instance from code
-	NewContractInstanceCosts(msgLen int) sdk.Gas
+	NewContractInstanceCosts(msgLen int) storetypes.Gas
 	// CompileCosts costs to persist and "compile" a new wasm contract
-	CompileCosts(byteLength int) sdk.Gas
+	CompileCosts(byteLength int) storetypes.Gas
 	// InstantiateContractCosts costs when interacting with a wasm contract
-	InstantiateContractCosts(msgLen int) sdk.Gas
+	InstantiateContractCosts(msgLen int) storetypes.Gas
 	// ToWasmVMGas converts from sdk gas to wasmvm gas
-	ToWasmVMGas(source sdk.Gas) uint64
+	ToWasmVMGas(source storetypes.Gas) uint64
 	// FromWasmVMGas converts from wasmvm gas to sdk gas
-	FromWasmVMGas(source uint64) sdk.Gas
+	FromWasmVMGas(source uint64) storetypes.Gas
 }
 
 // WasmGasRegisterConfig config type
 type WasmGasRegisterConfig struct {
 	// InstanceCost costs when interacting with a wasm contract
-	InstanceCost sdk.Gas
+	InstanceCost storetypes.Gas
 	// CompileCosts costs to persist and "compile" a new wasm contract
-	CompileCost sdk.Gas
+	CompileCost storetypes.Gas
 	// UncompressCost costs per byte to unpack a contract
 	UncompressCost wasmvmtypes.UFraction
 	// GasMultiplier is how many cosmwasm gas points = 1 sdk gas point
 	// SDK reference costs can be found here: https://github.com/cosmos/cosmos-sdk/blob/02c6c9fafd58da88550ab4d7d494724a477c8a68/store/types/gas.go#L153-L164
-	GasMultiplier sdk.Gas
+	GasMultiplier storetypes.Gas
 	// ContractMessageDataCost SDK gas charged *per byte* of the message that goes to the contract
 	// This is used with len(msg)
-	ContractMessageDataCost sdk.Gas
+	ContractMessageDataCost storetypes.Gas
 }
 
 // DefaultGasRegisterConfig default values
@@ -146,7 +146,7 @@ func (g WasmGasRegister) CompileCosts(byteLength int) storetypes.Gas {
 }
 
 // UncompressCosts costs to unpack a new wasm contract
-func (g WasmGasRegister) UncompressCosts(byteLength int) sdk.Gas {
+func (g WasmGasRegister) UncompressCosts(byteLength int) storetypes.Gas {
 	if byteLength < 0 {
 		panic(errorsmod.Wrap(ErrInvalid, "negative length"))
 	}
@@ -154,11 +154,11 @@ func (g WasmGasRegister) UncompressCosts(byteLength int) sdk.Gas {
 }
 
 // InstantiateContractCosts costs when interacting with a wasm contract
-func (g WasmGasRegister) InstantiateContractCosts(msgLen int) sdk.Gas {
+func (g WasmGasRegister) InstantiateContractCosts(msgLen int) storetypes.Gas {
 	if msgLen < 0 {
 		panic(errorsmod.Wrap(ErrInvalid, "negative length"))
 	}
-	dataCosts := sdk.Gas(msgLen) * g.c.ContractMessageDataCost
+	dataCosts := storetypes.Gas(msgLen) * g.c.ContractMessageDataCost
 	return g.c.InstanceCost + dataCosts
 }
 
@@ -166,13 +166,13 @@ func (g WasmGasRegister) InstantiateContractCosts(msgLen int) sdk.Gas {
 func (g WasmGasRegister) ToWasmVMGas(source storetypes.Gas) uint64 {
 	x := source * g.c.GasMultiplier
 	if x < source {
-		panic(sdk.ErrorOutOfGas{Descriptor: "overflow"})
+		panic(storetypes.ErrorOutOfGas{Descriptor: "overflow"})
 	}
 	return x
 }
 
 // FromWasmVMGas converts to SDK gas unit
-func (g WasmGasRegister) FromWasmVMGas(source uint64) sdk.Gas {
+func (g WasmGasRegister) FromWasmVMGas(source uint64) storetypes.Gas {
 	return source / g.c.GasMultiplier
 }
 
@@ -193,22 +193,22 @@ func (g WasmGasRegister) consumeRuntimeGas(ctx sdk.Context, gas uint64) {
 	ctx.GasMeter().ConsumeGas(consumed, "wasm contract")
 	// throw OutOfGas error if we ran out (got exactly to zero due to better limit enforcing)
 	if ctx.GasMeter().IsOutOfGas() {
-		panic(sdk.ErrorOutOfGas{Descriptor: "Wasmer function execution"})
+		panic(storetypes.ErrorOutOfGas{Descriptor: "Wasmer function execution"})
 	}
 }
 
 // MultipliedGasMeter wraps the GasMeter from context and multiplies all reads by out defined multiplier
 type MultipliedGasMeter struct {
-	originalMeter sdk.GasMeter
+	originalMeter storetypes.GasMeter
 	GasRegister   GasRegister
 }
 
-func NewMultipliedGasMeter(originalMeter sdk.GasMeter, gr GasRegister) MultipliedGasMeter {
+func NewMultipliedGasMeter(originalMeter storetypes.GasMeter, gr GasRegister) MultipliedGasMeter {
 	return MultipliedGasMeter{originalMeter: originalMeter, GasRegister: gr}
 }
 
 var _ wasmvm.GasMeter = MultipliedGasMeter{}
 
-func (m MultipliedGasMeter) GasConsumed() sdk.Gas {
+func (m MultipliedGasMeter) GasConsumed() storetypes.Gas {
 	return m.GasRegister.ToWasmVMGas(m.originalMeter.GasConsumed())
 }

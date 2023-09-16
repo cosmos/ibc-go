@@ -9,12 +9,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"cosmossdk.io/x/upgrade/types"
+
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -30,11 +32,11 @@ import (
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const (
@@ -71,7 +73,67 @@ func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Cha
 	return res.Params.AllowedClients
 }
 
-func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
+// TestScheduleIBCUpgrade_Succeeds tests that a governance proposal to schedule an IBC software upgrade is successful.
+func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
+	t := s.T()
+	ctx := context.TODO()
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	chainA, chainB := s.GetChains()
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	const planHeight = int64(75)
+	var newChainID string
+
+	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
+
+		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		originalChainID := clientState.(*ibctm.ClientState).ChainId
+		revisionNumber := clienttypes.ParseChainID(fmt.Sprintf("%s-%d", originalChainID, 1))
+		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
+		newChainID, err = clienttypes.SetRevisionNumber(fmt.Sprintf("%s-%d", originalChainID, 1), revisionNumber+1)
+		s.Require().NoError(err)
+		s.Require().NotEqual(originalChainID, newChainID)
+
+		upgradedClientState := clientState.(*ibctm.ClientState)
+		upgradedClientState.ChainId = newChainID
+
+		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
+			authority.String(),
+			types.Plan{
+				Name:   "upgrade-client",
+				Height: planHeight,
+			},
+			upgradedClientState,
+		)
+		s.Require().NoError(err)
+		s.ExecuteGovV1Proposal(ctx, scheduleUpgradeMsg, chainA, chainAWallet)
+	})
+
+	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(t *testing.T) {
+		// checks there is an upgraded client state stored
+		cs, err := s.QueryUpgradedClientState(ctx, chainA, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		upgradedClientState, ok := cs.(*ibctm.ClientState)
+		s.Require().True(ok)
+		s.Require().Equal(upgradedClientState.ChainId, newChainID)
+
+		plan, err := s.QueryCurrentUpgradePlan(ctx, chainA)
+		s.Require().NoError(err)
+
+		s.Require().Equal("upgrade-client", plan.Name)
+		s.Require().Equal(planHeight, plan.Height)
+	})
+}
+
+// TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
+func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -133,9 +195,12 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		})
 	})
 
-	t.Run("pass client update proposal", func(t *testing.T) {
-		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
-		s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+	t.Run("execute proposal for MsgRecoverClient", func(t *testing.T) {
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
+		s.Require().NotNil(recoverClientMsg)
+		s.ExecuteGovV1Proposal(ctx, recoverClientMsg, chainA, chainAWallet)
 	})
 
 	t.Run("check status of each client", func(t *testing.T) {
@@ -206,7 +271,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("create validator set", func(t *testing.T) {
-		var validators []*tmservice.Validator
+		var validators []*cmtservice.Validator
 
 		t.Run("fetch block header at latest client state height", func(t *testing.T) {
 			header, err = s.GetBlockHeaderByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
@@ -286,7 +351,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			s.Require().NotNil(authority)
 
 			msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(allowedClient))
-			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet)
 		} else {
 			value, err := tmjson.Marshal([]string{allowedClient})
 			s.Require().NoError(err)
@@ -295,7 +360,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+			s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 
@@ -374,14 +439,14 @@ func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight cl
 	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte(invalidHashValue)))
 	voteSet := tmtypes.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
 
-	commit, err := tmtypes.MakeCommit(blockID, blockHeight, 1, voteSet, signers, timestamp)
+	extCommit, err := tmtypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signers, timestamp, false)
 	if err != nil {
 		return nil, err
 	}
 
 	signedHeader := &tmproto.SignedHeader{
 		Header: tmHeader.ToProto(),
-		Commit: commit.ToProto(),
+		Commit: extCommit.ToCommit().ToProto(),
 	}
 
 	valSet, err := tmValSet.ToProto()

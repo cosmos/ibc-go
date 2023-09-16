@@ -9,7 +9,7 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 // ConstructUpdateWasmClientHeader will construct a valid 08-wasm Header with a zero height

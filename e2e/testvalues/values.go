@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 )
 
 const (
@@ -46,6 +46,11 @@ func TendermintClientID(id int) string {
 
 func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
+}
+
+// TokenMetadataFeatureReleases represents the releases the token metadata was released in.
+var TokenMetadataFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 }
 
 // GovGenesisFeatureReleases represents the releases the governance module genesis
