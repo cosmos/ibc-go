@@ -285,7 +285,6 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 		{
 			name: "valid consensus",
 			malleate: func() {
-
 				tmConsensusState := tmtypes.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte{0}), []byte(codeHash))
 				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
