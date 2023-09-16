@@ -57,7 +57,8 @@ func TestSnapshotter(t *testing.T) {
 			}
 
 			// create snapshot
-			wasmClientApp.Commit()
+			_, err := wasmClientApp.Commit()
+			require.NoError(t, err)
 			snapshotHeight := uint64(wasmClientApp.LastBlockHeight())
 			snapshot, err := wasmClientApp.SnapshotManager().Create(snapshotHeight)
 			require.NoError(t, err)
