@@ -18,6 +18,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
@@ -47,6 +48,7 @@ type GRPCClients struct {
 	// InterTxQueryClient       intertxtypes.QueryClient
 
 	// SDK query clients
+	BankQueryClient    banktypes.QueryClient
 	GovQueryClient     govtypesv1beta1.QueryClient
 	GovQueryClientV1   govtypesv1.QueryClient
 	GroupsQueryClient  grouptypes.QueryClient
@@ -86,6 +88,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		ICAControllerQueryClient: controllertypes.NewQueryClient(grpcConn),
 		ICAHostQueryClient:       hosttypes.NewQueryClient(grpcConn),
 		// InterTxQueryClient:       intertxtypes.NewQueryClient(grpcConn),
+		BankQueryClient:        banktypes.NewQueryClient(grpcConn),
 		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
 		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
 		GroupsQueryClient:      grouptypes.NewQueryClient(grpcConn),
@@ -274,6 +277,20 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 		return "", err
 	}
 	return res.CounterpartyPayee, nil
+}
+
+// QueryBalances returns all the balances on the given chain for the provided address.
+func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
+	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
+	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
+		Address:      address,
+		ResolveDenom: resolveDenom,
+	})
+	if err != nil {
+		return sdk.Coins{}, err
+	}
+
+	return res.Balances, nil
 }
 
 // QueryProposalV1Beta1 queries the governance proposal on the given chain with the given proposal ID.
