@@ -182,8 +182,7 @@ func (suite *TypesTestSuite) TestValidate() {
 			expPass:     false,
 		},
 		{
-			name: "empty data",
-
+			name:        "empty data",
 			clientState: types.NewClientState([]byte{}, []byte(codeHash), clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
