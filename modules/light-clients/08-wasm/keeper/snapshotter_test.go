@@ -5,12 +5,15 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/stretchr/testify/require"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSnapshotter(t *testing.T) {
@@ -31,7 +34,6 @@ func TestSnapshotter(t *testing.T) {
 
 	for _, spec := range testCases {
 		t.Run(spec.name, func(t *testing.T) {
-
 			wasmClientApp := simapp.SetupWithSnapShotter(t)
 			ctx := wasmClientApp.NewUncachedContext(false, tmproto.Header{
 				ChainID: "foo",
@@ -92,5 +94,4 @@ func TestSnapshotter(t *testing.T) {
 			require.Equal(t, srcChecksumCodes, allDestAppCodeHashInWasmVMStore)
 		})
 	}
-
 }

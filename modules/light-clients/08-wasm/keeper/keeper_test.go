@@ -93,7 +93,4 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 			suite.Equal(expectedAllCodeHash, allCodeHash)
 		})
 	}
-
 }
-
-
