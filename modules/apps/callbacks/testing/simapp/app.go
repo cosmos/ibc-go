@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -107,6 +108,9 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
@@ -200,6 +204,7 @@ type SimApp struct {
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	CircuitKeeper         circuitkeeper.Keeper
+	WasmClientKeeper      wasmkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
@@ -302,7 +307,7 @@ func NewSimApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, group.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey,
-		authzkeeper.StoreKey, ibcfeetypes.StoreKey, consensusparamtypes.StoreKey, circuittypes.StoreKey,
+		authzkeeper.StoreKey, ibcfeetypes.StoreKey, consensusparamtypes.StoreKey, circuittypes.StoreKey, wasmtypes.StoreKey,
 	)
 
 	// register streaming services
@@ -440,6 +445,34 @@ func NewSimApp(
 		// register the governance hooks
 		),
 	)
+
+	// 08-wasm's Keeper can be instantiated in two different ways:
+	// 1. If the chain uses x/wasm:
+	// Both x/wasm's Keeper and 08-wasm Keeper should share the same Wasm VM instance.
+	// - Instantiate the Wasm VM in app.go with the parameters of your choice.
+	// - Create an Option with this Wasm VM instance (see https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/options.go#L26-L32).
+	// - Pass the option to the x/wasm NewKeeper contructor function (https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/keeper_cgo.go#L36).
+	// - Pass a pointer to the Wasm VM instance to 08-wasm NewKeeperWithVM constructor function.
+	//
+	// 2. If the chain does not use x/wasm:
+	// Even though it is still possible to use method 1 above
+	// (e.g. instantiating a Wasm VM in app.go an pass it in 08-wasm NewKeeper),
+	// since there is no need to share the Wasm VM instance with another module
+	// you can use NewKeeperWithConfig constructor function and provide
+	// the Wasm VM configuration parameters of your choice.
+	// Check out the WasmConfig type definition for more information on
+	// each parameter. Some parameters allow node-leve configurations.
+	// Function DefaultWasmConfig can also be used to use default values.
+	//
+	// In the code below we use the second method because we are not using x/wasm in this app.go.
+	wasmDir := filepath.Join(homePath, "ibc_08-wasm_client_data")
+	wasmConfig := wasmtypes.WasmConfig{
+		DataDir:           wasmDir,
+		SupportedFeatures: "iterator",
+		MemoryCacheSize:   uint32(math.Pow(2, 8)),
+		ContractDebugMode: false,
+	}
+	app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig)
 
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
@@ -611,6 +644,7 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		wasm.NewAppModule(app.WasmClientKeeper),
 		ibctm.AppModuleBasic{},
 		solomachine.AppModuleBasic{},
 		mockModule,
@@ -653,6 +687,7 @@ func NewSimApp(
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
 		ibcmock.ModuleName,
+		wasmtypes.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -667,6 +702,7 @@ func NewSimApp(
 		ibcfeetypes.ModuleName,
 		ibcmock.ModuleName,
 		group.ModuleName,
+		wasmtypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -682,7 +718,7 @@ func NewSimApp(
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName,
+		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName, wasmtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
@@ -1049,4 +1085,9 @@ func (app *SimApp) GetTxConfig() client.TxConfig {
 // NOTE: This is solely used for testing purposes.
 func (app *SimApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return app.memKeys[storeKey]
+}
+
+// GetWasmKeeper implements the TestingApp interface.
+func (app *SimApp) GetWasmKeeper() wasmkeeper.Keeper {
+	return app.WasmClientKeeper
 }
