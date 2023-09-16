@@ -10,7 +10,7 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm"
 
 	errorsmod "cosmossdk.io/errors"
-
+	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -123,4 +123,21 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	store.Set(codeHashKey, code)
 	return codeHash, nil
+}
+
+func (k Keeper) IterateCode(ctx sdk.Context, cb func([]byte) bool) {
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.KeyCodeHashPrefix))
+	iter := prefixStore.Iterator(nil, nil)
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		// cb returns true to stop early
+		if cb(iter.Value()) {
+			return
+		}
+	}
+}
+
+func (k Keeper) GetCodeByCodeHash(ctx sdk.Context, codeHash []byte) ([]byte, error) {
+	return k.wasmVM.GetCode(codeHash)
 }
