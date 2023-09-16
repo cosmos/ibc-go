@@ -102,12 +102,10 @@ func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
 	return ports
 }
 
-// BindPort stores the provided portID and binds to it, returning the associated capability
-func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
+// setPort sets the provided portID in state
+func (k Keeper) setPort(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyPort(portID), []byte{0x01})
-
-	return k.portKeeper.BindPort(ctx, portID)
 }
 
 // hasCapability checks if the interchain account controller module owns the port capability for the desired port
