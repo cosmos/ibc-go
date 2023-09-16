@@ -173,17 +173,17 @@ func (suite *TypesTestSuite) TestValidate() {
 	}{
 		{
 			name:        "valid client",
-			clientState: types.NewClientState([]byte{0}, []byte(codeHash), clienttypes.ZeroHeight()),
+			clientState: types.NewClientState([]byte{0}, []byte("01234567012345670123456701234567"), clienttypes.ZeroHeight()),
 			expPass:     true,
 		},
 		{
 			name:        "nil data",
-			clientState: types.NewClientState(nil, []byte(codeHash), clienttypes.ZeroHeight()),
+			clientState: types.NewClientState(nil, []byte("01234567012345670123456701234567"), clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
 			name:        "empty data",
-			clientState: types.NewClientState([]byte{}, []byte(codeHash), clienttypes.ZeroHeight()),
+			clientState: types.NewClientState([]byte{}, []byte("01234567012345670123456701234567"), clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
@@ -284,7 +284,7 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 		{
 			name: "valid consensus",
 			malleate: func() {
-				tmConsensusState := tmtypes.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte{0}), []byte(codeHash))
+				tmConsensusState := tmtypes.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte{0}), []byte("01234567012345670123456701234567"))
 				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
 
