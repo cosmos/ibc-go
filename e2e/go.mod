@@ -11,7 +11,7 @@ require (
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/v8 v8.0.0-20230906115913-46ee5f92e1af
 	github.com/docker/docker v24.0.6+incompatible
-	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20230817191535-cc35cd35adbc
+	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20230913202406-3e11bf474a3b
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.25.0
 	golang.org/x/mod v0.12.0
@@ -238,5 +238,3 @@ replace github.com/cosmos/ibc-go/modules/light-clients/08-wasm => ../modules/lig
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-
-replace github.com/strangelove-ventures/interchaintest/v8 => github.com/colin-axner/interchaintest/v8 v8.0.0-20230906142353-5d89200aad4a
