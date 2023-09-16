@@ -29,6 +29,7 @@ import (
 const (
 	tmClientID                    = "07-tendermint-0"
 	grandpaClientID               = "08-wasm-0"
+	codeHash                      = "01234567012345670123456701234567"
 	trustingPeriod  time.Duration = time.Hour * 24 * 7 * 2
 	ubdPeriod       time.Duration = time.Hour * 24 * 7 * 3
 	maxClockDrift   time.Duration = time.Second * 10

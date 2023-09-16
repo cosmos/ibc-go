@@ -173,17 +173,18 @@ func (suite *TypesTestSuite) TestValidate() {
 	}{
 		{
 			name:        "valid client",
-			clientState: types.NewClientState([]byte{0}, []byte("01234567012345670123456701234567"), clienttypes.ZeroHeight()),
+			clientState: types.NewClientState([]byte{0}, []byte(codeHash), clienttypes.ZeroHeight()),
 			expPass:     true,
 		},
 		{
 			name:        "nil data",
-			clientState: types.NewClientState(nil, []byte("01234567012345670123456701234567"), clienttypes.ZeroHeight()),
+			clientState: types.NewClientState(nil, []byte(codeHash), clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
-			name:        "empty data",
-			clientState: types.NewClientState([]byte{}, []byte("01234567012345670123456701234567"), clienttypes.ZeroHeight()),
+			name: "empty data",
+
+			clientState: types.NewClientState([]byte{}, []byte(codeHash), clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
@@ -284,7 +285,8 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 		{
 			name: "valid consensus",
 			malleate: func() {
-				tmConsensusState := tmtypes.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte{0}), []byte("01234567012345670123456701234567"))
+
+				tmConsensusState := tmtypes.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte{0}), []byte(codeHash))
 				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
 				suite.Require().NoError(err)
 
@@ -384,7 +386,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 						ConnectionId: connectionID,
 						Prefix:       suite.chainA.GetPrefix(),
 					},
-					DelayPeriod: 1000000000,
+					DelayPeriod: 1000000000, // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
 					State:       connectiontypes.TRYOPEN,
 					Versions:    []*connectiontypes.Version{connectiontypes.DefaultIBCVersion},
 				})
@@ -531,7 +533,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
 			suite.Require().True(ok)
 
-			delayTimePeriod = 1000000000
+			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
 			delayBlockPeriod = 0
 
 			proofHeight = clienttypes.NewHeight(2000, 11)
@@ -1002,7 +1004,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
 			suite.Require().True(ok)
 
-			delayTimePeriod = 1000000000
+			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
 			delayBlockPeriod = 0
 			height = clienttypes.NewHeight(2000, 11)
 			key := host.FullClientStateKey(invalidClientID)
