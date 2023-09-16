@@ -12,7 +12,7 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 
 require (
 	cosmossdk.io/api v0.7.1
-	cosmossdk.io/client/v2 v2.0.0-20230915125841-fb18a3dd99c6
+	cosmossdk.io/client/v2 v2.0.0-20230915153641-245e21875f1a
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.1
