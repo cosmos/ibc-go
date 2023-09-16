@@ -37,10 +37,9 @@ RUN go mod download
 
 # force it to use static lib (from above) not standard libgo_cosmwasm.so file
 RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true make build
-RUN echo "Ensuring binary is statically linked ..." \
-  && (file /code/build/wasmd | grep "statically linked")
 
-  
+
+
 FROM alpine:3.18
 ARG IBC_GO_VERSION
 

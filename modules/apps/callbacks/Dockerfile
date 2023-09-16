@@ -1,6 +1,6 @@
 FROM golang:1.21-alpine3.18 as builder
 
-RUN set -eux; apk add --no-cache git libusb-dev linux-headers gcc musl-dev make;
+RUN set -eux; apk add --no-cache git libusb-dev linux-headers gcc musl-dev make ca-certificates build-base;
 
 
 ENV GOPATH=""
@@ -32,8 +32,6 @@ RUN go mod download
 
 RUN BUILD_TAGS=muslc GOOS=linux GOARCH=amd64 LINK_STATICALLY=true LEDGER_ENABLED=false go build -mod=readonly -tags "netgo ledger" -ldflags '-X github.com/cosmos/cosmos-sdk/version.Name=sim -X github.com/cosmos/cosmos-sdk/version.AppName=simd -X github.com/cosmos/cosmos-sdk/version.Version= -X github.com/cosmos/cosmos-sdk/version.Commit= -X "github.com/cosmos/cosmos-sdk/version.BuildTags=netgo ledger," -w -s' -trimpath -o /go/build/ ./...
 
-RUN echo "Ensuring binary is statically linked ..." \
-  && (file /code/build/wasmd | grep "statically linked")
 
 
 FROM alpine:3.18
