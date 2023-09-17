@@ -77,3 +77,29 @@ func TestMustParseClientStatePath(t *testing.T) {
 		}
 	}
 }
+
+func TestMustParseConnectionPath(t *testing.T) {
+	testCases := []struct {
+		name     string
+		path     string
+		expected string
+		expPass  bool
+	}{
+		{"valid", "a/connection", "connection", true},
+		{"valid localhost", "/connection-localhost", "connection-localhost", true},
+		{"invalid empty path", "", "", false},
+	}
+
+	for _, tc := range testCases {
+		if tc.expPass {
+			require.NotPanics(t, func() {
+				connID := host.MustParseConnectionPath(tc.path)
+				require.Equal(t, connID, tc.expected)
+			})
+		} else {
+			require.Panics(t, func() {
+				host.MustParseConnectionPath(tc.path)
+			})
+		}
+	}
+}
