@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
@@ -291,6 +292,20 @@ func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, ad
 	}
 
 	return res.Balances, nil
+}
+
+// QueryBalances returns returns the balance of a specific denomination for a given account by address.
+func (s *E2ETestSuite) QueryBalance(ctx context.Context, chain ibc.Chain, address string, denom string) (math.Int, error) {
+	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
+	res, err := queryClient.Balance(ctx, &banktypes.QueryBalanceRequest{
+		Address: address,
+		Denom:   denom,
+	})
+	if err != nil {
+		return math.Int{}, err
+	}
+
+	return res.Balance.Amount, nil
 }
 
 // QueryProposalV1Beta1 queries the governance proposal on the given chain with the given proposal ID.

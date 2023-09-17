@@ -8,6 +8,7 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/gogoproto/proto"
+
 	// intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -141,7 +142,8 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -168,8 +170,8 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 2)
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount * 2
@@ -187,7 +189,8 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 		t.Run("packets are relayed", func(t *testing.T) {
 			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
-			actualBalance, err := chainA.GetBalance(ctx, chainAAddress, chainAIBCToken.IBCDenom())
+			actualBalance, err := s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
@@ -217,7 +220,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("verify tokens sent", func(t *testing.T) {
-		balance, err := chain.GetBalance(ctx, userWalletAddr, chain.Config().Denom)
+		balance, err := s.QueryBalance(ctx, chain, userWalletAddr, chain.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount * 2
@@ -241,7 +244,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("verify tokens sent", func(t *testing.T) {
-		balance, err := chain.GetBalance(ctx, userWalletAddr, chain.Config().Denom)
+		balance, err := s.QueryBalance(ctx, chain, userWalletAddr, chain.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount * 3
@@ -548,7 +551,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -581,7 +584,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount * 2
@@ -635,7 +638,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	t.Run("packet is relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -711,7 +714,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	t.Run("packet is relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
