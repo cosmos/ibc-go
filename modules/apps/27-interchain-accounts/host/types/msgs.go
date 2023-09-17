@@ -9,6 +9,7 @@ import (
 )
 
 var _ sdk.Msg = (*MsgUpdateParams)(nil)
+var _ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
 func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
