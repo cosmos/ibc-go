@@ -22,7 +22,7 @@ func TestContainsString(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expected, collections.Contains(tc.needle, tc.haystack), tc.name)
+		require.Equal(t, tc.expected, slices.Contains(tc.needle, tc.haystack), tc.name)
 	}
 }
 
@@ -39,6 +39,6 @@ func TestContainsInt(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expected, collections.Contains(tc.needle, tc.haystack), tc.name)
+		require.Equal(t, tc.expected, slices.Contains(tc.needle, tc.haystack), tc.name)
 	}
 }

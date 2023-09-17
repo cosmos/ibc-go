@@ -134,7 +134,7 @@ func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connecti
 
 // isSupportedEncoding returns true if the provided encoding is supported, otherwise false
 func isSupportedEncoding(encoding string) bool {
-	return collections.Contains(encoding, getSupportedEncoding())
+	return slices.Contains(encoding, getSupportedEncoding())
 }
 
 // getSupportedEncoding returns a string slice of supported encoding formats
@@ -144,7 +144,7 @@ func getSupportedEncoding() []string {
 
 // isSupportedTxType returns true if the provided transaction type is supported, otherwise false
 func isSupportedTxType(txType string) bool {
-	return collections.Contains(txType, getSupportedTxTypes())
+	return slices.Contains(txType, getSupportedTxTypes())
 }
 
 // getSupportedTxTypes returns a string slice of supported transaction types

@@ -30,7 +30,7 @@ func (p Params) Validate() error {
 
 // IsAllowedClient checks if the given client type is registered on the allowlist.
 func (p Params) IsAllowedClient(clientType string) bool {
-	return collections.Contains(clientType, p.AllowedClients)
+	return slices.Contains(clientType, p.AllowedClients)
 }
 
 // validateClients checks that the given clients are not blank.

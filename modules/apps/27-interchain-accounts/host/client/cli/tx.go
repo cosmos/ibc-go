@@ -82,7 +82,7 @@ otherwise the encoding flag can be used in combination with either "proto3" or "
 				return err
 			}
 
-			if !collections.Contains(encoding, []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}) {
+			if !slices.Contains(encoding, []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}) {
 				return fmt.Errorf("unsupported encoding type: %s", encoding)
 			}
 

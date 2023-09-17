@@ -86,7 +86,7 @@ func (version Version) VerifyProposedVersion(proposedVersion *Version) error {
 	}
 
 	for _, proposedFeature := range proposedVersion.GetFeatures() {
-		if !collections.Contains(proposedFeature, version.GetFeatures()) {
+		if !slices.Contains(proposedFeature, version.GetFeatures()) {
 			return errorsmod.Wrapf(
 				ErrVersionNegotiationFailed,
 				"proposed feature (%s) is not a supported feature set (%s)", proposedFeature, version.GetFeatures(),
@@ -100,7 +100,7 @@ func (version Version) VerifyProposedVersion(proposedVersion *Version) error {
 // VerifySupportedFeature takes in a version and feature string and returns
 // true if the feature is supported by the version and false otherwise.
 func VerifySupportedFeature(version *Version, feature string) bool {
-	return collections.Contains(feature, version.GetFeatures())
+	return slices.Contains(feature, version.GetFeatures())
 }
 
 // GetCompatibleVersions returns a descending ordered set of compatible IBC
@@ -176,7 +176,7 @@ func PickVersion(supportedVersions, counterpartyVersions []*Version) (*Version, 
 // set for the counterparty version.
 func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string) (featureSet []string) {
 	for _, feature := range sourceFeatureSet {
-		if collections.Contains(feature, counterpartyFeatureSet) {
+		if slices.Contains(feature, counterpartyFeatureSet) {
 			featureSet = append(featureSet, feature)
 		}
 	}

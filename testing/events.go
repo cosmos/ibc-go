@@ -185,7 +185,7 @@ func AssertEvents(
 				for _, expectedAttr := range expectedEvent.Attributes {
 					// any expected attributes that are not contained in the actual events will cause this event
 					// not to match
-					attributeMatch = attributeMatch && collections.Contains(expectedAttr, actualEvent.Attributes)
+					attributeMatch = attributeMatch && slices.Contains(expectedAttr, actualEvent.Attributes)
 				}
 
 				if attributeMatch {
