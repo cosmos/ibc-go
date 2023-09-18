@@ -149,7 +149,7 @@ message MsgIBCSoftwareUpgrade {
   // deprecated in the Cosmos SDK to allow for this logic to exist solely in
   // the 02-client module.
   google.protobuf.Any upgraded_client_state = 2;
-  // signer defaults to the governance account address unless otherwise specified.
+  // signer address
   string signer = 3;
 }
 
