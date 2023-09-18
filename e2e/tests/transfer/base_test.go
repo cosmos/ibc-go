@@ -105,6 +105,16 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
+	if testvalues.TokenMetadataFeatureReleases.IsSupported(chainBVersion) {
+		t.Run("metadata for token exists on chainB", func(t *testing.T) {
+			balances, err := s.QueryAllBalances(ctx, chainB, chainBAddress, true)
+			s.Require().NoError(err)
+
+			// balance for IBC token returns a human-readable denomination
+			s.Require().Equal(chainBIBCToken.GetFullDenomPath(), balances[1].Denom)
+		})
+	}
+
 	t.Run("non-native IBC token transfer from chainB to chainA, receiver is source of tokens", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(transferTxResp)
@@ -275,7 +285,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
 		if isSelfManagingParams {
 			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
-			s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
@@ -366,7 +376,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	t.Run("change receive enabled parameter to disabled ", func(t *testing.T) {
 		if isSelfManagingParams {
 			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, false))
-			s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),

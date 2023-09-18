@@ -1,9 +1,15 @@
 name: Tests / E2E Upgrade
-on: 
+on:
   workflow_dispatch:
-  
+  pull_request:
+    branches:
+      - main
+    paths:
+      # upgrade tests will run on any changes to the upgrade_test.go file.
+      - 'e2e/tests/upgrades/upgrade_test.go'
   schedule:
     - cron: '0 0 * * *'
+
 
 jobs:
   upgrade-v5:
@@ -56,4 +62,17 @@ jobs:
       upgrade-plan-name: "v7.1"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV7ToV7_1ChainUpgrade"
+      upload-logs: true
+
+  upgrade-v8:
+    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: v7.0.0
+      chain-b-tag: v7.0.0
+      chain-upgrade-tag: pr-4591 # TODO: update this to a real tag once v8 is released
+      upgrade-plan-name: "v8"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV7ToV8ChainUpgrade"
       upload-logs: true
