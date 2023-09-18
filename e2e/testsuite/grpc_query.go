@@ -279,20 +279,6 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 	return res.CounterpartyPayee, nil
 }
 
-// QueryBalances returns all the balances on the given chain for the provided address.
-func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
-	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
-	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
-		Address:      address,
-		ResolveDenom: resolveDenom,
-	})
-	if err != nil {
-		return sdk.Coins{}, err
-	}
-
-	return res.Balances, nil
-}
-
 // QueryProposalV1Beta1 queries the governance proposal on the given chain with the given proposal ID.
 func (s *E2ETestSuite) QueryProposalV1Beta1(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
 	queryClient := s.GetChainGRCPClients(chain).GovQueryClient
@@ -393,4 +379,31 @@ func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.Cos
 	}
 
 	return grants.Grants, nil
+}
+
+// QueryBalances returns all the balances on the given chain for the provided address.
+func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
+	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
+	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
+		Address:      address,
+		ResolveDenom: resolveDenom,
+	})
+	if err != nil {
+		return sdk.Coins{}, err
+	}
+
+	return res.Balances, nil
+}
+
+// QueryDenomMetadata queries the metadata for the given denom.
+func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain *cosmos.CosmosChain, denom string) (banktypes.Metadata, error) {
+	bankClient := s.GetChainGRCPClients(chain).BankQueryClient
+	queryRequest := &banktypes.QueryDenomMetadataRequest{
+		Denom: denom,
+	}
+	res, err := bankClient.DenomMetadata(ctx, queryRequest)
+	if err != nil {
+		return banktypes.Metadata{}, err
+	}
+	return res.Metadata, nil
 }
