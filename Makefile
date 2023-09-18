@@ -292,7 +292,7 @@ docs-lint-fix:
 docs-link-check:
 	find . -name 'node_modules' -prune -o -name '*.md' -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
 
-.PHONY: lint lint-fix docs-lint docs-lint-changed
+.PHONY: lint lint-fix docs-lint docs-lint-fix docs-link-check
 
 ###############################################################################
 ###                                Protobuf                                 ###
