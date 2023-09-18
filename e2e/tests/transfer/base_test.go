@@ -103,6 +103,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
+
+		if testvalues.DenomMetadataFeatureReleases.IsSupported(chainBVersion) {
+			s.AssertHumanReadableDenom(ctx, chainB, chainADenom, channelA)
+		}
 	})
 
 	if testvalues.TokenMetadataFeatureReleases.IsSupported(chainBVersion) {
