@@ -394,15 +394,6 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in ~/.ibc-go-e2e-config.json to increase cometbft logging.
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
-	var useNewGenesisCommand bool
-	if cc.Binary == defaultBinary && testvalues.SimdNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
-		useNewGenesisCommand = true
-	}
-
-	if cc.Binary == icadBinary && testvalues.IcadNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
-		useNewGenesisCommand = true
-	}
-
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
@@ -413,18 +404,17 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 				Version:    cc.Tag,
 			},
 		},
-		Bin:                    cc.Binary,
-		Bech32Prefix:           "cosmos",
-		CoinType:               fmt.Sprint(sdk.GetConfig().GetCoinType()),
-		Denom:                  denom,
-		EncodingConfig:         SDKEncodingConfig(),
-		GasPrices:              fmt.Sprintf("0.00%s", denom),
-		GasAdjustment:          1.3,
-		TrustingPeriod:         "508h",
-		NoHostMount:            false,
-		ModifyGenesis:          getGenesisModificationFunction(cc),
-		ConfigFileOverrides:    configFileOverrides,
-		UsingNewGenesisCommand: useNewGenesisCommand,
+		Bin:                 cc.Binary,
+		Bech32Prefix:        "cosmos",
+		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
+		Denom:               denom,
+		EncodingConfig:      SDKEncodingConfig(),
+		GasPrices:           fmt.Sprintf("0.00%s", denom),
+		GasAdjustment:       1.3,
+		TrustingPeriod:      "508h",
+		NoHostMount:         false,
+		ModifyGenesis:       getGenesisModificationFunction(cc),
+		ConfigFileOverrides: configFileOverrides,
 	}
 }
 
