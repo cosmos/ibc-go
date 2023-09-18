@@ -27,8 +27,8 @@ type Keeper struct {
   ClientKeeper     clientkeeper.Keeper
   ConnectionKeeper connectionkeeper.Keeper
   ChannelKeeper    channelkeeper.Keeper
--	PortKeeper       portkeeper.Keeper
-+	PortKeeper       *portkeeper.Keeper
+- PortKeeper       portkeeper.Keeper
++ PortKeeper       *portkeeper.Keeper
   Router           *porttypes.Router
 
   authority string
