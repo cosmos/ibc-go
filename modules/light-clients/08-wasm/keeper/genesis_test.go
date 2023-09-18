@@ -13,7 +13,7 @@ import (
 func (suite *KeeperTestSuite) TestInitGenesis() {
 	var (
 		genesisState  types.GenesisState
-		expCodeHashes [][]byte
+		expCodeHashes []string
 	)
 
 	testCases := []struct {
@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		{
 			"success",
 			func() {
-				codeHash := "561715ea6ee1dce8f78499914e6c7853dc315a5e6ecf01da09a9054a160e5d1d"
+				codeHash := "9b18dc4aa6a4dc6183f148bdcadbf7d3de2fdc7aac59394f1589b81e77de5e3c"
 				contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
 				suite.Require().NoError(err)
 
@@ -35,14 +35,14 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 					},
 				)
 
-				expCodeHashes = [][]byte{[]byte(codeHash)}
+				expCodeHashes = []string{codeHash}
 			},
 		},
 		{
 			"success with empty genesis contract",
 			func() {
 				genesisState = *types.NewGenesisState([]types.Contract{})
-				expCodeHashes = [][]byte{}
+				expCodeHashes = []string{}
 			},
 		},
 	}
@@ -56,8 +56,11 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			err := suite.chainA.GetSimApp().WasmClientKeeper.InitGenesis(ctx, genesisState)
 			suite.Require().NoError(err)
 
+			var storedHashes []string
 			res := types.GetCodeHashes(suite.chainA.GetContext(), suite.chainA.GetSimApp().AppCodec())
-			storedHashes := res.CodeHashes
+			for _, hash := range res.CodeHashes {
+				storedHashes = append(storedHashes, hex.EncodeToString(hash))
+			}
 
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
@@ -71,7 +74,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.SetupTest()
 	ctx := suite.chainA.GetContext()
 
-	expCodeHash := "561715ea6ee1dce8f78499914e6c7853dc315a5e6ecf01da09a9054a160e5d1d"
+	expCodeHash := "9b18dc4aa6a4dc6183f148bdcadbf7d3de2fdc7aac59394f1589b81e77de5e3c"
 
 	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
