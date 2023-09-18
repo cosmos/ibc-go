@@ -25,7 +25,7 @@
     "TestMsgTransfer_Fails_InvalidAddress"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ],
   "chain-binary": [
     "simd"

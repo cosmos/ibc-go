@@ -19,7 +19,7 @@
     "TestMsgSendTx_FailedBankSend_Incentivized"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ],
   "chain-binary": [
     "simd"
