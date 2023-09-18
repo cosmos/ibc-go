@@ -129,7 +129,7 @@ message MsgRecoverClient {
   // client
   string substitute_client_id = 2;
 
-  // signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+  // signer address 
   string signer = 3;
 }
 
@@ -149,7 +149,7 @@ message MsgIBCSoftwareUpgrade {
   // deprecated in the Cosmos SDK to allow for this logic to exist solely in
   // the 02-client module.
   google.protobuf.Any upgraded_client_state = 2;
-  // signer defaults to the governance account address unless otherwise specified.
+  // signer address
   string signer = 3;
 }
 
@@ -162,7 +162,7 @@ message MsgUpdateParams {
 
   option (gogoproto.goproto_getters) = false;
 
-  // signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+  // signer address 
   string signer = 1;
 
   // params defines the client parameters to update.
