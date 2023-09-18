@@ -22,7 +22,7 @@ COPY Makefile .
 
 RUN make build
 
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ARG IBC_GO_VERSION
 
