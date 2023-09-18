@@ -19,19 +19,19 @@ The type of the `PortKeeper` field of the IBC keeper have been changed to `*port
 ```diff
 // Keeper defines each ICS keeper for IBC
 type Keeper struct {
-	// implements gRPC QueryServer interface
-	types.QueryServer
+  // implements gRPC QueryServer interface
+  types.QueryServer
 
-	cdc codec.BinaryCodec
+  cdc codec.BinaryCodec
 
-	ClientKeeper     clientkeeper.Keeper
-	ConnectionKeeper connectionkeeper.Keeper
-	ChannelKeeper    channelkeeper.Keeper
+  ClientKeeper     clientkeeper.Keeper
+  ConnectionKeeper connectionkeeper.Keeper
+  ChannelKeeper    channelkeeper.Keeper
 -	PortKeeper       portkeeper.Keeper
 +	PortKeeper       *portkeeper.Keeper
-	Router           *porttypes.Router
+  Router           *porttypes.Router
 
-	authority string
+  authority string
 }
 ```
 
