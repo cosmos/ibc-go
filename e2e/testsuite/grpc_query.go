@@ -6,7 +6,6 @@ import (
 	"sort"
 	"time"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	// intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
@@ -57,7 +56,6 @@ type GRPCClients struct {
 	AuthQueryClient    authtypes.QueryClient
 	AuthZQueryClient   authz.QueryClient
 	UpgradeQueryClient upgradetypes.QueryClient
-	BankQueryClient    banktypes.QueryClient
 
 	ConsensusServiceClient cmtservice.ServiceClient
 }
@@ -99,7 +97,6 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
 		ConsensusServiceClient: cmtservice.NewServiceClient(grpcConn),
 		UpgradeQueryClient:     upgradetypes.NewQueryClient(grpcConn),
-		BankQueryClient:        banktypes.NewQueryClient(grpcConn),
 	}
 }
 
