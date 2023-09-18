@@ -32,6 +32,7 @@ import (
 var (
 	_ module.AppModule           = (*AppModule)(nil)
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
+	_ module.AppModuleSimulation = (*AppModule)(nil)
 	_ module.HasGenesis          = (*AppModule)(nil)
 	_ module.HasName             = (*AppModule)(nil)
 	_ module.HasConsensusVersion = (*AppModule)(nil)
@@ -222,4 +223,10 @@ func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Weight
 // WeightedOperations is unimplemented.
 func (AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	return nil
+}
+
+// RegisterStoreDecoder registers a decoder for interchain accounts module's types
+func (AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
+	sdr[controllertypes.StoreKey] = simulation.NewDecodeStore()
+	sdr[hosttypes.StoreKey] = simulation.NewDecodeStore()
 }
