@@ -38,7 +38,6 @@ module correctly corresponding to the listed steps.
 - [IBC Overview](../01-overview.md))
 - [IBC default integration](../02-integration.md)
 
-
 :::
 ## Working example
 
@@ -55,4 +54,3 @@ packets](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/keeper
 
 [Implementing IBC
 callbacks](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/ibc_module.go)
-
