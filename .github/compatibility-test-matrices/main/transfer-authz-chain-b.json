@@ -17,7 +17,7 @@
     "TestAuthz_InvalidTransferAuthorizations"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ],
   "chain-binary": [
     "simd"

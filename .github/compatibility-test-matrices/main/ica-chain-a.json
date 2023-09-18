@@ -20,7 +20,7 @@
     "TestControllerEnabledParam"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ],
   "chain-binary": [
     "simd"
