@@ -10,11 +10,11 @@ slug: /middleware/callbacks/end-users
 This section explains how to use the callbacks middleware from the perspective of an IBC Actor. Callbacks middleware provides two types of callbacks:
 
 - Source callbacks:
-  - `SendPacket` callback
-  - `OnAcknowledgementPacket` callback
-  - `OnTimeoutPacket` callback
+    - `SendPacket` callback
+    - `OnAcknowledgementPacket` callback
+    - `OnTimeoutPacket` callback
 - Destination callbacks:
-  - `ReceivePacket` callback
+    - `ReceivePacket` callback
 
 For a given channel, the source callbacks are supported if the source chain has the callbacks middleware wired up in the channel's IBC stack. Similarly, the destination callbacks are supported if the destination chain has the callbacks middleware wired up in the channel's IBC stack.
 

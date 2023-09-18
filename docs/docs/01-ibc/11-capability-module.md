@@ -79,7 +79,7 @@ func NewApp(...) *App {
         - [Capabilities](#capabilities)
         - [Stores](#stores)
     - [State](#state)
-        - [In persisted KV store](#in-persisted-kv-store)
+        - [Persisted KV store](#persisted-kv-store)
         - [In-memory KV store](#in-memory-kv-store)
 
 ## Concepts

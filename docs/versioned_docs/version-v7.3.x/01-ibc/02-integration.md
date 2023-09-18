@@ -233,4 +233,3 @@ func NewApp(...args) *App {
 That's it! You have now wired up the IBC module and are now able to send fungible tokens across
 different chains. If you want to have a broader view of the changes take a look into the SDK's
 [`SimApp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go).
-

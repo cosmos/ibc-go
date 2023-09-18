@@ -77,7 +77,6 @@ packetData := DecodePacketData(packet.Data)
 // handle received custom packet data
 ```
 
-
 ### Optional interfaces
 
 The following interfaces are optional and MAY be implemented by a custom packet type.

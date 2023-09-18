@@ -19,8 +19,8 @@ Learn how to define custom packet and acknowledgement structs and how to encode 
 - [IBC Overview](../01-overview.md))
 - [IBC default integration](../02-integration.md)
 
-
 :::
+
 ## Custom packets
 
 Modules connected by a channel must agree on what application data they are sending over the
@@ -77,7 +77,6 @@ act on it.
 packetData := DecodePacketData(packet.Data)
 // handle received custom packet data
 ```
-
 
 ### Optional interfaces
 
