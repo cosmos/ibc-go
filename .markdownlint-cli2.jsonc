@@ -4,7 +4,7 @@
   "ignores": [
     "docs/node_modules/**",
     ".github",
-    "CHANGELOG.md",
+    "**/CHANGELOG.md",
     "vendor/**",
     "e2e/vendor/**",
     "modules/capability/vendor/**"
