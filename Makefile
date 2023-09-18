@@ -143,7 +143,7 @@ godocs:
 	godoc -http=:6060
 
 build-docs:
-	@cd docs && npm install && npm run build
+	@cd docs && npm ci && npm run build
 
 serve-docs:
 	@cd docs && npm run serve
