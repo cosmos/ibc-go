@@ -35,6 +35,8 @@ type Keeper struct {
 }
 ```
 
+See [this PR](https://github.com/cosmos/ibc-go/pull/4703/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08a) for the changes required in `app.go`.
+
 TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to transfer's `GenesisState`)
 
 - You must pass the `authority` to the icahost keeper. ([#3520](https://github.com/cosmos/ibc-go/pull/3520)) See [diff](https://github.com/cosmos/ibc-go/pull/3520/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08a).
