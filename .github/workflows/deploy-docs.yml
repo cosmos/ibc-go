@@ -1,8 +1,8 @@
-name: Deploy docs
-# This job builds and deploys documenation to github pages.
-# It runs on every push to main with a change in the docs folder.
+# This deploy-docs workflow was created based on instructions from:
+# https://docusaurus.io/docs/deployment
+name: Deploy to GitHub Pages
+
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -10,33 +10,27 @@ on:
       - "docs/**"
       - .github/workflows/deploy-docs.yml
 
-permissions:
-  contents: read
-
 jobs:
-  build-and-deploy:
-    permissions:
-      contents: write # for JamesIves/github-pages-deploy-action to push changes in repo
+  deploy:
+    name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/cosmos/website-deployment
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          ref: "main"
-          persist-credentials: false
-          fetch-depth: 0
-          path: "."
+          node-version: 18
+          cache: npm
 
-      - name: Build 🔧
-        run: |
-          git config --global --add safe.directory /__w/ibc-go/ibc-go
-          make build-docs LEDGER_ENABLED=false
+      - name: Install dependencies
+        run: npm ci
+      - name: Build website
+        run: npm run build
 
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.4.3
+      # Popular action to deploy to GitHub Pages:
+      # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          branch: gh-pages
-          folder: ~/output
-          single-commit: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Build output to publish to the `gh-pages` branch:
+          publish_dir: ./build
