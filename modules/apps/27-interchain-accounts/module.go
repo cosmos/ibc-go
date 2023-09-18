@@ -27,7 +27,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/simulation"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 var (
@@ -35,6 +34,9 @@ var (
 	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
 	_ module.HasGenesis          = (*AppModule)(nil)
+	_ module.HasName             = (*AppModule)(nil)
+	_ module.HasConsensusVersion = (*AppModule)(nil)
+	_ module.HasServices         = (*AppModule)(nil)
 	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 
@@ -123,24 +125,21 @@ func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 // called once and as an alternative to InitGenesis.
 func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes.Params, hostParams hosttypes.Params) {
 	if am.controllerKeeper != nil {
-		am.controllerKeeper.SetParams(ctx, controllerParams)
+		controllerkeeper.InitGenesis(ctx, *am.controllerKeeper, genesistypes.ControllerGenesisState{
+			Params: controllerParams,
+		})
 	}
 
 	if am.hostKeeper != nil {
 		if err := hostParams.Validate(); err != nil {
 			panic(fmt.Sprintf("could not set ica host params at initialization: %v", err))
 		}
-		am.hostKeeper.SetParams(ctx, hostParams)
 
-		capability := am.hostKeeper.BindPort(ctx, types.HostPortID)
-		if err := am.hostKeeper.ClaimCapability(ctx, capability, ibchost.PortPath(types.HostPortID)); err != nil {
-			panic(fmt.Sprintf("could not claim port capability: %v", err))
-		}
+		hostkeeper.InitGenesis(ctx, *am.hostKeeper, genesistypes.HostGenesisState{
+			Params: hostParams,
+			Port:   types.HostPortID,
+		})
 	}
-}
-
-// RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
 // RegisterServices registers module services

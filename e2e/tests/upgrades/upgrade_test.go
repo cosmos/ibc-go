@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/gogoproto/proto"
 	// intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
@@ -144,7 +145,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
@@ -172,7 +173,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount * 2
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
@@ -190,7 +191,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
-			s.Require().Equal(expected, actualBalance)
+			s.Require().Equal(expected, actualBalance.Int64())
 		})
 	})
 }
@@ -551,7 +552,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	// create separate user specifically for the upgrade proposal to more easily verify starting
@@ -584,7 +585,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount * 2
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	t.Run("check that the v2 solo machine clientstate has been updated to the v3 solo machine clientstate", func(t *testing.T) {
@@ -638,7 +639,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
-		s.Require().Equal(expected, actualBalance)
+		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
@@ -667,6 +668,85 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 
 		expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
 		s.Require().Equal(expectedTotalEscrow, actualTotalEscrow) // migration has run and total escrow amount has been set
+	})
+}
+
+func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
+	t := s.T()
+	testCfg := testsuite.LoadConfig()
+
+	ctx := context.Background()
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
+	chainA, chainB := s.GetChains()
+
+	chainADenom := chainA.Config().Denom
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.FormattedAddress()
+
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.FormattedAddress()
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("transfer native tokens from chainA to chainB", func(t *testing.T) {
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.AssertTxSuccess(transferTxResp)
+	})
+
+	t.Run("tokens are escrowed", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+
+	t.Run("packet is relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+
+		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance.Int64())
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
+
+	t.Run("upgrade chain", func(t *testing.T) {
+		govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+		s.UpgradeChain(ctx, chainB, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+	})
+
+	t.Run("update params", func(t *testing.T) {
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
+
+		msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(exported.Tendermint, "some-client"))
+		s.ExecuteGovV1Proposal(ctx, msg, chainB, chainBWallet)
+	})
+
+	t.Run("query params", func(t *testing.T) {
+		clientParams, err := s.GetChainGRCPClients(chainB).ClientQueryClient.ClientParams(ctx, &clienttypes.QueryClientParamsRequest{})
+		s.Require().NoError(err)
+
+		allowedClients := clientParams.Params.AllowedClients
+
+		s.Require().Len(allowedClients, 2)
+		s.Require().Contains(allowedClients, exported.Tendermint)
+		s.Require().Contains(allowedClients, "some-client")
+	})
+
+	t.Run("query human readable ibc denom", func(t *testing.T) {
+		s.AssertHumanReadableDenom(ctx, chainB, chainADenom, channelA)
 	})
 }
 
