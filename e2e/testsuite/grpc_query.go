@@ -6,7 +6,6 @@ import (
 	"sort"
 	"time"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	// intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
@@ -57,7 +56,6 @@ type GRPCClients struct {
 	AuthQueryClient    authtypes.QueryClient
 	AuthZQueryClient   authz.QueryClient
 	UpgradeQueryClient upgradetypes.QueryClient
-	BankQueryClient    banktypes.QueryClient
 
 	ConsensusServiceClient cmtservice.ServiceClient
 }
@@ -99,7 +97,6 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
 		ConsensusServiceClient: cmtservice.NewServiceClient(grpcConn),
 		UpgradeQueryClient:     upgradetypes.NewQueryClient(grpcConn),
-		BankQueryClient:        banktypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -282,20 +279,6 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 	return res.CounterpartyPayee, nil
 }
 
-// QueryBalances returns all the balances on the given chain for the provided address.
-func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
-	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
-	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
-		Address:      address,
-		ResolveDenom: resolveDenom,
-	})
-	if err != nil {
-		return sdk.Coins{}, err
-	}
-
-	return res.Balances, nil
-}
-
 // QueryProposalV1Beta1 queries the governance proposal on the given chain with the given proposal ID.
 func (s *E2ETestSuite) QueryProposalV1Beta1(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
 	queryClient := s.GetChainGRCPClients(chain).GovQueryClient
@@ -398,8 +381,22 @@ func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.Cos
 	return grants.Grants, nil
 }
 
-// QueryDenomMetdata queries the metadata for the given denom.
-func (s *E2ETestSuite) QueryDenomMetdata(ctx context.Context, chain *cosmos.CosmosChain, denom string) (banktypes.Metadata, error) {
+// QueryBalances returns all the balances on the given chain for the provided address.
+func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
+	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
+	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
+		Address:      address,
+		ResolveDenom: resolveDenom,
+	})
+	if err != nil {
+		return sdk.Coins{}, err
+	}
+
+	return res.Balances, nil
+}
+
+// QueryDenomMetadata queries the metadata for the given denom.
+func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain *cosmos.CosmosChain, denom string) (banktypes.Metadata, error) {
 	bankClient := s.GetChainGRCPClients(chain).BankQueryClient
 	queryRequest := &banktypes.QueryDenomMetadataRequest{
 		Denom: denom,
