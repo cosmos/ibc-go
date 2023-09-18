@@ -1,11 +1,10 @@
 package types
 
 import (
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
-	"github.com/cosmos/ibc-go/v8/internal/collections"
 )
 
 var (
@@ -86,7 +85,7 @@ func (version Version) VerifyProposedVersion(proposedVersion *Version) error {
 	}
 
 	for _, proposedFeature := range proposedVersion.GetFeatures() {
-		if !slices.Contains(proposedFeature, version.GetFeatures()) {
+		if !slices.Contains(version.GetFeatures(), proposedFeature) {
 			return errorsmod.Wrapf(
 				ErrVersionNegotiationFailed,
 				"proposed feature (%s) is not a supported feature set (%s)", proposedFeature, version.GetFeatures(),
@@ -100,7 +99,7 @@ func (version Version) VerifyProposedVersion(proposedVersion *Version) error {
 // VerifySupportedFeature takes in a version and feature string and returns
 // true if the feature is supported by the version and false otherwise.
 func VerifySupportedFeature(version *Version, feature string) bool {
-	return slices.Contains(feature, version.GetFeatures())
+	return slices.Contains(version.GetFeatures(), feature)
 }
 
 // GetCompatibleVersions returns a descending ordered set of compatible IBC
@@ -176,7 +175,7 @@ func PickVersion(supportedVersions, counterpartyVersions []*Version) (*Version, 
 // set for the counterparty version.
 func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string) (featureSet []string) {
 	for _, feature := range sourceFeatureSet {
-		if slices.Contains(feature, counterpartyFeatureSet) {
+		if slices.Contains(counterpartyFeatureSet, feature) {
 			featureSet = append(featureSet, feature)
 		}
 	}
