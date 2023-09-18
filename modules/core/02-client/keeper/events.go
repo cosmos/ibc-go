@@ -82,11 +82,26 @@ func emitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState export
 	})
 }
 
-// emitUpdateClientProposalEvent emits an update client proposal event
-func emitUpdateClientProposalEvent(ctx sdk.Context, clientID, clientType string) {
+// emitSubmitMisbehaviourEvent emits a client misbehaviour event
+func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeUpdateClientProposal,
+			types.EventTypeSubmitMisbehaviour,
+			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
+
+// emitRecoverClientEvent emits a recover client event
+func emitRecoverClientEvent(ctx sdk.Context, clientID, clientType string) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRecoverClient,
 			sdk.NewAttribute(types.AttributeKeySubjectClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
 		),
@@ -97,28 +112,13 @@ func emitUpdateClientProposalEvent(ctx sdk.Context, clientID, clientType string)
 	})
 }
 
-// emitUpgradeClientProposalEvent emits an upgrade client proposal event
-func emitUpgradeClientProposalEvent(ctx sdk.Context, title string, height int64) {
+// emitScheduleIBCSoftwareUpgradeEvent emits a schedule IBC software upgrade event
+func emitScheduleIBCSoftwareUpgradeEvent(ctx sdk.Context, title string, height int64) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeUpgradeClientProposal,
+			types.EventTypeScheduleIBCSoftwareUpgrade,
 			sdk.NewAttribute(types.AttributeKeyUpgradePlanTitle, title),
 			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprintf("%d", height)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
-}
-
-// emitSubmitMisbehaviourEvent emits a client misbehaviour event
-func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeSubmitMisbehaviour,
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
