@@ -191,6 +191,10 @@ const config = {
                 label: "IBC Protocol Website",
                 href: "https://www.ibcprotocol.dev/",
               },
+              {
+                label: "Privacy Policy",
+                href: "https://v1.cosmos.network/privacy",
+              },
             ],
           },
         ],
