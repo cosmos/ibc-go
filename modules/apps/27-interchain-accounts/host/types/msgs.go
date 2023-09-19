@@ -8,8 +8,10 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-var _ sdk.Msg = (*MsgUpdateParams)(nil)
-var _ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
+var (
+	_ sdk.Msg              = (*MsgUpdateParams)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
+)
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
 func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
