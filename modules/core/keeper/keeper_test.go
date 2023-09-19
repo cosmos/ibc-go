@@ -64,17 +64,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		stakingKeeper  clienttypes.StakingKeeper
 		upgradeKeeper  clienttypes.UpgradeKeeper
 		scopedKeeper   capabilitykeeper.ScopedKeeper
-		newIBCKeeperFn = func() {
-			ibckeeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
-				suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
-				stakingKeeper,
-				upgradeKeeper,
-				scopedKeeper,
-				suite.chainA.App.GetIBCKeeper().GetAuthority(),
-			)
-		}
+		newIBCKeeperFn func()
 	)
 
 	testCases := []struct {
@@ -113,6 +103,19 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 			scopedKeeper = emptyScopedKeeper
 		}, false},
+		{"failure: empty authority", func() {
+			newIBCKeeperFn = func() {
+				ibckeeper.NewKeeper(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
+					stakingKeeper,
+					upgradeKeeper,
+					scopedKeeper,
+					"", // authority
+				)
+			}
+		}, false},
 		{"success: replace stakingKeeper with non-empty MockStakingKeeper", func() {
 			// use a different implementation of clienttypes.StakingKeeper
 			mockStakingKeeper := MockStakingKeeper{"not empty"}
@@ -126,6 +129,19 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
+			// set default behaviour
+			newIBCKeeperFn = func() {
+				ibckeeper.NewKeeper(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
+					stakingKeeper,
+					upgradeKeeper,
+					scopedKeeper,
+					suite.chainA.App.GetIBCKeeper().GetAuthority(),
+				)
+			}
+
 			stakingKeeper = suite.chainA.GetSimApp().StakingKeeper
 			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
 			scopedKeeper = suite.chainA.GetSimApp().ScopedIBCKeeper

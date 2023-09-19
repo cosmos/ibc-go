@@ -67,18 +67,6 @@ var IcadGovGenesisFeatureReleases = semverutil.FeatureReleases{
 	},
 }
 
-// IcadNewGenesisCommandsFeatureReleases represents the releases of icad using the new genesis commands.
-var IcadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
-	MinorVersions: []string{
-		"v0.5",
-	},
-}
-
-// SimdNewGenesisCommandsFeatureReleases represents the releases the simd binary started using the new genesis command.
-var SimdNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v8",
-}
-
 // SelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
 var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
@@ -112,4 +100,9 @@ var LocalhostClientFeatureReleases = semverutil.FeatureReleases{
 	MinorVersions: []string{
 		"v7.1",
 	},
+}
+
+// DenomMetadataFeatureReleases represents the releases the human readable denom feature was released in.
+var DenomMetadataFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 }
