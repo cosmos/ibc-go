@@ -33,7 +33,7 @@ type Keeper struct {
 	ClientKeeper     clientkeeper.Keeper
 	ConnectionKeeper connectionkeeper.Keeper
 	ChannelKeeper    channelkeeper.Keeper
-	PortKeeper       portkeeper.Keeper
+	PortKeeper       *portkeeper.Keeper
 	Router           *porttypes.Router
 
 	authority string
@@ -72,14 +72,14 @@ func NewKeeper(
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
-	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
+	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, &portKeeper, scopedKeeper)
 
 	return &Keeper{
 		cdc:              cdc,
 		ClientKeeper:     clientKeeper,
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
-		PortKeeper:       portKeeper,
+		PortKeeper:       &portKeeper,
 		authority:        authority,
 	}
 }
