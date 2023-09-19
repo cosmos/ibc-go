@@ -111,6 +111,39 @@ Each module has a corresponding `MsgUpdateParams` message with a `Params` which 
 
 Legacy params subspaces must still be initialised in app.go in order to successfully migrate from x/params to the new self-contained approach. See reference: https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go#L1001-L1006
 
+### Governance V1 migration
+
+Proposals have been migrated to [gov v1 messages](https://docs.cosmos.network/v0.50/modules/gov#messages) ref: [#4620](https://github.com/cosmos/ibc-go/pull/4620). The proposal `ClientUpdateProposal` has been removed and replaced with `MsgRecoverClient` and the proposal `UpgradeProposal` has been removed and replaced with `MsgIBCSoftwareUpgrade`.
+
+Ensure that the correct authority field is provided to the ibc keeper.
+
+Remove legacy proposal registration from app.go ref: [#4602](https://github.com/cosmos/ibc-go/pull/4602).
+
+Remove the 02-client proposal handler from the `govRouter`.
+
+```diff
+govRouter := govv1beta1.NewRouter()
+govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
+  AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
+- AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+```
+
+Remove the UpgradeProposalHandler from the BasicModuleManager
+
+```diff
+app.BasicModuleManager = module.NewBasicManagerFromManager(
+  app.ModuleManager,
+  map[string]module.AppModuleBasic{
+    genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+    govtypes.ModuleName: gov.NewAppModuleBasic(
+      []govclient.ProposalHandler{
+      paramsclient.ProposalHandler,
+-     ibcclientclient.UpgradeProposalHandler,
+    },
+  ),
+})
+```
+
 ### Transfer migration
 
 An automatic migration handler (TODO: add link after https://github.com/cosmos/ibc-go/pull/3104 is merged) is configured in the transfer module to set the [denomination metadata](https://github.com/cosmos/cosmos-sdk/blob/95178ce036741ae6aa7af131fa9fccf3e13fff7a/proto/cosmos/bank/v1beta1/bank.proto#L96-L125) for the IBC denominations of all vouchers minted by the transfer module.
