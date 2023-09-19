@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	storetypes "cosmossdk.io/store/types"
 
@@ -62,6 +63,10 @@ func NewKeeper(
 
 	if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
 		panic(fmt.Errorf("cannot initialize IBC keeper: empty scoped keeper"))
+	}
+
+	if strings.TrimSpace(authority) == "" {
+		panic(fmt.Errorf("authority must be non-empty"))
 	}
 
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
