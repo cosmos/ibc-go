@@ -3,10 +3,12 @@ package keeper_test
 import (
 	"testing"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -34,4 +36,86 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
+}
+
+func (suite *KeeperTestSuite) TestNewKeeper() {
+	testCases := []struct {
+		name          string
+		instantiateFn func()
+		expPass       bool
+		panicError    string
+	}{
+		{
+			"success",
+			func() {
+				keeper.NewKeeperWithVM(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(types.StoreKey),
+					suite.chainA.GetSimApp().WasmClientKeeper.GetAuthority(),
+					types.WasmVM,
+				)
+			},
+			true,
+			"",
+		},
+		{
+			"failure: empty authority",
+			func() {
+				keeper.NewKeeperWithVM(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(types.StoreKey),
+					"", // authority
+					types.WasmVM,
+				)
+			},
+			false,
+			"authority must be non-empty",
+		},
+		{
+			"failure: nil wasm VM",
+			func() {
+				keeper.NewKeeperWithVM(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(types.StoreKey),
+					suite.chainA.GetSimApp().WasmClientKeeper.GetAuthority(),
+					nil,
+				)
+			},
+			false,
+			"wasm VM must be not nil",
+		},
+		{
+			"failure: different VM instances",
+			func() {
+				vm, err := wasmvm.NewVM("", "", 16, true, 64)
+				suite.Require().NoError(err)
+
+				keeper.NewKeeperWithVM(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(types.StoreKey),
+					suite.chainA.GetSimApp().WasmClientKeeper.GetAuthority(),
+					vm,
+				)
+			},
+			false,
+			"global Wasm VM instance should not be set to a different instance",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.SetupTest()
+
+		suite.Run(tc.name, func() {
+			if tc.expPass {
+				suite.Require().NotPanics(
+					tc.instantiateFn,
+				)
+			} else {
+				suite.Require().PanicsWithValue(tc.panicError, func() {
+					tc.instantiateFn()
+				})
+			}
+		})
+	}
 }

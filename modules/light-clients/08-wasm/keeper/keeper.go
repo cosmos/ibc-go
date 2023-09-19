@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"reflect"
+	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
@@ -38,8 +39,16 @@ func NewKeeperWithVM(
 	authority string,
 	vm *wasmvm.VM,
 ) Keeper {
+	if vm == nil {
+		panic("wasm VM must be not nil")
+	}
+
 	if types.WasmVM != nil && !reflect.DeepEqual(types.WasmVM, vm) {
 		panic("global Wasm VM instance should not be set to a different instance")
+	}
+
+	if strings.TrimSpace(authority) == "" {
+		panic("authority must be non-empty")
 	}
 
 	types.WasmVM = vm
