@@ -555,16 +555,7 @@ func (k Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequence
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	_, found := k.GetChannel(ctx, req.PortId, req.ChannelId)
-	if !found {
-		return nil, status.Error(
-			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
-		)
-	}
-
-	var sequence uint64
-	sequence, found = k.GetNextSequenceSend(ctx, req.PortId, req.ChannelId)
+	sequence, found := k.GetNextSequenceSend(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
