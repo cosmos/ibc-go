@@ -5,8 +5,9 @@ on:
     branches:
       - main
     paths:
-      # upgrade tests will run on any changes to the upgrade_test.go file.
+      # upgrade tests will run on any changes to the upgrade test files.
       - 'e2e/tests/upgrades/upgrade_test.go'
+      - '.github/workflows/e2e-upgrade.yaml'
   schedule:
     - cron: '0 0 * * *'
 
@@ -75,7 +76,7 @@ jobs:
       chain-binary: simd
       chain-a-tag: v7.0.0
       chain-b-tag: v7.0.0
-      chain-upgrade-tag: main # TODO: update this to a real tag once v8 is released
+      chain-upgrade-tag: pr-4714 # TODO: update this to a real tag once v8 is released
       upgrade-plan-name: "v8"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV7ToV8ChainUpgrade"
@@ -153,7 +154,7 @@ jobs:
       chain-binary: simd
       chain-a-tag: v7.0.0
       chain-b-tag: v7.0.0
-      chain-upgrade-tag: main # TODO: update this to a real tag once v8 is released
+      chain-upgrade-tag: pr-4714 # TODO: update this to a real tag once v8 is released
       upgrade-plan-name: "v8"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV7ToV8ChainUpgrade"
