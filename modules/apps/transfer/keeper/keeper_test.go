@@ -12,7 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -41,6 +43,74 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
+}
+
+func (suite *KeeperTestSuite) TestNewKeeper() {
+	testCases := []struct {
+		name          string
+		instantiateFn func()
+		expPass       bool
+	}{
+		{"success", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				&suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().BankKeeper,
+				suite.chainA.GetSimApp().ScopedTransferKeeper,
+				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
+			)
+		}, true},
+		{"failure: transfer module account does not exist", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				&suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				authkeeper.AccountKeeper{}, // empty account keeper
+				suite.chainA.GetSimApp().BankKeeper,
+				suite.chainA.GetSimApp().ScopedTransferKeeper,
+				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
+			)
+		}, false},
+		{"failure: empty authority", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				&suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().BankKeeper,
+				suite.chainA.GetSimApp().ScopedTransferKeeper,
+				"", // authority
+			)
+		}, false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.SetupTest()
+
+		suite.Run(tc.name, func() {
+			if tc.expPass {
+				suite.Require().NotPanics(
+					tc.instantiateFn,
+				)
+			} else {
+				suite.Require().Panics(
+					tc.instantiateFn,
+				)
+			}
+		})
+	}
 }
 
 func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
