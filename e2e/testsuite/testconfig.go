@@ -114,7 +114,7 @@ func (tc TestConfig) GetChainAID() string {
 	if tc.ChainConfigs[0].ChainID != "" {
 		return tc.ChainConfigs[0].ChainID
 	}
-	return "chain-a"
+	return "chainA-1"
 }
 
 // GetChainBID returns the chain-id for chain B.
@@ -122,7 +122,7 @@ func (tc TestConfig) GetChainBID() string {
 	if tc.ChainConfigs[1].ChainID != "" {
 		return tc.ChainConfigs[1].ChainID
 	}
-	return "chain-b"
+	return "chainB-1"
 }
 
 // UpgradeConfig holds values relevant to upgrade tests.
