@@ -139,7 +139,11 @@ func NewApp(...args) *App {
 
 ### Module Managers
 
+<<<<<<< HEAD
 In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/building-modules/14-simulator.md).
+=======
+In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager` in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/main/docs/build/building-modules/14-simulator.md).
+>>>>>>> edbaf504 (docs: fix broken sdk links (#4716))
 
 ```go
 // app.go
