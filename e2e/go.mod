@@ -13,7 +13,7 @@ require (
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20230913202406-3e11bf474a3b
 	github.com/stretchr/testify v1.8.4
-	go.uber.org/zap v1.25.0
+	go.uber.org/zap v1.26.0
 	golang.org/x/mod v0.12.0
 	google.golang.org/grpc v1.58.1
 	gopkg.in/yaml.v2 v2.4.0
@@ -44,7 +44,6 @@ require (
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/avast/retry-go/v4 v4.5.0 // indirect
 	github.com/aws/aws-sdk-go v1.44.224 // indirect
-	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
