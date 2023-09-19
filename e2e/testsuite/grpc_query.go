@@ -280,20 +280,6 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 	return res.CounterpartyPayee, nil
 }
 
-// QueryBalances returns all the balances on the given chain for the provided address.
-func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
-	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
-	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
-		Address:      address,
-		ResolveDenom: resolveDenom,
-	})
-	if err != nil {
-		return sdk.Coins{}, err
-	}
-
-	return res.Balances, nil
-}
-
 // QueryBalance returns the balance of a specific denomination for a given account by address.
 func (s *E2ETestSuite) QueryBalance(ctx context.Context, chain ibc.Chain, address string, denom string) (math.Int, error) {
 	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
@@ -408,4 +394,31 @@ func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.Cos
 	}
 
 	return grants.Grants, nil
+}
+
+// QueryBalances returns all the balances on the given chain for the provided address.
+func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
+	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
+	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
+		Address:      address,
+		ResolveDenom: resolveDenom,
+	})
+	if err != nil {
+		return sdk.Coins{}, err
+	}
+
+	return res.Balances, nil
+}
+
+// QueryDenomMetadata queries the metadata for the given denom.
+func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain *cosmos.CosmosChain, denom string) (banktypes.Metadata, error) {
+	bankClient := s.GetChainGRCPClients(chain).BankQueryClient
+	queryRequest := &banktypes.QueryDenomMetadataRequest{
+		Denom: denom,
+	}
+	res, err := bankClient.DenomMetadata(ctx, queryRequest)
+	if err != nil {
+		return banktypes.Metadata{}, err
+	}
+	return res.Metadata, nil
 }

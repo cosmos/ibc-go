@@ -2,7 +2,6 @@ package upgrades
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
 
@@ -198,12 +197,6 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 
 	state, err := chain.ExportState(ctx, int64(haltHeight))
 	s.Require().NoError(err)
-
-	// state exports currently read from stdout which include log entries, this discards the log entry by the server module
-	// this may need to be updated if log entries are inserted in between exporting of state and the server module logging
-	// see issue: https://github.com/strangelove-ventures/interchaintest/issues/721
-	str := strings.SplitAfter(state, "server")
-	state = str[1]
 
 	appTomlOverrides := make(test.Toml)
 

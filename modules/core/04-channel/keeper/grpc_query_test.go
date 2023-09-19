@@ -1620,12 +1620,14 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 			false,
 		},
 		{
-			"basic success on unordered channel returns zero",
+			"basic success on unordered channel returns the set send sequence",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
 
-				expSeq = 0
+				expSeq = 42
+				seq := uint64(42)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
 				req = &types.QueryNextSequenceSendRequest{
 					PortId:    path.EndpointA.ChannelConfig.PortID,
 					ChannelId: path.EndpointA.ChannelID,
