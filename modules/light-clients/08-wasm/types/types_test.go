@@ -8,7 +8,6 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -137,9 +136,9 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	chainID := "simd"
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
-	genesisState := app.DefaultGenesis()
+	encCdc := simapp.MakeTestEncodingConfig()
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	genesisState := simapp.NewDefaultGenesisState(encCdc.Codec)
 
 	bytes, err := os.ReadFile("../test_data/genesis.json")
 	if err != nil {
@@ -163,6 +162,8 @@ func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessag
 		genesisState[exported.ModuleName] = appState[exported.ModuleName]
 	}
 
+	// reset DefaultTestingAppInit to its original value
+	ibctesting.DefaultTestingAppInit = setupTestingApp
 	return app, genesisState
 }
 
