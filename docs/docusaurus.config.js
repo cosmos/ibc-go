@@ -119,6 +119,13 @@ const config = {
       footer: {
         links: [
           {
+            items: [
+              {
+                html: `<a href="https://cosmos.network"><img src="/img/cosmos-logo-bw.svg" alt="Cosmos Logo"></a>`,
+              },
+            ],
+          },
+          {
             title: "Documentation",
             items: [
               {
@@ -179,6 +186,10 @@ const config = {
               {
                 label: "GitHub",
                 href: "https://github.com/cosmos/ibc-go",
+              },
+              {
+                label: "IBC Protocol Website",
+                href: "https://www.ibcprotocol.dev/",
               },
             ],
           },
