@@ -294,7 +294,7 @@ func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, ad
 	return res.Balances, nil
 }
 
-// QueryBalances returns returns the balance of a specific denomination for a given account by address.
+// QueryBalance returns the balance of a specific denomination for a given account by address.
 func (s *E2ETestSuite) QueryBalance(ctx context.Context, chain ibc.Chain, address string, denom string) (math.Int, error) {
 	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
 	res, err := queryClient.Balance(ctx, &banktypes.QueryBalanceRequest{
