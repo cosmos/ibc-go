@@ -421,7 +421,7 @@ SDK_BASE 			= third_party/proto/cosmos/base/v1beta1
 SDK_UPGRADE			= third_party/proto/cosmos/upgrade
 
 GOGO_PROTO_TYPES    = third_party/proto/gogoproto
-CONFIO_TYPES        = third_party/proto/confio
+CONFIO_TYPES        = third_party/proto
 
 proto-update-deps:
 	@mkdir -p $(GOGO_PROTO_TYPES)
