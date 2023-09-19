@@ -74,6 +74,53 @@ TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to trans
 	)
 ```
 
+### Params migration
+
+Params are now self managed in the following submodules:
+
+- ica/controller [#3590](https://github.com/cosmos/ibc-go/pull/3590)
+- ica/host [#3520](https://github.com/cosmos/ibc-go/pull/3520)
+- ibc/connection [#3650](https://github.com/cosmos/ibc-go/pull/3650)
+- ibc/client [#3640](https://github.com/cosmos/ibc-go/pull/3640)
+- ibc/transfer [#3553](https://github.com/cosmos/ibc-go/pull/3553)
+
+Each module has a corresponding `MsgUpdateParams` message with a `Params` which can be specified in full to update the modules' `Params`.
+
+Legacy params subspaces must still be initialised in app.go in order to successfully migrate from x/params to the new self-contained approach. See reference: https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go#L1001-L1006
+
+### Governance V1 migration
+
+Proposals have been migrated to [gov v1 messages](https://docs.cosmos.network/v0.50/modules/gov#messages) ref: [#4620](https://github.com/cosmos/ibc-go/pull/4620). The proposal `ClientUpdateProposal` has been removed and replaced with `MsgRecoverClient` and the proposal `UpgradeProposal` has been removed and replaced with `MsgIBCSoftwareUpgrade`.
+
+Ensure that the correct authority field is provided to the ibc keeper.
+
+Remove legacy proposal registration from app.go ref: [#4602](https://github.com/cosmos/ibc-go/pull/4602).
+
+Remove the 02-client proposal handler from the `govRouter`.
+
+```diff
+govRouter := govv1beta1.NewRouter()
+govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
+  AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
+- AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+```
+
+Remove the UpgradeProposalHandler from the BasicModuleManager
+
+```diff
+app.BasicModuleManager = module.NewBasicManagerFromManager(
+  app.ModuleManager,
+  map[string]module.AppModuleBasic{
+    genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+    govtypes.ModuleName: gov.NewAppModuleBasic(
+      []govclient.ProposalHandler{
+      paramsclient.ProposalHandler,
+-     ibcclientclient.UpgradeProposalHandler,
+    },
+  ),
+})
+```
+
 ### Transfer migration
 
 An automatic migration handler (TODO: add link after https://github.com/cosmos/ibc-go/pull/3104 is merged) is configured in the transfer module to set the [denomination metadata](https://github.com/cosmos/cosmos-sdk/blob/95178ce036741ae6aa7af131fa9fccf3e13fff7a/proto/cosmos/bank/v1beta1/bank.proto#L96-L125) for the IBC denominations of all vouchers minted by the transfer module.

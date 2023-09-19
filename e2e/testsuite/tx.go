@@ -135,11 +135,16 @@ If this is a compatibility test, ensure that the fields are being sanitized in t
 	return errorMsg
 }
 
-// ExecuteGovProposalV1 submits a governance proposal using the provided user and message and uses all validators
+// ExecuteGovV1Proposal submits a v1 governance proposal using the provided user and message and uses all validators
 // to vote yes on the proposal. It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user ibc.Wallet, proposalID uint64) {
+func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user ibc.Wallet) {
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
+
+	proposalID := s.proposalIDs[chain.Config().ChainID]
+	defer func() {
+		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
+	}()
 
 	msgs := []sdk.Msg{msg}
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
@@ -165,9 +170,14 @@ func (s *E2ETestSuite) ExecuteGovProposalV1(ctx context.Context, msg sdk.Msg, ch
 	s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
 }
 
-// ExecuteGovProposal submits the given governance proposal using the provided user and uses all validators to vote yes on the proposal.
+// ExecuteGovV1Beta1Proposal submits the given v1beta1 governance proposal using the provided user and uses all validators to vote yes on the proposal.
 // It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
+func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
+	proposalID := s.proposalIDs[chain.Config().ChainID]
+	defer func() {
+		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
+	}()
+
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
@@ -180,21 +190,21 @@ func (s *E2ETestSuite) ExecuteGovProposal(ctx context.Context, chain *cosmos.Cos
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// https://github.com/cosmos/ibc-go/issues/2122
 
-	proposal, err := s.QueryProposal(ctx, chain, 1)
+	proposal, err := s.QueryProposalV1Beta1(ctx, chain, proposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
-	err = chain.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+	err = chain.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", proposalID), cosmos.ProposalVoteYes)
 	s.Require().NoError(err)
 
 	// ensure voting period has not passed before validators finished voting
-	proposal, err = s.QueryProposal(ctx, chain, 1)
+	proposal, err = s.QueryProposalV1Beta1(ctx, chain, proposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
 	time.Sleep(testvalues.VotingPeriod) // pass proposal
 
-	proposal, err = s.QueryProposal(ctx, chain, 1)
+	proposal, err = s.QueryProposalV1Beta1(ctx, chain, proposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
 }

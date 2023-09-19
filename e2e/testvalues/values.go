@@ -48,6 +48,11 @@ func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
 }
 
+// TokenMetadataFeatureReleases represents the releases the token metadata was released in.
+var TokenMetadataFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
+}
+
 // GovGenesisFeatureReleases represents the releases the governance module genesis
 // was upgraded from v1beta1 to v1.
 var GovGenesisFeatureReleases = semverutil.FeatureReleases{
@@ -60,18 +65,6 @@ var IcadGovGenesisFeatureReleases = semverutil.FeatureReleases{
 	MinorVersions: []string{
 		"v0.5",
 	},
-}
-
-// IcadNewGenesisCommandsFeatureReleases represents the releases of icad using the new genesis commands.
-var IcadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
-	MinorVersions: []string{
-		"v0.5",
-	},
-}
-
-// SimdNewGenesisCommandsFeatureReleases represents the releases the simd binary started using the new genesis command.
-var SimdNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v8",
 }
 
 // SelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
@@ -107,4 +100,9 @@ var LocalhostClientFeatureReleases = semverutil.FeatureReleases{
 	MinorVersions: []string{
 		"v7.1",
 	},
+}
+
+// DenomMetadataFeatureReleases represents the releases the human readable denom feature was released in.
+var DenomMetadataFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 }

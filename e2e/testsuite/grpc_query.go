@@ -18,6 +18,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
@@ -47,6 +48,7 @@ type GRPCClients struct {
 	// InterTxQueryClient       intertxtypes.QueryClient
 
 	// SDK query clients
+	BankQueryClient    banktypes.QueryClient
 	GovQueryClient     govtypesv1beta1.QueryClient
 	GovQueryClientV1   govtypesv1.QueryClient
 	GroupsQueryClient  grouptypes.QueryClient
@@ -86,6 +88,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		ICAControllerQueryClient: controllertypes.NewQueryClient(grpcConn),
 		ICAHostQueryClient:       hosttypes.NewQueryClient(grpcConn),
 		// InterTxQueryClient:       intertxtypes.NewQueryClient(grpcConn),
+		BankQueryClient:        banktypes.NewQueryClient(grpcConn),
 		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
 		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
 		GroupsQueryClient:      grouptypes.NewQueryClient(grpcConn),
@@ -153,8 +156,8 @@ func (s *E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, c
 	return res.Status, nil
 }
 
-// QueryCurrentPlan queries the currently scheduled plans, if any
-func (s *E2ETestSuite) QueryCurrentPlan(ctx context.Context, chain ibc.Chain) (upgradetypes.Plan, error) {
+// QueryCurrentUpgradePlan queries the currently scheduled upgrade plans.
+func (s *E2ETestSuite) QueryCurrentUpgradePlan(ctx context.Context, chain ibc.Chain) (upgradetypes.Plan, error) {
 	queryClient := s.GetChainGRCPClients(chain).UpgradeQueryClient
 	res, err := queryClient.CurrentPlan(ctx, &upgradetypes.QueryCurrentPlanRequest{})
 	if err != nil {
@@ -276,8 +279,8 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 	return res.CounterpartyPayee, nil
 }
 
-// QueryProposal queries the governance proposal on the given chain with the given proposal ID.
-func (s *E2ETestSuite) QueryProposal(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
+// QueryProposalV1Beta1 queries the governance proposal on the given chain with the given proposal ID.
+func (s *E2ETestSuite) QueryProposalV1Beta1(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
 	queryClient := s.GetChainGRCPClients(chain).GovQueryClient
 	res, err := queryClient.Proposal(ctx, &govtypesv1beta1.QueryProposalRequest{
 		ProposalId: proposalID,
@@ -376,4 +379,31 @@ func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.Cos
 	}
 
 	return grants.Grants, nil
+}
+
+// QueryBalances returns all the balances on the given chain for the provided address.
+func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
+	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
+	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
+		Address:      address,
+		ResolveDenom: resolveDenom,
+	})
+	if err != nil {
+		return sdk.Coins{}, err
+	}
+
+	return res.Balances, nil
+}
+
+// QueryDenomMetadata queries the metadata for the given denom.
+func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain *cosmos.CosmosChain, denom string) (banktypes.Metadata, error) {
+	bankClient := s.GetChainGRCPClients(chain).BankQueryClient
+	queryRequest := &banktypes.QueryDenomMetadataRequest{
+		Denom: denom,
+	}
+	res, err := bankClient.DenomMetadata(ctx, queryRequest)
+	if err != nil {
+		return banktypes.Metadata{}, err
+	}
+	return res.Metadata, nil
 }

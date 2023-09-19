@@ -35,8 +35,8 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 	}
 }
 
-// SimulateHostMsgUpdateParams returns a random MsgUpdateParams for the host module
-func SimulateHostMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
+// SimulateHostMsgUpdateParams returns a MsgUpdateParams for the host module
+func SimulateHostMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
 	var signer sdk.AccAddress = address.Module("gov")
 	params := types.DefaultParams()
 	params.HostEnabled = false
@@ -47,8 +47,8 @@ func SimulateHostMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Accou
 	}
 }
 
-// SimulateControllerMsgUpdateParams returns a random MsgUpdateParams for the controller module
-func SimulateControllerMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
+// SimulateControllerMsgUpdateParams returns a MsgUpdateParams for the controller module
+func SimulateControllerMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
 	var signer sdk.AccAddress = address.Module("gov")
 	params := controllertypes.DefaultParams()
 	params.ControllerEnabled = false
