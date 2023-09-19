@@ -69,8 +69,7 @@ Additionally, for the first point release of a new major or minor release branch
 - Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](../../RELEASES.md): add the new release line and remove any release lines that might have become discontinued.
 - Update the [list of supported release lines in README.md](../../RELEASES.md#releases), if necessary.
 - Update the [e2e compatibility test matrices](https://github.com/cosmos/ibc-go/tree/main/.github/compatibility-test-matrices): add the tag for the new release and remove any tags that might not be recommended anymore.
-- Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) and [e2e `icad`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-icad.yaml) test workflows:
-  - Add the new release and the new `icad` tag.
+- Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
   - Remove any tags that might not be recommended anymore.
 - Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
 - Open a PR to `main` updating the docs site:

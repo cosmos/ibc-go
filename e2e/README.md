@@ -72,7 +72,6 @@ export CHAIN_BINARY="simd"
 # We can also specify different values for the chains if needed.
 # they will default to the same as chain a.
 # export CHAIN_B_TAG="main"
-# export CHAIN_BINARY="icad"
 
 export RELAYER_TAG="v2.0.0"
 make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer

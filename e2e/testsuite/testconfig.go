@@ -65,9 +65,6 @@ const (
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
-
-	// icadBinary is the binary for interchain-accounts-demo repository.
-	icadBinary = "icad"
 )
 
 func getChainImage(binary string) string {
@@ -425,9 +422,8 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 	version := cc.Tag
 
 	simdSupportsGovV1Genesis := binary == defaultBinary && testvalues.GovGenesisFeatureReleases.IsSupported(version)
-	icadSupportsGovV1Genesis := testvalues.IcadGovGenesisFeatureReleases.IsSupported(version)
 
-	if simdSupportsGovV1Genesis || icadSupportsGovV1Genesis {
+	if simdSupportsGovV1Genesis {
 		return defaultGovv1ModifyGenesis(version)
 	}
 
