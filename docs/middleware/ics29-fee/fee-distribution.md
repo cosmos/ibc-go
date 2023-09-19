@@ -50,11 +50,7 @@ type MsgRegisterCounterpartyPayee struct {
 >
 > - `PortId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
 > - `ChannelId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
-<<<<<<< HEAD
-> - `Relayer` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/basics/03-accounts.md#addresses)).
-=======
 > - `Relayer` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/develop/beginner/03-accounts.md#addresses)).
->>>>>>> edbaf504 (docs: fix broken sdk links (#4716))
 > - `CounterpartyPayee` is empty.
 
 See below for an example CLI command:
@@ -99,13 +95,8 @@ type MsgRegisterPayee struct {
 >
 > - `PortId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
 > - `ChannelId` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
-<<<<<<< HEAD
-> - `Relayer` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/basics/03-accounts.md#addresses)).
-> - `Payee` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/basics/03-accounts.md#addresses)).
-=======
 > - `Relayer` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/develop/beginner/03-accounts.md#addresses)).
 > - `Payee` is an invalid address (see [Cosmos SDK Addresses](https://github.com/cosmos/cosmos-sdk/blob/main/docs/develop/beginner/03-accounts.md#addresses)).
->>>>>>> edbaf504 (docs: fix broken sdk links (#4716))
 
 See below for an example CLI command:
 

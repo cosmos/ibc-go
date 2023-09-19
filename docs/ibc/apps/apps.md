@@ -48,8 +48,4 @@ callbacks](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/ibc_
 
 ## Next {hide}
 
-<<<<<<< HEAD
-Learn about [building modules](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/building-modules/01-intro.md) {hide}
-=======
 Learn about [building modules](https://github.com/cosmos/cosmos-sdk/blob/main/docs/build/building-modules/00-intro.md) {hide}
->>>>>>> edbaf504 (docs: fix broken sdk links (#4716))
