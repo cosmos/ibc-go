@@ -121,7 +121,7 @@ type PacketDataProvider interface {
 
 The callback data can be embedded in an application packet by providing custom packet data for source and destination callback datain the custom packet data under the appropriate key.
 
-```json
+```jsonc
 // Custom Packet data embedded as a JSON object in the packet data
 
 // src callback custom data
@@ -534,6 +534,7 @@ Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that
 
 - Application packets that want to support ADR-8 must additionally have their packet data implement `PacketDataProvider` and `PacketData` interfaces.
 - Applications must implement `PacketDataUnmarshaler` interface
+- Callback receiving module must implement the `ContractKeeper` interface
 
 ## References
 
