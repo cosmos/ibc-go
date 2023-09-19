@@ -12,14 +12,14 @@ option go_package = "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types";
 
 // Query provides defines the gRPC querier service.
 service Query {
-  // DenomTrace queries a denomination trace information.
-  rpc DenomTrace(QueryDenomTraceRequest) returns (QueryDenomTraceResponse) {
-    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{hash=**}";
-  }
-
   // DenomTraces queries all denomination traces.
   rpc DenomTraces(QueryDenomTracesRequest) returns (QueryDenomTracesResponse) {
     option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces";
+  }
+
+  // DenomTrace queries a denomination trace information.
+  rpc DenomTrace(QueryDenomTraceRequest) returns (QueryDenomTraceResponse) {
+    option (google.api.http).get = "/ibc/apps/transfer/v1/denom_traces/{hash=**}";
   }
 
   // Params queries all parameters of the ibc-transfer module.
