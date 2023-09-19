@@ -8,10 +8,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
@@ -600,18 +600,16 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	proposal, err := govtypes.NewMsgSubmitProposal(
+	proposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msg},
-		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, govtypes.DefaultMinDepositTokens)),
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, govtypesv1.DefaultMinDepositTokens)),
+		endpoint.Chain.GetSimApp().IBCKeeper.GetAuthority(),
 		"",
-		"uprade-init",
-		"initialize channel upgrade",
+		fmt.Sprintf("gov proposal for initialising channel upgrade: %s", endpoint.ChannelID),
+		"",
 		false,
 	)
-	if err != nil {
-		return fmt.Errorf("error creating upgrade proposal: %s", err)
-	}
+	require.NoError(endpoint.Chain.TB, err)
 
 	return endpoint.Chain.sendMsgs(proposal)
 }
