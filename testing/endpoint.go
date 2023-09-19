@@ -597,16 +597,16 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
 		upgrade.Fields,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		endpoint.Chain.GetSimApp().IBCKeeper.GetAuthority(),
 	)
 
 	proposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msg},
 		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, govtypesv1.DefaultMinDepositTokens)),
-		endpoint.Chain.GetSimApp().IBCKeeper.GetAuthority(),
+		endpoint.Chain.SenderAccount.GetAddress().String(),
 		"",
+		"upgrade-init",
 		fmt.Sprintf("gov proposal for initialising channel upgrade: %s", endpoint.ChannelID),
-		"",
 		false,
 	)
 	require.NoError(endpoint.Chain.TB, err)
