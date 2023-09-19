@@ -30,7 +30,7 @@ This requires a second layer of callbacks. The IBC application already gets the 
 
 ## Decision
 
-Create a middleware that can interface between IBC applications and smart contract VMs. The IBC applications and smart contract VMs will implement respective interfaces that will then be composed together by the callback middleware to allow a smart contract of any compatible VM to interact programatically with an IBC application.
+Create a middleware that can interface between IBC applications and smart contract VMs. The IBC applications and smart contract VMs will implement respective interfaces that will then be composed together by the callback middleware to allow a smart contract of any compatible VM to interact programmatically with an IBC application.
 
 ## Data structures
 
@@ -38,7 +38,7 @@ The `CallbackPacketData` struct will get constructed from custom callback data i
 
 The struct also defines a `CommitGasLimit` which is the maximum gas a callback is allowed to use. If the callback exceeds this limit, the callback will panic and the tx will commit without the callback's state changes.
 
-The `ExecutionGasLimit` is the practical limit of the tx execution that is set in the context gas meter. It is the minimum of the `CommitGasLimit` and the gas left in the context gas meter which is determined by the relayer's choice of tx gas limit. If `ExecutionGasLimit < CommitGasLimit`, then an out-of-gas error will revert the entire transaction without commiting anything, allowing for a different relayer to retry with a larger tx gas limit.
+The `ExecutionGasLimit` is the practical limit of the tx execution that is set in the context gas meter. It is the minimum of the `CommitGasLimit` and the gas left in the context gas meter which is determined by the relayer's choice of tx gas limit. If `ExecutionGasLimit < CommitGasLimit`, then an out-of-gas error will revert the entire transaction without committing anything, allowing for a different relayer to retry with a larger tx gas limit.
 
 Any middleware targeting this interface for callback handling should define a global limit that caps the gas that a callback is allowed to take (especially on AcknowledgePacket and TimeoutPacket) so that a custom callback does not prevent the packet lifecycle from completing. However, since this is a global cap it is likely to be very large. Thus, users may specify a smaller limit to cap the amount of fees a relayer must pay in order to complete the packet lifecycle on the user's behalf.
 
@@ -119,7 +119,7 @@ type PacketDataProvider interface {
 }
 ```
 
-The callback data can be embedded in an application packet by providing custom packet data for source and destination callback datain the custom packet data under the appropriate key.
+The callback data can be embedded in an application packet by providing custom packet data for source and destination callback in the custom packet data under the appropriate key.
 
 ```jsonc
 // Custom Packet data embedded as a JSON object in the packet data
@@ -252,7 +252,7 @@ are discarded and the transaction is committed.
 If the relayer-defined gas limit is exceeded before the user-defined gas limit or global callback gas limit is exceeded, then the entire transaction is reverted to allow for resubmission. If the chain-defined or user-defined gas limit is reached, 
 the callback state changes are reverted and the transaction is committed.
 
-For the `SendPacket` callback, we will revert the entire transaction on any kind of error or panic. This is because the packet lifecycle has not yet started, so we can revert completely to avoid starting the packet lifecycle if the callback is not successsful.
+For the `SendPacket` callback, we will revert the entire transaction on any kind of error or panic. This is because the packet lifecycle has not yet started, so we can revert completely to avoid starting the packet lifecycle if the callback is not successful.
 
 ```go
 // SendPacket implements source callbacks for sending packets.
@@ -515,13 +515,13 @@ func (IBCMiddleware) processCallback(
 }
 ```
 
-Chains are expected to specify a `chainDefinedActorCallbackLimit` to ensure that callbacks do not consume an arbitrary amount of gas. Thus, it should always be possible for a relayer to complete the packet lifecycle even if the actor callbacks cannot run successfully.
+Chains are expected to specify a `maxCallbackGas` to ensure that callbacks do not consume an arbitrary amount of gas. Thus, it should always be possible for a relayer to complete the packet lifecycle even if the actor callbacks cannot run successfully.
 
 ## Consequences
 
 ### Positive
 
-- IBC Actors can now programatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete
+- IBC Actors can now programmatically execute logic that involves sending a packet and then performing some additional logic once the packet lifecycle is complete
 - Middleware implementing ADR-8 can be generally used for any application
 - Leverages a similar callback architecture to the one used between core IBC and IBC applications
 
