@@ -1626,7 +1626,7 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 				suite.coordinator.Setup(path)
 
 				expSeq = 42
-				seq := uint64(expSeq)
+				seq := uint64(42)
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
 				req = &types.QueryNextSequenceSendRequest{
 					PortId:    path.EndpointA.ChannelConfig.PortID,
