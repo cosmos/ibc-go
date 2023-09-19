@@ -143,7 +143,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		subjectClientID    string
 		substituteClientID string
 		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
-		badTrustingPeriod = time.Duration(time.Second * 10)
+		badTrustingPeriod = time.Second * 10
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
