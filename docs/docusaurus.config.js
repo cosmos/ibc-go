@@ -117,13 +117,6 @@ const config = {
         ],
       },
       footer: {
-        logo: {
-          alt: "Large IBC Logo",
-          src: "img/black-large-ibc-logo.svg",
-          srcDark: "img/white-large-ibc-logo.svg",
-          width: 275,
-          href: "https://www.ibcprotocol.dev/",
-        },
         links: [
           {
             title: "Documentation",
@@ -190,6 +183,13 @@ const config = {
             ],
           },
         ],
+        logo: {
+          alt: "Large IBC Logo",
+          src: "img/black-large-ibc-logo.svg",
+          srcDark: "img/white-large-ibc-logo.svg",
+          width: 275,
+          href: "https://www.ibcprotocol.dev/",
+        },
         copyright: `<p>The development of IBC-Go is led primarily by <a href="https://interchain.berlin/">Interchain GmbH</a>. Funding for this development comes primarily from the Interchain Foundation, a Swiss non-profit.</p>`,
       },
       prism: {
