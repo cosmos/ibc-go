@@ -34,10 +34,7 @@ To suggest an ADR, please make use of the [ADR template](./adr-template.md) prov
 | [005](./adr-005-consensus-height-events.md) | `UpdateClient` events - `ClientState` consensus heights | Accepted |
 | [006](./adr-006-02-client-refactor.md) | ICS02 client refactor | Accepted |
 | [007](./adr-007-solomachine-signbytes.md) | ICS06 Solo machine sign bytes |
-<<<<<<< HEAD
-=======
 | [008](./adr-008-app-caller-cbs.md) | Callback to IBC ACtors | Accepted |
->>>>>>> 68f7ab36 (docs: update ADR8 (#4631))
 | [009](./adr-009-v6-ics27-msgserver.md) | ICS27 message server addition | Accepted |
 | [011](./adr-011-transfer-total-escrow-state-entry.md) | ICS20 state entry for total amount of tokens in escrow | Accepted |
 | [015](./adr-015-ibc-packet-receiver.md) | IBC Packet Routing | Accepted |
