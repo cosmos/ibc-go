@@ -406,7 +406,7 @@ proto-check-breaking:
 
 TM_URL              = https://raw.githubusercontent.com/cometbft/cometbft/v0.34.29/proto/tendermint
 GOGO_PROTO_URL      = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
-ICS23_URL          = https://raw.githubusercontent.com/cosmos/ics23/v0.9.x
+ICS23_URL          = https://raw.githubusercontent.com/cosmos/ics23/release/v0.9.x
 SDK_PROTO_URL 		= https://raw.githubusercontent.com/cosmos/cosmos-sdk/v0.45.16/proto/cosmos
 
 TM_CRYPTO_TYPES     = third_party/proto/tendermint/crypto
@@ -455,7 +455,7 @@ proto-update-deps:
 	@curl -sSL $(TM_URL)/crypto/keys.proto > $(TM_CRYPTO_TYPES)/keys.proto
 
 	@mkdir -p $(CONFIO_TYPES)
-	@curl -sSL https://raw.githubusercontent.com/cosmos/ics23/release/v0.9.x/proofs.proto > $(CONFIO_TYPES)/proofs.proto
+	@curl -sSL $(ICS23_URL)/proofs.proto > $(CONFIO_TYPES)/proofs.proto
 
 ## insert go package option into proofs.proto file
 ## Issue link: https://github.com/confio/ics23/issues/32
