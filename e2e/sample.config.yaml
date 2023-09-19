@@ -5,7 +5,7 @@
 ---
 chains:
   # the entry at index 0 corresponds to CHAIN_A
-- chainId: chain-a
+- chainId: chainA-1
   numValidators: 1
   numFullNodes: 0
   image: ghcr.io/cosmos/ibc-go-simd # override with CHAIN_IMAGE
@@ -13,7 +13,7 @@ chains:
   binary: simd # override with CHAIN_BINARY
 
   # the entry at index 1 corresponds to CHAIN_B
-- chainId: chain-b
+- chainId: chainB-1
   numValidators: 1
   numFullNodes: 0
   image: ghcr.io/cosmos/ibc-go-simd # override with CHAIN_IMAGE
