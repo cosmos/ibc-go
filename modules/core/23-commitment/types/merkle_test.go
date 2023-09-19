@@ -150,5 +150,5 @@ func TestApplyPrefix(t *testing.T) {
 
 	prefixedPath, err := types.ApplyPrefix(prefix, path)
 	require.NoError(t, err, "valid prefix returns error")
-	require.Len(t, prefixedPath.GetKeyPath(), 2, "leng key path incorrect")
+	require.Len(t, prefixedPath.GetKeyPath(), 2, "unexpected key path length")
 }
