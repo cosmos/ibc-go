@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -55,6 +56,11 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 // MigrateParams migrates the controller submodule's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	if m.keeper != nil {
+		// set KeyTable if it has not already been set
+		if !m.keeper.legacySubspace.HasKeyTable() {
+			m.keeper.legacySubspace = m.keeper.legacySubspace.WithKeyTable(types.ParamKeyTable())
+		}
+
 		var params controllertypes.Params
 		m.keeper.legacySubspace.GetParamSet(ctx, &params)
 

@@ -28,12 +28,17 @@ func (m Migrator) Migrate3to4(ctx sdk.Context) error {
 // This migration takes the parameters that are currently stored and managed by x/params
 // and stores them directly in the ibc module's state.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
+	// set KeyTable if it has not already been set
+	if !m.keeper.legacySubspace.HasKeyTable() {
+		m.keeper.legacySubspace = m.keeper.legacySubspace.WithKeyTable(types.ParamKeyTable())
+	}
+
 	var params types.Params
 	m.keeper.legacySubspace.GetParamSet(ctx, &params)
-
 	if err := params.Validate(); err != nil {
 		return err
 	}
+
 	m.keeper.SetParams(ctx, params)
 	m.keeper.Logger(ctx).Info("successfully migrated connection to self-manage params")
 	return nil

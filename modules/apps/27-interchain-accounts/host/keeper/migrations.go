@@ -21,6 +21,10 @@ func NewMigrator(k *Keeper) Migrator {
 // MigrateParams migrates the host submodule's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	if m.keeper != nil {
+		if !m.keeper.legacySubspace.HasKeyTable() {
+			m.keeper.legacySubspace = m.keeper.legacySubspace.WithKeyTable(types.ParamKeyTable())
+		}
+
 		var params types.Params
 		m.keeper.legacySubspace.GetParamSet(ctx, &params)
 

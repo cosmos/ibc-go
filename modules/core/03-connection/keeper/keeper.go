@@ -29,11 +29,6 @@ type Keeper struct {
 
 // NewKeeper creates a new IBC connection Keeper instance
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace, ck types.ClientKeeper) Keeper {
-	// set KeyTable if it has not already been set
-	if !legacySubspace.HasKeyTable() {
-		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return Keeper{
 		storeKey:       key,
 		cdc:            cdc,
