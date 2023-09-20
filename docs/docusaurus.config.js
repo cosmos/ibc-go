@@ -12,7 +12,7 @@ const config = {
 
   // Set the production url of your site here
   // for local production tests, set to http://localhost:3000/
-  url: "https://ibc.cosmos.network/",
+  url: "https://ibc.cosmos.network",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
@@ -21,6 +21,8 @@ const config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: "cosmos", // Usually your GitHub org/user name.
   projectName: "ibc-go", // Usually your repo name.
+  deploymentBranch: "gh-pages",
+  trailingSlash: false,
 
   onBrokenLinks: "log",
   onBrokenMarkdownLinks: "log",
@@ -86,6 +88,7 @@ const config = {
           alt: "IBC Logo",
           src: "img/black-ibc-logo.svg",
           srcDark: "img/white-ibc-logo.svg",
+          href: "/main/",
         },
         items: [
           {
