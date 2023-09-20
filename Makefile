@@ -404,10 +404,10 @@ proto-lint:
 proto-check-breaking:
 	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=main
 
-TM_URL              = https://raw.githubusercontent.com/tendermint/tendermint/v0.34.0-rc6/proto/tendermint
+TM_URL              = https://raw.githubusercontent.com/cometbft/cometbft/v0.34.29/proto/tendermint
 GOGO_PROTO_URL      = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
-CONFIO_URL          = https://raw.githubusercontent.com/confio/ics23/v0.6.3
-SDK_PROTO_URL 		= https://raw.githubusercontent.com/cosmos/cosmos-sdk/v0.41.0/proto/cosmos
+ICS23_URL          = https://raw.githubusercontent.com/cosmos/ics23/release/v0.9.x
+SDK_PROTO_URL 		= https://raw.githubusercontent.com/cosmos/cosmos-sdk/v0.45.16/proto/cosmos
 
 TM_CRYPTO_TYPES     = third_party/proto/tendermint/crypto
 TM_ABCI_TYPES       = third_party/proto/tendermint/abci
@@ -421,7 +421,7 @@ SDK_BASE 			= third_party/proto/cosmos/base/v1beta1
 SDK_UPGRADE			= third_party/proto/cosmos/upgrade
 
 GOGO_PROTO_TYPES    = third_party/proto/gogoproto
-CONFIO_TYPES        = third_party/proto/confio
+CONFIO_TYPES        = third_party/proto
 
 proto-update-deps:
 	@mkdir -p $(GOGO_PROTO_TYPES)
@@ -455,7 +455,7 @@ proto-update-deps:
 	@curl -sSL $(TM_URL)/crypto/keys.proto > $(TM_CRYPTO_TYPES)/keys.proto
 
 	@mkdir -p $(CONFIO_TYPES)
-	@curl -sSL $(CONFIO_URL)/proofs.proto > $(CONFIO_TYPES)/proofs.proto
+	@curl -sSL $(ICS23_URL)/proofs.proto > $(CONFIO_TYPES)/proofs.proto
 
 ## insert go package option into proofs.proto file
 ## Issue link: https://github.com/confio/ics23/issues/32
