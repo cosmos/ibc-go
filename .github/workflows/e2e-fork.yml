@@ -24,7 +24,7 @@ jobs:
       - id: set-matrix
         run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
-          TEST_EXCLUSIONS: 'TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite'
+          TEST_EXCLUSIONS: 'TestUpgradeTestSuite'
 
   # e2e-fork runs the e2e tests directly by using a matrix strategy.
   e2e-fork:
