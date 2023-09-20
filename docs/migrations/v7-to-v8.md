@@ -183,15 +183,15 @@ An [automatic migration handler](https://github.com/cosmos/ibc-go/blob/v8.0.0-be
 ```diff
 // IBC client events vars
 var (
- 	EventTypeCreateClient          = "create_client"
- 	EventTypeUpdateClient          = "update_client"
- 	EventTypeUpgradeClient         = "upgrade_client"
- 	EventTypeSubmitMisbehaviour    = "client_misbehaviour"
+  EventTypeCreateClient          = "create_client"
+  EventTypeUpdateClient          = "update_client"
+  EventTypeUpgradeClient         = "upgrade_client"
+  EventTypeSubmitMisbehaviour    = "client_misbehaviour"
 - EventTypeUpdateClientProposal  = "update_client_proposal"
 - EventTypeUpgradeClientProposal = "upgrade_client_proposal"
-+	EventTypeRecoverClient              = "recover_client"
-+	EventTypeScheduleIBCSoftwareUpgrade = "schedule_ibc_software_upgrade"
- 	EventTypeUpgradeChain               = "upgrade_chain"
++ EventTypeRecoverClient              = "recover_client"
++ EventTypeScheduleIBCSoftwareUpgrade = "schedule_ibc_software_upgrade"
+  EventTypeUpgradeChain               = "upgrade_chain"
 )
 ```
 
