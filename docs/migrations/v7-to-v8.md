@@ -37,36 +37,38 @@ type Keeper struct {
 
 See [this PR](https://github.com/cosmos/ibc-go/pull/4703/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08a) for the changes required in `app.go`.
 
-TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to transfer's `GenesisState`)
+An extra parameter `totalEscrowed` of type `sdk.Coins` has been added to transfer module's [`NewGenesisState` function](https://github.com/cosmos/ibc-go/blob/v8.0.0-beta.0/modules/apps/transfer/types/genesis.go#L10). This parameter specifies the total amount of tokens that are in the module's escrow accounts.
 
-- You must pass the `authority` to the icahost keeper. ([#3520](https://github.com/cosmos/ibc-go/pull/3520)) See [diff](https://github.com/cosmos/ibc-go/pull/3520/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08a).
+### Authority
+
+You must pass the `authority` to the ica/host keeper. ([#3520](https://github.com/cosmos/ibc-go/pull/3520)) See [diff](https://github.com/cosmos/ibc-go/pull/3520/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08a).
 
 ```diff
 // app.go
 
-	// ICA Host keeper
-	app.ICAHostKeeper = icahostkeeper.NewKeeper(
-		appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
-		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
-+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
+// ICA Host keeper
+app.ICAHostKeeper = icahostkeeper.NewKeeper(
+	appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
+	app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
+	app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+	app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
++	authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+)
 ```
 
-- You must pass the `authority` to the icacontroller keeper. ([#3590](https://github.com/cosmos/ibc-go/pull/3590)) See [diff](https://github.com/cosmos/ibc-go/pull/3590/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08a).
+- You must pass the `authority` to the ica/controller keeper. ([#3590](https://github.com/cosmos/ibc-go/pull/3590)) See [diff](https://github.com/cosmos/ibc-go/pull/3590/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08a).
 
 ```diff
 // app.go
 
-	// ICA Controller keeper
-	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-		appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
-		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		scopedICAControllerKeeper, app.MsgServiceRouter(),
-+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
+// ICA Controller keeper
+app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
+	appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
+	app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
+	app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+	scopedICAControllerKeeper, app.MsgServiceRouter(),
++ authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+)
 ```
 
 - You must pass the `authority` to the ibctransfer keeper. ([#3553](https://github.com/cosmos/ibc-go/pull/3553)) See [diff](https://github.com/cosmos/ibc-go/pull/3553/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08a).
@@ -74,15 +76,15 @@ TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to trans
 ```diff
 // app.go
 
-	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
-	// since fee middleware will wrap the IBCKeeper for underlying application.
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
-+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
+// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
+// since fee middleware will wrap the IBCKeeper for underlying application.
+app.TransferKeeper = ibctransferkeeper.NewKeeper(
+	appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
+	app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
+	app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+	app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
++	authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+)
 ```
 
 - You should pass the `authority` to the IBC keeper. ([#3640](https://github.com/cosmos/ibc-go/pull/3640) and [#3650](https://github.com/cosmos/ibc-go/pull/3650)) See [diff](https://github.com/cosmos/ibc-go/pull/3640/files#diff-d18972debee5e64f16e40807b2ae112ddbe609504a93ea5e1c80a5d489c3a08a).
@@ -90,12 +92,22 @@ TODO: https://github.com/cosmos/ibc-go/pull/3505 (extra parameter added to trans
 ```diff
 // app.go
 
-	// IBC Keepers
-	app.IBCKeeper = ibckeeper.NewKeeper(
--       appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
-+		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
+// IBC Keepers
+app.IBCKeeper = ibckeeper.NewKeeper(
+  appCodec, 
+  keys[ibcexported.StoreKey],
+	app.GetSubspace(ibcexported.ModuleName),
+	app.StakingKeeper,
+	app.UpgradeKeeper,
+	scopedIBCKeeper,
++	authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+)
 ```
+
+### Testing package
+
+- The function `SetupWithGenesisAccounts` has been removed.
+- The function [`RelayPacketWithResults`](https://github.com/cosmos/ibc-go/blob/v8.0.0-beta.0/testing/path.go#L66) has been added. This function returns the result of the packet receive transaction, the acknowledgement written on the receiving chain, an error if a relay step fails or the packet commitment does not exist on either chain.
 
 ### Params migration
 
@@ -128,7 +140,7 @@ govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 - AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 ```
 
-Remove the UpgradeProposalHandler from the BasicModuleManager
+Remove the `UpgradeProposalHandler` and `UpdateClientProposalHandler` from the `BasicModuleManager`
 
 ```diff
 app.BasicModuleManager = module.NewBasicManagerFromManager(
@@ -138,6 +150,7 @@ app.BasicModuleManager = module.NewBasicManagerFromManager(
     govtypes.ModuleName: gov.NewAppModuleBasic(
       []govclient.ProposalHandler{
       paramsclient.ProposalHandler,
+-			ibcclientclient.UpdateClientProposalHandler,
 -     ibcclientclient.UpgradeProposalHandler,
     },
   ),
@@ -146,19 +159,41 @@ app.BasicModuleManager = module.NewBasicManagerFromManager(
 
 ### Transfer migration
 
-An automatic migration handler (TODO: add link after https://github.com/cosmos/ibc-go/pull/3104 is merged) is configured in the transfer module to set the [denomination metadata](https://github.com/cosmos/cosmos-sdk/blob/95178ce036741ae6aa7af131fa9fccf3e13fff7a/proto/cosmos/bank/v1beta1/bank.proto#L96-L125) for the IBC denominations of all vouchers minted by the transfer module.
+An [automatic migration handler](https://github.com/cosmos/ibc-go/blob/v8.0.0-beta.0/modules/apps/transfer/module.go#L136) is configured in the transfer module to set the [denomination metadata](https://github.com/cosmos/cosmos-sdk/blob/v0.50.0-rc.0/proto/cosmos/bank/v1beta1/bank.proto#L96-L125) for the IBC denominations of all vouchers minted by the transfer module.
 
 ## IBC Apps
 
-TODO: 
-- https://github.com/cosmos/ibc-go/pull/3303
-- https://github.com/cosmos/ibc-go/pull/3967
+### ICS20 - Transfer
+
+- The function `IsBound` has been renamed to [`hasCapability`](https://github.com/cosmos/ibc-go/blob/v8.0.0-beta.0/modules/apps/transfer/keeper/keeper.go#L98) and made unexported.
+
+### ICS27 - Interchain Accounts
+
+- Functions [`SerializeCosmosTx`](https://github.com/cosmos/ibc-go/blob/v8.0.0-beta.0/modules/apps/27-interchain-accounts/types/codec.go#L32) and [`DeserializeCosmosTx`](https://github.com/cosmos/ibc-go/blob/v8.0.0-beta.0/modules/apps/27-interchain-accounts/types/codec.go#L76) accept now an extra parameters `encoding` of type `string` that specifies the format in which the transaction messages are marshaled. Both [protobuf and proto3 JSON formats](https://github.com/cosmos/ibc-go/blob/v8.0.0-beta.0/modules/apps/27-interchain-accounts/types/metadata.go#L14-L17) are supported.
+- The function `IsBound` of controller submodule has been renamed to [`hasCapability`](https://github.com/cosmos/ibc-go/blob/v8.0.0-beta.0/modules/apps/27-interchain-accounts/controller/keeper/keeper.go#L112) and made unexported.
+- The function `IsBound` of host submodule has been renamed to [`hasCapability`](https://github.com/cosmos/ibc-go/blob/v8.0.0-beta.0/modules/apps/27-interchain-accounts/host/keeper/keeper.go#L95) and made unexported.
 
 ## Relayers
 
 - Getter functions in `MsgChannelOpenInitResponse`, `MsgChannelOpenTryResponse`, `MsgTransferResponse`, `MsgRegisterInterchainAccountResponse` and `MsgSendTxResponse` have been removed. The fields can be accessed directly.
 - `channeltypes.EventTypeTimeoutPacketOnClose` (where `channeltypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/04-channel"`) has been removed, since core IBC does not emit any event with this key.
-- Attribute with key `counterparty_connection_id` has been removed from event with key `connectiontypes.EventTypeConnectionOpenInit` (where `connectiontypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"`) and attribute with key `counterparty_channel_id` has been removed from event with key `channeltypes.EventTypeChannelOpenInit` (where `channeltypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/04-channel"`) since both (counterparty connection ID and counterparty channel ID) are empty on `ConnectionOpenInit` and `ChannelOpenInit` respectively. 
+- Attribute with key `counterparty_connection_id` has been removed from event with key `connectiontypes.EventTypeConnectionOpenInit` (where `connectiontypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"`) and attribute with key `counterparty_channel_id` has been removed from event with key `channeltypes.EventTypeChannelOpenInit` (where `channeltypes` is an import alias for `"github.com/cosmos/ibc-go/v8/modules/core/04-channel"`) since both (counterparty connection ID and counterparty channel ID) are empty on `ConnectionOpenInit` and `ChannelOpenInit` respectively.
+- As part of the migration to [governance V1 messages](#governance-v1-migration) the following changes in events have been made:
+
+```diff
+// IBC client events vars
+var (
+ 	EventTypeCreateClient          = "create_client"
+ 	EventTypeUpdateClient          = "update_client"
+ 	EventTypeUpgradeClient         = "upgrade_client"
+ 	EventTypeSubmitMisbehaviour    = "client_misbehaviour"
+-	EventTypeUpdateClientProposal  = "update_client_proposal"
+- EventTypeUpgradeClientProposal = "upgrade_client_proposal"
++	EventTypeRecoverClient              = "recover_client"
++	EventTypeScheduleIBCSoftwareUpgrade = "schedule_ibc_software_upgrade"
+ 	EventTypeUpgradeChain               = "upgrade_chain"
+)
+```
 
 ## IBC Light Clients
 
