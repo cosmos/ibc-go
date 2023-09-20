@@ -18,7 +18,10 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			func() {
 				params := icahosttypes.DefaultParams()
 				subspace := suite.chainA.GetSimApp().GetSubspace(icahosttypes.SubModuleName) // get subspace
-				subspace.SetParamSet(suite.chainA.GetContext(), &params)                     // set params
+				if !subspace.HasKeyTable() {
+					subspace = subspace.WithKeyTable(icahosttypes.ParamKeyTable())
+				}
+				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
 			},
 			icahosttypes.DefaultParams(),
 		},

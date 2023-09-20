@@ -18,6 +18,9 @@ func (suite *KeeperTestSuite) TestMigrateParams() {
 			func() {
 				params := types.DefaultParams()
 				subspace := suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName)
+				if !subspace.HasKeyTable() {
+					subspace = subspace.WithKeyTable(types.ParamKeyTable())
+				}	
 				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
 			},
 			types.DefaultParams(),

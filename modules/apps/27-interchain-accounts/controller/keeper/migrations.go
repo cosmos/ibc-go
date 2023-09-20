@@ -62,6 +62,7 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 
 		var params controllertypes.Params
 		m.keeper.legacySubspace.GetParamSet(ctx, &params)
+		fmt.Println("params", params)
 
 		m.keeper.SetParams(ctx, params)
 		m.keeper.Logger(ctx).Info("successfully migrated ica/controller submodule to self-manage params")
