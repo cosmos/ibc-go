@@ -74,22 +74,20 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			tc := tc
-			suite.Run(tc.msg, func() {
-				suite.SetupTest() // reset
+			suite.SetupTest() // reset
 
-				tc.malleate()
-				ctx := suite.chainA.GetContext()
+			tc.malleate()
+			ctx := suite.chainA.GetContext()
 
-				res, err := suite.chainA.GetSimApp().TransferKeeper.DenomTrace(ctx, req)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.DenomTrace(ctx, req)
 
-				if tc.expPass {
-					suite.Require().NoError(err)
-					suite.Require().NotNil(res)
-					suite.Require().Equal(&expTrace, res.DenomTrace)
-				} else {
-					suite.Require().Error(err)
-				}
-			})
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(&expTrace, res.DenomTrace)
+			} else {
+				suite.Require().Error(err)
+			}
 		})
 	}
 }
