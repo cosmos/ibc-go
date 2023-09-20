@@ -151,7 +151,17 @@ serve-docs:
 changelog:
 	docker run --rm -v "$$(pwd)"/.git:/app/ -v "$$(pwd)/cliff.toml":/app/cliff.toml orhunp/git-cliff:latest --unreleased --tag $(tag)
 
-.PHONY: build-docs
+# If the DOCS_VERSION variable is not set, display an error message and exit
+ifndef DOCS_VERSION
+tag-docs-version:
+	@echo "Error: DOCS_VERSION is not set. Use 'make tag-docs-version DOCS_VERSION=<version>' to set it. For example: 'make tag-docs-version DOCS_VERSION=v8.0.x'"
+	@exit 1
+else
+tag-docs-version:
+	@cd docs && npm run docusaurus docs:version $(DOCS_VERSION)
+endif
+
+.PHONY: build-docs serve-docs tag-docs-version
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
