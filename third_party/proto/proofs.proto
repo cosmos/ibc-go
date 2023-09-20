@@ -11,6 +11,7 @@ enum HashOp {
     KECCAK = 3;
     RIPEMD160 = 4;
     BITCOIN = 5;  // ripemd160(sha256(x))
+    SHA512_256 = 6;
 }
 
 /**
