@@ -21,6 +21,14 @@ var (
 	_ sdk.Msg = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.Msg = (*MsgRecoverClient)(nil)
 
+	_ sdk.HasValidateBasic = (*MsgCreateClient)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateClient)(nil)
+	_ sdk.HasValidateBasic = (*MsgSubmitMisbehaviour)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpgradeClient)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
+	_ sdk.HasValidateBasic = (*MsgIBCSoftwareUpgrade)(nil)
+	_ sdk.HasValidateBasic = (*MsgRecoverClient)(nil)
+
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgSubmitMisbehaviour)(nil)

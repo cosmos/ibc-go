@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* January 28th, 2022: Initial Draft
+- January 28th, 2022: Initial Draft
 
 ## Status
 
@@ -107,13 +107,13 @@ A test has been [written](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/a
 
 ### Positive
 
-* interchain account auth modules can act upon transaction results without requiring a query module
-* transaction results align with those returned by execution of a normal SDK message.
+- interchain account auth modules can act upon transaction results without requiring a query module
+- transaction results align with those returned by execution of a normal SDK message.
 
 ### Negative
 
-* the security assumptions of this decision rest on the inclusion of the ABCI error code and the Msg response in the ResponseDeliverTx hash created by Tendermint
-* events are non-determinstic and cannot be included in the packet acknowledgement
+- the security assumptions of this decision rest on the inclusion of the ABCI error code and the Msg response in the ResponseDeliverTx hash created by Tendermint
+- events are non-determinstic and cannot be included in the packet acknowledgement
 
 ### Neutral
 

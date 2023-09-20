@@ -22,6 +22,6 @@
     "TestClient_Update_Misbehaviour"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }

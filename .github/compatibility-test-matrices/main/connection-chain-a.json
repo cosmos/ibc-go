@@ -21,9 +21,6 @@
     "TestMaxExpectedTimePerBlockParam"
   ],
   "relayer-type": [
-    "rly"
-  ],
-  "chain-binary": [
-    "simd"
+    "hermes"
   ]
 }

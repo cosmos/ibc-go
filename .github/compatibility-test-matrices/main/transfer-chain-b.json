@@ -24,6 +24,6 @@
     "TestMsgTransfer_WithMemo"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }

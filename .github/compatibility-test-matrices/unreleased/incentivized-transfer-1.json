@@ -25,6 +25,6 @@
     "TestMsgPayPacketFee_InvalidReceiverAccount"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }

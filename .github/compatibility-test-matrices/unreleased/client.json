@@ -26,6 +26,6 @@
     "TestAllowedClientsParam"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }
