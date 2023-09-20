@@ -22,7 +22,7 @@ func TestValidateVersion(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		t, tc := t, tc
+		i, tc := i, tc
 
 		err := types.ValidateVersion(tc.version)
 
