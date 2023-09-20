@@ -141,3 +141,19 @@ func EmitUpgradeChainEvent(ctx sdk.Context, height int64) {
 		),
 	})
 }
+
+// EmitUpdateClientProposalEvent emits an update client proposal event
+// Deprecated: This function is deprecated in favour of emitRecoverClientEvent and will be removed in a future release.
+func EmitUpdateClientProposalEvent(ctx sdk.Context, clientID, clientType string) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateClientProposal,
+			sdk.NewAttribute(types.AttributeKeySubjectClientID, clientID),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}

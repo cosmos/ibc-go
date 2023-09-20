@@ -29,5 +29,8 @@ var (
 	EventTypeScheduleIBCSoftwareUpgrade = "schedule_ibc_software_upgrade"
 	EventTypeUpgradeChain               = "upgrade_chain"
 
+	// Deprecated: This event type is deprecated in favour of EventTypeRecoverClient and will be removed in a future release.
+	EventTypeUpdateClientProposal = "update_client_proposal"
+
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )
