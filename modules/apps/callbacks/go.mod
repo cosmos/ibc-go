@@ -18,12 +18,12 @@ require (
 	cosmossdk.io/log v1.2.1
 	cosmossdk.io/math v1.1.2
 	cosmossdk.io/store v1.0.0-rc.0
-	cosmossdk.io/tools/confix v0.0.0-20230913185058-9b5a203d35bc
+	cosmossdk.io/tools/confix v0.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/x/circuit v0.0.0-20230913185058-9b5a203d35bc
 	cosmossdk.io/x/evidence v0.0.0-20230913185058-9b5a203d35bc
 	cosmossdk.io/x/feegrant v0.0.0-20230913185058-9b5a203d35bc
 	cosmossdk.io/x/tx v0.10.0
-	cosmossdk.io/x/upgrade v0.0.0-20230915075604-076dc1ee9619
+	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-sdk v0.50.0-rc.0.0.20230915171831-2196edacb99d
