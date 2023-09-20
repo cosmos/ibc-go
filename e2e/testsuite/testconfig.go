@@ -224,9 +224,10 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 // fromEnv returns a TestConfig constructed from environment variables.
 func fromEnv() TestConfig {
 	return TestConfig{
-		ChainConfigs:  getChainConfigsFromEnv(),
-		UpgradeConfig: getUpgradePlanConfigFromEnv(),
-		RelayerConfig: getRelayerConfigFromEnv(),
+		ChainConfigs:   getChainConfigsFromEnv(),
+		UpgradeConfig:  getUpgradePlanConfigFromEnv(),
+		RelayerConfig:  getRelayerConfigFromEnv(),
+		CometBFTConfig: CometBFTConfig{LogLevel: "info"},
 	}
 }
 
