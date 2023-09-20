@@ -14,7 +14,7 @@ This setup worked well for off-chain users interacting with IBC applications. Ho
 
 The Callbacks Middleware allows for this functionality by allowing the packets of the underlying IBC applications to register callbacks to secondary applications for lifecycle events. These callbacks are then executed by the Callbacks Middleware when the corresponding packet lifecycle event occurs.
 
-After much discussion, the design was expanded to [an ADR](../../architecture/adr-008-app-caller-cbs/adr-008-app-caller-cbs.md), and the Callbacks Middleware is an implementation of that ADR.
+After much discussion, the design was expanded to [an ADR](../../architecture/adr-008-app-caller-cbs.md), and the Callbacks Middleware is an implementation of that ADR.
 
 ## Concepts
 
