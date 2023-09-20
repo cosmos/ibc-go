@@ -88,6 +88,7 @@ const config = {
           alt: "IBC Logo",
           src: "img/black-ibc-logo.svg",
           srcDark: "img/white-ibc-logo.svg",
+          href: "/main/",
         },
         items: [
           {
