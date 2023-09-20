@@ -48,11 +48,11 @@ You must pass the `authority` to the ica/host keeper. ([#3520](https://github.co
 
 // ICA Host keeper
 app.ICAHostKeeper = icahostkeeper.NewKeeper(
-	appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
-	app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
-	app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-	app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
-+	authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+  appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
+  app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
+  app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+  app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
++ authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 ```
 
@@ -63,10 +63,10 @@ app.ICAHostKeeper = icahostkeeper.NewKeeper(
 
 // ICA Controller keeper
 app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-	appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
-	app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
-	app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-	scopedICAControllerKeeper, app.MsgServiceRouter(),
+  appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
+  app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
+  app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+  scopedICAControllerKeeper, app.MsgServiceRouter(),
 + authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 ```
@@ -79,11 +79,11 @@ app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 // Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
 // since fee middleware will wrap the IBCKeeper for underlying application.
 app.TransferKeeper = ibctransferkeeper.NewKeeper(
-	appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-	app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
-	app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-	app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
-+	authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+  appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
+  app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
+  app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+  app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
++ authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 ```
 
@@ -96,11 +96,11 @@ app.TransferKeeper = ibctransferkeeper.NewKeeper(
 app.IBCKeeper = ibckeeper.NewKeeper(
   appCodec, 
   keys[ibcexported.StoreKey],
-	app.GetSubspace(ibcexported.ModuleName),
-	app.StakingKeeper,
-	app.UpgradeKeeper,
-	scopedIBCKeeper,
-+	authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+  app.GetSubspace(ibcexported.ModuleName),
+  app.StakingKeeper,
+  app.UpgradeKeeper,
+  scopedIBCKeeper,
++ authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 ```
 
@@ -150,7 +150,7 @@ app.BasicModuleManager = module.NewBasicManagerFromManager(
     govtypes.ModuleName: gov.NewAppModuleBasic(
       []govclient.ProposalHandler{
       paramsclient.ProposalHandler,
--			ibcclientclient.UpdateClientProposalHandler,
+-     ibcclientclient.UpdateClientProposalHandler,
 -     ibcclientclient.UpgradeProposalHandler,
     },
   ),
@@ -187,7 +187,7 @@ var (
  	EventTypeUpdateClient          = "update_client"
  	EventTypeUpgradeClient         = "upgrade_client"
  	EventTypeSubmitMisbehaviour    = "client_misbehaviour"
--	EventTypeUpdateClientProposal  = "update_client_proposal"
+- EventTypeUpdateClientProposal  = "update_client_proposal"
 - EventTypeUpgradeClientProposal = "upgrade_client_proposal"
 +	EventTypeRecoverClient              = "recover_client"
 +	EventTypeScheduleIBCSoftwareUpgrade = "schedule_ibc_software_upgrade"
