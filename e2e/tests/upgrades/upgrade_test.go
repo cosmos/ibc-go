@@ -374,7 +374,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	// this restart is a temporary workaround to a limitation in hermes requiring a restart
 	// in some cases after an upgrade.
 	tc := testsuite.LoadConfig()
-	if tc.RelayerConfig.Type == e2erelayer.Hermes {
+	if tc.RelayerConfig.ID == e2erelayer.Hermes {
 		s.RestartRelayer(ctx, relayer)
 	}
 

@@ -35,13 +35,8 @@ const (
 	// ChainBTagEnv specifies the tag that Chain B will use. If unspecified
 	// the value will default to the same value as Chain A.
 	ChainBTagEnv = "CHAIN_B_TAG"
-	// RelayerTagEnv specifies the relayer version. Defaults to "main"
-	RelayerTagEnv = "RELAYER_TAG"
-	// RelayerImageEnv specifies the image that the relayer will use. If left unspecified, it will default
-	// to values set for hermesRelayerRepository or rlyRelayerRepository.
-	RelayerImageEnv = "RELAYER_IMAGE"
-	// RelayerTypeEnv specifies the type of relayer that should be used.
-	RelayerTypeEnv = "RELAYER_TYPE"
+	// RelayerIDEnv specifies the ID of the relayer to use.
+	RelayerIDEnv = "RELAYER_ID"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
 	ChainBinaryEnv = "CHAIN_BINARY"
 	// ChainUpgradeTagEnv specifies the upgrade version tag
@@ -78,14 +73,92 @@ func getChainImage(binary string) string {
 type TestConfig struct {
 	// ChainConfigs holds configuration values related to the chains used in the tests.
 	ChainConfigs []ChainConfig `yaml:"chains"`
-	// RelayerConfig holds configuration for the relayer to be used.
-	RelayerConfig relayer.Config `yaml:"relayer"`
+	// RelayerConfig holds all known relayer configurations that can be used in the tests.
+	RelayerConfigs []relayer.Config `yaml:"relayers"`
+	// ActiveRelayer specifies the relayer that will be used. It must match the ID of one of the entries in RelayerConfigs.
+	ActiveRelayer string `yaml:"activeRelayer"`
 	// UpgradeConfig holds values used only for the upgrade tests.
 	UpgradeConfig UpgradeConfig `yaml:"upgrade"`
 	// CometBFTConfig holds values for configuring CometBFT.
 	CometBFTConfig CometBFTConfig `yaml:"cometbft"`
 	// DebugConfig holds configuration for miscellaneous options.
 	DebugConfig DebugConfig `yaml:"debug"`
+}
+
+// Validate validates the test configuration is valid for use within the tests.
+// this should be called before using the configuration.
+func (tc TestConfig) Validate() error {
+	if err := tc.validateChains(); err != nil {
+		return fmt.Errorf("invalid chain configuration: %w", err)
+	}
+
+	if err := tc.validateRelayers(); err != nil {
+		return fmt.Errorf("invalid relayer configuration: %w", err)
+	}
+	return nil
+}
+
+// validateChains validates the chain configurations.
+func (tc TestConfig) validateChains() error {
+	for _, cfg := range tc.ChainConfigs {
+		if cfg.Binary == "" {
+			return fmt.Errorf("chain config missing binary: %s", cfg)
+		}
+		if cfg.Image == "" {
+			return fmt.Errorf("chain config missing image: %s", cfg)
+		}
+		if cfg.Tag == "" {
+			return fmt.Errorf("chain config missing tag: %s", cfg)
+		}
+		if cfg.ChainID == "" {
+			return fmt.Errorf("chain config missing chainID: %s", cfg)
+		}
+
+		// TODO: validate number of nodes in https://github.com/cosmos/ibc-go/issues/4697
+		// these are not passed in the CI at the moment.
+		if !IsCI() {
+			if cfg.NumValidators == 0 && cfg.NumFullNodes == 0 {
+				return fmt.Errorf("chain config missing number of validators or full nodes: %s", cfg)
+			}
+		}
+
+	}
+	return nil
+}
+
+// validateRelayers validates relayer configuration.
+func (tc TestConfig) validateRelayers() error {
+	if len(tc.RelayerConfigs) < 1 {
+		return fmt.Errorf("no relayer configurations specified")
+	}
+
+	for _, r := range tc.RelayerConfigs {
+		if r.ID == "" {
+			return fmt.Errorf("relayer config missing ID: %s", r)
+		}
+		if r.Image == "" {
+			return fmt.Errorf("relayer config missing image: %s", r)
+		}
+		if r.Tag == "" {
+			return fmt.Errorf("relayer config missing tag: %s", r)
+		}
+	}
+
+	if tc.GetActiveRelayerConfig() == nil {
+		return fmt.Errorf("active relayer %s not found in relayer configs: %s", tc.ActiveRelayer, tc.RelayerConfigs)
+	}
+
+	return nil
+}
+
+// GetActiveRelayerConfig returns the currently specified relayer config.
+func (tc TestConfig) GetActiveRelayerConfig() *relayer.Config {
+	for _, r := range tc.RelayerConfigs {
+		if r.ID == tc.ActiveRelayer {
+			return &r
+		}
+	}
+	return nil
 }
 
 // GetChainNumValidators returns the number of validators for the specific chain index.
@@ -155,7 +228,14 @@ func LoadConfig() TestConfig {
 	if !foundFile {
 		return fromEnv()
 	}
-	return applyEnvironmentVariableOverrides(fileTc)
+
+	tc := applyEnvironmentVariableOverrides(fileTc)
+
+	if err := tc.Validate(); err != nil {
+		panic(err)
+	}
+
+	return tc
 }
 
 // fromFile returns a TestConfig from a json file and a boolean indicating if the file was found.
@@ -198,16 +278,8 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 		}
 	}
 
-	if os.Getenv(RelayerTagEnv) != "" {
-		fromFile.RelayerConfig.Tag = envTc.RelayerConfig.Tag
-	}
-
-	if os.Getenv(RelayerTypeEnv) != "" {
-		fromFile.RelayerConfig.Type = envTc.RelayerConfig.Type
-	}
-
-	if os.Getenv(RelayerImageEnv) != "" {
-		fromFile.RelayerConfig.Image = envTc.RelayerConfig.Image
+	if os.Getenv(RelayerIDEnv) != "" {
+		fromFile.ActiveRelayer = envTc.ActiveRelayer
 	}
 
 	if os.Getenv(ChainUpgradePlanEnv) != "" {
@@ -224,9 +296,16 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 // fromEnv returns a TestConfig constructed from environment variables.
 func fromEnv() TestConfig {
 	return TestConfig{
-		ChainConfigs:   getChainConfigsFromEnv(),
-		UpgradeConfig:  getUpgradePlanConfigFromEnv(),
-		RelayerConfig:  getRelayerConfigFromEnv(),
+		ChainConfigs:  getChainConfigsFromEnv(),
+		UpgradeConfig: getUpgradePlanConfigFromEnv(),
+		ActiveRelayer: os.Getenv(RelayerIDEnv),
+
+		// TODO: we can remove this, and specify these values in a config file for the CI
+		// in https://github.com/cosmos/ibc-go/issues/4697
+		RelayerConfigs: []relayer.Config{
+			getDefaultRlyRelayerConfig(),
+			getDefaultHermesRelayerConfig(),
+		},
 		CometBFTConfig: CometBFTConfig{LogLevel: "info"},
 	}
 }
@@ -282,45 +361,22 @@ func getConfigFilePath() string {
 	return path.Join(homeDir, defaultConfigFileName)
 }
 
-// getRelayerConfigFromEnv returns the RelayerConfig from present environment variables.
-func getRelayerConfigFromEnv() relayer.Config {
-	relayerType := strings.TrimSpace(os.Getenv(RelayerTypeEnv))
-	if relayerType == "" {
-		relayerType = defaultRelayerType
-	}
-
-	relayerConfig := getDefaultRlyRelayerConfig()
-	if relayerType == relayer.Hermes {
-		relayerConfig = getDefaultHermesRelayerConfig()
-	}
-
-	relayerTag := strings.TrimSpace(os.Getenv(RelayerTagEnv))
-	if relayerTag != "" {
-		relayerConfig.Tag = relayerTag
-	}
-
-	relayerImage := strings.TrimSpace(os.Getenv(RelayerImageEnv))
-	if relayerImage != "" {
-		relayerConfig.Image = relayerImage
-	}
-
-	return relayerConfig
-}
-
+// TODO: remove in https://github.com/cosmos/ibc-go/issues/4697
 // getDefaultHermesRelayerConfig returns the default config for the hermes relayer.
 func getDefaultHermesRelayerConfig() relayer.Config {
 	return relayer.Config{
 		Tag:   defaultHermesTag,
-		Type:  relayer.Hermes,
+		ID:    relayer.Hermes,
 		Image: relayer.HermesRelayerRepository,
 	}
 }
 
+// TODO: remove in https://github.com/cosmos/ibc-go/issues/4697
 // getDefaultRlyRelayerConfig returns the default config for the golang relayer.
 func getDefaultRlyRelayerConfig() relayer.Config {
 	return relayer.Config{
 		Tag:   defaultRlyTag,
-		Type:  relayer.Rly,
+		ID:    relayer.Rly,
 		Image: relayer.RlyRelayerRepository,
 	}
 }
