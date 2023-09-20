@@ -555,25 +555,12 @@ func (k Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequence
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	channel, found := k.GetChannel(ctx, req.PortId, req.ChannelId)
+	sequence, found := k.GetNextSequenceSend(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
-	}
-
-	// Return the next sequence send for ordered channels. Unordered channels
-	// do not make use of the next sequence send.
-	var sequence uint64
-	if channel.Ordering != types.UNORDERED {
-		sequence, found = k.GetNextSequenceSend(ctx, req.PortId, req.ChannelId)
-		if !found {
-			return nil, status.Error(
-				codes.NotFound,
-				errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
-			)
-		}
 	}
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	return types.NewQueryNextSequenceSendResponse(sequence, nil, selfHeight), nil
