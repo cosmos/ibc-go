@@ -3,6 +3,7 @@ package upgrades
 import (
 	"context"
 	"fmt"
+	"path"
 	"testing"
 	"time"
 
@@ -19,7 +20,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	e2erelayer "github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -29,6 +32,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -747,7 +751,34 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainB, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.upgradeChainWithInFlightProposals(ctx, chainB, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+	})
+
+	t.Run("legacy IBC software upgrade proposal fails", func(t *testing.T) {
+		proposalID := s.ProposalIDs[chainB.Config().ChainID]
+		// advance proposal to voting period
+		command := []string{"gov", "deposit", fmt.Sprintf("%d", proposalID), sdk.NewCoins(sdk.NewCoin(chainB.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)).String()}
+
+		// TODO: use chain.GetNode()
+		// https://github.com/strangelove-ventures/interchaintest/pull/789
+		_, err := chainB.Validators[0].ExecTx(ctx, chainBWallet.KeyName(), command...)
+		s.Require().NoError(err)
+
+		proposal, err := s.QueryProposalV1(ctx, chainB, proposalID)
+		s.Require().NoError(err)
+		s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
+
+		err = chainB.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", proposalID), cosmos.ProposalVoteYes)
+		s.Require().NoError(err)
+
+		// complete voting period
+		time.Sleep(testvalues.VotingPeriod)
+
+		proposal, err = s.QueryProposalV1(ctx, chainB, proposalID)
+		s.Require().NoError(err)
+		s.Require().Equal(govtypesv1beta1.StatusFailed, proposal.Status)
+
+		s.ProposalIDs[chainB.Config().ChainID] = proposalID + 1
 	})
 
 	t.Run("update params", func(t *testing.T) {
@@ -788,6 +819,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 		expected := testvalues.IBCTransferAmount * 2
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
+
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
@@ -818,4 +850,91 @@ func getChainImage(chain *cosmos.CosmosChain) string {
 		}
 	}
 	panic("unable to find image for chain: " + chain.Config().ChainID)
+}
+
+// UpgradeChain upgrades a chain to a specific version using the planName provided.
+// The software upgrade proposal is broadcast by the provided wallet.
+func (s *UpgradeTestSuite) upgradeChainWithInFlightProposals(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, planName, currentVersion, upgradeVersion string) {
+	plan := upgradetypes.Plan{
+		Name:   planName,
+		Height: int64(haltHeight),
+		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
+	}
+
+	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion), "upgrade chain E2E test", plan)
+	s.ExecuteGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
+
+	// create in-flight proposals
+	s.createLegacyIBCSoftwareUpgradeProposal(ctx, chain, wallet, haltHeight)
+
+	height, err := chain.Height(ctx)
+	s.Require().NoError(err, "error fetching height before upgrade")
+
+	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Minute*2)
+	defer timeoutCtxCancel()
+
+	err = test.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, chain)
+	s.Require().Error(err, "chain did not halt at halt height")
+
+	err = chain.StopAllNodes(ctx)
+	s.Require().NoError(err, "error stopping node(s)")
+
+	chain.UpgradeVersion(ctx, s.DockerClient, getChainImage(chain), upgradeVersion)
+
+	err = chain.StartAllNodes(ctx)
+	s.Require().NoError(err, "error starting upgraded node(s)")
+
+	// we are reinitializing the clients because we need to update the hostGRPCAddress after
+	// the upgrade and subsequent restarting of nodes
+	s.InitGRPCClients(chain)
+
+	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Minute*2)
+	defer timeoutCtxCancel()
+
+	err = test.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
+	s.Require().NoError(err, "chain did not produce blocks after upgrade")
+
+	height, err = chain.Height(ctx)
+	s.Require().NoError(err, "error fetching height after upgrade")
+
+	s.Require().Greater(height, haltHeight, "height did not increment after upgrade")
+}
+
+// createInFlightProposal
+func (s *UpgradeTestSuite) createLegacyIBCSoftwareUpgradeProposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, haltHeight uint64) {
+	filePath := "upgraded-client-state.json"
+
+	upgradedClientState, err := codectypes.NewAnyWithValue(&ibctmtypes.ClientState{})
+	s.Require().NoError(err)
+
+	content, err := testsuite.Codec().MarshalJSON(upgradedClientState)
+	s.Require().NoError(err)
+
+	err = chain.Validators[0].WriteFile(ctx, content, filePath)
+	s.Require().NoError(err)
+
+	command := []string{
+		"gov", "submit-legacy-proposal", "ibc-upgrade",
+		"in-flight-proposal",                               // plan  name
+		fmt.Sprintf("%d", haltHeight*2),                    // upgrade height
+		path.Join(chain.Validators[0].HomeDir(), filePath), // upgraded client state json file
+		"--title", "title",
+		"--description", "description",
+		"--deposit", sdk.NewCoins().String(),
+	}
+
+	// TODO: use chain.GetNode()
+	// https://github.com/strangelove-ventures/interchaintest/pull/789
+	_, err = chain.Validators[0].ExecTx(ctx, user.KeyName(), command...)
+	s.Require().NoError(err)
+
+	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
+	// https://github.com/cosmos/ibc-go/issues/2122
+	proposalID := s.ProposalIDs[chain.Config().ChainID]
+
+	// ensure the proposal is in the deposit period, it will be advanced
+	// to the voting period after the upgrade to avoid timing issues
+	proposal, err := s.QueryProposalV1Beta1(ctx, chain, proposalID)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypesv1beta1.StatusDepositPeriod, proposal.Status)
 }

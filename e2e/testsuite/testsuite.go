@@ -35,7 +35,7 @@ type E2ETestSuite struct {
 	testifysuite.Suite
 
 	// proposalIDs keeps track of the active proposal ID for each chain.
-	proposalIDs    map[string]uint64
+	ProposalIDs    map[string]uint64
 	grpcClients    map[string]GRPCClients
 	paths          map[string]pathPair
 	relayers       relayer.Map
@@ -225,12 +225,12 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (*cosmos
 	path = newPath(chainA, chainB)
 	s.paths[s.T().Name()] = path
 
-	if s.proposalIDs == nil {
-		s.proposalIDs = map[string]uint64{}
+	if s.ProposalIDs == nil {
+		s.ProposalIDs = map[string]uint64{}
 	}
 
-	s.proposalIDs[chainA.Config().ChainID] = 1
-	s.proposalIDs[chainB.Config().ChainID] = 1
+	s.ProposalIDs[chainA.Config().ChainID] = 1
+	s.ProposalIDs[chainB.Config().ChainID] = 1
 
 	return path.chainA, path.chainB
 }
