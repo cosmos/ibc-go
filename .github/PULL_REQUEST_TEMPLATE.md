@@ -15,7 +15,7 @@ closes: #XXXX
 
 ### Commit Message / Changelog Entry
 
-```bash
+```text
 type: commit message
 ```
 
@@ -43,7 +43,7 @@ write a little note why.
 
 - [ ] Targeted PR against correct branch (see [CONTRIBUTING.md](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#pull-request-targeting)).
 - [ ] Linked to Github issue with discussion and accepted design OR link to spec that describes this work.
-- [ ] Code follows the [module structure standards](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/build/building-modules/11-structure.md) and [Go style guide](../docs/dev/go-style-guide.md).
+- [ ] Code follows the [module structure standards](https://github.com/cosmos/cosmos-sdk/blob/main/docs/build/building-modules/11-structure.md) and [Go style guide](../docs/dev/go-style-guide.md).
 - [ ] Wrote unit and integration [tests](https://github.com/cosmos/ibc-go/blob/main/testing/README.md#ibc-testing-package).
 - [ ] Updated relevant documentation (`docs/`) or specification (`x/<module>/spec/`).
 - [ ] Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code).

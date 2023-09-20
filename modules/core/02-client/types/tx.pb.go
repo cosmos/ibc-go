@@ -373,7 +373,7 @@ type MsgRecoverClient struct {
 	// the substitute client identifier for the client which will replace the subject
 	// client
 	SubstituteClientId string `protobuf:"bytes,2,opt,name=substitute_client_id,json=substituteClientId,proto3" json:"substitute_client_id,omitempty"`
-	// signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
 
@@ -459,7 +459,7 @@ type MsgIBCSoftwareUpgrade struct {
 	// deprecated in the Cosmos SDK to allow for this logic to exist solely in
 	// the 02-client module.
 	UpgradedClientState *types.Any `protobuf:"bytes,2,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
-	// signer defaults to the governance account address unless otherwise specified.
+	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
 
@@ -556,7 +556,7 @@ var xxx_messageInfo_MsgIBCSoftwareUpgradeResponse proto.InternalMessageInfo
 
 // MsgUpdateParams defines the sdk.Msg type to update the client parameters.
 type MsgUpdateParams struct {
-	// signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+	// signer address
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	// params defines the client parameters to update.
 	//

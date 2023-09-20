@@ -6,7 +6,6 @@ import (
 	"sort"
 	"time"
 
-	// intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"google.golang.org/grpc"
@@ -45,7 +44,6 @@ type GRPCClients struct {
 	FeeQueryClient           feetypes.QueryClient
 	ICAControllerQueryClient controllertypes.QueryClient
 	ICAHostQueryClient       hosttypes.QueryClient
-	// InterTxQueryClient       intertxtypes.QueryClient
 
 	// SDK query clients
 	BankQueryClient    banktypes.QueryClient
@@ -87,7 +85,6 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		FeeQueryClient:           feetypes.NewQueryClient(grpcConn),
 		ICAControllerQueryClient: controllertypes.NewQueryClient(grpcConn),
 		ICAHostQueryClient:       hosttypes.NewQueryClient(grpcConn),
-		// InterTxQueryClient:       intertxtypes.NewQueryClient(grpcConn),
 		BankQueryClient:        banktypes.NewQueryClient(grpcConn),
 		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
 		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
@@ -234,20 +231,6 @@ func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Cha
 	return res.Address, nil
 }
 
-// QueryInterchainAccountLegacy queries the interchain account for the given owner and connectionID using the intertx module.
-// func (s *E2ETestSuite) QueryInterchainAccountLegacy(ctx context.Context, chain ibc.Chain, owner, connectionID string) (string, error) {
-// 	queryClient := s.GetChainGRCPClients(chain).InterTxQueryClient
-// 	res, err := queryClient.InterchainAccount(ctx, &intertxtypes.QueryInterchainAccountRequest{
-// 		Owner:        owner,
-// 		ConnectionId: connectionID,
-// 	})
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	return res.InterchainAccountAddress, nil
-// }
-
 // QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
 func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
 	ctx context.Context,
@@ -277,20 +260,6 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 		return "", err
 	}
 	return res.CounterpartyPayee, nil
-}
-
-// QueryBalances returns all the balances on the given chain for the provided address.
-func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
-	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
-	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
-		Address:      address,
-		ResolveDenom: resolveDenom,
-	})
-	if err != nil {
-		return sdk.Coins{}, err
-	}
-
-	return res.Balances, nil
 }
 
 // QueryProposalV1Beta1 queries the governance proposal on the given chain with the given proposal ID.
@@ -393,4 +362,31 @@ func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.Cos
 	}
 
 	return grants.Grants, nil
+}
+
+// QueryBalances returns all the balances on the given chain for the provided address.
+func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
+	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
+	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
+		Address:      address,
+		ResolveDenom: resolveDenom,
+	})
+	if err != nil {
+		return sdk.Coins{}, err
+	}
+
+	return res.Balances, nil
+}
+
+// QueryDenomMetadata queries the metadata for the given denom.
+func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain *cosmos.CosmosChain, denom string) (banktypes.Metadata, error) {
+	bankClient := s.GetChainGRCPClients(chain).BankQueryClient
+	queryRequest := &banktypes.QueryDenomMetadataRequest{
+		Denom: denom,
+	}
+	res, err := bankClient.DenomMetadata(ctx, queryRequest)
+	if err != nil {
+		return banktypes.Metadata{}, err
+	}
+	return res.Metadata, nil
 }

@@ -55,9 +55,9 @@ const (
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
-	defaultRlyTag = "latest" // "andrew-tendermint_v0.37" // "v2.2.0"
+	defaultRlyTag = "latest"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "v1.6.0"
+	defaultHermesTag = "bef2f53"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultRelayerType is the default relayer that will be used if none is specified.
@@ -65,9 +65,6 @@ const (
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
-
-	// icadBinary is the binary for interchain-accounts-demo repository.
-	icadBinary = "icad"
 )
 
 func getChainImage(binary string) string {
@@ -114,7 +111,7 @@ func (tc TestConfig) GetChainAID() string {
 	if tc.ChainConfigs[0].ChainID != "" {
 		return tc.ChainConfigs[0].ChainID
 	}
-	return "chain-a"
+	return "chainA-1"
 }
 
 // GetChainBID returns the chain-id for chain B.
@@ -122,7 +119,7 @@ func (tc TestConfig) GetChainBID() string {
 	if tc.ChainConfigs[1].ChainID != "" {
 		return tc.ChainConfigs[1].ChainID
 	}
-	return "chain-b"
+	return "chainB-1"
 }
 
 // UpgradeConfig holds values relevant to upgrade tests.
@@ -227,9 +224,10 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 // fromEnv returns a TestConfig constructed from environment variables.
 func fromEnv() TestConfig {
 	return TestConfig{
-		ChainConfigs:  getChainConfigsFromEnv(),
-		UpgradeConfig: getUpgradePlanConfigFromEnv(),
-		RelayerConfig: getRelayerConfigFromEnv(),
+		ChainConfigs:   getChainConfigsFromEnv(),
+		UpgradeConfig:  getUpgradePlanConfigFromEnv(),
+		RelayerConfig:  getRelayerConfigFromEnv(),
+		CometBFTConfig: CometBFTConfig{LogLevel: "info"},
 	}
 }
 
@@ -394,15 +392,6 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in ~/.ibc-go-e2e-config.json to increase cometbft logging.
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
-	var useNewGenesisCommand bool
-	if cc.Binary == defaultBinary && testvalues.SimdNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
-		useNewGenesisCommand = true
-	}
-
-	if cc.Binary == icadBinary && testvalues.IcadNewGenesisCommandsFeatureReleases.IsSupported(cc.Tag) {
-		useNewGenesisCommand = true
-	}
-
 	return ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    name,
@@ -413,18 +402,17 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 				Version:    cc.Tag,
 			},
 		},
-		Bin:                    cc.Binary,
-		Bech32Prefix:           "cosmos",
-		CoinType:               fmt.Sprint(sdk.GetConfig().GetCoinType()),
-		Denom:                  denom,
-		EncodingConfig:         SDKEncodingConfig(),
-		GasPrices:              fmt.Sprintf("0.00%s", denom),
-		GasAdjustment:          1.3,
-		TrustingPeriod:         "508h",
-		NoHostMount:            false,
-		ModifyGenesis:          getGenesisModificationFunction(cc),
-		ConfigFileOverrides:    configFileOverrides,
-		UsingNewGenesisCommand: useNewGenesisCommand,
+		Bin:                 cc.Binary,
+		Bech32Prefix:        "cosmos",
+		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
+		Denom:               denom,
+		EncodingConfig:      SDKEncodingConfig(),
+		GasPrices:           fmt.Sprintf("0.00%s", denom),
+		GasAdjustment:       1.3,
+		TrustingPeriod:      "508h",
+		NoHostMount:         false,
+		ModifyGenesis:       getGenesisModificationFunction(cc),
+		ConfigFileOverrides: configFileOverrides,
 	}
 }
 
@@ -435,9 +423,8 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 	version := cc.Tag
 
 	simdSupportsGovV1Genesis := binary == defaultBinary && testvalues.GovGenesisFeatureReleases.IsSupported(version)
-	icadSupportsGovV1Genesis := testvalues.IcadGovGenesisFeatureReleases.IsSupported(version)
 
-	if simdSupportsGovV1Genesis || icadSupportsGovV1Genesis {
+	if simdSupportsGovV1Genesis {
 		return defaultGovv1ModifyGenesis(version)
 	}
 
@@ -447,9 +434,8 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
 func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
-	var stdlibJSONMarshalling = semverutil.FeatureReleases{MajorVersion: "v8"}
+	stdlibJSONMarshalling := semverutil.FeatureReleases{MajorVersion: "v8"}
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-
 		appGenesis, err := genutiltypes.AppGenesisFromReader(bytes.NewReader(genbz))
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)

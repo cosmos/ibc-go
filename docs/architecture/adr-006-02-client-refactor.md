@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* 2022-08-01: Initial Draft
+- 2022-08-01: Initial Draft
 
 ## Status
 
@@ -54,9 +54,9 @@ This type would indicate the revision number (the number of times the chain ID h
 
 Refs:
 
-* Issue [#439](https://github.com/cosmos/ibc/issues/439) on IBC specification repository.
-* Specification changes in [#447](https://github.com/cosmos/ibc/pull/447)
-* Implementation changes for the abstract height type, [SDK#7211](https://github.com/cosmos/cosmos-sdk/pull/7211)
+- Issue [#439](https://github.com/cosmos/ibc/issues/439) on IBC specification repository.
+- Specification changes in [#447](https://github.com/cosmos/ibc/pull/447)
+- Implementation changes for the abstract height type, [SDK#7211](https://github.com/cosmos/cosmos-sdk/pull/7211)
 
 ### Tendermint requires misbehaviour detection during updates
 
@@ -91,9 +91,9 @@ As @seunlanlege [states](https://github.com/cosmos/ibc-go/issues/284#issuecommen
 
 > I'm in support of these changes for 2 reasons:
 >
-> * This would allow light clients handle batch header updates in CheckHeaderAndUpdateState, for the special case of 11-beefy proving the finality for a batch of headers is much more space and time efficient than the space/time complexity of proving each individual headers in that batch, combined.
+> - This would allow light clients handle batch header updates in CheckHeaderAndUpdateState, for the special case of 11-beefy proving the finality for a batch of headers is much more space and time efficient than the space/time complexity of proving each individual headers in that batch, combined.
 >
-> * This also allows for a single light client instance of 11-beefy be used to prove finality for every parachain connected to the relay chain (Polkadot/Kusama). We achieve this by setting the appropriate ConsensusState for individual parachain headers in CheckHeaderAndUpdateState
+> - This also allows for a single light client instance of 11-beefy be used to prove finality for every parachain connected to the relay chain (Polkadot/Kusama). We achieve this by setting the appropriate ConsensusState for individual parachain headers in CheckHeaderAndUpdateState
 
 ## Decision
 
@@ -124,10 +124,10 @@ See [#668](https://github.com/cosmos/ibc-go/issues/668).
 
 Split `CheckHeaderAndUpdateState` into 4 functions:
 
-* `VerifyClientMessage`
-* `CheckForMisbehaviour`
-* `UpdateStateOnMisbehaviour`
-* `UpdateState`
+- `VerifyClientMessage`
+- `CheckForMisbehaviour`
+- `UpdateStateOnMisbehaviour`
+- `UpdateState`
 
 `VerifyClientMessage` checks the that the structure of a `ClientMessage` is correct and that all authentication data provided is valid.
 
@@ -176,17 +176,17 @@ The old verification functions (`VerifyClientState`, `VerifyConnection`, etc) sh
 
 ### Positive
 
-* Flexibility for light client implementations
-* Well defined interfaces and their required functionality
-* Generic verification functions
-* Applies changes necessary for future client/connection/channel upgrabability features
-* Timeout processing for solo machines
-* Reduced code complexity
+- Flexibility for light client implementations
+- Well defined interfaces and their required functionality
+- Generic verification functions
+- Applies changes necessary for future client/connection/channel upgrabability features
+- Timeout processing for solo machines
+- Reduced code complexity
 
 ### Negative
 
-* The refactor touches on sensitive areas of the ibc-go codebase
-* Changing of established naming (`Header`/`Misbehaviour` to `ClientMessage`)
+- The refactor touches on sensitive areas of the ibc-go codebase
+- Changing of established naming (`Header`/`Misbehaviour` to `ClientMessage`)
 
 ### Neutral
 
@@ -196,8 +196,8 @@ No notable consequences
 
 Issues:
 
-* [#284](https://github.com/cosmos/ibc-go/issues/284)
+- [#284](https://github.com/cosmos/ibc-go/issues/284)
 
 PRs:
 
-* [#1871](https://github.com/cosmos/ibc-go/pull/1871)
+- [#1871](https://github.com/cosmos/ibc-go/pull/1871)

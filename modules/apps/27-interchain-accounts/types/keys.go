@@ -17,9 +17,6 @@ const (
 	// Version defines the current version for interchain accounts
 	Version = "ics27-1"
 
-	// StoreKey is the store key string for interchain accounts
-	StoreKey = ModuleName
-
 	// RouterKey is the message route for interchain accounts
 	RouterKey = ModuleName
 

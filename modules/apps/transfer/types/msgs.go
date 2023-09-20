@@ -13,8 +13,10 @@ import (
 )
 
 var (
-	_ sdk.Msg = (*MsgUpdateParams)(nil)
-	_ sdk.Msg = (*MsgTransfer)(nil)
+	_ sdk.Msg              = (*MsgUpdateParams)(nil)
+	_ sdk.Msg              = (*MsgTransfer)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
+	_ sdk.HasValidateBasic = (*MsgTransfer)(nil)
 )
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
