@@ -434,9 +434,8 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
 func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
-	var stdlibJSONMarshalling = semverutil.FeatureReleases{MajorVersion: "v8"}
+	stdlibJSONMarshalling := semverutil.FeatureReleases{MajorVersion: "v8"}
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-
 		appGenesis, err := genutiltypes.AppGenesisFromReader(bytes.NewReader(genbz))
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
