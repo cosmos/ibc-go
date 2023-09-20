@@ -27,20 +27,6 @@ jobs:
       upload-logs: true
       relayer-type: hermes
 
-  upgrade-v6-hermes:
-    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-icad
-      chain-binary: icad
-      chain-a-tag: v0.3.5
-      chain-b-tag: v0.3.5
-      chain-upgrade-tag: v0.4.1
-      upgrade-plan-name: "ibc-go/v6"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV5ToV6ChainUpgrade"
-      upload-logs: true
-      relayer-type: hermes
-
   upgrade-v7-hermes:
     uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
     with:
@@ -94,22 +80,6 @@ jobs:
       upgrade-plan-name: "normal upgrade"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestIBCChainUpgrade"
-      upload-logs: true
-      relayer-type: rly
-      relayer-image: ghcr.io/cosmos/relayer
-      relayer-tag: latest
-
-  upgrade-v6-rly:
-    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-icad
-      chain-binary: icad
-      chain-a-tag: v0.3.5
-      chain-b-tag: v0.3.5
-      chain-upgrade-tag: v0.4.1
-      upgrade-plan-name: "ibc-go/v6"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV5ToV6ChainUpgrade"
       upload-logs: true
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer
