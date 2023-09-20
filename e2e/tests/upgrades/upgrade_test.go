@@ -73,7 +73,8 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
-	chain.UpgradeVersion(ctx, s.DockerClient, getChainImage(chain), upgradeVersion)
+	repository := chain.Nodes()[0].Image.Repository
+	chain.UpgradeVersion(ctx, s.DockerClient, repository, upgradeVersion)
 
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err, "error starting upgraded node(s)")
@@ -605,15 +606,4 @@ func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, cli
 	}
 
 	return res, nil
-}
-
-// getChainImage returns the image of a given chain.
-func getChainImage(chain *cosmos.CosmosChain) string {
-	tc := testsuite.LoadConfig()
-	for _, c := range tc.ChainConfigs {
-		if c.ChainID == chain.Config().ChainID {
-			return c.Image
-		}
-	}
-	panic("unable to find image for chain: " + chain.Config().ChainID)
 }
