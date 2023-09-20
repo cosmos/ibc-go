@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 				if !subspace.HasKeyTable() {
 					subspace = subspace.WithKeyTable(icacontrollertypes.ParamKeyTable())
 				}
-				subspace.SetParamSet(suite.chainA.GetContext(), &params)                           // set params
+				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
 			},
 			icacontrollertypes.DefaultParams(),
 		},
