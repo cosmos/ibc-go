@@ -17,6 +17,11 @@ var (
 	_ sdk.Msg = (*MsgRegisterCounterpartyPayee)(nil)
 	_ sdk.Msg = (*MsgPayPacketFee)(nil)
 	_ sdk.Msg = (*MsgPayPacketFeeAsync)(nil)
+
+	_ sdk.HasValidateBasic = (*MsgRegisterPayee)(nil)
+	_ sdk.HasValidateBasic = (*MsgRegisterCounterpartyPayee)(nil)
+	_ sdk.HasValidateBasic = (*MsgPayPacketFee)(nil)
+	_ sdk.HasValidateBasic = (*MsgPayPacketFeeAsync)(nil)
 )
 
 // NewMsgRegisterPayee creates a new instance of MsgRegisterPayee

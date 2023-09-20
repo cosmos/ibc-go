@@ -29,7 +29,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app := simapp.Setup(suite.T(), isCheckTx)
 
 	suite.ctx = app.BaseApp.NewContext(isCheckTx)
-	suite.keeper = &app.IBCKeeper.PortKeeper
+	suite.keeper = app.IBCKeeper.PortKeeper
 }
 
 func TestKeeperTestSuite(t *testing.T) {
