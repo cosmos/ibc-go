@@ -24,6 +24,17 @@ var (
 	_ sdk.Msg = (*MsgAcknowledgement)(nil)
 	_ sdk.Msg = (*MsgTimeout)(nil)
 	_ sdk.Msg = (*MsgTimeoutOnClose)(nil)
+
+	_ sdk.HasValidateBasic = (*MsgChannelOpenInit)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelOpenTry)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelOpenAck)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelOpenConfirm)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelCloseInit)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelCloseConfirm)(nil)
+	_ sdk.HasValidateBasic = (*MsgRecvPacket)(nil)
+	_ sdk.HasValidateBasic = (*MsgAcknowledgement)(nil)
+	_ sdk.HasValidateBasic = (*MsgTimeout)(nil)
+	_ sdk.HasValidateBasic = (*MsgTimeoutOnClose)(nil)
 )
 
 // NewMsgChannelOpenInit creates a new MsgChannelOpenInit. It sets the counterparty channel

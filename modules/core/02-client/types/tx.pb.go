@@ -459,7 +459,7 @@ type MsgIBCSoftwareUpgrade struct {
 	// deprecated in the Cosmos SDK to allow for this logic to exist solely in
 	// the 02-client module.
 	UpgradedClientState *types.Any `protobuf:"bytes,2,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
-	// signer defaults to the governance account address unless otherwise specified.
+	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
 

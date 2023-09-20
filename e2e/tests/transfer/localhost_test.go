@@ -172,5 +172,4 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
-
 }
