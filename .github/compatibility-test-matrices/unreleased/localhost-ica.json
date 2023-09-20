@@ -15,7 +15,7 @@
     "TestInterchainAccounts_ReopenChannel_Localhost"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ],
   "chain-binary": [
     "simd"

@@ -26,7 +26,7 @@
     "TestAllowedClientsParam"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ],
   "chain-binary": [
     "simd"

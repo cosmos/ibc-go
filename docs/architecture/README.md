@@ -38,7 +38,7 @@ To suggest an ADR, please make use of the [ADR template](@site/architecture/adr.
 | [005](./adr-005-consensus-height-events.md) | `UpdateClient` events - `ClientState` consensus heights | Accepted |
 | [006](./adr-006-02-client-refactor.md) | ICS02 client refactor | Accepted |
 | [007](./adr-007-solomachine-signbytes.md) | ICS06 Solo machine sign bytes |
-| [008](./adr-008-app-caller-cbs/adr-008-app-caller-cbs.md) | Callback to IBC ACtors | Accepted |
+| [008](./adr-008-app-caller-cbs.md) | Callback to IBC ACtors | Accepted |
 | [009](./adr-009-v6-ics27-msgserver.md) | ICS27 message server addition | Accepted |
 | [010](./adr-010-light-clients-as-sdk-modules.md) | IBC light clients as SDK modules | Accepted |
 | [011](./adr-011-transfer-total-escrow-state-entry.md) | ICS20 state entry for total amount of tokens in escrow | Accepted |
