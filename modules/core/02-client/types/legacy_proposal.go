@@ -2,6 +2,7 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -10,9 +11,7 @@ const (
 	ProposalTypeClientUpdate = "ClientUpdate"
 )
 
-var (
-	_ govtypes.Content = &ClientUpdateProposal{}
-)
+var _ govtypes.Content = &ClientUpdateProposal{}
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeClientUpdate)
