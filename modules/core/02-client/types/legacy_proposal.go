@@ -1,3 +1,5 @@
+// Deprecated: The legacy v1beta1 gov types maintained in this file are deprecated and will be removed in a future release.
+// Please use MsgIBCSoftwareUpgrade and MsgRecoverClient in favour of the legacy v1beta1 gov proposal types.
 package types
 
 import (
@@ -34,10 +36,10 @@ func (cup *ClientUpdateProposal) GetTitle() string { return cup.Title }
 func (cup *ClientUpdateProposal) GetDescription() string { return cup.Description }
 
 // ProposalRoute returns the routing key of a client update proposal.
-func (cup *ClientUpdateProposal) ProposalRoute() string { return RouterKey }
+func (*ClientUpdateProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a client update proposal.
-func (cup *ClientUpdateProposal) ProposalType() string { return ProposalTypeClientUpdate }
+func (*ClientUpdateProposal) ProposalType() string { return ProposalTypeClientUpdate }
 
 // ValidateBasic runs basic stateless validity checks
 func (cup *ClientUpdateProposal) ValidateBasic() error {
