@@ -21,6 +21,7 @@ const config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: "cosmos", // Usually your GitHub org/user name.
   projectName: "ibc-go", // Usually your repo name.
+  deploymentBranch: "gh-pages",
 
   onBrokenLinks: "log",
   onBrokenMarkdownLinks: "log",
