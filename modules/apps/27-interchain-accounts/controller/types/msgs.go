@@ -16,6 +16,10 @@ var (
 	_ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
 	_ sdk.Msg = (*MsgSendTx)(nil)
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
+
+	_ sdk.HasValidateBasic = (*MsgRegisterInterchainAccount)(nil)
+	_ sdk.HasValidateBasic = (*MsgSendTx)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 )
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount

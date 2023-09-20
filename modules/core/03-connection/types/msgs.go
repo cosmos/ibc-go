@@ -20,6 +20,12 @@ var (
 	_ sdk.Msg = (*MsgConnectionOpenTry)(nil)
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
 
+	_ sdk.HasValidateBasic = (*MsgConnectionOpenInit)(nil)
+	_ sdk.HasValidateBasic = (*MsgConnectionOpenConfirm)(nil)
+	_ sdk.HasValidateBasic = (*MsgConnectionOpenAck)(nil)
+	_ sdk.HasValidateBasic = (*MsgConnectionOpenTry)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
+
 	_ codectypes.UnpackInterfacesMessage = (*MsgConnectionOpenTry)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgConnectionOpenAck)(nil)
 )
