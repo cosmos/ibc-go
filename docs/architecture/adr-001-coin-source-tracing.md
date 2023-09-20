@@ -223,7 +223,7 @@ func ValidateIBCDenom(denom string) error {
 
 The denomination trace info only needs to be updated when token is received:
 
-- Receiver is **source** chain: The receiver created the token and must have the trace lookup already stored (if necessary _ie_ native token case wouldn't need a lookup).
+- Receiver is **source** chain: The receiver created the token and must have the trace lookup already stored (if necessary *ie* native token case wouldn't need a lookup).
 - Receiver is **not source** chain: Store the received info. For example, during step 1, when chain `B` receives `transfer/channelToA/denom`.
 
 ```go

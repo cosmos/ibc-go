@@ -15,8 +15,8 @@ contributors to help continually secure our operations.
 | All [actively supported releases branches](./RELEASES.md#stable-release-policy) |
 | main branch                                                                     |
 
-All actively supported release branches (see table in [section Stable Release Policy in RELEASES.md](./RELEASES.md#stable-release-policy)) 
-of this repository are supported for security updates as well as the **main** 
+All actively supported release branches (see table in [section Stable Release Policy in RELEASES.md](./RELEASES.md#stable-release-policy))
+of this repository are supported for security updates as well as the **main**
 branch. Security vulnerabilities should be reported if the vulnerability can be
 reproduced on either one of those.
 
@@ -47,30 +47,30 @@ be reported in GitHub.
 
 We require that all researchers:
 
-* Abide by this policy to disclose vulnerabilities, and avoid posting
+- Abide by this policy to disclose vulnerabilities, and avoid posting
   vulnerability information in public places, including GitHub, Discord,
   Telegram, and Twitter.
-* Make every effort to avoid privacy violations, degradation of user experience,
+- Make every effort to avoid privacy violations, degradation of user experience,
   disruption to production systems (including but not limited to the Cosmos
   Hub), and destruction of data.
-* Keep any information about vulnerabilities that you’ve discovered confidential
+- Keep any information about vulnerabilities that you’ve discovered confidential
   between yourself and the Cosmos engineering team until the issue has been
   resolved and disclosed.
-* Avoid posting personally identifiable information, privately or publicly.
+- Avoid posting personally identifiable information, privately or publicly.
 
 If you follow these guidelines when reporting an issue to us, we commit to:
 
-* Not pursue or support any legal action related to your research on this
+- Not pursue or support any legal action related to your research on this
   vulnerability.
-* Work with you to understand, resolve and ultimately disclose the issue in a
+- Work with you to understand, resolve and ultimately disclose the issue in a
   timely fashion.
 
 ### More information
 
-* See [TIMELINE.md] for an example timeline of a disclosure.
-* See [DISCLOSURE.md] to see more into the inner workings of the disclosure
+- See [TIMELINE.md] for an example timeline of a disclosure.
+- See [DISCLOSURE.md] to see more into the inner workings of the disclosure
   process.
-* See [EXAMPLES.md] for some of the examples that we are interested in for the
+- See [EXAMPLES.md] for some of the examples that we are interested in for the
   bug bounty program.
 
 [gh-private-advisory]: https://github.com/cosmos/ibc-go/security/advisories/new

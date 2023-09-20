@@ -2,9 +2,9 @@
 
 ## Changelog
 
-* 2022-08-10: Initial Draft
-* 2023-03-22: Merged
-* 2023-09-13: Updated with decisions made in implementation
+- 2022-08-10: Initial Draft
+- 2023-03-22: Merged
+- 2023-09-13: Updated with decisions made in implementation
 
 ## Status
 
@@ -19,6 +19,7 @@ This setup worked well for off-chain users interacting with IBC applications.
 We are now seeing the desire for secondary applications (e.g. smart contracts, modules) to call into IBC apps as part of their state machine logic and then do some actions on the basis of the packet result. Or to receive a packet from IBC and do some logic upon receipt.
 
 Example Usecases:
+
 - Send an ICS-20 packet, and if it is successful, then send an ICA-packet to swap tokens on LP and return funds to sender
 - Execute some logic upon receipt of token transfer to a smart contract address
 
