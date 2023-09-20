@@ -59,14 +59,6 @@ var GovGenesisFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v7",
 }
 
-// IcadGovGenesisFeatureReleases represents the releases of icad where the governance module genesis
-// was upgraded from v1beta1 to v1.
-var IcadGovGenesisFeatureReleases = semverutil.FeatureReleases{
-	MinorVersions: []string{
-		"v0.5",
-	},
-}
-
 // SelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
 var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",

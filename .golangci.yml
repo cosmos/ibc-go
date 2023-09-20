@@ -38,6 +38,9 @@ issues:
     - text: 'Use of weak random number generator'
       linters:
         - gosec
+    - linters:
+        - staticcheck
+      text: "SA1019:" # silence errors on usage of deprecated funcs
 
   max-issues-per-linter: 10000
   max-same-issues: 10000
