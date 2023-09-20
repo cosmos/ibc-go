@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -58,7 +57,7 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	if m.keeper != nil {
 		// set KeyTable if it has not already been set
 		if !m.keeper.legacySubspace.HasKeyTable() {
-			m.keeper.legacySubspace = m.keeper.legacySubspace.WithKeyTable(types.ParamKeyTable())
+			m.keeper.legacySubspace = m.keeper.legacySubspace.WithKeyTable(controllertypes.ParamKeyTable())
 		}
 
 		var params controllertypes.Params
