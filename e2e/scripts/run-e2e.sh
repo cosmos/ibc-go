@@ -28,11 +28,23 @@ function _verify_dependencies() {
     _verify_jq
 }
 
+
+# _select_test_config lets you dynamically select a test config for the specific test.
+function _select_test_config() {
+      # if an argument is provided, it is used directly. This enables the drop down selection with fzf.
+      if [ -n "${1:-}" ]; then
+          echo "$1"
+          return
+      else
+          ls -1 dev-configs | fzf
+      fi
+}
+
 # _get_test returns the test that should be used in the e2e test. If an argument is provided, that argument
 # is returned. Otherwise, fzf is used to interactively choose from all available tests.
 function _get_test(){
     # if an argument is provided, it is used directly. This enables the drop down selection with fzf.
-    if [ -n "$1" ]; then
+    if [ -n "${1:-}" ]; then
         echo "$1"
         return
     # if fzf and jq are installed, we can use them to provide an interactive mechanism to select from all available tests.
@@ -44,6 +56,12 @@ function _get_test(){
 }
 
 _verify_dependencies
+
+# if the dev configs directory is present, enable fzf completion to select a test config file to use.
+if [[ -d "dev-configs"  ]]; then
+  export E2E_CONFIG_PATH="$(pwd)/dev-configs/$(_select_test_config)"
+  echo "Using configuration file at ${E2E_CONFIG_PATH}"
+fi
 
 # if test is set, that is used directly, otherwise the test can be interactively provided if fzf is installed.
 TEST="$(_get_test ${TEST})"
