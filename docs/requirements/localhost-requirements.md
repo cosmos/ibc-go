@@ -62,7 +62,7 @@ Polymer plans to leverage the localhost client with multiple connections as part
 
 # External interface requirements
 
-### 3 - CLI
+## 3 - CLI
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
