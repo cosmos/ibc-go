@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -239,7 +241,7 @@ func (IBCMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
-	panic("SendPacket not supported for ICA controller module. Please use SendTx")
+	panic(fmt.Errorf("SendPacket not supported for ICA controller module. Please use SendTx"))
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -249,7 +251,7 @@ func (IBCMiddleware) WriteAcknowledgement(
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {
-	panic("WriteAcknowledgement not supported for ICA controller module")
+	panic(fmt.Errorf("WriteAcknowledgement not supported for ICA controller module"))
 }
 
 // GetAppVersion returns the interchain accounts metadata.

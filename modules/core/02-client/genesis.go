@@ -27,7 +27,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	for _, client := range gs.Clients {
 		cs, ok := client.ClientState.GetCachedValue().(exported.ClientState)
 		if !ok {
-			panic("invalid client state")
+			panic(fmt.Errorf("invalid client state"))
 		}
 
 		if !gs.Params.IsAllowedClient(cs.ClientType()) {

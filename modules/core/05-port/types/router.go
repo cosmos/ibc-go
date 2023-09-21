@@ -23,7 +23,7 @@ func NewRouter() *Router {
 // Seal will panic if called more than once.
 func (rtr *Router) Seal() {
 	if rtr.sealed {
-		panic("router already sealed")
+		panic(fmt.Errorf("router already sealed"))
 	}
 	rtr.sealed = true
 }
@@ -40,7 +40,7 @@ func (rtr *Router) AddRoute(module string, cbs IBCModule) *Router {
 		panic(fmt.Sprintf("router sealed; cannot register %s route callbacks", module))
 	}
 	if !sdk.IsAlphaNumeric(module) {
-		panic("route expressions can only contain alphanumeric characters")
+		panic(fmt.Errorf("route expressions can only contain alphanumeric characters"))
 	}
 	if rtr.HasRoute(module) {
 		panic(fmt.Sprintf("route %s has already been registered", module))

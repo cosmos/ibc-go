@@ -826,7 +826,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			func() {
 				callbackExecutor = func(cachedCtx sdk.Context) error {
 					cachedCtx.GasMeter().ConsumeGas(expGasConsumed, "callbackExecutor gas consumption")
-					panic("callbackExecutor panic")
+					panic(fmt.Errorf("callbackExecutor panic"))
 				}
 			},
 			false,
@@ -862,7 +862,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				callbackType = types.CallbackTypeSendPacket
 				callbackExecutor = func(cachedCtx sdk.Context) error {
 					cachedCtx.GasMeter().ConsumeGas(expGasConsumed, "callbackExecutor gas consumption")
-					panic("callbackExecutor panic")
+					panic(fmt.Errorf("callbackExecutor panic"))
 				}
 			},
 			true,
