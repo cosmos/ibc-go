@@ -224,18 +224,21 @@ type DebugConfig struct {
 // if any environment variables are specified, they will take precedence over the individual configuration
 // options.
 func LoadConfig() TestConfig {
+	tc := getConfig()
+	if err := tc.Validate(); err != nil {
+		panic(err)
+	}
+	return tc
+}
+
+// getConfig returns the TestConfig with any environment variable overrides.
+func getConfig() TestConfig {
 	fileTc, foundFile := fromFile()
 	if !foundFile {
 		return fromEnv()
 	}
 
-	tc := applyEnvironmentVariableOverrides(fileTc)
-
-	if err := tc.Validate(); err != nil {
-		panic(err)
-	}
-
-	return tc
+	return applyEnvironmentVariableOverrides(fileTc)
 }
 
 // fromFile returns a TestConfig from a json file and a boolean indicating if the file was found.
