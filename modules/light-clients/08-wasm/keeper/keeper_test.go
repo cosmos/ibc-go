@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -43,7 +44,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		name          string
 		instantiateFn func()
 		expPass       bool
-		panicError    string
+		expError      error
 	}{
 		{
 			"success",
@@ -56,7 +57,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			true,
-			"",
+			nil,
 		},
 		{
 			"failure: empty authority",
@@ -69,7 +70,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			false,
-			"authority must be non-empty",
+			fmt.Errorf("authority must be non-empty"),
 		},
 		{
 			"failure: nil wasm VM",
@@ -82,7 +83,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			false,
-			"wasm VM must be not nil",
+			fmt.Errorf("wasm VM must be not nil"),
 		},
 		{
 			"failure: different VM instances",
@@ -98,7 +99,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			false,
-			"global Wasm VM instance should not be set to a different instance",
+			fmt.Errorf("global Wasm VM instance should not be set to a different instance"),
 		},
 	}
 
@@ -112,7 +113,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					tc.instantiateFn,
 				)
 			} else {
-				suite.Require().PanicsWithValue(tc.panicError, func() {
+				suite.Require().PanicsWithError(tc.expError.Error(), func() {
 					tc.instantiateFn()
 				})
 			}

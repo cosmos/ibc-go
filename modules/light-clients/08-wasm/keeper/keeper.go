@@ -40,15 +40,15 @@ func NewKeeperWithVM(
 	vm *wasmvm.VM,
 ) Keeper {
 	if vm == nil {
-		panic("wasm VM must be not nil")
+		panic(fmt.Errorf("wasm VM must be not nil"))
 	}
 
 	if types.WasmVM != nil && !reflect.DeepEqual(types.WasmVM, vm) {
-		panic("global Wasm VM instance should not be set to a different instance")
+		panic(fmt.Errorf("global Wasm VM instance should not be set to a different instance"))
 	}
 
 	if strings.TrimSpace(authority) == "" {
-		panic("authority must be non-empty")
+		panic(fmt.Errorf("authority must be non-empty"))
 	}
 
 	types.WasmVM = vm
@@ -73,7 +73,7 @@ func NewKeeperWithConfig(
 ) Keeper {
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedFeatures, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, wasmConfig.MemoryCacheSize)
 	if err != nil {
-		panic(fmt.Sprintf("failed to instantiate new Wasm VM instance: %v", err))
+		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
 	return NewKeeperWithVM(cdc, key, authority, vm)
