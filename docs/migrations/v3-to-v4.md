@@ -39,7 +39,7 @@ Take a look at the following diff for an [example setup](https://github.com/cosm
 
 ### Migration to fix support for base denoms with slashes
 
-As part of [v1.5.0](https://github.com/cosmos/ibc-go/releases/tag/v1.5.0), [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) and [v3.1.0](https://github.com/cosmos/ibc-go/releases/tag/v3.1.0) some [migration handler code sample was documented](https://github.com/cosmos/ibc-go/blob/main/docs/migrations/support-denoms-with-slashes.md#upgrade-proposal) that needs to run in order to correct the trace information of coins transferred using ICS20 whose base denom contains slashes.
+As part of [v1.5.0](https://github.com/cosmos/ibc-go/releases/tag/v1.5.0), [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) and [v3.1.0](https://github.com/cosmos/ibc-go/releases/tag/v3.1.0) some [migration handler code sample was documented](../migrations/support-denoms-with-slashes.md#upgrade-proposal) that needs to run in order to correct the trace information of coins transferred using ICS20 whose base denom contains slashes.
 
 Based on feedback from the community we add now an improved solution to run the same migration that does not require copying a large piece of code over from the migration document, but instead requires only adding a one-line upgrade handler.
 
