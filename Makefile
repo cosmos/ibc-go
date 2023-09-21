@@ -176,7 +176,7 @@ TEST_TARGETS := test-unit test-unit-amino test-unit-proto test-ledger-mock test-
 # Test runs-specific rules. To add a new test target, just add
 # a new rule, customise ARGS or TEST_PACKAGES ad libitum, and
 # append the new rule to the TEST_TARGETS list.
-test-unit: ARGS=-tags='cgo ledger test_ledger_mock'
+test-unit: ARGS=-tags='cgo ledger test_ledger_mock test_e2e'
 test-unit-amino: ARGS=-tags='ledger test_ledger_mock test_amino'
 test-ledger: ARGS=-tags='cgo ledger'
 test-ledger-mock: ARGS=-tags='ledger test_ledger_mock'
@@ -192,11 +192,32 @@ check-test-unit-amino: ARGS=-tags='ledger test_ledger_mock test_amino'
 $(CHECK_TEST_TARGETS): EXTRA_ARGS=-run=none
 $(CHECK_TEST_TARGETS): run-tests
 
+ARGS += -tags "$(test_tags)"
+SUB_MODULES = $(shell find . -type f -name 'go.mod' -print0 | xargs -0 -n1 dirname | sort)
+CURRENT_DIR = $(shell pwd)
 run-tests:
 ifneq (,$(shell which tparse 2>/dev/null))
-	go test -mod=readonly -json $(ARGS) $(EXTRA_ARGS) $(TEST_PACKAGES) | tparse
+	@echo "Starting unit tests"; \
+	finalec=0; \
+	for module in $(SUB_MODULES); do \
+		cd ${CURRENT_DIR}/$$module; \
+		echo "Running unit tests for $$(grep '^module' go.mod)"; \
+		go test -mod=readonly -json $(ARGS) $(EXTRA_ARGS) $(TEST_PACKAGES) ./... | tparse; \
+		ec=$$?; \
+		if [ "$$ec" -ne '0' ]; then finalec=$$ec; fi; \
+	done; \
+	exit $$finalec
 else
-	go test -mod=readonly $(ARGS)  $(EXTRA_ARGS) $(TEST_PACKAGES)
+	@echo "Starting unit tests"; \
+	finalec=0; \
+	for module in $(SUB_MODULES); do \
+		cd ${CURRENT_DIR}/$$module; \
+		echo "Running unit tests for $$(grep '^module' go.mod)"; \
+		go test -mod=readonly $(ARGS) $(EXTRA_ARGS) $(TEST_PACKAGES) ./... ; \
+		ec=$$?; \
+		if [ "$$ec" -ne '0' ]; then finalec=$$ec; fi; \
+	done; \
+	exit $$finalec
 endif
 
 .PHONY: run-tests test test-all $(TEST_TARGETS)

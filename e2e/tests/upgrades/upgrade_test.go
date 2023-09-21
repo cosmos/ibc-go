@@ -1,3 +1,6 @@
+//go:build !test_e2e
+// +build !test_e2e
+
 package upgrades
 
 import (
