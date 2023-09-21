@@ -308,7 +308,7 @@ func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wall
 
 	balance, err := s.QueryBalance(ctx, chainA, user.FormattedAddress(), chainA.Config().Denom)
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 	return balance.Int64(), nil
 }
