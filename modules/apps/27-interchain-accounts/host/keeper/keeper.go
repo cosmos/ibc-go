@@ -51,7 +51,7 @@ func NewKeeper(
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
-		panic("the Interchain Accounts module account has not been set")
+		panic(fmt.Errorf("the Interchain Accounts module account has not been set"))
 	}
 
 	// set KeyTable if it has not already been set

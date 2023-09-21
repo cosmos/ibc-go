@@ -56,7 +56,7 @@ func NewKeeper(
 ) Keeper {
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
-		panic("the IBC transfer module account has not been set")
+		panic(fmt.Errorf("the IBC transfer module account has not been set"))
 	}
 	// set KeyTable if it has not already been set
 	if !legacySubspace.HasKeyTable() {
