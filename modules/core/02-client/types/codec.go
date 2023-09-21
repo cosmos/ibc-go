@@ -9,6 +9,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -46,6 +47,11 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgRecoverClient{},
 		&MsgIBCSoftwareUpgrade{},
 		&MsgUpdateParams{},
+	)
+	registry.RegisterImplementations(
+		(*govtypesv1beta1.Content)(nil),
+		&ClientUpdateProposal{},
+		&UpgradeProposal{},
 	)
 
 	registry.RegisterImplementations(
