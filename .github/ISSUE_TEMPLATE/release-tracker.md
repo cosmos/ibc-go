@@ -69,8 +69,7 @@ versions of ibc-go to guarantee that no regression is introduced -->
 - [ ] Update the [compatibility test matrices](https://github.com/cosmos/ibc-go/tree/main/.github/compatibility-test-matrices):
   - Add the new release.
   - Remove any tags that might not be recommended anymore.
-- [ ] Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) and [e2e `icad`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-icad.yaml) test workflows:
-  - Add the new release and the new `icad` tag.
+- [ ] Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
   - Remove any tags that might not be recommended anymore.
 - [ ] After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
 - [ ] Open issue in [SDK tutorials repo](https://github.com/cosmos/sdk-tutorials) to update tutorials to the released version of ibc-go.
