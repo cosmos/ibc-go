@@ -102,26 +102,25 @@ func (tc TestConfig) Validate() error {
 func (tc TestConfig) validateChains() error {
 	for _, cfg := range tc.ChainConfigs {
 		if cfg.Binary == "" {
-			return fmt.Errorf("chain config missing binary: %s", cfg)
+			return fmt.Errorf("chain config missing binary: %+v", cfg)
 		}
 		if cfg.Image == "" {
-			return fmt.Errorf("chain config missing image: %s", cfg)
+			return fmt.Errorf("chain config missing image: %+v", cfg)
 		}
 		if cfg.Tag == "" {
-			return fmt.Errorf("chain config missing tag: %s", cfg)
+			return fmt.Errorf("chain config missing tag: %+v", cfg)
 		}
 		if cfg.ChainID == "" {
-			return fmt.Errorf("chain config missing chainID: %s", cfg)
+			return fmt.Errorf("chain config missing chainID: %+v", cfg)
 		}
 
 		// TODO: validate number of nodes in https://github.com/cosmos/ibc-go/issues/4697
 		// these are not passed in the CI at the moment.
 		if !IsCI() {
 			if cfg.NumValidators == 0 && cfg.NumFullNodes == 0 {
-				return fmt.Errorf("chain config missing number of validators or full nodes: %s", cfg)
+				return fmt.Errorf("chain config missing number of validators or full nodes: %+v", cfg)
 			}
 		}
-
 	}
 	return nil
 }
@@ -134,18 +133,18 @@ func (tc TestConfig) validateRelayers() error {
 
 	for _, r := range tc.RelayerConfigs {
 		if r.ID == "" {
-			return fmt.Errorf("relayer config missing ID: %s", r)
+			return fmt.Errorf("relayer config missing ID: %+v", r)
 		}
 		if r.Image == "" {
-			return fmt.Errorf("relayer config missing image: %s", r)
+			return fmt.Errorf("relayer config missing image: %+v", r)
 		}
 		if r.Tag == "" {
-			return fmt.Errorf("relayer config missing tag: %s", r)
+			return fmt.Errorf("relayer config missing tag: %+v", r)
 		}
 	}
 
 	if tc.GetActiveRelayerConfig() == nil {
-		return fmt.Errorf("active relayer %s not found in relayer configs: %s", tc.ActiveRelayer, tc.RelayerConfigs)
+		return fmt.Errorf("active relayer %s not found in relayer configs: %+v", tc.ActiveRelayer, tc.RelayerConfigs)
 	}
 
 	return nil
