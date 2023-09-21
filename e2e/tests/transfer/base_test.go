@@ -292,7 +292,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
+			s.AssertGovV1Beta1ProposalPasses(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 
@@ -383,7 +383,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
+			s.AssertGovV1Beta1ProposalPasses(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 

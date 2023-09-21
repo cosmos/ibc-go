@@ -170,21 +170,15 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
 }
 
-// ExecuteGovV1Beta1Proposal submits the given v1beta1 governance proposal using the provided user and uses all validators to vote yes on the proposal.
+// AssertGovV1Beta1ProposalPasses submits the given v1beta1 governance proposal using the provided user and uses all validators to vote yes on the proposal.
 // It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
+func (s *E2ETestSuite) AssertGovV1Beta1ProposalPasses(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
 	proposalID := s.proposalIDs[chain.Config().ChainID]
 	defer func() {
 		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
 	}()
 
-	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
-	s.Require().NoError(err)
-
-	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
-	s.Require().NoError(err)
-
-	txResp := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+	txResp, err := s.ExecuteGovV1Beta1Proposal(ctx, chain, user, content)
 	s.AssertTxSuccess(txResp)
 
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
@@ -207,6 +201,19 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cos
 	proposal, err = s.QueryProposalV1Beta1(ctx, chain, proposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
+}
+
+// ExecuteGovV1Beta1Proposal submits a v1beta1 governance proposal using the provided content.
+func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) (sdk.TxResponse, error) {
+	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
+	s.Require().NoError(err)
+
+	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
+	s.Require().NoError(err)
+
+	txResp := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+
+	return txResp, err
 }
 
 // Transfer broadcasts a MsgTransfer message.

@@ -1,6 +1,7 @@
 package types
 
 import (
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proto "github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
@@ -45,6 +46,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgRecoverClient{},
 		&MsgIBCSoftwareUpgrade{},
 		&MsgUpdateParams{},
+	)
+
+	registry.RegisterImplementations(
+		(*govtypes.Content)(nil),
+		&ClientUpdateProposal{},
+		&UpgradeProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

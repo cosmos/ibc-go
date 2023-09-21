@@ -95,7 +95,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
+			s.AssertGovV1Beta1ProposalPasses(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 

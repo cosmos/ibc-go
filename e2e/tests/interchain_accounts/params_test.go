@@ -81,7 +81,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal)
+			s.AssertGovV1Beta1ProposalPasses(ctx, chainA, controllerAccount, proposal)
 		}
 	})
 
@@ -138,7 +138,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal)
+			s.AssertGovV1Beta1ProposalPasses(ctx, chainB, chainBUser, proposal)
 		}
 	})
 
