@@ -74,7 +74,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	s.Require().NoError(err, "error stopping node(s)")
 
 	repository := chain.Nodes()[0].Image.Repository
- 	chain.UpgradeVersion(ctx, s.DockerClient, repository, upgradeVersion)
+	chain.UpgradeVersion(ctx, s.DockerClient, repository, upgradeVersion)
 
 	err = chain.StartAllNodes(ctx)
 	s.Require().NoError(err, "error starting upgraded node(s)")
