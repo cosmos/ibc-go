@@ -77,7 +77,7 @@ func (k *Keeper) ScopeToModule(moduleName string) ScopedKeeper {
 	}
 
 	if _, ok := k.scopedModules[moduleName]; ok {
-		panic(fmt.Sprintf("cannot create multiple scoped keepers for the same module name: %s", moduleName))
+		panic(fmt.Errorf("cannot create multiple scoped keepers for the same module name: %s", moduleName))
 	}
 
 	k.scopedModules[moduleName] = struct{}{}
@@ -116,7 +116,7 @@ func (k *Keeper) InitMemStore(ctx sdk.Context) {
 	memStoreType := memStore.GetStoreType()
 
 	if memStoreType != storetypes.StoreTypeMemory {
-		panic(fmt.Sprintf("invalid memory store type; got %s, expected: %s", memStoreType, storetypes.StoreTypeMemory))
+		panic(fmt.Errorf("invalid memory store type; got %s, expected: %s", memStoreType, storetypes.StoreTypeMemory))
 	}
 
 	// create context with no block gas meter to ensure we do not consume gas during local initialization logic.

@@ -239,7 +239,7 @@ func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 // if the amount is negative.
 func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 	if coin.Amount.IsNegative() {
-		panic(fmt.Sprintf("amount cannot be negative: %s", coin.Amount))
+		panic(fmt.Errorf("amount cannot be negative: %s", coin.Amount))
 	}
 
 	store := ctx.KVStore(k.storeKey)

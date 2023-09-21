@@ -37,13 +37,13 @@ func (rtr Router) Sealed() bool {
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
 func (rtr *Router) AddRoute(module string, cbs IBCModule) *Router {
 	if rtr.sealed {
-		panic(fmt.Sprintf("router sealed; cannot register %s route callbacks", module))
+		panic(fmt.Errorf("router sealed; cannot register %s route callbacks", module))
 	}
 	if !sdk.IsAlphaNumeric(module) {
 		panic(fmt.Errorf("route expressions can only contain alphanumeric characters"))
 	}
 	if rtr.HasRoute(module) {
-		panic(fmt.Sprintf("route %s has already been registered", module))
+		panic(fmt.Errorf("route %s has already been registered", module))
 	}
 
 	rtr.routes[module] = cbs
