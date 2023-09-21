@@ -110,8 +110,13 @@ func (tc TestConfig) validateChains() error {
 		if cfg.Tag == "" {
 			return fmt.Errorf("chain config missing tag: %+v", cfg)
 		}
-		if cfg.ChainID == "" {
-			return fmt.Errorf("chain config missing chainID: %+v", cfg)
+
+		// TODO: validate chainID in https://github.com/cosmos/ibc-go/issues/4697
+		// these are not passed in the CI at the moment. Defaults are used.
+		if !IsCI() {
+			if cfg.ChainID == "" {
+				return fmt.Errorf("chain config missing chainID: %+v", cfg)
+			}
 		}
 
 		// TODO: validate number of nodes in https://github.com/cosmos/ibc-go/issues/4697
