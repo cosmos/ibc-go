@@ -15,7 +15,7 @@ retract (
 require (
 	github.com/armon/go-metrics v0.4.1
 	github.com/confio/ics23/go v0.9.0
-	github.com/cosmos/cosmos-sdk v0.45.15
+	github.com/cosmos/cosmos-sdk v0.45.16
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
