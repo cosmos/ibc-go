@@ -45,7 +45,7 @@ func NewIBCMiddleware(
 ) IBCMiddleware {
 	packetDataUnmarshalerApp, ok := app.(types.CallbacksCompatibleModule)
 	if !ok {
-		panic(errors.New("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)))
+		panic(fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)))
 	}
 
 	if ics4Wrapper == nil {
