@@ -96,13 +96,11 @@ type verifyUpgradeAndUpdateStateMsg struct {
 type checkSubstituteAndUpdateStateMsg struct{}
 
 // ContractResult defines the expected interface a Result returned by a contract call is expected to implement.
-type ContractResult interface {
-}
+type ContractResult interface{}
 
 // contractResult is the default implementation of the ContractResult interface and the default return type of any contract call
 // that does not require a custom return type.
-type contractResult struct {
-}
+type contractResult struct{}
 
 // statusResult is the expected return type of the statusMsg query. It returns the status of the wasm client.
 type statusResult struct {
