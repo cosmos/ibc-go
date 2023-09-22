@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"os"
 	"testing"
@@ -43,11 +42,6 @@ func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
-func generateWasmCodeHash(code []byte) []byte {
-	hash := sha256.Sum256(code)
-	return hash[:]
-}
-
 func (suite *KeeperTestSuite) TestIterateCode() {
 	testCases := []struct {
 		name      string
@@ -80,7 +74,7 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 				if types.IsGzip(code) {
 					code, err = types.Uncompress(code, types.MaxWasmByteSize())
 					suite.NoError(err)
-					hashCode = generateWasmCodeHash(code)
+					hashCode = keeper.GenerateWasmCodeHash(code)
 				}
 				expectedAllCodeHash = append(expectedAllCodeHash, hashCode...)
 			}
@@ -88,7 +82,7 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 			var allCodeHash []byte
 			suite.chainA.GetSimApp().WasmClientKeeper.IterateCode(
 				suite.chainA.GetContext(), func(b []byte) bool {
-					allCodeHash = append(allCodeHash, generateWasmCodeHash(b)...)
+					allCodeHash = append(allCodeHash, keeper.GenerateWasmCodeHash(b)...)
 					return false
 				},
 			)
