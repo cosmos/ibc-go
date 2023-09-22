@@ -22,3 +22,10 @@ updates:
     labels:
       - dependencies
 
+  - package-ecosystem: gomod
+    directory: "/modules/apps/callbacks"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies

@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 var validPacketID = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
@@ -37,6 +37,8 @@ func TestParseKeyPayee(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		address, channelID, err := types.ParseKeyPayeeAddress(tc.key)
 
 		if tc.expPass {
@@ -88,6 +90,8 @@ func TestParseKeyFeeEnabled(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		portID, channelID, err := types.ParseKeyFeeEnabled(tc.key)
 
 		if tc.expPass {
@@ -126,6 +130,8 @@ func TestParseKeyFeesInEscrow(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		packetID, err := types.ParseKeyFeesInEscrow(tc.key)
 
 		if tc.expPass {
@@ -161,6 +167,8 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		packetID, err := types.ParseKeyRelayerAddressForAsyncAck(tc.key)
 
 		if tc.expPass {
@@ -193,6 +201,8 @@ func TestParseKeyCounterpartyPayee(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		address, channelID, err := types.ParseKeyCounterpartyPayee(tc.key)
 
 		if tc.expPass {

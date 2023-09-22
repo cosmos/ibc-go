@@ -1,20 +1,21 @@
 package keeper
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/cometbft/cometbft/libs/log"
-
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper
@@ -44,7 +45,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace pa
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -137,7 +138,7 @@ func (k Keeper) GetNextConnectionSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.KeyNextConnectionSequence))
 	if len(bz) == 0 {
-		panic("next connection sequence is nil")
+		panic(errors.New("next connection sequence is nil"))
 	}
 
 	return sdk.BigEndianToUint64(bz)
@@ -201,7 +202,7 @@ func (k Keeper) GetAllConnections(ctx sdk.Context) (connections []types.Identifi
 // CreateSentinelLocalhostConnection creates and sets the sentinel localhost connection end in the IBC store.
 func (k Keeper) CreateSentinelLocalhostConnection(ctx sdk.Context) {
 	counterparty := types.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, commitmenttypes.NewMerklePrefix(k.GetCommitmentPrefix().Bytes()))
-	connectionEnd := types.NewConnectionEnd(types.OPEN, exported.LocalhostClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+	connectionEnd := types.NewConnectionEnd(types.OPEN, exported.LocalhostClientID, counterparty, types.GetCompatibleVersions(), 0)
 
 	k.SetConnection(ctx, exported.LocalhostConnectionID, connectionEnd)
 }
@@ -229,7 +230,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil { // only panic on unset params and not on empty params
-		panic("connection params are not set in store")
+		panic(errors.New("connection params are not set in store"))
 	}
 
 	var params types.Params

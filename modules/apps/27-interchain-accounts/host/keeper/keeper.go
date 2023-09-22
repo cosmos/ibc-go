@@ -1,27 +1,26 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/cometbft/cometbft/libs/log"
-
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Keeper defines the IBC interchain accounts host keeper
@@ -53,12 +52,16 @@ func NewKeeper(
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
-		panic("the Interchain Accounts module account has not been set")
+		panic(errors.New("the Interchain Accounts module account has not been set"))
 	}
 
 	// set KeyTable if it has not already been set
 	if !legacySubspace.HasKeyTable() {
 		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
+	}
+
+	if strings.TrimSpace(authority) == "" {
+		panic(errors.New("authority must be non-empty"))
 	}
 
 	return Keeper{
@@ -75,17 +78,22 @@ func NewKeeper(
 	}
 }
 
+// WithICS4Wrapper sets the ICS4Wrapper. This function may be used after
+// the keepers creation to set the middleware which is above this module
+// in the IBC application stack.
+func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = wrapper
+}
+
 // Logger returns the application logger, scoped to the associated module
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
 }
 
-// BindPort stores the provided portID and binds to it, returning the associated capability
-func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
+// setPort sets the provided portID in state.
+func (k Keeper) setPort(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(icatypes.KeyPort(portID), []byte{0x01})
-
-	return k.portKeeper.BindPort(ctx, portID)
 }
 
 // hasCapability checks if the interchain account host module owns the port capability for the desired port
@@ -146,7 +154,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 
-	if found && channel.State == channeltypes.OPEN {
+	if found && channel.IsOpen() {
 		return channelID, true
 	}
 
@@ -236,7 +244,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil { // only panic on unset params and not on empty params
-		panic("ica/host params are not set in store")
+		panic(errors.New("ica/host params are not set in store"))
 	}
 
 	var params types.Params

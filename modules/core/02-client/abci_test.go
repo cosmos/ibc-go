@@ -4,22 +4,22 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	client "github.com/cosmos/ibc-go/v7/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	client "github.com/cosmos/ibc-go/v8/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type ClientTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -35,7 +35,7 @@ func (suite *ClientTestSuite) SetupTest() {
 }
 
 func TestClientTestSuite(t *testing.T) {
-	suite.Run(t, new(ClientTestSuite))
+	testifysuite.Run(t, new(ClientTestSuite))
 }
 
 func (suite *ClientTestSuite) TestBeginBlocker() {
@@ -69,12 +69,12 @@ func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 	err := suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(newCtx, plan.Height, []byte("client state"))
 	suite.Require().NoError(err)
 
-	req := abci.RequestBeginBlock{Header: newCtx.BlockHeader()}
-	suite.chainA.App.BeginBlock(req)
+	client.BeginBlocker(newCtx, suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
 	// plan Height is at ctx.BlockHeight+1
-	consState, found := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
-	suite.Require().True(found)
+	consState, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedConsensusState(newCtx, plan.Height)
+	suite.Require().NoError(err)
+
 	bz, err = types.MarshalConsensusState(suite.chainA.App.AppCodec(), &ibctm.ConsensusState{Timestamp: newCtx.BlockTime(), NextValidatorsHash: nextValsHash})
 	suite.Require().NoError(err)
 	suite.Require().Equal(bz, consState)
