@@ -28,49 +28,49 @@ type ConnectionKeeper interface {
 	) (uint64, error)
 	VerifyChannelState(
 		ctx sdk.Context,
-		portID,
-		channelID string,
 		connection exported.ConnectionI,
 		height exported.Height,
 		proof []byte,
+		portID,
+		channelID string,
 		channel exported.ChannelI,
 	) error
 	VerifyPacketCommitment(
 		ctx sdk.Context,
-		portID,
-		channelID string,
 		connection exported.ConnectionI,
 		height exported.Height,
 		proof []byte,
+		portID,
+		channelID string,
 		sequence uint64,
 		commitmentBytes []byte,
 	) error
 	VerifyPacketAcknowledgement(
 		ctx sdk.Context,
-		portID,
-		channelID string,
 		connection exported.ConnectionI,
 		height exported.Height,
 		proof []byte,
+		portID,
+		channelID string,
 		sequence uint64,
 		acknowledgement []byte,
 	) error
 	VerifyPacketReceiptAbsence(
 		ctx sdk.Context,
-		portID,
-		channelID string,
 		connection exported.ConnectionI,
 		height exported.Height,
 		proof []byte,
+		portID,
+		channelID string,
 		sequence uint64,
 	) error
 	VerifyNextSequenceRecv(
 		ctx sdk.Context,
-		portID,
-		channelID string,
 		connection exported.ConnectionI,
 		height exported.Height,
 		proof []byte,
+		portID,
+		channelID string,
 		nextSequenceRecv uint64,
 	) error
 	VerifyChannelUpgrade(
