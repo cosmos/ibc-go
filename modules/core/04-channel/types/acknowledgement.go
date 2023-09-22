@@ -35,9 +35,9 @@ func NewErrorAcknowledgement(err error) Acknowledgement {
 	// constructed in Tendermint and is therefore deterministic
 	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
 
-	return Acknowledgement{
-		Response: &Acknowledgement_Error{
-			Error: fmt.Sprintf("ABCI code: %d: %s", code, ackErrorString),
+	return channeltypes.Acknowledgement{
+		Response: &channeltypes.Acknowledgement_Error{
+			Error: fmt.Sprintf("error handling packet: %s", err.Error()),
 		},
 	}
 }
