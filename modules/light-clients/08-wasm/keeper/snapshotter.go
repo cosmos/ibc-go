@@ -4,10 +4,12 @@ import (
 	"io"
 
 	errorsmod "cosmossdk.io/errors"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	snapshot "github.com/cosmos/cosmos-sdk/snapshots/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -28,15 +30,15 @@ func NewWasmSnapshotter(cms sdk.MultiStore, wasm *Keeper) *WasmSnapshotter {
 	}
 }
 
-func (ws *WasmSnapshotter) SnapshotName() string {
+func (*WasmSnapshotter) SnapshotName() string {
 	return types.ModuleName
 }
 
-func (ws *WasmSnapshotter) SnapshotFormat() uint32 {
+func (*WasmSnapshotter) SnapshotFormat() uint32 {
 	return SnapshotFormat
 }
 
-func (ws *WasmSnapshotter) SupportedFormats() []uint32 {
+func (*WasmSnapshotter) SupportedFormats() []uint32 {
 	// If we support older formats, add them here and handle them in Restore
 	return []uint32{SnapshotFormat}
 }
@@ -56,11 +58,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 		}
 
 		err = payloadWriter(compressedWasm)
-		if err != nil {
-			return true
-		}
-
-		return false
+		return err != nil
 	})
 
 	return nil
@@ -77,7 +75,7 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 	if !types.IsGzip(compressedCode) {
 		return types.ErrInvalid.Wrap("not a gzip")
 	}
-	wasmCode, err := types.Uncompress(compressedCode, uint64(types.MaxWasmByteSize()))
+	wasmCode, err := types.Uncompress(compressedCode, types.MaxWasmByteSize())
 	if err != nil {
 		return errorsmod.Wrap(errorsmod.Wrap(err, "failed to store contract"), err.Error())
 	}

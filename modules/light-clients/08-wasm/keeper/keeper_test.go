@@ -2,8 +2,8 @@ package keeper_test
 
 import (
 	"crypto/sha256"
-	"os"
 	"fmt"
+	"os"
 	"testing"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -96,7 +96,6 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 			suite.Equal(expectedAllCodeHash, allCodeHash)
 		})
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestNewKeeper() {
