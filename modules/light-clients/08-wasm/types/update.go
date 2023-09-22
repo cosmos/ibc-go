@@ -35,9 +35,7 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, 
 func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	clientMessage, ok := clientMsg.(*ClientMessage)
 	if !ok {
-		panic(errors.New())
-			
-			fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
+		panic(fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
 	}
 
 	payload := sudoMsg{
