@@ -1,14 +1,18 @@
-name: Check Markdown links
+name: Check Markdown Links
 on:
   pull_request:
     paths:
       - "**.md"
       - "!.github/**"
 jobs:
-  markdown-link-check:
+  linkChecker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - uses: actions/checkout@v3
+
+      - name: Link Checker
+        uses: lycheeverse/lychee-action@v1.8.0
         with:
-          config-file: '.github/workflows/link-check-config.json'
+          # Check all markdown and html files in repo (default)
+          args: --verbose --no-progress './**/*.md'
+          fail: true
