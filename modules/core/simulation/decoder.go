@@ -28,6 +28,6 @@ func NewDecodeStore(k keeper.Keeper) func(kvA, kvB kv.Pair) string {
 			return res
 		}
 
-		panic(fmt.Sprintf("invalid %s key prefix: %s", ibcexported.ModuleName, string(kvA.Key)))
+		panic(fmt.Errorf("invalid %s key prefix: %s", ibcexported.ModuleName, string(kvA.Key)))
 	}
 }

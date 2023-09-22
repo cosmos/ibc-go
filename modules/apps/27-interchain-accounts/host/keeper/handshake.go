@@ -48,7 +48,7 @@ func (k Keeper) OnChanOpenTry(
 	if found {
 		channel, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelID)
 		if !found {
-			panic(fmt.Sprintf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
+			panic(fmt.Errorf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
 		if channel.IsOpen() {
@@ -57,7 +57,7 @@ func (k Keeper) OnChanOpenTry(
 
 		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
 		if !found {
-			panic(fmt.Sprintf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
+			panic(fmt.Errorf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
 		}
 
 		if !icatypes.IsPreviousMetadataEqual(appVersion, metadata) {

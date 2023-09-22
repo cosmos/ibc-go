@@ -48,7 +48,7 @@ func (k *Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capab
 	}
 
 	if k.IsBound(ctx, portID) {
-		panic(fmt.Sprintf("port %s is already bound", portID))
+		panic(fmt.Errorf("port %s is already bound", portID))
 	}
 
 	key, err := k.scopedKeeper.NewCapability(ctx, host.PortPath(portID))
