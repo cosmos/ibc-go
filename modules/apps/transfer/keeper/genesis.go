@@ -24,7 +24,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 		// and claims the returned capability
 		err := k.BindPort(ctx, state.PortId)
 		if err != nil {
-			panic(fmt.Sprintf("could not claim port capability: %v", err))
+			panic(fmt.Errorf("could not claim port capability: %v", err))
 		}
 	}
 

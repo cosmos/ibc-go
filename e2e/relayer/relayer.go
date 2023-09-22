@@ -40,7 +40,7 @@ func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclien
 	case Hermes:
 		return newHermesRelayer(t, cfg.Tag, logger, dockerClient, network, cfg.Image)
 	default:
-		panic(fmt.Sprintf("unknown relayer specified: %s", cfg.Type))
+		panic(fmt.Errorf("unknown relayer specified: %s", cfg.Type))
 	}
 }
 

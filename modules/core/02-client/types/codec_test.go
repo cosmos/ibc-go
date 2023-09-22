@@ -2,6 +2,7 @@ package types_test
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -161,5 +162,80 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 		} else {
 			suite.Require().Error(err, tc.name)
 		}
+	}
+}
+
+func (suite *TypesTestSuite) TestCodecTypeRegistration() {
+	testCases := []struct {
+		name    string
+		typeURL string
+		expPass bool
+	}{
+		{
+			"success: MsgCreateClient",
+			sdk.MsgTypeURL(&types.MsgCreateClient{}),
+			true,
+		},
+		{
+			"success: MsgUpdateClient",
+			sdk.MsgTypeURL(&types.MsgUpdateClient{}),
+			true,
+		},
+		{
+			"success: MsgUpgradeClient",
+			sdk.MsgTypeURL(&types.MsgUpgradeClient{}),
+			true,
+		},
+		{
+			"success: MsgSubmitMisbehaviour",
+			sdk.MsgTypeURL(&types.MsgSubmitMisbehaviour{}),
+			true,
+		},
+		{
+			"success: MsgRecoverClient",
+			sdk.MsgTypeURL(&types.MsgRecoverClient{}),
+			true,
+		},
+		{
+			"success: MsgIBCSoftwareUpgrade",
+			sdk.MsgTypeURL(&types.MsgIBCSoftwareUpgrade{}),
+			true,
+		},
+		{
+			"success: MsgUpdateParams",
+			sdk.MsgTypeURL(&types.MsgUpdateParams{}),
+			true,
+		},
+		{
+			"success: ClientUpdateProposal",
+			sdk.MsgTypeURL(&types.ClientUpdateProposal{}),
+			true,
+		},
+		{
+			"success: UpgradeProposal",
+			sdk.MsgTypeURL(&types.UpgradeProposal{}),
+			true,
+		},
+		{
+			"type not registered on codec",
+			"ibc.invalid.MsgTypeURL",
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			msg, err := suite.chainA.GetSimApp().AppCodec().InterfaceRegistry().Resolve(tc.typeURL)
+
+			if tc.expPass {
+				suite.Require().NotNil(msg)
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Nil(msg)
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
