@@ -84,6 +84,13 @@ func wasmInit(ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload
 }
 
 // wasmCall calls the contract with the given payload and returns the result.
+// wasmCall returns an error if:
+// - the payload cannot be marshaled to JSON
+// - the contract call returns an error
+// - the response of the contract call contains non-empty messages
+// - the response of the contract call contains non-empty events
+// - the response of the contract call contains non-empty attributes
+// - the data bytes of the response cannot be unmarshaled into the result type
 func wasmCall[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload sudoMsg) (T, error) {
 	var result T
 	encodedData, err := json.Marshal(payload)
@@ -114,6 +121,10 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Cl
 }
 
 // wasmQuery queries the contract with the given payload and returns the result.
+// wasmQuery returns an error if:
+// - the payload cannot be marshaled to JSON
+// - the contract query returns an error
+// - the data bytes of the response cannot be unmarshal into the result type
 func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload queryMsg) (T, error) {
 	var result T
 	encodedData, err := json.Marshal(payload)
