@@ -59,6 +59,10 @@ func NewKeeper(
 		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
 	}
 
+	if strings.TrimSpace(authority) == "" {
+		panic(fmt.Errorf("authority must be non-empty"))
+	}
+
 	return Keeper{
 		storeKey:       key,
 		cdc:            cdc,

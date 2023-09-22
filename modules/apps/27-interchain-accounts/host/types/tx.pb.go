@@ -31,7 +31,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgUpdateParams defines the payload for Msg/UpdateParams
 type MsgUpdateParams struct {
-	// signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+	// signer address
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	// params defines the 27-interchain-accounts/host parameters to update.
 	//

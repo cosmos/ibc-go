@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* 2022-08-02: Initial draft
+- 2022-08-02: Initial draft
 
 ## Status
 
@@ -34,14 +34,14 @@ This removes an extra layer of complexity from signature construction and allows
 
 ### Positive
 
-* Simplification of solo machine signature construction
-* Support for generic verification
+- Simplification of solo machine signature construction
+- Support for generic verification
 
 ### Negative
 
-* Breaks existing signature construction in a non-backwards compatible way
-* Solo machines must update to handle the new format
-* Migration required for solo machine client and consensus states
+- Breaks existing signature construction in a non-backwards compatible way
+- Solo machines must update to handle the new format
+- Migration required for solo machine client and consensus states
 
 ### Neutral
 
@@ -49,4 +49,4 @@ No notable consequences
 
 ## References
 
-* [#1141](https://github.com/cosmos/ibc-go/issues/1141)
+- [#1141](https://github.com/cosmos/ibc-go/issues/1141)

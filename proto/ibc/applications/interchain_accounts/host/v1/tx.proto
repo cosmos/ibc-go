@@ -22,7 +22,7 @@ message MsgUpdateParams {
 
   option (gogoproto.goproto_getters) = false;
 
-  // signer address (it may be the the address that controls the module, which defaults to x/gov unless overwritten).
+  // signer address
   string signer = 1;
 
   // params defines the 27-interchain-accounts/host parameters to update.
