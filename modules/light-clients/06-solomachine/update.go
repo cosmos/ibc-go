@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -19,15 +19,15 @@ import (
 func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) error {
 	switch msg := clientMsg.(type) {
 	case *Header:
-		return cs.verifyHeader(ctx, cdc, clientStore, msg)
+		return cs.verifyHeader(cdc, msg)
 	case *Misbehaviour:
-		return cs.verifyMisbehaviour(ctx, cdc, clientStore, msg)
+		return cs.verifyMisbehaviour(cdc, msg)
 	default:
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected type of %T or %T, got type %T", Header{}, Misbehaviour{}, msg)
 	}
 }
 
-func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, header *Header) error {
+func (cs ClientState) verifyHeader(cdc codec.BinaryCodec, header *Header) error {
 	// assert update timestamp is not less than current consensus state timestamp
 	if header.Timestamp < cs.ConsensusState.Timestamp {
 		return errorsmod.Wrapf(

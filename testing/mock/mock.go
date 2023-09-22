@@ -47,7 +47,7 @@ var (
 	MockApplicationCallbackError error = &applicationCallbackError{}
 )
 
-var _ porttypes.IBCModule = IBCModule{}
+var _ porttypes.IBCModule = (*IBCModule)(nil)
 
 // Expected Interface
 // PortKeeper defines the expected IBC port keeper
@@ -136,15 +136,6 @@ func (AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMes
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 1 }
-
-// BeginBlock implements the AppModule interface
-func (AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-}
-
-// EndBlock implements the AppModule interface
-func (AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}
 
 var _ exported.Path = KeyPath{}
 

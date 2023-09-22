@@ -1104,7 +1104,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
@@ -1217,7 +1217,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
@@ -1479,8 +1479,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			feeModule := cbs.(ibcfee.IBCMiddleware)
-
+			feeModule := cbs.(porttypes.ICS4Wrapper)
 			appVersion, found := feeModule.GetAppVersion(suite.chainA.GetContext(), portID, channelID)
 
 			if tc.expFound {

@@ -13,9 +13,9 @@ import (
 	controllerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	fee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -836,7 +836,7 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	controllerStack := cbs.(fee.IBCMiddleware)
+	controllerStack := cbs.(porttypes.ICS4Wrapper)
 	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
