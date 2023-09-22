@@ -14,8 +14,8 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -78,9 +78,9 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			"success",
 			func() {
 				keeper.NewKeeperWithVM(
-					suite.chainA.GetSimApp().AppCodec(),
-					suite.chainA.GetSimApp().GetKey(types.StoreKey),
-					suite.chainA.GetSimApp().WasmClientKeeper.GetAuthority(),
+					GetSimApp(suite.chainA).AppCodec(),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					types.WasmVM,
 				)
 			},
@@ -91,8 +91,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			"failure: empty authority",
 			func() {
 				keeper.NewKeeperWithVM(
-					suite.chainA.GetSimApp().AppCodec(),
-					suite.chainA.GetSimApp().GetKey(types.StoreKey),
+					GetSimApp(suite.chainA).AppCodec(),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					"", // authority
 					types.WasmVM,
 				)
@@ -104,9 +104,9 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			"failure: nil wasm VM",
 			func() {
 				keeper.NewKeeperWithVM(
-					suite.chainA.GetSimApp().AppCodec(),
-					suite.chainA.GetSimApp().GetKey(types.StoreKey),
-					suite.chainA.GetSimApp().WasmClientKeeper.GetAuthority(),
+					GetSimApp(suite.chainA).AppCodec(),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
 				)
 			},
@@ -120,9 +120,9 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.Require().NoError(err)
 
 				keeper.NewKeeperWithVM(
-					suite.chainA.GetSimApp().AppCodec(),
-					suite.chainA.GetSimApp().GetKey(types.StoreKey),
-					suite.chainA.GetSimApp().WasmClientKeeper.GetAuthority(),
+					GetSimApp(suite.chainA).AppCodec(),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					vm,
 				)
 			},
