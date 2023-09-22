@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -40,15 +41,15 @@ func NewKeeperWithVM(
 	vm *wasmvm.VM,
 ) Keeper {
 	if vm == nil {
-		panic(fmt.Errorf("wasm VM must be not nil"))
+		panic(errors.New("wasm VM must be not nil"))
 	}
 
 	if types.WasmVM != nil && !reflect.DeepEqual(types.WasmVM, vm) {
-		panic(fmt.Errorf("global Wasm VM instance should not be set to a different instance"))
+		panic(errors.New("global Wasm VM instance should not be set to a different instance"))
 	}
 
 	if strings.TrimSpace(authority) == "" {
-		panic(fmt.Errorf("authority must be non-empty"))
+		panic(errors.New("authority must be non-empty"))
 	}
 
 	types.WasmVM = vm
