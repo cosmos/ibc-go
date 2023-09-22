@@ -97,24 +97,11 @@ type checkSubstituteAndUpdateStateMsg struct{}
 
 // ContractResult defines the expected interface a Result returned by a contract call is expected to implement.
 type ContractResult interface {
-	Validate() bool
-	Error() string
 }
 
 // contractResult is the default implementation of the ContractResult interface and the default return type of any contract call
 // that does not require a custom return type.
 type contractResult struct {
-	IsValid  bool   `json:"is_valid,omitempty"`
-	ErrorMsg string `json:"error_msg,omitempty"`
-	Data     []byte `json:"data,omitempty"`
-}
-
-func (r contractResult) Validate() bool {
-	return r.IsValid
-}
-
-func (r contractResult) Error() string {
-	return r.ErrorMsg
 }
 
 // statusResult is the expected return type of the statusMsg query. It returns the status of the wasm client.
@@ -133,18 +120,18 @@ type exportMetadataResult struct {
 // at a given height.
 type timestampAtHeightResult struct {
 	contractResult
-	Timestamp uint64 `json:"timestamp"`
+	Timestamp uint64 `json:"timestamp,omitempty"`
 }
 
 // checkForMisbehaviourResult is the expected return type of the checkForMisbehaviourMsg query. It returns a boolean indicating
 // if misbehaviour was detected.
 type checkForMisbehaviourResult struct {
 	contractResult
-	FoundMisbehaviour bool `json:"found_misbehaviour"`
+	FoundMisbehaviour bool `json:"found_misbehaviour,omitempty"`
 }
 
 // updateStateResult is the expected return type of the updateStateMsg sudo call. It returns the updated consensus heights.
 type updateStateResult struct {
 	contractResult
-	Heights []clienttypes.Height `json:"heights"`
+	Heights []clienttypes.Height `json:"heights,omitempty"`
 }

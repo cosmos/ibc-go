@@ -3,7 +3,6 @@ package types
 import (
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -107,9 +106,6 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *Cl
 	if err := json.Unmarshal(resp.Data, &result); err != nil {
 		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm execution")
 	}
-	if !result.Validate() {
-		return result, errorsmod.Wrapf(errors.New(result.Error()), "error occurred while executing contract with code hash %s", hex.EncodeToString(cs.CodeHash))
-	}
 	return result, nil
 }
 
@@ -126,9 +122,6 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *C
 	}
 	if err := json.Unmarshal(resp, &result); err != nil {
 		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm query")
-	}
-	if !result.Validate() {
-		return result, errorsmod.Wrapf(errors.New(result.Error()), "error occurred while querying contract with code hash %s", hex.EncodeToString(cs.CodeHash))
 	}
 	return result, nil
 }
