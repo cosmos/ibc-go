@@ -2,6 +2,7 @@ package testsuite
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -272,7 +273,7 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc
 // StartRelayer starts the given ibcrelayer.
 func (s *E2ETestSuite) StartRelayer(ibcrelayer ibc.Relayer) {
 	if s.startRelayerFn == nil {
-		panic(fmt.Errorf("cannot start relayer before it is created!"))
+		panic(errors.New("cannot start relayer before it is created!"))
 	}
 
 	s.startRelayerFn(ibcrelayer)

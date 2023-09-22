@@ -1,6 +1,7 @@
 package ibccallbacks
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -44,19 +45,19 @@ func NewIBCMiddleware(
 ) IBCMiddleware {
 	packetDataUnmarshalerApp, ok := app.(types.CallbacksCompatibleModule)
 	if !ok {
-		panic(fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)))
+		panic(errors.New("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)))
 	}
 
 	if ics4Wrapper == nil {
-		panic(fmt.Errorf("ICS4Wrapper cannot be nil"))
+		panic(errors.New("ICS4Wrapper cannot be nil"))
 	}
 
 	if contractKeeper == nil {
-		panic(fmt.Errorf("contract keeper cannot be nil"))
+		panic(errors.New("contract keeper cannot be nil"))
 	}
 
 	if maxCallbackGas == 0 {
-		panic(fmt.Errorf("maxCallbackGas cannot be zero"))
+		panic(errors.New("maxCallbackGas cannot be zero"))
 	}
 
 	return IBCMiddleware{

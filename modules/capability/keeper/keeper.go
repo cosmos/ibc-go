@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -70,10 +71,10 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey, memKey storetypes.StoreKey) *Kee
 // already has a ScopedKeeper.
 func (k *Keeper) ScopeToModule(moduleName string) ScopedKeeper {
 	if k.sealed {
-		panic(fmt.Errorf("cannot scope to module via a sealed capability keeper"))
+		panic(errors.New("cannot scope to module via a sealed capability keeper"))
 	}
 	if strings.TrimSpace(moduleName) == "" {
-		panic(fmt.Errorf("cannot scope to an empty module name"))
+		panic(errors.New("cannot scope to an empty module name"))
 	}
 
 	if _, ok := k.scopedModules[moduleName]; ok {
@@ -95,7 +96,7 @@ func (k *Keeper) ScopeToModule(moduleName string) ScopedKeeper {
 // Seal may be called during app initialization for applications that do not wish to create scoped keepers dynamically.
 func (k *Keeper) Seal() {
 	if k.sealed {
-		panic(fmt.Errorf("cannot initialize and seal an already sealed capability keeper"))
+		panic(errors.New("cannot initialize and seal an already sealed capability keeper"))
 	}
 
 	k.sealed = true
@@ -156,11 +157,11 @@ func (k *Keeper) IsInitialized(ctx sdk.Context) bool {
 // It will panic if the provided index is 0, or if the index is already set.
 func (k Keeper) InitializeIndex(ctx sdk.Context, index uint64) error {
 	if index == 0 {
-		panic(fmt.Errorf("SetIndex requires index > 0"))
+		panic(errors.New("SetIndex requires index > 0"))
 	}
 	latest := k.GetLatestIndex(ctx)
 	if latest > 0 {
-		panic(fmt.Errorf("SetIndex requires index to not be set"))
+		panic(errors.New("SetIndex requires index to not be set"))
 	}
 
 	// set the global index to the passed index
@@ -390,7 +391,7 @@ func (sk ScopedKeeper) GetCapability(ctx sdk.Context, name string) (*types.Capab
 
 	cap := sk.capMap[index]
 	if cap == nil {
-		panic(fmt.Errorf("capability found in memstore is missing from map"))
+		panic(errors.New("capability found in memstore is missing from map"))
 	}
 
 	return cap, true

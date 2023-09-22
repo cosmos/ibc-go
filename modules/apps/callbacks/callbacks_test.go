@@ -2,6 +2,7 @@ package ibccallbacks_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -46,7 +47,7 @@ func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 	app, ok := chain.App.(*simapp.SimApp)
 	if !ok {
-		panic(fmt.Errorf("chain is not a simapp.SimApp"))
+		panic(errors.New("chain is not a simapp.SimApp"))
 	}
 	return app
 }

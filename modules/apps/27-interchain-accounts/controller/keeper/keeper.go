@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -53,7 +54,7 @@ func NewKeeper(
 	}
 
 	if strings.TrimSpace(authority) == "" {
-		panic(fmt.Errorf("authority must be non-empty"))
+		panic(errors.New("authority must be non-empty"))
 	}
 
 	return Keeper{
@@ -290,7 +291,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil { // only panic on unset params and not on empty params
-		panic(fmt.Errorf("ica/controller params are not set in store"))
+		panic(errors.New("ica/controller params are not set in store"))
 	}
 
 	var params types.Params

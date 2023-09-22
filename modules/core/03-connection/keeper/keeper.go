@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"fmt"
+	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
@@ -138,7 +138,7 @@ func (k Keeper) GetNextConnectionSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.KeyNextConnectionSequence))
 	if len(bz) == 0 {
-		panic(fmt.Errorf("next connection sequence is nil"))
+		panic(errors.New("next connection sequence is nil"))
 	}
 
 	return sdk.BigEndianToUint64(bz)
@@ -230,7 +230,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil { // only panic on unset params and not on empty params
-		panic(fmt.Errorf("connection params are not set in store"))
+		panic(errors.New("connection params are not set in store"))
 	}
 
 	var params types.Params

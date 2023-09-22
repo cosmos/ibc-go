@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,7 +28,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	for _, client := range gs.Clients {
 		cs, ok := client.ClientState.GetCachedValue().(exported.ClientState)
 		if !ok {
-			panic(fmt.Errorf("invalid client state"))
+			panic(errors.New("invalid client state"))
 		}
 
 		if !gs.Params.IsAllowedClient(cs.ClientType()) {
