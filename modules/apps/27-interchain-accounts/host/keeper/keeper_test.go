@@ -4,14 +4,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
-	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+
+	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
+	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 var (
@@ -41,7 +46,7 @@ var (
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -68,7 +73,7 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain, encoding string) *ibctesti
 	case icatypes.EncodingProto3JSON:
 		version = TestVersionWithJSONEncoding
 	default:
-		panic(fmt.Sprintf("unsupported encoding type: %s", encoding))
+		panic(fmt.Errorf("unsupported encoding type: %s", encoding))
 	}
 
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
@@ -122,7 +127,75 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	testifysuite.Run(t, new(KeeperTestSuite))
+}
+
+func (suite *KeeperTestSuite) TestNewKeeper() {
+	testCases := []struct {
+		name          string
+		instantiateFn func()
+		expPass       bool
+	}{
+		{"success", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().ScopedICAHostKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
+				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
+			)
+		}, true},
+		{"failure: interchain accounts module account does not exist", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				authkeeper.AccountKeeper{}, // empty account keeper
+				suite.chainA.GetSimApp().ScopedICAHostKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
+				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
+			)
+		}, false},
+		{"failure: empty mock staking keeper", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
+				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().ScopedICAHostKeeper,
+				suite.chainA.GetSimApp().MsgServiceRouter(),
+				"", // authority
+			)
+		}, false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.SetupTest()
+
+		suite.Run(tc.name, func() {
+			if tc.expPass {
+				suite.Require().NotPanics(
+					tc.instantiateFn,
+				)
+			} else {
+				suite.Require().Panics(
+					tc.instantiateFn,
+				)
+			}
+		})
+	}
 }
 
 func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
@@ -300,4 +373,25 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	suite.Require().Panics(func() {
 		suite.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
 	})
+}
+
+func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
+	suite.SetupTest()
+
+	// test if the ics4 wrapper is the fee keeper initially
+	ics4Wrapper := suite.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
+
+	_, isFeeKeeper := ics4Wrapper.(ibcfeekeeper.Keeper)
+	suite.Require().True(isFeeKeeper)
+	_, isChannelKeeper := ics4Wrapper.(channelkeeper.Keeper)
+	suite.Require().False(isChannelKeeper)
+
+	// set the ics4 wrapper to the channel keeper
+	suite.chainA.GetSimApp().ICAHostKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
+	ics4Wrapper = suite.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
+
+	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
+	suite.Require().True(isChannelKeeper)
+	_, isFeeKeeper = ics4Wrapper.(ibcfeekeeper.Keeper)
+	suite.Require().False(isFeeKeeper)
 }

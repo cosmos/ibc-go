@@ -138,43 +138,30 @@ go.sum: go.mod
 ###                              Documentation                              ###
 ###############################################################################
 
-update-swagger-docs: statik
-	$(BINDIR)/statik -src=docs/client/swagger-ui -dest=docs/client -f -m
-	@if [ -n "$(git status --porcelain)" ]; then \
-        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-        exit 1;\
-    else \
-        echo "\033[92mSwagger docs are in sync\033[0m";\
-    fi
-.PHONY: update-swagger-docs
-
 godocs:
 	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/cosmos/cosmos-sdk/types"
 	godoc -http=:6060
 
-# This builds a docs site for each branch/tag in `./docs/versions`
-# and copies each site to a version prefixed path. The last entry inside
-# the `versions` file will be the default root index.html.
 build-docs:
-	@cd docs && \
-	while read -r branch path_prefix; do \
-		echo "building branch $${branch}" ; \
-		(git clean -fdx && git reset --hard && git checkout $${branch} && npm install && VUEPRESS_BASE="/$${path_prefix}/" npm run build) ; \
-		mkdir -p ~/output/$${path_prefix} ; \
-		cp -r .vuepress/dist/* ~/output/$${path_prefix}/ ; \
-		cp ~/output/$${path_prefix}/index.html ~/output ; \
-		cp ~/output/$${path_prefix}/404.html ~/output ; \
-	done < versions ;
+	@cd docs && npm ci && npm run build
 
-view-docs: 
-		@cd docs && \
-    npm install && npm run serve
-
+serve-docs:
+	@cd docs && npm run serve
 
 changelog:
 	docker run --rm -v "$$(pwd)"/.git:/app/ -v "$$(pwd)/cliff.toml":/app/cliff.toml orhunp/git-cliff:latest --unreleased --tag $(tag)
 
-.PHONY: build-docs
+# If the DOCS_VERSION variable is not set, display an error message and exit
+ifndef DOCS_VERSION
+tag-docs-version:
+	@echo "Error: DOCS_VERSION is not set. Use 'make tag-docs-version DOCS_VERSION=<version>' to set it. For example: 'make tag-docs-version DOCS_VERSION=v8.0.x'"
+	@exit 1
+else
+tag-docs-version:
+	@cd docs && npm run docusaurus docs:version $(DOCS_VERSION)
+endif
+
+.PHONY: build-docs serve-docs tag-docs-version
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
@@ -290,14 +277,16 @@ benchmark:
 ###                                Linting                                  ###
 ###############################################################################
 
+setup-pre-commit:
+	@cp .git/hooks/pre-commit .git/hooks/pre-commit.bak 2>/dev/null || true
+	@echo "Installing pre-commit hook..."
+	@ln -sf ../../scripts/hooks/pre-commit.sh .git/hooks/pre-commit
+
 lint:
 	golangci-lint run --out-format=tab
 
 lint-fix:
 	golangci-lint run --fix --out-format=tab --issues-exit-code=0
-
-lint-fix-changed:
-	./scripts/linting/lint-changed-go-files.sh
 
 format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
@@ -305,18 +294,21 @@ format:
 .PHONY: format
 
 docs-lint:
-	markdownlint . --fix
+	markdownlint-cli2 "**.md"
 
-docs-lint-changed:
-	./scripts/linting/lint-changed-md-files.sh
+docs-lint-fix:
+	markdownlint-cli2-fix "**.md"
 
-.PHONY: lint lint-fix lint-fix-changed docs-lint docs-lint-changed
+docs-link-check:
+	find . -name 'node_modules' -prune -o -name '*.md' -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
+
+.PHONY: lint lint-fix docs-lint docs-lint-fix docs-link-check
 
 ###############################################################################
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.13.2
+protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 

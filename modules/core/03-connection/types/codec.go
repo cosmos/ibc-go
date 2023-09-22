@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // RegisterInterfaces register the ibc interfaces submodule implementations to protobuf
@@ -21,11 +21,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		"ibc.core.connection.v1.CounterpartyConnectionI",
 		(*exported.CounterpartyConnectionI)(nil),
 		&Counterparty{},
-	)
-	registry.RegisterInterface(
-		"ibc.core.connection.v1.Version",
-		(*exported.Version)(nil),
-		&Version{},
 	)
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),

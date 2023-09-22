@@ -3,16 +3,16 @@ package localhost_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *LocalhostTestSuite) TestStatus() {
@@ -64,12 +64,15 @@ func (suite *LocalhostTestSuite) TestValidate() {
 	}
 
 	for _, tc := range testCases {
-		err := tc.clientState.Validate()
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+		tc := tc
+		suite.Run(tc.name, func() {
+			err := tc.clientState.Validate()
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
 	}
 }
 
@@ -92,18 +95,21 @@ func (suite *LocalhostTestSuite) TestInitialize() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
+			clientStore := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.LocalhostClientID)
+
+			err := clientState.Initialize(suite.chain.GetContext(), suite.chain.Codec, clientStore, tc.consState)
+
+			if tc.expPass {
+				suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
+			} else {
+				suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
+			}
+		})
 		suite.SetupTest()
 
-		clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
-		clientStore := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.LocalhostClientID)
-
-		err := clientState.Initialize(suite.chain.GetContext(), suite.chain.Codec, clientStore, tc.consState)
-
-		if tc.expPass {
-			suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
-		} else {
-			suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
-		}
 	}
 }
 
@@ -139,7 +145,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 					connectiontypes.OPEN,
 					exported.LocalhostClientID,
 					connectiontypes.NewCounterparty(exported.LocalhostClientID, exported.LocalhostConnectionID, suite.chain.GetPrefix()),
-					connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions()), 0,
+					connectiontypes.GetCompatibleVersions(), 0,
 				)
 
 				suite.chain.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chain.GetContext(), exported.LocalhostConnectionID, connectionEnd)

@@ -16,7 +16,7 @@ jobs:
       test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: andstor/file-existence-action@v2
         with:
           files: '.github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json'
@@ -38,12 +38,12 @@ jobs:
       matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}
     steps:
       - name: Checkout the ibc-go repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.21'
       - name: Run e2e Test
         run: |
           cd e2e
@@ -53,10 +53,10 @@ jobs:
           # Note: this is significant as the standard behaviour when running e2es on PRs
           # is that there is a set of env vars that are the same for each run. e.g. the same docker image is used
           # for every test. With compatibility tests, each test may be running different combinations of images.
-          CHAIN_IMAGE: '${{ matrix.chain-image }}'
+          CHAIN_IMAGE: 'ghcr.io/cosmos/ibc-go-simd'
           CHAIN_A_TAG: '${{ matrix.chain-a }}'
           CHAIN_B_TAG: '${{ matrix.chain-b }}'
-          CHAIN_BINARY: '${{ matrix.chain-binary }}'
+          CHAIN_BINARY: 'simd'
           RELAYER_TYPE: '${{ matrix.relayer-type }}'
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v3

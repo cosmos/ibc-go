@@ -3,31 +3,30 @@ package ica_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	dbm "github.com/cosmos/cosmos-db"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
-	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
-	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 type InterchainAccountsTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 }
 
 func TestICATestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }
 
 func (suite *InterchainAccountsTestSuite) SetupTest() {
@@ -41,13 +40,7 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 	appModule, ok := app.ModuleManager.Modules[types.ModuleName].(ica.AppModule)
 	suite.Require().True(ok)
 
-	header := tmproto.Header{
-		ChainID: chainID,
-		Height:  1,
-		Time:    suite.coordinator.CurrentTime.UTC(),
-	}
-
-	ctx := app.GetBaseApp().NewContext(true, header)
+	ctx := app.GetBaseApp().NewContext(true)
 
 	// ensure params are not set
 	suite.Require().Panics(func() {
@@ -105,13 +98,8 @@ func (suite *InterchainAccountsTestSuite) TestInitModule() {
 			// reset app state
 			chainID := "testchain"
 			app = simapp.NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.EmptyAppOptions{}, baseapp.SetChainID(chainID))
-			header := tmproto.Header{
-				ChainID: chainID,
-				Height:  1,
-				Time:    suite.coordinator.CurrentTime.UTC(),
-			}
 
-			ctx := app.GetBaseApp().NewContext(true, header)
+			ctx := app.GetBaseApp().NewContext(true)
 
 			tc.malleate()
 

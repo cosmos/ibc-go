@@ -2,7 +2,7 @@
   <h1>ibc-go</h1>
 </div>
 
-![banner](docs/ibc-go-image.png)
+![banner](docs/static/img/ibc-go-image.png)
 
 <div align="center">
   <a href="https://github.com/cosmos/ibc-go/releases/latest">
@@ -41,7 +41,7 @@ This IBC implementation in Golang is built as a Cosmos SDK module. To understand
 
 ## Roadmap
 
-For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/roadmap/roadmap.md).
+For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/docs/01-ibc/09-roadmap.md).
 
 This roadmap is also available as a [project board](https://github.com/orgs/cosmos/projects/7/views/25).
 
@@ -92,39 +92,41 @@ To report a security vulnerability, see our [Coordinated Vulnerability Disclosur
 
 The following audits have been performed on the `ibc-go` source code:
 
-- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/docs/apps/interchain-accounts/audits) by Trail of Bits
+- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/blob/main/docs/audits/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) by Trail of Bits
 
 ## Quick Navigation
 
 1. **[Core IBC Implementation](https://github.com/cosmos/ibc-go/tree/main/modules/core)**
 
-    1.1 [ICS 02 Client](https://github.com/cosmos/ibc-go/tree/main/modules/core/02-client)
+   1.1 [ICS 02 Client](https://github.com/cosmos/ibc-go/tree/main/modules/core/02-client)
 
-    1.2 [ICS 03 Connection](https://github.com/cosmos/ibc-go/tree/main/modules/core/03-connection)
+   1.2 [ICS 03 Connection](https://github.com/cosmos/ibc-go/tree/main/modules/core/03-connection)
 
-    1.3 [ICS 04 Channel](https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel)
+   1.3 [ICS 04 Channel](https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel)
 
-    1.4 [ICS 05 Port](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port)
+   1.4 [ICS 05 Port](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port)
 
-    1.5 [ICS 23 Commitment](https://github.com/cosmos/ibc-go/tree/main/modules/core/23-commitment/types)
+   1.5 [ICS 23 Commitment](https://github.com/cosmos/ibc-go/tree/main/modules/core/23-commitment/types)
 
-    1.6 [ICS 24 Host](https://github.com/cosmos/ibc-go/tree/main/modules/core/24-host)
+   1.6 [ICS 24 Host](https://github.com/cosmos/ibc-go/tree/main/modules/core/24-host)
 
 2. **Applications**
 
-    2.1 [ICS 20 Fungible Token Transfers](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer)
+   2.1 [ICS 20 Fungible Token Transfers](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer)
 
-    2.2 [ICS 27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/modules/apps/27-interchain-accounts)
+   2.2 [ICS 27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/modules/apps/27-interchain-accounts)
 
 3. **Middleware**
 
-    3.1 [ICS 29 Fee Middleware](https://github.com/cosmos/ibc-go/tree/main/modules/apps/29-fee)
+   3.1 [ICS 29 Fee Middleware](https://github.com/cosmos/ibc-go/tree/main/modules/apps/29-fee)
+
+    3.2 [Callbacks Middleware](https://github.com/cosmos/ibc-go/tree/main/modules/apps/callbacks)
 
 4. **Light Clients**
 
-    4.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
+   4.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
 
-    4.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
+   4.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
 
     4.3 [ICS 09 Localhost](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/09-localhost)
 
