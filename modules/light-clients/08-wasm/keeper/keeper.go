@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
@@ -39,8 +41,16 @@ func NewKeeperWithVM(
 	authority string,
 	vm *wasmvm.VM,
 ) Keeper {
+	if vm == nil {
+		panic(errors.New("wasm VM must be not nil"))
+	}
+
 	if types.WasmVM != nil && !reflect.DeepEqual(types.WasmVM, vm) {
-		panic("global Wasm VM instance should not be set to a different instance")
+		panic(errors.New("global Wasm VM instance should not be set to a different instance"))
+	}
+
+	if strings.TrimSpace(authority) == "" {
+		panic(errors.New("authority must be non-empty"))
 	}
 
 	types.WasmVM = vm
@@ -65,7 +75,7 @@ func NewKeeperWithConfig(
 ) Keeper {
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedFeatures, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, wasmConfig.MemoryCacheSize)
 	if err != nil {
-		panic(fmt.Sprintf("failed to instantiate new Wasm VM instance: %v", err))
+		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
 	return NewKeeperWithVM(cdc, key, authority, vm)

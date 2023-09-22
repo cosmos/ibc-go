@@ -54,7 +54,7 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_no_consensus"])
 				suite.Require().NoError(err)
 
-				clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 36 /* This doesn't matter, but the grandpa client state is set to this */))
+				clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 36))
 
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 			},
@@ -173,17 +173,17 @@ func (suite *TypesTestSuite) TestValidate() {
 	}{
 		{
 			name:        "valid client",
-			clientState: types.NewClientState([]byte{0}, []byte{0}, clienttypes.ZeroHeight()),
+			clientState: types.NewClientState([]byte{0}, []byte(codeHash), clienttypes.ZeroHeight()),
 			expPass:     true,
 		},
 		{
 			name:        "nil data",
-			clientState: types.NewClientState(nil, []byte{0}, clienttypes.ZeroHeight()),
+			clientState: types.NewClientState(nil, []byte(codeHash), clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
 			name:        "empty data",
-			clientState: types.NewClientState([]byte{}, []byte{0}, clienttypes.ZeroHeight()),
+			clientState: types.NewClientState([]byte{}, []byte(codeHash), clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
@@ -225,20 +225,23 @@ func (suite *TypesTestSuite) TestValidate() {
 }
 
 func (suite *TypesTestSuite) TestInitializeGrandpa() {
+	var consensusState exported.ConsensusState
 	testCases := []struct {
-		name           string
-		consensusState exported.ConsensusState
-		expPass        bool
+		name     string
+		malleate func()
+		expPass  bool
 	}{
 		{
-			name:           "valid consensus",
-			consensusState: types.NewConsensusState([]byte("data"), uint64(1678304292)),
-			expPass:        true,
+			name:     "valid consensus",
+			malleate: func() {},
+			expPass:  true,
 		},
 		{
-			name:           "invalid consensus: consensus state is solomachine consensus",
-			consensusState: ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState(),
-			expPass:        false,
+			name: "invalid consensus: consensus state is solomachine consensus",
+			malleate: func() {
+				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
+			},
+			expPass: false,
 		},
 	}
 
@@ -246,9 +249,17 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpa()
 
+			clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
+			suite.Require().NoError(err)
+			clientState := types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 2))
+
+			consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
+			suite.Require().NoError(err)
+			consensusState = types.NewConsensusState(consensusStateData, 0)
+
+			tc.malleate()
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
-			clientState := types.NewClientState([]byte("data"), suite.codeHash, clienttypes.NewHeight(2000, 4))
-			err := clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, tc.consensusState)
+			err = clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -264,20 +275,29 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestInitializeTendermint() {
+	var consensusState exported.ConsensusState
 	testCases := []struct {
-		name           string
-		consensusState exported.ConsensusState
-		expPass        bool
+		name     string
+		malleate func()
+		expPass  bool
 	}{
 		{
-			name:           "valid consensus",
-			consensusState: types.NewConsensusState([]byte{0}, 1),
-			expPass:        true,
+			name: "valid consensus",
+			malleate: func() {
+				tmConsensusState := tmtypes.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte{0}), []byte(codeHash))
+				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
+				suite.Require().NoError(err)
+
+				consensusState = types.NewConsensusState(tmConsensusStateData, 1)
+			},
+			expPass: true,
 		},
 		{
-			name:           "invalid consensus: consensus state is solomachine consensus",
-			consensusState: ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState(),
-			expPass:        false,
+			name: "invalid consensus: consensus state is solomachine consensus",
+			malleate: func() {
+				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
+			},
+			expPass: false,
 		},
 	}
 
@@ -292,25 +312,24 @@ func (suite *TypesTestSuite) TestInitializeTendermint() {
 			tmClientState := tmtypes.NewClientState(
 				path.EndpointB.Chain.ChainID,
 				tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-				suite.chainB.LastHeader.GetTrustedHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
+				suite.chainB.LastHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
 			)
-
 			tmClientStateData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
 			suite.Require().NoError(err)
-
 			wasmClientState := types.NewClientState(tmClientStateData, suite.codeHash, tmClientState.LatestHeight)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, path.EndpointA.ClientID)
-			err = wasmClientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, tc.consensusState)
+			tc.malleate()
+			err = wasmClientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().True(clientStore.Has(host.ClientStateKey()))
-				suite.Require().True(clientStore.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
+				suite.Require().True(clientStore.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetHeight())))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().False(clientStore.Has(host.ClientStateKey()))
-				suite.Require().False(clientStore.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
+				suite.Require().False(clientStore.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetHeight())))
 			}
 		})
 	}
@@ -365,7 +384,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 						ConnectionId: connectionID,
 						Prefix:       suite.chainA.GetPrefix(),
 					},
-					DelayPeriod: 0,
+					DelayPeriod: 1000000000, // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
 					State:       connectiontypes.TRYOPEN,
 					Versions:    []*connectiontypes.Version{connectiontypes.DefaultIBCVersion},
 				})
@@ -406,10 +425,10 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["packet_commitment_data"])
 				suite.Require().NoError(err)
 
-				proofHeight = clienttypes.NewHeight(2000, 32)
+				proofHeight = clienttypes.NewHeight(2000, 44)
 				packet := channeltypes.NewPacket(
 					data,
-					1, portID, channelID, portID, channelID, clienttypes.NewHeight(0, 3000),
+					2, portID, channelID, portID, channelID, clienttypes.NewHeight(0, 3000),
 					0,
 				)
 				key := host.PacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -431,11 +450,11 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["ack_data"])
 				suite.Require().NoError(err)
 
-				proofHeight = clienttypes.NewHeight(2000, 29)
+				proofHeight = clienttypes.NewHeight(2000, 33)
 				packet := channeltypes.NewPacket(
 					data,
 					uint64(1), portID, channelID, portID, channelID, clienttypes.NewHeight(2000, 1022),
-					1678733040575532477,
+					1693432290702126952,
 				)
 				key := host.PacketAcknowledgementKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
@@ -454,7 +473,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 		},
 		{
 			"delay time period has passed", func() {
-				delayTimePeriod = uint64(time.Second.Nanoseconds())
+				delayTimePeriod = uint64(time.Second.Nanoseconds() * 2)
 			},
 			true,
 		},
@@ -512,7 +531,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
 			suite.Require().True(ok)
 
-			delayTimePeriod = 0
+			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
 			delayBlockPeriod = 0
 
 			proofHeight = clienttypes.NewHeight(2000, 11)
@@ -535,7 +554,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 				UnbondingPeriod:              time.Second * 1814400,
 				MaxClockDrift:                time.Second * 15,
 				FrozenHeight:                 clienttypes.ZeroHeight(),
-				LatestHeight:                 clienttypes.NewHeight(0, 46),
+				LatestHeight:                 clienttypes.NewHeight(0, 41),
 				ProofSpecs:                   commitmenttypes.GetSDKSpecs(),
 				UpgradePath:                  []string{"upgrade", "upgradedIBCState"},
 				AllowUpdateAfterExpiry:       false,
@@ -890,7 +909,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 		},
 		{
 			"successful PacketCommitment verification of non membership", func() {
-				height = clienttypes.NewHeight(2000, 32)
+				height = clienttypes.NewHeight(2000, 44)
 				key := host.PacketCommitmentKey(portID, invalidChannelID, 1)
 				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
@@ -903,7 +922,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 		},
 		{
 			"successful Acknowledgement verification of non membership", func() {
-				height = clienttypes.NewHeight(2000, 29)
+				height = clienttypes.NewHeight(2000, 33)
 				key := host.PacketAcknowledgementKey(portID, invalidChannelID, 1)
 				merklePrefix := commitmenttypes.NewMerklePrefix([]byte(prefix))
 				merklePath := commitmenttypes.NewMerklePath(string(key))
@@ -983,7 +1002,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
 			suite.Require().True(ok)
 
-			delayTimePeriod = 0
+			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
 			delayBlockPeriod = 0
 			height = clienttypes.NewHeight(2000, 11)
 			key := host.FullClientStateKey(invalidClientID)

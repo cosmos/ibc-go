@@ -3,14 +3,17 @@ package keeper_test
 import (
 	"crypto/sha256"
 	"os"
+	"fmt"
 	"testing"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -96,4 +99,84 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 
 }
 
+func (suite *KeeperTestSuite) TestNewKeeper() {
+	testCases := []struct {
+		name          string
+		instantiateFn func()
+		expPass       bool
+		expError      error
+	}{
+		{
+			"success",
+			func() {
+				keeper.NewKeeperWithVM(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(types.StoreKey),
+					suite.chainA.GetSimApp().WasmClientKeeper.GetAuthority(),
+					types.WasmVM,
+				)
+			},
+			true,
+			nil,
+		},
+		{
+			"failure: empty authority",
+			func() {
+				keeper.NewKeeperWithVM(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(types.StoreKey),
+					"", // authority
+					types.WasmVM,
+				)
+			},
+			false,
+			fmt.Errorf("authority must be non-empty"),
+		},
+		{
+			"failure: nil wasm VM",
+			func() {
+				keeper.NewKeeperWithVM(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(types.StoreKey),
+					suite.chainA.GetSimApp().WasmClientKeeper.GetAuthority(),
+					nil,
+				)
+			},
+			false,
+			fmt.Errorf("wasm VM must be not nil"),
+		},
+		{
+			"failure: different VM instances",
+			func() {
+				vm, err := wasmvm.NewVM("", "", 16, true, 64)
+				suite.Require().NoError(err)
 
+				keeper.NewKeeperWithVM(
+					suite.chainA.GetSimApp().AppCodec(),
+					suite.chainA.GetSimApp().GetKey(types.StoreKey),
+					suite.chainA.GetSimApp().WasmClientKeeper.GetAuthority(),
+					vm,
+				)
+			},
+			false,
+			fmt.Errorf("global Wasm VM instance should not be set to a different instance"),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.SetupTest()
+
+		suite.Run(tc.name, func() {
+			if tc.expPass {
+				suite.Require().NotPanics(
+					tc.instantiateFn,
+				)
+			} else {
+				suite.Require().PanicsWithError(tc.expError.Error(), func() {
+					tc.instantiateFn()
+				})
+			}
+		})
+	}
+}

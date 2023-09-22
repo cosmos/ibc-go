@@ -126,7 +126,7 @@ type statusResult struct {
 // exportMetadataResult is the expected return type of the exportMetadataMsg query. It returns the exported metadata of the wasm client.
 type exportMetadataResult struct {
 	contractResult
-	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
+	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
 }
 
 // timestampAtHeightResult is the expected return type of the timestampAtHeightMsg query. It returns the timestamp for a light client
@@ -146,5 +146,5 @@ type checkForMisbehaviourResult struct {
 // updateStateResult is the expected return type of the updateStateMsg sudo call. It returns the updated consensus heights.
 type updateStateResult struct {
 	contractResult
-	Heights []exported.Height `json:"heights"`
+	Heights []clienttypes.Height `json:"heights"`
 }
