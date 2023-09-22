@@ -75,29 +75,29 @@ type ConnectionKeeper interface {
 	) error
 	VerifyChannelUpgrade(
 		ctx sdk.Context,
+		connection exported.ConnectionI,
+		height exported.Height,
+		proof []byte,
 		portID,
 		channelID string,
-		connection exported.ConnectionI,
 		upgrade Upgrade,
-		proof []byte,
-		height exported.Height,
 	) error
 	VerifyChannelUpgradeError(
 		ctx sdk.Context,
+		connection exported.ConnectionI,
+		proofHeight exported.Height,
+		proofErrorReceipt []byte,
 		portID,
 		channelID string,
-		connection exported.ConnectionI,
 		errorReceipt ErrorReceipt,
-		proofErrorReceipt []byte,
-		proofHeight exported.Height,
 	) error
 	VerifyChannelUpgradeErrorAbsence(
 		ctx sdk.Context,
+		connection exported.ConnectionI,
+		proofHeight exported.Height,
+		proofErrorReceiptAbsence []byte,
 		portID,
 		channelID string,
-		connection exported.ConnectionI,
-		proofErrorReceiptAbsence []byte,
-		proofHeight exported.Height,
 	) error
 }
 
