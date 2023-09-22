@@ -58,11 +58,13 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 		},
 	}
 
-	for _, spec := range testCases {
+	for _, tc := range testCases {
+		tc := tc
 		suite.SetupTest()
-		suite.Run(spec.name, func() {
+
+		suite.Run(tc.name, func() {
 			var expectedAllCodeHash []byte
-			for _, contractDir := range spec.wasmFiles {
+			for _, contractDir := range tc.wasmFiles {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 				code, _ := os.ReadFile(contractDir)
 				msg := types.NewMsgStoreCode(signer, code)

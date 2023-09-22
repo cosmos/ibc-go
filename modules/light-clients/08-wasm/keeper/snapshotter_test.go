@@ -33,8 +33,10 @@ func TestSnapshotter(t *testing.T) {
 		},
 	}
 
-	for _, spec := range testCases {
-		t.Run(spec.name, func(t *testing.T) {
+	for _, tc := range testCases {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
 			wasmClientApp := simapp.SetupWithSnapShotter(t)
 			ctx := wasmClientApp.NewUncachedContext(false, tmproto.Header{
 				ChainID: "foo",
@@ -45,7 +47,7 @@ func TestSnapshotter(t *testing.T) {
 			var srcChecksumCodes []byte
 			var codeHashes [][]byte
 			// store contract on chain
-			for _, contractDir := range spec.wasmFiles {
+			for _, contractDir := range tc.wasmFiles {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 				code, _ := os.ReadFile(contractDir)
 				msg := types.NewMsgStoreCode(signer, code)
