@@ -369,12 +369,12 @@ func (k Keeper) VerifyNextSequenceRecv(
 // VerifyChannelUpgradeError verifies a proof of the provided upgrade error receipt.
 func (k Keeper) VerifyChannelUpgradeError(
 	ctx sdk.Context,
+	connection exported.ConnectionI,
+	proofHeight exported.Height,
+	proofErrorReceipt []byte,
 	portID,
 	channelID string,
-	connection exported.ConnectionI,
 	errorReceipt channeltypes.ErrorReceipt,
-	proofErrorReceipt []byte,
-	proofHeight exported.Height,
 ) error {
 	clientID := connection.GetClientID()
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
@@ -412,11 +412,11 @@ func (k Keeper) VerifyChannelUpgradeError(
 // channel upgrade error.
 func (k Keeper) VerifyChannelUpgradeErrorAbsence(
 	ctx sdk.Context,
+	connection exported.ConnectionI,
+	proofHeight exported.Height,
+	proofErrorReceiptAbsence []byte,
 	portID,
 	channelID string,
-	connection exported.ConnectionI,
-	proofErrorReceiptAbsence []byte,
-	proofHeight exported.Height,
 ) error {
 	clientID := connection.GetClientID()
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
@@ -448,12 +448,12 @@ func (k Keeper) VerifyChannelUpgradeErrorAbsence(
 // VerifyChannelUpgrade verifies the proof that a particular proposed upgrade has been stored in the upgrade path.
 func (k Keeper) VerifyChannelUpgrade(
 	ctx sdk.Context,
+	connection exported.ConnectionI,
+	proofHeight exported.Height,
+	proofUpgrade []byte,
 	portID,
 	channelID string,
-	connection exported.ConnectionI,
 	upgrade channeltypes.Upgrade,
-	proofUpgrade []byte,
-	proofHeight exported.Height,
 ) error {
 	clientID := connection.GetClientID()
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
