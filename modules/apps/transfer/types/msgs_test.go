@@ -69,6 +69,8 @@ func TestMsgTransferValidation(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
@@ -101,6 +103,8 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
@@ -122,6 +126,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		msg := types.MsgUpdateParams{
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),

@@ -64,12 +64,15 @@ func (suite *LocalhostTestSuite) TestValidate() {
 	}
 
 	for _, tc := range testCases {
-		err := tc.clientState.Validate()
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+		tc := tc
+		suite.Run(tc.name, func() {
+			err := tc.clientState.Validate()
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
 	}
 }
 
@@ -92,18 +95,21 @@ func (suite *LocalhostTestSuite) TestInitialize() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
+			clientStore := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.LocalhostClientID)
+
+			err := clientState.Initialize(suite.chain.GetContext(), suite.chain.Codec, clientStore, tc.consState)
+
+			if tc.expPass {
+				suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
+			} else {
+				suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
+			}
+		})
 		suite.SetupTest()
 
-		clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
-		clientStore := suite.chain.GetSimApp().GetIBCKeeper().ClientKeeper.ClientStore(suite.chain.GetContext(), exported.LocalhostClientID)
-
-		err := clientState.Initialize(suite.chain.GetContext(), suite.chain.Codec, clientStore, tc.consState)
-
-		if tc.expPass {
-			suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
-		} else {
-			suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
-		}
 	}
 }
 

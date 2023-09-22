@@ -182,6 +182,8 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
