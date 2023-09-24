@@ -141,7 +141,7 @@ function HighlightBox({ type, title, children }) {
       <style>
         {`
           .highlightBox a {
-            color: ${styles.darkMode ? "#85c1e9" : "blue"} !important;
+            color: ${styles.darkMode ? "blue" : "#85c1e9"} !important;
           }
         `}
       </style>
