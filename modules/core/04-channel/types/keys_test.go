@@ -31,6 +31,7 @@ func TestParseChannelSequence(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 
 		seq, err := types.ParseChannelSequence(tc.channelID)
 		valid := types.IsValidChannelID(tc.channelID)

@@ -2,6 +2,7 @@ package simapp
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 
 	storetypes "cosmossdk.io/store/types"
@@ -209,7 +210,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
 		validator, err := app.StakingKeeper.GetValidator(ctx, addr)
 		if err != nil {
-			panic("expected validator, not found")
+			panic(errors.New("expected validator, not found"))
 		}
 
 		validator.UnbondingHeight = 0
@@ -219,7 +220,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 
 		err = app.StakingKeeper.SetValidator(ctx, validator)
 		if err != nil {
-			panic("couldn't set validator")
+			panic(errors.New("couldn't set validator"))
 		}
 		counter++
 	}

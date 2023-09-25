@@ -52,16 +52,21 @@ func (suite *TendermintTestSuite) TestStatus() {
 	}
 
 	for _, tc := range testCases {
-		path = ibctesting.NewPath(suite.chainA, suite.chainB)
-		suite.coordinator.SetupClients(path)
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-		clientState = path.EndpointA.GetClientState().(*ibctm.ClientState)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-		tc.malleate()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			clientState = path.EndpointA.GetClientState().(*ibctm.ClientState)
 
-		status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
-		suite.Require().Equal(tc.expStatus, status)
+			tc.malleate()
+
+			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+			suite.Require().Equal(tc.expStatus, status)
+		})
 
 	}
 }
@@ -166,12 +171,15 @@ func (suite *TendermintTestSuite) TestValidate() {
 	}
 
 	for _, tc := range testCases {
-		err := tc.clientState.Validate()
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
+		tc := tc
+		suite.Run(tc.name, func() {
+			err := tc.clientState.Validate()
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+			}
+		})
 	}
 }
 
@@ -194,30 +202,33 @@ func (suite *TendermintTestSuite) TestInitialize() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
-		path := ibctesting.NewPath(suite.chainA, suite.chainB)
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
-		tmConfig, ok := path.EndpointB.ClientConfig.(*ibctesting.TendermintConfig)
-		suite.Require().True(ok)
+			tmConfig, ok := path.EndpointB.ClientConfig.(*ibctesting.TendermintConfig)
+			suite.Require().True(ok)
 
-		clientState := ibctm.NewClientState(
-			path.EndpointB.Chain.ChainID,
-			tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-			suite.chainB.LastHeader.GetTrustedHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
-		)
+			clientState := ibctm.NewClientState(
+				path.EndpointB.Chain.ChainID,
+				tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+				suite.chainB.LastHeader.GetTrustedHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
+			)
 
-		store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-		err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, store, tc.consensusState)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, store, tc.consensusState)
 
-		if tc.expPass {
-			suite.Require().NoError(err, "valid case returned an error")
-			suite.Require().True(store.Has(host.ClientStateKey()))
-			suite.Require().True(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
-		} else {
-			suite.Require().Error(err, "invalid case didn't return an error")
-			suite.Require().False(store.Has(host.ClientStateKey()))
-			suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
-		}
+			if tc.expPass {
+				suite.Require().NoError(err, "valid case returned an error")
+				suite.Require().True(store.Has(host.ClientStateKey()))
+				suite.Require().True(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
+			} else {
+				suite.Require().Error(err, "invalid case didn't return an error")
+				suite.Require().False(store.Has(host.ClientStateKey()))
+				suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetTrustedHeight())))
+			}
+		})
 	}
 }
 
