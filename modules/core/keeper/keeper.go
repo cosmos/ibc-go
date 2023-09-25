@@ -14,7 +14,8 @@ import (
 	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v8/modules/core/03-connection/keeper"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+
+	// connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	portkeeper "github.com/cosmos/ibc-go/v8/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -46,13 +47,6 @@ func NewKeeper(
 	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
 ) *Keeper {
 	// register paramSpace at top level keeper
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		keyTable := clienttypes.ParamKeyTable()
-		keyTable.RegisterParamSet(&connectiontypes.Params{})
-		paramSpace = paramSpace.WithKeyTable(keyTable)
-	}
-
 	// panic if any of the keepers passed in is empty
 	if isEmpty(stakingKeeper) {
 		panic(fmt.Errorf("cannot initialize IBC keeper: empty staking keeper"))
