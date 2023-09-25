@@ -406,7 +406,7 @@ proto-check-breaking:
 
 TM_URL              = https://raw.githubusercontent.com/cometbft/cometbft/v0.34.29/proto/tendermint
 GOGO_PROTO_URL      = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
-ICS23_URL          = https://raw.githubusercontent.com/cosmos/ics23/release/v0.9.x
+ICS23_URL          = https://raw.githubusercontent.com/cosmos/ics23/carlos/cherrypick-%23136
 SDK_PROTO_URL 		= https://raw.githubusercontent.com/cosmos/cosmos-sdk/v0.45.16/proto/cosmos
 
 TM_CRYPTO_TYPES     = third_party/proto/tendermint/crypto

@@ -163,6 +163,10 @@ message ProofSpec {
   int32 max_depth = 3;
   // min_depth (if > 0) is the minimum number of InnerOps allowed (mainly for fixed-depth tries)
   int32 min_depth = 4;
+  // prehash_key_before_comparison is a flag that indicates whether to use the
+  // prehash_key specified by LeafOp to compare lexical ordering of keys for
+  // non-existence proofs.
+  bool prehash_key_before_comparison = 5;
 }
 
 /*
