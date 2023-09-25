@@ -2,12 +2,6 @@ package keeper_test
 
 import (
 	"fmt"
-	"reflect"
-
-	"cosmossdk.io/store/prefix"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
 	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
@@ -93,15 +87,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			"success: default params",
 			func() {
 				params := icacontrollertypes.DefaultParams()
-				sk := suite.chainA.GetSimApp().GetKey(paramtypes.StoreKey)
-				store := suite.chainA.GetContext().KVStore(sk)
-				controllerStore := prefix.NewStore(store, append([]byte(icacontrollertypes.SubModuleName), '/'))
-				enabled := reflect.Indirect(reflect.ValueOf(params.ControllerEnabled)).Interface()
-				aminoCodec := codec.NewLegacyAmino()
-				enabledBz, err := aminoCodec.MarshalJSON(enabled)
-				suite.Require().NoError(err)
-
-				controllerStore.Set(icacontrollertypes.KeyControllerEnabled, enabledBz)
+				subspace := suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
+				subspace.SetParamSet(suite.chainA.GetContext(), &params)                           // set params
 			},
 			icacontrollertypes.DefaultParams(),
 		},

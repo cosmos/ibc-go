@@ -1,13 +1,6 @@
 package keeper_test
 
 import (
-	"reflect"
-
-	"cosmossdk.io/store/prefix"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -24,15 +17,8 @@ func (suite *KeeperTestSuite) TestMigrateParams() {
 			"success: default params",
 			func() {
 				params := types.DefaultParams()
-				sk := suite.chainA.GetSimApp().GetKey(paramtypes.StoreKey)
-				store := suite.chainA.GetContext().KVStore(sk)
-				clientStore := prefix.NewStore(store, append([]byte(ibcexported.ModuleName), '/'))
-				v := reflect.Indirect(reflect.ValueOf(params.AllowedClients)).Interface()
-				aminoCodec := codec.NewLegacyAmino()
-				bz, err := aminoCodec.MarshalJSON(v)
-				suite.Require().NoError(err)
-
-				clientStore.Set(types.KeyAllowedClients, bz)
+				subspace := suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName)
+				subspace.SetParamSet(suite.chainA.GetContext(), &params)
 			},
 			types.DefaultParams(),
 		},

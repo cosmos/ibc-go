@@ -2,16 +2,12 @@ package keeper_test
 
 import (
 	"fmt"
-	"reflect"
 
 	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/store/prefix"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -28,21 +24,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			"success: default params",
 			func() {
 				params := transfertypes.DefaultParams()
-				sk := suite.chainA.GetSimApp().GetKey(paramtypes.StoreKey)
-				store := suite.chainA.GetContext().KVStore(sk)
-				transferStore := prefix.NewStore(store, append([]byte(transfertypes.ModuleName), '/'))
-				receiveEnabled := reflect.Indirect(reflect.ValueOf(params.ReceiveEnabled)).Interface()
-				aminoCodec := codec.NewLegacyAmino()
-				receiveEnabledBz, err := aminoCodec.MarshalJSON(receiveEnabled)
-				suite.Require().NoError(err)
-
-				transferStore.Set(transfertypes.KeyReceiveEnabled, receiveEnabledBz)
-
-				sendEnabled := reflect.Indirect(reflect.ValueOf(params.SendEnabled)).Interface()
-				sendEnabledBz, err := aminoCodec.MarshalJSON(sendEnabled)
-				suite.Require().NoError(err)
-
-				transferStore.Set(transfertypes.KeySendEnabled, sendEnabledBz)
+				subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName)
+				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
 			},
 			transfertypes.DefaultParams(),
 		},
