@@ -3,7 +3,6 @@ FROM golang:1.21-alpine3.18 as builder
 RUN set -eux; apk add --no-cache git libusb-dev linux-headers gcc musl-dev make;
 
 ENV GOPATH=""
-ENV GOMODULE="on"
 
 # Grab the static library and copy it to location that will be found by the linker flag `-lwasmvm_muslc`.
 # TODO: nice to have: a script to download version matching the wasmvm version in go.mod.
