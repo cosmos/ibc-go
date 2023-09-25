@@ -283,10 +283,12 @@ setup-pre-commit:
 	@ln -sf ../../scripts/hooks/pre-commit.sh .git/hooks/pre-commit
 
 lint:
-	golangci-lint run --out-format=tab
+	@echo "--> Running linter"
+	@./scripts/go-lint-all.sh --timeout=15m
 
 lint-fix:
-	golangci-lint run --fix --out-format=tab --issues-exit-code=0
+	@echo "--> Running linter"
+	@./scripts/go-lint-all.sh --fix
 
 format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
