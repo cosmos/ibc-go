@@ -194,7 +194,7 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
-	state, err := chain.ExportState(ctx, int64(haltHeight))
+	state, err := chain.ExportState(ctx, haltHeight)
 	s.Require().NoError(err)
 
 	appTomlOverrides := make(test.Toml)
