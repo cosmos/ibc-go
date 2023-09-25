@@ -58,6 +58,8 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.SetupTest()
 		suite.coordinator.Setup(suite.path)
 
@@ -131,6 +133,8 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.SetupTest()
 		suite.coordinator.Setup(suite.path) // setup channel
 

@@ -67,32 +67,37 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
+		tc := tc
 
-		path := NewICAPath(suite.chainA, suite.chainB)
-		suite.coordinator.SetupConnections(path)
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-		msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+			path := NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
-		tc.malleate()
+			msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 
-		ctx := suite.chainA.GetContext()
-		msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-		res, err := msgServer.RegisterInterchainAccount(ctx, msg)
+			tc.malleate()
 
-		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
-			suite.Require().Equal(expectedChannelID, res.ChannelId)
+			ctx := suite.chainA.GetContext()
+			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+			res, err := msgServer.RegisterInterchainAccount(ctx, msg)
 
-			events := ctx.EventManager().Events()
-			suite.Require().Len(events, 2)
-			suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
-			suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
-		} else {
-			suite.Require().Error(err)
-			suite.Require().Nil(res)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expectedChannelID, res.ChannelId)
+
+				events := ctx.EventManager().Events()
+				suite.Require().Len(events, 2)
+				suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
+				suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+		})
+
 	}
 }
 
@@ -239,6 +244,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 
 	for _, tc := range testCases {
 		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			_, err := suite.chainA.GetSimApp().ICAControllerKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)

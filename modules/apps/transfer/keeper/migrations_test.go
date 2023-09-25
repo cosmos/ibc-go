@@ -49,6 +49,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -148,6 +149,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateTraces() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -236,6 +238,8 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 

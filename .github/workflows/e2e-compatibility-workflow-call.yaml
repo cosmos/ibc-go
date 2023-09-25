@@ -57,7 +57,7 @@ jobs:
           CHAIN_A_TAG: '${{ matrix.chain-a }}'
           CHAIN_B_TAG: '${{ matrix.chain-b }}'
           CHAIN_BINARY: 'simd'
-          RELAYER_TYPE: '${{ matrix.relayer-type }}'
+          RELAYER_ID: '${{ matrix.relayer-type }}'
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v3
         # we only want to upload logs on test failures.

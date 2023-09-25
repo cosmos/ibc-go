@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -109,7 +110,7 @@ func (k Keeper) GetNextChannelSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.KeyNextChannelSequence))
 	if len(bz) == 0 {
-		panic("next channel sequence is nil")
+		panic(errors.New("next channel sequence is nil"))
 	}
 
 	return sdk.BigEndianToUint64(bz)

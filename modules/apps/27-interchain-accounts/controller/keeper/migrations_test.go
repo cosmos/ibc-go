@@ -50,6 +50,8 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -106,6 +108,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 

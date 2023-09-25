@@ -74,14 +74,14 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 				Signer: authority.String(),
 				Params: controllertypes.NewParams(false),
 			}
-			s.ExecuteGovV1Proposal(ctx, &msg, chainA, controllerAccount)
+			s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainA, controllerAccount)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(controllertypes.StoreKey, string(controllertypes.KeyControllerEnabled), "false"),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal)
 		}
 	})
 
@@ -131,14 +131,14 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 				Signer: authority.String(),
 				Params: hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
 			}
-			s.ExecuteGovV1Proposal(ctx, &msg, chainB, chainBUser)
+			s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainB, chainBUser)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(hosttypes.StoreKey, string(hosttypes.KeyHostEnabled), "false"),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal)
 		}
 	})
 
