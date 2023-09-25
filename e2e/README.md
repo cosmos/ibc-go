@@ -375,7 +375,7 @@ json matrix files under .github/compatibility-test-matrices and is equivalent to
 
 ## Importable Workflow
 
-This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/bc963bcfd115a0e06b8196b114496db5ea011247/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
+This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/185a220244663457372185992cfc85ed9e458bf1/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
 can be used to test both non-IBC chains, and also IBC-enabled chains.
 
 ### Prerequisites
