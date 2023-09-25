@@ -122,19 +122,19 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	m := keeper.NewMigrator(am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.MigrateTraces); err != nil {
-		panic(fmt.Sprintf("failed to migrate transfer app from version 1 to 2 (denom trace format migration): %v", err))
+		panic(fmt.Errorf("failed to migrate transfer app from version 1 to 2 (denom trace format migration): %v", err))
 	}
 
 	if err := cfg.RegisterMigration(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {
-		panic(fmt.Sprintf("failed to migrate transfer app from version 2 to 3 (total escrow entry migration): %v", err))
+		panic(fmt.Errorf("failed to migrate transfer app from version 2 to 3 (total escrow entry migration): %v", err))
 	}
 
 	if err := cfg.RegisterMigration(types.ModuleName, 3, m.MigrateParams); err != nil {
-		panic(fmt.Sprintf("failed to migrate transfer app version 3 to 4 (self-managed params migration): %v", err))
+		panic(fmt.Errorf("failed to migrate transfer app version 3 to 4 (self-managed params migration): %v", err))
 	}
 
 	if err := cfg.RegisterMigration(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
-		panic(fmt.Sprintf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %v", err))
+		panic(fmt.Errorf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %v", err))
 	}
 }
 

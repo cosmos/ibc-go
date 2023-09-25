@@ -294,16 +294,19 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	}
 
 	for _, tc := range testCases {
-		tc.malleate()
+		tc := tc
+		suite.Run(tc.name, func() {
+			tc.malleate()
 
-		packetData, err := transfer.IBCModule{}.UnmarshalPacketData(data)
+			packetData, err := transfer.IBCModule{}.UnmarshalPacketData(data)
 
-		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().Equal(expPacketData, packetData)
-		} else {
-			suite.Require().Error(err)
-			suite.Require().Nil(packetData)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expPacketData, packetData)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(packetData)
+			}
+		})
 	}
 }

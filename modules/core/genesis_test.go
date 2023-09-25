@@ -306,6 +306,8 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		app := simapp.Setup(suite.T(), false)
 
 		suite.NotPanics(func() {
@@ -332,6 +334,8 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest()
 

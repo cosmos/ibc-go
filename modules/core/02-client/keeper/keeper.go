@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -115,7 +116,7 @@ func (k Keeper) GetNextClientSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.KeyNextClientSequence))
 	if len(bz) == 0 {
-		panic("next client sequence is nil")
+		panic(errors.New("next client sequence is nil"))
 	}
 
 	return sdk.BigEndianToUint64(bz)
@@ -420,7 +421,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil { // only panic on unset params and not on empty params
-		panic("client params are not set in store")
+		panic(errors.New("client params are not set in store"))
 	}
 
 	var params types.Params
