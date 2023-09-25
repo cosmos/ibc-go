@@ -10,6 +10,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -22,7 +23,19 @@ var (
 	// is allowed to be instantiated.
 	WasmStoreKey  storetypes.StoreKey
 	VMGasRegister = NewDefaultWasmGasRegister()
+	storeKeyMap   = make(map[codec.BinaryCodec]storetypes.StoreKey)
 )
+
+func SetWasmStoreKey(key codec.BinaryCodec, storeKey storetypes.StoreKey) {
+	storeKeyMap[key] = storeKey
+}
+
+func GetWasmStoreKey(key codec.BinaryCodec) storetypes.StoreKey {
+	if storeKey, ok := storeKeyMap[key]; ok {
+		return storeKey
+	}
+	panic(errors.New("store key not set"))
+}
 
 // initContract calls vm.Init with appropriate arguments.
 func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {

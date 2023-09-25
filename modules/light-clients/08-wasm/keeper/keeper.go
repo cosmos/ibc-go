@@ -43,7 +43,7 @@ func NewKeeperWithVM(
 	}
 
 	types.WasmVM = vm
-	types.WasmStoreKey = key
+	types.SetWasmStoreKey(cdc, key)
 
 	return Keeper{
 		cdc:       cdc,

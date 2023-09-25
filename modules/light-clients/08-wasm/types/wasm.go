@@ -9,7 +9,8 @@ import (
 
 // GetCodeHashes returns all the code hashes stored.
 func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) CodeHashes {
-	store := ctx.KVStore(WasmStoreKey)
+	wasmStoreKey := GetWasmStoreKey(cdc)
+	store := ctx.KVStore(wasmStoreKey)
 	bz := store.Get([]byte(KeyCodeHashes))
 	if len(bz) == 0 {
 		return CodeHashes{}
@@ -24,7 +25,8 @@ func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) {
 	hashes := GetCodeHashes(ctx, cdc)
 	hashes.CodeHashes = append(hashes.CodeHashes, codeHash)
 
-	store := ctx.KVStore(WasmStoreKey)
+	wasmStoreKey := GetWasmStoreKey(cdc)
+	store := ctx.KVStore(wasmStoreKey)
 	bz := cdc.MustMarshal(&hashes)
 	store.Set([]byte(KeyCodeHashes), bz)
 }
