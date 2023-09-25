@@ -226,7 +226,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 
 	t.Run("pass client update proposal", func(t *testing.T) {
 		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
-		s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
+		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 	})
 
 	t.Run("check status of each client", func(t *testing.T) {
