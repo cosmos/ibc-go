@@ -13,7 +13,7 @@ on:
 
 jobs:
   upgrade-v5-hermes:
-    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    uses: .github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
@@ -27,7 +27,7 @@ jobs:
       relayer-type: hermes
 
   upgrade-v7-hermes:
-    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    uses: .github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
@@ -41,7 +41,7 @@ jobs:
       relayer-type: hermes
 
   upgrade-v7_1-hermes:
-    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    uses: .github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
@@ -55,7 +55,7 @@ jobs:
       relayer-type: hermes
 
   upgrade-v8-hermes:
-    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    uses: .github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
@@ -69,7 +69,7 @@ jobs:
       relayer-type: hermes
 
   upgrade-v5-rly:
-    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    uses: .github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
@@ -85,7 +85,7 @@ jobs:
       relayer-tag: latest
 
   upgrade-v7-rly:
-    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    uses: .github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
@@ -101,7 +101,7 @@ jobs:
       relayer-tag: latest
 
   upgrade-v7_1-rly:
-    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    uses: .github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
@@ -117,7 +117,7 @@ jobs:
       relayer-tag: latest
 
   upgrade-v8-rly:
-    uses: cosmos/ibc-go/.github/workflows/e2e-test-workflow-call.yml@main
+    uses: .github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-binary: simd
