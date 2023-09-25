@@ -21,7 +21,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.HostGenesisS
 
 		// use the host scoped keeper to claim the port capability
 		if err := keeper.ClaimCapability(ctx, capability, host.PortPath(state.Port)); err != nil {
-			panic(fmt.Sprintf("could not claim port capability: %v", err))
+			panic(fmt.Errorf("could not claim port capability: %v", err))
 		}
 	}
 
@@ -34,7 +34,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.HostGenesisS
 	}
 
 	if err := state.Params.Validate(); err != nil {
-		panic(fmt.Sprintf("could not set ica host params at genesis: %v", err))
+		panic(fmt.Errorf("could not set ica host params at genesis: %v", err))
 	}
 	keeper.SetParams(ctx, state.Params)
 }
