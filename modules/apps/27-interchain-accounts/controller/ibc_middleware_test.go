@@ -489,6 +489,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			isNilApp = false
@@ -619,6 +621,8 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 			isNilApp = false
@@ -712,6 +716,8 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 			isNilApp = false
@@ -775,6 +781,8 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 

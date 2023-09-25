@@ -28,7 +28,7 @@ func NewDecodeStore(cdc TransferUnmarshaler) func(kvA, kvB kv.Pair) string {
 			return fmt.Sprintf("DenomTrace A: %s\nDenomTrace B: %s", denomTraceA.IBCDenom(), denomTraceB.IBCDenom())
 
 		default:
-			panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))
+			panic(fmt.Errorf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))
 		}
 	}
 }

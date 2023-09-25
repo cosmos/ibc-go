@@ -275,7 +275,7 @@ func (k Keeper) WriteOpenAckChannel(
 ) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanOpenAck step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanOpenAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	channel.State = types.OPEN
@@ -351,7 +351,7 @@ func (k Keeper) WriteOpenConfirmChannel(
 ) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanOpenConfirm step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanOpenConfirm step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	channel.State = types.OPEN

@@ -74,15 +74,17 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 	for i, tc := range testCases {
 		tc := tc
 
-		// check just to increase coverage
-		suite.Require().Equal(exported.Tendermint, tc.consensusState.ClientType())
-		suite.Require().Equal(tc.consensusState.GetRoot(), tc.consensusState.Root)
+		suite.Run(tc.msg, func() {
+			// check just to increase coverage
+			suite.Require().Equal(exported.Tendermint, tc.consensusState.ClientType())
+			suite.Require().Equal(tc.consensusState.GetRoot(), tc.consensusState.Root)
 
-		err := tc.consensusState.ValidateBasic()
-		if tc.expectPass {
-			suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.msg)
-		} else {
-			suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.msg)
-		}
+			err := tc.consensusState.ValidateBasic()
+			if tc.expectPass {
+				suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.msg)
+			} else {
+				suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.msg)
+			}
+		})
 	}
 }

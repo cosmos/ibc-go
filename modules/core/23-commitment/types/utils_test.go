@@ -84,6 +84,8 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 	}
 
 	for _, tc := range testcases {
+		tc := tc
+
 		tc.malleate()
 
 		proof, err := types.ConvertProofs(proofOps)

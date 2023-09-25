@@ -104,6 +104,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
@@ -159,6 +161,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
@@ -205,6 +209,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
@@ -227,6 +233,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
@@ -262,6 +270,8 @@ func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
@@ -283,6 +293,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		msg := types.MsgUpdateParams{
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
