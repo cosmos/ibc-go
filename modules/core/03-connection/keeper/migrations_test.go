@@ -1,11 +1,6 @@
 package keeper_test
 
 import (
-
-	// "cosmossdk.io/store/prefix"
-
-	// "reflect"
-
 	"reflect"
 
 	"cosmossdk.io/store/prefix"
@@ -39,7 +34,6 @@ func (suite *KeeperTestSuite) TestMigrateParams() {
 				suite.Require().NoError(err)
 
 				connectionStore.Set(types.KeyMaxExpectedTimePerBlock, bz)
-
 			},
 			types.DefaultParams(),
 		},

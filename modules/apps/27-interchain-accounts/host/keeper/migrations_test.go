@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"cosmossdk.io/store/prefix"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -37,7 +38,6 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 				suite.Require().NoError(err)
 
 				hostStore.Set(icahosttypes.KeyAllowMessages, allowListBz)
-
 			},
 			icahosttypes.DefaultParams(),
 		},
