@@ -24,7 +24,7 @@ func NewDecodeStore() func(kvA, kvB kv.Pair) string {
 			return fmt.Sprintf("IsMiddlewareEnabled A: %s\nIsMiddlewareEnabled B: %s", string(kvA.Value), string(kvB.Value))
 
 		default:
-			panic(fmt.Sprintf("invalid %s key prefix %s", types.ModuleName, kvA.Key))
+			panic(fmt.Errorf("invalid %s key prefix %s", types.ModuleName, kvA.Key))
 		}
 	}
 }

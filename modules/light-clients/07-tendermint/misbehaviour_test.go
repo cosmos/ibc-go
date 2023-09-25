@@ -224,13 +224,15 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 	for i, tc := range testCases {
 		tc := tc
 
-		err := tc.malleateMisbehaviour(tc.misbehaviour)
-		suite.Require().NoError(err)
+		suite.Run(tc.name, func() {
+			err := tc.malleateMisbehaviour(tc.misbehaviour)
+			suite.Require().NoError(err)
 
-		if tc.expPass {
-			suite.Require().NoError(tc.misbehaviour.ValidateBasic(), "valid test case %d failed: %s", i, tc.name)
-		} else {
-			suite.Require().Error(tc.misbehaviour.ValidateBasic(), "invalid test case %d passed: %s", i, tc.name)
-		}
+			if tc.expPass {
+				suite.Require().NoError(tc.misbehaviour.ValidateBasic(), "valid test case %d failed: %s", i, tc.name)
+			} else {
+				suite.Require().Error(tc.misbehaviour.ValidateBasic(), "invalid test case %d passed: %s", i, tc.name)
+			}
+		})
 	}
 }

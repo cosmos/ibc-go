@@ -37,6 +37,8 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			require.NoError(t, err)
@@ -57,6 +59,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		msg := types.NewMsgUpdateParams(tc.address.String(), types.DefaultParams())
 		if tc.expPass {
 			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())

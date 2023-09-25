@@ -924,12 +924,15 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		err := tc.msg.ValidateBasic()
-		if tc.expPass {
-			suite.Require().NoError(err, "valid case %s failed", tc.name)
-		} else {
-			suite.Require().Error(err, "invalid case %s passed", tc.name)
-		}
+		tc := tc
+		suite.Run(tc.name, func() {
+			err := tc.msg.ValidateBasic()
+			if tc.expPass {
+				suite.Require().NoError(err, "valid case %s failed", tc.name)
+			} else {
+				suite.Require().Error(err, "invalid case %s passed", tc.name)
+			}
+		})
 	}
 }
 
@@ -945,16 +948,19 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		msg := types.MsgUpdateParams{
-			Signer: tc.address.String(),
-			Params: types.DefaultParams(),
-		}
-		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
-		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
-		}
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			msg := types.MsgUpdateParams{
+				Signer: tc.address.String(),
+				Params: types.DefaultParams(),
+			}
+			if tc.expPass {
+				require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+			} else {
+				require.Panics(t, func() {
+					msg.GetSigners()
+				})
+			}
+		})
 	}
 }

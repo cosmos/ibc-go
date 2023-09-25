@@ -65,6 +65,8 @@ func (suite *GenesisTypesTestSuite) TestValidateGenesisState() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			genesisState = *genesistypes.DefaultGenesis()
 
@@ -188,6 +190,8 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			genesisState = genesistypes.DefaultControllerGenesis()
 
@@ -311,6 +315,8 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			genesisState = genesistypes.DefaultHostGenesis()
 

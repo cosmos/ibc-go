@@ -126,7 +126,7 @@ func (k Keeper) sendTransfer(
 			// NOTE: should not happen as the module account was
 			// retrieved on the step above and it has enough balace
 			// to burn.
-			panic(fmt.Sprintf("cannot burn coins after a successful send to a module account: %v", err))
+			panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
 		}
 	}
 
@@ -367,7 +367,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	}
 
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(token)); err != nil {
-		panic(fmt.Sprintf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+		panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 	}
 
 	return nil
