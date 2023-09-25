@@ -3,9 +3,10 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/stretchr/testify/require"
 
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
