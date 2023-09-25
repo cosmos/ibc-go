@@ -52,7 +52,7 @@ options specified in your config file.
 | CHAIN_B_TAG          | The tag used for chain A                  | latest        |
 | CHAIN_BINARY         | The binary used in the container          | simd          |
 | RELAYER_TAG          | The tag used for the relayer              | main          |
-| RELAYER_ID            | The type of relayer to use (rly/hermes)   | rly           |
+| RELAYER_ID            | The type of relayer to use (rly/hermes)   | hermes           |
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
