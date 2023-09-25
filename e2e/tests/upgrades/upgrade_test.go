@@ -59,7 +59,7 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	}
 
 	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion), "upgrade chain E2E test", plan)
-	s.ExecuteGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
+	s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
 
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height before upgrade")
@@ -561,7 +561,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 		s.Require().NotNil(authority)
 
 		msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(exported.Tendermint, "some-client"))
-		s.ExecuteGovV1Proposal(ctx, msg, chainB, chainBWallet)
+		s.ExecuteAndPassGovV1Proposal(ctx, msg, chainB, chainBWallet)
 	})
 
 	t.Run("query params", func(t *testing.T) {
