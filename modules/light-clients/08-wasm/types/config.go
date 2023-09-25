@@ -29,7 +29,7 @@ type WasmConfig struct {
 }
 
 // DefaultWasmConfig returns the default settings for WasmConfig.
-// homePath is the path to the directory where the data directory for
+// The homePath is the path to the directory where the data directory for
 // Wasm blobs and caches will be stored.
 func DefaultWasmConfig(homePath string) WasmConfig {
 	return WasmConfig{
