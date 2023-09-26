@@ -2,10 +2,10 @@ package types
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // DefaultAllowedClients are the default clients for the AllowedClients parameter.
@@ -30,7 +30,7 @@ func (p Params) Validate() error {
 
 // IsAllowedClient checks if the given client type is registered on the allowlist.
 func (p Params) IsAllowedClient(clientType string) bool {
-	return collections.Contains(clientType, p.AllowedClients)
+	return slices.Contains(p.AllowedClients, clientType)
 }
 
 // validateClients checks that the given clients are not blank.

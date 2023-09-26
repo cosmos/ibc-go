@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"reflect"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -10,11 +11,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // ChanUpgradeInit is called by a module to initiate a channel upgrade handshake with
@@ -223,7 +223,7 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !collections.Contains(channel.State, []types.State{types.OPEN, types.FLUSHING}) {
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING}, channel.State) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.OPEN, types.FLUSHING, channel.State)
 	}
 
@@ -353,7 +353,7 @@ func (k Keeper) ChanUpgradeConfirm(
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.FLUSHING, channel.State)
 	}
 
-	if !collections.Contains(counterpartyChannelState, []types.State{types.FLUSHING, types.FLUSHCOMPLETE}) {
+	if !slices.Contains([]types.State{types.FLUSHING, types.FLUSHCOMPLETE}, counterpartyChannelState) {
 		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "expected one of [%s, %s], got %s", types.FLUSHING, types.FLUSHCOMPLETE, counterpartyChannelState)
 	}
 
@@ -639,7 +639,7 @@ func (k Keeper) ChanUpgradeTimeout(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !collections.Contains(channel.State, []types.State{types.FLUSHING, types.FLUSHCOMPLETE}) {
+	if !slices.Contains([]types.State{types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s], got %s", types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
 	}
 
@@ -678,7 +678,7 @@ func (k Keeper) ChanUpgradeTimeout(
 	}
 
 	// counterparty channel must be proved to still be in OPEN state or FLUSHING state.
-	if !collections.Contains(counterpartyChannel.State, []types.State{types.OPEN, types.FLUSHING}) {
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING}, counterpartyChannel.State) {
 		return errorsmod.Wrapf(types.ErrInvalidCounterparty, "expected one of [%s, %s], got %s", types.OPEN, types.FLUSHING, counterpartyChannel.State)
 	}
 

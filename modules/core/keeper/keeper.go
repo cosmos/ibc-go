@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"fmt"
+	"errors"
 	"reflect"
+	"strings"
 
 	storetypes "cosmossdk.io/store/types"
 
@@ -10,14 +11,14 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectionkeeper "github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
-	portkeeper "github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/types"
+	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v8/modules/core/03-connection/keeper"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
+	portkeeper "github.com/cosmos/ibc-go/v8/modules/core/05-port/keeper"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -54,14 +55,18 @@ func NewKeeper(
 
 	// panic if any of the keepers passed in is empty
 	if isEmpty(stakingKeeper) {
-		panic(fmt.Errorf("cannot initialize IBC keeper: empty staking keeper"))
+		panic(errors.New("cannot initialize IBC keeper: empty staking keeper"))
 	}
 	if isEmpty(upgradeKeeper) {
-		panic(fmt.Errorf("cannot initialize IBC keeper: empty upgrade keeper"))
+		panic(errors.New("cannot initialize IBC keeper: empty upgrade keeper"))
 	}
 
 	if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
-		panic(fmt.Errorf("cannot initialize IBC keeper: empty scoped keeper"))
+		panic(errors.New("cannot initialize IBC keeper: empty scoped keeper"))
+	}
+
+	if strings.TrimSpace(authority) == "" {
+		panic(errors.New("authority must be non-empty"))
 	}
 
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
@@ -88,7 +93,7 @@ func (k Keeper) Codec() codec.BinaryCodec {
 // there is an existing router that's already sealed.
 func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	if k.Router != nil && k.Router.Sealed() {
-		panic("cannot reset a sealed router")
+		panic(errors.New("cannot reset a sealed router"))
 	}
 
 	k.PortKeeper.Router = rtr

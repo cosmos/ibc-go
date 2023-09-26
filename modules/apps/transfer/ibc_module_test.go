@@ -7,12 +7,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *TransferTestSuite) TestOnChanOpenInit() {
@@ -508,16 +508,19 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	}
 
 	for _, tc := range testCases {
-		tc.malleate()
+		tc := tc
+		suite.Run(tc.name, func() {
+			tc.malleate()
 
-		packetData, err := transfer.IBCModule{}.UnmarshalPacketData(data)
+			packetData, err := transfer.IBCModule{}.UnmarshalPacketData(data)
 
-		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().Equal(expPacketData, packetData)
-		} else {
-			suite.Require().Error(err)
-			suite.Require().Nil(packetData)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expPacketData, packetData)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(packetData)
+			}
+		})
 	}
 }

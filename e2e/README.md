@@ -25,7 +25,7 @@
 ## Adding a new test
 
 All tests should go under the [e2e](https://github.com/cosmos/ibc-go/tree/main/e2e) directory. When adding a new test, either add a new test function
-to an existing test suite **_in the same file_**, or create a new test suite in a new file and add test functions there.
+to an existing test suite ***in the same file***, or create a new test suite in a new file and add test functions there.
 New test files should follow the convention of `module_name_test.go`.
 
 New test suites should be composed of `testsuite.E2ETestSuite`. This type has lots of useful helper functionality that will
@@ -52,7 +52,7 @@ options specified in your config file.
 | CHAIN_B_TAG          | The tag used for chain A                  | latest        |
 | CHAIN_BINARY         | The binary used in the container          | simd          |
 | RELAYER_TAG          | The tag used for the relayer              | main          |
-| RELAYER_TYPE         | The type of relayer to use (rly/hermes)   | rly           |
+| RELAYER_ID            | The type of relayer to use (rly/hermes)   | hermes           |
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
@@ -72,7 +72,6 @@ export CHAIN_BINARY="simd"
 # We can also specify different values for the chains if needed.
 # they will default to the same as chain a.
 # export CHAIN_B_TAG="main"
-# export CHAIN_BINARY="icad"
 
 export RELAYER_TAG="v2.0.0"
 make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
@@ -370,7 +369,7 @@ json matrix files under .github/compatibility-test-matrices and is equivalent to
 
 ### Accessing Logs
 
-- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There 
+- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There
   may be some discrepancy in the logs collected and the output of interchain test. The containers may run for a some
   time after the logs are collected, resulting in the displayed logs to differ slightly.
 

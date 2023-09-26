@@ -5,15 +5,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const (
@@ -126,21 +126,25 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 		}
 
 		for _, tc := range testCases {
-			suite.SetupTest()
+			tc := tc
 
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine")
-			err := sm.ClientState().Initialize(
-				suite.chainA.GetContext(), suite.chainA.Codec,
-				store, tc.consState,
-			)
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
 
-			if tc.expPass {
-				suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
-				suite.Require().True(store.Has(host.ClientStateKey()))
-			} else {
-				suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
-				suite.Require().False(store.Has(host.ClientStateKey()))
-			}
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine")
+				err := sm.ClientState().Initialize(
+					suite.chainA.GetContext(), suite.chainA.Codec,
+					store, tc.consState,
+				)
+
+				if tc.expPass {
+					suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
+					suite.Require().True(store.Has(host.ClientStateKey()))
+				} else {
+					suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
+					suite.Require().False(store.Has(host.ClientStateKey()))
+				}
+			})
 		}
 	}
 }

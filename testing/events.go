@@ -2,16 +2,16 @@ package ibctesting
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 type EventsMap map[string]map[string]string
@@ -185,7 +185,7 @@ func AssertEvents(
 				for _, expectedAttr := range expectedEvent.Attributes {
 					// any expected attributes that are not contained in the actual events will cause this event
 					// not to match
-					attributeMatch = attributeMatch && collections.Contains(expectedAttr, actualEvent.Attributes)
+					attributeMatch = attributeMatch && slices.Contains(actualEvent.Attributes, expectedAttr)
 				}
 
 				if attributeMatch {

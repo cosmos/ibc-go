@@ -9,7 +9,7 @@ import (
 
 	crypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 )
 
 func (suite *MerkleTestSuite) TestConvertProofs() {
@@ -84,6 +84,8 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 	}
 
 	for _, tc := range testcases {
+		tc := tc
+
 		tc.malleate()
 
 		proof, err := types.ConvertProofs(proofOps)

@@ -2,16 +2,16 @@ package types
 
 import (
 	"encoding/base64"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 var (
@@ -25,6 +25,17 @@ var (
 	_ sdk.Msg = (*MsgAcknowledgement)(nil)
 	_ sdk.Msg = (*MsgTimeout)(nil)
 	_ sdk.Msg = (*MsgTimeoutOnClose)(nil)
+
+	_ sdk.HasValidateBasic = (*MsgChannelOpenInit)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelOpenTry)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelOpenAck)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelOpenConfirm)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelCloseInit)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelCloseConfirm)(nil)
+	_ sdk.HasValidateBasic = (*MsgRecvPacket)(nil)
+	_ sdk.HasValidateBasic = (*MsgAcknowledgement)(nil)
+	_ sdk.HasValidateBasic = (*MsgTimeout)(nil)
+	_ sdk.HasValidateBasic = (*MsgTimeoutOnClose)(nil)
 )
 
 // NewMsgChannelOpenInit creates a new MsgChannelOpenInit. It sets the counterparty channel
@@ -657,7 +668,7 @@ func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
 		return ErrInvalidChannelIdentifier
 	}
 
-	if !collections.Contains(msg.CounterpartyChannelState, []State{FLUSHING, FLUSHCOMPLETE}) {
+	if !slices.Contains([]State{FLUSHING, FLUSHCOMPLETE}, msg.CounterpartyChannelState) {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: %s or %s, got: %s", FLUSHING, FLUSHCOMPLETE, msg.CounterpartyChannelState)
 	}
 
@@ -723,7 +734,7 @@ func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
 	}
 
-	if !collections.Contains(msg.CounterpartyChannelState, []State{FLUSHCOMPLETE, OPEN}) {
+	if !slices.Contains([]State{FLUSHCOMPLETE, OPEN}, msg.CounterpartyChannelState) {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", FLUSHCOMPLETE, OPEN, msg.CounterpartyChannelState)
 	}
 
@@ -779,7 +790,7 @@ func (msg MsgChannelUpgradeTimeout) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
 	}
 
-	if !collections.Contains(msg.CounterpartyChannel.State, []State{FLUSHING, OPEN}) {
+	if !slices.Contains([]State{FLUSHING, OPEN}, msg.CounterpartyChannel.State) {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected counterparty channel state to be one of: [%s, %s], got: %s", FLUSHING, OPEN, msg.CounterpartyChannel.State)
 	}
 
