@@ -193,19 +193,8 @@ $(CHECK_TEST_TARGETS): EXTRA_ARGS=-run=none
 $(CHECK_TEST_TARGETS): run-tests
 
 ARGS += -tags "$(test_tags)"
-SUB_MODULES = $(shell find . -type f -name 'go.mod' -print0 | xargs -0 -n1 dirname | sort)
-CURRENT_DIR = $(shell pwd)
-run-tests:
-	@echo "Starting unit tests"; \
-	finalec=0; \
-	for module in $(SUB_MODULES); do \
-		cd ${CURRENT_DIR}/$$module; \
-		echo "Running unit tests for $$(grep '^module' go.mod)"; \
-		go test -mod=readonly $(ARGS) $(EXTRA_ARGS) $(TEST_PACKAGES) ./... ; \
-		ec=$$?; \
-		if [ "$$ec" -ne '0' ]; then finalec=$$ec; fi; \
-	done; \
-	exit $$finalec
+run-tests: 
+	@ARGS="$(ARGS)" TEST_PACKAGES=$(TEST_PACKAGES) EXTRA_ARGS="$(EXTRA_ARGS)" python ./scripts/go-test-all.py
 
 .PHONY: run-tests test test-all $(TEST_TARGETS)
 
