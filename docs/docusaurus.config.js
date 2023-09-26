@@ -240,7 +240,7 @@ const config = {
         ],
       },
     }),
-  themes: ["@you54f/theme-github-codeblock"],
+  themes: ["@saucelabs/theme-github-codeblock"],
   plugins: [
     [
       "@docusaurus/plugin-content-docs",
