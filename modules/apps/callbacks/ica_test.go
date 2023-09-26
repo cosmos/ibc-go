@@ -78,6 +78,8 @@ func (s *CallbacksTestSuite) TestICACallbacks() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		s.Run(tc.name, func() {
 			icaAddr := s.SetupICATest()
 
@@ -128,6 +130,8 @@ func (s *CallbacksTestSuite) TestICATimeoutCallbacks() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		s.Run(tc.name, func() {
 			icaAddr := s.SetupICATest()
 
