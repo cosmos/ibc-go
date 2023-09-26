@@ -24,7 +24,7 @@ Genesis restarts still require the usage of an IBC upgrade proposal in order to 
 
 ### Step-by-Step Upgrade Process for SDK Chains
 
-If the IBC-connected chain is conducting an upgrade that will break counterparty clients, it must ensure that the upgrade is first supported by IBC using the [IBC Client Breaking Upgrade List](https://github.com/cosmos/ibc-go/blob/main/docs/ibc/upgrades/quick-guide.md#ibc-client-breaking-upgrades) and then execute the upgrade process described below in order to prevent counterparty clients from breaking.
+If the IBC-connected chain is conducting an upgrade that will break counterparty clients, it must ensure that the upgrade is first supported by IBC using the [IBC Client Breaking Upgrade List](./01-quick-guide.md#ibc-client-breaking-upgrades) and then execute the upgrade process described below in order to prevent counterparty clients from breaking.
 
 1. Create a governance proposal with the [`MsgIBCSoftwareUpgrade`](https://buf.build/cosmos/ibc/docs/main:ibc.core.client.v1#ibc.core.client.v1.MsgIBCSoftwareUpgrade) which contains an `UpgradePlan` and a new IBC `ClientState` in the `UpgradedClientState` field. Note that the `UpgradePlan` must specify an upgrade height **only** (no upgrade time), and the `ClientState` should only include the fields common to all valid clients and zero out any client-customizable fields (such as `TrustingPeriod`).
 2. Vote on and pass the governance proposal.
@@ -43,7 +43,7 @@ Once the chain reaches the upgrade height and halts, a relayer can upgrade the c
 
 ### Step-by-Step Upgrade Process for Relayers Upgrading Counterparty Clients
 
-These steps are identical to the regular [IBC client breaking upgrade process](https://github.com/cosmos/ibc-go/blob/main/docs/ibc/upgrades/quick-guide.md#step-by-step-upgrade-process-for-relayers-upgrading-counterparty-clients).
+These steps are identical to the regular [IBC client breaking upgrade process](./01-quick-guide.md#step-by-step-upgrade-process-for-relayers-upgrading-counterparty-clients).
 
 ## Non-IBC Client Breaking Upgrades
 

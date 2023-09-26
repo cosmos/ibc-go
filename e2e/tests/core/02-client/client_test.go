@@ -14,7 +14,7 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/x/upgrade/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -83,6 +83,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	const planHeight = int64(75)
+	const legacyPlanHeight = planHeight * 2
 	var newChainID string
 
 	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
@@ -105,14 +106,14 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 
 		scheduleUpgradeMsg, err := clienttypes.NewMsgIBCSoftwareUpgrade(
 			authority.String(),
-			types.Plan{
+			upgradetypes.Plan{
 				Name:   "upgrade-client",
 				Height: planHeight,
 			},
 			upgradedClientState,
 		)
 		s.Require().NoError(err)
-		s.ExecuteGovV1Proposal(ctx, scheduleUpgradeMsg, chainA, chainAWallet)
+		s.ExecuteAndPassGovV1Proposal(ctx, scheduleUpgradeMsg, chainA, chainAWallet)
 	})
 
 	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(t *testing.T) {
@@ -129,6 +130,117 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 
 		s.Require().Equal("upgrade-client", plan.Name)
 		s.Require().Equal(planHeight, plan.Height)
+	})
+
+	t.Run("ensure legacy proposal does not succeed", func(t *testing.T) {
+
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
+
+		clientState, err := s.QueryClientState(ctx, chainB, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		originalChainID := clientState.(*ibctm.ClientState).ChainId
+		revisionNumber := clienttypes.ParseChainID(originalChainID)
+		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
+		newChainID, err = clienttypes.SetRevisionNumber(originalChainID, revisionNumber+1)
+		s.Require().NoError(err)
+		s.Require().NotEqual(originalChainID, newChainID)
+
+		upgradedClientState := clientState.ZeroCustomFields().(*ibctm.ClientState)
+		upgradedClientState.ChainId = newChainID
+
+		legacyUpgradeProposal, err := clienttypes.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, upgradetypes.Plan{
+			Name:   "upgrade-client-legacy",
+			Height: legacyPlanHeight,
+		}, upgradedClientState)
+
+		s.Require().NoError(err)
+		txResp := s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, legacyUpgradeProposal)
+		s.AssertTxFailure(txResp, govtypes.ErrInvalidProposalContent)
+	})
+}
+
+func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
+	t := s.T()
+	ctx := context.TODO()
+
+	var (
+		pathName           string
+		relayer            ibc.Relayer
+		subjectClientID    string
+		substituteClientID string
+		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
+		badTrustingPeriod = time.Second * 10
+	)
+
+	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx)
+
+		// TODO: update when client identifier created is accessible
+		// currently assumes first client is 07-tendermint-0
+		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
+
+		// TODO: replace with better handling of path names
+		pathName = fmt.Sprintf("%s-path-%d", s.T().Name(), 0)
+		pathName = strings.ReplaceAll(pathName, "/", "-")
+	})
+
+	chainA, chainB := s.GetChains()
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	t.Run("create subject client with bad trusting period", func(t *testing.T) {
+		createClientOptions := ibc.CreateClientOptions{
+			TrustingPeriod: badTrustingPeriod.String(),
+		}
+
+		s.SetupClients(ctx, relayer, createClientOptions)
+
+		// TODO: update when client identifier created is accessible
+		// currently assumes second client is 07-tendermint-1
+		subjectClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 1)
+	})
+
+	time.Sleep(badTrustingPeriod)
+
+	t.Run("update substitute client", func(t *testing.T) {
+		s.UpdateClients(ctx, relayer, pathName)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("check status of each client", func(t *testing.T) {
+		t.Run("substitute should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, substituteClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
+
+		t.Run("subject should be expired", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, subjectClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Expired.String(), status)
+		})
+	})
+
+	t.Run("pass client update proposal", func(t *testing.T) {
+		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
+		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
+	})
+
+	t.Run("check status of each client", func(t *testing.T) {
+		t.Run("substitute should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, substituteClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
+
+		t.Run("subject should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, subjectClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
 	})
 }
 
@@ -200,7 +312,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		s.Require().NoError(err)
 		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
 		s.Require().NotNil(recoverClientMsg)
-		s.ExecuteGovV1Proposal(ctx, recoverClientMsg, chainA, chainAWallet)
+		s.ExecuteAndPassGovV1Proposal(ctx, recoverClientMsg, chainA, chainAWallet)
 	})
 
 	t.Run("check status of each client", func(t *testing.T) {
@@ -351,7 +463,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			s.Require().NotNil(authority)
 
 			msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(allowedClient))
-			s.ExecuteGovV1Proposal(ctx, msg, chainA, chainAWallet)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
 		} else {
 			value, err := tmjson.Marshal([]string{allowedClient})
 			s.Require().NoError(err)
@@ -360,7 +472,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 

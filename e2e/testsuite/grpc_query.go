@@ -342,7 +342,6 @@ func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Ch
 // QueryModuleAccountAddress returns the sdk.AccAddress of a given module name.
 func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
 	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
-
 	resp, err := authClient.ModuleAccountByName(ctx, &authtypes.QueryModuleAccountByNameRequest{
 		Name: moduleName,
 	})

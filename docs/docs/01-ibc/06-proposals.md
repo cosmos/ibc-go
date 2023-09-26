@@ -29,8 +29,8 @@ last update. This may occur if relayers stop submitting headers to update the cl
 
 An unplanned upgrade by the counterparty chain may also result in expired clients. If the counterparty
 chain undergoes an unplanned upgrade, there may be no commitment to that upgrade signed by the validator
-set before the chain-id changes. In this situation, the validator set of the last valid update for the
-light client is never expected to produce another valid header since the chain-id has changed, which will
+set before the chain ID changes. In this situation, the validator set of the last valid update for the
+light client is never expected to produce another valid header since the chain ID has changed, which will
 ultimately lead the on-chain light client to become expired.
 
 In the case that a highly valued light client is frozen, expired, or rendered non-updateable, a
@@ -61,7 +61,7 @@ See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](/
 
 ### Step 1
 
-Check if the client is attached to the expected `chain-id`. For example, for an expired Tendermint client representing the Akash chain the client state looks like this on querying the client state:
+Check if the client is attached to the expected `chain_id`. For example, for an expired Tendermint client representing the Akash chain the client state looks like this on querying the client state:
 
 ```text
 {
@@ -74,12 +74,12 @@ Check if the client is attached to the expected `chain-id`. For example, for an 
 }
 ```
 
-The client is attached to the expected Akash `chain-id`. Note that although the parameters (`allow_update_after_expiry` and `allow_update_after_misbehaviour`) exist to signal intent, these parameters have been deprecated and will not enforce any checks on the revival of client. See ADR-026 for more context on this deprecation.
+The client is attached to the expected Akash `chain_id`. Note that although the parameters (`allow_update_after_expiry` and `allow_update_after_misbehaviour`) exist to signal intent, these parameters have been deprecated and will not enforce any checks on the revival of client. See ADR-026 for more context on this deprecation.
 
 ### Step 2
 
 Anyone can submit the governance proposal to recover the client by executing the following via CLI.
-If the chain is on an ibc-go version older than v8, please see the [relevant documentation](https://ibc.cosmos.network/v7.3.0/ibc/proposals.html).
+If the chain is on an ibc-go version older than v8, please see the [relevant documentation](https://ibc.cosmos.network/v7.3.x/ibc/proposals.html).
 
 - From ibc-go v8 onwards
 
@@ -94,8 +94,8 @@ If the chain is on an ibc-go version older than v8, please see the [relevant doc
     "messages": [
       {
         "@type": "/ibc.core.client.v1.MsgRecoverClient",
-        "subject_client_id": "expired_client_id_string",
-        "substitute_client_id": "active_client_id_string",
+        "subject_client_id": "<expired-client-id>",
+        "substitute_client_id": "<active-client-id>",
         "signer": "<gov-address>"
       }
     ],

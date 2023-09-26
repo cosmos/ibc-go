@@ -21,7 +21,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.ControllerGe
 
 			// use the controller scoped keeper to claim the port capability
 			if err := keeper.ClaimCapability(ctx, capability, host.PortPath(portID)); err != nil {
-				panic(fmt.Sprintf("could not claim port capability: %v", err))
+				panic(fmt.Errorf("could not claim port capability: %v", err))
 			}
 		}
 	}

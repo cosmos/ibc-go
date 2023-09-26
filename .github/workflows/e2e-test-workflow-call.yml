@@ -166,7 +166,7 @@ jobs:
       CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
       RELAYER_IMAGE: '${{ inputs.relayer-image }}'
       RELAYER_TAG: '${{ inputs.relayer-tag }}'
-      RELAYER_TYPE: '${{ inputs.relayer-type }}'
+      RELAYER_ID: '${{ inputs.relayer-type }}'
       CHAIN_BINARY: '${{ inputs.chain-binary }}'
       CHAIN_UPGRADE_TAG: '${{ inputs.chain-upgrade-tag }}'
       CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'

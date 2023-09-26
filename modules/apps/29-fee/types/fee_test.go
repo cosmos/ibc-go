@@ -125,6 +125,8 @@ func TestPacketFeeValidation(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 		packetFee = types.NewPacketFee(fee, defaultAccAddress, nil)
 
