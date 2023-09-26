@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -170,12 +171,16 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCMiddleware interface
-func (IBCMiddleware) OnRecvPacket(
+func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	err := errorsmod.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
+
+	logger := im.keeper.Logger(ctx)
+	logger.Error(fmt.Sprintf("ibc middleware: %s sequence %d", err.Error(), packet.Sequence))
+
 	ack := channeltypes.NewErrorAcknowledgement(err)
 	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 	return ack

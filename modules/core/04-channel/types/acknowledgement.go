@@ -34,12 +34,11 @@ func NewErrorAcknowledgement(err error) Acknowledgement {
 	// the ABCI code is included in the abcitypes.ResponseDeliverTx hash
 	// constructed in Tendermint and is therefore deterministic
 	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
-	ctx.Logger().Error("channel open init failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 
 	return Acknowledgement{
 		Response: &Acknowledgement_Error{
 			Error: fmt.Sprintf("ABCI code: %d: %s", code, ackErrorString),
-		}
+		},
 	}
 }
 
