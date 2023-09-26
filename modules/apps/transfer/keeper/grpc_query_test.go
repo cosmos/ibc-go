@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryDenomTrace() {
@@ -73,6 +73,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTrace() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			tc := tc
 			suite.SetupTest() // reset
 
 			tc.malleate()
@@ -132,7 +133,8 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		tc := tc
+		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
@@ -200,7 +202,8 @@ func (suite *KeeperTestSuite) TestQueryDenomHash() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		tc := tc
+		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
 			req = &types.QueryDenomHashRequest{
@@ -245,6 +248,7 @@ func (suite *KeeperTestSuite) TestEscrowAddress() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -341,6 +345,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowForDenom() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 

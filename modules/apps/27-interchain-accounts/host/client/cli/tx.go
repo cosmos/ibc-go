@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cobra"
@@ -12,8 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 )
 
 const (
@@ -82,7 +82,7 @@ otherwise the encoding flag can be used in combination with either "proto3" or "
 				return err
 			}
 
-			if !collections.Contains(encoding, []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}) {
+			if !slices.Contains([]string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}, encoding) {
 				return fmt.Errorf("unsupported encoding type: %s", encoding)
 			}
 

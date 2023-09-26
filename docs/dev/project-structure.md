@@ -1,6 +1,6 @@
 # Project structure
 
-If you're not familiar with the overall module structure from the SDK modules, please check this [document](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/build/building-modules/11-structure.md) as prerequisite reading.
+If you're not familiar with the overall module structure from the SDK modules, please check this [document](https://github.com/cosmos/cosmos-sdk/blob/main/docs/build/building-modules/11-structure.md) as prerequisite reading.
 
 Every Interchain Standard (ICS) has been developed in its own package. The development team separated the IBC TAO (Transport, Authentication, Ordering) ICS specifications from the IBC application level specification. The following sections describe the architecture of the most relevant directories that comprise this repository.
 
@@ -19,9 +19,9 @@ This folder contains implementations for the IBC TAO (`core`), IBC applications 
 
 ### `apps`
 
-- `transfer`: This is the Cosmos SDK implementation of the [ICS 20](https://github.com/cosmos/ibc/tree/main/spec/app/ics-020-fungible-token-transfer) protocol, which enables cross-chain fungible token transfers. For more information, read the [module's docs](../apps/transfer/overview.md)
-- `27-interchain-accounts`: This is the Cosmos SDK implementation of the [ICS 27](https://github.com/cosmos/ibc/tree/main/spec/app/ics-027-interchain-accounts) protocol, which enables cross-chain account management built upon IBC. For more information, read the [module's documentation](../apps/interchain-accounts/overview.md).
-- `29-fee`: This is the Cosmos SDK implementation of the [ICS 29](https://github.com/cosmos/ibc/tree/main/spec/app/ics-029-fee-payment) middleware, which handles packet incentivisation and fee distribution on top of any ICS application protocol, enabling fee payment to relayer operators. For more information, read the [module's documentation](../middleware/ics29-fee/overview.md).
+- `transfer`: This is the Cosmos SDK implementation of the [ICS 20](https://github.com/cosmos/ibc/tree/main/spec/app/ics-020-fungible-token-transfer) protocol, which enables cross-chain fungible token transfers. For more information, read the [module's docs](../docs/02-apps/01-transfer/01-overview.md)
+- `27-interchain-accounts`: This is the Cosmos SDK implementation of the [ICS 27](https://github.com/cosmos/ibc/tree/main/spec/app/ics-027-interchain-accounts) protocol, which enables cross-chain account management built upon IBC. For more information, read the [module's documentation](../docs/02-apps/02-interchain-accounts/01-overview.md).
+- `29-fee`: This is the Cosmos SDK implementation of the [ICS 29](https://github.com/cosmos/ibc/tree/main/spec/app/ics-029-fee-payment) middleware, which handles packet incentivisation and fee distribution on top of any ICS application protocol, enabling fee payment to relayer operators. For more information, read the [module's documentation](../docs/04-middleware/01-ics29-fee/01-overview.md).
 
 ### `light-clients`
 
