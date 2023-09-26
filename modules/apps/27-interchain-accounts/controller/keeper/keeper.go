@@ -48,11 +48,6 @@ func NewKeeper(
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter, authority string,
 ) Keeper {
-	// set KeyTable if it has not already been set
-	if !legacySubspace.HasKeyTable() {
-		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
