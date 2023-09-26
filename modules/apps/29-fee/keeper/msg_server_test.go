@@ -6,12 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {
@@ -58,6 +58,8 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.SetupTest()
 		suite.coordinator.Setup(suite.path)
 
@@ -131,6 +133,8 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.SetupTest()
 		suite.coordinator.Setup(suite.path) // setup channel
 

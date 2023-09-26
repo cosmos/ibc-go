@@ -9,9 +9,9 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (s *CallbacksTestSuite) TestTransferCallbacks() {
@@ -102,10 +102,13 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 	}
 
 	for _, tc := range testCases {
-		s.SetupTransferTest()
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupTransferTest()
 
-		s.ExecuteTransfer(tc.transferMemo)
-		s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
+			s.ExecuteTransfer(tc.transferMemo)
+			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
+		})
 	}
 }
 
@@ -161,10 +164,14 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 	}
 
 	for _, tc := range testCases {
-		s.SetupTransferTest()
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupTransferTest()
 
-		s.ExecuteTransferTimeout(tc.transferMemo)
-		s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
+			s.ExecuteTransferTimeout(tc.transferMemo)
+			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
+		})
+
 	}
 }
 

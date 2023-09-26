@@ -17,13 +17,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 var (
@@ -104,6 +104,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
@@ -159,6 +161,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
@@ -205,6 +209,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
@@ -227,6 +233,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			suite.Require().NoError(err, tc.name)
@@ -262,6 +270,8 @@ func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
@@ -283,6 +293,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		msg := types.MsgUpdateParams{
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),

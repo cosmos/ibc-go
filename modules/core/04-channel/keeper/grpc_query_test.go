@@ -5,13 +5,13 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const doesnotexist = "doesnotexist"
@@ -87,6 +87,8 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -183,6 +185,8 @@ func (suite *KeeperTestSuite) TestQueryChannels() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -300,6 +304,8 @@ func (suite *KeeperTestSuite) TestQueryConnectionChannels() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -425,6 +431,8 @@ func (suite *KeeperTestSuite) TestQueryChannelClientState() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -566,6 +574,8 @@ func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -673,6 +683,8 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -766,6 +778,8 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -871,6 +885,8 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -971,6 +987,8 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1091,6 +1109,8 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1320,6 +1340,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1452,6 +1474,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1554,6 +1578,8 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1622,12 +1648,14 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 			false,
 		},
 		{
-			"basic success on unordered channel returns zero",
+			"basic success on unordered channel returns the set send sequence",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.Setup(path)
 
-				expSeq = 0
+				expSeq = 42
+				seq := uint64(42)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq)
 				req = &types.QueryNextSequenceSendRequest{
 					PortId:    path.EndpointA.ChannelConfig.PortID,
 					ChannelId: path.EndpointA.ChannelID,
@@ -1656,6 +1684,8 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 

@@ -17,17 +17,11 @@
     "TestClientTestSuite"
   ],
   "test": [
-    "TestClientUpdateProposal_Succeeds",
+    "TestRecoverClient_Succeeds",
     "TestClient_Update_Misbehaviour",
     "TestAllowedClientsParam"
   ],
   "relayer-type": [
     "rly"
-  ],
-  "chain-binary": [
-    "simd"
-  ],
-  "chain-image": [
-    "ghcr.io/cosmos/ibc-go-simd"
   ]
 }

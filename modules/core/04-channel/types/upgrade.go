@@ -3,11 +3,10 @@ package types
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
-	"github.com/cosmos/ibc-go/v7/internal/collections"
 )
 
 // NewUpgrade creates a new Upgrade instance.
@@ -43,7 +42,7 @@ func (u Upgrade) ValidateBasic() error {
 
 // ValidateBasic performs a basic validation of the proposed upgrade fields
 func (uf UpgradeFields) ValidateBasic() error {
-	if !collections.Contains(uf.Ordering, []Order{ORDERED, UNORDERED}) {
+	if !slices.Contains([]Order{ORDERED, UNORDERED}, uf.Ordering) {
 		return errorsmod.Wrap(ErrInvalidChannelOrdering, uf.Ordering.String())
 	}
 

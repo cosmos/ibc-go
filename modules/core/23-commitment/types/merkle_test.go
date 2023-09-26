@@ -8,7 +8,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 )
 
 func (suite *MerkleTestSuite) TestVerifyMembership() {
@@ -150,24 +150,5 @@ func TestApplyPrefix(t *testing.T) {
 
 	prefixedPath, err := types.ApplyPrefix(prefix, path)
 	require.NoError(t, err, "valid prefix returns error")
-
-	require.Equal(t, "/storePrefixKey/"+pathStr, prefixedPath.Pretty(), "Prefixed path incorrect")
-	require.Equal(t, "/storePrefixKey/pathone%2Fpathtwo%2Fpaththree%2Fkey", prefixedPath.String(), "Prefixed escaped path incorrect")
-}
-
-func TestString(t *testing.T) {
-	path := types.NewMerklePath("rootKey", "storeKey", "path/to/leaf")
-
-	require.Equal(t, "/rootKey/storeKey/path%2Fto%2Fleaf", path.String(), "path String returns unxpected value")
-	require.Equal(t, "/rootKey/storeKey/path/to/leaf", path.Pretty(), "path's pretty string representation is incorrect")
-
-	onePath := types.NewMerklePath("path/to/leaf")
-
-	require.Equal(t, "/path%2Fto%2Fleaf", onePath.String(), "one element path does not have correct string representation")
-	require.Equal(t, "/path/to/leaf", onePath.Pretty(), "one element path has incorrect pretty string representation")
-
-	zeroPath := types.NewMerklePath()
-
-	require.Equal(t, "", zeroPath.String(), "zero element path does not have correct string representation")
-	require.Equal(t, "", zeroPath.Pretty(), "zero element path does not have correct pretty string representation")
+	require.Len(t, prefixedPath.GetKeyPath(), 2, "unexpected key path length")
 }

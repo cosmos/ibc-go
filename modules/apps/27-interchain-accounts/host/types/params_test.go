@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 )
 
 func TestValidateParams(t *testing.T) {

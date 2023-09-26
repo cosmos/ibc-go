@@ -6,9 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
@@ -159,6 +159,8 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -305,6 +307,8 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			transferAuthz = types.TransferAuthorization{
 				Allocations: []types.Allocation{

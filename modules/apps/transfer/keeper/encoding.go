@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 // UnmarshalDenomTrace attempts to decode and return an DenomTrace object from

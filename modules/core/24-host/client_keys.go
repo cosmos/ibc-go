@@ -3,7 +3,7 @@ package host
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // KeyClientStorePrefix defines the KVStore key prefix for IBC clients
