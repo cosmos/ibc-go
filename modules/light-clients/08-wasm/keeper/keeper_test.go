@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 				msg := types.NewMsgStoreCode(signer, code)
 
 				ctx := suite.chainA.GetContext()
-				_, err := suite.chainA.GetSimApp().WasmClientKeeper.StoreCode(ctx, msg)
+				_, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
 				suite.NoError(err)
 				var hashCode []byte
 				if types.IsGzip(code) {
@@ -110,7 +110,7 @@ func (suite *KeeperTestSuite) TestIterateCode() {
 			}
 
 			var allCodeHash []byte
-			suite.chainA.GetSimApp().WasmClientKeeper.IterateCode(
+			GetSimApp(suite.chainA).WasmClientKeeper.IterateCode(
 				suite.chainA.GetContext(), func(b []byte) bool {
 					allCodeHash = append(allCodeHash, keeper.GenerateWasmCodeHash(b)...)
 					return false
