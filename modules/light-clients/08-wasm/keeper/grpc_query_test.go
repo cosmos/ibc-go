@@ -26,7 +26,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 				suite.Require().NoError(err)
 				msg := types.NewMsgStoreCode(signer, code)
 
-				res, err := suite.chainA.GetSimApp().WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
+				res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
 				req = &types.QueryCodeRequest{CodeHash: hex.EncodeToString(res.Checksum)}
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 
 			tc.malleate()
 
-			res, err := suite.chainA.GetSimApp().WasmClientKeeper.Code(suite.chainA.GetContext(), req)
+			res, err := GetSimApp(suite.chainA).WasmClientKeeper.Code(suite.chainA.GetContext(), req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -91,7 +91,7 @@ func (suite *KeeperTestSuite) TestQueryCodeHashes() {
 				suite.Require().NoError(err)
 				msg := types.NewMsgStoreCode(signer, code)
 
-				res, err := suite.chainA.GetSimApp().WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
+				res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
 				expCodeHashes = append(expCodeHashes, hex.EncodeToString(res.Checksum))
@@ -107,7 +107,7 @@ func (suite *KeeperTestSuite) TestQueryCodeHashes() {
 			tc.malleate()
 
 			req := &types.QueryCodeHashesRequest{}
-			res, err := suite.chainA.GetSimApp().WasmClientKeeper.CodeHashes(suite.chainA.GetContext(), req)
+			res, err := GetSimApp(suite.chainA).WasmClientKeeper.CodeHashes(suite.chainA.GetContext(), req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

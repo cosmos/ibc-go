@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, data)
 
-				_, err := suite.chainA.GetSimApp().WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
+				_, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 			},
 			false,
@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.GetSimApp().WasmClientKeeper.StoreCode(ctx, msg)
+			res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
 			events := ctx.EventManager().Events()
 
 			if tc.expPass {
