@@ -178,8 +178,9 @@ func (im IBCMiddleware) OnRecvPacket(
 ) ibcexported.Acknowledgement {
 	err := errorsmod.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
 
-	logger := im.keeper.Logger(ctx)
-	logger.Error(fmt.Sprintf("ibc middleware: %s sequence %d", err.Error(), packet.Sequence))
+	if err != nil {
+	    im.keeper.Logger(ctx).Error(fmt.Sprintf("27-interchain-accounts: recv packet handling error: %s", err.Error()))
+	}
 
 	ack := channeltypes.NewErrorAcknowledgement(err)
 	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
