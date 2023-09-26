@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -17,13 +18,13 @@ import (
 
 	"github.com/cometbft/cometbft/light"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
 // Keeper represents a type that grants read and write permissions to any client
@@ -120,7 +121,7 @@ func (k Keeper) GetNextClientSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.KeyNextClientSequence))
 	if len(bz) == 0 {
-		panic("next client sequence is nil")
+		panic(errors.New("next client sequence is nil"))
 	}
 
 	return sdk.BigEndianToUint64(bz)
@@ -425,7 +426,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.ParamsKey))
 	if bz == nil { // only panic on unset params and not on empty params
-		panic("client params are not set in store")
+		panic(errors.New("client params are not set in store"))
 	}
 
 	var params types.Params
@@ -438,4 +439,29 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&params)
 	store.Set([]byte(types.ParamsKey), bz)
+}
+
+// ScheduleIBCSoftwareUpgrade schedules an upgrade for the IBC client.
+func (k Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Plan, upgradedClientState exported.ClientState) error {
+	// zero out any custom fields before setting
+	cs := upgradedClientState.ZeroCustomFields()
+	bz, err := types.MarshalClientState(k.cdc, cs)
+	if err != nil {
+		return errorsmod.Wrap(err, "could not marshal UpgradedClientState")
+	}
+
+	if err := k.upgradeKeeper.ScheduleUpgrade(ctx, plan); err != nil {
+		return err
+	}
+
+	// sets the new upgraded client last height committed on this chain at plan.Height,
+	// since the chain will panic at plan.Height and new chain will resume at plan.Height
+	if err = k.upgradeKeeper.SetUpgradedClient(ctx, plan.Height, bz); err != nil {
+		return err
+	}
+
+	// emitting an event for scheduling an upgrade plan
+	emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height)
+
+	return nil
 }

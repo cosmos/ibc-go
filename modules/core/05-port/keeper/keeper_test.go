@@ -8,8 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/05-port/keeper"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/cosmos/ibc-go/v8/modules/core/05-port/keeper"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 var (
@@ -29,7 +29,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app := simapp.Setup(suite.T(), isCheckTx)
 
 	suite.ctx = app.BaseApp.NewContext(isCheckTx)
-	suite.keeper = &app.IBCKeeper.PortKeeper
+	suite.keeper = app.IBCKeeper.PortKeeper
 }
 
 func TestKeeperTestSuite(t *testing.T) {
