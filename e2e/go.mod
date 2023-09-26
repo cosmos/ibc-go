@@ -4,10 +4,10 @@ go 1.21
 
 require (
 	cosmossdk.io/errors v1.0.0
-	cosmossdk.io/math v1.1.2
+	cosmossdk.io/math v1.1.3-rc.1
 	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
 	github.com/cometbft/cometbft v0.38.0
-	github.com/cosmos/cosmos-sdk v0.50.0-rc.0.0.20230915171831-2196edacb99d
+	github.com/cosmos/cosmos-sdk v0.50.0-rc.1
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/v8 v8.0.0-20230906115913-46ee5f92e1af
 	github.com/docker/docker v24.0.6+incompatible
