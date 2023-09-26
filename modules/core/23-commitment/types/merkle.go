@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"net/url"
 
 	"github.com/cosmos/gogoproto/proto"
 	ics23 "github.com/cosmos/ics23/go"
@@ -77,44 +76,7 @@ func NewMerklePath(keyPath ...string) MerklePath {
 	}
 }
 
-// String implements fmt.Stringer.
-// This represents the path in the same way the tendermint KeyPath will
-// represent a key path. The backslashes partition the key path into
-// the respective stores they belong to.
-//
-// Deprecated: This function makes assumptions about the way a merkle path
-// in a multistore should be represented as a string that are not standardized.
-// The decision on how to represent the merkle path as a string will be deferred
-// to upstream users of the type.
-// This function will be removed in a next release.
-func (mp MerklePath) String() string {
-	pathStr := ""
-	for _, k := range mp.KeyPath {
-		pathStr += "/" + url.PathEscape(k)
-	}
-	return pathStr
-}
-
-// Pretty returns the unescaped path of the URL string.
-// This function will unescape any backslash within a particular store key.
-// This makes the keypath more human-readable while removing information
-// about the exact partitions in the key path.
-//
-// Deprecated: This function makes assumptions about the way a merkle path
-// in a multistore should be represented as a string that are not standardized.
-// The decision on how to represent the merkle path as a string will be deferred
-// to upstream users of the type.
-// This function will be removed in a next release.
-func (mp MerklePath) Pretty() string {
-	path, err := url.PathUnescape(mp.String())
-	if err != nil {
-		panic(err)
-	}
-	return path
-}
-
 // GetKey will return a byte representation of the key
-// after URL escaping the key element
 func (mp MerklePath) GetKey(i uint64) ([]byte, error) {
 	if i >= uint64(len(mp.KeyPath)) {
 		return nil, fmt.Errorf("index out of range. %d (index) >= %d (len)", i, len(mp.KeyPath))
