@@ -1,13 +1,8 @@
 FROM golang:1.21-alpine3.18 as builder
-ARG IBC_GO_VERSION
 
 RUN set -eux; apk add --no-cache git libusb-dev linux-headers gcc musl-dev make;
 
 ENV GOPATH=""
-ENV GOMODULE="on"
-
-# ensure the ibc go version is being specified for this image.
-RUN test -n "${IBC_GO_VERSION}"
 
 # Grab the static library and copy it to location that will be found by the linker flag `-lwasmvm_muslc`.
 # TODO: nice to have: a script to download version matching the wasmvm version in go.mod.
@@ -22,20 +17,16 @@ ADD testing testing
 ADD modules modules
 ADD LICENSE LICENSE
 
-COPY contrib/devtools/Makefile contrib/devtools/Makefile
-COPY Makefile .
-
 COPY go.mod .
 COPY go.sum .
 
+WORKDIR /go/modules/light-clients/08-wasm
+
 RUN go mod download
 
-RUN BUILD_TAGS=muslc LINK_STATICALLY=true make build
+RUN GOOS=linux GOARCH=amd64 go build -mod=readonly -tags "netgo ledger muslc" -ldflags '-X github.com/cosmos/cosmos-sdk/version.Name=sim -X github.com/cosmos/cosmos-sdk/version.AppName=simd -X github.com/cosmos/cosmos-sdk/version.Version= -X github.com/cosmos/cosmos-sdk/version.Commit= -X "github.com/cosmos/cosmos-sdk/version.BuildTags=netgo ledger muslc," -w -s -linkmode=external -extldflags "-Wl,-z,muldefs -static"' -trimpath -o /go/build/ ./...
 
 FROM alpine:3.18
-ARG IBC_GO_VERSION
-
-LABEL "org.cosmos.ibc-go" "${IBC_GO_VERSION}"
 
 COPY --from=builder /go/build/simd /bin/simd
 

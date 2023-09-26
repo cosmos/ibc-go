@@ -2,8 +2,8 @@ package simapp
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -96,11 +96,14 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
-	tmos "github.com/cometbft/cometbft/libs/os"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	simappparams "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/params"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
@@ -125,8 +128,6 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
-	simappparams "github.com/cosmos/ibc-go/v7/testing/simapp/params"
-	upgrades "github.com/cosmos/ibc-go/v7/testing/simapp/upgrades"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 )
 
@@ -166,6 +167,7 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		ibc.AppModuleBasic{},
+		wasm.AppModuleBasic{},
 		ibctm.AppModuleBasic{},
 		solomachine.AppModuleBasic{},
 		feegrantmodule.AppModuleBasic{},
@@ -234,6 +236,7 @@ type SimApp struct {
 	ICAHostKeeper         icahostkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
+	WasmClientKeeper      wasmkeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
@@ -326,7 +329,7 @@ func NewSimApp(
 		upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, consensusparamtypes.StoreKey, authzkeeper.StoreKey,
 		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey,
-		ibcfeetypes.StoreKey, ibcexported.StoreKey,
+		ibcfeetypes.StoreKey, ibcexported.StoreKey, wasmtypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -460,6 +463,33 @@ func NewSimApp(
 		),
 	)
 
+	// 08-wasm's Keeper can be instantiated in two different ways:
+	// 1. If the chain uses x/wasm:
+	// Both x/wasm's Keeper and 08-wasm Keeper should share the same Wasm VM instance.
+	// - Instantiate the Wasm VM in app.go with the parameters of your choice.
+	// - Create an Option with this Wasm VM instance (see https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/options.go#L26-L32).
+	// - Pass the option to the x/wasm NewKeeper contructor function (https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/keeper_cgo.go#L36).
+	// - Pass a pointer to the Wasm VM instance to 08-wasm NewKeeperWithVM constructor function.
+	//
+	// 2. If the chain does not use x/wasm:
+	// Even though it is still possible to use method 1 above
+	// (e.g. instantiating a Wasm VM in app.go an pass it in 08-wasm NewKeeper),
+	// since there is no need to share the Wasm VM instance with another module
+	// you can use NewKeeperWithConfig constructor function and provide
+	// the Wasm VM configuration parameters of your choice.
+	// Check out the WasmConfig type definition for more information on
+	// each parameter. Some parameters allow node-leve configurations.
+	// Function DefaultWasmConfig can also be used to use default values.
+	//
+	// In the code below we use the second method because we are not using x/wasm in this app.go.
+	wasmConfig := wasmtypes.WasmConfig{
+		DataDir:           "ibc_08-wasm_client_data",
+		SupportedFeatures: "iterator",
+		MemoryCacheSize:   uint32(math.Pow(2, 8)),
+		ContractDebugMode: false,
+	}
+	app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig)
+
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
 		appCodec, keys[ibcfeetypes.StoreKey],
@@ -533,7 +563,7 @@ func NewSimApp(
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// icaControllerKeeper.SendTx -> fee.SendPacket -> channel.SendPacket
+	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> fee.SendPacket -> channel.SendPacket
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
@@ -559,7 +589,8 @@ func NewSimApp(
 		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
 
 	// Create Mock IBC Fee module stack for testing
-	// SendPacket, mock module cannot send packets
+	// SendPacket, since it is originating from the application to core IBC:
+	// mockModule.SendPacket -> fee.SendPacket -> channel.SendPacket
 
 	// OnRecvPacket, message that originates from core IBC and goes down to app, the flow is the otherway
 	// channel.RecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket
@@ -620,6 +651,7 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		wasm.NewAppModule(app.WasmClientKeeper),
 		mockModule,
 	)
 
@@ -632,7 +664,7 @@ func NewSimApp(
 		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		evidencetypes.ModuleName, stakingtypes.ModuleName, ibcexported.ModuleName, ibctransfertypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, authz.ModuleName, feegrant.ModuleName,
-		paramstypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName,
+		paramstypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, wasmtypes.ModuleName, ibcmock.ModuleName,
 		group.ModuleName, consensusparamtypes.ModuleName,
 	)
 
@@ -640,7 +672,7 @@ func NewSimApp(
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibcexported.ModuleName, ibctransfertypes.ModuleName,
 		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, feegrant.ModuleName, paramstypes.ModuleName,
-		upgradetypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName,
+		upgradetypes.ModuleName, vestingtypes.ModuleName, icatypes.ModuleName, ibcfeetypes.ModuleName, wasmtypes.ModuleName, ibcmock.ModuleName,
 		group.ModuleName, consensusparamtypes.ModuleName,
 	)
 
@@ -656,7 +688,7 @@ func NewSimApp(
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
+		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, wasmtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
@@ -701,15 +733,6 @@ func NewSimApp(
 	app.SetEndBlocker(app.EndBlocker)
 	app.setAnteHandler(encodingConfig.TxConfig)
 
-	// must be before Loading version
-	if manager := app.SnapshotManager(); manager != nil {
-		err := manager.RegisterExtensions(
-			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmClientKeeper),
-		)
-		if err != nil {
-			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
-		}
-	}
 	// In v0.46, the SDK introduces _postHandlers_. PostHandlers are like
 	// antehandlers, but are run _after_ the `runMsgs` execution. They are also
 	// defined as a chain, and have the same signature as antehandlers.
@@ -975,64 +998,10 @@ func makeEncodingConfig() simappparams.EncodingConfig {
 
 // IBC Upgrade examples
 // setupUpgradeHandlers sets all necessary upgrade handlers for testing purposes
-func (app *SimApp) setupUpgradeHandlers() {
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V5,
-		upgrades.CreateDefaultUpgradeHandler(app.ModuleManager, app.configurator),
-	)
-
-	// NOTE: The moduleName arg of v6.CreateUpgradeHandler refers to the auth module ScopedKeeper name to which the channel capability should be migrated from.
-	// This should be the same string value provided upon instantiation of the ScopedKeeper with app.CapabilityKeeper.ScopeToModule()
-	// See: https://github.com/cosmos/ibc-go/blob/v6.1.0/testing/simapp/app.go#L310
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V6,
-		upgrades.CreateV6UpgradeHandler(
-			app.ModuleManager,
-			app.configurator,
-			app.appCodec,
-			app.keys[capabilitytypes.ModuleName],
-			app.CapabilityKeeper,
-			ibcmock.ModuleName+icacontrollertypes.SubModuleName,
-		),
-	)
-
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V7,
-		upgrades.CreateV7UpgradeHandler(
-			app.ModuleManager,
-			app.configurator,
-			app.appCodec,
-			app.IBCKeeper.ClientKeeper,
-			app.ConsensusParamsKeeper,
-			app.ParamsKeeper,
-		),
-	)
-
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V7_1,
-		upgrades.CreateV7LocalhostUpgradeHandler(app.ModuleManager, app.configurator, app.IBCKeeper.ClientKeeper),
-	)
-}
+func (*SimApp) setupUpgradeHandlers() {}
 
 // setupUpgradeStoreLoaders sets all necessary store loaders required by upgrades.
-func (app *SimApp) setupUpgradeStoreLoaders() {
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		tmos.Exit(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if upgradeInfo.Name == upgrades.V7 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{
-				consensusparamtypes.StoreKey,
-				crisistypes.StoreKey,
-			},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
-}
+func (*SimApp) setupUpgradeStoreLoaders() {}
 
 // IBC TestingApp functions
 
@@ -1049,6 +1018,11 @@ func (app *SimApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 // GetIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 	return app.IBCKeeper
+}
+
+// GetWasmKeeper implements the TestingApp interface.
+func (app *SimApp) GetWasmKeeper() wasmkeeper.Keeper {
+	return app.WasmClientKeeper
 }
 
 // GetScopedIBCKeeper implements the TestingApp interface.

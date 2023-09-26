@@ -28,7 +28,6 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
@@ -45,7 +44,6 @@ type TestingApp interface {
 	GetIBCKeeper() *keeper.Keeper
 	GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
 	GetTxConfig() client.TxConfig
-	GetWasmKeeper() wasmkeeper.Keeper
 
 	// Implemented by SimApp
 	AppCodec() codec.Codec
