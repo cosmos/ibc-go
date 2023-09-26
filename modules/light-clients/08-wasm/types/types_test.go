@@ -74,6 +74,11 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
 }
 
+func (suite *TypesTestSuite) SetupTest() {
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+}
+
 // SetupWasmTendermint sets up 2 chains and stores the tendermint/cometbft light client wasm contract on both.
 func (suite *TypesTestSuite) SetupWasmTendermint() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
