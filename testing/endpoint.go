@@ -591,7 +591,7 @@ func (endpoint *Endpoint) QueryChannelUpgradeProof() ([]byte, []byte, clienttype
 // ChanUpgradeInit sends a MsgChannelUpgradeInit on the associated endpoint.
 // A default upgrade proposal is used with overrides from the ProposedUpgrade
 // in the channel config, and submitted via governance proposal
-func (endpoint *Endpoint) ChanUpgradeInit() {
+func (endpoint *Endpoint) ChanUpgradeInit() error {
 	upgrade := endpoint.GetProposedUpgrade()
 
 	// create upgrade init message via gov proposal and submit the proposal
@@ -624,7 +624,7 @@ func (endpoint *Endpoint) ChanUpgradeInit() {
 	newHeader := endpoint.Chain.GetContext().BlockHeader()
 	newHeader.Time = endpoint.Chain.GetContext().BlockHeader().Time.Add(*params.MaxDepositPeriod).Add(*params.VotingPeriod)
 	ctx = ctx.WithBlockHeader(newHeader)
-	require.NoError(endpoint.Chain.TB, gov.EndBlocker(ctx, &endpoint.Chain.GetSimApp().GovKeeper))
+	err = gov.EndBlocker(ctx, &endpoint.Chain.GetSimApp().GovKeeper)
 
 	// validate that the proposal has passed
 	p, err := endpoint.Chain.GetSimApp().GovKeeper.Proposals.Get(ctx, 1)
@@ -632,6 +632,8 @@ func (endpoint *Endpoint) ChanUpgradeInit() {
 	require.Equal(endpoint.Chain.TB, govtypesv1.StatusPassed, p.Status)
 
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	return err
 }
 
 // ChanUpgradeTry sends a MsgChannelUpgradeTry on the associated endpoint.
