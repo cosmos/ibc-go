@@ -995,10 +995,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
+			path.EndpointA.ChanUpgradeInit()
 
-			err = path.EndpointB.UpdateClient()
+			err := path.EndpointB.UpdateClient()
 			suite.Require().NoError(err)
 
 			counterpartySequence := path.EndpointA.GetChannel().UpgradeSequence
@@ -1163,10 +1162,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
+			path.EndpointA.ChanUpgradeInit()
 
-			err = path.EndpointB.ChanUpgradeTry()
+			err := path.EndpointB.ChanUpgradeTry()
 			suite.Require().NoError(err)
 
 			err = path.EndpointA.UpdateClient()
@@ -1228,10 +1226,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-				err := path.EndpointA.ChanUpgradeInit()
-				suite.Require().NoError(err)
+				path.EndpointA.ChanUpgradeInit()
 
-				err = path.EndpointB.ChanUpgradeTry()
+				err := path.EndpointB.ChanUpgradeTry()
 				suite.Require().NoError(err)
 
 				seq, err := path.EndpointA.SendPacket(path.EndpointB.Chain.GetTimeoutHeight(), 0, ibctesting.MockPacketData)
@@ -1368,10 +1365,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
+			path.EndpointA.ChanUpgradeInit()
 
-			err = path.EndpointB.ChanUpgradeTry()
+			err := path.EndpointB.ChanUpgradeTry()
 			suite.Require().NoError(err)
 
 			err = path.EndpointA.ChanUpgradeAck()
@@ -1468,10 +1464,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
+			path.EndpointA.ChanUpgradeInit()
 
-			err = path.EndpointB.ChanUpgradeTry()
+			err := path.EndpointB.ChanUpgradeTry()
 			suite.Require().NoError(err)
 
 			err = path.EndpointA.ChanUpgradeAck()
@@ -1577,7 +1572,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+			path.EndpointA.ChanUpgradeInit()
 
 			// cause the upgrade to fail on chain b so an error receipt is written.
 			// if the counterparty (chain A) upgrade sequence is less than the current sequence, (chain B)
@@ -1715,7 +1710,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 
-			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+			path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 			suite.Require().NoError(path.EndpointA.ChanUpgradeAck())
 

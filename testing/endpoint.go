@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -589,10 +590,11 @@ func (endpoint *Endpoint) QueryChannelUpgradeProof() ([]byte, []byte, clienttype
 
 // ChanUpgradeInit sends a MsgChannelUpgradeInit on the associated endpoint.
 // A default upgrade proposal is used with overrides from the ProposedUpgrade
-// in the channel config.
-func (endpoint *Endpoint) ChanUpgradeInit() error {
+// in the channel config, and submitted via governance proposal
+func (endpoint *Endpoint) ChanUpgradeInit() {
 	upgrade := endpoint.GetProposedUpgrade()
 
+	// create upgrade init message via gov proposal and submit the proposal
 	msg := channeltypes.NewMsgChannelUpgradeInit(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
@@ -607,11 +609,29 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 		"",
 		"upgrade-init",
 		fmt.Sprintf("gov proposal for initialising channel upgrade: %s", endpoint.ChannelID),
-		true,
+		false,
 	)
 	require.NoError(endpoint.Chain.TB, err)
+	require.NoError(endpoint.Chain.TB, endpoint.Chain.sendMsgs(proposal))
 
-	return endpoint.Chain.sendMsgs(proposal)
+	// vote on proposal
+	ctx := endpoint.Chain.GetContext()
+	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, 1, endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
+	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, 1, endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
+
+	// fast forward the chain context to end the voting period
+	params, _ := endpoint.Chain.GetSimApp().GovKeeper.Params.Get(ctx)
+	newHeader := endpoint.Chain.GetContext().BlockHeader()
+	newHeader.Time = endpoint.Chain.GetContext().BlockHeader().Time.Add(*params.MaxDepositPeriod).Add(*params.VotingPeriod)
+	ctx = ctx.WithBlockHeader(newHeader)
+	require.NoError(endpoint.Chain.TB, gov.EndBlocker(ctx, &endpoint.Chain.GetSimApp().GovKeeper))
+
+	// validate that the proposal has passed
+	p, err := endpoint.Chain.GetSimApp().GovKeeper.Proposals.Get(ctx, 1)
+	require.NoError(endpoint.Chain.TB, err)
+	require.Equal(endpoint.Chain.TB, govtypesv1.StatusPassed, p.Status)
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 }
 
 // ChanUpgradeTry sends a MsgChannelUpgradeTry on the associated endpoint.
