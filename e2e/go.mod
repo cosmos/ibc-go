@@ -3,6 +3,7 @@ module github.com/cosmos/ibc-go/e2e
 go 1.19
 
 require (
+<<<<<<< HEAD
 	github.com/cometbft/cometbft v0.37.0
 	github.com/cosmos/cosmos-sdk v0.47.0
 	github.com/cosmos/gogoproto v1.4.7
@@ -14,6 +15,21 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/mod v0.9.0
 	google.golang.org/grpc v1.54.0
+=======
+	cosmossdk.io/errors v1.0.0
+	cosmossdk.io/math v1.1.3-rc.1
+	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
+	github.com/cometbft/cometbft v0.38.0
+	github.com/cosmos/cosmos-sdk v0.50.0-rc.1
+	github.com/cosmos/gogoproto v1.4.11
+	github.com/cosmos/ibc-go/v8 v8.0.0-20230906115913-46ee5f92e1af
+	github.com/docker/docker v24.0.6+incompatible
+	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20230913202406-3e11bf474a3b
+	github.com/stretchr/testify v1.8.4
+	go.uber.org/zap v1.26.0
+	golang.org/x/mod v0.12.0
+	google.golang.org/grpc v1.58.2
+>>>>>>> 25d7ea6a (deps: bump SDK v0.50-rc.1 (#4763))
 	gopkg.in/yaml.v2 v2.4.0
 )
 

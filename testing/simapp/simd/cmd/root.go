@@ -236,6 +236,10 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
+<<<<<<< HEAD
+=======
+		authcmd.GetSimulateCmd(),
+>>>>>>> 25d7ea6a (deps: bump SDK v0.50-rc.1 (#4763))
 	)
 
 	simapp.ModuleBasics.AddTxCommands(cmd)
