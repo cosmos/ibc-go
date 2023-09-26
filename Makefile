@@ -194,7 +194,7 @@ $(CHECK_TEST_TARGETS): run-tests
 
 ARGS += -tags "$(test_tags)"
 run-tests: 
-	@ARGS="$(ARGS)" TEST_PACKAGES=$(TEST_PACKAGES) EXTRA_ARGS="$(EXTRA_ARGS)" python ./scripts/go-test-all.py
+	@ARGS="$(ARGS)" TEST_PACKAGES=$(TEST_PACKAGES) EXTRA_ARGS="$(EXTRA_ARGS)" python3 ./scripts/go-test-all.py
 
 .PHONY: run-tests test test-all $(TEST_TARGETS)
 
