@@ -612,7 +612,10 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 		false,
 	)
 	require.NoError(endpoint.Chain.TB, err)
-	require.NoError(endpoint.Chain.TB, endpoint.Chain.sendMsgs(proposal))
+
+	if err := endpoint.Chain.sendMsgs(proposal); err != nil {
+		return err
+	}
 
 	// vote on proposal
 	ctx := endpoint.Chain.GetContext()
@@ -624,7 +627,7 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 	newHeader := endpoint.Chain.GetContext().BlockHeader()
 	newHeader.Time = endpoint.Chain.GetContext().BlockHeader().Time.Add(*params.MaxDepositPeriod).Add(*params.VotingPeriod)
 	ctx = ctx.WithBlockHeader(newHeader)
-	err = gov.EndBlocker(ctx, &endpoint.Chain.GetSimApp().GovKeeper)
+	require.NoError(endpoint.Chain.TB, gov.EndBlocker(ctx, &endpoint.Chain.GetSimApp().GovKeeper))
 
 	// validate that the proposal has passed
 	p, err := endpoint.Chain.GetSimApp().GovKeeper.Proposals.Get(ctx, 1)
@@ -632,8 +635,7 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 	require.Equal(endpoint.Chain.TB, govtypesv1.StatusPassed, p.Status)
 
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-
-	return err
+	return nil
 }
 
 // ChanUpgradeTry sends a MsgChannelUpgradeTry on the associated endpoint.
