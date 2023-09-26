@@ -859,6 +859,72 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
+	var (
+		path *ibctesting.Path
+		msg  *channeltypes.MsgChannelUpgradeInit
+	)
+
+	cases := []struct {
+		name      string
+		malleate  func()
+		expResult func(res *channeltypes.MsgChannelUpgradeInitResponse, err error)
+	}{
+		{
+			"success",
+			func() {
+				msg = channeltypes.NewMsgChannelUpgradeInit(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					path.EndpointA.GetProposedUpgrade().Fields,
+					path.EndpointA.Chain.GetSimApp().IBCKeeper.GetAuthority(),
+				)
+			},
+			func(res *channeltypes.MsgChannelUpgradeInitResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(uint64(1), res.UpgradeSequence)
+			},
+		},
+		{
+			"authority is not signer of the upgrade init msg",
+			func() {
+				msg = channeltypes.NewMsgChannelUpgradeInit(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					path.EndpointA.GetProposedUpgrade().Fields,
+					path.EndpointA.Chain.SenderAccount.String(),
+				)
+			},
+			func(res *channeltypes.MsgChannelUpgradeInitResponse, err error) {
+				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, ibcerrors.ErrUnauthorized.Error())
+				suite.Require().Nil(res)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version on testing endpoints
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+			tc.malleate()
+
+			res, err := keeper.Keeper.ChannelUpgradeInit(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+
+			tc.expResult(res, err)
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 	var (
 		path *ibctesting.Path
