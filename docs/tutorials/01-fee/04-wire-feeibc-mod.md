@@ -35,7 +35,7 @@ https://github.com/srdtrk/ignite-fee-middleware-demo/blob/main/app/app.go#L99-L1
 
 Next, we need to add `fee` module to the module basic manager and define its account permissions. Add the following code to the `app.go` file:
 
-```go title="app/app.go" {10,25}
+```go title="app/app.go"
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
 	// and genesis verification.
@@ -45,6 +45,7 @@ Next, we need to add `fee` module to the module basic manager and define its acc
 		transfer.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		vesting.AppModuleBasic{},
+		// plus-diff-line 
 +		ibcfee.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
@@ -60,6 +61,7 @@ Next, we need to add `fee` module to the module basic manager and define its acc
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		// plus-diff-line 
 +		ibcfeetypes.ModuleName:         nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
@@ -67,14 +69,15 @@ Next, we need to add `fee` module to the module basic manager and define its acc
 
 Next, we need to add the fee middleware to the module manager. Add the following code to the `app.go` file:
 
-```go title="app/app.go" {7}
+```go title="app/app.go"
 	app.mm = module.NewManager(
 		// ... other modules
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
-		ibcfee.NewAppModule(app.IBCFeeKeeper),
+		// plus-diff-line 
++		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		icaModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 
@@ -86,7 +89,7 @@ Next, we need to add the fee middleware to the module manager. Add the following
 
 Next, we need to add the fee middleware keeper to the Cosmos App, register its store key, and initialize it.
 
-```go title="app/app.go" {9}
+```go title="app/app.go"
 // App extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
@@ -95,6 +98,7 @@ type App struct {
 	UpgradeKeeper         *upgradekeeper.Keeper
 	ParamsKeeper          paramskeeper.Keeper
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	// plus-diff-line 
 +	IBCFeeKeeper          ibcfeekeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
@@ -103,13 +107,14 @@ type App struct {
 }
 ```
 
-```go title="app/app.go" {7}
+```go title="app/app.go"
 keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey, stakingtypes.StoreKey,
 		crisistypes.StoreKey, minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		feegrant.StoreKey, evidencetypes.StoreKey, ibctransfertypes.StoreKey, icahosttypes.StoreKey,
 		capabilitytypes.StoreKey, group.StoreKey, icacontrollertypes.StoreKey, consensusparamtypes.StoreKey,
+		// plus-diff-line 
 +		ibcfeetypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
@@ -131,7 +136,7 @@ https://github.com/srdtrk/ignite-fee-middleware-demo/blob/main/app/app.go#L452-L
 
 Next, we need to add the fee middleware to the `SetOrderBeginBlockers`, `SetOrderEndBlockers`, and `genesisModuleOrder` functions. Add the following code to the `app.go` file:
 
-```go title="app/app.go" {10,18,31}
+```go title="app/app.go"
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
@@ -141,6 +146,7 @@ Next, we need to add the fee middleware to the `SetOrderBeginBlockers`, `SetOrde
 		upgradetypes.ModuleName,
 		// ... other modules
 		consensusparamtypes.ModuleName,
+		// plus-diff-line 
 +		ibcfeetypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
@@ -149,6 +155,7 @@ Next, we need to add the fee middleware to the `SetOrderBeginBlockers`, `SetOrde
 		// ... other modules
 		vestingtypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		// plus-diff-line 
 +		ibcfeetypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
@@ -162,6 +169,7 @@ Next, we need to add the fee middleware to the `SetOrderBeginBlockers`, `SetOrde
 		// ... other modules
 		vestingtypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		// plus-diff-line 
 +		ibcfeetypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
@@ -177,13 +185,15 @@ The ICS-29 Fee Middleware Keeper implements [`ICS4Wrapper`](https://github.com/c
 
 We need to replace the `ChannelKeeper` with the `IBCFeeKeeper` in the `TransferKeeper`. To do this, we need to modify the `TransferKeeper` initialization in the `app.go` file.
 
-```go title="app/app.go" {6,7}
+```go title="app/app.go"
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		app.GetSubspace(ibctransfertypes.ModuleName),
+		// minus-diff-line 
 -		app.IBCKeeper.ChannelKeeper,
+		// plus-diff-line 
 +		app.IBCFeeKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
@@ -203,20 +213,25 @@ https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/0f41b3c6b4e065aa1a860
 
 Instead we need to "convert" the transfer IBC module to an IBC application stack that includes both the transfer IBC module and the ICS-29 Fee Middleware. Modify the `app.go` file as follows:
 
-```go title="app/app.go" {2-6}
+```go title="app/app.go"
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	// minus-diff-line 
 -	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
+	// plus-diff-start 
 +	/**** IBC Transfer Stack ****/
 +	var transferStack ibcporttypes.IBCModule
 +	transferStack = transfer.NewIBCModule(app.TransferKeeper)
 +	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
+	// plus-diff-end 
 ```
 
 And finally, we need to add the `transferStack` to the `ibcRouter`. Modify the `app.go` file as follows:
 
-```go title="app/app.go" {2-3}
+```go title="app/app.go"
 	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
+		// minus-diff-line 
 -		AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
+		// plus-diff-line 
 +		AddRoute(ibctransfertypes.ModuleName, transferStack)
 ```
 

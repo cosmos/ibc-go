@@ -220,6 +220,24 @@ const config = {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
         additionalLanguages: ["protobuf", "go-module"],
+        magicComments: [
+          // Remember to extend the default highlight class name as well!
+          {
+            className: 'theme-code-block-highlighted-line',
+            line: 'highlight-next-line',
+            block: {start: 'highlight-start', end: 'highlight-end'},
+          },
+          {
+            className: 'code-block-minus-diff-line',
+            line: 'minus-diff-line',
+            block: {start: 'minus-diff-start', end: 'minus-diff-end'},
+          },
+          {
+            className: 'code-block-plus-diff-line',
+            line: 'plus-diff-line',
+            block: {start: 'plus-diff-start', end: 'plus-diff-end'},
+          },
+        ],
       },
     }),
   themes: ["@you54f/theme-github-codeblock"],
