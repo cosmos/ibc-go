@@ -53,11 +53,11 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			ctx := suite.chainA.GetContext()
 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().WasmClientKeeper.InitGenesis(ctx, genesisState)
+			err := GetSimApp(suite.chainA).WasmClientKeeper.InitGenesis(ctx, genesisState)
 			suite.Require().NoError(err)
 
 			var storedHashes []string
-			res := types.GetCodeHashes(suite.chainA.GetContext(), suite.chainA.GetSimApp().AppCodec())
+			res := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
 			for _, hash := range res.CodeHashes {
 				storedHashes = append(storedHashes, hex.EncodeToString(hash))
 			}
@@ -81,11 +81,11 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.Require().NoError(err)
 
 	msg := types.NewMsgStoreCode(signer, contractCode)
-	res, err := suite.chainA.GetSimApp().WasmClientKeeper.StoreCode(ctx, msg)
+	res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
 	suite.Require().NoError(err)
 	suite.Require().Equal(expCodeHash, hex.EncodeToString(res.Checksum))
 
-	genesisState := suite.chainA.GetSimApp().WasmClientKeeper.ExportGenesis(ctx)
+	genesisState := GetSimApp(suite.chainA).WasmClientKeeper.ExportGenesis(ctx)
 	suite.Require().Len(genesisState.Contracts, 1)
 	suite.Require().NotEmpty(genesisState.Contracts[0].CodeBytes)
 }
