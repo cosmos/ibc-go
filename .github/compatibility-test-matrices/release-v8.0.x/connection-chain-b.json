@@ -8,18 +8,16 @@
     "v5.3.1",
     "v5.2.1",
     "v4.4.2",
-    "release-v7.2.x"
+    "release-v8.0.x"
   ],
   "chain-b": [
-    "release-v7.2.x"
+    "release-v8.0.x"
   ],
   "entrypoint": [
-    "TestClientTestSuite"
+    "TestConnectionTestSuite"
   ],
   "test": [
-    "TestClientUpdateProposal_Succeeds",
-    "TestRecoverClient_Succeeds",
-    "TestClient_Update_Misbehaviour"
+    "TestMaxExpectedTimePerBlockParam"
   ],
   "relayer-type": [
     "rly"
