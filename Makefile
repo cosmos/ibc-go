@@ -176,7 +176,7 @@ TEST_TARGETS := test-unit test-unit-amino test-unit-proto test-ledger-mock test-
 # Test runs-specific rules. To add a new test target, just add
 # a new rule, customise ARGS or TEST_PACKAGES ad libitum, and
 # append the new rule to the TEST_TARGETS list.
-test-unit: ARGS=-tags='cgo ledger test_ledger_mock'
+test-unit: ARGS=-tags='cgo ledger test_ledger_mock test_e2e'
 test-unit-amino: ARGS=-tags='ledger test_ledger_mock test_amino'
 test-ledger: ARGS=-tags='cgo ledger'
 test-ledger-mock: ARGS=-tags='ledger test_ledger_mock'
@@ -192,12 +192,9 @@ check-test-unit-amino: ARGS=-tags='ledger test_ledger_mock test_amino'
 $(CHECK_TEST_TARGETS): EXTRA_ARGS=-run=none
 $(CHECK_TEST_TARGETS): run-tests
 
-run-tests:
-ifneq (,$(shell which tparse 2>/dev/null))
-	go test -mod=readonly -json $(ARGS) $(EXTRA_ARGS) $(TEST_PACKAGES) | tparse
-else
-	go test -mod=readonly $(ARGS)  $(EXTRA_ARGS) $(TEST_PACKAGES)
-endif
+ARGS += -tags "$(test_tags)"
+run-tests: 
+	@ARGS="$(ARGS)" TEST_PACKAGES=$(TEST_PACKAGES) EXTRA_ARGS="$(EXTRA_ARGS)" python ./scripts/go-test-all.py
 
 .PHONY: run-tests test test-all $(TEST_TARGETS)
 
