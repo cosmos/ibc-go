@@ -123,6 +123,7 @@ import (
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -1005,12 +1006,13 @@ func BlockedAddresses() map[string]bool {
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
-	// TODO: ibc module subspaces can be removed after migration of params
-	// https://github.com/cosmos/ibc-go/issues/2010
-	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
-	paramsKeeper.Subspace(ibcexported.ModuleName)
-	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
-	paramsKeeper.Subspace(icahosttypes.SubModuleName)
+	// register the key tables for legacy param subspaces
+	keyTable := ibcclienttypes.ParamKeyTable()
+	keyTable.RegisterParamSet(&ibcconnectiontypes.Params{})
+	paramsKeeper.Subspace(ibcexported.ModuleName).WithKeyTable(keyTable)
+	paramsKeeper.Subspace(ibctransfertypes.ModuleName).WithKeyTable(ibctransfertypes.ParamKeyTable())
+	paramsKeeper.Subspace(icacontrollertypes.SubModuleName).WithKeyTable(icacontrollertypes.ParamKeyTable())
+	paramsKeeper.Subspace(icahosttypes.SubModuleName).WithKeyTable(icahosttypes.ParamKeyTable())
 
 	return paramsKeeper
 }
