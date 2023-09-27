@@ -2,6 +2,7 @@ package ibctesting
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/stretchr/testify/require"
@@ -606,21 +607,33 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 		[]sdk.Msg{msg},
 		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, govtypesv1.DefaultMinDepositTokens)),
 		endpoint.Chain.SenderAccount.GetAddress().String(),
-		"",
+		endpoint.ChannelID,
 		"upgrade-init",
 		fmt.Sprintf("gov proposal for initialising channel upgrade: %s", endpoint.ChannelID),
 		false,
 	)
 	require.NoError(endpoint.Chain.TB, err)
 
-	if err := endpoint.Chain.sendMsgs(proposal); err != nil {
+	var proposalId int
+	res, err := endpoint.Chain.SendMsgs(proposal)
+	if err != nil {
 		return err
+	}
+
+	events := res.Events
+	for _, event := range events {
+		for _, attribute := range event.Attributes {
+			if attribute.Key == "proposal_id" {
+				proposalId, err = strconv.Atoi(attribute.Value)
+				require.NoError(endpoint.Chain.TB, err)
+			}
+		}
 	}
 
 	// vote on proposal
 	ctx := endpoint.Chain.GetContext()
-	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, 1, endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
-	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, 1, endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
+	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, uint64(proposalId), endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
+	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, uint64(proposalId), endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
 
 	// fast forward the chain context to end the voting period
 	params, _ := endpoint.Chain.GetSimApp().GovKeeper.Params.Get(ctx)
