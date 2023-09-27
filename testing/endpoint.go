@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -640,12 +640,14 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 	newHeader := endpoint.Chain.GetContext().BlockHeader()
 	newHeader.Time = endpoint.Chain.GetContext().BlockHeader().Time.Add(*params.MaxDepositPeriod).Add(*params.VotingPeriod)
 	ctx = ctx.WithBlockHeader(newHeader)
-	require.NoError(endpoint.Chain.TB, gov.EndBlocker(ctx, &endpoint.Chain.GetSimApp().GovKeeper))
+	require.NoError(endpoint.Chain.TB, govtypes.EndBlocker(ctx, &endpoint.Chain.GetSimApp().GovKeeper))
 
-	// validate that the proposal has passed
+	// check if proposal passed or failed on msg execution
 	p, err := endpoint.Chain.GetSimApp().GovKeeper.Proposals.Get(ctx, 1)
 	require.NoError(endpoint.Chain.TB, err)
-	require.Equal(endpoint.Chain.TB, govtypesv1.StatusPassed, p.Status)
+	if p.Status != govtypesv1.StatusPassed {
+		return fmt.Errorf("proposal failed: %s", p.FailedReason)
+	}
 
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 	return nil
