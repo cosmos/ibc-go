@@ -154,9 +154,9 @@ func TestApplyPrefix(t *testing.T) {
 
 	key0, err := prefixedPath.GetKey(0)
 	require.NoError(t, err, "get key 0 returns error")
-	require.Equal(t, key0, prefix.KeyPrefix, "key 0 does not match expected value")
+	require.Equal(t, prefix.KeyPrefix, key0, "key 0 does not match expected value")
 
 	key1, err := prefixedPath.GetKey(1)
 	require.NoError(t, err, "get key 1 returns error")
-	require.Equal(t, key1, []byte(pathStr), "key 1 does not match expected value")
+	require.Equal(t, []byte(pathStr), key1, "key 1 does not match expected value")
 }
