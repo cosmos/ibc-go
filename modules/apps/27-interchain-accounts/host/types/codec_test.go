@@ -3,11 +3,13 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
 	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCodecTypeRegistration(t *testing.T) {
