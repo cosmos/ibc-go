@@ -25,7 +25,7 @@ We will first wire up the Fee Middleware as a Cosmos SDK module, then we will wi
 
 Cosmos SDK modules are registered in the `app/app.go` file. The `app.go` file is the entry point for the Cosmos SDK application. It is where the application is initialized and where the application's modules are registered.
 
-We first need to import the `fee` module into the `app.go` file. bold and italic. Add the following import statements to the `app.go` file:
+We first need to import the `fee` module into the `app.go` file. Add the following import statements to the `app.go` file:
 
 ```go reference title="app/app.go"
 https://github.com/srdtrk/ignite-fee-middleware-demo/blob/main/app/app.go#L99-L101
@@ -85,6 +85,8 @@ Next, we need to add the fee middleware to the module manager. Add the following
 	)
 ```
 
+Note that we have added `ibcfee.NewAppModule(app.IBCFeeKeeper)` to the module manager but we have not yet created nor initialized the `app.IBCFeeKeeper`. We will do that next.
+
 ### 1.2. Initialize the Fee Middleware Keeper
 
 Next, we need to add the fee middleware keeper to the Cosmos App, register its store key, and initialize it.
@@ -124,7 +126,7 @@ Then initialize the keeper:
 
 :::warning
 
-Make sure to do the following initialization after the `IBCKeeper` is initialized and before `TransferKeeper` is initialized, if you have done the changes above, then you may do the initialization at line 444.
+Make sure to do the following initialization after the `IBCKeeper` is initialized and before `TransferKeeper` is initialized.
 
 :::
 
@@ -142,15 +144,26 @@ Next, we need to add the fee middleware to the `SetOrderBeginBlockers`, `SetOrde
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(
-		// upgrades should be run first
-		upgradetypes.ModuleName,
+		// ... other modules
+		icatypes.ModuleName,
+		// plus-diff-line
++		ibcfeetypes.ModuleName,
+		genutiltypes.ModuleName,
 		// ... other modules
 		consensusparamtypes.ModuleName,
-		// plus-diff-line 
-+		ibcfeetypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
+	app.mm.SetOrderEndBlockers(
+		// ... other modules
+		icatypes.ModuleName,
+		// plus-diff-line
++		ibcfeetypes.ModuleName,
+		capabilitytypes.ModuleName,
+		// ... other modules
+		consensusparamtypes.ModuleName,
+		// this line is used by starport scaffolding # stargate/app/endBlockers
+	)
 	app.mm.SetOrderEndBlockers(
 		// ... other modules
 		vestingtypes.ModuleName,
@@ -167,10 +180,12 @@ Next, we need to add the fee middleware to the `SetOrderBeginBlockers`, `SetOrde
 	// can do so safely.
 	genesisModuleOrder := []string{
 		// ... other modules
-		vestingtypes.ModuleName,
-		consensusparamtypes.ModuleName,
-		// plus-diff-line 
+		icatypes.ModuleName,
+		// plus-diff-line
 +		ibcfeetypes.ModuleName,
+		evidencetypes.ModuleName,
+		// ... other modules
+		consensusparamtypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 	app.mm.SetOrderInitGenesis(genesisModuleOrder...)
@@ -217,7 +232,8 @@ Instead we need to "convert" the transfer IBC module to an IBC application stack
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 	// minus-diff-line 
 -	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
-	// plus-diff-start 
+	// plus-diff-start
++
 +	/**** IBC Transfer Stack ****/
 +	var transferStack ibcporttypes.IBCModule
 +	transferStack = transfer.NewIBCModule(app.TransferKeeper)
@@ -235,4 +251,4 @@ And finally, we need to add the `transferStack` to the `ibcRouter`. Modify the `
 +		AddRoute(ibctransfertypes.ModuleName, transferStack)
 ```
 
-This completes the wiring of the ICS-29 Fee Middleware to the IBC transfer stack! See a full example of the `app.go` file [here](//TODO: add link). Test that the application is still running with `ignite chain serve --reset-once`, and quit with `q`.
+This completes the wiring of the ICS-29 Fee Middleware to the IBC transfer stack! See a full example of the `app.go` file with the fee middleware wired up [here](https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/64e572214b4ba9a1075db96440dd83d4b90a6052/app/app.go). Test that the application is still running with `ignite chain serve --reset-once`, and quit with `q`.

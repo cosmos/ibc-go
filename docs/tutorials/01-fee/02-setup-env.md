@@ -20,6 +20,7 @@ In this section, you can find all you need to install:
 - [Hermes v1.6.0](https://hermes.informal.systems/)
 - [Node.js v18](https://nodejs.org/en/)
 - [Ignite v0.27.1](https://docs.ignite.com/)
+- [Keplr](https://www.keplr.app/)
 
 </HighlightBox>
 
@@ -74,3 +75,7 @@ Test if the correct version of Ignite is installed by running the following comm
 ```bash
 ignite version
 ```
+
+## Keplr
+
+Install Keplr to your browser following the instructions on the [Keplr website](https://www.keplr.app/download).
