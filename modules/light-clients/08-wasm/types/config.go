@@ -1,5 +1,7 @@
 package types
 
+import "path/filepath"
+
 const (
 	// contractMemoryLimit is the memory limit of each contract execution (in MiB)
 	// constant value so all nodes run with the same limit.
@@ -26,10 +28,12 @@ type WasmConfig struct {
 	ContractDebugMode bool
 }
 
-// DefaultWasmConfig returns the default settings for WasmConfig
-func DefaultWasmConfig() WasmConfig {
+// DefaultWasmConfig returns the default settings for WasmConfig.
+// The homePath is the path to the directory where the data directory for
+// Wasm blobs and caches will be stored.
+func DefaultWasmConfig(homePath string) WasmConfig {
 	return WasmConfig{
-		DataDir:           defaultDataDir,
+		DataDir:           filepath.Join(homePath, defaultDataDir),
 		SupportedFeatures: defaultSupportedFeatures,
 		MemoryCacheSize:   defaultMemoryCacheSize,
 		ContractDebugMode: defaultContractDebugMode,
