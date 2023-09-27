@@ -614,7 +614,7 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 	)
 	require.NoError(endpoint.Chain.TB, err)
 
-	var proposalId int
+	var proposalID int
 	res, err := endpoint.Chain.SendMsgs(proposal)
 	if err != nil {
 		return err
@@ -624,7 +624,7 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 	for _, event := range events {
 		for _, attribute := range event.Attributes {
 			if attribute.Key == "proposal_id" {
-				proposalId, err = strconv.Atoi(attribute.Value)
+				proposalID, err = strconv.Atoi(attribute.Value)
 				require.NoError(endpoint.Chain.TB, err)
 			}
 		}
@@ -632,11 +632,13 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 
 	// vote on proposal
 	ctx := endpoint.Chain.GetContext()
-	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, uint64(proposalId), endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
-	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, uint64(proposalId), endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
+	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, uint64(proposalID), endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
+	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, uint64(proposalID), endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
 
 	// fast forward the chain context to end the voting period
-	params, _ := endpoint.Chain.GetSimApp().GovKeeper.Params.Get(ctx)
+	params, err := endpoint.Chain.GetSimApp().GovKeeper.Params.Get(ctx)
+	require.NoError(endpoint.Chain.TB, err)
+
 	newHeader := endpoint.Chain.GetContext().BlockHeader()
 	newHeader.Time = endpoint.Chain.GetContext().BlockHeader().Time.Add(*params.MaxDepositPeriod).Add(*params.VotingPeriod)
 	ctx = ctx.WithBlockHeader(newHeader)
