@@ -43,7 +43,7 @@ func (suite *TypesTestSuite) TestCodecTypeRegistration() {
 			true,
 		},
 		{
-			"success: Header",
+			"success: TransferAuthorization",
 			sdk.MsgTypeURL(&types.TransferAuthorization{}),
 			true,
 		},
