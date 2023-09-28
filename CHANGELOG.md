@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 ### Dependencies
 
 * [\#4738](https://github.com/cosmos/ibc-go/pull/4738) Bump Cosmos SDK to v0.45.16.
+* [\#4782](https://github.com/cosmos/ibc-go/pull/4782) Bump ics23 to v0.9.1.
 
 ### API Breaking
 
