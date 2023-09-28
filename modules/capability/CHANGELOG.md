@@ -40,6 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * [\#4068](https://github.com/cosmos/ibc-go/pull/4068) Various improvements made to testing to reduce the dependency tree and use new cosmos-sdk test utils.
+* [\#4770](https://github.com/cosmos/ibc-go/pull/4770) Save gas on `IsInitialized`, use `Has` in favour of `Get`.
 
 ### Features
 
