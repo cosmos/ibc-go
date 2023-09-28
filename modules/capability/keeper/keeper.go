@@ -149,7 +149,7 @@ func (k *Keeper) InitMemStore(ctx sdk.Context) {
 // IsInitialized returns true if the keeper is properly initialized, and false otherwise.
 func (k *Keeper) IsInitialized(ctx sdk.Context) bool {
 	memStore := ctx.KVStore(k.memKey)
-	return memStore.Get(types.KeyMemInitialized) != nil
+	return memStore.Has(types.KeyMemInitialized)
 }
 
 // InitializeIndex sets the index to one (or greater) in InitChain according
