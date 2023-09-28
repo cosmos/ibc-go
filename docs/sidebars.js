@@ -41,6 +41,11 @@ const sidebars = {
           label: "Awesome Cosmos",
           href: "https://github.com/cosmos/awesome-cosmos",
         },
+        {
+          type: "link",
+          label: "ibc-rs",
+          href: "https://github.com/cosmos/ibc-rs",
+        },
       ],
     },
   ],
