@@ -17,7 +17,7 @@ import (
 var _ types.QueryServer = (*Keeper)(nil)
 
 // Code implements the Query/Code gRPC method
-func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.QueryCodeResponse, error) {
+func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types.QueryCodeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -28,7 +28,7 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 	}
 
 	// Only return code hashes we previously stored, not arbitrary code hashes that might be stored via e.g Wasmd.
-	if !types.HasCodeHash(sdk.UnwrapSDKContext(c), k.cdc, codeHash) {
+	if !types.HasCodeHash(sdk.UnwrapSDKContext(goCtx), k.cdc, codeHash) {
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.CodeHash).Error())
 	}
 	code, err := k.wasmVM.GetCode(codeHash)
@@ -42,12 +42,12 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 }
 
 // CodeHashes implements the Query/CodeHashes gRPC method. It returns a list of hex encoded code hashes stored.
-func (k Keeper) CodeHashes(c context.Context, req *types.QueryCodeHashesRequest) (*types.QueryCodeHashesResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
+func (k Keeper) CodeHashes(goCtx context.Context, req *types.QueryCodeHashesRequest) (*types.QueryCodeHashesResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var codeHashes []string
 	storedHashes := types.GetCodeHashes(ctx, k.cdc)
-	for _, hash := range storedHashes.CodeHashes {
+	for _, hash := range storedHashes.Hashes {
 		codeHashes = append(codeHashes, hex.EncodeToString(hash))
 	}
 

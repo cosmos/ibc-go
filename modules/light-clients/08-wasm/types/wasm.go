@@ -22,21 +22,21 @@ func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) CodeHashes {
 
 // AddCodeHash adds a new code hash to the list of stored code hashes.
 func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) {
-	hashes := GetCodeHashes(ctx, cdc)
-	hashes.CodeHashes = append(hashes.CodeHashes, codeHash)
+	codeHashes := GetCodeHashes(ctx, cdc)
+	codeHashes.Hashes = append(codeHashes.Hashes, codeHash)
 
 	wasmStoreKey := GetWasmStoreKey(cdc)
 	store := ctx.KVStore(wasmStoreKey)
-	bz := cdc.MustMarshal(&hashes)
+	bz := cdc.MustMarshal(&codeHashes)
 	store.Set([]byte(KeyCodeHashes), bz)
 }
 
 // HasCodeHash returns true if the given code hash exists in the store and
 // false otherwise.
 func HasCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) bool {
-	hashes := GetCodeHashes(ctx, cdc)
+	codeHashes := GetCodeHashes(ctx, cdc)
 
-	for _, hash := range hashes.CodeHashes {
+	for _, hash := range codeHashes.Hashes {
 		if bytes.Equal(hash, codeHash) {
 			return true
 		}

@@ -12,7 +12,7 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 			"success: empty code hashes",
 			func() {},
 			func(codeHashes types.CodeHashes) {
-				suite.Require().Empty(codeHashes.CodeHashes)
+				suite.Require().Empty(codeHashes.Hashes)
 			},
 		},
 		{
@@ -21,8 +21,8 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 				types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), []byte("codehash"))
 			},
 			func(codeHashes types.CodeHashes) {
-				suite.Require().Len(codeHashes.CodeHashes, 1)
-				suite.Require().Equal([]byte("codehash"), codeHashes.CodeHashes[0])
+				suite.Require().Len(codeHashes.Hashes, 1)
+				suite.Require().Equal([]byte("codehash"), codeHashes.Hashes[0])
 			},
 		},
 	}
@@ -43,14 +43,14 @@ func (suite *TypesTestSuite) TestAddCodeHash() {
 	suite.SetupTest()
 
 	codeHashes := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
-	suite.Require().Empty(codeHashes.CodeHashes)
+	suite.Require().Empty(codeHashes.Hashes)
 
 	codeHash := []byte("codehash")
 	types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash)
 
 	codeHashes = types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
-	suite.Require().Len(codeHashes.CodeHashes, 1)
-	suite.Require().Equal(codeHash, codeHashes.CodeHashes[0])
+	suite.Require().Len(codeHashes.Hashes, 1)
+	suite.Require().Equal(codeHash, codeHashes.Hashes[0])
 }
 
 func (suite *TypesTestSuite) TestHasCodeHash() {

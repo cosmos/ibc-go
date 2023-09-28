@@ -25,7 +25,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 
 	// Grab code from wasmVM and add to genesis state.
 	var genesisState types.GenesisState
-	for _, codeHash := range codeHashes.CodeHashes {
+	for _, codeHash := range codeHashes.Hashes {
 		code, err := k.wasmVM.GetCode(codeHash)
 		if err != nil {
 			panic(err)
