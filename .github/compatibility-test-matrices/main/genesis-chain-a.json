@@ -1,15 +1,15 @@
 {
   "chain-a": [
-    "release-v7.3.x"
+    "main"
   ],
   "chain-b": [
-    "release-v7.3.x"
+    "main"
   ],
   "entrypoint": [
-    "TestConnectionTestSuite"
+    "TestGenesisTestSuite"
   ],
   "test": [
-    "TestMaxExpectedTimePerBlockParam"
+    "TestIBCGenesis"
   ],
   "relayer-type": [
     "rly"

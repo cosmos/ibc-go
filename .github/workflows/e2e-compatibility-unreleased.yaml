@@ -82,6 +82,14 @@ jobs:
       test-file-directory: "unreleased"
       test-suite: "client"
 
+  genesis:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "genesis"
+
   ica-gov:
     needs:
       - build-release-images
@@ -129,7 +137,6 @@ jobs:
     with:
       test-file-directory: "unreleased"
       test-suite: "incentivized-transfer-3"
-
 
   localhost-ica:
     needs:
