@@ -95,12 +95,13 @@ type verifyUpgradeAndUpdateStateMsg struct {
 // checkSubstituteAndUpdateStateMsg is a sudoMsg sent to the contract to check a given substitute client and update to its state.
 type checkSubstituteAndUpdateStateMsg struct{}
 
-// ContractResult defines the expected interface a Result returned by a contract call is expected to implement.
-type ContractResult interface{}
+// ContractResult is a type constraint that defines the expected results that can be returned by a contract call/query.
+type ContractResult interface {
+	emptyResult | statusResult | exportMetadataResult | timestampAtHeightResult | checkForMisbehaviourResult | updateStateResult
+}
 
-// contractResult is the default implementation of the ContractResult interface and the default return type of any contract call
-// that does not require a custom return type.
-type contractResult struct{}
+// emptyResult is the default return type of any contract call that does not require a custom return type.
+type emptyResult struct{}
 
 // statusResult is the expected return type of the statusMsg query. It returns the status of the wasm client.
 type statusResult struct {
