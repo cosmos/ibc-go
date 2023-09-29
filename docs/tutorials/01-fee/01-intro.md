@@ -19,7 +19,7 @@ This tutorial for wiring up the ICS-29 Fee Middleware to a Cosmos SDK blockchain
 - Basic Knowledge of [Go](https://golang.org/doc/tutorial/getting-started)
 - Basic Knowledge of [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 - Basic Knowledge of Cosmos SDK
-  - If you are new to Cosmos SDK, we recommend you to go through the first two categories of the [Developer Portal](https://tutorials.cosmos.network/academy/1-what-is-cosmos/)
+    - If you are new to Cosmos SDK, we recommend you to go through the first two categories of the [Developer Portal](https://tutorials.cosmos.network/academy/1-what-is-cosmos/)
 
 </HighlightBox>
 
