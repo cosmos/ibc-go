@@ -219,7 +219,7 @@ const config = {
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
-        additionalLanguages: ["protobuf", "go-module", "yaml"],
+        additionalLanguages: ["protobuf", "go-module", "yaml", "toml"],
         magicComments: [
           // Remember to extend the default highlight class name as well!
           {
