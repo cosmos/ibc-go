@@ -151,11 +151,11 @@ func getEnv(ctx sdk.Context) wasmvmtypes.Env {
 
 	// safety checks before casting below
 	if height < 0 {
-		panic("Block height must never be negative")
+		panic(errors.New("block height must never be negative"))
 	}
 	nsec := ctx.BlockTime().UnixNano()
 	if nsec < 0 {
-		panic("Block (unix) time must never be negative ")
+		panic(errors.New("block (unix) time must never be negative "))
 	}
 
 	env := wasmvmtypes.Env{
