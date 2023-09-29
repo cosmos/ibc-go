@@ -105,6 +105,13 @@ const config = {
             label: "Architecture Decision Records",
           },
           {
+            type: "doc",
+            position: "left",
+            docId: "intro",
+            docsPluginId: "tutorials",
+            label: "Tutorials",
+          },
+          {
             type: "docsVersionDropdown",
             position: "right",
             dropdownActiveClassDisabled: true,
@@ -212,10 +219,28 @@ const config = {
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
-        additionalLanguages: ["protobuf", "go-module"],
+        additionalLanguages: ["protobuf", "go-module", "yaml", "toml"],
+        magicComments: [
+          // Remember to extend the default highlight class name as well!
+          {
+            className: 'theme-code-block-highlighted-line',
+            line: 'highlight-next-line',
+            block: {start: 'highlight-start', end: 'highlight-end'},
+          },
+          {
+            className: 'code-block-minus-diff-line',
+            line: 'minus-diff-line',
+            block: {start: 'minus-diff-start', end: 'minus-diff-end'},
+          },
+          {
+            className: 'code-block-plus-diff-line',
+            line: 'plus-diff-line',
+            block: {start: 'plus-diff-start', end: 'plus-diff-end'},
+          },
+        ],
       },
     }),
-  themes: ["@you54f/theme-github-codeblock"],
+  themes: ["@saucelabs/theme-github-codeblock"],
   plugins: [
     [
       "@docusaurus/plugin-content-docs",
@@ -223,6 +248,16 @@ const config = {
         id: "adrs",
         path: "architecture",
         routeBasePath: "architecture",
+        sidebarPath: require.resolve("./sidebars.js"),
+        exclude: ["**/*.template.md"],
+      },
+    ],
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: "tutorials",
+        path: "tutorials",
+        routeBasePath: "tutorials",
         sidebarPath: require.resolve("./sidebars.js"),
         exclude: ["**/*.template.md"],
       },
