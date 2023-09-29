@@ -19,6 +19,9 @@ In this section, you will:
 
 </HighlightBox>
 
+In this section, we will test the React app we created in the previous section. We will run two chains locally, configure and run a relayer, and make an incentivized IBC transfer between the two chains.
+You can find the React app we created in the previous section [here](https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo)
+
 ## Run two chains locally
 
 Ignite supports running multiple chains locally with different configs. The source chain will be called earth and the destination chain will be called mars.

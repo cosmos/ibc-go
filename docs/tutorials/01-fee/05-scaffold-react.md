@@ -5,13 +5,15 @@ sidebar_position: 5
 slug: /fee/scaffold-react
 ---
 
+import CodeBlock from '@theme/CodeBlock';
+
 # Scaffold a React App
 
 In this section, we will scaffold a React app using Ignite CLI, and test it. This will be the base for us to add Fee Middleware support.
 
 ## Set up Test Wallets
 
-We will use 4 test wallets for this tutorial. You can use the following mnemonic phrases to import them into Keplr or generate your own.
+We will use 4 test wallets for this tutorial. Use the following mnemonic phrases to import them into Keplr.
 
 ```text title="anna.mnemonic"
 antenna hen skate tooth during heart agent code exclude measure text math time budget industry cage eagle prosper program enter cruise join tragic one
@@ -29,7 +31,7 @@ rug cotton ceiling olive cake october way spy million grain actress sponsor
 mansion wing limit daughter allow fiscal attend planet viable giggle prison ready
 ```
 
-Then add these wallet mnemonics to `config.yml` so that they are funded automatically by ignite.
+Then add these wallet mnemonics to [`config.yml`](https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/65032986f671e901bc13ab160e3f96a5046857c0/config.yml) so that they are funded automatically by ignite.
 
 ```yaml title="config.yml"
 version: 1
@@ -81,16 +83,16 @@ validators:
 
 Scaffold a React app using the following command:
 
-```bash
+<CodeBlock className="language-bash" title=<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/51b8e3304f5c8c2e2e477dac9985237be676254b">View Source</a>>
 ignite scaffold react
-```
+</CodeBlock>
 
 For this will create a React app within the `react/` directory. The app depends on a typescript client that is yet to be generated.
 The following command generates the typescript client for the chain, including the Fee Middleware types, and its react hooks.
 
-```bash
+<CodeBlock className="language-bash" title=<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/6b31da02d1ca4fba70d58a3b3e56d9f1e3f06833">View Source</a>>
 ignite generate hooks --clear-cache
-```
+</CodeBlock>
 
 :::caution
 
@@ -103,15 +105,15 @@ You need to add `--clear-cache` to the command above to make sure that the custo
 The generated React app and ts-client depends on the `@cosmjs` packages. We need to update the dependencies to the latest version because the Cosmos SDK version is not fully compatible with the version of `@cosmjs` packages used by the generated app.
 Run the following commands in the root directory of the project to update the dependencies.
 
-```bash
+<CodeBlock className="language-bash" title=<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/dffcf719fd8c223be06d3327e6bc24ec7cf0cec3">View Source</a>>
 cd ts-client
 npm install @cosmjs/launchpad@0.27.1 @cosmjs/proto-signing@0.31.1 @cosmjs/stargate@0.31.1 @keplr-wallet/types@0.11.14
-```
+</CodeBlock>
 
-```bash
+<CodeBlock className="language-bash" title=<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/1c90ffddbab1655038dc296874f427b036afb749">View Source</a>>
 cd react
 npm install @cosmjs/proto-signing@0.31.1 @cosmjs/stargate@0.31.1 @cosmjs/encoding@0.31.1
-```
+</CodeBlock>
 
 ### Fix the Bugs
 
@@ -120,9 +122,9 @@ There are a bug in the generated app that we need to fix. While this is fixed in
 The bug is in the `react/src/hooks/useIbcApplicationsTransferV1/index.ts` file. For some reason, the generated code uses the string `=**` in certain places. We need to remove this using replace.
 You can use the following command to fix this (or simply use your editor to replace the string with an empty string):
 
-```bash
+<CodeBlock className="language-bash" title=<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/17c40b79109712460f8f2613c19f3a5fe9519e33">View Source</a>>
 sed -i 's/=\*\*//g' react/src/hooks/useIbcApplicationsTransferV1/index.ts
-```
+</CodeBlock>
 
 ## Test the App
 

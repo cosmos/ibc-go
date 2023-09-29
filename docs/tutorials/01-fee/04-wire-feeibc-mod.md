@@ -28,7 +28,7 @@ Cosmos SDK modules are registered in the `app/app.go` file. The `app.go` file is
 We first need to import the `fee` module into the `app.go` file. Add the following import statements to the `app.go` file:
 
 ```go reference title="app/app.go"
-https://github.com/srdtrk/ignite-fee-middleware-demo/blob/main/app/app.go#L99-L101
+https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/64e572214b4ba9a1075db96440dd83d4b90a6052/app/app.go#L99-L101
 ```
 
 ### 1.1. Add the Fee Middleware to the Module Managers and Define Its Account Permissions
@@ -131,7 +131,7 @@ Make sure to do the following initialization after the `IBCKeeper` is initialize
 :::
 
 ```go reference title="app/app.go"
-https://github.com/srdtrk/ignite-fee-middleware-demo/blob/main/app/app.go#L452-L458
+https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/64e572214b4ba9a1075db96440dd83d4b90a6052/app/app.go#L452-L458
 ```
 
 ### 1.3. Add the Fee Middleware to SetOrderBeginBlockers, SetOrderEndBlockers, and genesisModuleOrder
@@ -251,4 +251,4 @@ And finally, we need to add the `transferStack` to the `ibcRouter`. Modify the `
 +		AddRoute(ibctransfertypes.ModuleName, transferStack)
 ```
 
-This completes the wiring of the ICS-29 Fee Middleware to the IBC transfer stack! See a full example of the `app.go` file with the fee middleware wired up [here](https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/64e572214b4ba9a1075db96440dd83d4b90a6052/app/app.go). Test that the application is still running with `ignite chain serve --reset-once`, and quit with `q`.
+This completes the wiring of the ICS-29 Fee Middleware to the IBC transfer stack! See a full example of the `app.go` file with the fee middleware wired up [here](https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/64e572214b4ba9a1075db96440dd83d4b90a6052/app/app.go) and the diff [here](https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/64e572214b4ba9a1075db96440dd83d4b90a6052). Test that the application is still running with `ignite chain serve --reset-once`, and quit with `q`.

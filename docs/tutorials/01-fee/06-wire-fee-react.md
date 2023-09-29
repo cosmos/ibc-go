@@ -95,7 +95,7 @@ Next, we need to add a functional UI which updates the fee amount in the state. 
 			// plus-diff-end
 ```
 
-At this point, you should be able to see the ICS-29 fee UI in the app. However, the fee amount is not being used in the transaction. Let's fix that. TODO: add link to diff
+At this point, you should be able to see the ICS-29 fee UI in the app. See the diff up to this point [here](https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/a93acb8e1b4194402a45506c5c3105b4dc03ad58). However, the fee amount is not being used in the transaction. Let's fix that.
 
 ## 3. Add the ICS-29 Fee to the Transaction
 
@@ -223,4 +223,4 @@ We will do something similar. We will check if `relayerFee` has been provided, i
       } else {
 ```
 
-We will test the UI in the next section.
+See the diff up to this point [here](https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/0b3ddc8f8fe547624ec0d38f08e2344d29d22ee7). We will test the UI in the next section.
