@@ -7,11 +7,11 @@ slug: /fee/scaffold-react
 
 import CodeBlock from '@theme/CodeBlock';
 
-# Scaffold a React App
+# Scaffold a React app
 
 In this section, we will scaffold a React app using Ignite CLI, and test it. This will be the base for us to add Fee Middleware support.
 
-## Set up Test Wallets
+## Set up test wallets
 
 We will use 4 test wallets for this tutorial. Use the following mnemonic phrases to import them into Keplr.
 
@@ -79,7 +79,7 @@ validators:
   bonded: 100000000stake
 ```
 
-## Scaffold a React App
+## Scaffold a React app
 
 Scaffold a React app using the following command:
 
@@ -100,24 +100,24 @@ You need to add `--clear-cache` to the command above to make sure that the custo
 
 :::
 
-### Update the Dependencies
+### Update the dependencies
 
 The generated React app and ts-client depends on the `@cosmjs` packages. We need to update the dependencies to the latest version because the Cosmos SDK version is not fully compatible with the version of `@cosmjs` packages used by the generated app.
 Run the following commands in the root directory of the project to update the dependencies.
 
 <CodeBlock className="language-bash" title=<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/dffcf719fd8c223be06d3327e6bc24ec7cf0cec3">View Source</a>>
-cd ts-client
+cd ts-client && 
 npm install @cosmjs/launchpad@0.27.1 @cosmjs/proto-signing@0.31.1 @cosmjs/stargate@0.31.1 @keplr-wallet/types@0.11.14
 </CodeBlock>
 
 <CodeBlock className="language-bash" title=<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/1c90ffddbab1655038dc296874f427b036afb749">View Source</a>>
-cd react
+cd react && 
 npm install @cosmjs/proto-signing@0.31.1 @cosmjs/stargate@0.31.1 @cosmjs/encoding@0.31.1
 </CodeBlock>
 
-### Fix the Bugs
+### Fix the bugs
 
-There are a bug in the generated app that we need to fix. While this is fixed in the next version of Ignite CLI, we need to fix it manually for now since we are using the latest version of Ignite CLI. (The next version of ignite comes with the Fee Middleware wired!)
+There is a bug in the generated app that we need to fix. While this is fixed in the next version of Ignite CLI, we need to fix it manually for now since we are using the latest version (`v0.27.1`) of Ignite CLI. (The next version of ignite comes with the Fee Middleware wired!)
 
 The bug is in the `react/src/hooks/useIbcApplicationsTransferV1/index.ts` file. For some reason, the generated code uses the string `=**` in certain places. We need to remove this using replace.
 You can use the following command to fix this (or simply use your editor to replace the string with an empty string):
@@ -126,9 +126,9 @@ You can use the following command to fix this (or simply use your editor to repl
 sed -i 's/=\*\*//g' react/src/hooks/useIbcApplicationsTransferV1/index.ts
 </CodeBlock>
 
-## Test the App
+## Test the app
 
-### Start the Chain
+### Start the chain
 
 Start the chain using the following command:
 
@@ -136,7 +136,7 @@ Start the chain using the following command:
 ignite chain serve --reset-once
 ```
 
-### Start the React App
+### Start the React app
 
 Start the React app in a separate terminal using the following command:
 

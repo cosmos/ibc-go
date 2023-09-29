@@ -7,7 +7,7 @@ slug: /fee/scaffold-chain
 
 import CodeBlock from '@theme/CodeBlock';
 
-# Scaffold a Cosmos SDK Blockchain with Ignite
+# Scaffold a Cosmos SDK blockchain with Ignite
 
 In this tutorial, we will not be going through the process of creating a Cosmos SDK module. Instead, we will integrate the ICS-29 Fee Middleware into an existing Cosmos SDK blockchain. Scaffold the blockchain without any custom modules using the following command.
 

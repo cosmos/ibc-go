@@ -7,7 +7,7 @@ slug: /fee/wire-feeibc-mod
 
 import HighlightBox from '@site/src/components/HighlightBox';
 
-# Wire Up the ICS-29 Fee Middleware to a Cosmos SDK Blockchain
+# Wire up the ICS-29 Fee Middleware to a Cosmos SDK blockchain
 
 <HighlightBox type="learning" title="Learning Goals">
 
@@ -18,7 +18,7 @@ In this section, you will:
 
 </HighlightBox>
 
-## 1. Wire Up the ICS-29 Fee Middleware as a Cosmos SDK Module
+## 1. Wire up the ICS-29 Fee Middleware as a Cosmos SDK module
 
 The Fee Middleware is not just an IBC middleware, it is also a Cosmos SDK module since it manages its own state and defines its own messages.
 We will first wire up the Fee Middleware as a Cosmos SDK module, then we will wire it up to the IBC transfer stack.
@@ -31,7 +31,7 @@ We first need to import the `fee` module into the `app.go` file. Add the followi
 https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/64e572214b4ba9a1075db96440dd83d4b90a6052/app/app.go#L99-L101
 ```
 
-### 1.1. Add the Fee Middleware to the Module Managers and Define Its Account Permissions
+### 1.1. Add the Fee Middleware to the module managers and define its account permissions
 
 Next, we need to add `fee` module to the module basic manager and define its account permissions. Add the following code to the `app.go` file:
 
@@ -87,7 +87,7 @@ Next, we need to add the fee middleware to the module manager. Add the following
 
 Note that we have added `ibcfee.NewAppModule(app.IBCFeeKeeper)` to the module manager but we have not yet created nor initialized the `app.IBCFeeKeeper`. We will do that next.
 
-### 1.2. Initialize the Fee Middleware Keeper
+### 1.2. Initialize the Fee Middleware keeper
 
 Next, we need to add the fee middleware keeper to the Cosmos App, register its store key, and initialize it.
 
@@ -192,9 +192,9 @@ Next, we need to add the fee middleware to the `SetOrderBeginBlockers`, `SetOrde
 	app.mm.SetOrderExportGenesis(genesisModuleOrder...)
 ```
 
-## 2. Wire Up the ICS-29 Fee Middleware to the IBC Transfer Stack
+## 2. Wire up the ICS-29 Fee Middleware to the IBC Transfer stack
 
-### 2.1. Wire Up the ICS-29 Fee Middleware to the `TransferKeeper`
+### 2.1. Wire up the ICS-29 Fee Middleware to the `TransferKeeper`
 
 The ICS-29 Fee Middleware Keeper implements [`ICS4Wrapper`](https://github.com/cosmos/ibc-go/blob/v7.3.0/modules/core/05-port/types/module.go#L109-L133) interface. This means that the `IBCFeeKeeper` wraps the `IBCKeeper.ChannelKeeper` and that it can replace the use of the `ChannelKeeper` for sending packets, writing acknowledgements, and retrieving the IBC channel version.
 
@@ -218,15 +218,21 @@ We need to replace the `ChannelKeeper` with the `IBCFeeKeeper` in the `TransferK
 	)
 ```
 
-### 2.2. Wire Up the ICS-29 Fee Middleware to the `TransferModule`
+### 2.2. Wire up the ICS-29 Fee Middleware to the `TransferModule`
 
-Currently, the IBC Transfer stack does not exist in `app/app.go`. What we have are the transfer module (which is a Cosmos SDK module) and the transfer IBC module (which is an IBC application).
+Currently, our `app/app.go` only contains the transfer module, which is a regular SDK AppModule (that manages state and has its own messages) that also fulfills the `IBCModule` interface and therefore has the ability to handle both channel handshake and packet lifecycle callbacks.
+
+:::note
+
+The transfer module is instantiated two times, once as a regular SDK module and once as an IBC module.
 
 ```go reference title="app/app.go"
 https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/0f41b3c6b4e065aa1a860de3e3038d489c37a28a/app/app.go#L457-L458
 ```
 
-Instead we need to "convert" the transfer IBC module to an IBC application stack that includes both the transfer IBC module and the ICS-29 Fee Middleware. Modify the `app.go` file as follows:
+:::
+
+We therefore need to "convert" the `transferIBCModule` to an IBC application stack that includes both the `transferIBCModule` and the ICS-29 Fee Middleware. Modify the `app.go` file as follows:
 
 ```go title="app/app.go"
 	transferModule := transfer.NewAppModule(app.TransferKeeper)

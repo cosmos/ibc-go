@@ -7,7 +7,7 @@ slug: /fee/test-react
 
 import HighlightBox from '@site/src/components/HighlightBox';
 
-# Testing the React App
+# Testing the React app
 
 <HighlightBox type="learning" title="Learning Goals">
 
@@ -81,7 +81,7 @@ hermes keys add --key-name charlie --chain earth --mnemonic-file hermes/charlie.
 hermes keys add --key-name damian --chain mars --mnemonic-file hermes/damian.mnemonic
 ```
 
-## Test the App
+## Test the app
 
 Prepare 4 terminal windows and run the following commands in each of the first three:
 

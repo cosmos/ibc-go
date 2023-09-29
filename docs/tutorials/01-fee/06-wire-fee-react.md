@@ -5,13 +5,13 @@ sidebar_position: 6
 slug: /fee/fee-react
 ---
 
-# Wire up ICS-29 Fees to the React App
+# Wire up ICS-29 Fee to the React app
 
 Our goal is to create a React component that will allow users to select their ICS-29 fee amount and pay it. The final component will look like this:
 
 ![ICS-29 Fee UI](./images/ignite-react-fee.png)
 
-## 1. Create the State for Fee
+## 1. Create the State for ICS-29 Fee
 
 We will do all our modifications in the `src/components/IgntSend.tsx` file. First, we need to create a state for the fee amount. Add the following line to the `IgntSend` component:
 
@@ -97,7 +97,7 @@ Next, we need to add a functional UI which updates the fee amount in the state. 
 
 At this point, you should be able to see the ICS-29 fee UI in the app. See the diff up to this point [here](https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/commit/a93acb8e1b4194402a45506c5c3105b4dc03ad58). However, the fee amount is not being used in the transaction. Let's fix that.
 
-## 3. Add the ICS-29 Fee to the Transaction
+## 3. Add the ICS-29 Fee to the transaction
 
 Since we will perform a `MultiMsgTx` and follow the [immediate incentivization flow](https://ibc.cosmos.network/v7.3.x/middleware/ics29-fee/msgs#escrowing-fees), we must import the required msg constructors from the `ts-client`.
 
@@ -131,7 +131,7 @@ The amount used will be half the amount of the `relayerFee` selected by the user
       amount: x.amount == "" ? "0" : x.amount,
     }));
 
-	// plus-diff-start
+    // plus-diff-start
 +   const relayerFee: Array<Amount> = state.tx.relayerFee.map((x) => {
 +     const intAmount = x.amount == "" ? 0 : parseInt(x.amount, 10);
 +     const newAmount = Math.floor(intAmount / 2);

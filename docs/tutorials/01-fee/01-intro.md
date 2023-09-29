@@ -12,7 +12,7 @@ import HighlightBox from '@site/src/components/HighlightBox';
 
 <HighlightTag type="ibc-go" version="v7"/> <HighlightTag type="cosmos-sdk" version="v0.47"/> <HighlightTag type="cosmjs"/> <HighlightTag type="guided-coding"/>
 
-This tutorial for wiring up the ICS-29 Fee Middleware to a Cosmos SDK blockchain and a react frontend.
+This is a tutorial for wiring up the ICS-29 Fee Middleware to a Cosmos SDK blockchain and a React frontend.
 
 <HighlightBox type="prerequisite" title="Prerequisites">
 
@@ -25,7 +25,7 @@ This tutorial for wiring up the ICS-29 Fee Middleware to a Cosmos SDK blockchain
 
 ## Scope
 
-This tutorial will cover creating a Cosmos SDK blockchain with the ICS-29 Fee Middleware wired up to it. It will also cover creating a react frontend that can interact with the blockchain.
+This tutorial will cover creating a Cosmos SDK blockchain with the ICS-29 Fee Middleware wired up to it. It will also cover creating a React frontend that can interact with the blockchain.
 
 <HighlightBox type="learning" title="Learning Goals">
 
@@ -33,8 +33,8 @@ In this tutorial, you will:
 
 - Create an IBC enabled blockchain using the Cosmos SDK.
 - Wire up the ICS-29 Fee Middleware to the blockchain.
-- Create a react frontend that can interact with the blockchain.
-- Run two blockchains locally and connect them using the hermes relayer.
+- Create a React frontend that can interact with the blockchain.
+- Run two blockchains locally and connect them using the Hermes relayer.
 - Make an incentivized transfer between the two blockchains.
 
 </HighlightBox>

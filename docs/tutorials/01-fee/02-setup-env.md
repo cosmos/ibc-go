@@ -7,7 +7,7 @@ slug: /fee/setup-env
 
 import HighlightBox from '@site/src/components/HighlightBox';
 
-# Set Up Your Work Environment
+# Set up your work environment
 
 On this page, you can find helpful links to set up your work environment.
 
@@ -78,4 +78,4 @@ ignite version
 
 ## Keplr
 
-Install Keplr to your browser following the instructions on the [Keplr website](https://www.keplr.app/download).
+Install Keplr to your browser following the instructions on the [Keplr website](https://www.keplr.app/).
