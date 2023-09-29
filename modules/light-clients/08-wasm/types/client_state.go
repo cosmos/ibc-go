@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/hex"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -100,20 +102,22 @@ func (cs ClientState) GetTimestampAtHeight(
 // Initialize checks that the initial consensus state is an 08-wasm consensus state and
 // sets the client state, consensus state in the provided client store.
 // It also initializes the wasm contract for the client.
-func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
+func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, state exported.ConsensusState) error {
 	consensusState, ok := state.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, state)
 	}
 
+	// Do not allow initialization of a client with a code hash that hasn't been previously stored via storeWasmCode.
+	if !HasCodeHash(ctx, cdc, cs.CodeHash) {
+		return errorsmod.Wrapf(ErrInvalidCodeHash, "code hash (%s) has not been previously stored", hex.EncodeToString(cs.CodeHash))
+	}
+
 	payload := instantiateMessage{
 		ClientState:    &cs,
 		ConsensusState: consensusState,
 	}
-
-	// The global store key can be used here to implement #4085
-	// wasmStore := ctx.KVStore(WasmStoreKey)
 
 	return wasmInit(ctx, clientStore, &cs, payload)
 }
