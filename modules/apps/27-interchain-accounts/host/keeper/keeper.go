@@ -55,11 +55,6 @@ func NewKeeper(
 		panic(errors.New("the Interchain Accounts module account has not been set"))
 	}
 
-	// set KeyTable if it has not already been set
-	if !legacySubspace.HasKeyTable() {
-		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}

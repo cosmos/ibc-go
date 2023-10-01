@@ -5,11 +5,11 @@ sidebar_position: 0
 
 # IBC-Go Documentation
 
-Welcome to the IBC-Go documentation!
+Welcome to the documentation for IBC-Go, the Golang implementation of the Inter-Blockchain Communication Protocol! Looking for information on ibc-rs? [Click here to go to the ibc-rs github repo](https://github.com/cosmos/ibc-rs).
 
 The Inter-Blockchain Communication protocol (IBC) is an end-to-end, connection-oriented, stateful protocol for reliable, ordered, and authenticated communication between heterogeneous blockchains arranged in an unknown and dynamic topology.
 
-IBC is a protocol that allows blockchains to talk to each other.
+IBC is a protocol that allows blockchains to talk to each other. Chains that speak IBC can share arbitrary data, enabling the industry’s most feature-rich cross-chain interactions. IBC is secure and permissionless.
 
 The protocol realizes this interoperability by specifying a set of data structures, abstractions, and semantics that can be implemented by any distributed ledger that satisfies a small set of requirements.
 
