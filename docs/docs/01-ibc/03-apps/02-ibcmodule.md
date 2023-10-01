@@ -207,7 +207,7 @@ a subset of features supported by your application for that version. The struct 
 scheme can be found in [03-connection/types](https://github.com/cosmos/ibc-go/blob/main/modules/core/03-connection/types/version.go#L16).
 
 Since the version type is a string, applications have the ability to do simple version verification
-via string matching or they can use the already impelemented versioning system and pass the proto
+via string matching or they can use the already implemented versioning system and pass the proto
 encoded version into each handhshake call as necessary.
 
 ICS20 currently implements basic string matching with a single supported version.
