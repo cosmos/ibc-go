@@ -47,7 +47,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 }
 ```
 
-The above calls into the the 09-localhost `UpdateState` method of the `ClientState` .
+The above calls into the 09-localhost `UpdateState` method of the `ClientState` .
 It retrieves the current block height from the application context and sets the `LatestHeight` of the 09-localhost client.
 
 ```go
