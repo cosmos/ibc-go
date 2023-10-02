@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"encoding/base64"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -11,7 +10,6 @@ import (
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 var frozenHeight = clienttypes.NewHeight(0, 1)
