@@ -3,6 +3,7 @@ package testsuite
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -80,22 +81,13 @@ func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts in
 		if err != nil {
 			return sdk.TxResponse{}, err
 		}
-		if !containsMessage(resp.RawLog, retryMessages) {
+		// If the response's raw log doesn't contain any of the allowed prefixes we return, else, we retry.
+		if !slices.ContainsFunc(retryMessages, func(s string) bool { return strings.Contains(resp.RawLog, s) }) {
 			return resp, err
 		}
 		s.T().Logf("retrying tx due to non deterministic failure: %+v", resp)
 	}
 	return resp, err
-}
-
-// containsMessages returns true if the string s contains any of the messages in the slice.
-func containsMessage(s string, messages []string) bool {
-	for _, message := range messages {
-		if strings.Contains(s, message) {
-			return true
-		}
-	}
-	return false
 }
 
 // AssertTxFailure verifies that an sdk.TxResponse has failed.

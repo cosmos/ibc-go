@@ -207,7 +207,7 @@ a subset of features supported by your application for that version. The struct 
 scheme can be found in [03-connection/types](https://github.com/cosmos/ibc-go/blob/main/modules/core/03-connection/types/version.go#L16).
 
 Since the version type is a string, applications have the ability to do simple version verification
-via string matching or they can use the already impelemented versioning system and pass the proto
+via string matching or they can use the already implemented versioning system and pass the proto
 encoded version into each handhshake call as necessary.
 
 ICS20 currently implements basic string matching with a single supported version.
@@ -218,7 +218,7 @@ Just as IBC expects modules to implement callbacks for channel handshakes, it al
 
 Once a module A and module B are connected to each other, relayers can start relaying packets and acknowledgements back and forth on the channel.
 
-![IBC packet flow diagram](https://ibcprotocol.dev/_nuxt/img/packet_flow.1d89ee0.png)
+![IBC packet flow diagram](./images/packet_flow.png)
 
 Briefly, a successful packet flow works as follows:
 

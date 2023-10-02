@@ -219,7 +219,7 @@ Just as IBC expects modules to implement callbacks for channel handshakes, it al
 
 Once a module A and module B are connected to each other, relayers can start relaying packets and acknowledgements back and forth on the channel.
 
-![IBC packet flow diagram](https://ibcprotocol.dev/_nuxt/img/packet_flow.1d89ee0.png)
+![IBC packet flow diagram](./images/packet_flow.png)
 
 Briefly, a successful packet flow works as follows:
 
