@@ -5,6 +5,8 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 )
 
+var _ WasmEngine = (*wasmvm.VM)(nil)
+
 type WasmEngine interface {
 	// Create will compile the wasm code, and store the resulting pre-compile
 	// as well as the original code. Both can be referenced later via checksum
