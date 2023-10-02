@@ -17,7 +17,7 @@ send fungible token transfers to other chains.
 
 ## Integrating the IBC module
 
-Integrating the IBC module to your SDK-based application is straighforward. The general changes can be summarized in the following steps:
+Integrating the IBC module to your SDK-based application is straightforward. The general changes can be summarized in the following steps:
 
 - Add required modules to the `module.BasicManager`
 - Define additional `Keeper` fields for the new modules on the `App` type
@@ -150,7 +150,7 @@ Once the `Router` has been set, no new routes can be added.
 func NewApp(...args) *App {
   // .. continuation from above
 
-  // Create static IBC router, add ibc-tranfer module route, then set and seal it
+  // Create static IBC router, add ibc-transfer module route, then set and seal it
   ibcRouter := port.NewRouter()
   ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
   // Setting Router will finalize all routes by sealing router
@@ -195,7 +195,7 @@ One addition from IBC is the concept of `HistoricalEntries` which are stored on 
 Each entry contains the historical information for the `Header` and `ValidatorSet` of this chain which is stored
 at each height during the `BeginBlock` call. The historical info is required to introspect the
 past historical info at any given height in order to verify the light client `ConsensusState` during the
-connection handhake.
+connection handshake.
 
 ```go title="app.go"
 func NewApp(...args) *App {

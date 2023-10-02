@@ -182,7 +182,7 @@ a subset of features supported by your application for that version. The struct 
 scheme can be found in `03-connection/types`.
 
 Since the version type is a string, applications have the ability to do simple version verification
-via string matching or they can use the already impelemented versioning system and pass the proto
+via string matching or they can use the already implemented versioning system and pass the proto
 encoded version into each handhshake call as necessary.
 
 ICS20 currently implements basic string matching with a single supported version.
@@ -222,9 +222,9 @@ channel, as well as how they will encode/decode it. This process is not specifie
 to each application module to determine how to implement this agreement. However, for most
 applications this will happen as a version negotiation during the channel handshake. While more
 complex version negotiation is possible to implement inside the channel opening handshake, a very
-simple version negotation is implemented in the [ibc-transfer module](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer/module.go).
+simple version negotiation is implemented in the [ibc-transfer module](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer/module.go).
 
-Thus, a module must define its a custom packet data structure, along with a well-defined way to
+Thus, a module must define its custom packet data structure, along with a well-defined way to
 encode and decode it to and from `[]byte`.
 
 ```go
