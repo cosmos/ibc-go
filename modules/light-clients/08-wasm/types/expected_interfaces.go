@@ -67,6 +67,15 @@ type WasmEngine interface {
 		deserCost wasmvmtypes.UFraction,
 	) (*wasmvmtypes.Response, uint64, error)
 
+	// GetCode will load the original wasm code for the given code id.
+	// This will only succeed if that code id was previously returned from
+	// a call to Create.
+	//
+	// This can be used so that the (short) code id (hash) is stored in the iavl tree
+	// and the larger binary blobs (wasm and pre-compiles) are all managed by the
+	// rust library
+	GetCode(code wasmvm.Checksum) (wasmvm.WasmCode, error)
+
 	// Pin pins a code to an in-memory cache, such that is
 	// always loaded quickly when executed.
 	// Pin is idempotent.
