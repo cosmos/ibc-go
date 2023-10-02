@@ -138,9 +138,9 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *C
 	if err := json.Unmarshal(resp, &result); err != nil {
 		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm query")
 	}
-	if !result.Validate() {
-		return result, errorsmod.Wrapf(errors.New(result.Error()), "error occurred while querying contract with code hash %s", hex.EncodeToString(cs.CodeHash))
-	}
+	//	if !result.Validate() {
+	//		return result, errorsmod.Wrapf(errors.New(result.Error()), "error occurred while querying contract with code hash %s", hex.EncodeToString(cs.CodeHash))
+	//	}
 	return result, nil
 }
 

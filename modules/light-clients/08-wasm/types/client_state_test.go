@@ -3,7 +3,12 @@ package types_test
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"time"
+
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -89,11 +94,10 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 	}
 }
 
-func (suite *TypesTestSuite) TestStatusTendermint() {
+func (suite *TypesTestSuite) TestStatus() {
 	var (
-		path          *ibctesting.Path
-		clientState   *types.ClientState
-		tmClientState *tmtypes.ClientState
+		path        *ibctesting.Path
+		clientState *types.ClientState
 	)
 
 	testCases := []struct {
@@ -109,35 +113,37 @@ func (suite *TypesTestSuite) TestStatusTendermint() {
 		{
 			"client is frozen",
 			func() {
-				tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-
-				wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
-				suite.Require().NoError(err)
-
-				clientState.Data = wasmData
-				path.EndpointA.SetClientState(clientState)
+				suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					resp, err := json.Marshal(&mockStatusResult{
+						Status: exported.Frozen,
+					})
+					suite.Require().NoError(err)
+					gasUsed := uint64(10) // TODO
+					return resp, gasUsed, nil
+				}
 			},
 			exported.Frozen,
 		},
 		{
-			"client status without consensus state",
+			"client status is expired",
 			func() {
-				latestHeight := clientState.LatestHeight.Increment().(clienttypes.Height)
-				tmClientState.LatestHeight = latestHeight
-
-				wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
-				suite.Require().NoError(err)
-
-				clientState.Data = wasmData
-				clientState.LatestHeight = latestHeight
-				path.EndpointA.SetClientState(clientState)
+				suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					resp, err := json.Marshal(&mockStatusResult{
+						Status: exported.Expired,
+					})
+					suite.Require().NoError(err)
+					gasUsed := uint64(10) // TODO
+					return resp, gasUsed, nil
+				}
 			},
 			exported.Expired,
 		},
 		{
-			"client status is expired",
+			"client status is unknown: vm returns an error",
 			func() {
-				suite.coordinator.IncrementTimeBy(tmClientState.TrustingPeriod)
+				suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					return nil, 0, errors.New("client status not implemented")
+				}
 			},
 			exported.Expired,
 		},
@@ -145,17 +151,19 @@ func (suite *TypesTestSuite) TestStatusTendermint() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWasmTendermint()
+			suite.SetupWasmWithMockVM()
+
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			clientConfig, ok := path.EndpointA.ClientConfig.(*ibctesting.TendermintConfig)
+			suite.Require().True(ok)
+			clientConfig.IsWasmClient = true // TODO
+			path.EndpointA.ClientConfig = clientConfig
+
 			suite.coordinator.SetupClients(path)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			clientState = path.EndpointA.GetClientState().(*types.ClientState)
-
-			var cs exported.ClientState
-			err := suite.chainA.Codec.UnmarshalInterface(clientState.Data, &cs)
-			suite.Require().NoError(err)
-			tmClientState = cs.(*tmtypes.ClientState)
 
 			tc.malleate()
 

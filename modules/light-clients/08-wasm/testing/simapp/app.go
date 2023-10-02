@@ -281,6 +281,7 @@ func NewSimApp(
 	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
+	mockVM wasmtypes.WasmEngine,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 	encodingConfig := makeEncodingConfig()
@@ -488,7 +489,12 @@ func NewSimApp(
 		MemoryCacheSize:   uint32(math.Pow(2, 8)),
 		ContractDebugMode: false,
 	}
-	app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig)
+	if mockVM != nil {
+		// NOTE: mockVM is used for testing purposes only!
+		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM)
+	} else {
+		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig)
+	}
 
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(

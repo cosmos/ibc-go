@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -19,12 +21,28 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	tmtypes "github.com/cometbft/cometbft/types"
 
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
+
+// TODO
+// contractResult is the default implementation of the ContractResult interface and the default return type of any contract call
+// that does not require a custom return type.
+type contractResult struct {
+	IsValid  bool   `json:"is_valid,omitempty"`
+	ErrorMsg string `json:"error_msg,omitempty"`
+	Data     []byte `json:"data,omitempty"`
+}
+
+// TODO
+type mockStatusResult struct {
+	contractResult
+	Status exported.Status `json:"status"`
+}
 
 const (
 	tmClientID                    = "07-tendermint-0"
@@ -46,6 +64,7 @@ type TypesTestSuite struct {
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
 	chainB      *ibctesting.TestChain
+	mockVM      *wasmtesting.MockWasmEngine
 
 	ctx      sdk.Context
 	store    sdk.KVStore
@@ -71,7 +90,45 @@ func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
+	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
+}
+
+// SetupWasmTendermint sets up 2 chains and stores the tendermint/cometbft light client wasm contract on both.
+func (suite *TypesTestSuite) SetupWasmWithMockVM() {
+	ibctesting.DefaultTestingAppInit = suite.setupWasmWithMockVM
+
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.chainA.SetWasm(true)
+	suite.coordinator.SetCodeHash(suite.codeHash)
+}
+
+func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
+	suite.mockVM = &wasmtesting.MockWasmEngine{}
+	// TODO: need a default instantiate function has clients need to be created for testing
+	suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+		// TODO
+		var payload instantiateMessage
+		err := json.Unmarsha(initMsg, &payload)
+		suite.Require().NoError(err)
+		// TODO:
+		// - set client state in store
+		// - set consensus state in store
+		return nil, 0, nil
+	}
+	suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+		resp, err := json.Marshal(&mockStatusResult{
+			Status: exported.Active,
+		})
+		suite.Require().NoError(err)
+		gasUsed := uint64(10) // TODO
+		return resp, gasUsed, nil
+	}
+
+	db := dbm.NewMemDB()
+	encCdc := simapp.MakeTestEncodingConfig()
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, suite.mockVM)
 	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
 }
 
@@ -138,7 +195,7 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
 	genesisState := simapp.NewDefaultGenesisState(encCdc.Codec)
 
 	bytes, err := os.ReadFile("../test_data/genesis.json")
