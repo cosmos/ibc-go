@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	WasmVM *wasmvm.VM
+	WasmVM WasmEngine
 	// Store key for 08-wasm module, required as a global so that the KV store can be retrieved
 	// in the ClientState Initialize function which doesn't have access to the keeper.
 	// The storeKey is used to check the code hash of the contract and determine if the light client
