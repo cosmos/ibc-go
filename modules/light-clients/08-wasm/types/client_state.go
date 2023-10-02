@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -66,7 +64,6 @@ func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.B
 
 	result, err := wasmQuery[statusResult](ctx, clientStore, &cs, payload)
 	if err != nil {
-		fmt.Println(err)
 		return exported.Unknown
 	}
 
