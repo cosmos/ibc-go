@@ -21,7 +21,6 @@ import (
 
 	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -35,17 +34,17 @@ const (
 	maxClockDrift   time.Duration = time.Second * 10
 )
 
-var (
-	height          = clienttypes.NewHeight(0, 4)
-	newClientHeight = clienttypes.NewHeight(1, 1)
-	upgradePath     = []string{"upgrade", "upgradedIBCState"}
-)
+// var (
+// 	height          = clienttypes.NewHeight(0, 4)
+// 	newClientHeight = clienttypes.NewHeight(1, 1)
+// 	upgradePath     = []string{"upgrade", "upgradedIBCState"}
+// )
 
 type TypesTestSuite struct {
 	testifysuite.Suite
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
-	chainB      *ibctesting.TestChain
+	// chainB      *ibctesting.TestChain
 
 	ctx      sdk.Context
 	store    sdk.KVStore
@@ -179,6 +178,6 @@ func TestWasmTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TypesTestSuite))
 }
 
-func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) map[string]tmtypes.PrivValidator {
-	return map[string]tmtypes.PrivValidator{altVal.Address.String(): altPrivVal}
-}
+// func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) map[string]tmtypes.PrivValidator {
+// 	return map[string]tmtypes.PrivValidator{altVal.Address.String(): altPrivVal}
+// }

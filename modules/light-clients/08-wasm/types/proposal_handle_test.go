@@ -12,7 +12,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
-var frozenHeight = clienttypes.NewHeight(0, 1)
+// var frozenHeight = clienttypes.NewHeight(0, 1)
 
 // TestCheckSubstituteAndUpdateState only tests the interface to the contract, not the full logic of the contract.
 func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
