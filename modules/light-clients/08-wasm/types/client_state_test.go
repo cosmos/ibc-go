@@ -12,6 +12,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -96,7 +97,6 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 
 func (suite *TypesTestSuite) TestStatus() {
 	var (
-		path        *ibctesting.Path
 		clientState *types.ClientState
 	)
 
@@ -153,17 +153,12 @@ func (suite *TypesTestSuite) TestStatus() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			endpoint := &wasmtesting.WasmEndpoint{ibctesting.NewDefaultEndpoint(suite.chainA)}
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
 
-			clientConfig, ok := path.EndpointA.ClientConfig.(*ibctesting.TendermintConfig)
-			suite.Require().True(ok)
-			clientConfig.IsWasmClient = true // TODO
-			path.EndpointA.ClientConfig = clientConfig
-
-			suite.coordinator.SetupClients(path)
-
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			clientState = path.EndpointA.GetClientState().(*types.ClientState)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState = endpoint.GetClientState().(*types.ClientState)
 
 			tc.malleate()
 
