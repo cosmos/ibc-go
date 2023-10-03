@@ -32,6 +32,11 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: '1.21'
+        # TODO: remove this. We shouldn't need to download the wasm dependencies for the callbacks module.
+      - name: Download wasm dependencies
+        run: |
+          curl https://github.com/CosmWasm/wasmvm/releases/download/v1.2.4/libwasmvm_muslc.x86_64.a -o /lib/libwasmvm_muslc.x86_64.a
+          cp /lib/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
       - name: Build callbacks-module
         run: |
           cd modules/apps/callbacks
