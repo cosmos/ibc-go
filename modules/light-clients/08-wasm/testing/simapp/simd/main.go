@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"cosmossdk.io/log"
+
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"

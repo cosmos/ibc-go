@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
+	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-
-	"cosmossdk.io/log"
-	dbm "github.com/cosmos/cosmos-db"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"

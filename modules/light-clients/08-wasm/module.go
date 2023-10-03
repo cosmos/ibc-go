@@ -120,7 +120,7 @@ func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Weight
 	return simulation.ProposalMsgs()
 }
 
-func (am AppModule) ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, json.RawMessage) error {
+func (AppModule) ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, json.RawMessage) error {
 	return nil
 }
 

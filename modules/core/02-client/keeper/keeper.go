@@ -26,7 +26,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-
 )
 
 // Keeper represents a type that grants read and write permissions to any client

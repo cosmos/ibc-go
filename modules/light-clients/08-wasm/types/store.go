@@ -5,10 +5,10 @@ import (
 	"errors"
 	"io"
 
-	"cosmossdk.io/store/listenkv"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	"cosmossdk.io/store/cachekv"
+	"cosmossdk.io/store/listenkv"
 	"cosmossdk.io/store/tracekv"
 	storetypes "cosmossdk.io/store/types"
 )
