@@ -7,6 +7,8 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
+const DefaultGasUsed = uint64(1)
+
 var _ types.WasmEngine = &MockWasmEngine{}
 
 // MockWasmEngine implements types.WasmEngine for testing purpose. One or multiple messages can be stubbed.

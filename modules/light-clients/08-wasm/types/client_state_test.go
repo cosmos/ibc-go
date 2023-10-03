@@ -3,8 +3,8 @@ package types_test
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -114,12 +114,8 @@ func (suite *TypesTestSuite) TestStatus() {
 			"client is frozen",
 			func() {
 				suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					resp, err := json.Marshal(&mockStatusResult{
-						Status: exported.Frozen,
-					})
-					suite.Require().NoError(err)
-					gasUsed := uint64(10) // TODO
-					return resp, gasUsed, nil
+					resp := fmt.Sprintf(`{"status":"%s"}`, exported.Frozen)
+					return []byte(resp), wasmtesting.DefaultGasUsed, nil
 				}
 			},
 			exported.Frozen,
@@ -128,12 +124,8 @@ func (suite *TypesTestSuite) TestStatus() {
 			"client status is expired",
 			func() {
 				suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					resp, err := json.Marshal(&mockStatusResult{
-						Status: exported.Expired,
-					})
-					suite.Require().NoError(err)
-					gasUsed := uint64(10) // TODO
-					return resp, gasUsed, nil
+					resp := fmt.Sprintf(`{"status":"%s"}`, exported.Expired)
+					return []byte(resp), wasmtesting.DefaultGasUsed, nil
 				}
 			},
 			exported.Expired,

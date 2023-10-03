@@ -3,6 +3,7 @@ package types_test
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -29,27 +30,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
-
-// TODO
-// contractResult is the default implementation of the ContractResult interface and the default return type of any contract call
-// that does not require a custom return type.
-type contractResult struct {
-	IsValid  bool   `json:"is_valid,omitempty"`
-	ErrorMsg string `json:"error_msg,omitempty"`
-	Data     []byte `json:"data,omitempty"`
-}
-
-// TODO
-type mockStatusResult struct {
-	contractResult
-	Status exported.Status `json:"status"`
-}
-
-// instantiateMessage is the message that is sent to the contract's instantiate entry point.
-type instantiateMessage struct {
-	ClientState    *types.ClientState    `json:"client_state"`
-	ConsensusState *types.ConsensusState `json:"consensus_state"`
-}
 
 const (
 	tmClientID                    = "07-tendermint-0"
@@ -113,9 +93,9 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	suite.mockVM = &wasmtesting.MockWasmEngine{}
-	// TODO: need a default instantiate function has clients need to be created for testing
+	// TODO: move default functionality required for wasm client testing to the mock VM
 	suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-		var payload instantiateMessage
+		var payload types.InstantiateMessage
 		err := json.Unmarshal(initMsg, &payload)
 		suite.Require().NoError(err)
 
@@ -125,12 +105,8 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 	}
 
 	suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-		resp, err := json.Marshal(&mockStatusResult{
-			Status: exported.Active,
-		})
-		suite.Require().NoError(err)
-		gasUsed := uint64(10) // TODO
-		return resp, gasUsed, nil
+		resp := fmt.Sprintf(`{"status":"%s"}`, exported.Active)
+		return []byte(resp), wasmtesting.DefaultGasUsed, nil
 	}
 
 	db := dbm.NewMemDB()
