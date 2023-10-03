@@ -12,7 +12,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/wasm"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
 var VMGasRegister = NewDefaultWasmGasRegister()
@@ -31,7 +31,7 @@ func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg
 	}
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(len(msg)), "Loading CosmWasm module: instantiate")
-	response, gasUsed, err := wasm.GetVM().Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	response, gasUsed, err := ibcwasm.GetVM().Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return response, err
 }
@@ -44,7 +44,7 @@ func callContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg
 	env := getEnv(ctx)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: sudo")
-	resp, gasUsed, err := wasm.GetVM().Sudo(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Sudo(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -58,7 +58,7 @@ func queryContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, ms
 	env := getEnv(ctx)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: query")
-	resp, gasUsed, err := wasm.GetVM().Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -144,11 +144,11 @@ func getEnv(ctx sdk.Context) wasmvmtypes.Env {
 
 	// safety checks before casting below
 	if height < 0 {
-		panic("Block height must never be negative")
+		panic(errors.New("block height must never be negative"))
 	}
 	nsec := ctx.BlockTime().UnixNano()
 	if nsec < 0 {
-		panic("Block (unix) time must never be negative ")
+		panic(errors.New("block (unix) time must never be negative "))
 	}
 
 	env := wasmvmtypes.Env{

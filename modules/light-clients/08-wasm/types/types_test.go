@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"testing"
 	"time"
@@ -61,7 +62,7 @@ func init() {
 func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 	app, ok := chain.App.(*simapp.SimApp)
 	if !ok {
-		panic("chain is not a simapp.SimApp")
+		panic(errors.New("chain is not a simapp.SimApp"))
 	}
 	return app
 }

@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -14,7 +15,7 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/wasm"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -46,7 +47,7 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 	app, ok := chain.App.(*simapp.SimApp)
 	if !ok {
-		panic("chain is not a simapp.SimApp")
+		panic(errors.New("chain is not a simapp.SimApp"))
 	}
 	return app
 }
@@ -77,7 +78,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					wasm.GetVM(),
+					ibcwasm.GetVM(),
 				)
 			},
 			true,
@@ -90,7 +91,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					"", // authority
-					wasm.GetVM(),
+					ibcwasm.GetVM(),
 				)
 			},
 			false,

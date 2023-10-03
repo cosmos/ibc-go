@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"errors"
 	"io"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -99,7 +100,7 @@ type storeAdapter struct {
 // newStoreAdapter constructor
 func newStoreAdapter(s sdk.KVStore) *storeAdapter {
 	if s == nil {
-		panic("store must not be nil")
+		panic(errors.New("store must not be nil"))
 	}
 	return &storeAdapter{parent: s}
 }

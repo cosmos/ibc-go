@@ -1,16 +1,14 @@
-package wasm
+package ibcwasm
 
 import (
 	"errors"
-
-	wasmvm "github.com/CosmWasm/wasmvm"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 var (
-	vm *wasmvm.VM
+	vm WasmEngine
 	// storeKeyMap stores the storeKey for the 08-wasm module. Using a single global storetypes.StoreKey fails in the context
 	// of tests with multiple test chains utilized. As such, we utilize a workaround involving a mapping from the chains codec
 	// to the storeKey which can be used to store a key per test chain.
@@ -21,12 +19,12 @@ var (
 )
 
 // SetVM sets the wasm VM for the 08-wasm module.
-func SetVM(wasmVM *wasmvm.VM) {
-	vm = vm
+func SetVM(wasmVM WasmEngine) {
+	vm = wasmVM
 }
 
 // GetVM returns the wasm VM for the 08-wasm module.
-func GetVM() *wasmvm.VM {
+func GetVM() WasmEngine {
 	return vm
 }
 

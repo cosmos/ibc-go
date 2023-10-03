@@ -17,7 +17,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/wasm"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -28,7 +28,7 @@ type Keeper struct {
 
 	storeKey  storetypes.StoreKey
 	cdc       codec.BinaryCodec
-	wasmVM    *wasmvm.VM
+	wasmVM    ibcwasm.WasmEngine
 	authority string
 }
 
@@ -39,13 +39,13 @@ func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
 	authority string,
-	vm *wasmvm.VM,
+	vm ibcwasm.WasmEngine,
 ) Keeper {
 	if vm == nil {
 		panic(errors.New("wasm VM must be not nil"))
 	}
 
-	if wasm.GetVM() != nil && !reflect.DeepEqual(wasm.GetVM(), vm) {
+	if ibcwasm.GetVM() != nil && !reflect.DeepEqual(ibcwasm.GetVM(), vm) {
 		panic(errors.New("global Wasm VM instance should not be set to a different instance"))
 	}
 
@@ -53,8 +53,8 @@ func NewKeeperWithVM(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	wasm.SetVM(vm)
-	wasm.SetWasmStoreKey(cdc, key)
+	ibcwasm.SetVM(vm)
+	ibcwasm.SetWasmStoreKey(cdc, key)
 
 	return Keeper{
 		cdc:       cdc,

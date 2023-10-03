@@ -2,6 +2,7 @@ package simapp
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -167,7 +168,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
 		validator, found := app.StakingKeeper.GetValidator(ctx, addr)
 		if !found {
-			panic("expected validator, not found")
+			panic(errors.New("expected validator, not found"))
 		}
 
 		validator.UnbondingHeight = 0
