@@ -12,6 +12,6 @@
     "TestMsgTransfer_Localhost"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }

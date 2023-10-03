@@ -12,6 +12,6 @@
     "TestMaxExpectedTimePerBlockParam"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }

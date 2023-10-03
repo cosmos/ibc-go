@@ -18,6 +18,6 @@
     "TestMsgSendTx_FailedBankSend_Incentivized"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }

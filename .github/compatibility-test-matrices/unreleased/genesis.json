@@ -12,6 +12,6 @@
     "TestIBCGenesis"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }
