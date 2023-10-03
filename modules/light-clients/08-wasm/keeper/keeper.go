@@ -17,7 +17,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/globals"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/wasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -45,7 +45,7 @@ func NewKeeperWithVM(
 		panic(errors.New("wasm VM must be not nil"))
 	}
 
-	if globals.WasmVM != nil && !reflect.DeepEqual(globals.WasmVM, vm) {
+	if wasm.GetVM() != nil && !reflect.DeepEqual(wasm.GetVM(), vm) {
 		panic(errors.New("global Wasm VM instance should not be set to a different instance"))
 	}
 
@@ -53,8 +53,8 @@ func NewKeeperWithVM(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	globals.WasmVM = vm
-	globals.SetWasmStoreKey(cdc, key)
+	wasm.SetVM(vm)
+	wasm.SetWasmStoreKey(cdc, key)
 
 	return Keeper{
 		cdc:       cdc,

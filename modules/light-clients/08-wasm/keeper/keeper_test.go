@@ -14,7 +14,7 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/globals"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/wasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					globals.WasmVM,
+					wasm.GetVM(),
 				)
 			},
 			true,
@@ -90,7 +90,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					"", // authority
-					globals.WasmVM,
+					wasm.GetVM(),
 				)
 			},
 			false,

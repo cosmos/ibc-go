@@ -6,12 +6,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/globals"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/wasm"
 )
 
 // GetCodeHashes returns all the code hashes stored.
 func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) CodeHashes {
-	wasmStoreKey := globals.GetWasmStoreKey(cdc)
+	wasmStoreKey := wasm.GetWasmStoreKey(cdc)
 	store := ctx.KVStore(wasmStoreKey)
 	bz := store.Get([]byte(KeyCodeHashes))
 	if len(bz) == 0 {
@@ -27,7 +27,7 @@ func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) {
 	codeHashes := GetCodeHashes(ctx, cdc)
 	codeHashes.Hashes = append(codeHashes.Hashes, codeHash)
 
-	wasmStoreKey := globals.GetWasmStoreKey(cdc)
+	wasmStoreKey := wasm.GetWasmStoreKey(cdc)
 	store := ctx.KVStore(wasmStoreKey)
 	bz := cdc.MustMarshal(&codeHashes)
 	store.Set([]byte(KeyCodeHashes), bz)

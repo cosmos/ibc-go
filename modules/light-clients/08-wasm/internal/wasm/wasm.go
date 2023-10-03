@@ -1,4 +1,4 @@
-package globals
+package wasm
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	WasmVM *wasmvm.VM
+	vm *wasmvm.VM
 	// storeKeyMap stores the storeKey for the 08-wasm module. Using a single global storetypes.StoreKey fails in the context
 	// of tests with multiple test chains utilized. As such, we utilize a workaround involving a mapping from the chains codec
 	// to the storeKey which can be used to store a key per test chain.
@@ -19,6 +19,16 @@ var (
 	// is allowed to be instantiated.
 	storeKeyMap = make(map[codec.BinaryCodec]storetypes.StoreKey)
 )
+
+// SetVM sets the wasm VM for the 08-wasm module.
+func SetVM(wasmVM *wasmvm.VM) {
+	vm = vm
+}
+
+// GetVM returns the wasm VM for the 08-wasm module.
+func GetVM() *wasmvm.VM {
+	return vm
+}
 
 // SetWasmStoreKey sets the store key for the 08-wasm module keyed by the chain's codec.
 func SetWasmStoreKey(key codec.BinaryCodec, storeKey storetypes.StoreKey) {
