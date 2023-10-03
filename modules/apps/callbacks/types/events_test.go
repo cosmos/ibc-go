@@ -4,9 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (s *CallbacksTypesTestSuite) TestEvents() {
@@ -171,7 +171,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			}
 
 			events := newCtx.EventManager().Events().ToABCIEvents()
-			ibctesting.AssertEvents(&s.Suite, expEvents, events)
+			ibctesting.AssertEventsLegacy(&s.Suite, expEvents, events)
 		})
 	}
 }

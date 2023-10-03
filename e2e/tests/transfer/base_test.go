@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package transfer
 
 import (
@@ -5,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -17,8 +19,8 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestTransferTestSuite(t *testing.T) {
@@ -56,6 +58,14 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("ensure capability module BeginBlock is executed", func(t *testing.T) {
+		// by restarting the chain we ensure that the capability module's BeginBlocker is executed.
+		s.Require().NoError(chainA.StopAllNodes(ctx))
+		s.Require().NoError(chainA.StartAllNodes(ctx))
+		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
+		s.InitGRPCClients(chainA)
+	})
 
 	chainAVersion := chainA.Config().Images[0].Version
 	chainBVersion := chainB.Config().Images[0].Version
@@ -95,7 +105,17 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
+
+		if testvalues.DenomMetadataFeatureReleases.IsSupported(chainBVersion) {
+			s.AssertHumanReadableDenom(ctx, chainB, chainADenom, channelA)
+		}
 	})
+
+	if testvalues.TokenMetadataFeatureReleases.IsSupported(chainBVersion) {
+		t.Run("metadata for IBC denomination exists on chainB", func(t *testing.T) {
+			s.AssertHumanReadableDenom(ctx, chainB, chainADenom, channelA)
+		})
+	}
 
 	t.Run("non-native IBC token transfer from chainB to chainA, receiver is source of tokens", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
@@ -267,14 +287,14 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
 		if isSelfManagingParams {
 			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
-			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 
@@ -358,14 +378,14 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	t.Run("change receive enabled parameter to disabled ", func(t *testing.T) {
 		if isSelfManagingParams {
 			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, false))
-			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeyReceiveEnabled), "false"),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 

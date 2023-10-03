@@ -1,20 +1,22 @@
 package controller
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
@@ -239,7 +241,7 @@ func (IBCMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
-	panic("SendPacket not supported for ICA controller module. Please use SendTx")
+	panic(errors.New("SendPacket not supported for ICA controller module. Please use SendTx"))
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -249,7 +251,7 @@ func (IBCMiddleware) WriteAcknowledgement(
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {
-	panic("WriteAcknowledgement not supported for ICA controller module")
+	panic(errors.New("WriteAcknowledgement not supported for ICA controller module"))
 }
 
 // GetAppVersion returns the interchain accounts metadata.

@@ -5,7 +5,7 @@
 ---
 chains:
   # the entry at index 0 corresponds to CHAIN_A
-- chainId: chain-a
+- chainId: chainA-1
   numValidators: 1
   numFullNodes: 0
   image: ghcr.io/cosmos/ibc-go-simd # override with CHAIN_IMAGE
@@ -13,17 +13,21 @@ chains:
   binary: simd # override with CHAIN_BINARY
 
   # the entry at index 1 corresponds to CHAIN_B
-- chainId: chain-b
+- chainId: chainB-1
   numValidators: 1
   numFullNodes: 0
   image: ghcr.io/cosmos/ibc-go-simd # override with CHAIN_IMAGE
   tag: main # override with CHAIN_B_TAG
   binary: simd # override with CHAIN_BINARY
 
-relayer:
-  type: rly # override with RELAYER_TYPE
-  image: ghcr.io/cosmos/relayer # override with RELAYER_IMAGE
-  tag: latest # override with RELAYER_TAG
+activeRelayer: hermes # override with RELAYER_ID
+relayers:
+  - id: hermes
+    image: ghcr.io/informalsystems/hermes
+    tag: "bef2f53"
+  - id: rly
+    image: ghcr.io/cosmos/relayer
+    tag: "latest"
 
 cometbft:
   logLevel: info

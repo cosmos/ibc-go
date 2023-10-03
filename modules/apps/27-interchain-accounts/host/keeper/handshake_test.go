@@ -4,14 +4,13 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 // open and close channel is a helper function for TestOnChanOpenTry for reopening accounts
@@ -124,8 +123,13 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				suite.Require().True(found)
 
 				accAddress := sdk.MustAccAddressFromBech32(addr)
-				baseAcc := authtypes.NewBaseAccountWithAddress(accAddress)
-				suite.chainB.GetSimApp().AccountKeeper.SetAccount(suite.chainB.GetContext(), baseAcc)
+				acc := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), accAddress)
+
+				icaAcc, ok := acc.(*icatypes.InterchainAccount)
+				suite.Require().True(ok)
+
+				// overwrite existing account with only base account type, not intercahin account type
+				suite.chainB.GetSimApp().AccountKeeper.SetAccount(suite.chainB.GetContext(), icaAcc.BaseAccount)
 			}, false,
 		},
 		{

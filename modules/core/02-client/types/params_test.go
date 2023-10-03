@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 func TestIsAllowedClient(t *testing.T) {
@@ -22,6 +22,7 @@ func TestIsAllowedClient(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		require.Equal(t, tc.expPass, tc.params.IsAllowedClient(tc.clientType), tc.name)
 	}
 }
@@ -38,6 +39,8 @@ func TestValidateParams(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.params.Validate()
 		if tc.expPass {
 			require.NoError(t, err, tc.name)

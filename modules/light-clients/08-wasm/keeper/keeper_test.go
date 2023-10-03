@@ -12,13 +12,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	dbm "github.com/cosmos/cosmos-db"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type KeeperTestSuite struct {
@@ -39,9 +39,8 @@ func init() {
 // setupTestingApp provides the duplicated simapp which is specific to the 08-wasm module on chain creation.
 func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
-	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
+	return app, app.DefaultGenesis()
 }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.

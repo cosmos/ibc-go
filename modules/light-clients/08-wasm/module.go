@@ -18,18 +18,24 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/gov/simulation"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/client/cli"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 var (
-	_ module.AppModule       = (*AppModule)(nil)
-	_ module.AppModuleBasic  = (*AppModule)(nil)
-	_ module.HasProposalMsgs = (*AppModule)(nil)
-	_ appmodule.AppModule    = (*AppModule)(nil)
+	_ module.AppModule           = (*AppModule)(nil)
+	_ module.AppModuleBasic      = (*AppModule)(nil)
+	_ module.HasProposalMsgs     = (*AppModule)(nil)
+	_ appmodule.AppModule        = (*AppModule)(nil)
+	_ module.HasGenesis          = (*AppModule)(nil)
+	_ module.HasName             = (*AppModule)(nil)
+	_ module.HasConsensusVersion = (*AppModule)(nil)
+	_ module.HasServices         = (*AppModule)(nil)
+	_ module.HasProposalMsgs     = (*AppModule)(nil)
+	_ appmodule.AppModule        = (*AppModule)(nil)
+	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
+	_ appmodule.HasEndBlocker    = (*AppModule)(nil)
 )
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
@@ -114,7 +120,11 @@ func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Weight
 	return simulation.ProposalMsgs()
 }
 
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, json.RawMessage) error {
+	return nil
+}
+
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.RawMessage) {
 	var gs types.GenesisState
 	err := cdc.UnmarshalJSON(bz, &gs)
 	if err != nil {
@@ -124,7 +134,6 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.Ra
 	if err != nil {
 		panic(err)
 	}
-	return []abci.ValidatorUpdate{}
 }
 
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
@@ -133,10 +142,11 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // BeginBlock implements the AppModule interface
-func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
+func (AppModule) BeginBlock(context.Context) error {
+	return nil
 }
 
 // EndBlock implements the AppModule interface
-func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
+func (AppModule) EndBlock(context.Context) error {
+	return nil
 }
