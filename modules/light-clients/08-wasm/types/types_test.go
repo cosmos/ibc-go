@@ -25,6 +25,7 @@ import (
 	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
@@ -42,6 +43,12 @@ type contractResult struct {
 type mockStatusResult struct {
 	contractResult
 	Status exported.Status `json:"status"`
+}
+
+// instantiateMessage is the message that is sent to the contract's instantiate entry point.
+type instantiateMessage struct {
+	ClientState    *types.ClientState    `json:"client_state"`
+	ConsensusState *types.ConsensusState `json:"consensus_state"`
 }
 
 const (
@@ -108,15 +115,15 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 	suite.mockVM = &wasmtesting.MockWasmEngine{}
 	// TODO: need a default instantiate function has clients need to be created for testing
 	suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-		// TODO
 		var payload instantiateMessage
-		err := json.Unmarsha(initMsg, &payload)
+		err := json.Unmarshal(initMsg, &payload)
 		suite.Require().NoError(err)
-		// TODO:
-		// - set client state in store
-		// - set consensus state in store
+
+		store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState))
+		store.Set(host.ConsensusStateKey(height), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), payload.ConsensusState))
 		return nil, 0, nil
 	}
+
 	suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 		resp, err := json.Marshal(&mockStatusResult{
 			Status: exported.Active,

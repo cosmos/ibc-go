@@ -145,7 +145,7 @@ func (suite *TypesTestSuite) TestStatus() {
 					return nil, 0, errors.New("client status not implemented")
 				}
 			},
-			exported.Expired,
+			exported.Unknown,
 		},
 	}
 

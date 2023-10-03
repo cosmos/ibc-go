@@ -1,4 +1,4 @@
-package mock
+package wasmtesting
 
 import (
 	wasmvm "github.com/CosmWasm/wasmvm"
