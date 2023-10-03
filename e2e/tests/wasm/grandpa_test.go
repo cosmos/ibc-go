@@ -90,7 +90,6 @@ const (
 func (s *GrandpaTestSuite) TestHyperspace() {
 
 	t := s.T()
-
 	client, network := interchaintest.DockerSetup(t)
 
 	// Log location
@@ -103,8 +102,8 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 
 	ctx := context.Background()
 
-	nv := 0 // Number of validators
-	nf := 1 // Number of full nodes
+	nv := 5 // Number of validators
+	nf := 3 // Number of full nodes
 
 	consensusOverrides := make(testutil.Toml)
 	blockTime := 5 // seconds, parachain is 12 second blocks, don't make relayer work harder than needed
@@ -135,7 +134,7 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 					{
 						Repository: "chatton/parachain-node",
 						Version:    "v39",
-						//UidGid: "1025:1025",
+						UidGid:     "1000:1000",
 					},
 				},
 				Bin:            "polkadot",
