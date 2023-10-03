@@ -3,13 +3,15 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cometbft/cometbft/crypto/secp256k1"
+
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestValidateDefaultGenesis(t *testing.T) {
@@ -131,6 +133,8 @@ func TestValidateGenesis(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		genState = &types.GenesisState{
 			IdentifiedFees: []types.IdentifiedPacketFees{
 				{

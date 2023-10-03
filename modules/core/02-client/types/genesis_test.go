@@ -3,24 +3,23 @@ package types_test
 import (
 	"time"
 
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
-	client "github.com/cosmos/ibc-go/v6/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	client "github.com/cosmos/ibc-go/v8/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const (
-	tmClientID0         = "07-tendermint-0"
-	tmClientID1         = "07-tendermint-1"
-	invalidClientID     = "myclient-0"
-	soloMachineClientID = "06-solomachine-0"
-	clientID            = tmClientID0
+	tmClientID0     = "07-tendermint-0"
+	tmClientID1     = "07-tendermint-1"
+	invalidClientID = "myclient-0"
+	clientID        = tmClientID0
 
 	height = 10
 )
@@ -112,9 +111,9 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(
-						soloMachineClientID, ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+						ibctesting.DefaultSolomachineClientID, ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 					),
-					types.NewIdentifiedClientState(tmClientID0, solomachine.NewClientState(0, &solomachine.ConsensusState{suite.solomachine.ConsensusState().PublicKey, suite.solomachine.Diversifier, suite.solomachine.Time})),
+					types.NewIdentifiedClientState(tmClientID0, solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time})),
 				},
 				nil,
 				nil,

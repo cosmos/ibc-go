@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 )
 
 func TestValidateParams(t *testing.T) {
@@ -20,6 +20,8 @@ func TestValidateParams(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.params.Validate()
 		if tc.expPass {
 			require.NoError(t, err, tc.name)

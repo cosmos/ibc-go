@@ -3,13 +3,15 @@ package transfer_test
 import (
 	"math"
 
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *TransferTestSuite) TestOnChanOpenInit() {
@@ -50,7 +52,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			"invalid version", func() {
-				channel.Version = "version"
+				channel.Version = "version" //nolint:goconst
 			}, false,
 		},
 		{
@@ -66,7 +68,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -152,7 +154,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path = NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -216,7 +218,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path := NewTransferPath(suite.chainA, suite.chainB)
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			counterpartyVersion = types.Version
@@ -235,6 +237,75 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
+	var (
+		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+
+		data          []byte
+		expPacketData types.FungibleTokenPacketData
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success: valid packet data with memo",
+			func() {
+				expPacketData = types.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "some memo",
+				}
+				data = expPacketData.GetBytes()
+			},
+			true,
+		},
+		{
+			"success: valid packet data without memo",
+			func() {
+				expPacketData = types.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
+				}
+				data = expPacketData.GetBytes()
+			},
+			true,
+		},
+		{
+			"failure: invalid packet data",
+			func() {
+				data = []byte("invalid packet data")
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			tc.malleate()
+
+			packetData, err := transfer.IBCModule{}.UnmarshalPacketData(data)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expPacketData, packetData)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(packetData)
 			}
 		})
 	}

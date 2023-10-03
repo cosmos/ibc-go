@@ -4,7 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
+	"cosmossdk.io/core/appmodule"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,21 +16,27 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/client/cli"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/client/cli"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
-	_ porttypes.IBCModule   = IBCModule{}
+	_ module.AppModule           = (*AppModule)(nil)
+	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
+	_ module.AppModuleSimulation = (*AppModule)(nil)
+	_ module.HasGenesis          = (*AppModule)(nil)
+	_ module.HasName             = (*AppModule)(nil)
+	_ module.HasConsensusVersion = (*AppModule)(nil)
+	_ module.HasInvariants       = (*AppModule)(nil)
+	_ module.HasServices         = (*AppModule)(nil)
+	_ module.HasProposalMsgs     = (*AppModule)(nil)
+	_ appmodule.AppModule        = (*AppModule)(nil)
+
+	_ porttypes.IBCModule = (*IBCModule)(nil)
 )
 
 // AppModuleBasic is the IBC Transfer AppModuleBasic
@@ -36,6 +46,12 @@ type AppModuleBasic struct{}
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec implements AppModuleBasic interface
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
@@ -95,23 +111,8 @@ func NewAppModule(k keeper.Keeper) AppModule {
 }
 
 // RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// TODO
-}
-
-// Route implements the AppModule interface
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute implements the AppModule interface
-func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
-
-// LegacyQuerierHandler implements the AppModule interface
-func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	return nil
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	keeper.RegisterInvariants(ir, &am.keeper)
 }
 
 // RegisterServices registers module services.
@@ -121,17 +122,28 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	m := keeper.NewMigrator(am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.MigrateTraces); err != nil {
-		panic(fmt.Sprintf("failed to migrate transfer app from version 1 to 2: %v", err))
+		panic(fmt.Errorf("failed to migrate transfer app from version 1 to 2 (denom trace format migration): %v", err))
+	}
+
+	if err := cfg.RegisterMigration(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {
+		panic(fmt.Errorf("failed to migrate transfer app from version 2 to 3 (total escrow entry migration): %v", err))
+	}
+
+	if err := cfg.RegisterMigration(types.ModuleName, 3, m.MigrateParams); err != nil {
+		panic(fmt.Errorf("failed to migrate transfer app version 3 to 4 (self-managed params migration): %v", err))
+	}
+
+	if err := cfg.RegisterMigration(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
+		panic(fmt.Errorf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %v", err))
 	}
 }
 
 // InitGenesis performs genesis initialization for the ibc-transfer module. It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	am.keeper.InitGenesis(ctx, genesisState)
-	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the ibc-transfer
@@ -141,17 +153,8 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 	return cdc.MustMarshalJSON(gs)
 }
 
-// ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
-
-// BeginBlock implements the AppModule interface
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-}
-
-// EndBlock implements the AppModule interface
-func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}
+// ConsensusVersion implements AppModule/ConsensusVersion defining the current version of transfer.
+func (AppModule) ConsensusVersion() uint64 { return 5 }
 
 // AppModuleSimulation functions
 
@@ -160,22 +163,17 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-// RandomizedParams creates randomized ibc-transfer param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return simulation.ParamChanges(r)
+// ProposalMsgs returns msgs used for governance proposals for simulations.
+func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+	return simulation.ProposalMsgs()
 }
 
 // RegisterStoreDecoder registers a decoder for transfer module's types
-func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.keeper)
 }
 
 // WeightedOperations returns the all the transfer module operations with their respective weights.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
+func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }

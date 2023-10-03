@@ -1,24 +1,29 @@
-package interchain_accounts
+//go:build !test_e2e
+
+package interchainaccounts
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
-	"github.com/gogo/protobuf/proto"
-	"github.com/strangelove-ventures/ibctest/v6"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	test "github.com/strangelove-ventures/ibctest/v6/testutil"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 const (
@@ -53,7 +58,7 @@ const (
 )
 
 func TestInterchainAccountsGroupsTestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsGroupsTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsGroupsTestSuite))
 }
 
 type InterchainAccountsGroupsTestSuite struct {
@@ -86,10 +91,10 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 	chainA, chainB := s.GetChains()
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.Bech32Address(chainA.Config().Bech32Prefix)
+	chainAAddress := chainAWallet.FormattedAddress()
 
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.Bech32Address(chainB.Config().Bech32Prefix)
+	chainBAddress := chainBWallet.FormattedAddress()
 
 	t.Run("create group with new threshold decision policy", func(t *testing.T) {
 		members := []grouptypes.MemberRequest{
@@ -103,21 +108,19 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		msgCreateGroupWithPolicy, err := grouptypes.NewMsgCreateGroupWithPolicy(chainAAddress, members, DefaultMetadata, DefaultMetadata, true, decisionPolicy)
 		s.Require().NoError(err)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgCreateGroupWithPolicy)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgCreateGroupWithPolicy)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("submit proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
 		groupPolicyAddr = s.QueryGroupPolicyAddress(ctx, chainA)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID))
 
-		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED)
+		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED, "e2e groups proposal: for MsgRegisterInterchainAccount", "e2e groups proposal: for MsgRegisterInterchainAccount")
 		s.Require().NoError(err)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("vote and exec proposal", func(t *testing.T) {
@@ -128,9 +131,8 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 			Exec:       grouptypes.Exec_EXEC_TRY,
 		}
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -148,9 +150,9 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 	})
 
 	t.Run("fund interchain account wallet", func(t *testing.T) {
-		err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+		err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: interchainAccAddr,
-			Amount:  testvalues.StartingTokenAmount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 			Denom:   chainB.Config().Denom,
 		})
 		s.Require().NoError(err)
@@ -165,7 +167,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 
 		cdc := testsuite.Codec()
 
-		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -175,12 +177,11 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		}
 
 		msgSubmitTx := controllertypes.NewMsgSendTx(groupPolicyAddr, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
-		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgSubmitTx}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED)
+		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgSubmitTx}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED, "e2e groups proposal: for MsgRegisterInterchainAccount", "e2e groups proposal: for MsgRegisterInterchainAccount")
 		s.Require().NoError(err)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("vote and exec proposal", func(t *testing.T) {
@@ -191,9 +192,8 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 			Exec:       grouptypes.Exec_EXEC_TRY,
 		}
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
@@ -203,12 +203,12 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 
 		balance, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected = testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 	})
 }

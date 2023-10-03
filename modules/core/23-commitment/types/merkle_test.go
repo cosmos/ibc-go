@@ -5,20 +5,22 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 )
 
 func (suite *MerkleTestSuite) TestVerifyMembership() {
 	suite.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
 	cid := suite.store.Commit()
 
-	res := suite.store.Query(abci.RequestQuery{
+	res, err := suite.store.Query(&storetypes.RequestQuery{
 		Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
 		Data:  []byte("MYKEY"),
 		Prove: true,
 	})
+	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), res.ProofOps)
 
 	proof, err := types.ConvertProofs(res.ProofOps)
@@ -64,10 +66,10 @@ func (suite *MerkleTestSuite) TestVerifyMembership() {
 			err := proof.VerifyMembership(types.GetSDKSpecs(), &root, path, tc.value)
 
 			if tc.shouldPass {
-				// nolint: scopelint
+				//nolint: scopelint
 				suite.Require().NoError(err, "test case %d should have passed", i)
 			} else {
-				// nolint: scopelint
+				//nolint: scopelint
 				suite.Require().Error(err, "test case %d should have failed", i)
 			}
 		})
@@ -79,11 +81,12 @@ func (suite *MerkleTestSuite) TestVerifyNonMembership() {
 	cid := suite.store.Commit()
 
 	// Get Proof
-	res := suite.store.Query(abci.RequestQuery{
+	res, err := suite.store.Query(&storetypes.RequestQuery{
 		Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
 		Data:  []byte("MYABSENTKEY"),
 		Prove: true,
 	})
+	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), res.ProofOps)
 
 	proof, err := types.ConvertProofs(res.ProofOps)
@@ -127,10 +130,10 @@ func (suite *MerkleTestSuite) TestVerifyNonMembership() {
 			err := proof.VerifyNonMembership(types.GetSDKSpecs(), &root, path)
 
 			if tc.shouldPass {
-				// nolint: scopelint
+				//nolint: scopelint
 				suite.Require().NoError(err, "test case %d should have passed", i)
 			} else {
-				// nolint: scopelint
+				//nolint: scopelint
 				suite.Require().Error(err, "test case %d should have failed", i)
 			}
 		})
@@ -147,24 +150,13 @@ func TestApplyPrefix(t *testing.T) {
 
 	prefixedPath, err := types.ApplyPrefix(prefix, path)
 	require.NoError(t, err, "valid prefix returns error")
+	require.Len(t, prefixedPath.GetKeyPath(), 2, "unexpected key path length")
 
-	require.Equal(t, "/storePrefixKey/"+pathStr, prefixedPath.Pretty(), "Prefixed path incorrect")
-	require.Equal(t, "/storePrefixKey/pathone%2Fpathtwo%2Fpaththree%2Fkey", prefixedPath.String(), "Prefixed escaped path incorrect")
-}
+	key0, err := prefixedPath.GetKey(0)
+	require.NoError(t, err, "get key 0 returns error")
+	require.Equal(t, prefix.KeyPrefix, key0, "key 0 does not match expected value")
 
-func TestString(t *testing.T) {
-	path := types.NewMerklePath("rootKey", "storeKey", "path/to/leaf")
-
-	require.Equal(t, "/rootKey/storeKey/path%2Fto%2Fleaf", path.String(), "path String returns unxpected value")
-	require.Equal(t, "/rootKey/storeKey/path/to/leaf", path.Pretty(), "path's pretty string representation is incorrect")
-
-	onePath := types.NewMerklePath("path/to/leaf")
-
-	require.Equal(t, "/path%2Fto%2Fleaf", onePath.String(), "one element path does not have correct string representation")
-	require.Equal(t, "/path/to/leaf", onePath.Pretty(), "one element path has incorrect pretty string representation")
-
-	zeroPath := types.NewMerklePath()
-
-	require.Equal(t, "", zeroPath.String(), "zero element path does not have correct string representation")
-	require.Equal(t, "", zeroPath.Pretty(), "zero element path does not have correct pretty string representation")
+	key1, err := prefixedPath.GetKey(1)
+	require.NoError(t, err, "get key 1 returns error")
+	require.Equal(t, []byte(pathStr), key1, "key 1 does not match expected value")
 }

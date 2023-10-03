@@ -3,10 +3,10 @@ package tendermint_test
 import (
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 var frozenHeight = clienttypes.NewHeight(0, 1)
@@ -34,7 +34,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 				substituteClientState.TrustingPeriod = time.Hour * 24 * 7
 
 				tmClientState := substituteClientState
-				tmClientState.ChainId = tmClientState.ChainId + "different chain"
+				tmClientState.ChainId += "different chain"
 			},
 		},
 	}
@@ -202,8 +202,8 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 		},
 		{
 			"matching, trusting period is different", func() {
-				subjectClientState.TrustingPeriod = time.Duration(time.Hour * 10)
-				substituteClientState.TrustingPeriod = time.Duration(time.Hour * 1)
+				subjectClientState.TrustingPeriod = time.Hour * 10
+				substituteClientState.TrustingPeriod = time.Hour * 1
 			}, true,
 		},
 		{

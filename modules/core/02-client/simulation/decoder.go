@@ -6,9 +6,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var _ ClientUnmarshaler = (*keeper.Keeper)(nil)
@@ -23,7 +23,7 @@ type ClientUnmarshaler interface {
 // Value to the corresponding client type.
 func NewDecodeStore(cdc ClientUnmarshaler, kvA, kvB kv.Pair) (string, bool) {
 	switch {
-	case bytes.HasPrefix(kvA.Key, host.KeyClientStorePrefix) && bytes.HasSuffix(kvA.Key, []byte(host.KeyClientState)):
+	case bytes.HasPrefix(kvA.Key, host.KeyClientStorePrefix) && bytes.HasSuffix(kvA.Key, host.ClientStateKey()):
 		clientStateA := cdc.MustUnmarshalClientState(kvA.Value)
 		clientStateB := cdc.MustUnmarshalClientState(kvB.Value)
 		return fmt.Sprintf("ClientState A: %v\nClientState B: %v", clientStateA, clientStateB), true

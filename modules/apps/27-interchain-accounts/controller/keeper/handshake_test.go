@@ -1,12 +1,11 @@
 package keeper_test
 
 import (
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
@@ -58,10 +57,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
 
-				err = path.EndpointA.SetChannelClosed()
+				err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
 				suite.Require().NoError(err)
 
-				err = path.EndpointB.SetChannelClosed()
+				err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 				suite.Require().NoError(err)
 
 				path.EndpointA.ChannelID = ""
@@ -103,7 +102,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"invalid port ID",
 			func() {
-				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
+				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 			},
 			false,
 		},
@@ -237,7 +236,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			suite.Require().NoError(err)
 
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
+			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // this error check isn't needed for tests
 			path.EndpointA.ChannelConfig.PortID = portID
 
 			// default values
@@ -444,6 +443,8 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 

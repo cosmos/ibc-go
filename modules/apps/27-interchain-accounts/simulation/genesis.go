@@ -7,10 +7,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
-	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
+	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 )
 
 // RandomEnabled randomized controller or host enabled param with 75% prob of being true.
@@ -23,7 +23,7 @@ func RandomEnabled(r *rand.Rand) bool {
 func RandomizedGenState(simState *module.SimulationState) {
 	var controllerEnabled bool
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, string(controllertypes.KeyControllerEnabled), &controllerEnabled, simState.Rand,
+		string(controllertypes.KeyControllerEnabled), &controllerEnabled, simState.Rand,
 		func(r *rand.Rand) { controllerEnabled = RandomEnabled(r) },
 	)
 
@@ -40,7 +40,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	var hostEnabled bool
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, string(hosttypes.KeyHostEnabled), &hostEnabled, simState.Rand,
+		string(hosttypes.KeyHostEnabled), &hostEnabled, simState.Rand,
 		func(r *rand.Rand) { hostEnabled = RandomEnabled(r) },
 	)
 

@@ -3,24 +3,29 @@ package fee_test
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 
-	fee "github.com/cosmos/ibc-go/v6/modules/apps/29-fee"
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
+	feekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 var (
-	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(100)}}
-	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(200)}}
-	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(300)}}
-	smallAmount       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(50)}}
+	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}}
+	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(200)}}
+	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(300)}}
+	smallAmount       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(50)}}
 )
 
 // Tests OnChanOpenInit on ChainA
@@ -172,7 +177,8 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			// reset suite
 			suite.SetupTest()
 			suite.coordinator.SetupConnections(suite.path)
-			suite.path.EndpointB.ChanOpenInit()
+			err := suite.path.EndpointB.ChanOpenInit()
+			suite.Require().NoError(err)
 
 			// setup mock callback
 			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
@@ -188,7 +194,6 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			var (
 				chanCap *capabilitytypes.Capability
 				ok      bool
-				err     error
 			)
 
 			chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
@@ -286,8 +291,10 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			// malleate test case
 			tc.malleate(suite)
 
-			suite.path.EndpointA.ChanOpenInit()
-			suite.path.EndpointB.ChanOpenTry()
+			err := suite.path.EndpointA.ChanOpenInit()
+			suite.Require().NoError(err)
+			err = suite.path.EndpointB.ChanOpenTry()
+			suite.Require().NoError(err)
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
 			suite.Require().NoError(err)
@@ -1062,8 +1069,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			feeModule := cbs.(fee.IBCMiddleware)
-
+			feeModule := cbs.(porttypes.ICS4Wrapper)
 			appVersion, found := feeModule.GetAppVersion(suite.chainA.GetContext(), portID, channelID)
 
 			if tc.expFound {
@@ -1075,4 +1081,28 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			}
 		})
 	}
+}
+
+func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
+	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+	suite.Require().NoError(err)
+
+	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+	suite.Require().True(ok)
+
+	feeModule, ok := cbs.(porttypes.PacketDataUnmarshaler)
+	suite.Require().True(ok)
+
+	packetData, err := feeModule.UnmarshalPacketData(ibcmock.MockPacketData)
+	suite.Require().NoError(err)
+	suite.Require().Equal(ibcmock.MockPacketData, packetData)
+}
+
+func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterfaceError() {
+	// test the case when the underlying application cannot be casted to a PacketDataUnmarshaler
+	mockFeeMiddleware := ibcfee.NewIBCMiddleware(nil, feekeeper.Keeper{})
+
+	_, err := mockFeeMiddleware.UnmarshalPacketData(ibcmock.MockPacketData)
+	expError := errorsmod.Wrapf(types.ErrUnsupportedAction, "underlying app does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
+	suite.Require().ErrorIs(err, expError)
 }

@@ -1,17 +1,18 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+// TestMsgTransfer tests Transfer rpc handler
 func (suite *KeeperTestSuite) TestMsgTransfer() {
-	var (
-		msg *types.MsgTransfer
-	)
+	var msg *types.MsgTransfer
 
 	testCases := []struct {
 		name     string
@@ -26,11 +27,12 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"bank send enabled for denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: true}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			true,
 		},
@@ -62,11 +64,12 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"bank send disabled for denom",
 			func() {
-				suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
+				err := suite.chainA.GetSimApp().BankKeeper.SetParams(suite.chainA.GetContext(),
 					banktypes.Params{
 						SendEnabled: []*banktypes.SendEnabled{{Denom: sdk.DefaultBondDenom, Enabled: false}},
 					},
 				)
+				suite.Require().NoError(err)
 			},
 			false,
 		},
@@ -80,13 +83,15 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := NewTransferPath(suite.chainA, suite.chainB)
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 			msg = types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
@@ -98,10 +103,10 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(ctx), msg)
+			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
 
 			// Verify events
-			events := ctx.EventManager().Events()
+			events := ctx.EventManager().Events().ToABCIEvents()
 			expEvents := ibctesting.EventsMap{
 				"ibc_transfer": {
 					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
@@ -116,11 +121,60 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().NotEqual(res.Sequence, uint64(0))
-				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 				suite.Require().Len(events, 0)
+			}
+		})
+	}
+}
+
+// TestUpdateParams tests UpdateParams rpc handler
+func (suite *KeeperTestSuite) TestUpdateParams() {
+	signer := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
+	testCases := []struct {
+		name    string
+		msg     *types.MsgUpdateParams
+		expPass bool
+	}{
+		{
+			"success: valid signer and default params",
+			types.NewMsgUpdateParams(signer, types.DefaultParams()),
+			true,
+		},
+		{
+			"failure: malformed signer address",
+			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
+			false,
+		},
+		{
+			"failure: empty signer address",
+			types.NewMsgUpdateParams("", types.DefaultParams()),
+			false,
+		},
+		{
+			"failure: whitespace signer address",
+			types.NewMsgUpdateParams("    ", types.DefaultParams()),
+			false,
+		},
+		{
+			"failure: unauthorized signer address",
+			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			_, err := suite.chainA.GetSimApp().TransferKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
 			}
 		})
 	}

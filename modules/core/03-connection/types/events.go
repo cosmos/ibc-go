@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // IBC connection events
@@ -21,5 +21,5 @@ var (
 	EventTypeConnectionOpenAck     = "connection_open_ack"
 	EventTypeConnectionOpenConfirm = "connection_open_confirm"
 
-	AttributeValueCategory = fmt.Sprintf("%s_%s", host.ModuleName, SubModuleName)
+	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )

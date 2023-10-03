@@ -3,10 +3,11 @@ package keeper_test
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
+	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
@@ -43,6 +44,8 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -54,7 +57,7 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 
 			tc.malleate()
 
-			migrator := keeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
+			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
 			err = migrator.AssertChannelCapabilityMigrations(suite.chainA.GetContext())
 
 			if tc.expPass {
@@ -70,6 +73,41 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			} else {
 				suite.Require().Error(err)
 			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
+	testCases := []struct {
+		msg            string
+		malleate       func()
+		expectedParams icacontrollertypes.Params
+	}{
+		{
+			"success: default params",
+			func() {
+				params := icacontrollertypes.DefaultParams()
+				subspace := suite.chainA.GetSimApp().GetSubspace(icacontrollertypes.SubModuleName) // get subspace
+				subspace.SetParamSet(suite.chainA.GetContext(), &params)                           // set params
+			},
+			icacontrollertypes.DefaultParams(),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate() // explicitly set params
+
+			migrator := icacontrollerkeeper.NewMigrator(&suite.chainA.GetSimApp().ICAControllerKeeper)
+			err := migrator.MigrateParams(suite.chainA.GetContext())
+			suite.Require().NoError(err)
+
+			params := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
+			suite.Require().Equal(tc.expectedParams, params)
 		})
 	}
 }

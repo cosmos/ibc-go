@@ -4,19 +4,21 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/store/iavl"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	log "github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cosmos/cosmos-db"
+	testifysuite "github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	log "cosmossdk.io/log"
+	"cosmossdk.io/store/iavl"
+	"cosmossdk.io/store/metrics"
+	"cosmossdk.io/store/rootmulti"
+	storetypes "cosmossdk.io/store/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 const (
@@ -67,30 +69,31 @@ var (
 )
 
 type TypesTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	proof []byte
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	app := simapp.Setup(false)
+	app := simapp.Setup(suite.T(), false)
 	db := dbm.NewMemDB()
-	dblog := log.TestingLogger()
-	store := rootmulti.NewStore(db, dblog)
+	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
-	store.LoadVersion(0)
+	err := store.LoadVersion(0)
+	suite.Require().NoError(err)
 	iavlStore := store.GetCommitStore(storeKey).(*iavl.Store)
 
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
 
-	res := store.Query(abci.RequestQuery{
-		Path:  fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
+	res, err := store.Query(&storetypes.RequestQuery{
 		Data:  []byte("KEY"),
+		Path:  fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
 		Prove: true,
 	})
+	suite.Require().NoError(err)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	suite.Require().NoError(err)
@@ -101,7 +104,7 @@ func (suite *TypesTestSuite) SetupTest() {
 }
 
 func TestTypesTestSuite(t *testing.T) {
-	suite.Run(t, new(TypesTestSuite))
+	testifysuite.Run(t, new(TypesTestSuite))
 }
 
 func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
@@ -315,8 +318,8 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		expPass bool
 	}{
 		{"success", types.NewMsgRecvPacket(packet, suite.proof, height, addr), true},
-		{"proof contain empty proof", types.NewMsgRecvPacket(packet, emptyProof, height, addr), false},
 		{"missing signer address", types.NewMsgRecvPacket(packet, suite.proof, height, emptyAddr), false},
+		{"proof contain empty proof", types.NewMsgRecvPacket(packet, emptyProof, height, addr), false},
 		{"invalid packet", types.NewMsgRecvPacket(invalidPacket, suite.proof, height, addr), false},
 	}
 
@@ -374,14 +377,14 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 	testCases := []struct {
 		name    string
-		msg     sdk.Msg
+		msg     *types.MsgTimeoutOnClose
 		expPass bool
 	}{
 		{"success", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr), true},
 		{"seq 0", types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr), false},
+		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr), false},
 		{"empty proof", types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr), false},
 		{"empty proof close", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr), false},
-		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr), false},
 		{"invalid packet", types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr), false},
 	}
 

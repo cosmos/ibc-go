@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 )
 
 // tests ParseConnectionSequence and IsValidConnectionID
@@ -33,17 +33,20 @@ func TestParseConnectionSequence(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 
-		seq, err := types.ParseConnectionSequence(tc.connectionID)
-		valid := types.IsValidConnectionID(tc.connectionID)
-		require.Equal(t, tc.expSeq, seq)
+		t.Run(tc.name, func(t *testing.T) {
+			seq, err := types.ParseConnectionSequence(tc.connectionID)
+			valid := types.IsValidConnectionID(tc.connectionID)
+			require.Equal(t, tc.expSeq, seq)
 
-		if tc.expPass {
-			require.NoError(t, err, tc.name)
-			require.True(t, valid)
-		} else {
-			require.Error(t, err, tc.name)
-			require.False(t, valid)
-		}
+			if tc.expPass {
+				require.NoError(t, err, tc.name)
+				require.True(t, valid)
+			} else {
+				require.Error(t, err, tc.name)
+				require.False(t, valid)
+			}
+		})
 	}
 }

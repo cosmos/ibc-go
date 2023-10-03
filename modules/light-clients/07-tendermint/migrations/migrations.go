@@ -1,13 +1,14 @@
 package migrations
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 // PruneExpiredConsensusStates prunes all expired tendermint consensus states. This function
@@ -28,12 +29,12 @@ func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientK
 
 		clientState, ok := clientKeeper.GetClientState(ctx, clientID)
 		if !ok {
-			return 0, sdkerrors.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
+			return 0, errorsmod.Wrapf(clienttypes.ErrClientNotFound, "clientID %s", clientID)
 		}
 
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		if !ok {
-			return 0, sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
+			return 0, errorsmod.Wrap(clienttypes.ErrInvalidClient, "client state is not tendermint even though client id contains 07-tendermint")
 		}
 
 		totalPruned += ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)

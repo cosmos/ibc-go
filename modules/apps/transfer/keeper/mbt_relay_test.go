@@ -1,25 +1,29 @@
 package keeper_test
 
-/// This file is a test driver for model-based tests generated from the TLA+ model of token transfer
-/// Written by Andrey Kuprianov within the scope of IBC Audit performed by Informal Systems.
-/// In case of any questions please don't hesitate to contact andrey@informal.systems.
+// This file is a test driver for model-based tests generated from the TLA+ model of token transfer
+// Written by Andrey Kuprianov within the scope of IBC Audit performed by Informal Systems.
+// In case of any questions please don't hesitate to contact andrey@informal.systems.
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 
-	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/tendermint/tendermint/crypto"
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cometbft/cometbft/crypto"
+
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type TlaBalance struct {
@@ -84,10 +88,10 @@ type OwnedCoin struct {
 }
 
 type Balance struct {
-	Id      string
+	ID      string
 	Address string
 	Denom   string
-	Amount  math.Int
+	Amount  sdkmath.Int
 }
 
 func AddressFromString(address string) string {
@@ -96,35 +100,37 @@ func AddressFromString(address string) string {
 
 func AddressFromTla(addr []string) string {
 	if len(addr) != 3 {
-		panic("failed to convert from TLA+ address: wrong number of address components")
+		panic(errors.New("failed to convert from TLA+ address: wrong number of address components"))
 	}
 	s := ""
-	if len(addr[0]) == 0 && len(addr[1]) == 0 {
+	if len(addr[0]) == 0 && len(addr[1]) == 0 { //nolint:gocritic
 		// simple address: id
 		s = addr[2]
 	} else if len(addr[2]) == 0 {
 		// escrow address: ics20-1\x00port/channel
 		s = fmt.Sprintf("%s\x00%s/%s", types.Version, addr[0], addr[1])
 	} else {
-		panic("failed to convert from TLA+ address: neither simple nor escrow address")
+		panic(errors.New("failed to convert from TLA+ address: neither simple nor escrow address"))
 	}
 	return s
 }
 
 func DenomFromTla(denom []string) string {
 	var i int
-	for i = 0; i+1 < len(denom) && len(denom[i]) == 0 && len(denom[i+1]) == 0; i += 2 {
-		// skip empty prefixes
+	for i = 0; i+1 < len(denom); i += 2 {
+		if !(len(denom[i]) == 0 && len(denom[i+1]) == 0) {
+			break
+		}
 	}
 	return strings.Join(denom[i:], "/")
 }
 
 func BalanceFromTla(balance TlaBalance) Balance {
 	return Balance{
-		Id:      AddressFromTla(balance.Address),
+		ID:      AddressFromTla(balance.Address),
 		Address: AddressFromString(AddressFromTla(balance.Address)),
 		Denom:   DenomFromTla(balance.Denom),
-		Amount:  sdk.NewInt(balance.Amount),
+		Amount:  sdkmath.NewInt(balance.Amount),
 	}
 }
 
@@ -165,12 +171,12 @@ func OnRecvPacketTestCaseFromTla(tc TlaOnRecvPacketTestCase) OnRecvPacketTestCas
 var addressMap = make(map[string]string)
 
 type Bank struct {
-	balances map[OwnedCoin]math.Int
+	balances map[OwnedCoin]sdkmath.Int
 }
 
 // Make an empty bank
 func MakeBank() Bank {
-	return Bank{balances: make(map[OwnedCoin]math.Int)}
+	return Bank{balances: make(map[OwnedCoin]sdkmath.Int)}
 }
 
 // Subtract other bank from this bank
@@ -193,7 +199,7 @@ func (bank *Bank) Sub(other *Bank) Bank {
 }
 
 // Set specific bank balance
-func (bank *Bank) SetBalance(address string, denom string, amount math.Int) {
+func (bank *Bank) SetBalance(address string, denom string, amount sdkmath.Int) {
 	bank.balances[OwnedCoin{address, denom}] = amount
 }
 
@@ -201,7 +207,7 @@ func (bank *Bank) SetBalance(address string, denom string, amount math.Int) {
 func (bank *Bank) SetBalances(balances []Balance) {
 	for _, balance := range balances {
 		bank.balances[OwnedCoin{balance.Address, balance.Denom}] = balance.Amount
-		addressMap[balance.Address] = balance.Id
+		addressMap[balance.Address] = balance.ID
 	}
 }
 
@@ -219,7 +225,7 @@ func BankFromBalances(balances []Balance) Bank {
 		coin := OwnedCoin{balance.Address, balance.Denom}
 		if coin != NullCoin() { // ignore null coin
 			bank.balances[coin] = balance.Amount
-			addressMap[balance.Address] = balance.Id
+			addressMap[balance.Address] = balance.ID
 		}
 	}
 	return bank
@@ -264,13 +270,13 @@ func BankOfChain(chain *ibctesting.TestChain) Bank {
 }
 
 // Check that the state of the bank is the bankBefore + expectedBankChange
-func (suite *KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefore *Bank, expectedBankChange *Bank) error {
+func (*KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefore *Bank, expectedBankChange *Bank) error {
 	bankAfter := BankOfChain(chain)
 	bankChange := bankAfter.Sub(bankBefore)
 	diff := bankChange.Sub(expectedBankChange)
-	NonZeroString := diff.NonZeroString()
-	if len(NonZeroString) != 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+NonZeroString)
+	nonZeroString := diff.NonZeroString()
+	if len(nonZeroString) != 0 {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+nonZeroString)
 	}
 	return nil
 }
@@ -281,29 +287,29 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 	if err != nil {
 		panic(fmt.Errorf("Failed to read model-based test files: %w", err))
 	}
-	for _, file_info := range files {
+	for _, fileInfo := range files {
 		tlaTestCases := []TlaOnRecvPacketTestCase{}
-		if !strings.HasSuffix(file_info.Name(), ".json") {
+		if !strings.HasSuffix(fileInfo.Name(), ".json") {
 			continue
 		}
-		jsonBlob, err := os.ReadFile(dirname + file_info.Name())
+		jsonBlob, err := os.ReadFile(dirname + fileInfo.Name())
 		if err != nil {
 			panic(fmt.Errorf("Failed to read JSON test fixture: %w", err))
 		}
-		err = json.Unmarshal([]byte(jsonBlob), &tlaTestCases)
+		err = json.Unmarshal(jsonBlob, &tlaTestCases)
 		if err != nil {
 			panic(fmt.Errorf("Failed to parse JSON test fixture: %w", err))
 		}
 
 		suite.SetupTest()
-		pathAtoB := NewTransferPath(suite.chainA, suite.chainB)
-		pathBtoC := NewTransferPath(suite.chainB, suite.chainC)
+		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 		suite.coordinator.Setup(pathAtoB)
 		suite.coordinator.Setup(pathBtoC)
 
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)
-			registerDenom := func() {
+			registerDenomFn := func() {
 				denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
 				traceHash := denomTrace.Hash()
 				if !suite.chainB.GetSimApp().TransferKeeper.HasDenomTrace(suite.chainB.GetContext(), traceHash) {
@@ -311,7 +317,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 				}
 			}
 
-			description := file_info.Name() + " # " + strconv.Itoa(i+1)
+			description := fileInfo.Name() + " # " + strconv.Itoa(i+1)
 			suite.Run(fmt.Sprintf("Case %s", description), func() {
 				seq := uint64(1)
 				packet := channeltypes.NewPacket(tc.packet.Data.GetBytes(), seq, tc.packet.SourcePort, tc.packet.SourceChannel, tc.packet.DestPort, tc.packet.DestChannel, clienttypes.NewHeight(1, 100), 0)
@@ -328,16 +334,16 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					var sender sdk.AccAddress
 					sender, err = sdk.AccAddressFromBech32(tc.packet.Data.Sender)
 					if err != nil {
-						panic("MBT failed to convert sender address")
+						panic(errors.New("MBT failed to convert sender address"))
 					}
-					registerDenom()
+					registerDenomFn()
 					denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
 					denom := denomTrace.IBCDenom()
 					err = sdk.ValidateDenom(denom)
 					if err == nil {
-						amount, ok := sdk.NewIntFromString(tc.packet.Data.Amount)
+						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Amount)
 						if !ok {
-							panic("MBT failed to parse amount from string")
+							panic(errors.New("MBT failed to parse amount from string"))
 						}
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
@@ -349,20 +355,20 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							"",
 						)
 
-						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
+						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
 
 					}
 				case "OnRecvPacket":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
 				case "OnTimeoutPacket":
-					registerDenom()
+					registerDenomFn()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
 				case "OnRecvAcknowledgementResult":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet, tc.packet.Data,
 						channeltypes.NewResultAcknowledgement(nil))
 				case "OnRecvAcknowledgementError":
-					registerDenom()
+					registerDenomFn()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet, tc.packet.Data,
 						channeltypes.NewErrorAcknowledgement(fmt.Errorf("MBT Error Acknowledgement")))

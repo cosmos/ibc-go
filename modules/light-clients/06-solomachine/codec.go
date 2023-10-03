@@ -1,12 +1,13 @@
 package solomachine
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // RegisterInterfaces register the ibc channel submodule interfaces to protobuf
@@ -33,7 +34,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 func UnmarshalSignatureData(cdc codec.BinaryCodec, data []byte) (signing.SignatureData, error) {
 	protoSigData := &signing.SignatureDescriptor_Data{}
 	if err := cdc.Unmarshal(data, protoSigData); err != nil {
-		return nil, sdkerrors.Wrapf(err, "failed to unmarshal proof into type %T", protoSigData)
+		return nil, errorsmod.Wrapf(err, "failed to unmarshal proof into type %T", protoSigData)
 	}
 
 	sigData := signing.SignatureDataFromProto(protoSigData)

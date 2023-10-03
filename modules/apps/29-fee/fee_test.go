@@ -3,17 +3,17 @@ package fee_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 type FeeTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -48,7 +48,7 @@ func (suite *FeeTestSuite) SetupTest() {
 }
 
 func TestIBCFeeTestSuite(t *testing.T) {
-	suite.Run(t, new(FeeTestSuite))
+	testifysuite.Run(t, new(FeeTestSuite))
 }
 
 func (suite *FeeTestSuite) CreateMockPacket() channeltypes.Packet {

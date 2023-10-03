@@ -3,17 +3,19 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/store/prefix"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 )
 
-var _ types.QueryServer = Keeper{}
+var _ types.QueryServer = (*Keeper)(nil)
 
 // IncentivizedPackets implements the Query/IncentivizedPackets gRPC method
 func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncentivizedPacketsRequest) (*types.QueryIncentivizedPacketsResponse, error) {
@@ -25,7 +27,7 @@ func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncen
 
 	var identifiedPackets []types.IdentifiedPacketFees
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeesInEscrowPrefix))
-	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pagination, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		packetID, err := types.ParseKeyFeesInEscrow(types.FeesInEscrowPrefix + string(key))
 		if err != nil {
 			return err
@@ -41,6 +43,7 @@ func (k Keeper) IncentivizedPackets(goCtx context.Context, req *types.QueryIncen
 
 	return &types.QueryIncentivizedPacketsResponse{
 		IncentivizedPackets: identifiedPackets,
+		Pagination:          pagination,
 	}, nil
 }
 
@@ -56,7 +59,7 @@ func (k Keeper) IncentivizedPacket(goCtx context.Context, req *types.QueryIncent
 	if !exists {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error())
+			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error())
 	}
 
 	return &types.QueryIncentivizedPacketResponse{
@@ -75,7 +78,7 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 	var packets []*types.IdentifiedPacketFees
 	keyPrefix := types.KeyFeesInEscrowChannelPrefix(req.PortId, req.ChannelId)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), keyPrefix)
-	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pagination, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		packetID, err := types.ParseKeyFeesInEscrow(string(keyPrefix) + string(key))
 		if err != nil {
 			return err
@@ -94,18 +97,23 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 
 	return &types.QueryIncentivizedPacketsForChannelResponse{
 		IncentivizedPackets: packets,
+		Pagination:          pagination,
 	}, nil
 }
 
 // TotalRecvFees implements the Query/TotalRecvFees gRPC method
 func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
 		return nil, status.Errorf(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
+			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
 		)
 	}
 
@@ -131,7 +139,7 @@ func (k Keeper) TotalAckFees(goCtx context.Context, req *types.QueryTotalAckFees
 	if !found {
 		return nil, status.Errorf(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
+			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
 		)
 	}
 
@@ -157,7 +165,7 @@ func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTim
 	if !found {
 		return nil, status.Errorf(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
+			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
 		)
 	}
 
@@ -217,7 +225,7 @@ func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEna
 
 	var feeEnabledChannels []types.FeeEnabledChannel
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.FeeEnabledKeyPrefix))
-	_, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pagination, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		portID, channelID, err := types.ParseKeyFeeEnabled(types.FeeEnabledKeyPrefix + string(key))
 		if err != nil {
 			return err
@@ -238,6 +246,7 @@ func (k Keeper) FeeEnabledChannels(goCtx context.Context, req *types.QueryFeeEna
 
 	return &types.QueryFeeEnabledChannelsResponse{
 		FeeEnabledChannels: feeEnabledChannels,
+		Pagination:         pagination,
 	}, nil
 }
 

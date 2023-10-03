@@ -2,26 +2,28 @@ package ibctesting
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 type EventsMap map[string]map[string]string
 
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
 // client identifier.
-func ParseClientIDFromEvents(events sdk.Events) (string, error) {
+func ParseClientIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == clienttypes.EventTypeCreateClient {
 			for _, attr := range ev.Attributes {
-				if string(attr.Key) == clienttypes.AttributeKeyClientID {
-					return string(attr.Value), nil
+				if attr.Key == clienttypes.AttributeKeyClientID {
+					return attr.Value, nil
 				}
 			}
 		}
@@ -31,13 +33,13 @@ func ParseClientIDFromEvents(events sdk.Events) (string, error) {
 
 // ParseConnectionIDFromEvents parses events emitted from a MsgConnectionOpenInit or
 // MsgConnectionOpenTry and returns the connection identifier.
-func ParseConnectionIDFromEvents(events sdk.Events) (string, error) {
+func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == connectiontypes.EventTypeConnectionOpenInit ||
 			ev.Type == connectiontypes.EventTypeConnectionOpenTry {
 			for _, attr := range ev.Attributes {
-				if string(attr.Key) == connectiontypes.AttributeKeyConnectionID {
-					return string(attr.Value), nil
+				if attr.Key == connectiontypes.AttributeKeyConnectionID {
+					return attr.Value, nil
 				}
 			}
 		}
@@ -47,12 +49,12 @@ func ParseConnectionIDFromEvents(events sdk.Events) (string, error) {
 
 // ParseChannelIDFromEvents parses events emitted from a MsgChannelOpenInit or
 // MsgChannelOpenTry and returns the channel identifier.
-func ParseChannelIDFromEvents(events sdk.Events) (string, error) {
+func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
 			for _, attr := range ev.Attributes {
-				if string(attr.Key) == channeltypes.AttributeKeyChannelID {
-					return string(attr.Value), nil
+				if attr.Key == channeltypes.AttributeKeyChannelID {
+					return attr.Value, nil
 				}
 			}
 		}
@@ -62,17 +64,17 @@ func ParseChannelIDFromEvents(events sdk.Events) (string, error) {
 
 // ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns the
 // acknowledgement.
-func ParsePacketFromEvents(events sdk.Events) (channeltypes.Packet, error) {
+func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeSendPacket {
 			packet := channeltypes.Packet{}
 			for _, attr := range ev.Attributes {
-				switch string(attr.Key) {
+				switch attr.Key {
 				case channeltypes.AttributeKeyData: //nolint:staticcheck // DEPRECATED
-					packet.Data = attr.Value
+					packet.Data = []byte(attr.Value)
 
 				case channeltypes.AttributeKeySequence:
-					seq, err := strconv.ParseUint(string(attr.Value), 10, 64)
+					seq, err := strconv.ParseUint(attr.Value, 10, 64)
 					if err != nil {
 						return channeltypes.Packet{}, err
 					}
@@ -80,19 +82,19 @@ func ParsePacketFromEvents(events sdk.Events) (channeltypes.Packet, error) {
 					packet.Sequence = seq
 
 				case channeltypes.AttributeKeySrcPort:
-					packet.SourcePort = string(attr.Value)
+					packet.SourcePort = attr.Value
 
 				case channeltypes.AttributeKeySrcChannel:
-					packet.SourceChannel = string(attr.Value)
+					packet.SourceChannel = attr.Value
 
 				case channeltypes.AttributeKeyDstPort:
-					packet.DestinationPort = string(attr.Value)
+					packet.DestinationPort = attr.Value
 
 				case channeltypes.AttributeKeyDstChannel:
-					packet.DestinationChannel = string(attr.Value)
+					packet.DestinationChannel = attr.Value
 
 				case channeltypes.AttributeKeyTimeoutHeight:
-					height, err := clienttypes.ParseHeight(string(attr.Value))
+					height, err := clienttypes.ParseHeight(attr.Value)
 					if err != nil {
 						return channeltypes.Packet{}, err
 					}
@@ -100,7 +102,7 @@ func ParsePacketFromEvents(events sdk.Events) (channeltypes.Packet, error) {
 					packet.TimeoutHeight = height
 
 				case channeltypes.AttributeKeyTimeoutTimestamp:
-					timestamp, err := strconv.ParseUint(string(attr.Value), 10, 64)
+					timestamp, err := strconv.ParseUint(attr.Value, 10, 64)
 					if err != nil {
 						return channeltypes.Packet{}, err
 					}
@@ -120,12 +122,12 @@ func ParsePacketFromEvents(events sdk.Events) (channeltypes.Packet, error) {
 
 // ParseAckFromEvents parses events emitted from a MsgRecvPacket and returns the
 // acknowledgement.
-func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
+func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
 			for _, attr := range ev.Attributes {
-				if string(attr.Key) == channeltypes.AttributeKeyAck { //nolint:staticcheck // DEPRECATED
-					return attr.Value, nil
+				if attr.Key == channeltypes.AttributeKeyAck { //nolint:staticcheck // DEPRECATED
+					return []byte(attr.Value), nil
 				}
 			}
 		}
@@ -133,12 +135,12 @@ func ParseAckFromEvents(events sdk.Events) ([]byte, error) {
 	return nil, fmt.Errorf("acknowledgement event attribute not found")
 }
 
-// AssertEvents asserts that expected events are present in the actual events.
+// AssertEventsLegacy asserts that expected events are present in the actual events.
 // Expected map needs to be a subset of actual events to pass.
-func AssertEvents(
-	suite *suite.Suite,
+func AssertEventsLegacy(
+	suite *testifysuite.Suite,
 	expected EventsMap,
-	actual sdk.Events,
+	actual []abci.Event,
 ) {
 	hasEvents := make(map[string]bool)
 	for eventType := range expected {
@@ -151,14 +153,49 @@ func AssertEvents(
 			hasEvents[event.Type] = true
 			suite.Require().Len(event.Attributes, len(expEvent))
 			for _, attr := range event.Attributes {
-				expValue, found := expEvent[string(attr.Key)]
+				expValue, found := expEvent[attr.Key]
 				suite.Require().True(found)
-				suite.Require().Equal(expValue, string(attr.Value))
+				suite.Require().Equal(expValue, attr.Value)
 			}
 		}
 	}
 
 	for eventName, hasEvent := range hasEvents {
 		suite.Require().True(hasEvent, "event: %s was not found in events", eventName)
+	}
+}
+
+// AssertEvents asserts that expected events are present in the actual events.
+func AssertEvents(
+	suite *testifysuite.Suite,
+	expected []abci.Event,
+	actual []abci.Event,
+) {
+	foundEvents := make(map[int]bool)
+
+	for i, expectedEvent := range expected {
+		for _, actualEvent := range actual {
+			// the actual event will have an extra attribute added automatically
+			// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
+			// with the number of attributes in the expected event.
+			if expectedEvent.Type == actualEvent.Type && (len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1) {
+				// multiple events with the same type may be emitted, only mark the expected event as found
+				// if all of the attributes match
+				attributeMatch := true
+				for _, expectedAttr := range expectedEvent.Attributes {
+					// any expected attributes that are not contained in the actual events will cause this event
+					// not to match
+					attributeMatch = attributeMatch && slices.Contains(actualEvent.Attributes, expectedAttr)
+				}
+
+				if attributeMatch {
+					foundEvents[i] = true
+				}
+			}
+		}
+	}
+
+	for i, expectedEvent := range expected {
+		suite.Require().True(foundEvents[i], "event: %s was not found in events", expectedEvent.Type)
 	}
 }

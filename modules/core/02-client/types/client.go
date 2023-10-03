@@ -6,17 +6,19 @@ import (
 	"sort"
 	"strings"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	proto "github.com/gogo/protobuf/proto"
+	proto "github.com/cosmos/gogoproto/proto"
 
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	errorsmod "cosmossdk.io/errors"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
-	_ codectypes.UnpackInterfacesMessage = IdentifiedClientState{}
-	_ codectypes.UnpackInterfacesMessage = ConsensusStateWithHeight{}
+	_ codectypes.UnpackInterfacesMessage = (*IdentifiedClientState)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*ConsensusStateWithHeight)(nil)
 )
 
 // NewIdentifiedClientState creates a new IdentifiedClientState instance
@@ -42,7 +44,7 @@ func (ics IdentifiedClientState) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 	return unpacker.UnpackAny(ics.ClientState, new(exported.ClientState))
 }
 
-var _ sort.Interface = IdentifiedClientStates{}
+var _ sort.Interface = (*IdentifiedClientStates)(nil)
 
 // IdentifiedClientStates defines a slice of ClientConsensusStates that supports the sort interface
 type IdentifiedClientStates []IdentifiedClientState
@@ -89,7 +91,7 @@ func (cswh ConsensusStateWithHeight) UnpackInterfaces(unpacker codectypes.AnyUnp
 // client identifier when used with '0' or the maximum uint64 as the sequence.
 func ValidateClientType(clientType string) error {
 	if strings.TrimSpace(clientType) == "" {
-		return sdkerrors.Wrap(ErrInvalidClientType, "client type cannot be blank")
+		return errorsmod.Wrap(ErrInvalidClientType, "client type cannot be blank")
 	}
 
 	smallestPossibleClientID := FormatClientIdentifier(clientType, 0)
@@ -97,14 +99,14 @@ func ValidateClientType(clientType string) error {
 
 	// IsValidClientID will check client type format and if the sequence is a uint64
 	if !IsValidClientID(smallestPossibleClientID) {
-		return sdkerrors.Wrap(ErrInvalidClientType, "")
+		return errorsmod.Wrap(ErrInvalidClientType, "")
 	}
 
 	if err := host.ClientIdentifierValidator(smallestPossibleClientID); err != nil {
-		return sdkerrors.Wrap(err, "client type results in smallest client identifier being invalid")
+		return errorsmod.Wrap(err, "client type results in smallest client identifier being invalid")
 	}
 	if err := host.ClientIdentifierValidator(largestPossibleClientID); err != nil {
-		return sdkerrors.Wrap(err, "client type results in largest client identifier being invalid")
+		return errorsmod.Wrap(err, "client type results in largest client identifier being invalid")
 	}
 
 	return nil

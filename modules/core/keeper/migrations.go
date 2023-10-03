@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
+	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -19,9 +19,5 @@ func NewMigrator(keeper Keeper) Migrator {
 // Migrate2to3 migrates from version 2 to 3. See 02-client keeper function Migrate2to3.
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 	clientMigrator := clientkeeper.NewMigrator(m.keeper.ClientKeeper)
-	if err := clientMigrator.Migrate2to3(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return clientMigrator.Migrate2to3(ctx)
 }

@@ -1,7 +1,8 @@
 # ADR 002: Go module versioning
 
 ## Changelog
-* 05/01/2022: initial draft
+
+- 05/01/2022: initial draft
 
 ## Status
 
@@ -11,8 +12,9 @@ Accepted
 
 The IBC module was originally developed in the Cosmos SDK and released during with the Stargate release series (v0.42).
 It was subsequently migrated to its own repository, ibc-go.
-The first official release on ibc-go was v1.0.0. 
+The first official release on ibc-go was v1.0.0.
 v1.0.0 was decided to be used instead of v0.1.0 primarily for the following reasons:
+
 - Maintaining compatibility with the IBC specification v1 requires stronger support/guarantees.
 - Using the major, minor, and patch numbers allows for easier communication of what breaking changes are included in a release.
 - The IBC module is being used by numerous high value projects which require stability.
@@ -22,7 +24,7 @@ v1.0.0 was decided to be used instead of v0.1.0 primarily for the following reas
 #### Go module version must be incremented
 
 When a Go module is released under v1.0.0, all following releases must follow Go semantic versioning.
-Thus when the go API is broken, the Go module major version **must** be incremented. 
+Thus when the go API is broken, the Go module major version **must** be incremented.
 For example, changing the go package version from `v2` to `v3` bumps the import from `github.com/cosmos/ibc-go/v2` to `github.com/cosmos/ibc-go/v3`.
 
 If the Go module version is not incremented then attempting to go get a module @v3.0.0 without the suffix results in:
@@ -33,15 +35,15 @@ Not including a go.mod in our release is not a viable option.
 
 #### Attempting to import multiple go module versions for ibc-go
 
-Attempting to import two versions of ibc-go, such as `github.com/cosmos/ibc-go/v2` and `github.com/cosmos/ibc-go/v3`, will result in multiple issues. 
+Attempting to import two versions of ibc-go, such as `github.com/cosmos/ibc-go/v2` and `github.com/cosmos/ibc-go/v3`, will result in multiple issues.
 
-The Cosmos SDK does global registration of error and governance proposal types. 
+The Cosmos SDK does global registration of error and governance proposal types.
 The errors and proposals used in ibc-go would need to now register their naming based on the go module version.
 
 The more concerning problem is that protobuf definitions will also reach a namespace collision.
 ibc-go and the Cosmos SDK in general rely heavily on using extended functions for go structs generated from protobuf definitions.
-This requires the go structs to be defined in the same package as the extended functions. 
-Thus, bumping the import versioning causes the protobuf definitions to be generated in two places (in v2 and v3). 
+This requires the go structs to be defined in the same package as the extended functions.
+Thus, bumping the import versioning causes the protobuf definitions to be generated in two places (in v2 and v3).
 When registering these types at compile time, the go compiler will panic.
 The generated types need to be registered against the proto codec, but there exist two definitions for the same name.
 
@@ -52,11 +54,11 @@ More information [here](https://developers.google.com/protocol-buffers/docs/refe
 
 #### Changing the protobuf definition version
 
-The protobuf definitions all have a type URL containing the protobuf version for this type. 
-Changing the protobuf version would solve the namespace collision which arise from importing multiple versions of ibc-go, but it leads to new issues. 
+The protobuf definitions all have a type URL containing the protobuf version for this type.
+Changing the protobuf version would solve the namespace collision which arise from importing multiple versions of ibc-go, but it leads to new issues.
 
 In the Cosmos SDK, `Any`s are unpacked and decoded using the type URL.
-Changing the type URL thus is creating a distinctly different type. 
+Changing the type URL thus is creating a distinctly different type.
 The same registration on the proto codec cannot be used to unpack the new type.
 For example:
 
@@ -85,12 +87,12 @@ For example, lets say this solution is implemented in v3. Then
 ## Decision
 
 Supporting importing multiple versions of ibc-go requires a non-trivial amount of complexity.
-It is unclear when a user of the ibc-go code would need multiple versions of ibc-go. 
+It is unclear when a user of the ibc-go code would need multiple versions of ibc-go.
 Until there is an overwhelming reason to support importing multiple versions of ibc-go:
 
 **Major releases cannot be imported simultaneously**.
-Releases should focus on keeping backwards compatibility for go code clients, within reason. 
-Old functionality should be marked as deprecated and there should exist upgrade paths between major versions. 
+Releases should focus on keeping backwards compatibility for go code clients, within reason.
+Old functionality should be marked as deprecated and there should exist upgrade paths between major versions.
 Deprecated functionality may be removed when no clients rely on that functionality.
 How this is determined is to be decided.
 
@@ -99,7 +101,7 @@ This explicitly stops external clients from trying to import two major versions 
 
 ## Consequences
 
-This only affects clients relying directly on the go code. 
+This only affects clients relying directly on the go code.
 
 ### Positive
 
@@ -108,4 +110,3 @@ This only affects clients relying directly on the go code.
 Multiple ibc-go versions cannot be imported.
 
 ### Neutral
-

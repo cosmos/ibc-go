@@ -5,9 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestValidateVersion(t *testing.T) {
@@ -23,6 +22,8 @@ func TestValidateVersion(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		i, tc := i, tc
+
 		err := types.ValidateVersion(tc.version)
 
 		if tc.expPass {
@@ -41,7 +42,7 @@ func TestIsSupportedVersion(t *testing.T) {
 	}{
 		{
 			"version is supported",
-			types.ExportedVersionsToProto(types.GetCompatibleVersions())[0],
+			types.GetCompatibleVersions()[0],
 			true,
 		},
 		{
@@ -57,6 +58,8 @@ func TestIsSupportedVersion(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		require.Equal(t, tc.expPass, types.IsSupportedVersion(types.GetCompatibleVersions(), tc.version))
 	}
 }
@@ -65,19 +68,21 @@ func TestFindSupportedVersion(t *testing.T) {
 	testCases := []struct {
 		name              string
 		version           *types.Version
-		supportedVersions []exported.Version
+		supportedVersions []*types.Version
 		expVersion        *types.Version
 		expFound          bool
 	}{
 		{"valid supported version", types.DefaultIBCVersion, types.GetCompatibleVersions(), types.DefaultIBCVersion, true},
 		{"empty (invalid) version", &types.Version{}, types.GetCompatibleVersions(), &types.Version{}, false},
-		{"empty supported versions", types.DefaultIBCVersion, []exported.Version{}, &types.Version{}, false},
-		{"desired version is last", types.DefaultIBCVersion, []exported.Version{types.NewVersion("1.1", nil), types.NewVersion("2", []string{"ORDER_UNORDERED"}), types.NewVersion("3", nil), types.DefaultIBCVersion}, types.DefaultIBCVersion, true},
+		{"empty supported versions", types.DefaultIBCVersion, []*types.Version{}, &types.Version{}, false},
+		{"desired version is last", types.DefaultIBCVersion, []*types.Version{types.NewVersion("1.1", nil), types.NewVersion("2", []string{"ORDER_UNORDERED"}), types.NewVersion("3", nil), types.DefaultIBCVersion}, types.DefaultIBCVersion, true},
 		{"desired version identifier with different feature set", types.NewVersion(types.DefaultIBCVersionIdentifier, []string{"ORDER_DAG"}), types.GetCompatibleVersions(), types.DefaultIBCVersion, true},
 		{"version not supported", types.NewVersion("2", []string{"ORDER_DAG"}), types.GetCompatibleVersions(), &types.Version{}, false},
 	}
 
 	for i, tc := range testCases {
+		tc := tc
+
 		version, found := types.FindSupportedVersion(tc.version, tc.supportedVersions)
 		if tc.expFound {
 			require.Equal(t, tc.expVersion.GetIdentifier(), version.GetIdentifier(), "test case %d: %s", i, tc.name)
@@ -92,20 +97,22 @@ func TestFindSupportedVersion(t *testing.T) {
 func TestPickVersion(t *testing.T) {
 	testCases := []struct {
 		name                 string
-		supportedVersions    []exported.Version
-		counterpartyVersions []exported.Version
+		supportedVersions    []*types.Version
+		counterpartyVersions []*types.Version
 		expVer               *types.Version
 		expPass              bool
 	}{
 		{"valid default ibc version", types.GetCompatibleVersions(), types.GetCompatibleVersions(), types.DefaultIBCVersion, true},
-		{"valid version in counterparty versions", types.GetCompatibleVersions(), []exported.Version{types.NewVersion("version1", nil), types.NewVersion("2.0.0", []string{"ORDER_UNORDERED-ZK"}), types.DefaultIBCVersion}, types.DefaultIBCVersion, true},
-		{"valid identifier match but empty feature set not allowed", types.GetCompatibleVersions(), []exported.Version{types.NewVersion(types.DefaultIBCVersionIdentifier, []string{"DAG", "ORDERED-ZK", "UNORDERED-zk]"})}, types.NewVersion(types.DefaultIBCVersionIdentifier, nil), false},
-		{"empty counterparty versions", types.GetCompatibleVersions(), []exported.Version{}, &types.Version{}, false},
-		{"non-matching counterparty versions", types.GetCompatibleVersions(), []exported.Version{types.NewVersion("2.0.0", nil)}, &types.Version{}, false},
-		{"non-matching counterparty versions (uses ordered channels only) contained in supported versions (uses unordered channels only)", []exported.Version{types.NewVersion(types.DefaultIBCVersionIdentifier, []string{"ORDER_UNORDERED"})}, []exported.Version{types.NewVersion(types.DefaultIBCVersionIdentifier, []string{"ORDER_ORDERED"})}, &types.Version{}, false},
+		{"valid version in counterparty versions", types.GetCompatibleVersions(), []*types.Version{types.NewVersion("version1", nil), types.NewVersion("2.0.0", []string{"ORDER_UNORDERED-ZK"}), types.DefaultIBCVersion}, types.DefaultIBCVersion, true},
+		{"valid identifier match but empty feature set not allowed", types.GetCompatibleVersions(), []*types.Version{types.NewVersion(types.DefaultIBCVersionIdentifier, []string{"DAG", "ORDERED-ZK", "UNORDERED-zk]"})}, types.NewVersion(types.DefaultIBCVersionIdentifier, nil), false},
+		{"empty counterparty versions", types.GetCompatibleVersions(), []*types.Version{}, &types.Version{}, false},
+		{"non-matching counterparty versions", types.GetCompatibleVersions(), []*types.Version{types.NewVersion("2.0.0", nil)}, &types.Version{}, false},
+		{"non-matching counterparty versions (uses ordered channels only) contained in supported versions (uses unordered channels only)", []*types.Version{types.NewVersion(types.DefaultIBCVersionIdentifier, []string{"ORDER_UNORDERED"})}, []*types.Version{types.NewVersion(types.DefaultIBCVersionIdentifier, []string{"ORDER_ORDERED"})}, &types.Version{}, false},
 	}
 
 	for i, tc := range testCases {
+		i, tc := i, tc
+
 		version, err := types.PickVersion(tc.supportedVersions, tc.counterpartyVersions)
 
 		if tc.expPass {
@@ -133,6 +140,8 @@ func TestVerifyProposedVersion(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		i, tc := i, tc
+
 		err := tc.supportedVersion.VerifyProposedVersion(tc.proposedVersion)
 
 		if tc.expPass {
@@ -159,6 +168,8 @@ func TestVerifySupportedFeature(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		i, tc := i, tc
+
 		supported := types.VerifySupportedFeature(tc.version, tc.feature)
 
 		require.Equal(t, tc.expPass, supported, "test case %d: %s", i, tc.name)

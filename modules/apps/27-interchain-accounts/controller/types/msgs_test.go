@@ -3,16 +3,18 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
@@ -65,6 +67,7 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		i, tc := i, tc
 
 		msg = types.NewMsgRegisterInterchainAccount(
 			ibctesting.FirstConnectionID,
@@ -135,6 +138,7 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		i, tc := i, tc
 
 		msgBankSend := &banktypes.MsgSend{
 			FromAddress: ibctesting.TestAccAddress,
@@ -142,7 +146,9 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			Amount:      ibctesting.TestCoins,
 		}
 
-		data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{msgBankSend})
+		encodingConfig := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+
+		data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 		require.NoError(t, err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -178,7 +184,9 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 		Amount:      ibctesting.TestCoins,
 	}
 
-	data, err := icatypes.SerializeCosmosTx(simapp.MakeTestEncodingConfig().Marshaler, []proto.Message{msgBankSend})
+	encodingConfig := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+
+	data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 	require.NoError(t, err)
 
 	packetData := icatypes.InterchainAccountPacketData{
@@ -193,4 +201,56 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 		packetData,
 	)
 	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
+}
+
+// TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
+func TestMsgUpdateParamsValidateBasic(t *testing.T) {
+	testCases := []struct {
+		name    string
+		msg     *types.MsgUpdateParams
+		expPass bool
+	}{
+		{"success: valid signer and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), true},
+		{"failure: invalid signer with valid params", types.NewMsgUpdateParams("invalidAddress", types.DefaultParams()), false},
+		{"failure: empty signer with valid params", types.NewMsgUpdateParams("", types.DefaultParams()), false},
+	}
+
+	for i, tc := range testCases {
+		i, tc := i, tc
+
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
+		} else {
+			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+		}
+	}
+}
+
+// TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		msg := types.MsgUpdateParams{
+			Signer: tc.address.String(),
+			Params: types.DefaultParams(),
+		}
+		if tc.expPass {
+			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+		} else {
+			require.Panics(t, func() {
+				msg.GetSigners()
+			})
+		}
+	}
 }

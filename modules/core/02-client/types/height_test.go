@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 func TestZeroHeight(t *testing.T) {
@@ -30,19 +30,22 @@ func TestCompareHeights(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		compare := tc.height1.Compare(tc.height2)
+		i, tc := i, tc
+		t.Run(tc.name, func(t *testing.T) {
+			compare := tc.height1.Compare(tc.height2)
 
-		switch tc.compareSign {
-		case -1:
-			require.True(t, compare == -1, "case %d: %s should return negative value on comparison, got: %d",
-				i, tc.name, compare)
-		case 0:
-			require.True(t, compare == 0, "case %d: %s should return zero on comparison, got: %d",
-				i, tc.name, compare)
-		case 1:
-			require.True(t, compare == 1, "case %d: %s should return positive value on comparison, got: %d",
-				i, tc.name, compare)
-		}
+			switch tc.compareSign {
+			case -1:
+				require.True(t, compare == -1, "case %d: %s should return negative value on comparison, got: %d",
+					i, tc.name, compare)
+			case 0:
+				require.True(t, compare == 0, "case %d: %s should return zero on comparison, got: %d",
+					i, tc.name, compare)
+			case 1:
+				require.True(t, compare == 1, "case %d: %s should return positive value on comparison, got: %d",
+					i, tc.name, compare)
+			}
+		})
 	}
 }
 

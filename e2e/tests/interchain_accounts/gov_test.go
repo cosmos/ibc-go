@@ -1,28 +1,33 @@
-package interchain_accounts
+//go:build !test_e2e
+
+package interchainaccounts
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/gogo/protobuf/proto"
-	"github.com/strangelove-ventures/ibctest/v6"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	test "github.com/strangelove-ventures/ibctest/v6/testutil"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestInterchainAccountsGovTestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsGovTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsGovTestSuite))
 }
 
 type InterchainAccountsGovTestSuite struct {
@@ -40,7 +45,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBAccount.Bech32Address(chainB.Config().Bech32Prefix)
+	chainBAddress := chainBAccount.FormattedAddress()
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
@@ -49,7 +54,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	t.Run("execute proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version)
-		s.ExecuteGovProposalV1(ctx, msgRegisterAccount, chainA, controllerAccount, 1)
+		s.ExecuteAndPassGovV1Proposal(ctx, msgRegisterAccount, chainA, controllerAccount)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -73,9 +78,9 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
 		t.Run("fund interchain account wallet", func(t *testing.T) {
 			// fund the host account, so it has some $$ to send
-			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: interchainAccAddr,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
@@ -89,7 +94,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			}
 
 			cdc := testsuite.Codec()
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -99,18 +104,18 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			}
 
 			msgSendTx := controllertypes.NewMsgSendTx(govModuleAddress.String(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
-			s.ExecuteGovProposalV1(ctx, msgSendTx, chainA, controllerAccount, 2)
+			s.ExecuteAndPassGovV1Proposal(ctx, msgSendTx, chainA, controllerAccount)
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			_, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance)
+			s.Require().Equal(expected, balance.Int64())
 		})
 	})
 }

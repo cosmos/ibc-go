@@ -1,17 +1,20 @@
 package fee_test
 
 import (
+	"github.com/cosmos/gogoproto/proto"
+
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/gogo/protobuf/proto"
 
-	icahosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 var (
@@ -59,11 +62,7 @@ func SetupPath(path *ibctesting.Path, owner string) error {
 		return err
 	}
 
-	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
-		return err
-	}
-
-	return nil
+	return path.EndpointB.ChanOpenConfirm()
 }
 
 // RegisterInterchainAccount invokes the the InterchainAccounts entrypoint, routes a new MsgChannelOpenInit to the appropriate handler,
@@ -128,7 +127,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	suite.Require().True(found)
 
 	// fund the interchain account on chainB
-	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000)))
+	coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000)))
 	msgBankSend := &banktypes.MsgSend{
 		FromAddress: suite.chainB.SenderAccount.GetAddress().String(),
 		ToAddress:   interchainAccountAddr,
@@ -144,10 +143,10 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	msgDelegate := &stakingtypes.MsgDelegate{
 		DelegatorAddress: interchainAccountAddr,
 		ValidatorAddress: validatorAddr.String(),
-		Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000)),
+		Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
 	}
 
-	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate})
+	data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate}, icatypes.EncodingProtobuf)
 	suite.Require().NoError(err)
 
 	icaPacketData := icatypes.InterchainAccountPacketData{
@@ -185,7 +184,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 func buildInterchainAccountsPacket(path *ibctesting.Path, data []byte, seq uint64) channeltypes.Packet {
 	packet := channeltypes.NewPacket(
 		data,
-		1,
+		seq,
 		path.EndpointA.ChannelConfig.PortID,
 		path.EndpointA.ChannelID,
 		path.EndpointB.ChannelConfig.PortID,

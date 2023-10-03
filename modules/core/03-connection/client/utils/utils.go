@@ -6,17 +6,18 @@ import (
 	"fmt"
 	"os"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clientutils "github.com/cosmos/ibc-go/v6/modules/core/02-client/client/utils"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/client"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clientutils "github.com/cosmos/ibc-go/v8/modules/core/02-client/client/utils"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/client"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // QueryConnection returns a connection end.
@@ -47,7 +48,7 @@ func queryConnectionABCI(clientCtx client.Context, connectionID string) (*types.
 
 	// check if connection exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrConnectionNotFound, connectionID)
+		return nil, errorsmod.Wrap(types.ErrConnectionNotFound, connectionID)
 	}
 
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
@@ -88,7 +89,7 @@ func queryClientConnectionsABCI(clientCtx client.Context, clientID string) (*typ
 
 	// check if connection paths exist
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrClientConnectionPathsNotFound, clientID)
+		return nil, errorsmod.Wrap(types.ErrClientConnectionPathsNotFound, clientID)
 	}
 
 	var paths []string

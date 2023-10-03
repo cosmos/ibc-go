@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/cosmos/ibc-go/v6/testing/mock"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const chainID = "testChain"
@@ -24,7 +25,8 @@ func TestSignVote(t *testing.T) {
 	pk, _ := pv.GetPubKey()
 
 	vote := &tmproto.Vote{Height: 2}
-	pv.SignVote(chainID, vote)
+	err := pv.SignVote(chainID, vote)
+	require.NoError(t, err)
 
 	msg := tmtypes.VoteSignBytes(chainID, vote)
 	ok := pk.VerifySignature(msg, vote.Signature)
@@ -36,7 +38,8 @@ func TestSignProposal(t *testing.T) {
 	pk, _ := pv.GetPubKey()
 
 	proposal := &tmproto.Proposal{Round: 2}
-	pv.SignProposal(chainID, proposal)
+	err := pv.SignProposal(chainID, proposal)
+	require.NoError(t, err)
 
 	msg := tmtypes.ProposalSignBytes(chainID, proposal)
 	ok := pk.VerifySignature(msg, proposal.Signature)

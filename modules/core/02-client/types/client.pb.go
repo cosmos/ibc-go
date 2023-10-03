@@ -4,12 +4,12 @@
 package types
 
 import (
+	types1 "cosmossdk.io/x/upgrade/types"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
-	types1 "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -30,9 +30,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // identifier field.
 type IdentifiedClientState struct {
 	// client identifier
-	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty" yaml:"client_id"`
+	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// client state
-	ClientState *types.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty" yaml:"client_state"`
+	ClientState *types.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 }
 
 func (m *IdentifiedClientState) Reset()         { *m = IdentifiedClientState{} }
@@ -88,7 +88,7 @@ type ConsensusStateWithHeight struct {
 	// consensus state height
 	Height Height `protobuf:"bytes,1,opt,name=height,proto3" json:"height"`
 	// consensus state
-	ConsensusState *types.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty" yaml:"consensus_state"`
+	ConsensusState *types.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 }
 
 func (m *ConsensusStateWithHeight) Reset()         { *m = ConsensusStateWithHeight{} }
@@ -142,9 +142,9 @@ func (m *ConsensusStateWithHeight) GetConsensusState() *types.Any {
 // client.
 type ClientConsensusStates struct {
 	// client identifier
-	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty" yaml:"client_id"`
+	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// consensus states and their heights associated with the client
-	ConsensusStates []ConsensusStateWithHeight `protobuf:"bytes,2,rep,name=consensus_states,json=consensusStates,proto3" json:"consensus_states" yaml:"consensus_states"`
+	ConsensusStates []ConsensusStateWithHeight `protobuf:"bytes,2,rep,name=consensus_states,json=consensusStates,proto3" json:"consensus_states"`
 }
 
 func (m *ClientConsensusStates) Reset()         { *m = ClientConsensusStates{} }
@@ -194,102 +194,6 @@ func (m *ClientConsensusStates) GetConsensusStates() []ConsensusStateWithHeight 
 	return nil
 }
 
-// ClientUpdateProposal is a governance proposal. If it passes, the substitute
-// client's latest consensus state is copied over to the subject client. The proposal
-// handler may fail if the subject and the substitute do not match in client and
-// chain parameters (with exception to latest height, frozen height, and chain-id).
-type ClientUpdateProposal struct {
-	// the title of the update proposal
-	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	// the description of the proposal
-	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	// the client identifier for the client to be updated if the proposal passes
-	SubjectClientId string `protobuf:"bytes,3,opt,name=subject_client_id,json=subjectClientId,proto3" json:"subject_client_id,omitempty" yaml:"subject_client_id"`
-	// the substitute client identifier for the client standing in for the subject
-	// client
-	SubstituteClientId string `protobuf:"bytes,4,opt,name=substitute_client_id,json=substituteClientId,proto3" json:"substitute_client_id,omitempty" yaml:"substitute_client_id"`
-}
-
-func (m *ClientUpdateProposal) Reset()         { *m = ClientUpdateProposal{} }
-func (m *ClientUpdateProposal) String() string { return proto.CompactTextString(m) }
-func (*ClientUpdateProposal) ProtoMessage()    {}
-func (*ClientUpdateProposal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b6bc4c8185546947, []int{3}
-}
-func (m *ClientUpdateProposal) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ClientUpdateProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ClientUpdateProposal.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ClientUpdateProposal) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClientUpdateProposal.Merge(m, src)
-}
-func (m *ClientUpdateProposal) XXX_Size() int {
-	return m.Size()
-}
-func (m *ClientUpdateProposal) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClientUpdateProposal.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ClientUpdateProposal proto.InternalMessageInfo
-
-// UpgradeProposal is a gov Content type for initiating an IBC breaking
-// upgrade.
-type UpgradeProposal struct {
-	Title       string      `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Description string      `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	Plan        types1.Plan `protobuf:"bytes,3,opt,name=plan,proto3" json:"plan"`
-	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
-	// This will make the chain commit to the correct upgraded (self) client state
-	// before the upgrade occurs, so that connecting chains can verify that the
-	// new upgraded client is valid by verifying a proof on the previous version
-	// of the chain. This will allow IBC connections to persist smoothly across
-	// planned chain upgrades
-	UpgradedClientState *types.Any `protobuf:"bytes,4,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty" yaml:"upgraded_client_state"`
-}
-
-func (m *UpgradeProposal) Reset()      { *m = UpgradeProposal{} }
-func (*UpgradeProposal) ProtoMessage() {}
-func (*UpgradeProposal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b6bc4c8185546947, []int{4}
-}
-func (m *UpgradeProposal) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *UpgradeProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_UpgradeProposal.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *UpgradeProposal) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeProposal.Merge(m, src)
-}
-func (m *UpgradeProposal) XXX_Size() int {
-	return m.Size()
-}
-func (m *UpgradeProposal) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpgradeProposal.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpgradeProposal proto.InternalMessageInfo
-
 // Height is a monotonically increasing data type
 // that can be compared against another Height for the purposes of updating and
 // freezing clients
@@ -302,15 +206,15 @@ var xxx_messageInfo_UpgradeProposal proto.InternalMessageInfo
 // gets reset
 type Height struct {
 	// the revision that the client is currently on
-	RevisionNumber uint64 `protobuf:"varint,1,opt,name=revision_number,json=revisionNumber,proto3" json:"revision_number,omitempty" yaml:"revision_number"`
+	RevisionNumber uint64 `protobuf:"varint,1,opt,name=revision_number,json=revisionNumber,proto3" json:"revision_number,omitempty"`
 	// the height within the given revision
-	RevisionHeight uint64 `protobuf:"varint,2,opt,name=revision_height,json=revisionHeight,proto3" json:"revision_height,omitempty" yaml:"revision_height"`
+	RevisionHeight uint64 `protobuf:"varint,2,opt,name=revision_height,json=revisionHeight,proto3" json:"revision_height,omitempty"`
 }
 
 func (m *Height) Reset()      { *m = Height{} }
 func (*Height) ProtoMessage() {}
 func (*Height) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b6bc4c8185546947, []int{5}
+	return fileDescriptor_b6bc4c8185546947, []int{3}
 }
 func (m *Height) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -341,15 +245,17 @@ var xxx_messageInfo_Height proto.InternalMessageInfo
 
 // Params defines the set of IBC light client parameters.
 type Params struct {
-	// allowed_clients defines the list of allowed client state types.
-	AllowedClients []string `protobuf:"bytes,1,rep,name=allowed_clients,json=allowedClients,proto3" json:"allowed_clients,omitempty" yaml:"allowed_clients"`
+	// allowed_clients defines the list of allowed client state types which can be created
+	// and interacted with. If a client type is removed from the allowed clients list, usage
+	// of this client will be disabled until it is added again to the list.
+	AllowedClients []string `protobuf:"bytes,1,rep,name=allowed_clients,json=allowedClients,proto3" json:"allowed_clients,omitempty"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
 func (m *Params) String() string { return proto.CompactTextString(m) }
 func (*Params) ProtoMessage()    {}
 func (*Params) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b6bc4c8185546947, []int{6}
+	return fileDescriptor_b6bc4c8185546947, []int{4}
 }
 func (m *Params) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -385,66 +291,167 @@ func (m *Params) GetAllowedClients() []string {
 	return nil
 }
 
+// ClientUpdateProposal is a legacy governance proposal. If it passes, the substitute
+// client's latest consensus state is copied over to the subject client. The proposal
+// handler may fail if the subject and the substitute do not match in client and
+// chain parameters (with exception to latest height, frozen height, and chain-id).
+//
+// Deprecated: Please use MsgRecoverClient in favour of this message type.
+//
+// Deprecated: Do not use.
+type ClientUpdateProposal struct {
+	// the title of the update proposal
+	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	// the description of the proposal
+	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// the client identifier for the client to be updated if the proposal passes
+	SubjectClientId string `protobuf:"bytes,3,opt,name=subject_client_id,json=subjectClientId,proto3" json:"subject_client_id,omitempty" yaml:"subject_client_id"`
+	// the substitute client identifier for the client standing in for the subject
+	// client
+	SubstituteClientId string `protobuf:"bytes,4,opt,name=substitute_client_id,json=substituteClientId,proto3" json:"substitute_client_id,omitempty" yaml:"substitute_client_id"`
+}
+
+func (m *ClientUpdateProposal) Reset()         { *m = ClientUpdateProposal{} }
+func (m *ClientUpdateProposal) String() string { return proto.CompactTextString(m) }
+func (*ClientUpdateProposal) ProtoMessage()    {}
+func (*ClientUpdateProposal) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b6bc4c8185546947, []int{5}
+}
+func (m *ClientUpdateProposal) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ClientUpdateProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ClientUpdateProposal.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ClientUpdateProposal) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClientUpdateProposal.Merge(m, src)
+}
+func (m *ClientUpdateProposal) XXX_Size() int {
+	return m.Size()
+}
+func (m *ClientUpdateProposal) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClientUpdateProposal.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ClientUpdateProposal proto.InternalMessageInfo
+
+// UpgradeProposal is a gov Content type for initiating an IBC breaking
+// upgrade.
+//
+// Deprecated: Please use MsgIBCSoftwareUpgrade in favour of this message type.
+//
+// Deprecated: Do not use.
+type UpgradeProposal struct {
+	Title       string      `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Description string      `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Plan        types1.Plan `protobuf:"bytes,3,opt,name=plan,proto3" json:"plan"`
+	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
+	// This will make the chain commit to the correct upgraded (self) client state
+	// before the upgrade occurs, so that connecting chains can verify that the
+	// new upgraded client is valid by verifying a proof on the previous version
+	// of the chain. This will allow IBC connections to persist smoothly across
+	// planned chain upgrades
+	UpgradedClientState *types.Any `protobuf:"bytes,4,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty" yaml:"upgraded_client_state"`
+}
+
+func (m *UpgradeProposal) Reset()      { *m = UpgradeProposal{} }
+func (*UpgradeProposal) ProtoMessage() {}
+func (*UpgradeProposal) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b6bc4c8185546947, []int{6}
+}
+func (m *UpgradeProposal) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpgradeProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpgradeProposal.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpgradeProposal) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpgradeProposal.Merge(m, src)
+}
+func (m *UpgradeProposal) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpgradeProposal) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpgradeProposal.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpgradeProposal proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*IdentifiedClientState)(nil), "ibc.core.client.v1.IdentifiedClientState")
 	proto.RegisterType((*ConsensusStateWithHeight)(nil), "ibc.core.client.v1.ConsensusStateWithHeight")
 	proto.RegisterType((*ClientConsensusStates)(nil), "ibc.core.client.v1.ClientConsensusStates")
-	proto.RegisterType((*ClientUpdateProposal)(nil), "ibc.core.client.v1.ClientUpdateProposal")
-	proto.RegisterType((*UpgradeProposal)(nil), "ibc.core.client.v1.UpgradeProposal")
 	proto.RegisterType((*Height)(nil), "ibc.core.client.v1.Height")
 	proto.RegisterType((*Params)(nil), "ibc.core.client.v1.Params")
+	proto.RegisterType((*ClientUpdateProposal)(nil), "ibc.core.client.v1.ClientUpdateProposal")
+	proto.RegisterType((*UpgradeProposal)(nil), "ibc.core.client.v1.UpgradeProposal")
 }
 
 func init() { proto.RegisterFile("ibc/core/client/v1/client.proto", fileDescriptor_b6bc4c8185546947) }
 
 var fileDescriptor_b6bc4c8185546947 = []byte{
-	// 734 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x55, 0xbd, 0x6e, 0x13, 0x4b,
-	0x18, 0xf5, 0x3a, 0xbe, 0x56, 0x3c, 0xbe, 0x8a, 0x73, 0x37, 0xce, 0x8d, 0xaf, 0x6f, 0xe4, 0xb1,
-	0x46, 0x14, 0x16, 0x22, 0xbb, 0xd8, 0x48, 0x51, 0xe4, 0x0e, 0xbb, 0x49, 0x0a, 0x90, 0x59, 0x14,
-	0x21, 0x68, 0xac, 0xfd, 0x99, 0xac, 0x27, 0x5a, 0xef, 0x58, 0x3b, 0xb3, 0x06, 0xbf, 0x01, 0x1d,
-	0x94, 0x20, 0xa5, 0xc8, 0x1b, 0xd0, 0xf0, 0x08, 0x14, 0x11, 0x55, 0x4a, 0xaa, 0x15, 0x4a, 0x1a,
-	0x6a, 0x3f, 0x01, 0xf2, 0xcc, 0x6c, 0x62, 0xe7, 0x07, 0x10, 0x74, 0x33, 0x67, 0xce, 0x9e, 0x39,
-	0xdf, 0xf1, 0x1e, 0x2f, 0x80, 0xc4, 0x71, 0x4d, 0x97, 0x46, 0xd8, 0x74, 0x03, 0x82, 0x43, 0x6e,
-	0x8e, 0x9b, 0x6a, 0x65, 0x8c, 0x22, 0xca, 0xa9, 0xae, 0x13, 0xc7, 0x35, 0x66, 0x04, 0x43, 0xc1,
-	0xe3, 0x66, 0xb5, 0xec, 0x53, 0x9f, 0x8a, 0x63, 0x73, 0xb6, 0x92, 0xcc, 0xea, 0x7f, 0x3e, 0xa5,
-	0x7e, 0x80, 0x4d, 0xb1, 0x73, 0xe2, 0x03, 0xd3, 0x0e, 0x27, 0xea, 0xe8, 0x8e, 0x4b, 0xd9, 0x90,
-	0x32, 0x33, 0x1e, 0xf9, 0x91, 0xed, 0x61, 0x73, 0xdc, 0x74, 0x30, 0xb7, 0x9b, 0xe9, 0x3e, 0x15,
-	0x90, 0xac, 0xbe, 0x54, 0x96, 0x1b, 0x79, 0x84, 0x8e, 0x34, 0xb0, 0xbe, 0xe7, 0xe1, 0x90, 0x93,
-	0x03, 0x82, 0xbd, 0xae, 0x70, 0xf2, 0x94, 0xdb, 0x1c, 0xeb, 0x4d, 0x50, 0x90, 0xc6, 0xfa, 0xc4,
-	0xab, 0x68, 0x75, 0xad, 0x51, 0xe8, 0x94, 0xa7, 0x09, 0x5c, 0x9d, 0xd8, 0xc3, 0xa0, 0x8d, 0x2e,
-	0x8e, 0x90, 0xb5, 0x2c, 0xd7, 0x7b, 0x9e, 0xde, 0x03, 0x7f, 0x2b, 0x9c, 0xcd, 0x24, 0x2a, 0xd9,
-	0xba, 0xd6, 0x28, 0xb6, 0xca, 0x86, 0xf4, 0x6f, 0xa4, 0xfe, 0x8d, 0x87, 0xe1, 0xa4, 0xb3, 0x31,
-	0x4d, 0xe0, 0xda, 0x82, 0x96, 0x78, 0x06, 0x59, 0x45, 0xf7, 0xd2, 0x04, 0xfa, 0xa0, 0x81, 0x4a,
-	0x97, 0x86, 0x0c, 0x87, 0x2c, 0x66, 0x02, 0x7a, 0x46, 0xf8, 0x60, 0x17, 0x13, 0x7f, 0xc0, 0xf5,
-	0x1d, 0x90, 0x1f, 0x88, 0x95, 0xb0, 0x57, 0x6c, 0x55, 0x8d, 0xeb, 0x91, 0x1a, 0x92, 0xdb, 0xc9,
-	0x9d, 0x24, 0x30, 0x63, 0x29, 0xbe, 0xfe, 0x1c, 0x94, 0xdc, 0x54, 0xf5, 0x17, 0xbc, 0x56, 0xa7,
-	0x09, 0xfc, 0x57, 0x79, 0x5d, 0x7c, 0x0c, 0x59, 0x2b, 0xee, 0x82, 0x3d, 0xf4, 0x49, 0x03, 0xeb,
-	0x32, 0xc6, 0x45, 0xdf, 0xec, 0x77, 0x02, 0x7d, 0x05, 0x56, 0xaf, 0x5c, 0xc8, 0x2a, 0xd9, 0xfa,
-	0x52, 0xa3, 0xd8, 0xba, 0x77, 0xd3, 0xac, 0xb7, 0x25, 0xd5, 0x81, 0xb3, 0xe9, 0xa7, 0x09, 0xdc,
-	0xb8, 0x71, 0x08, 0x86, 0xac, 0xd2, 0xe2, 0x14, 0x0c, 0xbd, 0xc9, 0x82, 0xb2, 0x1c, 0x63, 0x7f,
-	0xe4, 0xd9, 0x1c, 0xf7, 0x22, 0x3a, 0xa2, 0xcc, 0x0e, 0xf4, 0x32, 0xf8, 0x8b, 0x13, 0x1e, 0x60,
-	0x39, 0x81, 0x25, 0x37, 0x7a, 0x1d, 0x14, 0x3d, 0xcc, 0xdc, 0x88, 0x8c, 0x38, 0xa1, 0xa1, 0x08,
-	0xb3, 0x60, 0xcd, 0x43, 0xfa, 0x2e, 0xf8, 0x87, 0xc5, 0xce, 0x21, 0x76, 0x79, 0xff, 0x32, 0x85,
-	0x25, 0x91, 0xc2, 0xe6, 0x34, 0x81, 0x15, 0xe9, 0xec, 0x1a, 0x05, 0x59, 0x25, 0x85, 0x75, 0xd3,
-	0x50, 0x9e, 0x80, 0x32, 0x8b, 0x1d, 0xc6, 0x09, 0x8f, 0x39, 0x9e, 0x13, 0xcb, 0x09, 0x31, 0x38,
-	0x4d, 0xe0, 0xff, 0x17, 0x62, 0xd7, 0x58, 0xc8, 0xd2, 0x2f, 0xe1, 0x54, 0xb2, 0x8d, 0x5e, 0x1f,
-	0xc3, 0xcc, 0xe7, 0x8f, 0x5b, 0x55, 0xd5, 0x0d, 0x9f, 0x8e, 0x0d, 0x55, 0xa5, 0x59, 0xa8, 0x1c,
-	0x87, 0x1c, 0xbd, 0xcf, 0x82, 0xd2, 0xbe, 0xac, 0xd5, 0x1f, 0x87, 0xb1, 0x0d, 0x72, 0xa3, 0xc0,
-	0x0e, 0xc5, 0xfc, 0xc5, 0xd6, 0xa6, 0xa1, 0xae, 0x4d, 0x5b, 0x9b, 0x5e, 0xdd, 0x0b, 0xec, 0x50,
-	0xbd, 0xb9, 0x82, 0xaf, 0x1f, 0x82, 0x75, 0xc5, 0xf1, 0xfa, 0x0b, 0x4d, 0xcb, 0xfd, 0xe0, 0xed,
-	0xad, 0x4f, 0x13, 0xb8, 0x29, 0x13, 0xb9, 0xf1, 0x61, 0x64, 0xad, 0xa5, 0xf8, 0x5c, 0xff, 0xdb,
-	0x77, 0x67, 0x99, 0xbc, 0x3b, 0x86, 0x99, 0x6f, 0xc7, 0x50, 0xfb, 0x49, 0x36, 0x47, 0x1a, 0xc8,
-	0xab, 0x52, 0x76, 0x41, 0x29, 0xc2, 0x63, 0xc2, 0x08, 0x0d, 0xfb, 0x61, 0x3c, 0x74, 0x70, 0x24,
-	0xc2, 0xc9, 0xcd, 0x97, 0xe8, 0x0a, 0x01, 0x59, 0x2b, 0x29, 0xf2, 0x58, 0x00, 0x0b, 0x22, 0xaa,
-	0xe2, 0xd9, 0x5b, 0x45, 0x24, 0x61, 0x4e, 0x44, 0x3a, 0x69, 0x2f, 0xa7, 0x03, 0xa0, 0x47, 0x20,
-	0xdf, 0xb3, 0x23, 0x7b, 0xc8, 0x66, 0xc2, 0x76, 0x10, 0xd0, 0x97, 0x17, 0x11, 0xb0, 0x8a, 0x56,
-	0x5f, 0x6a, 0x14, 0xe6, 0x85, 0xaf, 0x10, 0x90, 0xb5, 0xa2, 0x10, 0x99, 0x0e, 0xeb, 0x58, 0x27,
-	0x67, 0x35, 0xed, 0xf4, 0xac, 0xa6, 0x7d, 0x3d, 0xab, 0x69, 0x6f, 0xcf, 0x6b, 0x99, 0xd3, 0xf3,
-	0x5a, 0xe6, 0xcb, 0x79, 0x2d, 0xf3, 0x62, 0xc7, 0x27, 0x7c, 0x10, 0x3b, 0x86, 0x4b, 0x87, 0xea,
-	0x6f, 0xd6, 0x24, 0x8e, 0xbb, 0xe5, 0x53, 0x73, 0xbc, 0x6d, 0x0e, 0xa9, 0x17, 0x07, 0x98, 0xc9,
-	0x8f, 0xc2, 0xfd, 0xd6, 0x96, 0xfa, 0x2e, 0xf0, 0xc9, 0x08, 0x33, 0x27, 0x2f, 0x7e, 0xb2, 0x07,
-	0xdf, 0x03, 0x00, 0x00, 0xff, 0xff, 0xdf, 0x94, 0xba, 0xc2, 0x37, 0x06, 0x00, 0x00,
+	// 677 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0x4d, 0x6b, 0x13, 0x41,
+	0x18, 0xce, 0xa6, 0x31, 0x34, 0x13, 0x69, 0x74, 0x4d, 0x61, 0x4d, 0x4b, 0x36, 0x2c, 0x05, 0x73,
+	0x68, 0x77, 0x4d, 0x04, 0x2d, 0x01, 0x0f, 0xa6, 0x97, 0xf6, 0x22, 0x75, 0xa5, 0x08, 0x82, 0x84,
+	0xfd, 0x98, 0x6e, 0xa6, 0xec, 0xce, 0x2c, 0x3b, 0xb3, 0x91, 0xfc, 0x03, 0x8f, 0x8a, 0x17, 0xc1,
+	0x4b, 0x7f, 0x84, 0x3f, 0xa2, 0x78, 0xea, 0xd1, 0x53, 0x90, 0xf6, 0xe2, 0xb9, 0xbf, 0x40, 0x76,
+	0x3e, 0x6c, 0x63, 0x5a, 0x15, 0xbc, 0xcd, 0xfb, 0xcc, 0x33, 0xef, 0xfb, 0xcc, 0x33, 0xf3, 0xbe,
+	0xc0, 0x44, 0x7e, 0xe0, 0x04, 0x24, 0x83, 0x4e, 0x10, 0x23, 0x88, 0x99, 0x33, 0xe9, 0xc9, 0x95,
+	0x9d, 0x66, 0x84, 0x11, 0x5d, 0x47, 0x7e, 0x60, 0x17, 0x04, 0x5b, 0xc2, 0x93, 0x5e, 0x6b, 0x23,
+	0x20, 0x34, 0x21, 0xd4, 0xc9, 0xd3, 0x28, 0xf3, 0x42, 0xe8, 0x4c, 0x7a, 0x3e, 0x64, 0x5e, 0x4f,
+	0xc5, 0xe2, 0x64, 0xeb, 0xbe, 0x60, 0x8d, 0x78, 0xe4, 0x88, 0x40, 0x6e, 0x35, 0x23, 0x12, 0x11,
+	0x81, 0x17, 0x2b, 0x75, 0x20, 0x22, 0x24, 0x8a, 0xa1, 0xc3, 0x23, 0x3f, 0x3f, 0x74, 0x3c, 0x3c,
+	0x15, 0x5b, 0x56, 0x02, 0x56, 0xf7, 0x42, 0x88, 0x19, 0x3a, 0x44, 0x30, 0xdc, 0xe1, 0x42, 0x5e,
+	0x32, 0x8f, 0x41, 0x7d, 0x0d, 0xd4, 0x84, 0xae, 0x11, 0x0a, 0x0d, 0xad, 0xa3, 0x75, 0x6b, 0xee,
+	0xb2, 0x00, 0xf6, 0x42, 0xfd, 0x09, 0xb8, 0x2d, 0x37, 0x69, 0x41, 0x36, 0xca, 0x1d, 0xad, 0x5b,
+	0xef, 0x37, 0x6d, 0x51, 0xc7, 0x56, 0x75, 0xec, 0x67, 0x78, 0xea, 0xd6, 0x83, 0xcb, 0xac, 0xd6,
+	0x47, 0x0d, 0x18, 0x3b, 0x04, 0x53, 0x88, 0x69, 0x4e, 0x39, 0xf4, 0x0a, 0xb1, 0xf1, 0x2e, 0x44,
+	0xd1, 0x98, 0xe9, 0xdb, 0xa0, 0x3a, 0xe6, 0x2b, 0x5e, 0xaf, 0xde, 0x6f, 0xd9, 0x8b, 0x16, 0xd9,
+	0x82, 0x3b, 0xac, 0x9c, 0xcc, 0xcc, 0x92, 0x2b, 0xf9, 0xfa, 0x53, 0xd0, 0x08, 0x54, 0xd6, 0x7f,
+	0x90, 0xb4, 0x12, 0xcc, 0x49, 0x28, 0x54, 0xad, 0x8a, 0xbb, 0xcf, 0x6b, 0xa3, 0x7f, 0x76, 0xe1,
+	0x0d, 0xb8, 0xf3, 0x5b, 0x55, 0x6a, 0x94, 0x3b, 0x4b, 0xdd, 0x7a, 0x7f, 0xf3, 0x3a, 0xe5, 0x37,
+	0xdd, 0x5b, 0xde, 0xa5, 0x31, 0x2f, 0x8a, 0x5a, 0x21, 0xa8, 0x4a, 0x63, 0x1e, 0x80, 0x46, 0x06,
+	0x27, 0x88, 0x22, 0x82, 0x47, 0x38, 0x4f, 0x7c, 0x98, 0x71, 0x2d, 0x15, 0x77, 0x45, 0xc1, 0xcf,
+	0x39, 0x3a, 0x47, 0x94, 0x56, 0x96, 0xe7, 0x89, 0x22, 0xe3, 0x60, 0xf9, 0xdd, 0xb1, 0x59, 0xfa,
+	0x74, 0x6c, 0x96, 0xac, 0x1e, 0xa8, 0xee, 0x7b, 0x99, 0x97, 0xd0, 0xe2, 0xb0, 0x17, 0xc7, 0xe4,
+	0x2d, 0x0c, 0x47, 0x42, 0x34, 0x35, 0xb4, 0xce, 0x52, 0xb7, 0xe6, 0xae, 0x48, 0x58, 0x58, 0x44,
+	0xad, 0x0f, 0x65, 0xd0, 0x14, 0xeb, 0x83, 0x34, 0xf4, 0x18, 0xdc, 0xcf, 0x48, 0x4a, 0xa8, 0x17,
+	0xeb, 0x4d, 0x70, 0x8b, 0x21, 0x16, 0x43, 0xe9, 0x94, 0x08, 0xf4, 0x0e, 0xa8, 0x87, 0x90, 0x06,
+	0x19, 0x4a, 0x19, 0x22, 0x98, 0x0b, 0xaa, 0xb9, 0x57, 0x21, 0x7d, 0x17, 0xdc, 0xa5, 0xb9, 0x7f,
+	0x04, 0x03, 0x36, 0xba, 0x74, 0x7b, 0xa9, 0xe0, 0x0d, 0xd7, 0x2f, 0x66, 0xa6, 0x31, 0xf5, 0x92,
+	0x78, 0x60, 0x2d, 0x50, 0x2c, 0xb7, 0x21, 0xb1, 0x1d, 0xf5, 0x24, 0x2f, 0x40, 0x93, 0xe6, 0x3e,
+	0x65, 0x88, 0xe5, 0x0c, 0x5e, 0x49, 0x56, 0xe1, 0xc9, 0xcc, 0x8b, 0x99, 0xb9, 0xf6, 0x2b, 0xd9,
+	0x02, 0xcb, 0x72, 0xf5, 0x4b, 0x58, 0xa5, 0x1c, 0x6c, 0x14, 0x56, 0x7d, 0xfd, 0xb2, 0xd5, 0x92,
+	0x8d, 0x16, 0x91, 0x89, 0x2d, 0xfb, 0xb2, 0x78, 0x52, 0x06, 0x31, 0x33, 0x34, 0xeb, 0x73, 0x19,
+	0x34, 0x0e, 0x44, 0x97, 0xfe, 0xb7, 0x1d, 0x8f, 0x41, 0x25, 0x8d, 0x3d, 0xcc, 0x1d, 0xa8, 0xf7,
+	0xd7, 0x6d, 0x59, 0x58, 0x0d, 0x01, 0x55, 0x7c, 0x3f, 0xf6, 0xb0, 0xfc, 0x3b, 0x9c, 0xaf, 0x1f,
+	0x81, 0x55, 0xc9, 0x51, 0x2f, 0x28, 0x7b, 0xa1, 0x72, 0x73, 0x2f, 0x0c, 0x3b, 0x17, 0x33, 0x73,
+	0x5d, 0x78, 0x72, 0xed, 0x61, 0xcb, 0xbd, 0xa7, 0xf0, 0x2b, 0xe3, 0x61, 0xb0, 0xa9, 0x3e, 0xd0,
+	0x8f, 0x63, 0x53, 0xfb, 0x9b, 0x3b, 0x43, 0xf7, 0xe4, 0xac, 0xad, 0x9d, 0x9e, 0xb5, 0xb5, 0xef,
+	0x67, 0x6d, 0xed, 0xfd, 0x79, 0xbb, 0x74, 0x7a, 0xde, 0x2e, 0x7d, 0x3b, 0x6f, 0x97, 0x5e, 0x6f,
+	0x47, 0x88, 0x8d, 0x73, 0xdf, 0x0e, 0x48, 0x22, 0x27, 0x99, 0x83, 0xfc, 0x60, 0x2b, 0x22, 0xce,
+	0x64, 0xdb, 0x49, 0x48, 0x98, 0xc7, 0x90, 0x8a, 0x31, 0xfa, 0xb0, 0xbf, 0x25, 0x27, 0x29, 0x9b,
+	0xa6, 0x90, 0xfa, 0x55, 0x7e, 0x8d, 0x47, 0x3f, 0x03, 0x00, 0x00, 0xff, 0xff, 0x1a, 0x80, 0x51,
+	0x2a, 0x69, 0x05, 0x00, 0x00,
 }
 
 func (this *UpgradeProposal) Equal(that interface{}) bool {
@@ -611,6 +618,71 @@ func (m *ClientConsensusStates) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Height) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Height) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Height) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.RevisionHeight != 0 {
+		i = encodeVarintClient(dAtA, i, uint64(m.RevisionHeight))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.RevisionNumber != 0 {
+		i = encodeVarintClient(dAtA, i, uint64(m.RevisionNumber))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Params) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Params) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.AllowedClients) > 0 {
+		for iNdEx := len(m.AllowedClients) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.AllowedClients[iNdEx])
+			copy(dAtA[i:], m.AllowedClients[iNdEx])
+			i = encodeVarintClient(dAtA, i, uint64(len(m.AllowedClients[iNdEx])))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ClientUpdateProposal) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -721,71 +793,6 @@ func (m *UpgradeProposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *Height) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Height) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Height) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.RevisionHeight != 0 {
-		i = encodeVarintClient(dAtA, i, uint64(m.RevisionHeight))
-		i--
-		dAtA[i] = 0x10
-	}
-	if m.RevisionNumber != 0 {
-		i = encodeVarintClient(dAtA, i, uint64(m.RevisionNumber))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *Params) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Params) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.AllowedClients) > 0 {
-		for iNdEx := len(m.AllowedClients) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.AllowedClients[iNdEx])
-			copy(dAtA[i:], m.AllowedClients[iNdEx])
-			i = encodeVarintClient(dAtA, i, uint64(len(m.AllowedClients[iNdEx])))
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintClient(dAtA []byte, offset int, v uint64) int {
 	offset -= sovClient(v)
 	base := offset
@@ -848,6 +855,36 @@ func (m *ClientConsensusStates) Size() (n int) {
 	return n
 }
 
+func (m *Height) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.RevisionNumber != 0 {
+		n += 1 + sovClient(uint64(m.RevisionNumber))
+	}
+	if m.RevisionHeight != 0 {
+		n += 1 + sovClient(uint64(m.RevisionHeight))
+	}
+	return n
+}
+
+func (m *Params) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.AllowedClients) > 0 {
+		for _, s := range m.AllowedClients {
+			l = len(s)
+			n += 1 + l + sovClient(uint64(l))
+		}
+	}
+	return n
+}
+
 func (m *ClientUpdateProposal) Size() (n int) {
 	if m == nil {
 		return 0
@@ -892,36 +929,6 @@ func (m *UpgradeProposal) Size() (n int) {
 	if m.UpgradedClientState != nil {
 		l = m.UpgradedClientState.Size()
 		n += 1 + l + sovClient(uint64(l))
-	}
-	return n
-}
-
-func (m *Height) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.RevisionNumber != 0 {
-		n += 1 + sovClient(uint64(m.RevisionNumber))
-	}
-	if m.RevisionHeight != 0 {
-		n += 1 + sovClient(uint64(m.RevisionHeight))
-	}
-	return n
-}
-
-func (m *Params) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.AllowedClients) > 0 {
-		for _, s := range m.AllowedClients {
-			l = len(s)
-			n += 1 + l + sovClient(uint64(l))
-		}
 	}
 	return n
 }
@@ -1285,6 +1292,176 @@ func (m *ClientConsensusStates) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *Height) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowClient
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Height: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Height: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RevisionNumber", wireType)
+			}
+			m.RevisionNumber = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClient
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.RevisionNumber |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RevisionHeight", wireType)
+			}
+			m.RevisionHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClient
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.RevisionHeight |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipClient(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthClient
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Params) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowClient
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Params: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AllowedClients", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowClient
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthClient
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthClient
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AllowedClients = append(m.AllowedClients, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipClient(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthClient
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *ClientUpdateProposal) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1624,176 +1801,6 @@ func (m *UpgradeProposal) Unmarshal(dAtA []byte) error {
 			if err := m.UpgradedClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipClient(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthClient
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Height) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowClient
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Height: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Height: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RevisionNumber", wireType)
-			}
-			m.RevisionNumber = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowClient
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.RevisionNumber |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RevisionHeight", wireType)
-			}
-			m.RevisionHeight = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowClient
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.RevisionHeight |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipClient(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthClient
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Params) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowClient
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Params: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AllowedClients", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowClient
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthClient
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthClient
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.AllowedClients = append(m.AllowedClients, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

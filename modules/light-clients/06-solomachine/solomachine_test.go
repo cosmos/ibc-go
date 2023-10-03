@@ -4,31 +4,30 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	storetypes "cosmossdk.io/store/types"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	"github.com/cosmos/ibc-go/v6/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-var (
-	channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
-	clientIDSolomachine  = "06-solomachine-0"
-)
+var channelIDSolomachine = "channel-on-solomachine" // channelID generated on solo machine side
 
 type SoloMachineTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	solomachine      *ibctesting.Solomachine // singlesig public key
 	solomachineMulti *ibctesting.Solomachine // multisig public key
@@ -38,7 +37,7 @@ type SoloMachineTestSuite struct {
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 
-	store sdk.KVStore
+	store storetypes.KVStore
 }
 
 func (suite *SoloMachineTestSuite) SetupTest() {
@@ -53,7 +52,7 @@ func (suite *SoloMachineTestSuite) SetupTest() {
 }
 
 func TestSoloMachineTestSuite(t *testing.T) {
-	suite.Run(t, new(SoloMachineTestSuite))
+	testifysuite.Run(t, new(SoloMachineTestSuite))
 }
 
 func (suite *SoloMachineTestSuite) SetupSolomachine() string {
@@ -123,7 +122,7 @@ func (suite *SoloMachineTestSuite) TestTimeout() {
 	// simulate solomachine time increment
 	suite.solomachine.Time++
 
-	suite.solomachine.UpdateClient(suite.chainA, clientIDSolomachine)
+	suite.solomachine.UpdateClient(suite.chainA, ibctesting.DefaultSolomachineClientID)
 
 	suite.solomachine.TimeoutPacket(suite.chainA, packet)
 
@@ -160,11 +159,11 @@ func TestUnpackInterfaces_Header(t *testing.T) {
 	cryptocodec.RegisterInterfaces(registry)
 
 	pk := secp256k1.GenPrivKey().PubKey()
-	any, err := codectypes.NewAnyWithValue(pk)
+	protoAny, err := codectypes.NewAnyWithValue(pk)
 	require.NoError(t, err)
 
 	header := solomachine.Header{
-		NewPublicKey: any,
+		NewPublicKey: protoAny,
 	}
 	bz, err := header.Marshal()
 	require.NoError(t, err)
@@ -184,11 +183,11 @@ func TestUnpackInterfaces_HeaderData(t *testing.T) {
 	cryptocodec.RegisterInterfaces(registry)
 
 	pk := secp256k1.GenPrivKey().PubKey()
-	any, err := codectypes.NewAnyWithValue(pk)
+	protoAny, err := codectypes.NewAnyWithValue(pk)
 	require.NoError(t, err)
 
 	hd := solomachine.HeaderData{
-		NewPubKey: any,
+		NewPubKey: protoAny,
 	}
 	bz, err := hd.Marshal()
 	require.NoError(t, err)

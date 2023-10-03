@@ -1,10 +1,10 @@
 package keeper_test
 
 import (
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
@@ -25,8 +25,8 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 		{
 			"port is already bound for owner but capability is claimed by another module",
 			func() {
-				cap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
-				err := suite.chainA.GetSimApp().TransferKeeper.ClaimCapability(suite.chainA.GetContext(), cap, host.PortPath(TestPortID))
+				capability := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
+				err := suite.chainA.GetSimApp().TransferKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(TestPortID))
 				suite.Require().NoError(err)
 			},
 			false,

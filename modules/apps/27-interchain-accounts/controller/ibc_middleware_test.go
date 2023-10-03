@@ -4,19 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller"
-	controllerkeeper "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	fee "github.com/cosmos/ibc-go/v6/modules/apps/29-fee"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller"
+	controllerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 var (
@@ -37,7 +38,7 @@ var (
 )
 
 type InterchainAccountsTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -48,7 +49,7 @@ type InterchainAccountsTestSuite struct {
 }
 
 func TestICATestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }
 
 func (suite *InterchainAccountsTestSuite) SetupTest() {
@@ -107,11 +108,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 		return err
 	}
 
-	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
-		return err
-	}
-
-	return nil
+	return path.EndpointB.ChanOpenConfirm()
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
@@ -209,7 +206,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			suite.Require().NoError(err)
 
 			portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID))
+			suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // checking this error isn't needed for the test
 
 			path.EndpointA.ChannelConfig.PortID = portID
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
@@ -276,7 +273,9 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	err = RegisterInterchainAccount(path.EndpointB, TestOwnerAddress)
 	suite.Require().NoError(err)
 
-	path.EndpointA.UpdateClient()
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
 	channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 	proofInit, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
@@ -420,7 +419,8 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 	// commit state changes so proof can be created
 	suite.chainB.NextBlock()
 
-	path.EndpointA.UpdateClient()
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
 
 	// query proof from ChainB
 	channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -489,6 +489,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			isNilApp = false
@@ -619,6 +621,8 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 			isNilApp = false
@@ -712,6 +716,8 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 			isNilApp = false
@@ -775,6 +781,8 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 
@@ -836,7 +844,7 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 	cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 	suite.Require().True(ok)
 
-	controllerStack := cbs.(fee.IBCMiddleware)
+	controllerStack := cbs.(porttypes.ICS4Wrapper)
 	appVersion, found := controllerStack.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, appVersion)
@@ -884,9 +892,9 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 	suite.Require().NoError(err)
 
 	// set the channel state to closed
-	err = path.EndpointA.SetChannelClosed()
+	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
-	err = path.EndpointB.SetChannelClosed()
+	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
 	suite.Require().NoError(err)
 
 	// reset endpoint channel ids
@@ -917,4 +925,27 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 
 	err = path.EndpointB.ChanOpenConfirm()
 	suite.Require().NoError(err)
+}
+
+func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
+	path := NewICAPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupConnections(path)
+	err := SetupICAPath(path, TestOwnerAddress)
+	suite.Require().NoError(err)
+
+	expPacketData := icatypes.InterchainAccountPacketData{
+		Type: icatypes.EXECUTE_TX,
+		Data: []byte("data"),
+		Memo: "",
+	}
+
+	packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(expPacketData.GetBytes())
+	suite.Require().NoError(err)
+	suite.Require().Equal(expPacketData, packetData)
+
+	// test invalid packet data
+	invalidPacketData := []byte("invalid packet data")
+	packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(invalidPacketData)
+	suite.Require().Error(err)
+	suite.Require().Nil(packetData)
 }

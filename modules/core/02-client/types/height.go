@@ -7,10 +7,12 @@ import (
 	"strconv"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var _ exported.Height = (*Height)(nil)
@@ -54,7 +56,7 @@ func (h Height) GetRevisionHeight() uint64 {
 func (h Height) Compare(other exported.Height) int64 {
 	height, ok := other.(Height)
 	if !ok {
-		panic(fmt.Sprintf("cannot compare against invalid height type: %T. expected height type: %T", other, h))
+		panic(fmt.Errorf("cannot compare against invalid height type: %T. expected height type: %T", other, h))
 	}
 	var a, b big.Int
 	if h.RevisionNumber != height.RevisionNumber {
@@ -135,15 +137,15 @@ func MustParseHeight(heightStr string) Height {
 func ParseHeight(heightStr string) (Height, error) {
 	splitStr := strings.Split(heightStr, "-")
 	if len(splitStr) != 2 {
-		return Height{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "expected height string format: {revision}-{height}. Got: %s", heightStr)
+		return Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "expected height string format: {revision}-{height}. Got: %s", heightStr)
 	}
 	revisionNumber, err := strconv.ParseUint(splitStr[0], 10, 64)
 	if err != nil {
-		return Height{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "invalid revision number. parse err: %s", err)
+		return Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "invalid revision number. parse err: %s", err)
 	}
 	revisionHeight, err := strconv.ParseUint(splitStr[1], 10, 64)
 	if err != nil {
-		return Height{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "invalid revision height. parse err: %s", err)
+		return Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "invalid revision height. parse err: %s", err)
 	}
 	return NewHeight(revisionNumber, revisionHeight), nil
 }
@@ -152,8 +154,8 @@ func ParseHeight(heightStr string) (Height, error) {
 // in the chainID with the given revision number.
 func SetRevisionNumber(chainID string, revision uint64) (string, error) {
 	if !IsRevisionFormat(chainID) {
-		return "", sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidChainID, "chainID is not in revision format: %s", chainID,
+		return "", errorsmod.Wrapf(
+			ibcerrors.ErrInvalidChainID, "chainID is not in revision format: %s", chainID,
 		)
 	}
 
@@ -176,7 +178,7 @@ func ParseChainID(chainID string) uint64 {
 	revision, err := strconv.ParseUint(splitStr[len(splitStr)-1], 10, 64)
 	// sanity check: error should always be nil since regex only allows numbers in last element
 	if err != nil {
-		panic(fmt.Sprintf("regex allowed non-number value as last split element for chainID: %s", chainID))
+		panic(fmt.Errorf("regex allowed non-number value as last split element for chainID: %s", chainID))
 	}
 	return revision
 }

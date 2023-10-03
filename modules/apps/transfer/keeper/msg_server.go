@@ -3,19 +3,21 @@ package keeper
 import (
 	"context"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-var _ types.MsgServer = Keeper{}
+var _ types.MsgServer = (*Keeper)(nil)
 
 // Transfer defines an rpc handler method for MsgTransfer.
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.GetSendEnabled(ctx) {
+	if !k.GetParams(ctx).SendEnabled {
 		return nil, types.ErrSendDisabled
 	}
 
@@ -25,11 +27,11 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 
 	if !k.bankKeeper.IsSendEnabledCoin(ctx, msg.Token) {
-		return nil, sdkerrors.Wrapf(types.ErrSendDisabled, "%s transfers are currently disabled", msg.Token.Denom)
+		return nil, errorsmod.Wrapf(types.ErrSendDisabled, "%s transfers are currently disabled", msg.Token.Denom)
 	}
 
 	if k.bankKeeper.BlockedAddr(sender) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
 	sequence, err := k.sendTransfer(
@@ -57,4 +59,16 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	})
 
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
+}
+
+// UpdateParams defines an rpc handler method for MsgUpdateParams. Updates the ibc-transfer module's parameters.
+func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.SetParams(ctx, msg.Params)
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }

@@ -1,10 +1,10 @@
 package types
 
 import (
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // DefaultGenesis creates and returns the interchain accounts GenesisState
@@ -29,11 +29,7 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	if err := gs.HostGenesisState.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+	return gs.HostGenesisState.Validate()
 }
 
 // DefaultControllerGenesis creates and returns the default interchain accounts ControllerGenesisState
@@ -79,10 +75,6 @@ func (gs ControllerGenesisState) Validate() error {
 		if err := host.PortIdentifierValidator(port); err != nil {
 			return err
 		}
-	}
-
-	if err := gs.Params.Validate(); err != nil {
-		return err
 	}
 
 	return nil
@@ -132,9 +124,5 @@ func (gs HostGenesisState) Validate() error {
 		return err
 	}
 
-	if err := gs.Params.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+	return gs.Params.Validate()
 }

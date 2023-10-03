@@ -1,11 +1,12 @@
 # ADR 005: UpdateClient Events - ClientState Consensus Heights
 
 ## Changelog
-* 25/04/2022: initial draft
+
+- 25/04/2022: initial draft
 
 ## Status
 
-Accepted 
+Accepted
 
 ## Context
 
@@ -23,7 +24,7 @@ For example, a batched client update message serialized as a Protobuf `Any` type
 
 ```protobuf
 message BatchedHeaders {
-    repeated Header headers = 1;
+  repeated Header headers = 1;
 }
 ```
 
@@ -34,10 +35,10 @@ To complement this flexibility, the `UpdateClient` handler will now support the 
 // The update may be done by a single header, a batch of headers, misbehaviour, or any type which when verified produces
 // a change to state of the IBC client
 type ClientMessage interface {
-	proto.Message
+  proto.Message
 
-	ClientType() string
-	ValidateBasic() error
+  ClientType() string
+  ValidateBasic() error
 }
 ```
 
@@ -79,10 +80,13 @@ UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
 ## References
 
 Discussions:
+
 - [#1208](https://github.com/cosmos/ibc-go/pull/1208#discussion_r839691927)
 
 Issues:
+
 - [#594](https://github.com/cosmos/ibc-go/issues/594)
 
 PRs:
+
 - [#1285](https://github.com/cosmos/ibc-go/pull/1285)

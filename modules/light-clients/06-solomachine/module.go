@@ -3,15 +3,16 @@ package solomachine
 import (
 	"encoding/json"
 
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
 )
 
-var _ module.AppModuleBasic = AppModuleBasic{}
+var _ module.AppModuleBasic = (*AppModuleBasic)(nil)
 
 // AppModuleBasic defines the basic application module used by the solo machine light client.
 // Only the RegisterInterfaces function needs to be implemented. All other function perform

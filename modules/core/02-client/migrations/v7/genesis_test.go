@@ -6,11 +6,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/migrations/v7"
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
+	v7 "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
@@ -29,7 +30,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	}
 
 	// create multiple legacy solo machine clients
-	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-0", "testing", 1)
+	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1)
 	solomachineMulti := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4)
 
 	clientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
@@ -65,7 +66,11 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 
 		// set in store for ease of determining expected genesis
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
-		bz, err := suite.chainA.App.AppCodec().MarshalInterface(legacyClientState)
+
+		cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		v7.RegisterInterfaces(cdc.InterfaceRegistry())
+
+		bz, err := cdc.MarshalInterface(legacyClientState)
 		suite.Require().NoError(err)
 		clientStore.Set(host.ClientStateKey(), bz)
 
@@ -74,7 +79,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 		suite.Require().NotNil(protoAny)
 
 		// obtain marshalled bytes to set in client store
-		bz, err = suite.chainA.App.AppCodec().MarshalInterface(legacyClientState.ConsensusState)
+		bz, err = cdc.MarshalInterface(legacyClientState.ConsensusState)
 		suite.Require().NoError(err)
 
 		var consensusStates []types.ConsensusStateWithHeight
@@ -101,7 +106,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// migrate store get expected genesis
 	// store migration and genesis migration should produce identical results
 	// NOTE: tendermint clients are not pruned in genesis so the test should not have expired tendermint clients
-	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(host.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 	expectedClientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 

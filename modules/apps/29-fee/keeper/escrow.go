@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // escrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
@@ -21,7 +22,7 @@ func (k Keeper) escrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId,
 
 	refundAcc := k.authKeeper.GetAccount(ctx, refundAddr)
 	if refundAcc == nil {
-		return sdkerrors.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", packetFee.RefundAddress)
+		return errorsmod.Wrapf(types.ErrRefundAccNotFound, "account with address: %s not found", packetFee.RefundAddress)
 	}
 
 	coins := packetFee.Fee.Total()
@@ -39,7 +40,7 @@ func (k Keeper) escrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId,
 	packetFees := types.NewPacketFees(fees)
 	k.SetFeesInEscrow(ctx, packetID, packetFees)
 
-	EmitIncentivizedPacketEvent(ctx, packetID, packetFees)
+	emitIncentivizedPacketEvent(ctx, packetID, packetFees)
 
 	return nil
 }
@@ -68,7 +69,7 @@ func (k Keeper) DistributePacketFeesOnAcknowledgement(ctx sdk.Context, forwardRe
 		// check if refundAcc address works
 		refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 		if err != nil {
-			panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
+			panic(fmt.Errorf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
 		}
 
 		k.distributePacketFeeOnAcknowledgement(cacheCtx, refundAddr, forwardAddr, reverseRelayer, packetFee)
@@ -121,7 +122,7 @@ func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sd
 		// check if refundAcc address works
 		refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 		if err != nil {
-			panic(fmt.Sprintf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
+			panic(fmt.Errorf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
 		}
 
 		k.distributePacketFeeOnTimeout(cacheCtx, refundAddr, timeoutRelayer, packetFee)
@@ -167,6 +168,10 @@ func (k Keeper) distributeFee(ctx sdk.Context, receiver, refundAccAddress sdk.Ac
 			k.Logger(ctx).Error("error refunding fee to the original sender", "refund address", refundAccAddress, "fee", fee)
 			return // if sending to the refund address fails, no-op
 		}
+
+		emitDistributeFeeEvent(ctx, refundAccAddress.String(), fee)
+	} else {
+		emitDistributeFeeEvent(ctx, receiver.String(), fee)
 	}
 
 	// write the cache

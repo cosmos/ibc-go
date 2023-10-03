@@ -4,20 +4,21 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/simulation"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	"github.com/cosmos/cosmos-sdk/types/kv"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/simulation"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup(t, false)
 	dec := simulation.NewDecodeStore(*app.IBCKeeper)
 
 	clientID := "clientidone"

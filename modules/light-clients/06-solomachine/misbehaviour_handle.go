@@ -1,17 +1,18 @@
 package solomachine
 
 import (
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false
-func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore, clientMsg exported.ClientMessage) bool {
+func (ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, clientMsg exported.ClientMessage) bool {
 	if _, ok := clientMsg.(*Misbehaviour); ok {
 		return true
 	}
@@ -19,17 +20,17 @@ func (cs ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _
 	return false
 }
 
-func (cs ClientState) verifyMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, misbehaviour *Misbehaviour) error {
+func (cs ClientState) verifyMisbehaviour(cdc codec.BinaryCodec, misbehaviour *Misbehaviour) error {
 	// NOTE: a check that the misbehaviour message data are not equal is done by
 	// misbehaviour.ValidateBasic which is called by the 02-client keeper.
 	// verify first signature
 	if err := cs.verifySignatureAndData(cdc, misbehaviour, misbehaviour.SignatureOne); err != nil {
-		return sdkerrors.Wrap(err, "failed to verify signature one")
+		return errorsmod.Wrap(err, "failed to verify signature one")
 	}
 
 	// verify second signature
 	if err := cs.verifySignatureAndData(cdc, misbehaviour, misbehaviour.SignatureTwo); err != nil {
-		return sdkerrors.Wrap(err, "failed to verify signature two")
+		return errorsmod.Wrap(err, "failed to verify signature two")
 	}
 
 	return nil
@@ -67,9 +68,5 @@ func (cs ClientState) verifySignatureAndData(cdc codec.BinaryCodec, misbehaviour
 		return err
 	}
 
-	if err := VerifySignature(publicKey, data, sigData); err != nil {
-		return err
-	}
-
-	return nil
+	return VerifySignature(publicKey, data, sigData)
 }

@@ -15,11 +15,11 @@ closes: #XXXX
 
 ### Commit Message / Changelog Entry
 
-```bash
+```text
 type: commit message
 ```
 
-see the [guidelines](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md#commit-messages) for commit messages. (view raw markdown for examples)
+see the [guidelines](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) for commit messages. (view raw markdown for examples)
 
 
 <!--
@@ -41,12 +41,12 @@ Before we can merge this PR, please make sure that all the following items have 
 checked off. If any of the checklist items are not applicable, please leave them but
 write a little note why.
 
-- [ ] Targeted PR against correct branch (see [CONTRIBUTING.md](https://github.com/cosmos/ibc-go/blob/master/CONTRIBUTING.md#pr-targeting)).
+- [ ] Targeted PR against correct branch (see [CONTRIBUTING.md](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#pull-request-targeting)).
 - [ ] Linked to Github issue with discussion and accepted design OR link to spec that describes this work.
-- [ ] Code follows the [module structure standards](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/building-modules/10-structure.md).
-- [ ] Wrote unit and integration [tests](https://github.com/cosmos/ibc-go/blob/master/CONTRIBUTING.md#testing).
+- [ ] Code follows the [module structure standards](https://github.com/cosmos/cosmos-sdk/blob/main/docs/build/building-modules/11-structure.md) and [Go style guide](../docs/dev/go-style-guide.md).
+- [ ] Wrote unit and integration [tests](https://github.com/cosmos/ibc-go/blob/main/testing/README.md#ibc-testing-package).
 - [ ] Updated relevant documentation (`docs/`) or specification (`x/<module>/spec/`).
 - [ ] Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code).
-- [ ] Provide a [commit message](https://github.com/cosmos/ibc-go/blob/main/CONTRIBUTING.md#commit-messages) to be used for the changelog entry in the PR description for review.
+- [ ] Provide a [commit message](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) to be used for the changelog entry in the PR description for review.
 - [ ] Re-reviewed `Files changed` in the Github PR explorer.
 - [ ] Review `Codecov Report` in the comment section below once CI passes.

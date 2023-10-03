@@ -1,10 +1,8 @@
 package keeper_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
@@ -44,6 +42,8 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 
 			tc.malleate()
 
-			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(sdk.WrapSDKContext(suite.chainA.GetContext()), req)
+			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(suite.chainA.GetContext(), req)
 
 			if tc.expPass {
 				expAddress, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 }
 
 func (suite *KeeperTestSuite) TestQueryParams() {
-	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+	ctx := suite.chainA.GetContext()
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.GetSimApp().ICAControllerKeeper.Params(ctx, &types.QueryParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)

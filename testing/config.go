@@ -3,11 +3,11 @@ package ibctesting
 import (
 	"time"
 
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v6/testing/mock"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 type ClientConfig interface {
@@ -30,7 +30,7 @@ func NewTendermintConfig() *TendermintConfig {
 	}
 }
 
-func (tmcfg *TendermintConfig) GetClientType() string {
+func (*TendermintConfig) GetClientType() string {
 	return exported.Tendermint
 }
 

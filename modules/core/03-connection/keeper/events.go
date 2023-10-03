@@ -3,18 +3,17 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 )
 
-// EmitConnectionOpenInitEvent emits a connection open init event
-func EmitConnectionOpenInitEvent(ctx sdk.Context, connectionID string, clientID string, counterparty types.Counterparty) {
+// emitConnectionOpenInitEvent emits a connection open init event
+func emitConnectionOpenInitEvent(ctx sdk.Context, connectionID string, clientID string, counterparty types.Counterparty) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeConnectionOpenInit,
 			sdk.NewAttribute(types.AttributeKeyConnectionID, connectionID),
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, counterparty.ClientId),
-			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, counterparty.ConnectionId),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -23,8 +22,8 @@ func EmitConnectionOpenInitEvent(ctx sdk.Context, connectionID string, clientID 
 	})
 }
 
-// EmitConnectionOpenTryEvent emits a connection open try event
-func EmitConnectionOpenTryEvent(ctx sdk.Context, connectionID string, clientID string, counterparty types.Counterparty) {
+// emitConnectionOpenTryEvent emits a connection open try event
+func emitConnectionOpenTryEvent(ctx sdk.Context, connectionID string, clientID string, counterparty types.Counterparty) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeConnectionOpenTry,
@@ -40,8 +39,8 @@ func EmitConnectionOpenTryEvent(ctx sdk.Context, connectionID string, clientID s
 	})
 }
 
-// EmitConnectionOpenAckEvent emits a connection open acknowledge event
-func EmitConnectionOpenAckEvent(ctx sdk.Context, connectionID string, connectionEnd types.ConnectionEnd) {
+// emitConnectionOpenAckEvent emits a connection open acknowledge event
+func emitConnectionOpenAckEvent(ctx sdk.Context, connectionID string, connectionEnd types.ConnectionEnd) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeConnectionOpenAck,
@@ -57,8 +56,8 @@ func EmitConnectionOpenAckEvent(ctx sdk.Context, connectionID string, connection
 	})
 }
 
-// EmitConnectionOpenConfirmEvent emits a connection open confirm event
-func EmitConnectionOpenConfirmEvent(ctx sdk.Context, connectionID string, connectionEnd types.ConnectionEnd) {
+// emitConnectionOpenConfirmEvent emits a connection open confirm event
+func emitConnectionOpenConfirmEvent(ctx sdk.Context, connectionID string, connectionEnd types.ConnectionEnd) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeConnectionOpenConfirm,

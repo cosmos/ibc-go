@@ -13,7 +13,6 @@ SIMAPP = ./testing/simapp
 MOCKS_DIR = $(CURDIR)/tests/mocks
 HTTPS_GIT := https://github.com/cosmos/ibc-go.git
 DOCKER := $(shell which docker)
-DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf:1.9.0
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
 export GO111MODULE = on
@@ -139,43 +138,30 @@ go.sum: go.mod
 ###                              Documentation                              ###
 ###############################################################################
 
-update-swagger-docs: statik
-	$(BINDIR)/statik -src=docs/client/swagger-ui -dest=docs/client -f -m
-	@if [ -n "$(git status --porcelain)" ]; then \
-        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-        exit 1;\
-    else \
-        echo "\033[92mSwagger docs are in sync\033[0m";\
-    fi
-.PHONY: update-swagger-docs
-
 godocs:
 	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/cosmos/cosmos-sdk/types"
 	godoc -http=:6060
 
-# This builds a docs site for each branch/tag in `./docs/versions`
-# and copies each site to a version prefixed path. The last entry inside
-# the `versions` file will be the default root index.html.
 build-docs:
-	@cd docs && \
-	while read -r branch path_prefix; do \
-		echo "building branch $${branch}" ; \
-		(git clean -fdx && git reset --hard && git checkout $${branch} && npm install && VUEPRESS_BASE="/$${path_prefix}/" npm run build) ; \
-		mkdir -p ~/output/$${path_prefix} ; \
-		cp -r .vuepress/dist/* ~/output/$${path_prefix}/ ; \
-		cp ~/output/$${path_prefix}/index.html ~/output ; \
-		cp ~/output/$${path_prefix}/404.html ~/output ; \
-	done < versions ;
+	@cd docs && npm ci && npm run build
 
-view-docs: 
-		@cd docs && \
-    npm install && npm run serve
-
+serve-docs:
+	@cd docs && npm run serve
 
 changelog:
 	docker run --rm -v "$$(pwd)"/.git:/app/ -v "$$(pwd)/cliff.toml":/app/cliff.toml orhunp/git-cliff:latest --unreleased --tag $(tag)
 
-.PHONY: build-docs
+# If the DOCS_VERSION variable is not set, display an error message and exit
+ifndef DOCS_VERSION
+tag-docs-version:
+	@echo "Error: DOCS_VERSION is not set. Use 'make tag-docs-version DOCS_VERSION=<version>' to set it. For example: 'make tag-docs-version DOCS_VERSION=v8.0.x'"
+	@exit 1
+else
+tag-docs-version:
+	@cd docs && npm run docusaurus docs:version $(DOCS_VERSION)
+endif
+
+.PHONY: build-docs serve-docs tag-docs-version
 
 ###############################################################################
 ###                           Tests & Simulation                            ###
@@ -190,7 +176,7 @@ TEST_TARGETS := test-unit test-unit-amino test-unit-proto test-ledger-mock test-
 # Test runs-specific rules. To add a new test target, just add
 # a new rule, customise ARGS or TEST_PACKAGES ad libitum, and
 # append the new rule to the TEST_TARGETS list.
-test-unit: ARGS=-tags='cgo ledger test_ledger_mock'
+test-unit: ARGS=-tags='cgo ledger test_ledger_mock test_e2e'
 test-unit-amino: ARGS=-tags='ledger test_ledger_mock test_amino'
 test-ledger: ARGS=-tags='cgo ledger'
 test-ledger-mock: ARGS=-tags='ledger test_ledger_mock'
@@ -206,12 +192,9 @@ check-test-unit-amino: ARGS=-tags='ledger test_ledger_mock test_amino'
 $(CHECK_TEST_TARGETS): EXTRA_ARGS=-run=none
 $(CHECK_TEST_TARGETS): run-tests
 
-run-tests:
-ifneq (,$(shell which tparse 2>/dev/null))
-	go test -mod=readonly -json $(ARGS) $(EXTRA_ARGS) $(TEST_PACKAGES) | tparse
-else
-	go test -mod=readonly $(ARGS)  $(EXTRA_ARGS) $(TEST_PACKAGES)
-endif
+ARGS += -tags "$(test_tags)"
+run-tests: 
+	@ARGS="$(ARGS)" TEST_PACKAGES=$(TEST_PACKAGES) EXTRA_ARGS="$(EXTRA_ARGS)" python3 ./scripts/go-test-all.py
 
 .PHONY: run-tests test test-all $(TEST_TARGETS)
 
@@ -291,53 +274,64 @@ benchmark:
 ###                                Linting                                  ###
 ###############################################################################
 
+setup-pre-commit:
+	@cp .git/hooks/pre-commit .git/hooks/pre-commit.bak 2>/dev/null || true
+	@echo "Installing pre-commit hook..."
+	@ln -sf ../../scripts/hooks/pre-commit.sh .git/hooks/pre-commit
+
 lint:
-	golangci-lint run --out-format=tab
+	@echo "--> Running linter"
+	@./scripts/go-lint-all.sh --timeout=15m
 
 lint-fix:
-	golangci-lint run --fix --out-format=tab --issues-exit-code=0
-.PHONY: lint lint-fix
+	@echo "--> Running linter"
+	@./scripts/go-lint-all.sh --fix
 
 format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w
 .PHONY: format
 
+docs-lint:
+	markdownlint-cli2 "**.md"
+
+docs-lint-fix:
+	markdownlint-cli2-fix "**.md"
+
+docs-link-check:
+	find . -name 'node_modules' -prune -o -name '*.md' -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
+
+.PHONY: lint lint-fix docs-lint docs-lint-fix docs-link-check
+
 ###############################################################################
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=v0.7
-protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
-containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
-containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
-containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
+protoVer=0.14.0
+protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
+protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
 proto-all: proto-format proto-lint proto-gen
 
-proto-format:
-	@echo "Formatting Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		find ./ -name "*.proto" -exec clang-format -i {} \; ; fi
-
-proto-lint:
-	@$(DOCKER_BUF) lint --error-format=json
-
 proto-gen:
 	@echo "Generating Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./scripts/protocgen.sh; fi
+	@$(protoImage) sh ./scripts/protocgen.sh
 
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./scripts/protoc-swagger-gen.sh; fi
+	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
+
+proto-format:
+	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
+
+proto-lint:
+	@$(protoImage) buf lint --error-format=json
 
 proto-check-breaking:
-	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=main
+	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
 
 proto-update-deps:
 	@echo "Updating Protobuf dependencies"
-	@cd proto && buf mod update
+	$(DOCKER) run --rm -v $(CURDIR)/proto:/workspace --workdir /workspace $(protoImageName) buf mod update
 
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps

@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
@@ -73,6 +73,7 @@ func TestValidateClientType(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 
 		err := types.ValidateClientType(tc.clientType)
 

@@ -1,18 +1,22 @@
 package solomachine
 
 import (
+	"errors"
 	"reflect"
+
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -27,7 +31,7 @@ func NewClientState(latestSequence uint64, consensusState *ConsensusState) *Clie
 }
 
 // ClientType is Solo Machine.
-func (cs ClientState) ClientType() string {
+func (ClientState) ClientType() string {
 	return exported.Solomachine
 }
 
@@ -41,7 +45,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
 func (cs ClientState) GetTimestampAtHeight(
 	_ sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
@@ -52,7 +56,7 @@ func (cs ClientState) GetTimestampAtHeight(
 // The client may be:
 // - Active: if frozen sequence is 0
 // - Frozen: otherwise solo machine is frozen
-func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) exported.Status {
+func (cs ClientState) Status(_ sdk.Context, _ storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
 	if cs.IsFrozen {
 		return exported.Frozen
 	}
@@ -63,24 +67,24 @@ func (cs ClientState) Status(_ sdk.Context, _ sdk.KVStore, _ codec.BinaryCodec) 
 // Validate performs basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if cs.Sequence == 0 {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "sequence cannot be 0")
+		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "sequence cannot be 0")
 	}
 	if cs.ConsensusState == nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be nil")
+		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be nil")
 	}
 	return cs.ConsensusState.ValidateBasic()
 }
 
 // ZeroCustomFields is not implemented for solo machine
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
-	panic("ZeroCustomFields is not implemented as the solo machine implementation does not support upgrades.")
+func (ClientState) ZeroCustomFields() exported.ClientState {
+	panic(errors.New("ZeroCustomFields is not implemented as the solo machine implementation does not support upgrades"))
 }
 
 // Initialize checks that the initial consensus state is equal to the latest consensus state of the initial client and
 // sets the client state in the provided client store.
-func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
 	if !reflect.DeepEqual(cs.ConsensusState, consState) {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "consensus state in initial client does not equal initial consensus state. expected: %s, got: %s",
+		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "consensus state in initial client does not equal initial consensus state. expected: %s, got: %s",
 			cs.ConsensusState, consState)
 	}
 
@@ -90,23 +94,23 @@ func (cs ClientState) Initialize(_ sdk.Context, cdc codec.BinaryCodec, clientSto
 }
 
 // ExportMetadata is a no-op since solomachine does not store any metadata in client store
-func (cs ClientState) ExportMetadata(_ sdk.KVStore) []exported.GenesisMetadata {
+func (ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
 	return nil
 }
 
 // VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
-func (cs ClientState) VerifyUpgradeAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ sdk.KVStore,
+func (ClientState) VerifyUpgradeAndUpdateState(
+	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore,
 	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
 ) error {
-	return sdkerrors.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
+	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the latest sequence.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyMembership(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	_ exported.Height,
 	delayTimePeriod uint64,
@@ -122,18 +126,24 @@ func (cs *ClientState) VerifyMembership(
 
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	if merklePath.Empty() {
-		return sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "path is empty")
+	if len(merklePath.GetKeyPath()) != 2 {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+	}
+
+	// in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	key, err := merklePath.GetKey(1)
+	if err != nil {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
 	}
 
 	signBytes := &SignBytes{
 		Sequence:    sequence,
 		Timestamp:   timestamp,
 		Diversifier: cs.ConsensusState.Diversifier,
-		Path:        []byte(merklePath.String()),
+		Path:        key,
 		Data:        value,
 	}
 
@@ -157,7 +167,7 @@ func (cs *ClientState) VerifyMembership(
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 func (cs *ClientState) VerifyNonMembership(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	_ exported.Height,
 	delayTimePeriod uint64,
@@ -172,14 +182,24 @@ func (cs *ClientState) VerifyNonMembership(
 
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+	}
+
+	if len(merklePath.GetKeyPath()) != 2 {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
+	}
+
+	// in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
+	key, err := merklePath.GetKey(1)
+	if err != nil {
+		return errorsmod.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
 	}
 
 	signBytes := &SignBytes{
 		Sequence:    sequence,
 		Timestamp:   timestamp,
 		Diversifier: cs.ConsensusState.Diversifier,
-		Path:        []byte(merklePath.String()),
+		Path:        key,
 		Data:        nil,
 	}
 
@@ -208,17 +228,17 @@ func produceVerificationArgs(
 	proof []byte,
 ) (cryptotypes.PubKey, signing.SignatureData, uint64, uint64, error) {
 	if proof == nil {
-		return nil, nil, 0, 0, sdkerrors.Wrap(ErrInvalidProof, "proof cannot be empty")
+		return nil, nil, 0, 0, errorsmod.Wrap(ErrInvalidProof, "proof cannot be empty")
 	}
 
 	var timestampedSigData TimestampedSignatureData
 	if err := cdc.Unmarshal(proof, &timestampedSigData); err != nil {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(err, "failed to unmarshal proof into type %T", timestampedSigData)
+		return nil, nil, 0, 0, errorsmod.Wrapf(err, "failed to unmarshal proof into type %T", timestampedSigData)
 	}
 
 	timestamp := timestampedSigData.Timestamp
 	if len(timestampedSigData.SignatureData) == 0 {
-		return nil, nil, 0, 0, sdkerrors.Wrap(ErrInvalidProof, "signature data cannot be empty")
+		return nil, nil, 0, 0, errorsmod.Wrap(ErrInvalidProof, "signature data cannot be empty")
 	}
 
 	sigData, err := UnmarshalSignatureData(cdc, timestampedSigData.SignatureData)
@@ -227,7 +247,7 @@ func produceVerificationArgs(
 	}
 
 	if cs.ConsensusState.GetTimestamp() > timestamp {
-		return nil, nil, 0, 0, sdkerrors.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
+		return nil, nil, 0, 0, errorsmod.Wrapf(ErrInvalidProof, "the consensus state timestamp is greater than the signature timestamp (%d >= %d)", cs.ConsensusState.GetTimestamp(), timestamp)
 	}
 
 	sequence := cs.GetLatestHeight().GetRevisionHeight()
@@ -240,7 +260,7 @@ func produceVerificationArgs(
 }
 
 // sets the client state to the store
-func setClientState(store sdk.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
+func setClientState(store storetypes.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
 	bz := clienttypes.MustMarshalClientState(cdc, clientState)
-	store.Set([]byte(host.KeyClientState), bz)
+	store.Set(host.ClientStateKey(), bz)
 }

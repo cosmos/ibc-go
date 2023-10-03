@@ -7,18 +7,21 @@ package ibctesting
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v6/testing/mock"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 const (
 	FirstClientID     = "07-tendermint-0"
+	SecondClientID    = "07-tendermint-1"
 	FirstChannelID    = "channel-0"
 	FirstConnectionID = "connection-0"
 
@@ -50,12 +53,12 @@ var (
 	DefaultTrustLevel = ibctm.DefaultTrustLevel
 
 	TestAccAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
-	TestCoin       = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+	TestCoin       = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 	TestCoins      = sdk.NewCoins(TestCoin)
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
 
-	ConnectionVersion = connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions())[0]
+	ConnectionVersion = connectiontypes.GetCompatibleVersions()[0]
 
 	MockAcknowledgement          = mock.MockAcknowledgement.Acknowledgement()
 	MockPacketData               = mock.MockPacketData

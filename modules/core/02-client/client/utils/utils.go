@@ -3,17 +3,19 @@ package utils
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/client"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	tmtypes "github.com/cometbft/cometbft/types"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/client"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 // QueryClientState returns a client state. If prove is true, it performs an ABCI store query
@@ -46,7 +48,7 @@ func QueryClientStateABCI(
 
 	// check if client exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrClientNotFound, clientID)
+		return nil, errorsmod.Wrap(types.ErrClientNotFound, clientID)
 	}
 
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
@@ -99,7 +101,7 @@ func QueryConsensusStateABCI(
 
 	// check if consensus state exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrConsensusStateNotFound, clientID)
+		return nil, errorsmod.Wrap(types.ErrConsensusStateNotFound, clientID)
 	}
 
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)

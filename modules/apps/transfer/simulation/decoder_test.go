@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/types/kv"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	"github.com/cosmos/cosmos-sdk/types/kv"
+
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup(t, false)
 	dec := simulation.NewDecodeStore(app.TransferKeeper)
 
 	trace := types.DenomTrace{

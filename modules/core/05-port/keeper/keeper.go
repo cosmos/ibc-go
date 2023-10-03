@@ -3,13 +3,14 @@ package keeper
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	"github.com/tendermint/tendermint/libs/log"
+	"cosmossdk.io/log"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper
@@ -27,8 +28,8 @@ func NewKeeper(sck exported.ScopedKeeper) Keeper {
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // IsBound checks a given port ID is already bounded.
@@ -47,7 +48,7 @@ func (k *Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capab
 	}
 
 	if k.IsBound(ctx, portID) {
-		panic(fmt.Sprintf("port %s is already bound", portID))
+		panic(fmt.Errorf("port %s is already bound", portID))
 	}
 
 	key, err := k.scopedKeeper.NewCapability(ctx, host.PortPath(portID))
@@ -73,10 +74,10 @@ func (k Keeper) Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, p
 
 // LookupModuleByPort will return the IBCModule along with the capability associated with a given portID
 func (k Keeper) LookupModuleByPort(ctx sdk.Context, portID string) (string, *capabilitytypes.Capability, error) {
-	modules, cap, err := k.scopedKeeper.LookupModules(ctx, host.PortPath(portID))
+	modules, capability, err := k.scopedKeeper.LookupModules(ctx, host.PortPath(portID))
 	if err != nil {
 		return "", nil, err
 	}
 
-	return types.GetModuleOwner(modules), cap, nil
+	return types.GetModuleOwner(modules), capability, nil
 }

@@ -2,11 +2,11 @@ package mock
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // IBCApp contains IBC application module callbacks as defined in 05-port.

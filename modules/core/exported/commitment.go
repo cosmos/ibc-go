@@ -1,6 +1,6 @@
 package exported
 
-import ics23 "github.com/confio/ics23/go"
+import ics23 "github.com/cosmos/ics23/go"
 
 // ICS 023 Types Implementation
 //
@@ -28,7 +28,6 @@ type Prefix interface {
 // Path implements spec:CommitmentPath.
 // A path is the additional information provided to the verification function.
 type Path interface {
-	String() string
 	Empty() bool
 }
 

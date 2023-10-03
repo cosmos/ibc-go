@@ -4,10 +4,12 @@ import (
 	"fmt"
 
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	crypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	storetypes "cosmossdk.io/store/types"
+
+	crypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 )
 
 func (suite *MerkleTestSuite) TestConvertProofs() {
@@ -29,11 +31,12 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		{
 			"success for ExistenceProof",
 			func() {
-				res := suite.store.Query(abci.RequestQuery{
+				res, err := suite.store.Query(&storetypes.RequestQuery{
 					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
 					Data:  []byte("MYKEY"),
 					Prove: true,
 				})
+				require.NoError(suite.T(), err)
 				require.NotNil(suite.T(), res.ProofOps)
 
 				proofOps = res.ProofOps
@@ -43,11 +46,12 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		{
 			"success for NonexistenceProof",
 			func() {
-				res := suite.store.Query(abci.RequestQuery{
+				res, err := suite.store.Query(&storetypes.RequestQuery{
 					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
 					Data:  []byte("NOTMYKEY"),
 					Prove: true,
 				})
+				require.NoError(suite.T(), err)
 				require.NotNil(suite.T(), res.ProofOps)
 
 				proofOps = res.ProofOps
@@ -64,11 +68,12 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		{
 			"proof op data is nil",
 			func() {
-				res := suite.store.Query(abci.RequestQuery{
+				res, err := suite.store.Query(&storetypes.RequestQuery{
 					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
 					Data:  []byte("MYKEY"),
 					Prove: true,
 				})
+				require.NoError(suite.T(), err)
 				require.NotNil(suite.T(), res.ProofOps)
 
 				proofOps = res.ProofOps
@@ -79,6 +84,8 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 	}
 
 	for _, tc := range testcases {
+		tc := tc
+
 		tc.malleate()
 
 		proof, err := types.ConvertProofs(proofOps)

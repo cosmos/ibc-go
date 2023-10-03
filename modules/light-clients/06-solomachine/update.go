@@ -3,32 +3,34 @@ package solomachine
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // VerifyClientMessage introspects the provided ClientMessage and checks its validity
 // A Solomachine Header is considered valid if the currently registered public key has signed over the new public key with the correct sequence
 // A Solomachine Misbehaviour is considered valid if duplicate signatures of the current public key are found on two different messages at a given sequence
-func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) error {
+func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) error {
 	switch msg := clientMsg.(type) {
 	case *Header:
-		return cs.verifyHeader(ctx, cdc, clientStore, msg)
+		return cs.verifyHeader(cdc, msg)
 	case *Misbehaviour:
-		return cs.verifyMisbehaviour(ctx, cdc, clientStore, msg)
+		return cs.verifyMisbehaviour(cdc, msg)
 	default:
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "expected type of %T or %T, got type %T", Header{}, Misbehaviour{}, msg)
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected type of %T or %T, got type %T", Header{}, Misbehaviour{}, msg)
 	}
 }
 
-func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, header *Header) error {
+func (cs ClientState) verifyHeader(cdc codec.BinaryCodec, header *Header) error {
 	// assert update timestamp is not less than current consensus state timestamp
 	if header.Timestamp < cs.ConsensusState.Timestamp {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeader,
 			"header timestamp is less than to the consensus state timestamp (%d < %d)", header.Timestamp, cs.ConsensusState.Timestamp,
 		)
@@ -69,7 +71,7 @@ func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clien
 	}
 
 	if err := VerifySignature(publicKey, data, sigData); err != nil {
-		return sdkerrors.Wrap(ErrInvalidHeader, err.Error())
+		return errorsmod.Wrap(ErrInvalidHeader, err.Error())
 	}
 
 	return nil
@@ -77,7 +79,7 @@ func (cs ClientState) verifyHeader(ctx sdk.Context, cdc codec.BinaryCodec, clien
 
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
 // A list containing the updated consensus height is returned.
-func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, clientMsg exported.ClientMessage) []exported.Height {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	smHeader, ok := clientMsg.(*Header)
 	if !ok {
 		panic(fmt.Errorf("unsupported ClientMessage: %T", clientMsg))
@@ -100,7 +102,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 // UpdateStateOnMisbehaviour updates state upon misbehaviour. This method should only be called on misbehaviour
 // as it does not perform any misbehaviour checks.
-func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, _ exported.ClientMessage) {
+func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, _ exported.ClientMessage) {
 	cs.IsFrozen = true
 
 	setClientState(clientStore, cdc, &cs)

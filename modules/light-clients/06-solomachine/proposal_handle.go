@@ -3,12 +3,14 @@ package solomachine
 import (
 	"reflect"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // CheckSubstituteAndUpdateState verifies that the subject is allowed to be updated by
@@ -20,25 +22,25 @@ import (
 // the new public key.
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
-	_ sdk.KVStore, substituteClient exported.ClientState,
+	_ storetypes.KVStore, substituteClient exported.ClientState,
 ) error {
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClientType, "substitute client state type %T, expected  %T", substituteClient, &ClientState{})
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "substitute client state type %T, expected  %T", substituteClient, &ClientState{})
 	}
 
 	subjectPublicKey, err := cs.ConsensusState.GetPubKey()
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to get consensus public key")
+		return errorsmod.Wrap(err, "failed to get consensus public key")
 	}
 
 	substitutePublicKey, err := substituteClientState.ConsensusState.GetPubKey()
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to get substitute client public key")
+		return errorsmod.Wrap(err, "failed to get substitute client public key")
 	}
 
 	if reflect.DeepEqual(subjectPublicKey, substitutePublicKey) {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidHeader, "subject and substitute have the same public key")
+		return errorsmod.Wrapf(clienttypes.ErrInvalidHeader, "subject and substitute have the same public key")
 	}
 
 	// update to substitute parameters

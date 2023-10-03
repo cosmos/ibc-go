@@ -1,29 +1,42 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
-	_ sdk.Msg = &MsgCreateClient{}
-	_ sdk.Msg = &MsgUpdateClient{}
-	_ sdk.Msg = &MsgSubmitMisbehaviour{}
-	_ sdk.Msg = &MsgUpgradeClient{}
+	_ sdk.Msg = (*MsgCreateClient)(nil)
+	_ sdk.Msg = (*MsgUpdateClient)(nil)
+	_ sdk.Msg = (*MsgSubmitMisbehaviour)(nil)
+	_ sdk.Msg = (*MsgUpgradeClient)(nil)
+	_ sdk.Msg = (*MsgUpdateParams)(nil)
+	_ sdk.Msg = (*MsgIBCSoftwareUpgrade)(nil)
+	_ sdk.Msg = (*MsgRecoverClient)(nil)
 
-	_ codectypes.UnpackInterfacesMessage = MsgCreateClient{}
-	_ codectypes.UnpackInterfacesMessage = MsgUpdateClient{}
-	_ codectypes.UnpackInterfacesMessage = MsgSubmitMisbehaviour{}
-	_ codectypes.UnpackInterfacesMessage = MsgUpgradeClient{}
+	_ sdk.HasValidateBasic = (*MsgCreateClient)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateClient)(nil)
+	_ sdk.HasValidateBasic = (*MsgSubmitMisbehaviour)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpgradeClient)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
+	_ sdk.HasValidateBasic = (*MsgIBCSoftwareUpgrade)(nil)
+	_ sdk.HasValidateBasic = (*MsgRecoverClient)(nil)
+
+	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgSubmitMisbehaviour)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgUpgradeClient)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgIBCSoftwareUpgrade)(nil)
 )
 
 // NewMsgCreateClient creates a new MsgCreateClient instance
-//
-//nolint:interfacer
 func NewMsgCreateClient(
 	clientState exported.ClientState, consensusState exported.ConsensusState, signer string,
 ) (*MsgCreateClient, error) {
@@ -48,7 +61,7 @@ func NewMsgCreateClient(
 func (msg MsgCreateClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	clientState, err := UnpackClientState(msg.ClientState)
 	if err != nil {
@@ -62,10 +75,10 @@ func (msg MsgCreateClient) ValidateBasic() error {
 		return err
 	}
 	if clientState.ClientType() != consensusState.ClientType() {
-		return sdkerrors.Wrap(ErrInvalidClientType, "client type for client state and consensus state do not match")
+		return errorsmod.Wrap(ErrInvalidClientType, "client type for client state and consensus state do not match")
 	}
 	if err := ValidateClientType(clientState.ClientType()); err != nil {
-		return sdkerrors.Wrap(err, "client type does not meet naming constraints")
+		return errorsmod.Wrap(err, "client type does not meet naming constraints")
 	}
 	return consensusState.ValidateBasic()
 }
@@ -92,8 +105,6 @@ func (msg MsgCreateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 }
 
 // NewMsgUpdateClient creates a new MsgUpdateClient instance
-//
-//nolint:interfacer
 func NewMsgUpdateClient(id string, clientMsg exported.ClientMessage, signer string) (*MsgUpdateClient, error) {
 	anyClientMsg, err := PackClientMessage(clientMsg)
 	if err != nil {
@@ -111,7 +122,7 @@ func NewMsgUpdateClient(id string, clientMsg exported.ClientMessage, signer stri
 func (msg MsgUpdateClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	clientMsg, err := UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
@@ -139,8 +150,6 @@ func (msg MsgUpdateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 }
 
 // NewMsgUpgradeClient creates a new MsgUpgradeClient instance
-//
-//nolint:interfacer
 func NewMsgUpgradeClient(clientID string, clientState exported.ClientState, consState exported.ConsensusState,
 	proofUpgradeClient, proofUpgradeConsState []byte, signer string,
 ) (*MsgUpgradeClient, error) {
@@ -179,18 +188,18 @@ func (msg MsgUpgradeClient) ValidateBasic() error {
 	}
 
 	if clientState.ClientType() != consensusState.ClientType() {
-		return sdkerrors.Wrapf(ErrInvalidUpgradeClient, "consensus state's client-type does not match client. expected: %s, got: %s",
+		return errorsmod.Wrapf(ErrInvalidUpgradeClient, "consensus state's client-type does not match client. expected: %s, got: %s",
 			clientState.ClientType(), consensusState.ClientType())
 	}
 	if len(msg.ProofUpgradeClient) == 0 {
-		return sdkerrors.Wrap(ErrInvalidUpgradeClient, "proof of upgrade client cannot be empty")
+		return errorsmod.Wrap(ErrInvalidUpgradeClient, "proof of upgrade client cannot be empty")
 	}
 	if len(msg.ProofUpgradeConsensusState) == 0 {
-		return sdkerrors.Wrap(ErrInvalidUpgradeClient, "proof of upgrade consensus state cannot be empty")
+		return errorsmod.Wrap(ErrInvalidUpgradeClient, "proof of upgrade consensus state cannot be empty")
 	}
 	_, err = sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return host.ClientIdentifierValidator(msg.ClientId)
 }
@@ -217,8 +226,6 @@ func (msg MsgUpgradeClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 }
 
 // NewMsgSubmitMisbehaviour creates a new MsgSubmitMisbehaviour instance.
-//
-//nolint:interfacer
 func NewMsgSubmitMisbehaviour(clientID string, misbehaviour exported.ClientMessage, signer string) (*MsgSubmitMisbehaviour, error) {
 	anyMisbehaviour, err := PackClientMessage(misbehaviour)
 	if err != nil {
@@ -236,7 +243,7 @@ func NewMsgSubmitMisbehaviour(clientID string, misbehaviour exported.ClientMessa
 func (msg MsgSubmitMisbehaviour) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	misbehaviour, err := UnpackClientMessage(msg.Misbehaviour)
 	if err != nil {
@@ -262,4 +269,115 @@ func (msg MsgSubmitMisbehaviour) GetSigners() []sdk.AccAddress {
 func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var misbehaviour exported.ClientMessage
 	return unpacker.UnpackAny(msg.Misbehaviour, &misbehaviour)
+}
+
+// NewMsgRecoverClient creates a new MsgRecoverClient instance
+func NewMsgRecoverClient(signer, subjectClientID, substituteClientID string) *MsgRecoverClient {
+	return &MsgRecoverClient{
+		Signer:             signer,
+		SubjectClientId:    subjectClientID,
+		SubstituteClientId: substituteClientID,
+	}
+}
+
+// ValidateBasic performs basic checks on a MsgRecoverClient.
+func (msg *MsgRecoverClient) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	if err := host.ClientIdentifierValidator(msg.SubjectClientId); err != nil {
+		return err
+	}
+
+	if err := host.ClientIdentifierValidator(msg.SubstituteClientId); err != nil {
+		return err
+	}
+
+	if msg.SubjectClientId == msg.SubstituteClientId {
+		return errorsmod.Wrapf(ErrInvalidSubstitute, "subject and substitute clients must be different")
+	}
+
+	return nil
+}
+
+// GetSigners returns the expected signers for a MsgRecoverClient message.
+func (msg *MsgRecoverClient) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
+}
+
+// NewMsgIBCSoftwareUpgrade creates a new MsgIBCSoftwareUpgrade instance
+func NewMsgIBCSoftwareUpgrade(signer string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (*MsgIBCSoftwareUpgrade, error) {
+	anyClient, err := PackClientState(upgradedClientState)
+	if err != nil {
+		return nil, err
+	}
+
+	return &MsgIBCSoftwareUpgrade{
+		Signer:              signer,
+		Plan:                plan,
+		UpgradedClientState: anyClient,
+	}, nil
+}
+
+// ValidateBasic performs basic checks on a MsgIBCSoftwareUpgrade.
+func (msg *MsgIBCSoftwareUpgrade) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	clientState, err := UnpackClientState(msg.UpgradedClientState)
+	if err != nil {
+		return err
+	}
+
+	// for the time being, we should implicitly be on tendermint when using ibc-go
+	if clientState.ClientType() != exported.Tendermint {
+		return errorsmod.Wrapf(ErrInvalidUpgradeClient, "upgraded client state must be a Tendermint client")
+	}
+
+	return msg.Plan.ValidateBasic()
+}
+
+// GetSigners returns the expected signers for a MsgIBCSoftwareUpgrade message.
+func (msg *MsgIBCSoftwareUpgrade) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg *MsgIBCSoftwareUpgrade) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	return unpacker.UnpackAny(msg.UpgradedClientState, new(exported.ClientState))
+}
+
+// NewMsgUpdateParams creates a new instance of MsgUpdateParams.
+func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Signer: signer,
+		Params: params,
+	}
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
+}
+
+// ValidateBasic performs basic checks on a MsgUpdateParams.
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return msg.Params.Validate()
 }

@@ -6,7 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 )
 
 // NewDecodeStore returns a decoder function closure that unmarshals the KVPair's
@@ -24,7 +24,7 @@ func NewDecodeStore() func(kvA, kvB kv.Pair) string {
 			return fmt.Sprintf("IsMiddlewareEnabled A: %s\nIsMiddlewareEnabled B: %s", string(kvA.Value), string(kvB.Value))
 
 		default:
-			panic(fmt.Sprintf("invalid %s key prefix %s", types.ModuleName, kvA.Key))
+			panic(fmt.Errorf("invalid %s key prefix %s", types.ModuleName, kvA.Key))
 		}
 	}
 }

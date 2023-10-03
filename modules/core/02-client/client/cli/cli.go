@@ -1,10 +1,11 @@
 package cli
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/cosmos-sdk/client"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 // GetQueryCmd returns the query commands for IBC clients
@@ -43,10 +44,12 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	txCmd.AddCommand(
-		NewCreateClientCmd(),
-		NewUpdateClientCmd(),
-		NewSubmitMisbehaviourCmd(), // Deprecated
-		NewUpgradeClientCmd(),
+		newCreateClientCmd(),
+		newUpdateClientCmd(),
+		newSubmitMisbehaviourCmd(), // Deprecated
+		newUpgradeClientCmd(),
+		newSubmitRecoverClientProposalCmd(),
+		newScheduleIBCUpgradeProposalCmd(),
 	)
 
 	return txCmd

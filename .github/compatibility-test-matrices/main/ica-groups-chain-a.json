@@ -1,10 +1,22 @@
 {
-  "chain-a": ["main"],
-  "chain-b": ["main"],
-  "entrypoint": ["TestInterchainAccountsGroupsTestSuite"],
+  "chain-a": [
+    "main"
+  ],
+  "chain-b": [
+    "main",
+    "v7.3.0",
+    "v7.2.1",
+    "v7.2.0",
+    "v6.2.0",
+    "v6.1.1"
+  ],
+  "entrypoint": [
+    "TestInterchainAccountsGroupsTestSuite"
+  ],
   "test": [
     "TestInterchainAccountsGroupsIntegration"
   ],
-  "chain-binary": ["simd"],
-  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+  "relayer-type": [
+    "hermes"
+  ]
 }

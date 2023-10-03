@@ -1,275 +1,63 @@
-# Contributing
-
-- [Contributing](#contributing)
-  - [Architecture Decision Records (ADR)](#architecture-decision-records-adr)
-  - [Pull Requests](#pull-requests)
-    - [Process for reviewing PRs](#process-for-reviewing-prs)
-    - [Updating Documentation](#updating-documentation)
-  - [Forking](#forking)
-  - [Dependencies](#dependencies)
-  - [Protobuf](#protobuf)
-  - [Testing](#testing)
-  - [Branching Model and Release](#branching-model-and-release)
-    - [PR Targeting](#pr-targeting)
-    - [Development Procedure](#development-procedure)
-    - [Pull Merge Procedure](#pull-merge-procedure)
-    - [Release Procedure](#release-procedure)
-    - [Point Release Procedure](#point-release-procedure)
-
-Thank you for considering making contributions to ibc-go! 
-
-Contributing to this repo can mean many things such as participating in
-discussion or proposing code changes. To ensure a smooth workflow for all
-contributors, the general procedure for contributing has been established:
-
-1. Either [open](https://github.com/cosmos/ibc-go/issues/new/choose) or
-   [find](https://github.com/cosmos/ibc-go/issues) an issue you'd like to help with
-2. Participate in thoughtful discussion on that issue
-3. If you would like to contribute:
-   1. If the issue is a proposal, ensure that the proposal has been accepted
-   2. Ensure that nobody else has already begun working on this issue. If they have,
-      make sure to contact them to collaborate
-   3. If nobody has been assigned for the issue and you would like to work on it,
-      make a comment on the issue to inform the community of your intentions
-      to begin work
-   4. Follow standard Github best practices: fork the repo, branch from the
-      HEAD of `main`, make some commits, and submit a PR to `main`
-      - For core developers working within the ibc-go repo, to ensure a clear
-        ownership of branches, branches must be named with the convention
-        `{moniker}/{issue#}-branch-name`
-   5. Be sure to submit the PR in `Draft` mode submit your PR early, even if
-      it's incomplete as this indicates to the community you're working on
-      something and allows them to provide comments early in the development process
-   6. When the code is complete it can be marked `Ready for Review`
-   7. Be sure to include a relevant change log entry in the `Unreleased` section
-      of `CHANGELOG.md` (see file for log format)
-
-Note that for very small or blatantly obvious problems (such as typos) it is
-not required to an open issue to submit a PR, but be aware that for more complex
-problems/features, if a PR is opened before an adequate design discussion has
-taken place in a github issue, that PR runs a high likelihood of being rejected.
-
-Other notes:
-
-- Looking for a good place to start contributing? How about checking out some
-  [good first issues](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
-- Please make sure to run `make format` before every commit - the easiest way
-  to do this is have your editor run it for you upon saving a file. Additionally
-  please ensure that your code is lint compliant by running `golangci-lint run`.
-
-## Architecture Decision Records (ADR)
+# Contributing to ibc-go
 
-When proposing an architecture decision for the ibc-go, please create an [ADR](./docs/architecture/README.md)
-so further discussions can be made. We are following this process so all involved parties are in
-agreement before any party begins coding the proposed implementation. If you would like to see some examples
-of how these are written refer to [Cosmos SDK ADRs](https://github.com/cosmos/cosmos-sdk/tree/master/docs/architecture)
+Thank you for considering making contributions to ibc-go! 🎉👍
 
-## Pull Requests
+## Code of conduct
 
-To accommodate review process we suggest that PRs are categorically broken up.
-Ideally each PR addresses only a single issue. Additionally, as much as possible
-code refactoring and cleanup should be submitted as a separate PRs from bugfixes/feature-additions.
+This project and everyone participating in it is governed by ibc-go's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code
 
-### Process for reviewing PRs
+## How can I contribute?
 
-All PRs require an approval from at least one CODEOWNER before merge. PRs which cause signficant changes require two approvals from CODEOWNERS. When reviewing PRs please use the following review explanations:
+Contributing to this repository can mean many things such as participating in discussions or proposing code changes. To ensure a smooth workflow for all contributors, the general procedure for contributing has been established:
 
-- `LGTM` without an explicit approval means that the changes look good, but you haven't pulled down the code, run tests locally and thoroughly reviewed it.
-- `Approval` through the GH UI means that you understand the code, documentation/spec is updated in the right places, you have pulled down and tested the code locally. In addition:
-  - You must also think through anything which ought to be included but is not
-  - You must think through whether any added code could be partially combined (DRYed) with existing code
-  - You must think through any potential security issues or incentive-compatibility flaws introduced by the changes
-  - Naming must be consistent with conventions and the rest of the codebase
-  - Code must live in a reasonable location, considering dependency structures (e.g. not importing testing modules in production code, or including example code modules in production code).
-  - if you approve of the PR, you are responsible for fixing any of the issues mentioned here and more
-- If you sat down with the PR submitter and did a pairing review please note that in the `Approval`, or your PR comments.
-- If you are only making "surface level" reviews, submit any notes as `Comments` without adding a review.
+### Reporting bugs
 
-### Commit Messages
+If you find that something is not working as expected, please open an issue using the [bug report template](https://github.com/cosmos/ibc-go/blob/main/.github/ISSUE_TEMPLATE/bug-report.md) and provide as much information possible: how can the bug be reproduced? What's the expected behavior? What version is affected?
 
-Commit messages should be [conventional](https://www.conventionalcommits.org/en/v1.0.0/).
+### Proposing improvements or new features
 
-If opening a PR, include the proposed commit message in the PR description.
+New features or improvements should be written in an issue using the [new feature template](https://github.com/cosmos/ibc-go/blob/main/.github/ISSUE_TEMPLATE/feature-request.md). Please include in the issue as many details as possible: what use case(s) would this new feature or improvement enable? Why are those use cases important or helpful? what user group would benefit? The team will evaluate and engage with you in a discussion of the proposal, which could have different outcomes:
 
-The commit message type should be one of:
+- the core ibc-go team deciding to implement this feature and adding it to their planning,
+- agreeing to support external contributors to implement it with the goal of merging it eventually in ibc-go,
+- discarding the suggestion if deemed not aligned with the objectives of ibc-go;
+- or proposing (in the case of applications or light clients) to be developed and maintained in a separate repository.
 
-* `feat` / `feature` for feature work.
-* `bug` / `fix` for bug fixes.
-* `imp` / `improvements` for improvements.
-* `doc` / `docs` / `documentation` for any documentation changes.
-* `test` / `e2e` for addition or improvements of unit, integration and e2e tests or their corresponding infrastructure.
-* `deprecated` for deprecation changes.
-* `deps` / `build` for changes to dependencies.
-* `chore` / `misc` / `nit` for any miscellaneous changes that don't fit into another category.
+### Architecture Decision Records (ADR)
 
-**Note**: If any change is breaking, the following format must be used:
-* `type` + `(api)!` for api breaking changes, e.g. `fix(api)!: api breaking fix`
-* `type` + `(statemachine)!` for state machine breaking changes, e.g. `fix(statemachine)!: state machine breaking fix`
+When proposing an architecture decision for the ibc-go, please create an [ADR](./docs/architecture/README.md) so further discussions can be made. We are following this process so all involved parties are in agreement before any party begins coding the proposed implementation. Please use the [ADR template](./docs/architecture/adr.template.md) to scaffold any new ADR. If you would like to see some examples of how these are written refer to ibc-go's [ADRs](./docs/architecture/). ADRs are solidified designs that will be implemented in ibc-go (and do not have a spec). They should document the architecture that will be built. Most design feedback should be gathered before the initial draft of the ADR. ADR's can/should be written for any design decisions we make which may be changed at some point in the future.
 
-**`api` breaking changes take precedence over `statemachine` breaking changes.**
+### Participating in discussions
 
-### Updating Documentation
+New features or improvements are sometimes also debated in [discussions](https://github.com/cosmos/ibc-go/discussions). Sharing feedback or ideas there is very helpful for us. high level discussions that may get a lot of comments on a variety of different aspects, design aspects still being considered.
 
-If you open a PR on ibc-go, it is mandatory to update the relevant documentation in /docs.
+### Submitting pull requests
 
-## Forking
+Unless you feel confident your change will be accepted (trivial bug fixes, code cleanup, etc) you should first create an issue to discuss your change with us. This lets us all discuss the design and proposed implementation of your change, which helps ensure your time is well spent and that your contribution will be accepted.
 
-Please note that Go requires code to live under absolute paths, which complicates forking.
-While my fork lives at `https://github.com/colin-axner/ibc-go`,
-the code should never exist at `$GOPATH/src/github.com/colin-axner/ibc-go`.
-Instead, we use `git remote` to add the fork as a new remote for the original repo,
-`$GOPATH/src/github.com/cosmos/ibc-go`, and do all the work there.
+Looking for a good place to start contributing? The issue tracker is always the first place to go. Issues are triaged to categorize them:
 
-For instance, to create a fork and work on a branch of it, I would:
+- Check out some [`good first issue`s](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22). These are issues whose scope of work should be pretty clearly specified and they are best suited for developers new to ibc-go (i.e. no deep knowledge of Cosmos SDK or ibc-go is required). For example, some of these issues may involve improving the logging, emitting new events or removing unused code.
+- Or pick up a [`help wanted`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) issue. These issues should be a bit more involved than the good first issues and the developer working on them would benefit from some familiarity already with the codebase. These types of issues may involve adding new (or extending the functionality of existing) gRPC endpoints, bumping the version of Cosmos SDK or Tendermint or fixing bugs.
 
-- Create the fork on github, using the fork button.
-- Go to the original repo checked out locally (i.e. `$GOPATH/src/github.com/cosmos/ibc-go`)
-- `git remote add fork git@github.com:colin-axner/ibc-go.git`
+If you would like to contribute, follow this process:
 
-Now `fork` refers to my fork and `origin` refers to the ibc-go version.
-So I can `git push -u fork main` to update my fork, and make pull requests to ibc-go from there.
-Of course, replace `colin-axner` with your git handle.
+1. If the issue is a proposal, ensure that the proposal has been accepted.
+2. Ensure that nobody else has already begun working on this issue. If they have, make sure to contact them to collaborate.
+3. If nobody has been assigned for the issue and you would like to work on it, comment on the issue to inform the community of your intentions to begin work. Then we will be able to assign the issue to you, making it visible for others that this issue is being tackled. If you end up not creating a pull request for this issue, please comment on the issue as well, so that it can be assigned to somebody else.
+4. Follow standard GitHub best practices: fork the repo, branch from the HEAD of `main`, make some commits, and submit a PR to `main`. For core developers working within the ibc-go repo, branches must be named with the convention `{moniker}/{issue#}-branch-name` to ensure a clear ownership of branches.
+5. Feel free to submit the pull request in `Draft` mode, even if the work is not complete, as this indicates to the community you are working on something and allows them to provide comments early in the development process.
+6. When the code is complete it can be marked `Ready for Review`.
+7. Be sure to include a relevant changelog entry in the [Commit Message / Changelog Entry section of pull request description](https://github.com/cosmos/ibc-go/blob/main/.github/PULL_REQUEST_TEMPLATE.md#commit-message--changelog-entry) so that we can add changelog entry when merging the pull request. Please follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/) and use one of the commit types mentioned in the [Commit messages section of the pull request guidelines](./docs/dev/pull-requests.md#commit-messages).
 
-To pull in updates from the origin repo, run
+Please make sure to check out our [Pull request guidelines](./docs/dev/pull-requests.md) for more information.
 
-- `git fetch origin`
-- `git rebase origin/main` (or whatever branch you want)
+## Relevant development docs
 
-Please don't make Pull Requests from `main`.
-
-## Dependencies
-
-We use [Go 1.14 Modules](https://github.com/golang/go/wiki/Modules) to manage
-dependency versions.
-
-The main branch of every Cosmos repository should just build with `go get`,
-which means they should be kept up-to-date with their dependencies, so we can
-get away with telling people they can just `go get` our software.
-
-Since some dependencies are not under our control, a third party may break our
-build, in which case we can fall back on `go mod tidy -v`.
-
-## Protobuf
-
-We use [Protocol Buffers](https://developers.google.com/protocol-buffers) along with [gogoproto](https://github.com/gogo/protobuf) to generate code for use in ibc-go.
-
-For determinstic behavior around Protobuf tooling, everything is containerized using Docker. Make sure to have Docker installed on your machine, or head to [Docker's website](https://docs.docker.com/get-docker/) to install it.
-
-For formatting code in `.proto` files, you can run `make proto-format` command.
-
-For linting and checking breaking changes, we use [buf](https://buf.build/). You can use the commands `make proto-lint` and `make proto-check-breaking` to respectively lint your proto files and check for breaking changes.
-
-To generate the protobuf stubs, you can run `make proto-gen`.
-
-We also added the `make proto-all` command to run all the above commands sequentially.
-
-In order for imports to properly compile in your IDE, you may need to manually set your protobuf path in your IDE's workspace settings/config.
-
-For example, in vscode your `.vscode/settings.json` should look like:
-
-```
-{
-    "protoc": {
-        "options": [
-        "--proto_path=${workspaceRoot}/proto",
-        "--proto_path=${workspaceRoot}/third_party/proto"
-        ]
-    }
-}
-```
-
-## Testing
-
-All go tests in ibc-go can be ran by running `make test`.
-
-When testing a function under a variety of different inputs, we prefer to use
-[table driven tests](https://github.com/golang/go/wiki/TableDrivenTests).
-
-All tests should use the testing package. Please see the testing package [README](./testing/README.md) for more information.
-
-
-## Branching Model and Release
-
-User-facing repos should adhere to the trunk based development branching model: https://trunkbaseddevelopment.com/.
-
-ibc-go utilizes [semantic versioning](https://semver.org/).
-
-### PR Targeting
-
-Ensure that you base and target your PR on the `main` branch.
-
-All development should be targeted against `main`. Bug fixes which are required for outstanding releases should be backported if the CODEOWNERS decide it is applicable. 
-
-### Development Procedure
-
-- the latest state of development is on `main`
-- `main` must never fail `make test`
-- no `--force` onto `main` (except when reverting a broken commit, which should seldom happen)
-- create a development branch either on github.com/cosmos/ibc-go, or your fork (using `git remote add fork`)
-- before submitting a pull request, begin `git rebase` on top of `main`
-
-### Pull Merge Procedure
-
-- ensure all github requirements pass
-- squash and merge pull request 
-
-### Release Procedure
-
-- Start on `main`
-- Create the release candidate branch `rc/v*` (going forward known as **RC**)
-  and ensure it's protected against pushing from anyone except the release
-  manager/coordinator
-  - **no PRs targeting this branch should be merged unless exceptional circumstances arise**
-- On the `RC` branch, prepare a new version section in the `CHANGELOG.md`
-  - All links must be link-ified: `$ python ./scripts/linkify_changelog.py CHANGELOG.md`
-- Run external relayer tests against the prepared RC
-- If errors are found during the relayer testing, commit the fixes to `main`
-  and create a new `RC` branch (making sure to increment the `rcN`)
-- After relayer testing has successfully completed, create the release branch
-  (`release/vX.XX.X`) from the `RC` branch
-- Create a PR to `main` to incorporate the `CHANGELOG.md` updates
-- Tag the release (use `git tag -a`) and create a release in Github
-- Delete the `RC` branches
-
-### Point Release Procedure
-
-At the moment, only a single major release will be supported, so all point releases will be based
-off of that release.
-
-In order to alleviate the burden for a single person to have to cherry-pick and handle merge conflicts
-of all desired backporting PRs to a point release, we instead maintain a living backport branch, where
-all desired features and bug fixes are merged into as separate PRs.
-
-Example:
-
-Current release is `v1.0.2`. We then maintain a (living) branch `release/v1.0.x`, given x as
-the next patch release number (currently `1.0.3`) for the `1.0` release series. As bugs are fixed
-and PRs are merged into `main`, if a contributor wishes the PR to be released into the
-`v1.0.x` point release, the contributor must:
-
-1. Add `1.0.x-backport` label
-2. Pull latest changes on the desired `release/v1.0.x` branch
-3. Create a 2nd PR merging the respective PR into `release/v1.0.x`
-4. Update the PR's description and ensure it contains the following information:
-   - **[Impact]** Explanation of how the bug affects users or developers.
-   - **[Test Case]** section with detailed instructions on how to reproduce the bug.
-   - **[Regression Potential]** section with a discussion how regressions are most likely to manifest, or might
-     manifest even if it's unlikely, as a result of the change. **It is assumed that any backport PR is
-     well-tested before it is merged in and has an overall low risk of regression**. This section should discuss
-     the potential for state breaking changes to occur such as through out-of-gas errors. 
-
-It is the PR's author's responsibility to fix merge conflicts, update changelog entries, and
-ensure CI passes. If a PR originates from an external contributor, it may be a core team member's
-responsibility to perform this process instead of the original author.
-Lastly, it is core team's responsibility to ensure that the PR meets all the backport criteria.
-
-Finally, when a point release is ready to be made:
-
-1. Checkout `release/v1.0.x` branch
-2. Ensure changelog entries are verified
-3. Add release version date to the changelog
-4. Push release branch along with the annotated tag: **git tag -a**
-5. Create a PR into `main` containing ONLY `CHANGELOG.md` updates
-
-Note, although we aim to support only a single release at a time, the process stated above could be
-used for multiple previous versions.
+- [Project structure](./docs/dev/project-structure.md)
+- [Develoment setup](./docs/dev/development-setup.md)
+- [Go style guide](./docs/dev/go-style-guide.md)
+- [Documentation guide](./docs/README.md)
+- [Writing tests](./testing/README.md)
+- [Pull request guidelines](./docs/dev/pull-requests.md)
+- [Release process](./docs/dev/release-management.md)

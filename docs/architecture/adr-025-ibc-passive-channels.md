@@ -34,26 +34,26 @@ const (
   AttributeKeyDstVersion = "dst_version"
 )
 // ...
-  // Emit Event with Channel metadata for the relayer to pick up and
-  // relay to the other chain
-  // This appears immediately before the successful return statement.
-  ctx.EventManager().EmitEvents(sdk.Events{
-    sdk.NewEvent(
-      types.EventTypeChannelMeta,
-      sdk.NewAttribute(types.AttributeKeyAction, "open_init"),
-      sdk.NewAttribute(types.AttributeKeySrcConnection, connectionHops[0]),
-      sdk.NewAttribute(types.AttributeKeyHops, strings.Join(connectionHops, ",")),
-      sdk.NewAttribute(types.AttributeKeyOrder, order.String()),
-      sdk.NewAttribute(types.AttributeKeySrcPort, portID),
-      sdk.NewAttribute(types.AttributeKeySrcChannel, chanenlID),
-      sdk.NewAttribute(types.AttributeKeySrcVersion, version),
-      sdk.NewAttribute(types.AttributeKeyDstPort, counterparty.GetPortID()),
-      sdk.NewAttribute(types.AttributeKeyDstChannel, counterparty.GetChannelID()),
-      // The destination version is not yet known, but a value is necessary to pad
-      // the event attribute offsets
-      sdk.NewAttribute(types.AttributeKeyDstVersion, ""),
-    ),
-  })
+// Emit Event with Channel metadata for the relayer to pick up and
+// relay to the other chain
+// This appears immediately before the successful return statement.
+ctx.EventManager().EmitEvents(sdk.Events{
+  sdk.NewEvent(
+    types.EventTypeChannelMeta,
+    sdk.NewAttribute(types.AttributeKeyAction, "open_init"),
+    sdk.NewAttribute(types.AttributeKeySrcConnection, connectionHops[0]),
+    sdk.NewAttribute(types.AttributeKeyHops, strings.Join(connectionHops, ",")),
+    sdk.NewAttribute(types.AttributeKeyOrder, order.String()),
+    sdk.NewAttribute(types.AttributeKeySrcPort, portID),
+    sdk.NewAttribute(types.AttributeKeySrcChannel, chanenlID),
+    sdk.NewAttribute(types.AttributeKeySrcVersion, version),
+    sdk.NewAttribute(types.AttributeKeyDstPort, counterparty.GetPortID()),
+    sdk.NewAttribute(types.AttributeKeyDstChannel, counterparty.GetChannelID()),
+    // The destination version is not yet known, but a value is necessary to pad
+    // the event attribute offsets
+    sdk.NewAttribute(types.AttributeKeyDstVersion, ""),
+  ),
+})
 ```
 
 These metadata events capture all the "header" information needed to route IBC channel handshake transactions without requiring the client to query any data except that of the connection ID that it is willing to relay.  It is intended that `channel_meta.src_connection` is the only event key that needs to be indexed for a passive relayer to function.
@@ -95,19 +95,19 @@ Here is how this callback would be used, in the implementation of `x/ibc/handler
 
 ```go
 // ...
-    case channel.MsgChannelOpenTry:
-      // Lookup module by port capability
-      module, portCap, err := k.PortKeeper.LookupModuleByPort(ctx, msg.PortID)
-      if err != nil {
-        return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
-      }
-      // Retrieve callbacks from router
-      cbs, ok := k.Router.GetRoute(module)
-      if !ok {
-        return nil, sdkerrors.Wrapf(port.ErrInvalidRoute, "route not found to module: %s", module)
-      }
-      // Delegate to the module's OnAttemptChanOpenTry.
-      return cbs.OnAttemptChanOpenTry(ctx, k.ChannelKeeper, portCap, msg)
+case channel.MsgChannelOpenTry:
+  // Lookup module by port capability
+  module, portCap, err := k.PortKeeper.LookupModuleByPort(ctx, msg.PortID)
+  if err != nil {
+    return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
+  }
+  // Retrieve callbacks from router
+  cbs, ok := k.Router.GetRoute(module)
+  if !ok {
+    return nil, sdkerrors.Wrapf(port.ErrInvalidRoute, "route not found to module: %s", module)
+  }
+  // Delegate to the module's OnAttemptChanOpenTry.
+  return cbs.OnAttemptChanOpenTry(ctx, k.ChannelKeeper, portCap, msg)
 ```
 
 The reason we do not have a more structured interaction between `x/ibc/handler.go` and the port's module (to explicitly negotiate versions, etc) is that we do not wish to constrain the app module to have to finish handling the `MsgChannelOpenTry` during this transaction or even this block.

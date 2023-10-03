@@ -1,11 +1,11 @@
 package channel
 
 import (
-	"github.com/gogo/protobuf/grpc"
+	"github.com/cosmos/gogoproto/grpc"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/client/cli"
-	"github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/client/cli"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // Name returns the IBC channel ICS name.

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"regexp"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 const (
@@ -28,6 +28,9 @@ const (
 
 	// ConnectionPrefix is the prefix used when creating a connection identifier
 	ConnectionPrefix = "connection-"
+
+	// ParamsKey is the store key for the IBC connection parameters
+	ParamsKey = "connectionParams"
 )
 
 // FormatConnectionIdentifier returns the connection identifier with the sequence appended.
@@ -50,12 +53,12 @@ func IsValidConnectionID(connectionID string) bool {
 // ParseConnectionSequence parses the connection sequence from the connection identifier.
 func ParseConnectionSequence(connectionID string) (uint64, error) {
 	if !IsConnectionIDFormat(connectionID) {
-		return 0, sdkerrors.Wrap(host.ErrInvalidID, "connection identifier is not in the format: `connection-{N}`")
+		return 0, errorsmod.Wrap(host.ErrInvalidID, "connection identifier is not in the format: `connection-{N}`")
 	}
 
 	sequence, err := host.ParseIdentifier(connectionID, ConnectionPrefix)
 	if err != nil {
-		return 0, sdkerrors.Wrap(err, "invalid connection identifier")
+		return 0, errorsmod.Wrap(err, "invalid connection identifier")
 	}
 
 	return sequence, nil

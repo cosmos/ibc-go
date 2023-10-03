@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths-ignore:
-      - "docs/**"
-      - "**.md"
-      - "LICENSE"
+      - 'docs/**'
+      - '**.md'
+      - 'LICENSE'
 
 jobs:
   # dynamically build a matrix of test/test suite pairs to run
@@ -17,18 +17,20 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
         with:
-          go-version: 1.18
+          go-version: '1.21'
       - id: set-matrix
         run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
-          TEST_EXCLUSIONS: "TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite"
+          TEST_EXCLUSIONS: 'TestUpgradeTestSuite'
 
-  e2e:
+  # e2e-fork runs the e2e tests directly by using a matrix strategy.
+  e2e-fork:
     env:
       CHAIN_A_TAG: latest
+      CHAIN_B_TAG: latest
       CHAIN_IMAGE: ibc-go-simd
     if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
     needs:
@@ -38,14 +40,14 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Docker Build
-        run: docker build . -t "${CHAIN_IMAGE}:${CHAIN_A_TAG}"
+        run: docker build . -t "${CHAIN_IMAGE}:${CHAIN_A_TAG}" --build-arg IBC_GO_VERSION=latest
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: 1.18
+          go-version: '1.21'
       - name: Run e2e Test
         run: |
           cd e2e
-          make e2e-test entrypoint=${{ matrix.entrypoint }} test=${{ matrix.test }}
+          make e2e-test test=${{ matrix.test }}

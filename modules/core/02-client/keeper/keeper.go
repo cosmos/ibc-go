@@ -1,56 +1,67 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/light"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/cometbft/cometbft/light"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
 // Keeper represents a type that grants read and write permissions to any client
 // state information
 type Keeper struct {
-	storeKey      storetypes.StoreKey
-	cdc           codec.BinaryCodec
-	paramSpace    paramtypes.Subspace
-	stakingKeeper types.StakingKeeper
-	upgradeKeeper types.UpgradeKeeper
+	storeKey       storetypes.StoreKey
+	cdc            codec.BinaryCodec
+	legacySubspace paramtypes.Subspace
+	stakingKeeper  types.StakingKeeper
+	upgradeKeeper  types.UpgradeKeeper
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
-
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
 	return Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		paramSpace:    paramSpace,
-		stakingKeeper: sk,
-		upgradeKeeper: uk,
+		storeKey:       key,
+		cdc:            cdc,
+		legacySubspace: legacySubspace,
+		stakingKeeper:  sk,
+		upgradeKeeper:  uk,
 	}
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
+}
+
+// CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
+func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
+	var clientState localhost.ClientState
+	return clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
+}
+
+// UpdateLocalhostClient updates the 09-localhost client to the latest block height and chain ID.
+func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height {
+	return clientState.UpdateState(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
 }
 
 // GenerateClientIdentifier returns the next client identifier.
@@ -67,7 +78,7 @@ func (k Keeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) str
 func (k Keeper) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(host.ClientStateKey())
-	if bz == nil {
+	if len(bz) == 0 {
 		return nil, false
 	}
 
@@ -85,7 +96,7 @@ func (k Keeper) SetClientState(ctx sdk.Context, clientID string, clientState exp
 func (k Keeper) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(host.ConsensusStateKey(height))
-	if bz == nil {
+	if len(bz) == 0 {
 		return nil, false
 	}
 
@@ -104,8 +115,8 @@ func (k Keeper) SetClientConsensusState(ctx sdk.Context, clientID string, height
 func (k Keeper) GetNextClientSequence(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.KeyNextClientSequence))
-	if bz == nil {
-		panic("next client sequence is nil")
+	if len(bz) == 0 {
+		panic(errors.New("next client sequence is nil"))
 	}
 
 	return sdk.BigEndianToUint64(bz)
@@ -123,9 +134,9 @@ func (k Keeper) SetNextClientSequence(ctx sdk.Context, sequence uint64) {
 // the iterator will close and stop.
 func (k Keeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string, cs types.ConsensusStateWithHeight) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
 		// consensus key is in the format "clients/<clientID>/consensusStates/<height>"
@@ -173,7 +184,7 @@ func (k Keeper) GetAllClientMetadata(ctx sdk.Context, genClients []types.Identif
 		for i, metadata := range gms {
 			cmd, ok := metadata.(types.GenesisMetadata)
 			if !ok {
-				return nil, sdkerrors.Wrapf(types.ErrInvalidClientMetadata, "expected metadata type: %T, got: %T",
+				return nil, errorsmod.Wrapf(types.ErrInvalidClientMetadata, "expected metadata type: %T, got: %T",
 					types.GenesisMetadata{}, cmd)
 			}
 			clientMetadata[i] = cmd
@@ -245,16 +256,16 @@ func (k Keeper) GetLatestClientConsensusState(ctx sdk.Context, clientID string) 
 func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (exported.ConsensusState, error) {
 	selfHeight, ok := height.(types.Height)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", types.Height{}, height)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", types.Height{}, height)
 	}
 	// check that height revision matches chainID revision
 	revision := types.ParseChainID(ctx.ChainID())
 	if revision != height.GetRevisionNumber() {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidHeight, "chainID revision number does not match height revision number: expected %d, got %d", revision, height.GetRevisionNumber())
+		return nil, errorsmod.Wrapf(types.ErrInvalidHeight, "chainID revision number does not match height revision number: expected %d, got %d", revision, height.GetRevisionNumber())
 	}
-	histInfo, found := k.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
-	if !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "no historical info found at height %d", selfHeight.RevisionHeight)
+	histInfo, err := k.stakingKeeper.GetHistoricalInfo(ctx, int64(selfHeight.RevisionHeight))
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "height %d", selfHeight.RevisionHeight)
 	}
 
 	consensusState := &ibctm.ConsensusState{
@@ -271,7 +282,7 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error {
 	tmClient, ok := clientState.(*ibctm.ClientState)
 	if !ok {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "client must be a Tendermint client, expected: %T, got: %T",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "client must be a Tendermint client, expected: %T, got: %T",
 			&ibctm.ClientState{}, tmClient)
 	}
 
@@ -280,7 +291,7 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 	}
 
 	if ctx.ChainID() != tmClient.ChainId {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "invalid chain-id. expected: %s, got: %s",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "invalid chain-id. expected: %s, got: %s",
 			ctx.ChainID(), tmClient.ChainId)
 	}
 
@@ -288,34 +299,38 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 
 	// client must be in the same revision as executing chain
 	if tmClient.LatestHeight.RevisionNumber != revision {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "client is not in the same revision as the chain. expected revision: %d, got: %d",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "client is not in the same revision as the chain. expected revision: %d, got: %d",
 			tmClient.LatestHeight.RevisionNumber, revision)
 	}
 
 	selfHeight := types.NewHeight(revision, uint64(ctx.BlockHeight()))
 	if tmClient.LatestHeight.GTE(selfHeight) {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "client has LatestHeight %d greater than or equal to chain height %d",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "client has LatestHeight %d greater than or equal to chain height %d",
 			tmClient.LatestHeight, selfHeight)
 	}
 
 	expectedProofSpecs := commitmenttypes.GetSDKSpecs()
 	if !reflect.DeepEqual(expectedProofSpecs, tmClient.ProofSpecs) {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "client has invalid proof specs. expected: %v got: %v",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "client has invalid proof specs. expected: %v got: %v",
 			expectedProofSpecs, tmClient.ProofSpecs)
 	}
 
 	if err := light.ValidateTrustLevel(tmClient.TrustLevel.ToTendermint()); err != nil {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "trust-level invalid: %v", err)
+		return errorsmod.Wrapf(types.ErrInvalidClient, "trust-level invalid: %v", err)
 	}
 
-	expectedUbdPeriod := k.stakingKeeper.UnbondingTime(ctx)
+	expectedUbdPeriod, err := k.stakingKeeper.UnbondingTime(ctx)
+	if err != nil {
+		return errorsmod.Wrapf(err, "failed to retrieve unbonding period")
+	}
+
 	if expectedUbdPeriod != tmClient.UnbondingPeriod {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "invalid unbonding period. expected: %s, got: %s",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "invalid unbonding period. expected: %s, got: %s",
 			expectedUbdPeriod, tmClient.UnbondingPeriod)
 	}
 
 	if tmClient.UnbondingPeriod < tmClient.TrustingPeriod {
-		return sdkerrors.Wrapf(types.ErrInvalidClient, "unbonding period must be greater than trusting period. unbonding period (%d) < trusting period (%d)",
+		return errorsmod.Wrapf(types.ErrInvalidClient, "unbonding period must be greater than trusting period. unbonding period (%d) < trusting period (%d)",
 			tmClient.UnbondingPeriod, tmClient.TrustingPeriod)
 	}
 
@@ -323,7 +338,7 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 		// For now, SDK IBC implementation assumes that upgrade path (if defined) is defined by SDK upgrade module
 		expectedUpgradePath := []string{upgradetypes.StoreKey, upgradetypes.KeyUpgradedIBCState}
 		if !reflect.DeepEqual(expectedUpgradePath, tmClient.UpgradePath) {
-			return sdkerrors.Wrapf(types.ErrInvalidClient, "upgrade path must be the upgrade path defined by upgrade module. expected %v, got %v",
+			return errorsmod.Wrapf(types.ErrInvalidClient, "upgrade path must be the upgrade path defined by upgrade module. expected %v, got %v",
 				expectedUpgradePath, tmClient.UpgradePath)
 		}
 	}
@@ -331,17 +346,17 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 }
 
 // GetUpgradePlan executes the upgrade keeper GetUpgradePlan function.
-func (k Keeper) GetUpgradePlan(ctx sdk.Context) (plan upgradetypes.Plan, havePlan bool) {
+func (k Keeper) GetUpgradePlan(ctx sdk.Context) (upgradetypes.Plan, error) {
 	return k.upgradeKeeper.GetUpgradePlan(ctx)
 }
 
 // GetUpgradedClient executes the upgrade keeper GetUpgradeClient function.
-func (k Keeper) GetUpgradedClient(ctx sdk.Context, planHeight int64) ([]byte, bool) {
+func (k Keeper) GetUpgradedClient(ctx sdk.Context, planHeight int64) ([]byte, error) {
 	return k.upgradeKeeper.GetUpgradedClient(ctx, planHeight)
 }
 
 // GetUpgradedConsensusState returns the upgraded consensus state
-func (k Keeper) GetUpgradedConsensusState(ctx sdk.Context, planHeight int64) ([]byte, bool) {
+func (k Keeper) GetUpgradedConsensusState(ctx sdk.Context, planHeight int64) ([]byte, error) {
 	return k.upgradeKeeper.GetUpgradedConsensusState(ctx, planHeight)
 }
 
@@ -353,11 +368,11 @@ func (k Keeper) SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz 
 // IterateClientStates provides an iterator over all stored light client State
 // objects. For each State object, cb will be called. If the cb returns true,
 // the iterator will close and stop.
-func (k Keeper) IterateClientStates(ctx sdk.Context, prefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
+func (k Keeper) IterateClientStates(ctx sdk.Context, storeprefix []byte, cb func(clientID string, cs exported.ClientState) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(prefix))
+	iterator := storetypes.KVStorePrefixIterator(store, host.PrefixedClientStoreKey(storeprefix))
 
-	defer iterator.Close()
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		path := string(iterator.Key())
 		if !strings.Contains(path, host.KeyClientState) {
@@ -387,7 +402,61 @@ func (k Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 
 // ClientStore returns isolated prefix store for each client so they can read/write in separate
 // namespace without being able to read/write other client's data
-func (k Keeper) ClientStore(ctx sdk.Context, clientID string) sdk.KVStore {
+func (k Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
+}
+
+// GetClientStatus returns the status for a given clientState. If the client type is not in the allowed
+// clients param field, Unauthorized is returned, otherwise the client state status is returned.
+func (k Keeper) GetClientStatus(ctx sdk.Context, clientState exported.ClientState, clientID string) exported.Status {
+	if !k.GetParams(ctx).IsAllowedClient(clientState.ClientType()) {
+		return exported.Unauthorized
+	}
+	return clientState.Status(ctx, k.ClientStore(ctx, clientID), k.cdc)
+}
+
+// GetParams returns the total set of ibc-client parameters.
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(types.ParamsKey))
+	if bz == nil { // only panic on unset params and not on empty params
+		panic(errors.New("client params are not set in store"))
+	}
+
+	var params types.Params
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
+}
+
+// SetParams sets the total set of ibc-client parameters.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set([]byte(types.ParamsKey), bz)
+}
+
+// ScheduleIBCSoftwareUpgrade schedules an upgrade for the IBC client.
+func (k Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.Plan, upgradedClientState exported.ClientState) error {
+	// zero out any custom fields before setting
+	cs := upgradedClientState.ZeroCustomFields()
+	bz, err := types.MarshalClientState(k.cdc, cs)
+	if err != nil {
+		return errorsmod.Wrap(err, "could not marshal UpgradedClientState")
+	}
+
+	if err := k.upgradeKeeper.ScheduleUpgrade(ctx, plan); err != nil {
+		return err
+	}
+
+	// sets the new upgraded client last height committed on this chain at plan.Height,
+	// since the chain will panic at plan.Height and new chain will resume at plan.Height
+	if err = k.upgradeKeeper.SetUpgradedClient(ctx, plan.Height, bz); err != nil {
+		return err
+	}
+
+	// emitting an event for scheduling an upgrade plan
+	emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height)
+
+	return nil
 }

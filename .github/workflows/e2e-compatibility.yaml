@@ -7,13 +7,19 @@ on:
         required: true
         type: choice
         options:
-          - release/v2.5.x
-          - release/v3.4.x
-          - release/v4.2.x
-          - release/v4.3.x
+          - release/v4.4.x
+          - release/v4.5.x
           - release/v5.2.x
+          - release/v5.3.x
           - release/v6.1.x
+          - release/v6.2.x
+          - release/v7.2.x
+          - release/v7.3.x
           - main
+      ibc-go-version:
+        description: 'The version of ibc-go that is going to be released'
+        required: true
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -28,8 +34,9 @@ jobs:
       test-directory: ${{ steps.set-test-dir.outputs.test-directory }}
     steps:
       - run: |
+          # we sanitize the release branch name. Docker images cannot contain "/"
+          # characters so we replace them with a "-".
           test_dir="$(echo $RELEASE_BRANCH | sed 's/\//-/')"
-          echo $test_dir
           echo "test-directory=$test_dir" >> $GITHUB_OUTPUT
         id: set-test-dir
 
@@ -40,40 +47,39 @@ jobs:
     strategy:
       matrix:
         release-branch:
-          - release/v2.5.x
-          - release/v3.4.x
-          - release/v4.2.x
-          - release/v4.3.x
+          - release/v4.4.x
+          - release/v4.5.x
           - release/v5.2.x
+          - release/v5.3.x
           - release/v6.1.x
+          - release/v6.2.x
+          - release/v7.2.x
+          - release/v7.3.x
           - main
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: env.RELEASE_BRANCH == matrix.release-branch
         with:
           ref: "${{ matrix.release-branch }}"
           fetch-depth: 0
       - name: Log in to the Container registry
         if: env.RELEASE_BRANCH == matrix.release-branch
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Fetch Makefile dependencies
-        if: env.RELEASE_BRANCH == matrix.release-branch
-        run: |
-          mkdir -p contrib/devtools
-          curl https://raw.githubusercontent.com/cosmos/ibc-go/main/contrib/devtools/Makefile -o contrib/devtools/Makefile
-      - name: Fetch latest Dockerfile
-        if: env.RELEASE_BRANCH == matrix.release-branch
-        run: curl https://raw.githubusercontent.com/cosmos/ibc-go/main/Dockerfile -o Dockerfile
       - name: Build image
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
           docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
-          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
           docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+      - name: Display image details
+        if: env.RELEASE_BRANCH == matrix.release-branch
+        run: |
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
+          docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
 
   transfer-chain-a:
     needs:
@@ -92,6 +98,24 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "transfer-chain-b"
+
+  transfer-authz-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-authz-chain-a"
+
+  transfer-authz-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "transfer-authz-chain-b"
 
   connection-chain-a:
     needs:
@@ -156,6 +180,15 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "ica-chain-a"
 
+  ica-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-chain-b"
+
   incentivized-ica-chain-a:
     needs:
       - build-release-images
@@ -164,6 +197,15 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "incentivized-ica-chain-a"
+
+  incentivized-ica-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "incentivized-ica-chain-b"
 
   ica-groups-chain-a:
     needs:
@@ -174,6 +216,15 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "ica-groups-chain-a"
 
+  ica-groups-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-groups-chain-b"
+
   ica-gov-chain-a:
     needs:
       - build-release-images
@@ -182,3 +233,30 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "ica-gov-chain-a"
+
+  ica-gov-chain-b:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "ica-gov-chain-b"
+
+  localhost-transfer-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "localhost-transfer-chain-a"
+
+  localhost-ica-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "localhost-ica-chain-a"

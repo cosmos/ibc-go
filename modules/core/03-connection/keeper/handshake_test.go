@@ -3,22 +3,23 @@ package keeper_test
 import (
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 // TestConnOpenInit - chainA initializes (INIT state) a connection with
 // chainB which is yet UNINITIALIZED
 func (suite *KeeperTestSuite) TestConnOpenInit() {
 	var (
-		path         *ibctesting.Path
-		version      *types.Version
-		delayPeriod  uint64
-		emptyConnBID bool
+		path                 *ibctesting.Path
+		version              *types.Version
+		delayPeriod          uint64
+		emptyConnBID         bool
+		expErrorMsgSubstring string
 	)
 
 	testCases := []struct {
@@ -32,7 +33,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			emptyConnBID = true
 		}, true},
 		{"success with non empty version", func() {
-			version = types.ExportedVersionsToProto(types.GetCompatibleVersions())[0]
+			version = types.GetCompatibleVersions()[0]
 		}, true},
 		{"success with non zero delayPeriod", func() {
 			delayPeriod = uint64(time.Hour.Nanoseconds())
@@ -45,6 +46,17 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			// set path.EndpointA.ClientID to invalid client identifier
 			path.EndpointA.ClientID = "clientidentifier"
 		}, false},
+		{
+			msg:     "unauthorized client",
+			expPass: false,
+			malleate: func() {
+				expErrorMsgSubstring = "status is Unauthorized"
+				// remove client from allowed list
+				params := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				params.AllowedClients = []string{}
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -53,6 +65,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			suite.SetupTest()    // reset
 			emptyConnBID = false // must be explicitly changed
 			version = nil        // must be explicitly changed
+			expErrorMsgSubstring = ""
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
@@ -70,6 +83,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 				suite.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
 			} else {
 				suite.Require().Error(err)
+				suite.Contains(err.Error(), expErrorMsgSubstring)
 				suite.Require().Equal("", connectionID)
 			}
 		})
@@ -82,7 +96,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 	var (
 		path               *ibctesting.Path
 		delayPeriod        uint64
-		versions           []exported.Version
+		versions           []*types.Version
 		consensusHeight    exported.Height
 		counterpartyClient exported.ClientState
 	)
@@ -112,7 +126,8 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 			// commit in order for proof to return correct value
 			suite.coordinator.CommitBlock(suite.chainA)
-			path.EndpointB.UpdateClient()
+			err = path.EndpointB.UpdateClient()
+			suite.Require().NoError(err)
 
 			// retrieve client state of chainA to pass as counterpartyClient
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
@@ -166,7 +181,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
 
 			version := types.NewVersion("0.0", nil)
-			versions = []exported.Version{version}
+			versions = []*types.Version{version}
 		}, false},
 		{"connection state verification failed", func() {
 			// chainA connection not created
@@ -463,9 +478,9 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.msg, func() {
-			suite.SetupTest()                                                         // reset
-			version = types.ExportedVersionsToProto(types.GetCompatibleVersions())[0] // must be explicitly changed in malleate
-			consensusHeight = clienttypes.ZeroHeight()                                // must be explicitly changed in malleate
+			suite.SetupTest()                          // reset
+			version = types.GetCompatibleVersions()[0] // must be explicitly changed in malleate
+			consensusHeight = clienttypes.ZeroHeight() // must be explicitly changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 

@@ -4,13 +4,13 @@ import (
 	"math"
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine"
-	tendermint "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	tendermint "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *TendermintTestSuite) TestGetConsensusState() {
@@ -92,12 +92,10 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 }
 
 func (suite *TendermintTestSuite) TestGetProcessedTime() {
-	// setup
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-
 	suite.coordinator.UpdateTime()
-	// coordinator increments time before creating client
-	expectedTime := suite.chainA.CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+
+	expectedTime := suite.chainA.CurrentHeader.Time
 
 	// Verify ProcessedTime on CreateClient
 	err := path.EndpointA.CreateClient()

@@ -1,55 +1,44 @@
-package interchain_accounts
+//go:build !test_e2e
+
+package interchainaccounts
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/ibctest/v6"
-	"github.com/strangelove-ventures/ibctest/v6/chain/cosmos"
-	"github.com/strangelove-ventures/ibctest/v6/ibc"
-	test "github.com/strangelove-ventures/ibctest/v6/testutil"
-	"github.com/stretchr/testify/suite"
-	"golang.org/x/mod/semver"
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/gogo/protobuf/proto"
 
-	"github.com/cosmos/ibc-go/e2e/testconfig"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
-	suite.Run(t, new(InterchainAccountsTestSuite))
+	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }
 
 type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// getICAVersion returns the version which should be used in the MsgRegisterAccount broadcast from the
-// controller chain.
-func getICAVersion(chainAVersion, chainBVersion string) string {
-	chainBIsGreaterThanOrEqualToChainA := semver.Compare(chainAVersion, chainBVersion) <= 0
-	if chainBIsGreaterThanOrEqualToChainA {
-		// allow version to be specified by the controller chain
-		return ""
-	}
-	// explicitly set the version string because the host chain might not yet support incentivized channels.
-	return icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-}
-
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user *ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
-	txResp, err := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
-	s.Require().NoError(err)
-	s.AssertValidTxResponse(txResp)
+func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
+	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
+	s.AssertTxSuccess(txResp)
 }
 
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
@@ -64,17 +53,17 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
+	controllerAddress := controllerAccount.FormattedAddress()
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	var hostAccount string
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		// explicitly set the version string because we don't want to use incentivized channels.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -94,10 +83,10 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
 		t.Run("fund interchain account wallet", func(t *testing.T) {
-			// fund the host account account so it has some $$ to send
-			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+			// fund the host account so it has some $$ to send
+			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
@@ -107,12 +96,12 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 			// assemble bank transfer message from host account to user account on host chain
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
-				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				ToAddress:   chainBAccount.FormattedAddress(),
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
 			cdc := testsuite.Codec()
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -121,30 +110,29 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 				Memo: "e2e",
 			}
 
-			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.Bech32Address(chainA.Config().Bech32Prefix), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			resp, err := s.BroadcastMessages(
+			resp := s.BroadcastMessages(
 				ctx,
 				chainA,
 				controllerAccount,
 				msgSendTx,
 			)
 
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
+			s.AssertTxSuccess(resp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance)
+			s.Require().Equal(expected, balance.Int64())
 		})
 	})
 }
@@ -161,17 +149,17 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
+	controllerAddress := controllerAccount.FormattedAddress()
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	var hostAccount string
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		// explicitly set the version string because we don't want to use incentivized channels.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
-		txResp, err := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
-		s.Require().NoError(err)
-		s.AssertValidTxResponse(txResp)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
+		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -193,19 +181,19 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		t.Run("verify empty host wallet", func(t *testing.T) {
 			hostAccountBalance, err := chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
 			s.Require().NoError(err)
-			s.Require().Zero(hostAccountBalance)
+			s.Require().Zero(hostAccountBalance.Int64())
 		})
 
 		t.Run("broadcast MsgSendTx", func(t *testing.T) {
 			// assemble bank transfer message from host account to user account on host chain
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
-				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				ToAddress:   chainBAccount.FormattedAddress(),
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
 			cdc := testsuite.Codec()
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -216,30 +204,29 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			txResp, err := s.BroadcastMessages(
+			txResp := s.BroadcastMessages(
 				ctx,
 				chainA,
 				controllerAccount,
 				msgSendTx,
 			)
 
-			s.AssertValidTxResponse(txResp)
-			s.Require().NoError(err)
+			s.AssertTxSuccess(txResp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
 
 		t.Run("verify balance is the same", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance)
+			s.Require().Equal(expected, balance.Int64())
 		})
 	})
 }
 
-func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterReopeningICA() {
+func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReopeningICA() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -251,7 +238,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	controllerAddress := controllerAccount.Bech32Address(chainA.Config().Bech32Prefix)
+	controllerAddress := controllerAccount.FormattedAddress()
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	var (
@@ -264,7 +251,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 	t.Run("register interchain account", func(t *testing.T) {
 		var err error
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		// explicitly set the version string because we don't want to use incentivized channels.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 		portID, err = icatypes.NewControllerPortID(controllerAddress)
@@ -293,9 +281,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	t.Run("submit tx message with bank transfer message times out", func(t *testing.T) {
 		t.Run("fund interchain account wallet", func(t *testing.T) {
 			// fund the host account account so it has some $$ to send
-			err := chainB.SendFunds(ctx, ibctest.FaucetAccountKeyName, ibc.WalletAmount{
+			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
@@ -305,13 +293,13 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 			// assemble bank transfer message from host account to user account on host chain
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
-				ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+				ToAddress:   chainBAccount.FormattedAddress(),
 				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
 			cdc := testsuite.Codec()
 
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -322,15 +310,14 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(1), packetData)
 
-			resp, err := s.BroadcastMessages(
+			resp := s.BroadcastMessages(
 				ctx,
 				chainA,
 				controllerAccount,
 				msgSendTx,
 			)
 
-			s.AssertValidTxResponse(resp)
-			s.Require().NoError(err)
+			s.AssertTxSuccess(resp)
 
 			// this sleep is to allow the packet to timeout
 			time.Sleep(1 * time.Second)
@@ -349,20 +336,21 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 	})
 
 	t.Run("verify tokens not transferred", func(t *testing.T) {
-		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 	})
 
 	// re-register interchain account to reopen the channel now that it has been closed due to timeout
 	// on an ordered channel
 	t.Run("register interchain account", func(t *testing.T) {
-		version := getICAVersion(testconfig.GetChainATag(), testconfig.GetChainBTag())
+		// explicitly set the version string because we don't want to use incentivized channels.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 
@@ -380,13 +368,13 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 		// assemble bank transfer message from host account to user account on host chain
 		msgSend := &banktypes.MsgSend{
 			FromAddress: hostAccount,
-			ToAddress:   chainBAccount.Bech32Address(chainB.Config().Bech32Prefix),
+			ToAddress:   chainBAccount.FormattedAddress(),
 			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
 		cdc := testsuite.Codec()
 
-		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 		s.Require().NoError(err)
 
 		packetData := icatypes.InterchainAccountPacketData{
@@ -397,25 +385,24 @@ func (s *InterchainAccountsTestSuite) TestMsgSubmitTx_SuccessfulTransfer_AfterRe
 
 		msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(5*time.Minute), packetData)
 
-		resp, err := s.BroadcastMessages(
+		resp := s.BroadcastMessages(
 			ctx,
 			chainA,
 			controllerAccount,
 			msgSendTx,
 		)
 
-		s.AssertValidTxResponse(resp)
-		s.Require().NoError(err)
+		s.AssertTxSuccess(resp)
 
 		// time for the packet to be relayed
 		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		balance, err := chainB.GetBalance(ctx, chainBAccount.Bech32Address(chainB.Config().Bech32Prefix), chainB.Config().Denom)
+		balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-		s.Require().Equal(expected, balance)
+		s.Require().Equal(expected, balance.Int64())
 	})
 }

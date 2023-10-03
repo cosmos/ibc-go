@@ -19,7 +19,7 @@ const (
 func TestGetGithubActionMatrixForTests(t *testing.T) {
 	t.Run("empty dir does not fail", func(t *testing.T) {
 		testingDir := t.TempDir()
-		_, err := getGithubActionMatrixForTests(testingDir, "", nil)
+		_, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
 		assert.NoError(t, err)
 	})
 
@@ -27,7 +27,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 
-		gh, err := getGithubActionMatrixForTests(testingDir, "", nil)
+		gh, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
 		assert.NoError(t, err)
 
 		expected := GithubActionTestMatrix{
@@ -50,7 +50,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
 
-		gh, err := getGithubActionMatrixForTests(testingDir, "", nil)
+		gh, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
 		assert.NoError(t, err)
 
 		expected := GithubActionTestMatrix{
@@ -77,11 +77,39 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		assertGithubActionTestMatricesEqual(t, expected, gh)
 	})
 
+	t.Run("single test can be specified", func(t *testing.T) {
+		testingDir := t.TempDir()
+		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
+		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
+
+		gh, err := getGithubActionMatrixForTests(testingDir, "TestA", "TestFeeMiddlewareTestSuite", nil)
+		assert.NoError(t, err)
+
+		expected := GithubActionTestMatrix{
+			Include: []TestSuitePair{
+				{
+					EntryPoint: "TestFeeMiddlewareTestSuite",
+					Test:       "TestA",
+				},
+			},
+		}
+
+		assertGithubActionTestMatricesEqual(t, expected, gh)
+	})
+
+	t.Run("error if single test doesn't exist", func(t *testing.T) {
+		testingDir := t.TempDir()
+		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
+
+		_, err := getGithubActionMatrixForTests(testingDir, "TestThatDoesntExist", "TestFeeMiddlewareTestSuite", nil)
+		assert.Error(t, err)
+	})
+
 	t.Run("non test files are not picked up", func(t *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 
-		gh, err := getGithubActionMatrixForTests(testingDir, "", nil)
+		gh, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
 		assert.NoError(t, err)
 		assert.Empty(t, gh.Include)
 	})
@@ -102,15 +130,16 @@ func SuiteTwo(t *testing.T) {
 type FeeMiddlewareTestSuite struct {}
 `
 
-		err := os.WriteFile(path.Join(testingDir, goTestFileNameOne), []byte(fileWithTwoSuites), os.FileMode(777))
+		err := os.WriteFile(path.Join(testingDir, goTestFileNameOne), []byte(fileWithTwoSuites), os.FileMode(0o777))
 		assert.NoError(t, err)
 
-		_, err = getGithubActionMatrixForTests(testingDir, "", nil)
+		_, err = getGithubActionMatrixForTests(testingDir, "", "", nil)
 		assert.Error(t, err)
 	})
 }
 
 func assertGithubActionTestMatricesEqual(t *testing.T, expected, actual GithubActionTestMatrix) {
+	t.Helper()
 	// sort by both suite and test as the order of the end result does not matter as
 	// all tests will be run.
 	sort.SliceStable(expected.Include, func(i, j int) bool {
@@ -155,7 +184,8 @@ func helper() {}
 }
 
 func createFileWithTestSuiteAndTests(t *testing.T, suiteName, fn1Name, fn2Name, dir, filename string) {
+	t.Helper()
 	goFileContents := goTestFileContents(suiteName, fn1Name, fn2Name)
-	err := os.WriteFile(path.Join(dir, filename), []byte(goFileContents), os.FileMode(777))
+	err := os.WriteFile(path.Join(dir, filename), []byte(goFileContents), os.FileMode(0o777))
 	assert.NoError(t, err)
 }

@@ -3,13 +3,13 @@ package types
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
-	_ codectypes.UnpackInterfacesMessage = QueryConnectionClientStateResponse{}
-	_ codectypes.UnpackInterfacesMessage = QueryConnectionConsensusStateResponse{}
+	_ codectypes.UnpackInterfacesMessage = (*QueryConnectionClientStateResponse)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*QueryConnectionConsensusStateResponse)(nil)
 )
 
 // NewQueryConnectionResponse creates a new QueryConnectionResponse instance
