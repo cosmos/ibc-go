@@ -1,8 +1,10 @@
 package ibctesting
 
 import (
+	"fmt"
 	"testing"
 
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -22,4 +24,28 @@ func ApplyValSetChanges(tb testing.TB, valSet *tmtypes.ValidatorSet, valUpdates 
 	require.NoError(tb, err)
 
 	return newVals
+}
+
+// VoteAndCheckProposalStatus votes on a gov proposal, checks if the proposal has passed, and returns an error if it has not with the failure reason.
+func VoteAndCheckProposalStatus(endpoint *Endpoint, proposalID uint64) error {
+	// vote on proposal
+	ctx := endpoint.Chain.GetContext()
+	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, uint64(proposalID), endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
+
+	// fast forward the chain context to end the voting period
+	params, err := endpoint.Chain.GetSimApp().GovKeeper.Params.Get(ctx)
+	require.NoError(endpoint.Chain.TB, err)
+
+	endpoint.Chain.Coordinator.IncrementTimeBy(*params.VotingPeriod + *params.MaxDepositPeriod)
+	newHeader := endpoint.Chain.GetContext().BlockHeader()
+	ctx = ctx.WithBlockHeader(newHeader)
+	endpoint.Chain.NextBlock()
+
+	// check if proposal passed or failed on msg execution
+	p, err := endpoint.Chain.GetSimApp().GovKeeper.Proposals.Get(ctx, proposalID)
+	require.NoError(endpoint.Chain.TB, err)
+	if p.Status != govtypesv1.StatusPassed {
+		return fmt.Errorf("proposal failed: %s", p.FailedReason)
+	}
+	return nil
 }

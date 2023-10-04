@@ -9,7 +9,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -614,7 +613,7 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 	)
 	require.NoError(endpoint.Chain.TB, err)
 
-	var proposalID int
+	var proposalID uint64
 	res, err := endpoint.Chain.SendMsgs(proposal)
 	if err != nil {
 		return err
@@ -624,35 +623,13 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 	for _, event := range events {
 		for _, attribute := range event.Attributes {
 			if attribute.Key == "proposal_id" {
-				proposalID, err = strconv.Atoi(attribute.Value)
+				proposalID, err = strconv.ParseUint(string(attribute.Value), 10, 64)
 				require.NoError(endpoint.Chain.TB, err)
 			}
 		}
 	}
 
-	// vote on proposal
-	ctx := endpoint.Chain.GetContext()
-	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, uint64(proposalID), endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
-	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, uint64(proposalID), endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
-
-	// fast forward the chain context to end the voting period
-	params, err := endpoint.Chain.GetSimApp().GovKeeper.Params.Get(ctx)
-	require.NoError(endpoint.Chain.TB, err)
-
-	newHeader := endpoint.Chain.GetContext().BlockHeader()
-	newHeader.Time = endpoint.Chain.GetContext().BlockHeader().Time.Add(*params.MaxDepositPeriod).Add(*params.VotingPeriod)
-	ctx = ctx.WithBlockHeader(newHeader)
-	require.NoError(endpoint.Chain.TB, govtypes.EndBlocker(ctx, &endpoint.Chain.GetSimApp().GovKeeper))
-
-	// check if proposal passed or failed on msg execution
-	p, err := endpoint.Chain.GetSimApp().GovKeeper.Proposals.Get(ctx, 1)
-	require.NoError(endpoint.Chain.TB, err)
-	if p.Status != govtypesv1.StatusPassed {
-		return fmt.Errorf("proposal failed: %s", p.FailedReason)
-	}
-
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
-	return nil
+	return VoteAndCheckProposalStatus(endpoint, proposalID)
 }
 
 // ChanUpgradeTry sends a MsgChannelUpgradeTry on the associated endpoint.

@@ -738,7 +738,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if k.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected signer address to be the same as the authority address %s, got %s", k.GetAuthority(), msg.Signer)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
 	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
