@@ -96,9 +96,7 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestStatus() {
-	var (
-		clientState *types.ClientState
-	)
+	var clientState *types.ClientState
 
 	testCases := []struct {
 		name      string
@@ -145,7 +143,7 @@ func (suite *TypesTestSuite) TestStatus() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			endpoint := &wasmtesting.WasmEndpoint{ibctesting.NewDefaultEndpoint(suite.chainA)}
+			endpoint := &wasmtesting.WasmEndpoint{Endpoint: ibctesting.NewDefaultEndpoint(suite.chainA)}
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
