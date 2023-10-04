@@ -6,13 +6,11 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -57,13 +55,8 @@ func (m Migrator) AssertChannelCapabilityMigrations(ctx sdk.Context) error {
 // MigrateParams migrates the controller submodule's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	if m.keeper != nil {
-		legacySubpsace, ok := m.keeper.legacySubspace.(paramtypes.Subspace)
-		if !ok {
-			return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", paramtypes.Subspace{}, m.keeper.legacySubspace)
-		}
-
 		var params controllertypes.Params
-		legacySubpsace.GetParamSet(ctx, &params)
+		m.keeper.legacySubspace.GetParamSet(ctx, &params)
 
 		m.keeper.SetParams(ctx, params)
 		m.keeper.Logger(ctx).Info("successfully migrated ica/controller submodule to self-manage params")

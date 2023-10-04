@@ -7,6 +7,7 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -29,6 +30,5 @@ type UpgradeKeeper interface {
 
 // ParamSubspace defines the expected Subspace interface for module parameters.
 type ParamSubspace interface {
-	Get(ctx sdk.Context, key []byte, ptr interface{})
-	Set(ctx sdk.Context, key []byte, param interface{})
+	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
 }
