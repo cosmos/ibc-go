@@ -13,6 +13,7 @@ var _ types.WasmEngine = (*MockWasmEngine)(nil)
 
 // MockWasmEngine implements types.WasmEngine for testing purpose. One or multiple messages can be stubbed.
 // Without a stub function a panic is thrown.
+// ref: https://github.com/CosmWasm/wasmd/blob/v0.42.0/x/wasm/keeper/wasmtesting/mock_engine.go#L19
 type MockWasmEngine struct {
 	StoreCodeFn   func(codeID wasmvm.WasmCode) (wasmvm.Checksum, error)
 	InstantiateFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)

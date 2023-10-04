@@ -18,10 +18,16 @@ var (
 	contractConsensusState = []byte{2}
 )
 
+func NewWasmEndpoint(chain *ibctesting.TestChain) *WasmEndpoint {
+	return &WasmEndpoint{
+		Endpoint: ibctesting.NewDefaultEndpoint(chain),
+	}
+}
+
 // CreateClient creates an wasm client on a mock cometbft chain.
 // The client and consensus states are represented by byte slices
 // and the starting height is 1.
-func (endpoint *WasmEndpoint) CreateClient() (err error) {
+func (endpoint *WasmEndpoint) CreateClient() error {
 	clientState := types.NewClientState(contractClientState, CodeHash, clienttypes.NewHeight(0, 1))
 	consensusState := types.NewConsensusState(contractConsensusState, 0)
 

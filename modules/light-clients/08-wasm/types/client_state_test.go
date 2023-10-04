@@ -138,7 +138,7 @@ func (suite *TypesTestSuite) TestStatus() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			endpoint := &wasmtesting.WasmEndpoint{Endpoint: ibctesting.NewDefaultEndpoint(suite.chainA)}
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
