@@ -93,14 +93,17 @@ func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, 
 // - the data bytes of the response cannot be unmarshaled into the result type
 func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload sudoMsg) (T, error) {
 	var result T
+
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return result, errorsmod.Wrapf(err, "failed to marshal payload for wasm execution")
 	}
+
 	resp, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrapf(err, "call to wasm contract failed")
 	}
+
 	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
 	if len(resp.Messages) > 0 {
 		return result, errorsmod.Wrapf(ErrWasmSubMessagesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
@@ -111,11 +114,9 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 	if len(resp.Attributes) > 0 {
 		return result, errorsmod.Wrapf(ErrWasmAttributesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
 	}
+
 	if err := json.Unmarshal(resp.Data, &result); err != nil {
 		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm execution")
-	}
-	if !result.Validate() {
-		return result, errorsmod.Wrapf(errors.New(result.Error()), "error occurred while executing contract with code hash %s", hex.EncodeToString(cs.CodeHash))
 	}
 	return result, nil
 }
@@ -127,19 +128,19 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 // - the data bytes of the response cannot be unmarshal into the result type
 func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload queryMsg) (T, error) {
 	var result T
+
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return result, errorsmod.Wrapf(err, "failed to marshal payload for wasm query")
 	}
+
 	resp, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrapf(err, "query to wasm contract failed")
 	}
+
 	if err := json.Unmarshal(resp, &result); err != nil {
 		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm query")
-	}
-	if !result.Validate() {
-		return result, errorsmod.Wrapf(errors.New(result.Error()), "error occurred while querying contract with code hash %s", hex.EncodeToString(cs.CodeHash))
 	}
 	return result, nil
 }

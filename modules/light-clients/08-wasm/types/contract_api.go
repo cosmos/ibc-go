@@ -97,56 +97,37 @@ type verifyUpgradeAndUpdateStateMsg struct {
 // checkSubstituteAndUpdateStateMsg is a sudoMsg sent to the contract to check a given substitute client and update to its state.
 type checkSubstituteAndUpdateStateMsg struct{}
 
-// ContractResult defines the expected interface a Result returned by a contract call is expected to implement.
+// ContractResult is a type constraint that defines the expected results that can be returned by a contract call/query.
 type ContractResult interface {
-	Validate() bool
-	Error() string
+	emptyResult | statusResult | exportMetadataResult | timestampAtHeightResult | checkForMisbehaviourResult | updateStateResult
 }
 
-// contractResult is the default implementation of the ContractResult interface and the default return type of any contract call
-// that does not require a custom return type.
-type contractResult struct {
-	IsValid  bool   `json:"is_valid,omitempty"`
-	ErrorMsg string `json:"error_msg,omitempty"`
-	Data     []byte `json:"data,omitempty"`
-}
-
-func (r contractResult) Validate() bool {
-	return r.IsValid
-}
-
-func (r contractResult) Error() string {
-	return r.ErrorMsg
-}
+// emptyResult is the default return type of any contract call that does not require a custom return type.
+type emptyResult struct{}
 
 // statusResult is the expected return type of the statusMsg query. It returns the status of the wasm client.
 type statusResult struct {
-	contractResult
 	Status exported.Status `json:"status"`
 }
 
 // exportMetadataResult is the expected return type of the exportMetadataMsg query. It returns the exported metadata of the wasm client.
 type exportMetadataResult struct {
-	contractResult
-	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
+	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
 }
 
 // timestampAtHeightResult is the expected return type of the timestampAtHeightMsg query. It returns the timestamp for a light client
 // at a given height.
 type timestampAtHeightResult struct {
-	contractResult
 	Timestamp uint64 `json:"timestamp"`
 }
 
 // checkForMisbehaviourResult is the expected return type of the checkForMisbehaviourMsg query. It returns a boolean indicating
 // if misbehaviour was detected.
 type checkForMisbehaviourResult struct {
-	contractResult
 	FoundMisbehaviour bool `json:"found_misbehaviour"`
 }
 
 // updateStateResult is the expected return type of the updateStateMsg sudo call. It returns the updated consensus heights.
 type updateStateResult struct {
-	contractResult
 	Heights []clienttypes.Height `json:"heights"`
 }

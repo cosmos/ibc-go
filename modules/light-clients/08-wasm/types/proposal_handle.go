@@ -40,6 +40,6 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		CheckSubstituteAndUpdateState: &checkSubstituteAndUpdateStateMsg{},
 	}
 
-	_, err := wasmCall[contractResult](ctx, store, &cs, payload)
+	_, err := wasmCall[emptyResult](ctx, store, &cs, payload)
 	return err
 }

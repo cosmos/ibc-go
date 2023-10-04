@@ -27,15 +27,11 @@ var (
 	_ module.AppModule           = (*AppModule)(nil)
 	_ module.AppModuleBasic      = (*AppModule)(nil)
 	_ module.HasProposalMsgs     = (*AppModule)(nil)
-	_ appmodule.AppModule        = (*AppModule)(nil)
 	_ module.HasGenesis          = (*AppModule)(nil)
 	_ module.HasName             = (*AppModule)(nil)
 	_ module.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasServices         = (*AppModule)(nil)
-	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
-	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
-	_ appmodule.HasEndBlocker    = (*AppModule)(nil)
 )
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
@@ -139,14 +135,4 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.Ra
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := am.keeper.ExportGenesis(ctx)
 	return cdc.MustMarshalJSON(&gs)
-}
-
-// BeginBlock implements the AppModule interface
-func (AppModule) BeginBlock(context.Context) error {
-	return nil
-}
-
-// EndBlock implements the AppModule interface
-func (AppModule) EndBlock(context.Context) error {
-	return nil
 }

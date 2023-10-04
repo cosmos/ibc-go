@@ -52,6 +52,6 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		},
 	}
 
-	_, err := wasmCall[contractResult](ctx, clientStore, &cs, payload)
+	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
 	return err
 }

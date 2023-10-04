@@ -296,7 +296,7 @@ func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is
 
 	for i, tc := range cases {
 		tc := tc
-		cs, err := suite.keeper.GetSelfConsensusState(suite.ctx, tc.height, exported.Tendermint)
+		cs, err := suite.keeper.GetSelfConsensusState(suite.ctx, tc.height)
 		if tc.expPass {
 			suite.Require().NoError(err, "Case %d should have passed: %s", i, tc.name)
 			suite.Require().NotNil(cs, "Case %d should have passed: %s", i, tc.name)
