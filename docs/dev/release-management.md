@@ -69,13 +69,18 @@ Additionally, for the first point release of a new major or minor release branch
 - Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](../../RELEASES.md): add the new release line and remove any release lines that might have become discontinued.
 - Update the [list of supported release lines in README.md](../../RELEASES.md#releases), if necessary.
 - Update the [e2e compatibility test matrices](https://github.com/cosmos/ibc-go/tree/main/.github/compatibility-test-matrices): add the tag for the new release and remove any tags that might not be recommended anymore.
-- Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) and [e2e `icad`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-icad.yaml) test workflows:
-  - Add the new release and the new `icad` tag.
-  - Remove any tags that might not be recommended anymore.
+- Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
+    - Remove any tags that might not be recommended anymore.
+
 - Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
-- Open a PR to `main` updating the docs site:
-  - Add new release branch to [`docs/versions`](../versions) file.
-  - Add `label` and `key` to `versions` array in [`config.js`](https://github.com/cosmos/ibc-go/blob/main/docs/.vuepress/config.js#L33).
+- [ ] Update docs site:
+    - [ ] If the release is occurring on the main branch, on the latest version, then run `npm run docusaurus docs:version vX.Y.Z` in the `docs/` directory. (where `X.Y.Z` is the new version number)
+    - [ ] If the release is occurring on an older release branch, then make a PR to the main branch called `docs: new release vX.Y.Z` doing the following:
+        - [ ] Update the content of the docs found in `docs/versioned_docs/version-vx.y.z` if needed. (where `x.y.z` is the previous version number)
+        - [ ] Update the version number of the older release branch by changing the version number of the older release branch in:
+            - [ ] In `docs/versions.json`.
+            - [ ] Rename `docs/versioned_sidebars/version-vx.y.z-sidebars.json`
+            - [ ] Rename `docs/versioned_docs/version-vx.y.z`
 - After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
 - Open issue in [SDK tutorials repo](https://github.com/cosmos/sdk-tutorials) to update tutorials to the released version of ibc-go.
 

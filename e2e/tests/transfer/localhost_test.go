@@ -1,20 +1,22 @@
+//go:build !test_e2e
+
 package transfer
 
 import (
 	"context"
 	"testing"
 
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestTransferLocalhostTestSuite(t *testing.T) {
@@ -49,6 +51,18 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
+
+	t.Run("verify begin blocker was executed", func(t *testing.T) {
+		cs, err := s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
+		s.Require().NoError(err)
+		originalHeight := cs.GetLatestHeight()
+
+		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
+
+		cs, err = s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
+		s.Require().NoError(err)
+		s.Require().True(cs.GetLatestHeight().GT(originalHeight), "client state height was not incremented")
+	})
 
 	t.Run("channel open init localhost", func(t *testing.T) {
 		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(

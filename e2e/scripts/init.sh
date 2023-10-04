@@ -2,6 +2,13 @@
 
 set -euo pipefail
 
+# TODO: when we are using config files for CI we can remove this.
+# ref: https://github.com/cosmos/ibc-go/issues/4697
+# if running in CI we just use env vars.
+if [[ "${CI:-}" = "true" ]]; then
+  exit 0
+fi
+
 # ensure_config_file makes sure there is a config file for the e2e tests either by creating a new one using the sample,
 # it is copied to either the default location or the specified env location.
 function ensure_config_file(){
