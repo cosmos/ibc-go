@@ -25,6 +25,6 @@
     "TestReceiveEnabledParam"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }

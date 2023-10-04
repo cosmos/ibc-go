@@ -17,6 +17,6 @@
     "TestInterchainAccountsGroupsIntegration"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }

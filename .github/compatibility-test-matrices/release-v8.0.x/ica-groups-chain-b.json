@@ -5,21 +5,18 @@
     "v7.2.0",
     "v6.2.0",
     "v6.1.1",
-    "v5.3.1",
-    "v5.2.1",
-    "v4.4.2",
-    "release-v6.2.x"
+    "release-v8.0.x"
   ],
   "chain-b": [
-    "release-v6.2.x"
+    "release-v8.0.x"
   ],
   "entrypoint": [
-    "TestConnectionTestSuite"
+    "TestInterchainAccountsGroupsTestSuite"
   ],
   "test": [
-    "TestMaxExpectedTimePerBlockParam"
+    "TestInterchainAccountsGroupsIntegration"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }
