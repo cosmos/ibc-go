@@ -74,40 +74,6 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
 }
 
-// // SetupWasmTendermint sets up 2 chains and stores the tendermint/cometbft light client wasm contract on both.
-// func (suite *TypesTestSuite) SetupWasmTendermint() {
-// 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-// 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-// 	suite.chainA.SetWasm(true)
-// 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-// 	suite.chainB.SetWasm(true)
-
-// 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-// 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-// 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
-
-// 	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
-// 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
-
-// 	wasmContract, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
-// 	suite.Require().NoError(err)
-
-// 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-// 	response, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
-// 	suite.Require().NoError(err)
-// 	suite.Require().NotNil(response.Checksum)
-// 	suite.codeHash = response.Checksum
-
-// 	response, err = GetSimApp(suite.chainB).WasmClientKeeper.StoreCode(suite.chainB.GetContext(), msg)
-// 	suite.Require().NoError(err)
-// 	suite.Require().NotNil(response.Checksum)
-// 	suite.codeHash = response.Checksum
-
-// 	suite.coordinator.SetCodeHash(suite.codeHash)
-// 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-// 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
-// }
-
 // SetupWasmGrandpa sets up 1 chain and stores the grandpa light client wasm contract on chain.
 func (suite *TypesTestSuite) SetupWasmGrandpa() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
