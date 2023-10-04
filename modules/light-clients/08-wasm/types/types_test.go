@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -32,25 +31,24 @@ import (
 )
 
 const (
-	tmClientID                    = "07-tendermint-0"
-	grandpaClientID               = "08-wasm-0"
-	codeHash                      = "01234567012345670123456701234567" // TODO: remove in favour of wasmtesting.CodeHash
-	trustingPeriod  time.Duration = time.Hour * 24 * 7 * 2
-	ubdPeriod       time.Duration = time.Hour * 24 * 7 * 3
-	maxClockDrift   time.Duration = time.Second * 10
+	tmClientID      = "07-tendermint-0"
+	grandpaClientID = "08-wasm-0"
+	codeHash        = "01234567012345670123456701234567" // TODO: remove in favour of wasmtesting.CodeHash
+	// trustingPeriod  time.Duration = time.Hour * 24 * 7 * 2
+	// ubdPeriod       time.Duration = time.Hour * 24 * 7 * 3
+	// maxClockDrift   time.Duration = time.Second * 10
 )
 
-var (
-	height          = clienttypes.NewHeight(0, 4)
-	newClientHeight = clienttypes.NewHeight(1, 1)
-	upgradePath     = []string{"upgrade", "upgradedIBCState"}
-)
+// var (
+// 	height          = clienttypes.NewHeight(0, 4)
+// 	newClientHeight = clienttypes.NewHeight(1, 1)
+// 	upgradePath     = []string{"upgrade", "upgradedIBCState"}
+// )
 
 type TypesTestSuite struct {
 	testifysuite.Suite
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
-	chainB      *ibctesting.TestChain
 	mockVM      *wasmtesting.MockWasmEngine
 
 	ctx      sdk.Context
@@ -59,9 +57,9 @@ type TypesTestSuite struct {
 	testData map[string]string
 }
 
-func init() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
-}
+// func init() {
+// 	ibctesting.DefaultTestingAppInit = setupTestingApp
+// }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
 // This must be used instead of chain.GetSimApp() for tests within this directory.
@@ -98,7 +96,7 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 		suite.Require().NoError(err)
 
 		store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState))
-		store.Set(host.ConsensusStateKey(height), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), payload.ConsensusState))
+		store.Set(host.ConsensusStateKey(clienttypes.NewHeight(0, 1)), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), payload.ConsensusState))
 		return nil, 0, nil
 	}
 
@@ -111,40 +109,6 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 	encCdc := simapp.MakeTestEncodingConfig()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, suite.mockVM)
 	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
-}
-
-// SetupWasmTendermint sets up 2 chains and stores the tendermint/cometbft light client wasm contract on both.
-func (suite *TypesTestSuite) SetupWasmTendermint() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainA.SetWasm(true)
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.chainB.SetWasm(true)
-
-	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
-
-	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
-	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
-
-	wasmContract, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
-	suite.Require().NoError(err)
-
-	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-	response, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(response.Checksum)
-	suite.codeHash = response.Checksum
-
-	response, err = GetSimApp(suite.chainB).WasmClientKeeper.StoreCode(suite.chainB.GetContext(), msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(response.Checksum)
-	suite.codeHash = response.Checksum
-
-	suite.coordinator.SetCodeHash(suite.codeHash)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
 
 // SetupWasmGrandpa sets up 1 chain and stores the grandpa light client wasm contract on chain.
@@ -215,8 +179,4 @@ func (suite *TypesTestSuite) SetupWasmGrandpaWithChannel() {
 
 func TestWasmTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TypesTestSuite))
-}
-
-func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) map[string]tmtypes.PrivValidator {
-	return map[string]tmtypes.PrivValidator{altVal.Address.String(): altPrivVal}
 }
