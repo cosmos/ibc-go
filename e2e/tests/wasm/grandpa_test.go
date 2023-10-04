@@ -11,18 +11,18 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/icza/dyno"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/polkadot"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/polkadot"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/relayer"
+	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 func TestGrandpaTestSuite(t *testing.T) {
@@ -102,8 +102,8 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 
 	ctx := context.Background()
 
-	nv := 5 // Number of validators
-	nf := 3 // Number of full nodes
+	nv := 1 // Number of validators
+	nf := 1 // Number of full nodes
 
 	consensusOverrides := make(testutil.Toml)
 	blockTime := 5 // seconds, parachain is 12 second blocks, don't make relayer work harder than needed
@@ -134,7 +134,7 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 					{
 						Repository: "chatton/parachain-node",
 						Version:    "v39",
-						UidGid:     "1000:1000",
+						UidGid:     "0:0",
 					},
 				},
 				Bin:            "polkadot",
@@ -168,11 +168,9 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 				GasAdjustment:  1.3,
 				TrustingPeriod: "504h",
 				CoinType:       "118",
-				//EncodingConfig: WasmClientEncoding(),
 				NoHostMount:         true,
 				ConfigFileOverrides: configFileOverrides,
 				ModifyGenesis:       modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
-				UsingNewGenesisCommand: true,
 			},
 		},
 	})
@@ -210,7 +208,7 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 		TestName:          t.Name(),
 		Client:            client,
 		NetworkID:         network,
-		BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
+		//BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
 		SkipPathCreation:  true, // Skip path creation, so we can have granular control over the process
 	}))
 	fmt.Println("Interchain built")

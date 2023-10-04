@@ -34,6 +34,8 @@ coverage.txt
 profile.out
 sim_log_file
 e2e/diagnostics
+e2e/dev-configs
+
 
 # Vagrant
 .vagrant/
@@ -65,3 +67,6 @@ go.work.sum
 
 # E2E WASM contract
 !ics10_grandpa_cw.wasm
+
+# Python
+venv

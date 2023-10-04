@@ -7,23 +7,22 @@ import (
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
-	"github.com/cosmos/cosmos-sdk/store/cachekv"
-	"github.com/cosmos/cosmos-sdk/store/listenkv"
-	"github.com/cosmos/cosmos-sdk/store/tracekv"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/store/cachekv"
+	"cosmossdk.io/store/listenkv"
+	"cosmossdk.io/store/tracekv"
+	storetypes "cosmossdk.io/store/types"
 )
 
 // updateProposalWrappedStore combines two KVStores into one while transparently routing the calls based on key prefix
 type updateProposalWrappedStore struct {
-	subjectStore    sdk.KVStore
-	substituteStore sdk.KVStore
+	subjectStore    storetypes.KVStore
+	substituteStore storetypes.KVStore
 
 	subjectPrefix    []byte
 	substitutePrefix []byte
 }
 
-func newUpdateProposalWrappedStore(subjectStore, substituteStore sdk.KVStore, subjectPrefix, substitutePrefix []byte) updateProposalWrappedStore {
+func newUpdateProposalWrappedStore(subjectStore, substituteStore storetypes.KVStore, subjectPrefix, substitutePrefix []byte) updateProposalWrappedStore {
 	return updateProposalWrappedStore{
 		subjectStore:     subjectStore,
 		substituteStore:  substituteStore,
@@ -52,11 +51,11 @@ func (ws updateProposalWrappedStore) GetStoreType() storetypes.StoreType {
 	return ws.subjectStore.GetStoreType()
 }
 
-func (ws updateProposalWrappedStore) Iterator(start, end []byte) sdk.Iterator {
+func (ws updateProposalWrappedStore) Iterator(start, end []byte) storetypes.Iterator {
 	return ws.getStore(start).Iterator(ws.trimPrefix(start), ws.trimPrefix(end))
 }
 
-func (ws updateProposalWrappedStore) ReverseIterator(start, end []byte) sdk.Iterator {
+func (ws updateProposalWrappedStore) ReverseIterator(start, end []byte) storetypes.Iterator {
 	return ws.getStore(start).ReverseIterator(ws.trimPrefix(start), ws.trimPrefix(end))
 }
 
@@ -68,7 +67,7 @@ func (ws updateProposalWrappedStore) CacheWrapWithTrace(w io.Writer, tc storetyp
 	return cachekv.NewStore(tracekv.NewStore(ws, w, tc))
 }
 
-func (ws updateProposalWrappedStore) CacheWrapWithListeners(storeKey storetypes.StoreKey, listeners []storetypes.WriteListener) storetypes.CacheWrap {
+func (ws updateProposalWrappedStore) CacheWrapWithListeners(storeKey storetypes.StoreKey, listeners *storetypes.MemoryListener) storetypes.CacheWrap {
 	return cachekv.NewStore(listenkv.NewStore(ws, storeKey, listeners))
 }
 
@@ -82,7 +81,7 @@ func (ws updateProposalWrappedStore) trimPrefix(key []byte) []byte {
 	return key
 }
 
-func (ws updateProposalWrappedStore) getStore(key []byte) sdk.KVStore {
+func (ws updateProposalWrappedStore) getStore(key []byte) storetypes.KVStore {
 	if bytes.HasPrefix(key, ws.subjectPrefix) {
 		return ws.subjectStore
 	}
@@ -94,11 +93,11 @@ var _ wasmvmtypes.KVStore = &storeAdapter{}
 
 // storeAdapter adapter to bridge SDK store impl to wasmvm
 type storeAdapter struct {
-	parent sdk.KVStore
+	parent storetypes.KVStore
 }
 
 // newStoreAdapter constructor
-func newStoreAdapter(s sdk.KVStore) *storeAdapter {
+func newStoreAdapter(s storetypes.KVStore) *storeAdapter {
 	if s == nil {
 		panic(errors.New("store must not be nil"))
 	}

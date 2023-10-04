@@ -11,7 +11,7 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 )
 
 var (
@@ -125,6 +125,8 @@ func TestPacketFeeValidation(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 		packetFee = types.NewPacketFee(fee, defaultAccAddress, nil)
 

@@ -7,16 +7,16 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 // Endpoint is a which represents a channel endpoint and its associated
@@ -82,7 +82,7 @@ func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte,
 // NOTE: a solo machine client will be created with an empty diversifier.
 func (endpoint *Endpoint) CreateClient() (err error) {
 	// ensure counterparty has committed state
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
+	endpoint.Counterparty.Chain.NextBlock()
 
 	var (
 		clientState    exported.ClientState
@@ -104,26 +104,6 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		//		solo := NewSolomachine(endpoint.Chain.TB, endpoint.Chain.Codec, clientID, "", 1)
 		//		clientState = solo.ClientState()
 		//		consensusState = solo.ConsensusState()
-	case exported.Wasm:
-		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
-		require.True(endpoint.Chain.TB, ok)
-
-		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
-		tmClientState := ibctm.NewClientState(
-			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
-		tmConsensusState := endpoint.Counterparty.Chain.LastHeader.ConsensusState()
-		wasmClientState, err := endpoint.Chain.Codec.MarshalInterface(tmClientState)
-		if err != nil {
-			return err
-		}
-		clientState = wasmtypes.NewClientState(wasmClientState, endpoint.Chain.Coordinator.CodeHash, height)
-
-		wasmConsensusState, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
-		if err != nil {
-			return err
-		}
-		consensusState = wasmtypes.NewConsensusState(wasmConsensusState, tmConsensusState.GetTimestamp())
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -158,8 +138,6 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
 		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
-	case exported.Wasm:
-		header, _, err = endpoint.Chain.ConstructUpdateWasmClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -188,13 +166,6 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	}
 
 	clientState := endpoint.Counterparty.GetClientState()
-
-	var wasmClientState *wasmtypes.ClientState
-	if endpoint.ClientConfig.GetClientType() == exported.Wasm {
-		wasmClientState = clientState.(*wasmtypes.ClientState)
-		err := endpoint.Chain.Codec.UnmarshalInterface(wasmClientState.Data, &clientState)
-		require.NoError(endpoint.Chain.TB, err)
-	}
 	tmClientState := clientState.(*ibctm.ClientState)
 
 	// increment revision number in chainID
@@ -219,13 +190,6 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	tmClientState.ChainId = newChainID
 	tmClientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, tmClientState.LatestHeight.GetRevisionHeight()+1)
 
-	if endpoint.ClientConfig.GetClientType() == exported.Wasm {
-		wasmData, err := endpoint.Chain.Codec.MarshalInterface(tmClientState)
-		require.NoError(endpoint.Chain.TB, err)
-		wasmClientState.Data = wasmData
-		wasmClientState.LatestHeight = tmClientState.LatestHeight
-		clientState = wasmClientState
-	}
 	endpoint.Counterparty.SetClientState(clientState)
 
 	tmConsensusState := &ibctm.ConsensusState{
@@ -233,16 +197,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LastHeader.Header.GetAppHash()),
 		NextValidatorsHash: endpoint.Chain.LastHeader.Header.NextValidatorsHash,
 	}
-	var consensusState exported.ConsensusState
-	consensusState = tmConsensusState
-	if endpoint.ClientConfig.GetClientType() == exported.Wasm {
-		wasmData, err := endpoint.Chain.Codec.MarshalInterface(tmConsensusState)
-		require.NoError(endpoint.Chain.TB, err)
-		consensusState = &wasmtypes.ConsensusState{
-			Data: wasmData,
-		}
-	}
-	endpoint.Counterparty.SetConsensusState(consensusState, clientState.GetLatestHeight())
+	endpoint.Counterparty.SetConsensusState(tmConsensusState, clientState.GetLatestHeight())
 
 	// ensure the next update isn't identical to the one set in state
 	endpoint.Chain.Coordinator.IncrementTime()
@@ -506,7 +461,7 @@ func (endpoint *Endpoint) RecvPacket(packet channeltypes.Packet) error {
 
 // RecvPacketWithResult receives a packet on the associated endpoint and the result
 // of the transaction is returned. The counterparty client is updated.
-func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*sdk.Result, error) {
+func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*abci.ExecTxResult, error) {
 	// get proof of packet commitment on source
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)

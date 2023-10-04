@@ -9,9 +9,9 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestValidateDefaultGenesis(t *testing.T) {
@@ -133,6 +133,8 @@ func TestValidateGenesis(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		genState = &types.GenesisState{
 			IdentifiedFees: []types.IdentifiedPacketFees{
 				{

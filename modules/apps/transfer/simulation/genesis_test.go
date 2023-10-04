@@ -15,8 +15,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.
@@ -59,21 +59,30 @@ func TestRandomizedGenState1(t *testing.T) {
 	r := rand.New(s)
 	// all these tests will panic
 	tests := []struct {
+		name     string
 		simState module.SimulationState
 		panicMsg string
 	}{
 		{ // panic => reason: incomplete initialization of the simState
-			module.SimulationState{}, "invalid memory address or nil pointer dereference"},
+			"nil pointer dereference",
+			module.SimulationState{},
+			"invalid memory address or nil pointer dereference",
+		},
 		{ // panic => reason: incomplete initialization of the simState
+			"assignment to entry in nil map",
 			module.SimulationState{
 				AppParams: make(simtypes.AppParams),
 				Cdc:       cdc,
 				Rand:      r,
-			}, "assignment to entry in nil map"},
+			},
+			"assignment to entry in nil map",
+		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		require.Panicsf(t, func() { simulation.RandomizedGenState(&tt.simState) }, tt.panicMsg)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			require.Panicsf(t, func() { simulation.RandomizedGenState(&tc.simState) }, tc.panicMsg)
+		})
 	}
 }
