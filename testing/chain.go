@@ -79,8 +79,6 @@ type TestChain struct {
 
 	SenderAccounts []SenderAccount
 
-	// Use wasm client if true
-	UseWasmClient bool
 	// Short-term solution to override the logic of the standard SendMsgs function.
 	// See issue https://github.com/cosmos/ibc-go/issues/3123 for more information.
 	SendMsgsOverride func(msgs ...sdk.Msg) (*sdk.Result, error)
@@ -158,7 +156,6 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		SenderPrivKey:  senderAccs[0].SenderPrivKey,
 		SenderAccount:  senderAccs[0].SenderAccount,
 		SenderAccounts: senderAccs,
-		UseWasmClient:  false,
 	}
 
 	coord.CommitBlock(chain)
@@ -191,12 +188,6 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	valSet := cmttypes.NewValidatorSet(validators)
 
 	return NewTestChainWithValSet(t, coord, chainID, valSet, signersByAddress)
-}
-
-// SetWasm
-func (chain *TestChain) SetWasm(wasm bool) *TestChain {
-	chain.UseWasmClient = wasm
-	return chain
 }
 
 // GetContext returns the current context for the application.

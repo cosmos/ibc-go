@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -113,22 +112,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			},
 			false,
 			fmt.Errorf("wasm VM must be not nil"),
-		},
-		{
-			"failure: different VM instances",
-			func() {
-				vm, err := wasmvm.NewVM("", "", 16, true, 64)
-				suite.Require().NoError(err)
-
-				keeper.NewKeeperWithVM(
-					GetSimApp(suite.chainA).AppCodec(),
-					GetSimApp(suite.chainA).GetKey(types.StoreKey),
-					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					vm,
-				)
-			},
-			false,
-			fmt.Errorf("global Wasm VM instance should not be set to a different instance"),
 		},
 	}
 

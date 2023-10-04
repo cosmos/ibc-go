@@ -12,9 +12,8 @@ type WasmEndpoint struct {
 	*ibctesting.Endpoint
 }
 
-const CodeHash = "01234567012345670123456701234567"
-
 var (
+	CodeHash               = []byte("01234567012345670123456701234567")
 	contractClientState    = []byte{1}
 	contractConsensusState = []byte{2}
 )
@@ -23,7 +22,7 @@ var (
 // The client and consensus states are represented by byte slices
 // and the starting height is 1.
 func (endpoint *WasmEndpoint) CreateClient() (err error) {
-	clientState := types.NewClientState(contractClientState, []byte(CodeHash), clienttypes.NewHeight(0, 1))
+	clientState := types.NewClientState(contractClientState, CodeHash, clienttypes.NewHeight(0, 1))
 	consensusState := types.NewConsensusState(contractConsensusState, 0)
 
 	msg, err := clienttypes.NewMsgCreateClient(

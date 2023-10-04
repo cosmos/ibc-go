@@ -34,16 +34,7 @@ const (
 	tmClientID      = "07-tendermint-0"
 	grandpaClientID = "08-wasm-0"
 	codeHash        = "01234567012345670123456701234567" // TODO: remove in favour of wasmtesting.CodeHash
-	// trustingPeriod  time.Duration = time.Hour * 24 * 7 * 2
-	// ubdPeriod       time.Duration = time.Hour * 24 * 7 * 3
-	// maxClockDrift   time.Duration = time.Second * 10
 )
-
-// var (
-// 	height          = clienttypes.NewHeight(0, 4)
-// 	newClientHeight = clienttypes.NewHeight(1, 1)
-// 	upgradePath     = []string{"upgrade", "upgradedIBCState"}
-// )
 
 type TypesTestSuite struct {
 	testifysuite.Suite
@@ -96,7 +87,7 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 		suite.Require().NoError(err)
 
 		store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState))
-		store.Set(host.ConsensusStateKey(clienttypes.NewHeight(0, 1)), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), payload.ConsensusState))
+		store.Set(host.ConsensusStateKey(payload.ClientState.LatestHeight), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), payload.ConsensusState))
 		return nil, 0, nil
 	}
 

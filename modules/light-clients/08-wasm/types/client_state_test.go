@@ -93,8 +93,6 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestStatus() {
-	var clientState *types.ClientState
-
 	testCases := []struct {
 		name      string
 		malleate  func()
@@ -144,10 +142,10 @@ func (suite *TypesTestSuite) TestStatus() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState = endpoint.GetClientState().(*types.ClientState)
-
 			tc.malleate()
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState := endpoint.GetClientState()
 
 			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 			suite.Require().Equal(tc.expStatus, status)
