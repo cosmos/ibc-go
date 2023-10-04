@@ -50,9 +50,9 @@ type TypesTestSuite struct {
 	testData map[string]string
 }
 
-// func init() {
-// 	ibctesting.DefaultTestingAppInit = setupTestingApp
-// }
+func init() {
+	ibctesting.DefaultTestingAppInit = setupTestingApp
+}
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
 // This must be used instead of chain.GetSimApp() for tests within this directory.
