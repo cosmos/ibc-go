@@ -20,6 +20,8 @@ var (
 	contractConsensusState = []byte{2}
 )
 
+// NewWasmEndpoint returns a wasm endpoint with the default ibctesting pkg
+// Endpoint embedded.
 func NewWasmEndpoint(chain *ibctesting.TestChain) *WasmEndpoint {
 	return &WasmEndpoint{
 		Endpoint: ibctesting.NewDefaultEndpoint(chain),
