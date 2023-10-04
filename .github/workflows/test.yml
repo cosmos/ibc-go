@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-arch: ['amd64', 'arm64']
+        go-arch: ['amd64', 'arm', 'arm64']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
@@ -49,22 +49,15 @@ jobs:
             **/**.go
             go.mod
             go.sum
-      # Install cross compiler for ARM64. Export CC env variable.
-      - name: Install compiler for arm64.
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-          echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-        if: matrix.go-arch == 'arm64'
       - name: Build ibc-go
-        run: GOARCH=${{ matrix.go-arch }} CGO_ENABLED=1 LEDGER_ENABLED=false make build
+        run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
       - name: Build e2e
         run: |
           cd e2e
           find ./tests -type d | while IFS= read -r dir
           do
               if ls "${dir}"/*.go >/dev/null 2>&1; then
-                  GOARCH=${{ matrix.go-arch }} CGO_ENABLED=1 go test -c "$dir"
+                  GOARCH=${{ matrix.go-arch }} go test -c "$dir"
               fi
           done
 
