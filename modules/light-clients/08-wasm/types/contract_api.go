@@ -14,6 +14,7 @@ type instantiateMessage struct {
 // queryMsg is used to encode messages that are sent to the contract's query entry point.
 // The json omitempty tag is mandatory since it omits any empty (default initialized) fields from the encoded JSON,
 // this is required in order to be compatible with Rust's enum matching as used in the contract.
+// Only one field should be set at a time.
 type queryMsg struct {
 	Status               *statusMsg               `json:"status,omitempty"`
 	ExportMetadata       *exportMetadataMsg       `json:"export_metadata,omitempty"`
@@ -67,6 +68,7 @@ type checkForMisbehaviourMsg struct {
 // sudoMsg is used to encode messages that are sent to the contract's sudo entry point.
 // The json omitempty tag is mandatory since it omits any empty (default initialized) fields from the encoded JSON,
 // this is required in order to be compatible with Rust's enum matching as used in the contract.
+// Only one field should be set at a time.
 type sudoMsg struct {
 	UpdateState                   *updateStateMsg                   `json:"update_state,omitempty"`
 	UpdateStateOnMisbehaviour     *updateStateOnMisbehaviourMsg     `json:"update_state_on_misbehaviour,omitempty"`

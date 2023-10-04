@@ -27,7 +27,7 @@ type Keeper struct {
 
 	storeKey  storetypes.StoreKey
 	cdc       codec.BinaryCodec
-	wasmVM    *wasmvm.VM
+	wasmVM    types.WasmEngine
 	authority string
 }
 
@@ -38,7 +38,7 @@ func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
 	authority string,
-	vm *wasmvm.VM,
+	vm types.WasmEngine,
 ) Keeper {
 	if vm == nil {
 		panic(errors.New("wasm VM must be not nil"))

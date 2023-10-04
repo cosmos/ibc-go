@@ -16,15 +16,15 @@ import (
 )
 
 var (
-	WasmVM        *wasmvm.VM
-	VMGasRegister = NewDefaultWasmGasRegister()
+	WasmVM WasmEngine
 	// storeKeyMap stores the storeKey for the 08-wasm module. Using a single global storetypes.StoreKey fails in the context
 	// of tests with multiple test chains utilized. As such, we utilize a workaround involving a mapping from the chains codec
 	// to the storeKey which can be used to store a key per test chain.
 	// This is required as a global so that the KV store can be retrieved in the ClientState Initialize function which doesn't
 	// have access to the keeper. The storeKey is used to check the code hash of the contract and determine if the light client
 	// is allowed to be instantiated.
-	storeKeyMap = make(map[codec.BinaryCodec]storetypes.StoreKey)
+	storeKeyMap   = make(map[codec.BinaryCodec]storetypes.StoreKey)
+	VMGasRegister = NewDefaultWasmGasRegister()
 )
 
 // SetWasmStoreKey sets the store key for the 08-wasm module keyed by the chain's codec.
@@ -167,11 +167,11 @@ func getEnv(ctx sdk.Context) wasmvmtypes.Env {
 
 	// safety checks before casting below
 	if height < 0 {
-		panic("Block height must never be negative")
+		panic(errors.New("block height must never be negative"))
 	}
 	nsec := ctx.BlockTime().UnixNano()
 	if nsec < 0 {
-		panic("Block (unix) time must never be negative ")
+		panic(errors.New("block (unix) time must never be negative "))
 	}
 
 	env := wasmvmtypes.Env{
