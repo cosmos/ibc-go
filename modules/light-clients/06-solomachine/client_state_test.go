@@ -5,15 +5,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const (
@@ -126,21 +126,25 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 		}
 
 		for _, tc := range testCases {
-			suite.SetupTest()
+			tc := tc
 
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine")
-			err := sm.ClientState().Initialize(
-				suite.chainA.GetContext(), suite.chainA.Codec,
-				store, tc.consState,
-			)
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
 
-			if tc.expPass {
-				suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
-				suite.Require().True(store.Has(host.ClientStateKey()))
-			} else {
-				suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
-				suite.Require().False(store.Has(host.ClientStateKey()))
-			}
+				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), "solomachine")
+				err := sm.ClientState().Initialize(
+					suite.chainA.GetContext(), suite.chainA.Codec,
+					store, tc.consState,
+				)
+
+				if tc.expPass {
+					suite.Require().NoError(err, "valid testcase: %s failed", tc.name)
+					suite.Require().True(store.Has(host.ClientStateKey()))
+				} else {
+					suite.Require().Error(err, "invalid testcase: %s passed", tc.name)
+					suite.Require().False(store.Has(host.ClientStateKey()))
+				}
+			})
 		}
 	}
 }
@@ -175,7 +179,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					clientStateBz, err := suite.chainA.Codec.Marshal(clientState)
 					suite.Require().NoError(err)
 
-					path = suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
+					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					merklePath, ok := path.(commitmenttypes.MerklePath)
 					suite.Require().True(ok)
 					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
@@ -470,7 +474,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"malformed proof fails to unmarshal",
 				func() {
-					path = suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
+					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
 				},
 				false,
@@ -605,14 +609,12 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 
 func (suite *SoloMachineTestSuite) TestSignBytesMarshalling() {
 	sm := suite.solomachine
-	merklePath := commitmenttypes.NewMerklePath("ibc", "solomachine")
-	key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
-	suite.Require().NoError(err)
+	path := []byte("solomachine")
 	signBytesNilData := solomachine.SignBytes{
 		Sequence:    sm.GetHeight().GetRevisionHeight(),
 		Timestamp:   sm.Time,
 		Diversifier: sm.Diversifier,
-		Path:        key,
+		Path:        path,
 		Data:        nil,
 	}
 
@@ -620,7 +622,7 @@ func (suite *SoloMachineTestSuite) TestSignBytesMarshalling() {
 		Sequence:    sm.GetHeight().GetRevisionHeight(),
 		Timestamp:   sm.Time,
 		Diversifier: sm.Diversifier,
-		Path:        key,
+		Path:        path,
 		Data:        []byte{},
 	}
 
@@ -658,7 +660,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			{
 				"success: packet receipt absence verification",
 				func() {
-					path = suite.solomachine.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
+					path = sm.GetPacketReceiptPath(ibctesting.MockPort, ibctesting.FirstChannelID, 1)
 					merklePath, ok := path.(commitmenttypes.MerklePath)
 					suite.Require().True(ok)
 					key, err := merklePath.GetKey(1) // in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
@@ -696,7 +698,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 			{
 				"malformed proof fails to unmarshal",
 				func() {
-					path = suite.solomachine.GetClientStatePath(counterpartyClientIdentifier)
+					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
 				},
 				false,

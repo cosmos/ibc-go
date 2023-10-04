@@ -6,22 +6,24 @@ import (
 	"os"
 	"testing"
 
+	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	dbm "github.com/cometbft/cometbft-db"
 	tmjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 const (
@@ -46,7 +48,7 @@ type TypesTestSuite struct {
 	// chainB      *ibctesting.TestChain
 
 	ctx      sdk.Context
-	store    sdk.KVStore
+	store    storetypes.KVStore
 	codeHash []byte
 	testData map[string]string
 }
@@ -68,9 +70,8 @@ func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 // setupTestingApp provides the duplicated simapp which is specific to the 08-wasm module on chain creation.
 func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
-	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
+	return app, app.DefaultGenesis()
 }
 
 // SetupWasmGrandpa sets up 1 chain and stores the grandpa light client wasm contract on chain.
@@ -86,7 +87,7 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 	err = json.Unmarshal(testData, &suite.testData)
 	suite.Require().NoError(err)
 
-	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(sdk.NewInfiniteGasMeter())
+	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 
 	wasmContract, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
@@ -101,9 +102,8 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
-	genesisState := simapp.NewDefaultGenesisState(encCdc.Codec)
+	genesisState := app.DefaultGenesis()
 
 	bytes, err := os.ReadFile("../test_data/genesis.json")
 	if err != nil {

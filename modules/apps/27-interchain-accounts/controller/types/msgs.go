@@ -7,15 +7,19 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 var (
 	_ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
 	_ sdk.Msg = (*MsgSendTx)(nil)
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
+
+	_ sdk.HasValidateBasic = (*MsgRegisterInterchainAccount)(nil)
+	_ sdk.HasValidateBasic = (*MsgSendTx)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 )
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount

@@ -1,10 +1,12 @@
+//go:build !test_e2e
+
 package transfer
 
 import (
 	"context"
 	"testing"
 
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -17,8 +19,8 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 func TestAuthzTransferTestSuite(t *testing.T) {

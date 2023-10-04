@@ -9,14 +9,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	clientsims "github.com/cosmos/ibc-go/v7/modules/core/02-client/simulation"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectionsims "github.com/cosmos/ibc-go/v7/modules/core/03-connection/simulation"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channelsims "github.com/cosmos/ibc-go/v7/modules/core/04-channel/simulation"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/modules/core/types"
+	clientsims "github.com/cosmos/ibc-go/v8/modules/core/02-client/simulation"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectionsims "github.com/cosmos/ibc-go/v8/modules/core/03-connection/simulation"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channelsims "github.com/cosmos/ibc-go/v8/modules/core/04-channel/simulation"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
 // Simulation parameter constants
@@ -35,17 +35,17 @@ func RandomizedGenState(simState *module.SimulationState) {
 	)
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, clientGenesis, &clientGenesisState, simState.Rand,
+		clientGenesis, &clientGenesisState, simState.Rand,
 		func(r *rand.Rand) { clientGenesisState = clientsims.GenClientGenesis(r, simState.Accounts) },
 	)
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, connectionGenesis, &connectionGenesisState, simState.Rand,
+		connectionGenesis, &connectionGenesisState, simState.Rand,
 		func(r *rand.Rand) { connectionGenesisState = connectionsims.GenConnectionGenesis(r, simState.Accounts) },
 	)
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, channelGenesis, &channelGenesisState, simState.Rand,
+		channelGenesis, &channelGenesisState, simState.Rand,
 		func(r *rand.Rand) { channelGenesisState = channelsims.GenChannelGenesis(r, simState.Accounts) },
 	)
 
