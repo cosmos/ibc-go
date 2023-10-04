@@ -9,7 +9,7 @@ import (
 
 const DefaultGasUsed = uint64(1)
 
-var _ types.WasmEngine = (* MockWasmEngine)(nil)
+var _ types.WasmEngine = (*MockWasmEngine)(nil)
 
 // MockWasmEngine implements types.WasmEngine for testing purpose. One or multiple messages can be stubbed.
 // Without a stub function a panic is thrown.
@@ -22,6 +22,7 @@ type MockWasmEngine struct {
 	PinFn         func(checksum wasmvm.Checksum) error
 }
 
+// StoreCode implements the WasmEngine interface.
 func (m *MockWasmEngine) StoreCode(codeID wasmvm.WasmCode) (wasmvm.Checksum, error) {
 	if m.StoreCodeFn == nil {
 		panic("mock engine is not properly initialized")
@@ -29,6 +30,7 @@ func (m *MockWasmEngine) StoreCode(codeID wasmvm.WasmCode) (wasmvm.Checksum, err
 	return m.StoreCodeFn(codeID)
 }
 
+// Instantiate implements the WasmEngine interface.
 func (m *MockWasmEngine) Instantiate(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 	if m.InstantiateFn == nil {
 		panic("mock engine is not properly initialized")
@@ -36,6 +38,7 @@ func (m *MockWasmEngine) Instantiate(codeID wasmvm.Checksum, env wasmvmtypes.Env
 	return m.InstantiateFn(codeID, env, info, initMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
+// Query implements the WasmEngine interface.
 func (m *MockWasmEngine) Query(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 	if m.QueryFn == nil {
 		panic("mock engine is not properly initialized")
@@ -43,6 +46,7 @@ func (m *MockWasmEngine) Query(codeID wasmvm.Checksum, env wasmvmtypes.Env, quer
 	return m.QueryFn(codeID, env, queryMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
+// Sudo implements the WasmEngine interface.
 func (m *MockWasmEngine) Sudo(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 	if m.SudoFn == nil {
 		panic("mock engine is not properly initialized")
@@ -50,6 +54,7 @@ func (m *MockWasmEngine) Sudo(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoM
 	return m.SudoFn(codeID, env, sudoMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
+// GetCode implements the WasmEngine interface.
 func (m *MockWasmEngine) GetCode(codeID wasmvm.Checksum) (wasmvm.WasmCode, error) {
 	if m.GetCodeFn == nil {
 		panic("mock engine is not properly initialized")
@@ -57,6 +62,7 @@ func (m *MockWasmEngine) GetCode(codeID wasmvm.Checksum) (wasmvm.WasmCode, error
 	return m.GetCodeFn(codeID)
 }
 
+// Pin implements the WasmEngine interface.
 func (m *MockWasmEngine) Pin(checksum wasmvm.Checksum) error {
 	if m.PinFn == nil {
 		panic("mock engine is not properly initialized")

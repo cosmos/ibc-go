@@ -34,7 +34,7 @@ import (
 const (
 	tmClientID                    = "07-tendermint-0"
 	grandpaClientID               = "08-wasm-0"
-	codeHash                      = "01234567012345670123456701234567"
+	codeHash                      = "01234567012345670123456701234567" // TODO: remove in favour of wasmtesting.CodeHash
 	trustingPeriod  time.Duration = time.Hour * 24 * 7 * 2
 	ubdPeriod       time.Duration = time.Hour * 24 * 7 * 3
 	maxClockDrift   time.Duration = time.Second * 10
@@ -81,14 +81,12 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
 }
 
-// SetupWasmTendermint sets up 2 chains and stores the tendermint/cometbft light client wasm contract on both.
+// SetupWasmTendermint sets up mock cometbft chain with a mock vm.
 func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 	ibctesting.DefaultTestingAppInit = suite.setupWasmWithMockVM
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainA.SetWasm(true)
-	suite.coordinator.SetCodeHash(suite.codeHash)
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
