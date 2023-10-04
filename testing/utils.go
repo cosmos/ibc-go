@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/stretchr/testify/require"
+
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -30,7 +31,7 @@ func ApplyValSetChanges(tb testing.TB, valSet *tmtypes.ValidatorSet, valUpdates 
 func VoteAndCheckProposalStatus(endpoint *Endpoint, proposalID uint64) error {
 	// vote on proposal
 	ctx := endpoint.Chain.GetContext()
-	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, uint64(proposalID), endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
+	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, proposalID, endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
 
 	// fast forward the chain context to end the voting period
 	params, err := endpoint.Chain.GetSimApp().GovKeeper.Params.Get(ctx)

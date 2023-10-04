@@ -623,7 +623,7 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 	for _, event := range events {
 		for _, attribute := range event.Attributes {
 			if attribute.Key == "proposal_id" {
-				proposalID, err = strconv.ParseUint(string(attribute.Value), 10, 64)
+				proposalID, err = strconv.ParseUint(attribute.Value, 10, 64)
 				require.NoError(endpoint.Chain.TB, err)
 			}
 		}
