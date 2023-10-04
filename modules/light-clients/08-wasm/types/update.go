@@ -28,7 +28,7 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, 
 	payload := queryMsg{
 		VerifyClientMessage: &verifyClientMessageMsg{ClientMessage: clientMessage},
 	}
-	_, err := wasmQuery[contractResult](ctx, clientStore, &cs, payload)
+	_, err := wasmQuery[emptyResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
@@ -68,7 +68,7 @@ func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryC
 		UpdateStateOnMisbehaviour: &updateStateOnMisbehaviourMsg{ClientMessage: clientMessage},
 	}
 
-	_, err := wasmCall[contractResult](ctx, clientStore, &cs, payload)
+	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}

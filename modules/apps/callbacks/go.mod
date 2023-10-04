@@ -8,8 +8,6 @@ replace github.com/cosmos/ibc-go/v8 => ../../../
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
-replace github.com/cosmos/ibc-go/modules/light-clients/08-wasm => ../../../modules/light-clients/08-wasm
-
 require (
 	cosmossdk.io/api v0.7.1
 	cosmossdk.io/client/v2 v2.0.0-20230818115413-c402c51a1508
@@ -47,7 +45,6 @@ require (
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
-	github.com/CosmWasm/wasmvm v1.4.0 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/aws/aws-sdk-go v1.44.224 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -71,7 +68,6 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.0.0-rc.1 // indirect
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.0 // indirect
 	github.com/creachadair/atomicfile v0.3.1 // indirect
