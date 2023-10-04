@@ -22,13 +22,12 @@ type TendermintConfig struct {
 	IsWasmClient    bool
 }
 
-func NewTendermintConfig(isWasmClient bool) *TendermintConfig {
+func NewTendermintConfig() *TendermintConfig {
 	return &TendermintConfig{
 		TrustLevel:      DefaultTrustLevel,
 		TrustingPeriod:  TrustingPeriod,
 		UnbondingPeriod: UnbondingPeriod,
 		MaxClockDrift:   MaxClockDrift,
-		IsWasmClient:    isWasmClient,
 	}
 }
 
