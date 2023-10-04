@@ -20,8 +20,6 @@ type queryMsg struct {
 	ExportMetadata       *exportMetadataMsg       `json:"export_metadata,omitempty"`
 	TimestampAtHeight    *timestampAtHeightMsg    `json:"timestamp_at_height,omitempty"`
 	VerifyClientMessage  *verifyClientMessageMsg  `json:"verify_client_message,omitempty"`
-	VerifyMembership     *verifyMembershipMsg     `json:"verify_membership,omitempty"`
-	VerifyNonMembership  *verifyNonMembershipMsg  `json:"verify_non_membership,omitempty"`
 	CheckForMisbehaviour *checkForMisbehaviourMsg `json:"check_for_misbehaviour,omitempty"`
 }
 
@@ -74,6 +72,8 @@ type sudoMsg struct {
 	UpdateStateOnMisbehaviour     *updateStateOnMisbehaviourMsg     `json:"update_state_on_misbehaviour,omitempty"`
 	VerifyUpgradeAndUpdateState   *verifyUpgradeAndUpdateStateMsg   `json:"verify_upgrade_and_update_state,omitempty"`
 	CheckSubstituteAndUpdateState *checkSubstituteAndUpdateStateMsg `json:"check_substitute_and_update_state,omitempty"`
+	VerifyMembership              *verifyMembershipMsg              `json:"verify_membership,omitempty"`
+	VerifyNonMembership           *verifyNonMembershipMsg           `json:"verify_non_membership,omitempty"`
 }
 
 // updateStateMsg is a sudoMsg sent to the contract to update the client state.
