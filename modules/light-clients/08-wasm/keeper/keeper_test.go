@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
 	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -39,7 +38,7 @@ func init() {
 // setupTestingApp provides the duplicated simapp which is specific to the 08-wasm module on chain creation.
 func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
 	return app, app.DefaultGenesis()
 }
 
@@ -112,22 +111,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			},
 			false,
 			fmt.Errorf("wasm VM must be not nil"),
-		},
-		{
-			"failure: different VM instances",
-			func() {
-				vm, err := wasmvm.NewVM("", "", 16, true, 64)
-				suite.Require().NoError(err)
-
-				keeper.NewKeeperWithVM(
-					GetSimApp(suite.chainA).AppCodec(),
-					GetSimApp(suite.chainA).GetKey(types.StoreKey),
-					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					vm,
-				)
-			},
-			false,
-			fmt.Errorf("global Wasm VM instance should not be set to a different instance"),
 		},
 	}
 

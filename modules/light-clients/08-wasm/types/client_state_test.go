@@ -3,8 +3,14 @@ package types_test
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
+	"fmt"
 	"time"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -86,81 +92,66 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 	}
 }
 
-// func (suite *TypesTestSuite) TestStatusTendermint() {
-// 	var (
-// 		path          *ibctesting.Path
-// 		clientState   *types.ClientState
-// 		tmClientState *tmtypes.ClientState
-// 	)
+func (suite *TypesTestSuite) TestStatus() {
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expStatus exported.Status
+	}{
+		{
+			"client is active",
+			func() {},
+			exported.Active,
+		},
+		{
+			"client is frozen",
+			func() {
+				suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					resp := fmt.Sprintf(`{"status":"%s"}`, exported.Frozen)
+					return []byte(resp), wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			exported.Frozen,
+		},
+		{
+			"client status is expired",
+			func() {
+				suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					resp := fmt.Sprintf(`{"status":"%s"}`, exported.Expired)
+					return []byte(resp), wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			exported.Expired,
+		},
+		{
+			"client status is unknown: vm returns an error",
+			func() {
+				suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					return nil, 0, errors.New("client status not implemented")
+				}
+			},
+			exported.Unknown,
+		},
+	}
 
-// 	testCases := []struct {
-// 		name      string
-// 		malleate  func()
-// 		expStatus exported.Status
-// 	}{
-// 		{
-// 			"client is active",
-// 			func() {},
-// 			exported.Active,
-// 		},
-// 		{
-// 			"client is frozen",
-// 			func() {
-// 				tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
 
-// 				wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
-// 				suite.Require().NoError(err)
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
 
-// 				clientState.Data = wasmData
-// 				path.EndpointA.SetClientState(clientState)
-// 			},
-// 			exported.Frozen,
-// 		},
-// 		{
-// 			"client status without consensus state",
-// 			func() {
-// 				latestHeight := clientState.LatestHeight.Increment().(clienttypes.Height)
-// 				tmClientState.LatestHeight = latestHeight
+			tc.malleate()
 
-// 				wasmData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
-// 				suite.Require().NoError(err)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState := endpoint.GetClientState()
 
-// 				clientState.Data = wasmData
-// 				clientState.LatestHeight = latestHeight
-// 				path.EndpointA.SetClientState(clientState)
-// 			},
-// 			exported.Expired,
-// 		},
-// 		{
-// 			"client status is expired",
-// 			func() {
-// 				suite.coordinator.IncrementTimeBy(tmClientState.TrustingPeriod)
-// 			},
-// 			exported.Expired,
-// 		},
-// 	}
-
-// 	for _, tc := range testCases {
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupWasmTendermint()
-// 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-// 			suite.coordinator.SetupClients(path)
-
-// 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-// 			clientState = path.EndpointA.GetClientState().(*types.ClientState)
-
-// 			var cs exported.ClientState
-// 			err := suite.chainA.Codec.UnmarshalInterface(clientState.Data, &cs)
-// 			suite.Require().NoError(err)
-// 			tmClientState = cs.(*tmtypes.ClientState)
-
-// 			tc.malleate()
-
-// 			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
-// 			suite.Require().Equal(tc.expStatus, status)
-// 		})
-// 	}
-// }
+			status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+			suite.Require().Equal(tc.expStatus, status)
+		})
+	}
+}
 
 func (suite *TypesTestSuite) TestValidate() {
 	testCases := []struct {
