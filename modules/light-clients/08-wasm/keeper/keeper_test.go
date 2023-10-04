@@ -40,7 +40,6 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
 	return app, app.DefaultGenesis()
-
 }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.

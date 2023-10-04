@@ -75,7 +75,7 @@ package types_test
 	}
 }*/
 
-//func (suite *TypesTestSuite) TestVerifyMisbehaviourTendermint() {
+// func (suite *TypesTestSuite) TestVerifyMisbehaviourTendermint() {
 //	// Setup different validators and signers for testing different types of updates
 //	altPrivVal := ibctestingmock.NewPV()
 //	altPubKey, err := altPrivVal.GetPubKey()
@@ -493,8 +493,7 @@ package types_test
 //			}
 //		})
 //	}
-//}
-
+// }
 
 /* func (suite *TypesTestSuite) TestCheckForMisbehaviourGrandpa() {
 	var (
