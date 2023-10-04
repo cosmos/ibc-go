@@ -3,9 +3,13 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -22,8 +26,13 @@ func NewMigrator(keeper Keeper) Migrator {
 
 // MigrateParams migrates the transfer module's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
+	legacySubpsace, ok := m.keeper.legacySubspace.(paramtypes.Subspace)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", paramtypes.Subspace{}, m.keeper.legacySubspace)
+	}
+
 	var params types.Params
-	m.keeper.legacySubspace.GetParamSet(ctx, &params)
+	legacySubpsace.GetParamSet(ctx, &params)
 
 	m.keeper.SetParams(ctx, params)
 	m.keeper.Logger(ctx).Info("successfully migrated transfer app self-manage params")

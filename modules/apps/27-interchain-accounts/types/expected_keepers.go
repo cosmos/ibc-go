@@ -32,3 +32,9 @@ type PortKeeper interface {
 	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
 	IsBound(ctx sdk.Context, portID string) bool
 }
+
+// ParamSubspace defines the expected Subspace interface for module parameters.
+type ParamSubspace interface {
+	Get(ctx sdk.Context, key []byte, ptr interface{})
+	Set(ctx sdk.Context, key []byte, param interface{})
+}
