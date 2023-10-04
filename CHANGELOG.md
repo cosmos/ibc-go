@@ -67,6 +67,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/29-fee) [\#4290](https://github.com/cosmos/ibc-go/pull/4290) Use `types.MetadataFromVersion` helper function for callback handlers.
 * (core/04-channel) [\#4155](https://github.com/cosmos/ibc-go/pull/4155) Adding `IsOpen` and `IsClosed` methods to `Channel` type.
 * (core/03-connection) [\#4110](https://github.com/cosmos/ibc-go/pull/4110) Remove `Version` interface and casting functions from 03-connection.
+* (core) [\#4835](https://github.com/cosmos/ibc-go/pull/4835) Use expected interface for legacy params subspace parameter of keeper constructor functions.
 
 ### Features
 
