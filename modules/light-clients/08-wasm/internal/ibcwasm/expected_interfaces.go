@@ -1,4 +1,4 @@
-package types
+package ibcwasm
 
 import (
 	wasmvm "github.com/CosmWasm/wasmvm"

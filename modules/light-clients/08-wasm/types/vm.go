@@ -10,35 +10,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
-var (
-	WasmVM WasmEngine
-	// storeKeyMap stores the storeKey for the 08-wasm module. Using a single global storetypes.StoreKey fails in the context
-	// of tests with multiple test chains utilized. As such, we utilize a workaround involving a mapping from the chains codec
-	// to the storeKey which can be used to store a key per test chain.
-	// This is required as a global so that the KV store can be retrieved in the ClientState Initialize function which doesn't
-	// have access to the keeper. The storeKey is used to check the code hash of the contract and determine if the light client
-	// is allowed to be instantiated.
-	storeKeyMap   = make(map[codec.BinaryCodec]storetypes.StoreKey)
-	VMGasRegister = NewDefaultWasmGasRegister()
-)
-
-// SetWasmStoreKey sets the store key for the 08-wasm module keyed by the chain's codec.
-func SetWasmStoreKey(key codec.BinaryCodec, storeKey storetypes.StoreKey) {
-	storeKeyMap[key] = storeKey
-}
-
-// GetWasmStoreKey returns the store key for the 08-wasm module keyed by the chain's codec.
-func GetWasmStoreKey(key codec.BinaryCodec) storetypes.StoreKey {
-	if storeKey, ok := storeKeyMap[key]; ok {
-		return storeKey
-	}
-	panic(errors.New("store key not set"))
-}
+var VMGasRegister = NewDefaultWasmGasRegister()
 
 // initContract calls vm.Init with appropriate arguments.
 func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
@@ -54,7 +31,7 @@ func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg
 	}
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(len(msg)), "Loading CosmWasm module: instantiate")
-	response, gasUsed, err := WasmVM.Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	response, gasUsed, err := ibcwasm.GetVM().Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return response, err
 }
@@ -67,7 +44,7 @@ func callContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg
 	env := getEnv(ctx)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: sudo")
-	resp, gasUsed, err := WasmVM.Sudo(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Sudo(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -81,7 +58,7 @@ func queryContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, ms
 	env := getEnv(ctx)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: query")
-	resp, gasUsed, err := WasmVM.Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
