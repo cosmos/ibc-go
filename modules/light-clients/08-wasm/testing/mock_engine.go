@@ -9,7 +9,7 @@ import (
 
 const DefaultGasUsed = uint64(1)
 
-var _ types.WasmEngine = &MockWasmEngine{}
+var _ types.WasmEngine = (* MockWasmEngine)(nil)
 
 // MockWasmEngine implements types.WasmEngine for testing purpose. One or multiple messages can be stubbed.
 // Without a stub function a panic is thrown.
