@@ -5,7 +5,6 @@ import (
 	"errors"
 	"os"
 	"testing"
-	"time"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -26,12 +25,12 @@ import (
 )
 
 const (
-	tmClientID                    = "07-tendermint-0"
-	grandpaClientID               = "08-wasm-0"
-	codeHash                      = "01234567012345670123456701234567"
-	trustingPeriod  time.Duration = time.Hour * 24 * 7 * 2
-	ubdPeriod       time.Duration = time.Hour * 24 * 7 * 3
-	maxClockDrift   time.Duration = time.Second * 10
+	tmClientID      = "07-tendermint-0"
+	grandpaClientID = "08-wasm-0"
+	codeHash        = "01234567012345670123456701234567"
+	// trustingPeriod  time.Duration = time.Hour * 24 * 7 * 2
+	// ubdPeriod       time.Duration = time.Hour * 24 * 7 * 3
+	// maxClockDrift   time.Duration = time.Second * 10
 )
 
 // var (
@@ -52,9 +51,9 @@ type TypesTestSuite struct {
 	testData map[string]string
 }
 
-func init() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
-}
+// func init() {
+// 	ibctesting.DefaultTestingAppInit = setupTestingApp
+// }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
 // This must be used instead of chain.GetSimApp() for tests within this directory.
