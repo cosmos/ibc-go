@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -21,7 +23,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 // ExportGenesis returns the 08-wasm module's exported genesis.
 func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.KeyCodeHashPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.KeyCodeHashPrefix))
 	defer iterator.Close()
 
 	var genesisState types.GenesisState

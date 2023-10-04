@@ -6,11 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/cosmos/ibc-go/v7/internal/logging"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/internal/logging"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 // RegisterInterchainAccount is the entry point to registering an interchain account:
@@ -62,7 +62,8 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 	case k.portKeeper.IsBound(ctx, portID) && !k.hasCapability(ctx, portID):
 		return "", errorsmod.Wrapf(icatypes.ErrPortAlreadyBound, "another module has claimed capability for and bound port with portID: %s", portID)
 	case !k.portKeeper.IsBound(ctx, portID):
-		capability := k.BindPort(ctx, portID)
+		k.setPort(ctx, portID)
+		capability := k.portKeeper.BindPort(ctx, portID)
 		if err := k.ClaimCapability(ctx, capability, host.PortPath(portID)); err != nil {
 			return "", errorsmod.Wrapf(err, "unable to bind to newly generated portID: %s", portID)
 		}

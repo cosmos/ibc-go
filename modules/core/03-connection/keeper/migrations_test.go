@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // TestMigrateParams tests that the params for the connection are properly migrated
@@ -18,7 +18,7 @@ func (suite *KeeperTestSuite) TestMigrateParams() {
 			func() {
 				params := types.DefaultParams()
 				subspace := suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName)
-				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
+				subspace.SetParamSet(suite.chainA.GetContext(), &params)
 			},
 			types.DefaultParams(),
 		},

@@ -3,13 +3,15 @@ package types_test
 import (
 	"encoding/base64"
 
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 // var frozenHeight = clienttypes.NewHeight(0, 1)
@@ -19,7 +21,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 	var (
 		ok                                        bool
 		subjectClientState, substituteClientState exported.ClientState
-		subjectClientStore, substituteClientStore sdk.KVStore
+		subjectClientStore, substituteClientStore storetypes.KVStore
 	)
 	testCases := []struct {
 		name    string
@@ -273,7 +275,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 // 	}
 // }
 
-func GetProcessedHeight(clientStore sdk.KVStore, height exported.Height) (uint64, bool) {
+func GetProcessedHeight(clientStore storetypes.KVStore, height exported.Height) (uint64, bool) {
 	key := ibctm.ProcessedHeightKey(height)
 	bz := clientStore.Get(key)
 	if len(bz) == 0 {

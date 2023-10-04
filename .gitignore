@@ -34,6 +34,8 @@ coverage.txt
 profile.out
 sim_log_file
 e2e/diagnostics
+e2e/dev-configs
+
 
 # Vagrant
 .vagrant/
@@ -62,3 +64,6 @@ tmp/
 # Go
 go.work
 go.work.sum
+
+# Python
+venv
