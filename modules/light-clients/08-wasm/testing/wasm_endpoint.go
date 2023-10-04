@@ -8,6 +8,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+// WasmEndpoint is a wrapper around the ibctesting pkg Endpoint struct.
+// It will override any functions which require special handling for the wasm client.
 type WasmEndpoint struct {
 	*ibctesting.Endpoint
 }
