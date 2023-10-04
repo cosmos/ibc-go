@@ -43,10 +43,6 @@ func NewKeeperWithVM(
 		panic(errors.New("wasm VM must be not nil"))
 	}
 
-	//	if types.WasmVM != nil && !reflect.DeepEqual(types.WasmVM, vm) {
-	//		panic(errors.New("global Wasm VM instance should not be set to a different instance"))
-	//	}
-
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
