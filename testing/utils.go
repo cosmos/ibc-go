@@ -38,12 +38,11 @@ func VoteAndCheckProposalStatus(endpoint *Endpoint, proposalID uint64) error {
 	require.NoError(endpoint.Chain.TB, err)
 
 	endpoint.Chain.Coordinator.IncrementTimeBy(*params.VotingPeriod + *params.MaxDepositPeriod)
-	newHeader := endpoint.Chain.GetContext().BlockHeader()
-	ctx = ctx.WithBlockHeader(newHeader)
 	endpoint.Chain.NextBlock()
 
 	// check if proposal passed or failed on msg execution
-	p, err := endpoint.Chain.GetSimApp().GovKeeper.Proposals.Get(ctx, proposalID)
+	// we need to grab the context again since the previous context is no longer valid as the chain header time has been incremented
+	p, err := endpoint.Chain.GetSimApp().GovKeeper.Proposals.Get(endpoint.Chain.GetContext(), proposalID)
 	require.NoError(endpoint.Chain.TB, err)
 	if p.Status != govtypesv1.StatusPassed {
 		return fmt.Errorf("proposal failed: %s", p.FailedReason)
