@@ -1,12 +1,14 @@
 FROM golang:1.21-alpine3.18 as builder
 
+ARG LIBWASM_VERSION
+RUN test -n "${LIBWASM_VERSION}"
+
 RUN set -eux; apk add --no-cache git libusb-dev linux-headers gcc musl-dev make;
 
 ENV GOPATH=""
 
 # Grab the static library and copy it to location that will be found by the linker flag `-lwasmvm_muslc`.
-# TODO: nice to have: a script to download version matching the wasmvm version in go.mod.
-ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.2.4/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
+ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASM_VERSION}/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
 RUN sha256sum /lib/libwasmvm_muslc.x86_64.a | grep ce3d892377d2523cf563e01120cb1436f9343f80be952c93f66aa94f5737b661
 RUN cp /lib/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
 
