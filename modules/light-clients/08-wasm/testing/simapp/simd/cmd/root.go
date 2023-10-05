@@ -2,9 +2,13 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
+	"runtime/debug"
+	"strings"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -14,7 +18,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/client/debug"
+	sdkdebug "github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
@@ -194,7 +198,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(basicManager, simapp.DefaultNodeHome),
-		debug.Cmd(),
+		sdkdebug.Cmd(),
 		confixcmd.ConfigCommand(),
 		pruning.Cmd(newApp, simapp.DefaultNodeHome),
 		snapshot.Cmd(newApp),
@@ -215,6 +219,10 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, b
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
+	preCheck := func(cmd *cobra.Command, _ []string) error {
+		return CheckLibwasmVersion(getExpectedLibwasmVersion())
+	}
+	startCmd.PreRunE = chainPreRuns(preCheck, startCmd.PreRunE)
 }
 
 func queryCommand() *cobra.Command {
@@ -339,4 +347,53 @@ var tempDir = func() string {
 	defer os.RemoveAll(dir)
 
 	return dir
+}
+
+// CheckLibwasmVersion ensures that the libwasmvm version loaded at runtime matches the version
+// of the github.com/CosmWasm/wasmvm dependency in go.mod.
+// Ref: https://github.com/cosmos/ibc-go/issues/4821#issuecomment-1747240445
+func CheckLibwasmVersion(wasmExpectedVersion string) error {
+	if wasmExpectedVersion == "" {
+		return fmt.Errorf("wasmvm module not exist")
+	}
+	wasmVersion, err := wasmvm.LibwasmvmVersion()
+	if err != nil {
+		return fmt.Errorf("unable to retrieve libwasmversion %w", err)
+	}
+	if !strings.Contains(wasmExpectedVersion, wasmVersion) {
+		return fmt.Errorf("libwasmversion mismatch. got: %s; expected: %s", wasmVersion, wasmExpectedVersion)
+	}
+	return nil
+}
+
+type preRunFn func(cmd *cobra.Command, args []string) error
+
+func chainPreRuns(pfns ...preRunFn) preRunFn {
+	return func(cmd *cobra.Command, args []string) error {
+		for _, pfn := range pfns {
+			if pfn != nil {
+				if err := pfn(cmd, args); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+}
+
+func getExpectedLibwasmVersion() string {
+	buildInfo, ok := debug.ReadBuildInfo()
+	if !ok {
+		panic("can't read build info")
+	}
+	for _, d := range buildInfo.Deps {
+		if d.Path != "github.com/CosmWasm/wasmvm" {
+			continue
+		}
+		if d.Replace != nil {
+			return d.Replace.Version
+		}
+		return d.Version
+	}
+	return ""
 }
