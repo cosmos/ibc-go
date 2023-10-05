@@ -137,6 +137,11 @@ func (suite *TypesTestSuite) SetupWasmGrandpaWithChannel() {
 	// in 08-wasm directory so this should not affect what test app we use.
 	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
 	suite.SetupWasmGrandpa()
+	exportedClientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+	suite.Require().True(ok)
+	clientState := exportedClientState.(*types.ClientState)
+	clientState.CodeHash = suite.codeHash
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 }
 
 func TestWasmTestSuite(t *testing.T) {
