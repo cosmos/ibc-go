@@ -88,7 +88,7 @@ def main(args: argparse.Namespace):
         print(version)
         return
     if args.get_checksum:
-        checksum = _get_wasm_lib_checksum(_get_wasm_version(), args.wasm_library)
+        checksum = _get_wasm_lib_checksum(_get_wasm_version(args.wasm_go_mod_path), args.wasm_library)
         print(checksum)
         return
 
