@@ -1,0 +1,22 @@
+{
+  "chain-a": [
+    "release-v8.0.x"
+  ],
+  "chain-b": [
+    "v7.3.0",
+    "v7.2.1",
+    "v7.2.0",
+    "v6.2.0",
+    "v6.1.1",
+    "release-v8.0.x"
+  ],
+  "entrypoint": [
+    "TestInterchainAccountsGovTestSuite"
+  ],
+  "test": [
+    "TestInterchainAccountsGovIntegration"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

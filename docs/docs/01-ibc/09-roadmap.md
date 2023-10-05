@@ -17,7 +17,7 @@ This roadmap should be read as a high-level guide, rather than a commitment to s
 
 Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/38).
 
-This release main addtions are:
+This release main additions are:
 
 - Upgrade to Cosmos SDK v0.50.
 - [Migration of gov proposals from v1beta1 to v1](https://github.com/cosmos/ibc-go/issues/1282).
@@ -35,7 +35,7 @@ This feature has been developed by Composable and Strangelove.
 
 ### Channel upgradability
 
-Channel upgradability will allow chains to renegotiate an existing channel to take advantage of new features without having to create a new channel, thus preserving all existing packet state processed on the channel. This feature will enable, for example, the adoption on existing channels of features like [path unwinding](https://github.com/cosmos/ibc/discussions/824) or fee middleware.
+Channel upgradability will allow chains to renegotiate an existing channel to take advantage of new features without having to create a new channel, thus preserving all existing packet state processed on the channel. This feature will enable, for example, the adoption of existing channels of features like [path unwinding](https://github.com/cosmos/ibc/discussions/824) or fee middleware.
 
 Follow the progress with the [alpha milestone](https://github.com/cosmos/ibc-go/milestone/29) or the [project board](https://github.com/orgs/cosmos/projects/7/views/17).
 
@@ -45,7 +45,7 @@ This roadmap is also available as a [project board](https://github.com/orgs/cosm
 
 For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
-For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow the [Annoucements](https://github.com/cosmos/ibc-go/discussions/categories/announcements) category in the Discussions tab of the repository.
+For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow the [Announcements](https://github.com/cosmos/ibc-go/discussions/categories/announcements) category in the Discussions tab of the repository.
 
 ---
 
