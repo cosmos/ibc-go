@@ -820,7 +820,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"messages": [
 						{
 							"@type": "/cosmos.bank.v1beta1.MsgSend",
-							"from_address": "` + ibctesting.InvalidID + `",
+							"from_address": "` + suite.chainB.SenderAccount.GetAddress().String() + `", // unexpected signer
 							"to_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
 							"amount": [{ "denom": "stake", "amount": "100" }]
 						}
@@ -836,7 +836,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*banktypes.MsgSend)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			ibcerrors.ErrUnauthorized,
+			icatypes.ErrUnknownDataType,
 		},
 	}
 
