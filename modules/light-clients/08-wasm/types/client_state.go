@@ -145,7 +145,7 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	payload := queryMsg{
+	payload := sudoMsg{
 		VerifyMembership: &verifyMembershipMsg{
 			Height:           height,
 			DelayTimePeriod:  delayTimePeriod,
@@ -155,7 +155,7 @@ func (cs ClientState) VerifyMembership(
 			Value:            value,
 		},
 	}
-	_, err := wasmQuery[emptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
@@ -184,7 +184,7 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	payload := queryMsg{
+	payload := sudoMsg{
 		VerifyNonMembership: &verifyNonMembershipMsg{
 			Height:           height,
 			DelayTimePeriod:  delayTimePeriod,
@@ -193,6 +193,6 @@ func (cs ClientState) VerifyNonMembership(
 			Path:             path,
 		},
 	}
-	_, err := wasmQuery[emptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
 	return err
 }
