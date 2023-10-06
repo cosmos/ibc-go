@@ -83,7 +83,7 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 
-	suite.codeHash = storeWasmCode(suite, wasmtesting.CodeHash)
+	suite.codeHash = storeWasmCode(suite, wasmtesting.Code)
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
