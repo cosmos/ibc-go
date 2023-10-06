@@ -368,7 +368,7 @@ func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Cont
 		Summary:  "new grandpa contract",
 	}
 
-	proposalTx, codeHash, err := cosmosChain.PushNewWasmClientProposal(ctx, contractUser.KeyName(), "../polkadot/ics10_grandpa_cw.wasm", proposal)
+	proposalTx, codeHash, err := cosmosChain.PushNewWasmClientProposal(ctx, contractUser.KeyName(), "../data/ics10_grandpa_cw.wasm", proposal)
 	s.Require().NoError(err, "error submitting new wasm contract proposal tx")
 
 	height, err := cosmosChain.Height(ctx)
