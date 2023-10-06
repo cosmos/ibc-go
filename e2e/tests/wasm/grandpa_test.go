@@ -358,8 +358,8 @@ func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Cont
 	contractUser := contractUsers[0]
 
 	contractUserBalInitial, err := cosmosChain.GetBalance(ctx, contractUser.FormattedAddress(), cosmosChain.Config().Denom)
-	s.Require().NoError(err)
-	s.Require().True(contractUserBalInitial.Equal(math.NewInt(fundAmountForGov)))
+	s.Require().NoError(err, "error fetching initial balance of contract user")
+	s.Require().Equal(math.NewInt(fundAmountForGov), contractUserBalInitial, "initial balance of contract user not expected"
 
 	proposal := cosmos.TxProposalv1{
 		Metadata: "none",
