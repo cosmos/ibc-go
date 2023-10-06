@@ -3,8 +3,8 @@ package ibcwasm
 import (
 	"errors"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 var (

@@ -4,12 +4,12 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
 const DefaultGasUsed = uint64(1)
 
-var _ types.WasmEngine = (*MockWasmEngine)(nil)
+var _ ibcwasm.WasmEngine = (*MockWasmEngine)(nil)
 
 // MockWasmEngine implements types.WasmEngine for testing purpose. One or multiple messages can be stubbed.
 // Without a stub function a panic is thrown.

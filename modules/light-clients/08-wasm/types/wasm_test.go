@@ -30,7 +30,8 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupWasmWithMockVM()
+
 			tc.malleate()
 
 			codeHashes := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
@@ -40,7 +41,7 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 }
 
 func (suite *TypesTestSuite) TestAddCodeHash() {
-	suite.SetupTest()
+	suite.SetupWasmWithMockVM()
 
 	codeHashes := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
 	suite.Require().Empty(codeHashes.Hashes)
@@ -81,7 +82,7 @@ func (suite *TypesTestSuite) TestHasCodeHash() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupWasmWithMockVM()
 
 			tc.malleate()
 
