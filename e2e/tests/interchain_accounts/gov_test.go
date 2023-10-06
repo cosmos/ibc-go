@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package interchainaccounts
 
 import (
@@ -6,9 +8,9 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -19,9 +21,9 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestInterchainAccountsGovTestSuite(t *testing.T) {
@@ -52,7 +54,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	t.Run("execute proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version)
-		s.ExecuteGovProposalV1(ctx, msgRegisterAccount, chainA, controllerAccount, 1)
+		s.ExecuteAndPassGovV1Proposal(ctx, msgRegisterAccount, chainA, controllerAccount)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -102,7 +104,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			}
 
 			msgSendTx := controllertypes.NewMsgSendTx(govModuleAddress.String(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
-			s.ExecuteGovProposalV1(ctx, msgSendTx, chainA, controllerAccount, 2)
+			s.ExecuteAndPassGovV1Proposal(ctx, msgSendTx, chainA, controllerAccount)
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {

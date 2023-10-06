@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 var defaultTimeoutHeight = clienttypes.NewHeight(1, 100000)
@@ -136,10 +136,9 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			tc.malleate()
 
 			connection := path.EndpointA.GetConnection()
-			clientState := suite.chainB.GetClientState(path.EndpointB.ClientID)
 			proof, consensusHeight := suite.chainB.QueryConsensusStateProof(path.EndpointB.ClientID)
 			proofHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()-1))
-			consensusState, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), consensusHeight, clientState.ClientType())
+			consensusState, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), consensusHeight)
 			suite.Require().NoError(err)
 
 			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyClientConsensusState(

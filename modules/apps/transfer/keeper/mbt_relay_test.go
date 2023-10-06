@@ -6,6 +6,7 @@ package keeper_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -18,11 +19,11 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type TlaBalance struct {
@@ -99,7 +100,7 @@ func AddressFromString(address string) string {
 
 func AddressFromTla(addr []string) string {
 	if len(addr) != 3 {
-		panic("failed to convert from TLA+ address: wrong number of address components")
+		panic(errors.New("failed to convert from TLA+ address: wrong number of address components"))
 	}
 	s := ""
 	if len(addr[0]) == 0 && len(addr[1]) == 0 { //nolint:gocritic
@@ -109,7 +110,7 @@ func AddressFromTla(addr []string) string {
 		// escrow address: ics20-1\x00port/channel
 		s = fmt.Sprintf("%s\x00%s/%s", types.Version, addr[0], addr[1])
 	} else {
-		panic("failed to convert from TLA+ address: neither simple nor escrow address")
+		panic(errors.New("failed to convert from TLA+ address: neither simple nor escrow address"))
 	}
 	return s
 }
@@ -333,7 +334,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					var sender sdk.AccAddress
 					sender, err = sdk.AccAddressFromBech32(tc.packet.Data.Sender)
 					if err != nil {
-						panic("MBT failed to convert sender address")
+						panic(errors.New("MBT failed to convert sender address"))
 					}
 					registerDenomFn()
 					denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
@@ -342,7 +343,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					if err == nil {
 						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Amount)
 						if !ok {
-							panic("MBT failed to parse amount from string")
+							panic(errors.New("MBT failed to parse amount from string"))
 						}
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,

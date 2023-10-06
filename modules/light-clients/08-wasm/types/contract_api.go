@@ -1,8 +1,8 @@
 package types
 
 import (
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // instantiateMessage is the message that is sent to the contract's instantiate entry point.
@@ -20,8 +20,6 @@ type queryMsg struct {
 	ExportMetadata       *exportMetadataMsg       `json:"export_metadata,omitempty"`
 	TimestampAtHeight    *timestampAtHeightMsg    `json:"timestamp_at_height,omitempty"`
 	VerifyClientMessage  *verifyClientMessageMsg  `json:"verify_client_message,omitempty"`
-	VerifyMembership     *verifyMembershipMsg     `json:"verify_membership,omitempty"`
-	VerifyNonMembership  *verifyNonMembershipMsg  `json:"verify_non_membership,omitempty"`
 	CheckForMisbehaviour *checkForMisbehaviourMsg `json:"check_for_misbehaviour,omitempty"`
 }
 
@@ -74,6 +72,8 @@ type sudoMsg struct {
 	UpdateStateOnMisbehaviour     *updateStateOnMisbehaviourMsg     `json:"update_state_on_misbehaviour,omitempty"`
 	VerifyUpgradeAndUpdateState   *verifyUpgradeAndUpdateStateMsg   `json:"verify_upgrade_and_update_state,omitempty"`
 	CheckSubstituteAndUpdateState *checkSubstituteAndUpdateStateMsg `json:"check_substitute_and_update_state,omitempty"`
+	VerifyMembership              *verifyMembershipMsg              `json:"verify_membership,omitempty"`
+	VerifyNonMembership           *verifyNonMembershipMsg           `json:"verify_non_membership,omitempty"`
 }
 
 // updateStateMsg is a sudoMsg sent to the contract to update the client state.
@@ -97,56 +97,37 @@ type verifyUpgradeAndUpdateStateMsg struct {
 // checkSubstituteAndUpdateStateMsg is a sudoMsg sent to the contract to check a given substitute client and update to its state.
 type checkSubstituteAndUpdateStateMsg struct{}
 
-// ContractResult defines the expected interface a Result returned by a contract call is expected to implement.
+// ContractResult is a type constraint that defines the expected results that can be returned by a contract call/query.
 type ContractResult interface {
-	Validate() bool
-	Error() string
+	emptyResult | statusResult | exportMetadataResult | timestampAtHeightResult | checkForMisbehaviourResult | updateStateResult
 }
 
-// contractResult is the default implementation of the ContractResult interface and the default return type of any contract call
-// that does not require a custom return type.
-type contractResult struct {
-	IsValid  bool   `json:"is_valid,omitempty"`
-	ErrorMsg string `json:"error_msg,omitempty"`
-	Data     []byte `json:"data,omitempty"`
-}
-
-func (r contractResult) Validate() bool {
-	return r.IsValid
-}
-
-func (r contractResult) Error() string {
-	return r.ErrorMsg
-}
+// emptyResult is the default return type of any contract call that does not require a custom return type.
+type emptyResult struct{}
 
 // statusResult is the expected return type of the statusMsg query. It returns the status of the wasm client.
 type statusResult struct {
-	contractResult
 	Status exported.Status `json:"status"`
 }
 
 // exportMetadataResult is the expected return type of the exportMetadataMsg query. It returns the exported metadata of the wasm client.
 type exportMetadataResult struct {
-	contractResult
-	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata,omitempty"`
+	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
 }
 
 // timestampAtHeightResult is the expected return type of the timestampAtHeightMsg query. It returns the timestamp for a light client
 // at a given height.
 type timestampAtHeightResult struct {
-	contractResult
 	Timestamp uint64 `json:"timestamp"`
 }
 
 // checkForMisbehaviourResult is the expected return type of the checkForMisbehaviourMsg query. It returns a boolean indicating
 // if misbehaviour was detected.
 type checkForMisbehaviourResult struct {
-	contractResult
 	FoundMisbehaviour bool `json:"found_misbehaviour"`
 }
 
 // updateStateResult is the expected return type of the updateStateMsg sudo call. It returns the updated consensus heights.
 type updateStateResult struct {
-	contractResult
 	Heights []clienttypes.Height `json:"heights"`
 }

@@ -1,13 +1,16 @@
 package v7
 
 import (
+	"errors"
+
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // NOTE: this is a mock implmentation for exported.ClientState. This implementation
@@ -51,75 +54,75 @@ func (cs ConsensusState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error
 
 // ClientType panics!
 func (ClientState) ClientType() string {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // GetLatestHeight panics!
 func (ClientState) GetLatestHeight() exported.Height {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // Status panics!
 func (ClientState) Status(_ sdk.Context, _ storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // Validate panics!
 func (ClientState) Validate() error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // ZeroCustomFields panics!
 func (ClientState) ZeroCustomFields() exported.ClientState {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // Initialize panics!
 func (ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ConsensusState) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // ExportMetadata panics!
 func (ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // CheckForMisbehaviour panics!
 func (ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) bool {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // UpdateStateOnMisbehaviour panics!
 func (*ClientState) UpdateStateOnMisbehaviour(
 	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyClientMessage panics!
 func (*ClientState) VerifyClientMessage(
 	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // UpdateState panis!
 func (*ClientState) UpdateState(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) []exported.Height {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // CheckHeaderAndUpdateState panics!
 func (*ClientState) CheckHeaderAndUpdateState(
 	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) (exported.ClientState, exported.ConsensusState, error) {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // CheckMisbehaviourAndUpdateState panics!
 func (ClientState) CheckMisbehaviourAndUpdateState(
 	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) (exported.ClientState, error) {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // CheckSubstituteAndUpdateState panics!
@@ -127,7 +130,7 @@ func (ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, _ codec.BinaryCodec, _, _ storetypes.KVStore,
 	_ exported.ClientState,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyUpgradeAndUpdateState panics!
@@ -135,7 +138,7 @@ func (ClientState) VerifyUpgradeAndUpdateState(
 	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore,
 	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyClientState panics!
@@ -143,7 +146,7 @@ func (ClientState) VerifyClientState(
 	store storetypes.KVStore, cdc codec.BinaryCodec,
 	_ exported.Height, _ exported.Prefix, _ string, _ []byte, clientState exported.ClientState,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyClientConsensusState panics!
@@ -152,7 +155,7 @@ func (ClientState) VerifyClientConsensusState(
 	exported.Height, string, exported.Height, exported.Prefix,
 	[]byte, exported.ConsensusState,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyConnectionState panics!
@@ -160,7 +163,7 @@ func (ClientState) VerifyConnectionState(
 	storetypes.KVStore, codec.BinaryCodec, exported.Height,
 	exported.Prefix, []byte, string, exported.ConnectionI,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyChannelState panics!
@@ -168,7 +171,7 @@ func (ClientState) VerifyChannelState(
 	storetypes.KVStore, codec.BinaryCodec, exported.Height, exported.Prefix,
 	[]byte, string, string, exported.ChannelI,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyPacketCommitment panics!
@@ -177,7 +180,7 @@ func (ClientState) VerifyPacketCommitment(
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64, []byte,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyPacketAcknowledgement panics!
@@ -186,7 +189,7 @@ func (ClientState) VerifyPacketAcknowledgement(
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64, []byte,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyPacketReceiptAbsence panics!
@@ -195,7 +198,7 @@ func (ClientState) VerifyPacketReceiptAbsence(
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyNextSequenceRecv panics!
@@ -204,14 +207,14 @@ func (ClientState) VerifyNextSequenceRecv(
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // GetTimestampAtHeight panics!
 func (ClientState) GetTimestampAtHeight(
 	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 ) (uint64, error) {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyMembership panics!
@@ -226,7 +229,7 @@ func (*ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyNonMembership panics!
@@ -240,20 +243,20 @@ func (*ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	panic("legacy solo machine is deprecated")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // ClientType panics!
 func (ConsensusState) ClientType() string {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // GetTimestamp panics!
 func (ConsensusState) GetTimestamp() uint64 {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // ValidateBasic panics!
 func (ConsensusState) ValidateBasic() error {
-	panic("legacy solo machine is deprecated!")
+	panic(errors.New("legacy solo machine is deprecated"))
 }

@@ -1,6 +1,8 @@
 {
   "chain-a": [
     "main",
+    "v7.3.0",
+    "v7.2.1",
     "v7.2.0",
     "v6.2.0",
     "v6.1.1",
@@ -16,16 +18,10 @@
     "TestClientTestSuite"
   ],
   "test": [
-    "TestClientUpdateProposal_Succeeds",
+    "TestRecoverClient_Succeeds",
     "TestClient_Update_Misbehaviour"
   ],
   "relayer-type": [
-    "rly"
-  ],
-  "chain-binary": [
-    "simd"
-  ],
-  "chain-image": [
-    "ghcr.io/cosmos/ibc-go-simd"
+    "hermes"
   ]
 }

@@ -4,11 +4,11 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
+	authz "github.com/cosmos/cosmos-sdk/x/authz"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
@@ -47,7 +47,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 				updatedAuthz, ok := res.Updated.(*types.TransferAuthorization)
 				suite.Require().True(ok)
 
-				isEqual := updatedAuthz.Allocations[0].SpendLimit.IsEqual(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))))
+				isEqual := updatedAuthz.Allocations[0].SpendLimit.Equal(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))))
 				suite.Require().True(isEqual)
 			},
 		},
@@ -159,6 +159,8 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -305,6 +307,8 @@ func (suite *TypesTestSuite) TestTransferAuthorizationValidateBasic() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			transferAuthz = types.TransferAuthorization{
 				Allocations: []types.Allocation{

@@ -6,15 +6,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
@@ -43,10 +42,6 @@ func NewKeeperWithVM(
 ) Keeper {
 	if vm == nil {
 		panic(errors.New("wasm VM must be not nil"))
-	}
-
-	if ibcwasm.GetVM() != nil && !reflect.DeepEqual(ibcwasm.GetVM(), vm) {
-		panic(errors.New("global Wasm VM instance should not be set to a different instance"))
 	}
 
 	if strings.TrimSpace(authority) == "" {

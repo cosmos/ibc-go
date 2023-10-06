@@ -15,7 +15,7 @@ closes: #XXXX
 
 ### Commit Message / Changelog Entry
 
-```bash
+```text
 type: commit message
 ```
 

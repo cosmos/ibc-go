@@ -1,12 +1,13 @@
 package types
 
 import (
+	"slices"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 )
 
 const (
@@ -134,7 +135,7 @@ func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connecti
 
 // isSupportedEncoding returns true if the provided encoding is supported, otherwise false
 func isSupportedEncoding(encoding string) bool {
-	return collections.Contains(encoding, getSupportedEncoding())
+	return slices.Contains(getSupportedEncoding(), encoding)
 }
 
 // getSupportedEncoding returns a string slice of supported encoding formats
@@ -144,7 +145,7 @@ func getSupportedEncoding() []string {
 
 // isSupportedTxType returns true if the provided transaction type is supported, otherwise false
 func isSupportedTxType(txType string) bool {
-	return collections.Contains(txType, getSupportedTxTypes())
+	return slices.Contains(getSupportedTxTypes(), txType)
 }
 
 // getSupportedTxTypes returns a string slice of supported transaction types

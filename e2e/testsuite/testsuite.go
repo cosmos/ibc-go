@@ -2,23 +2,24 @@ package testsuite
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	dockerclient "github.com/docker/docker/client"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 const (
@@ -34,6 +35,8 @@ const (
 type E2ETestSuite struct {
 	testifysuite.Suite
 
+	// proposalIDs keeps track of the active proposal ID for each chain.
+	proposalIDs    map[string]uint64
 	grpcClients    map[string]GRPCClients
 	paths          map[string]pathPair
 	relayers       relayer.Map
@@ -88,7 +91,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
 
-	r := relayer.New(s.T(), LoadConfig().RelayerConfig, s.logger, s.DockerClient, s.network)
+	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
 
 	pathName := s.generatePathName()
 
@@ -223,6 +226,13 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (*cosmos
 	path = newPath(chainA, chainB)
 	s.paths[s.T().Name()] = path
 
+	if s.proposalIDs == nil {
+		s.proposalIDs = map[string]uint64{}
+	}
+
+	s.proposalIDs[chainA.Config().ChainID] = 1
+	s.proposalIDs[chainB.Config().ChainID] = 1
+
 	return path.chainA, path.chainB
 }
 
@@ -263,7 +273,7 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc
 // StartRelayer starts the given ibcrelayer.
 func (s *E2ETestSuite) StartRelayer(ibcrelayer ibc.Relayer) {
 	if s.startRelayerFn == nil {
-		panic("cannot start relayer before it is created!")
+		panic(errors.New("cannot start relayer before it is created"))
 	}
 
 	s.startRelayerFn(ibcrelayer)
@@ -273,6 +283,12 @@ func (s *E2ETestSuite) StartRelayer(ibcrelayer ibc.Relayer) {
 func (s *E2ETestSuite) StopRelayer(ctx context.Context, ibcrelayer ibc.Relayer) {
 	err := ibcrelayer.StopRelayer(ctx, s.GetRelayerExecReporter())
 	s.Require().NoError(err)
+}
+
+// RestartRelayer restarts the given relayer.
+func (s *E2ETestSuite) RestartRelayer(ctx context.Context, ibcrelayer ibc.Relayer) {
+	s.StopRelayer(ctx, ibcrelayer)
+	s.StartRelayer(ibcrelayer)
 }
 
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
@@ -311,6 +327,21 @@ func (s *E2ETestSuite) GetChainGRCPClients(chain ibc.Chain) GRPCClients {
 func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.CosmosChain, portID, channelID string, sequence uint64) {
 	commitment, _ := s.QueryPacketCommitment(ctx, chain, portID, channelID, sequence)
 	s.Require().Empty(commitment)
+}
+
+// AssertHumanReadableDenom asserts that a human readable denom is present for a given chain.
+func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain *cosmos.CosmosChain, counterpartyNativeDenom string, counterpartyChannel ibc.ChannelOutput) {
+	chainIBCDenom := GetIBCToken(counterpartyNativeDenom, counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID)
+
+	denomMetadata, err := s.QueryDenomMetadata(ctx, chain, chainIBCDenom.IBCDenom())
+	s.Require().NoError(err)
+
+	s.Require().Equal(chainIBCDenom.IBCDenom(), denomMetadata.Base, "denom metadata base does not match expected %s: got %s", chainIBCDenom.IBCDenom(), denomMetadata.Base)
+	expectedName := fmt.Sprintf("%s/%s/%s IBC token", counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID, counterpartyNativeDenom)
+	s.Require().Equal(expectedName, denomMetadata.Name, "denom metadata name does not match expected %s: got %s", expectedName, denomMetadata.Name)
+	expectedDisplay := fmt.Sprintf("%s/%s/%s", counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID, counterpartyNativeDenom)
+	s.Require().Equal(expectedDisplay, denomMetadata.Display, "denom metadata display does not match expected %s: got %s", expectedDisplay, denomMetadata.Display)
+	s.Require().Equal(strings.ToUpper(counterpartyNativeDenom), denomMetadata.Symbol, "denom metadata symbol does not match expected %s: got %s", strings.ToUpper(counterpartyNativeDenom), denomMetadata.Symbol)
 }
 
 // createCosmosChains creates two separate chains in docker containers.

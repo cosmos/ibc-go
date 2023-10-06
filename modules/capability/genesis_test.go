@@ -10,7 +10,7 @@ import (
 )
 
 func (suite *CapabilityTestSuite) TestGenesis() {
-	// InitGenesis must be called in order to set the intial index to 1.
+	// InitGenesis must be called in order to set the initial index to 1.
 	capability.InitGenesis(suite.ctx, *suite.keeper, *types.DefaultGenesis())
 
 	sk1 := suite.keeper.ScopeToModule(banktypes.ModuleName)
