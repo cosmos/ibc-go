@@ -2,11 +2,14 @@ package ibctesting
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
@@ -587,18 +590,46 @@ func (endpoint *Endpoint) QueryChannelUpgradeProof() ([]byte, []byte, clienttype
 
 // ChanUpgradeInit sends a MsgChannelUpgradeInit on the associated endpoint.
 // A default upgrade proposal is used with overrides from the ProposedUpgrade
-// in the channel config.
+// in the channel config, and submitted via governance proposal
 func (endpoint *Endpoint) ChanUpgradeInit() error {
 	upgrade := endpoint.GetProposedUpgrade()
 
+	// create upgrade init message via gov proposal and submit the proposal
 	msg := channeltypes.NewMsgChannelUpgradeInit(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
 		upgrade.Fields,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		endpoint.Chain.GetSimApp().IBCKeeper.GetAuthority(),
 	)
 
-	return endpoint.Chain.sendMsgs(msg)
+	proposal, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{msg},
+		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, govtypesv1.DefaultMinDepositTokens)),
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+		endpoint.ChannelID,
+		"upgrade-init",
+		fmt.Sprintf("gov proposal for initialising channel upgrade: %s", endpoint.ChannelID),
+		false,
+	)
+	require.NoError(endpoint.Chain.TB, err)
+
+	var proposalID uint64
+	res, err := endpoint.Chain.SendMsgs(proposal)
+	if err != nil {
+		return err
+	}
+
+	events := res.Events
+	for _, event := range events {
+		for _, attribute := range event.Attributes {
+			if attribute.Key == "proposal_id" {
+				proposalID, err = strconv.ParseUint(attribute.Value, 10, 64)
+				require.NoError(endpoint.Chain.TB, err)
+			}
+		}
+	}
+
+	return VoteAndCheckProposalStatus(endpoint, proposalID)
 }
 
 // ChanUpgradeTry sends a MsgChannelUpgradeTry on the associated endpoint.

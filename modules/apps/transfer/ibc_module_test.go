@@ -304,7 +304,6 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-
 				upgrade := path.EndpointA.GetChannelUpgrade()
 				suite.Require().Equal(upgradePath.EndpointA.ConnectionID, upgrade.Fields.ConnectionHops[0])
 			} else {
