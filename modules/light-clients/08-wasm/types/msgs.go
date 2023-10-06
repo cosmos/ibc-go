@@ -4,7 +4,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var _ sdk.Msg = (*MsgStoreCode)(nil)
+var (
+	_ sdk.Msg              = (*MsgStoreCode)(nil)
+	_ sdk.HasValidateBasic = (*MsgStoreCode)(nil)
+)
 
 // MsgStoreCode creates a new MsgStoreCode instance
 //

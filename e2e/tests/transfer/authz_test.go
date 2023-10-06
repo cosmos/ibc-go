@@ -1,26 +1,29 @@
+//go:build !test_e2e
+
 package transfer
 
 import (
 	"context"
 	"testing"
 
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 func TestAuthzTransferTestSuite(t *testing.T) {
-	suite.Run(t, new(AuthzTransferTestSuite))
+	testifysuite.Run(t, new(AuthzTransferTestSuite))
 }
 
 type AuthzTransferTestSuite struct {
@@ -51,6 +54,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	// createMsgGrantFn initializes a TransferAuthorization and broadcasts a MsgGrant message.
 	createMsgGrantFn := func(t *testing.T) {
+		t.Helper()
 		transferAuth := transfertypes.TransferAuthorization{
 			Allocations: []transfertypes.Allocation{
 				{
@@ -82,7 +86,9 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	// verifyGrantFn returns a test function which asserts chainA has a grant authorization
 	// with the given spend limit.
 	verifyGrantFn := func(expectedLimit int64) func(t *testing.T) {
+		t.Helper()
 		return func(t *testing.T) {
+			t.Helper()
 			grantAuths, err := suite.QueryGranterGrants(ctx, chainA, granterAddress)
 
 			suite.Require().NoError(err)
@@ -133,7 +139,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 		actualBalance, err := chainB.GetBalance(ctx, receiverWalletAddress, chainBIBCToken.IBCDenom())
 		suite.Require().NoError(err)
-		suite.Require().Equal(testvalues.IBCTransferAmount, actualBalance)
+		suite.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
 	})
 
 	t.Run("granter grant spend limit reduced", verifyGrantFn(testvalues.StartingTokenAmount-testvalues.IBCTransferAmount))
@@ -269,7 +275,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 			actualBalance, err := chainB.GetBalance(ctx, receiverWalletAddress, chainBIBCToken.IBCDenom())
 			suite.Require().NoError(err)
-			suite.Require().Equal(int64(0), actualBalance)
+			suite.Require().Equal(int64(0), actualBalance.Int64())
 		})
 
 		t.Run("granter grant spend limit unchanged", func(t *testing.T) {

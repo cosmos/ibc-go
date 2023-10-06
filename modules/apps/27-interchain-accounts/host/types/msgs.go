@@ -5,22 +5,25 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-var _ sdk.Msg = (*MsgUpdateParams)(nil)
+var (
+	_ sdk.Msg              = (*MsgUpdateParams)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
+)
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
-func NewMsgUpdateParams(authority string, params Params) *MsgUpdateParams {
+func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
-		Authority: authority,
-		Params:    params,
+		Signer: signer,
+		Params: params,
 	}
 }
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgUpdateParams) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
@@ -30,7 +33,7 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 
 // GetSigners implements sdk.Msg
 func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
 	}

@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestChangeValSet(t *testing.T) {
@@ -25,7 +25,8 @@ func TestChangeValSet(t *testing.T) {
 	amount2, ok := sdkmath.NewIntFromString("30000000000000000000")
 	require.True(t, ok)
 
-	val := chainA.GetSimApp().StakingKeeper.GetValidators(chainA.GetContext(), 4)
+	val, err := chainA.GetSimApp().StakingKeeper.GetValidators(chainA.GetContext(), 4)
+	require.NoError(t, err)
 
 	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(), //nolint:errcheck // ignore error for test
 		amount, types.Unbonded, val[1], true)
@@ -35,7 +36,7 @@ func TestChangeValSet(t *testing.T) {
 	coord.CommitBlock(chainA)
 
 	// verify that update clients works even after validator update goes into effect
-	err := path.EndpointB.UpdateClient()
+	err = path.EndpointB.UpdateClient()
 	require.NoError(t, err)
 	err = path.EndpointB.UpdateClient()
 	require.NoError(t, err)

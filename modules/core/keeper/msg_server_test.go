@@ -1,18 +1,23 @@
 package keeper_test
 
 import (
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 var (
@@ -775,36 +780,195 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestRecoverClient() {
+	var msg *clienttypes.MsgRecoverClient
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success: recover client",
+			func() {},
+			nil,
+		},
+		{
+			"signer doesn't match authority",
+			func() {
+				msg.Signer = ibctesting.InvalidID
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"invalid subject client",
+			func() {
+				msg.SubjectClientId = ibctesting.InvalidID
+			},
+			clienttypes.ErrClientNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(subjectPath)
+			subject := subjectPath.EndpointA.ClientID
+			subjectClientState := suite.chainA.GetClientState(subject)
+
+			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(substitutePath)
+			substitute := substitutePath.EndpointA.ClientID
+
+			// update substitute twice
+			err := substitutePath.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+			err = substitutePath.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			tmClientState, ok := subjectClientState.(*ibctm.ClientState)
+			suite.Require().True(ok)
+			tmClientState.FrozenHeight = tmClientState.LatestHeight
+			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), subject, tmClientState)
+
+			msg = clienttypes.NewMsgRecoverClient(suite.chainA.App.GetIBCKeeper().GetAuthority(), subject, substitute)
+
+			tc.malleate()
+
+			_, err = keeper.Keeper.RecoverClient(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				// Assert that client status is now Active
+				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
+				tmClientState := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().Equal(tmClientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec()), exported.Active)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
+
+// TestIBCSoftwareUpgrade tests the IBCSoftwareUpgrade rpc handler
+func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
+	var msg *clienttypes.MsgIBCSoftwareUpgrade
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: valid authority and client upgrade",
+			func() {},
+			nil,
+		},
+		{
+			"failure: invalid authority address",
+			func() {
+				msg.Signer = suite.chainA.SenderAccount.GetAddress().String()
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: invalid clientState",
+			func() {
+				msg.UpgradedClientState = nil
+			},
+			clienttypes.ErrInvalidClientType,
+		},
+		{
+			"failure: failed to schedule client upgrade",
+			func() {
+				msg.Plan.Height = 0
+			},
+			sdkerrors.ErrInvalidRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+			plan := upgradetypes.Plan{
+				Name:   "upgrade IBC clients",
+				Height: 1000,
+			}
+			// update trusting period
+			clientState := path.EndpointB.GetClientState()
+			clientState.(*ibctm.ClientState).TrustingPeriod += 100
+
+			var err error
+			msg, err = clienttypes.NewMsgIBCSoftwareUpgrade(
+				validAuthority,
+				plan,
+				clientState,
+			)
+
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			_, err = keeper.Keeper.IBCSoftwareUpgrade(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+				// upgrade plan is stored
+				storedPlan, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
+				suite.Require().NoError(err)
+				suite.Require().Equal(plan, storedPlan)
+
+				// upgraded client state is stored
+				bz, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradedClient(suite.chainA.GetContext(), plan.Height)
+				suite.Require().NoError(err)
+				upgradedClientState, err := clienttypes.UnmarshalClientState(suite.chainA.App.AppCodec(), bz)
+				suite.Require().NoError(err)
+				suite.Require().Equal(clientState.ZeroCustomFields(), upgradedClientState)
+			} else {
+				suite.Require().True(errors.Is(err, tc.expError))
+			}
+		})
+	}
+}
+
 // TestUpdateClientParams tests the UpdateClientParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateClientParams() {
-	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *clienttypes.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and default params",
-			clienttypes.NewMsgUpdateParams(validAuthority, clienttypes.DefaultParams()),
+			"success: valid signer and default params",
+			clienttypes.NewMsgUpdateParams(signer, clienttypes.DefaultParams()),
 			true,
 		},
 		{
-			"failure: malformed authority address",
+			"failure: malformed signer address",
 			clienttypes.NewMsgUpdateParams(ibctesting.InvalidID, clienttypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: empty authority address",
+			"failure: empty signer address",
 			clienttypes.NewMsgUpdateParams("", clienttypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: whitespace authority address",
+			"failure: whitespace signer address",
 			clienttypes.NewMsgUpdateParams("    ", clienttypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: unauthorized authority address",
+			"failure: unauthorized signer address",
 			clienttypes.NewMsgUpdateParams(ibctesting.TestAccAddress, clienttypes.DefaultParams()),
 			false,
 		},
@@ -828,34 +992,34 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 
 // TestUpdateConnectionParams tests the UpdateConnectionParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
-	validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *connectiontypes.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and default params",
-			connectiontypes.NewMsgUpdateParams(validAuthority, connectiontypes.DefaultParams()),
+			"success: valid signer and default params",
+			connectiontypes.NewMsgUpdateParams(signer, connectiontypes.DefaultParams()),
 			true,
 		},
 		{
-			"failure: malformed authority address",
+			"failure: malformed signer address",
 			connectiontypes.NewMsgUpdateParams(ibctesting.InvalidID, connectiontypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: empty authority address",
+			"failure: empty signer address",
 			connectiontypes.NewMsgUpdateParams("", connectiontypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: whitespace authority address",
+			"failure: whitespace signer address",
 			connectiontypes.NewMsgUpdateParams("    ", connectiontypes.DefaultParams()),
 			false,
 		},
 		{
-			"failure: unauthorized authority address",
+			"failure: unauthorized signer address",
 			connectiontypes.NewMsgUpdateParams(ibctesting.TestAccAddress, connectiontypes.DefaultParams()),
 			false,
 		},

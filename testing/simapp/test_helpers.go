@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
@@ -17,18 +19,14 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/testutil/mock"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmttypes "github.com/cometbft/cometbft/types"
-
-	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 // SetupOptions defines arguments that are passed into `Simapp` constructor.
@@ -38,7 +36,8 @@ type SetupOptions struct {
 	AppOpts servertypes.AppOptions
 }
 
-func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
+// initSetup initializes a new SimApp. A Nop logger is set in SimApp.
+func initSetup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 	db := dbm.NewMemDB()
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
@@ -84,7 +83,7 @@ func Setup(t *testing.T, isCheckTx bool) *SimApp {
 func SetupWithGenesisValSet(t *testing.T, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *SimApp {
 	t.Helper()
 
-	app, genesisState := setup(true, 5)
+	app, genesisState := initSetup(true, 5)
 	genesisState, err := simtestutil.GenesisStateWithValSet(app.AppCodec(), genesisState, valSet, genAccs, balances...)
 	require.NoError(t, err)
 
@@ -92,22 +91,13 @@ func SetupWithGenesisValSet(t *testing.T, valSet *cmttypes.ValidatorSet, genAccs
 	require.NoError(t, err)
 
 	// init chain will set the validator set and initialize the genesis accounts
-	app.InitChain(
-		abci.RequestInitChain{
-			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: simtestutil.DefaultConsensusParams,
-			AppStateBytes:   stateBytes,
-		},
+	_, err = app.InitChain(&abci.RequestInitChain{
+		Validators:      []abci.ValidatorUpdate{},
+		ConsensusParams: simtestutil.DefaultConsensusParams,
+		AppStateBytes:   stateBytes,
+	},
 	)
-
-	// commit genesis changes
-	app.Commit()
-	app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
-		Height:             app.LastBlockHeight() + 1,
-		AppHash:            app.LastCommitID().Hash,
-		ValidatorsHash:     valSet.Hash(),
-		NextValidatorsHash: valSet.Hash(),
-	}})
+	require.NoError(t, err)
 
 	return app
 }
@@ -117,9 +107,10 @@ func SetupWithGenesisValSet(t *testing.T, valSet *cmttypes.ValidatorSet, genAccs
 //
 // CONTRACT: BeginBlock must be called before this function.
 func SignAndDeliver(
-	txCfg client.TxConfig, app *bam.BaseApp, msgs []sdk.Msg,
-	chainID string, accNums, accSeqs []uint64, priv ...cryptotypes.PrivKey,
-) (sdk.GasInfo, *sdk.Result, error) {
+	tb testing.TB, txCfg client.TxConfig, app *bam.BaseApp, msgs []sdk.Msg,
+	chainID string, accNums, accSeqs []uint64, expPass bool, blockTime time.Time, nextValHash []byte, priv ...cryptotypes.PrivKey,
+) (*abci.ResponseFinalizeBlock, error) {
+	tb.Helper()
 	tx, err := simtestutil.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),
 		txCfg,
@@ -131,9 +122,15 @@ func SignAndDeliver(
 		accSeqs,
 		priv...,
 	)
-	if err != nil {
-		return sdk.GasInfo{}, nil, err
-	}
+	require.NoError(tb, err)
 
-	return app.SimDeliver(txCfg.TxEncoder(), tx)
+	txBytes, err := txCfg.TxEncoder()(tx)
+	require.NoError(tb, err)
+
+	return app.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height:             app.LastBlockHeight() + 1,
+		Time:               blockTime,
+		NextValidatorsHash: nextValHash,
+		Txs:                [][]byte{txBytes},
+	})
 }

@@ -4,12 +4,13 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // CheckSubstituteAndUpdateState will try to update the client with the state of the
@@ -17,12 +18,12 @@ import (
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context,
 	_ codec.BinaryCodec,
-	subjectClientStore, substituteClientStore sdk.KVStore,
+	subjectClientStore, substituteClientStore storetypes.KVStore,
 	substituteClient exported.ClientState,
 ) error {
 	var (
-		SubjectPrefix    = []byte("subject/")
-		SubstitutePrefix = []byte("substitute/")
+		subjectPrefix    = []byte("subject/")
+		substitutePrefix = []byte("substitute/")
 	)
 
 	_, ok := substituteClient.(*ClientState)
@@ -33,12 +34,12 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		)
 	}
 
-	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, SubjectPrefix, SubstitutePrefix)
+	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, subjectPrefix, substitutePrefix)
 
 	payload := sudoMsg{
 		CheckSubstituteAndUpdateState: &checkSubstituteAndUpdateStateMsg{},
 	}
 
-	_, err := call[contractResult](ctx, store, &cs, payload)
+	_, err := wasmCall[emptyResult](ctx, store, &cs, payload)
 	return err
 }

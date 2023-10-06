@@ -1,15 +1,21 @@
 package types
 
 import (
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (
-	WasmVM *wasmvm.VM
+	WasmVM WasmEngine
 	// Store key for 08-wasm module, required as a global so that the KV store can be retrieved
 	// in the ClientState Initialize function which doesn't have access to the keeper.
 	// The storeKey is used to check the code hash of the contract and determine if the light client
@@ -19,7 +25,7 @@ var (
 )
 
 // initContract calls vm.Init with appropriate arguments.
-func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func initContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -38,7 +44,7 @@ func initContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg
 }
 
 // callContract calls vm.Sudo with internally constructed gas meter and environment.
-func callContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func callContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -51,7 +57,7 @@ func callContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg
 }
 
 // queryContract calls vm.Query.
-func queryContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, msg []byte) ([]byte, error) {
+func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) ([]byte, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -64,6 +70,82 @@ func queryContract(ctx sdk.Context, clientStore sdk.KVStore, codeHash []byte, ms
 	return resp, err
 }
 
+// wasmInit accepts a message to instantiate a wasm contract, JSON encodes it and calls initContract.
+func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload instantiateMessage) error {
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
+	}
+	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
+	if err != nil {
+		return errorsmod.Wrapf(err, "call to wasm contract failed")
+	}
+	return nil
+}
+
+// wasmCall calls the contract with the given payload and returns the result.
+// wasmCall returns an error if:
+// - the payload cannot be marshaled to JSON
+// - the contract call returns an error
+// - the response of the contract call contains non-empty messages
+// - the response of the contract call contains non-empty events
+// - the response of the contract call contains non-empty attributes
+// - the data bytes of the response cannot be unmarshaled into the result type
+func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload sudoMsg) (T, error) {
+	var result T
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return result, errorsmod.Wrapf(err, "failed to marshal payload for wasm execution")
+	}
+
+	resp, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
+	if err != nil {
+		return result, errorsmod.Wrapf(err, "call to wasm contract failed")
+	}
+
+	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
+	if len(resp.Messages) > 0 {
+		return result, errorsmod.Wrapf(ErrWasmSubMessagesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+	}
+	if len(resp.Events) > 0 {
+		return result, errorsmod.Wrapf(ErrWasmEventsNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+	}
+	if len(resp.Attributes) > 0 {
+		return result, errorsmod.Wrapf(ErrWasmAttributesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+	}
+
+	if err := json.Unmarshal(resp.Data, &result); err != nil {
+		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm execution")
+	}
+	return result, nil
+}
+
+// wasmQuery queries the contract with the given payload and returns the result.
+// wasmQuery returns an error if:
+// - the payload cannot be marshaled to JSON
+// - the contract query returns an error
+// - the data bytes of the response cannot be unmarshal into the result type
+func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload queryMsg) (T, error) {
+	var result T
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return result, errorsmod.Wrapf(err, "failed to marshal payload for wasm query")
+	}
+
+	resp, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
+	if err != nil {
+		return result, errorsmod.Wrapf(err, "query to wasm contract failed")
+	}
+
+	if err := json.Unmarshal(resp, &result); err != nil {
+		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm query")
+	}
+
+	return result, nil
+}
+
 // getEnv returns the state of the blockchain environment the contract is running on
 func getEnv(ctx sdk.Context) wasmvmtypes.Env {
 	chainID := ctx.BlockHeader().ChainID
@@ -71,11 +153,11 @@ func getEnv(ctx sdk.Context) wasmvmtypes.Env {
 
 	// safety checks before casting below
 	if height < 0 {
-		panic("Block height must never be negative")
+		panic(errors.New("block height must never be negative"))
 	}
 	nsec := ctx.BlockTime().UnixNano()
 	if nsec < 0 {
-		panic("Block (unix) time must never be negative ")
+		panic(errors.New("block (unix) time must never be negative "))
 	}
 
 	env := wasmvmtypes.Env{

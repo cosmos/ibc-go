@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 func (suite *TypesTestSuite) TestConsensusStateValidateBasic() {
@@ -17,11 +17,6 @@ func (suite *TypesTestSuite) TestConsensusStateValidateBasic() {
 			"success",
 			types.NewConsensusState([]byte("data"), uint64(time.Now().Unix())),
 			true,
-		},
-		{
-			"timestamp is zero",
-			types.NewConsensusState([]byte("data"), 0),
-			false,
 		},
 		{
 			"data is nil",

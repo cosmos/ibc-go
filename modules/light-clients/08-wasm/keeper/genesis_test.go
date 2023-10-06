@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		{
 			"success",
 			func() {
-				codeHash := "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"
+				codeHash := "9b18dc4aa6a4dc6183f148bdcadbf7d3de2fdc7aac59394f1589b81e77de5e3c" //nolint:gosec // these are not hard-coded credentials
 				contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
 				suite.Require().NoError(err)
 
@@ -53,11 +53,11 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			ctx := suite.chainA.GetContext()
 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().WasmClientKeeper.InitGenesis(ctx, genesisState)
+			err := GetSimApp(suite.chainA).WasmClientKeeper.InitGenesis(ctx, genesisState)
 			suite.Require().NoError(err)
 
 			req := &types.QueryCodeHashesRequest{}
-			res, err := suite.chainA.GetSimApp().WasmClientKeeper.CodeHashes(ctx, req)
+			res, err := GetSimApp(suite.chainA).WasmClientKeeper.CodeHashes(ctx, req)
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
 			suite.Require().Equal(len(expCodeHashes), len(res.CodeHashes))
@@ -70,18 +70,18 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 	suite.SetupTest()
 	ctx := suite.chainA.GetContext()
 
-	expCodeHash := "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"
+	expCodeHash := "9b18dc4aa6a4dc6183f148bdcadbf7d3de2fdc7aac59394f1589b81e77de5e3c" //nolint:gosec // these are not hard-coded credentials
 
 	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
 	suite.Require().NoError(err)
 
 	msg := types.NewMsgStoreCode(signer, contractCode)
-	res, err := suite.chainA.GetSimApp().WasmClientKeeper.StoreCode(ctx, msg)
+	res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
 	suite.Require().NoError(err)
 	suite.Require().Equal(expCodeHash, hex.EncodeToString(res.Checksum))
 
-	genesisState := suite.chainA.GetSimApp().WasmClientKeeper.ExportGenesis(ctx)
+	genesisState := GetSimApp(suite.chainA).WasmClientKeeper.ExportGenesis(ctx)
 	suite.Require().Len(genesisState.Contracts, 1)
 	suite.Require().NotEmpty(genesisState.Contracts[0].CodeBytes)
 }

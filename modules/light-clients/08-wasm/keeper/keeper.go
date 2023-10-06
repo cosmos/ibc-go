@@ -4,14 +4,16 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -24,7 +26,7 @@ type Keeper struct {
 
 	storeKey  storetypes.StoreKey
 	cdc       codec.BinaryCodec
-	wasmVM    *wasmvm.VM
+	wasmVM    types.WasmEngine
 	authority string
 }
 
@@ -35,10 +37,14 @@ func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
 	authority string,
-	vm *wasmvm.VM,
+	vm types.WasmEngine,
 ) Keeper {
-	if types.WasmVM != nil {
-		panic("global Wasm VM instance should not be already set before calling this function")
+	if vm == nil {
+		panic(errors.New("wasm VM must be not nil"))
+	}
+
+	if strings.TrimSpace(authority) == "" {
+		panic(errors.New("authority must be non-empty"))
 	}
 
 	types.WasmVM = vm
@@ -63,7 +69,7 @@ func NewKeeperWithConfig(
 ) Keeper {
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedFeatures, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, wasmConfig.MemoryCacheSize)
 	if err != nil {
-		panic(fmt.Sprintf("failed to instantiate new Wasm VM instance: %v", err))
+		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
 	return NewKeeperWithVM(cdc, key, authority, vm)

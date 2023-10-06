@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.21'
       - name: Display go version
         run: go version
       - name: install tparse
@@ -36,12 +36,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-arch: ['amd64', 'arm64']
+        go-arch: ['amd64', 'arm', 'arm64']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.21'
       - uses: technote-space/get-diff-action@v6.1.2
         id: git_diff
         with:
@@ -49,29 +49,22 @@ jobs:
             **/**.go
             go.mod
             go.sum
-      # Install cross compiler for ARM64. Export CC env variable.
-      - name: Install compiler for arm64.
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-          echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-        if: matrix.go-arch == 'arm64'
       - name: Build ibc-go
-        run: GOARCH=${{ matrix.go-arch }} CGO_ENABLED=1 LEDGER_ENABLED=false make build
+        run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
       - name: Build e2e
         run: |
           cd e2e
           find ./tests -type d | while IFS= read -r dir
           do
               if ls "${dir}"/*.go >/dev/null 2>&1; then
-                  GOARCH=${{ matrix.go-arch }} CGO_ENABLED=1 go test -c "$dir"
+                  GOARCH=${{ matrix.go-arch }} go test -c "$dir"
               fi
           done
 
   split-test-files:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Create a file with all the pkgs
         run: go list ./... | grep -v e2e > pkgs.txt
       - name: Split pkgs into 4 files
@@ -102,10 +95,10 @@ jobs:
       matrix:
         part: ['00', '01', '02', '03']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.21'
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
@@ -129,7 +122,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: tests
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |

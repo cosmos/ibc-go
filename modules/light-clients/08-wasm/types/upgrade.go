@@ -2,13 +2,14 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // VerifyUpgradeAndUpdateState, on a successful verification expects the contract to update
@@ -16,7 +17,7 @@ import (
 func (cs ClientState) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	upgradedClient exported.ClientState,
 	upgradedConsState exported.ConsensusState,
 	proofUpgradeClient,
@@ -51,6 +52,6 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		},
 	}
 
-	_, err := call[contractResult](ctx, clientStore, &cs, payload)
+	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
 	return err
 }

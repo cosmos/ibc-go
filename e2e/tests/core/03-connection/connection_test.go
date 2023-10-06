@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package connection
 
 import (
@@ -8,21 +10,22 @@ import (
 	"testing"
 	"time"
 
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestConnectionTestSuite(t *testing.T) {
-	suite.Run(t, new(ConnectionTestSuite))
+	testifysuite.Run(t, new(ConnectionTestSuite))
 }
 
 type ConnectionTestSuite struct {
@@ -47,10 +50,11 @@ func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Cont
 
 	// removing additional strings that are used for amino
 	delay := strings.ReplaceAll(res.Param.Value, "\"", "")
-	time, err := strconv.ParseUint(delay, 10, 64)
+	// convert to uint64
+	uinttime, err := strconv.ParseUint(delay, 10, 64)
 	s.Require().NoError(err)
 
-	return time
+	return uinttime
 }
 
 // TestMaxExpectedTimePerBlockParam tests changing the MaxExpectedTimePerBlock param using a governance proposal
@@ -86,14 +90,14 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 			s.Require().NotNil(authority)
 
 			msg := connectiontypes.NewMsgUpdateParams(authority.String(), connectiontypes.NewParams(delay))
-			s.ExecuteGovProposalV1(ctx, msg, chainA, chainAWallet, 1)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(connectiontypes.KeyMaxExpectedTimePerBlock), fmt.Sprintf(`"%d"`, delay)),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteGovProposal(ctx, chainA, chainAWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 
@@ -128,7 +132,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
-			s.Require().Equal(expected, actualBalance)
+			s.Require().Equal(expected, actualBalance.Int64())
 		})
 
 		t.Run("stop relayer", func(t *testing.T) {

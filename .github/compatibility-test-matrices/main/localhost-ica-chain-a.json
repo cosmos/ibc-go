@@ -1,6 +1,8 @@
 {
   "chain-a": [
     "main",
+    "v7.3.0",
+    "v7.2.1",
     "v7.2.0"
   ],
   "chain-b": [
@@ -14,12 +16,6 @@
     "TestInterchainAccounts_ReopenChannel_Localhost"
   ],
   "relayer-type": [
-    "rly"
-  ],
-  "chain-binary": [
-    "simd"
-  ],
-  "chain-image": [
-    "ghcr.io/cosmos/ibc-go-simd"
+    "hermes"
   ]
 }

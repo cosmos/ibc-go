@@ -3,13 +3,13 @@ package types_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
-	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
-	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
+	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 var (
@@ -21,11 +21,11 @@ var (
 )
 
 type GenesisTypesTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 }
 
 func TestGenesisTypesTestSuite(t *testing.T) {
-	suite.Run(t, new(GenesisTypesTestSuite))
+	testifysuite.Run(t, new(GenesisTypesTestSuite))
 }
 
 func (suite *GenesisTypesTestSuite) TestValidateGenesisState() {
@@ -65,6 +65,8 @@ func (suite *GenesisTypesTestSuite) TestValidateGenesisState() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			genesisState = *genesistypes.DefaultGenesis()
 
@@ -188,6 +190,8 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			genesisState = genesistypes.DefaultControllerGenesis()
 
@@ -311,6 +315,8 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(tc.name, func() {
 			genesisState = genesistypes.DefaultHostGenesis()
 

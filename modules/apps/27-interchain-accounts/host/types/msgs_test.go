@@ -7,8 +7,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestMsgUpdateParamsValidateBasic(t *testing.T) {
@@ -18,18 +18,18 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 		expPass bool
 	}{
 		{
-			"success: valid authority address",
+			"success: valid signer address",
 			types.NewMsgUpdateParams(sdk.AccAddress(ibctesting.TestAccAddress).String(), types.DefaultParams()),
 			true,
 		},
 		{
-			"failure: invalid authority address",
-			types.NewMsgUpdateParams("authority", types.DefaultParams()),
+			"failure: invalid signer address",
+			types.NewMsgUpdateParams("signer", types.DefaultParams()),
 			false,
 		},
 		{
 			"failure: invalid allowed message",
-			types.NewMsgUpdateParams("authority", types.Params{
+			types.NewMsgUpdateParams("signer", types.Params{
 				AllowMessages: []string{""},
 			}),
 			false,
@@ -37,6 +37,8 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
 			require.NoError(t, err)
@@ -57,6 +59,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		msg := types.NewMsgUpdateParams(tc.address.String(), types.DefaultParams())
 		if tc.expPass {
 			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())

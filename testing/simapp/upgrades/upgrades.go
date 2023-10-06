@@ -1,21 +1,24 @@
 package upgrades
 
 import (
+	"context"
+
+	storetypes "cosmossdk.io/store/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	consensusparamskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	v6 "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/migrations/v6"
-	clientkeeper "github.com/cosmos/ibc-go/v7/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
+	v6 "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/migrations/v6"
+	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctmmigrations "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint/migrations"
 )
 
 const (
@@ -27,6 +30,8 @@ const (
 	V7 = "v7"
 	// V7_1 defines the upgrade name for the ibc-go/v7.1 upgrade handler.
 	V7_1 = "v7.1"
+	// V8 defines the upgrade name for the ibc-go/v8 upgrade handler.
+	V8 = "v8"
 )
 
 // CreateDefaultUpgradeHandler creates an upgrade handler which can be used for regular upgrade tests
@@ -35,7 +40,7 @@ func CreateDefaultUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
 }
@@ -50,8 +55,9 @@ func CreateV6UpgradeHandler(
 	capabilityKeeper *capabilitykeeper.Keeper,
 	moduleName string,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-		if err := v6.MigrateICS27ChannelCapability(ctx, cdc, capabilityStoreKey, capabilityKeeper, moduleName); err != nil {
+	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
+		if err := v6.MigrateICS27ChannelCapability(sdkCtx, cdc, capabilityStoreKey, capabilityKeeper, moduleName); err != nil {
 			return nil, err
 		}
 
@@ -68,14 +74,18 @@ func CreateV7UpgradeHandler(
 	consensusParamsKeeper consensusparamskeeper.Keeper,
 	paramsKeeper paramskeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		// OPTIONAL: prune expired tendermint consensus states to save storage space
-		if _, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, cdc, clientKeeper); err != nil {
+		if _, err := ibctmmigrations.PruneExpiredConsensusStates(sdkCtx, cdc, clientKeeper); err != nil {
 			return nil, err
 		}
 
 		legacyBaseAppSubspace := paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-		baseapp.MigrateParams(ctx, legacyBaseAppSubspace, &consensusParamsKeeper)
+		err := baseapp.MigrateParams(sdkCtx, legacyBaseAppSubspace, consensusParamsKeeper.ParamsStore)
+		if err != nil {
+			panic(err)
+		}
 
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
@@ -87,12 +97,20 @@ func CreateV7LocalhostUpgradeHandler(
 	configurator module.Configurator,
 	clientKeeper clientkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		// explicitly update the IBC 02-client params, adding the localhost client type
-		params := clientKeeper.GetParams(ctx)
+		params := clientKeeper.GetParams(sdkCtx)
 		params.AllowedClients = append(params.AllowedClients, exported.Localhost)
-		clientKeeper.SetParams(ctx, params)
+		clientKeeper.SetParams(sdkCtx, params)
 
+		return mm.RunMigrations(ctx, configurator, vm)
+	}
+}
+
+// CreateV8UpgradeHandler creates an upgrade handler for the ibc-go/v8 SimApp upgrade.
+func CreateV8UpgradeHandler(mm *module.Manager, configurator module.Configurator) upgradetypes.UpgradeHandler {
+	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
 }

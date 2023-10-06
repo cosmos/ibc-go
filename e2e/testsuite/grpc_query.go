@@ -6,28 +6,31 @@ import (
 	"sort"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	intertxtypes "github.com/cosmos/interchain-accounts/x/inter-tx/types"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
-	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // GRPCClients holds a reference to any GRPC clients that are needed by the tests.
@@ -41,17 +44,18 @@ type GRPCClients struct {
 	FeeQueryClient           feetypes.QueryClient
 	ICAControllerQueryClient controllertypes.QueryClient
 	ICAHostQueryClient       hosttypes.QueryClient
-	InterTxQueryClient       intertxtypes.QueryClient
 
 	// SDK query clients
-	GovQueryClient    govtypesv1beta1.QueryClient
-	GovQueryClientV1  govtypesv1.QueryClient
-	GroupsQueryClient grouptypes.QueryClient
-	ParamsQueryClient paramsproposaltypes.QueryClient
-	AuthQueryClient   authtypes.QueryClient
-	AuthZQueryClient  authz.QueryClient
+	BankQueryClient    banktypes.QueryClient
+	GovQueryClient     govtypesv1beta1.QueryClient
+	GovQueryClientV1   govtypesv1.QueryClient
+	GroupsQueryClient  grouptypes.QueryClient
+	ParamsQueryClient  paramsproposaltypes.QueryClient
+	AuthQueryClient    authtypes.QueryClient
+	AuthZQueryClient   authz.QueryClient
+	UpgradeQueryClient upgradetypes.QueryClient
 
-	ConsensusServiceClient tmservice.ServiceClient
+	ConsensusServiceClient cmtservice.ServiceClient
 }
 
 // InitGRPCClients establishes GRPC clients with the given chain.
@@ -81,14 +85,15 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		FeeQueryClient:           feetypes.NewQueryClient(grpcConn),
 		ICAControllerQueryClient: controllertypes.NewQueryClient(grpcConn),
 		ICAHostQueryClient:       hosttypes.NewQueryClient(grpcConn),
-		InterTxQueryClient:       intertxtypes.NewQueryClient(grpcConn),
+		BankQueryClient:          banktypes.NewQueryClient(grpcConn),
 		GovQueryClient:           govtypesv1beta1.NewQueryClient(grpcConn),
 		GovQueryClientV1:         govtypesv1.NewQueryClient(grpcConn),
 		GroupsQueryClient:        grouptypes.NewQueryClient(grpcConn),
 		ParamsQueryClient:        paramsproposaltypes.NewQueryClient(grpcConn),
 		AuthQueryClient:          authtypes.NewQueryClient(grpcConn),
 		AuthZQueryClient:         authz.NewQueryClient(grpcConn),
-		ConsensusServiceClient:   tmservice.NewServiceClient(grpcConn),
+		ConsensusServiceClient:   cmtservice.NewServiceClient(grpcConn),
+		UpgradeQueryClient:       upgradetypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -118,6 +123,23 @@ func (s *E2ETestSuite) QueryClientState(ctx context.Context, chain ibc.Chain, cl
 	return clientState, nil
 }
 
+// QueryUpgradedClientState queries the upgraded client state on the given chain for the provided clientID.
+func (s *E2ETestSuite) QueryUpgradedClientState(ctx context.Context, chain ibc.Chain, clientID string) (ibcexported.ClientState, error) {
+	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
+	res, err := queryClient.UpgradedClientState(ctx, &clienttypes.QueryUpgradedClientStateRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := EncodingConfig()
+	var clientState ibcexported.ClientState
+	if err := cfg.InterfaceRegistry.UnpackAny(res.UpgradedClientState, &clientState); err != nil {
+		return nil, err
+	}
+
+	return clientState, nil
+}
+
 // QueryClientStatus queries the status of the client by clientID
 func (s *E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
 	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
@@ -129,6 +151,17 @@ func (s *E2ETestSuite) QueryClientStatus(ctx context.Context, chain ibc.Chain, c
 	}
 
 	return res.Status, nil
+}
+
+// QueryCurrentUpgradePlan queries the currently scheduled upgrade plans.
+func (s *E2ETestSuite) QueryCurrentUpgradePlan(ctx context.Context, chain ibc.Chain) (upgradetypes.Plan, error) {
+	queryClient := s.GetChainGRCPClients(chain).UpgradeQueryClient
+	res, err := queryClient.CurrentPlan(ctx, &upgradetypes.QueryCurrentPlanRequest{})
+	if err != nil {
+		return upgradetypes.Plan{}, err
+	}
+
+	return *res.Plan, nil
 }
 
 // QueryConnection queries the connection end using the given chain and connection id.
@@ -198,31 +231,17 @@ func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Cha
 	return res.Address, nil
 }
 
-// QueryInterchainAccountLegacy queries the interchain account for the given owner and connectionID using the intertx module.
-func (s *E2ETestSuite) QueryInterchainAccountLegacy(ctx context.Context, chain ibc.Chain, owner, connectionID string) (string, error) {
-	queryClient := s.GetChainGRCPClients(chain).InterTxQueryClient
-	res, err := queryClient.InterchainAccount(ctx, &intertxtypes.QueryInterchainAccountRequest{
-		Owner:        owner,
-		ConnectionId: connectionID,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return res.InterchainAccountAddress, nil
-}
-
 // QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
 func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
 	ctx context.Context,
 	chain *cosmos.CosmosChain,
-	portId,
-	channelId string,
+	portID,
+	channelID string,
 ) ([]*feetypes.IdentifiedPacketFees, error) {
 	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
 	res, err := queryClient.IncentivizedPacketsForChannel(ctx, &feetypes.QueryIncentivizedPacketsForChannelRequest{
-		PortId:    portId,
-		ChannelId: channelId,
+		PortId:    portID,
+		ChannelId: channelID,
 	})
 	if err != nil {
 		return nil, err
@@ -243,8 +262,8 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 	return res.CounterpartyPayee, nil
 }
 
-// QueryProposal queries the governance proposal on the given chain with the given proposal ID.
-func (s *E2ETestSuite) QueryProposal(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
+// QueryProposalV1Beta1 queries the governance proposal on the given chain with the given proposal ID.
+func (s *E2ETestSuite) QueryProposalV1Beta1(ctx context.Context, chain ibc.Chain, proposalID uint64) (govtypesv1beta1.Proposal, error) {
 	queryClient := s.GetChainGRCPClients(chain).GovQueryClient
 	res, err := queryClient.Proposal(ctx, &govtypesv1beta1.QueryProposalRequest{
 		ProposalId: proposalID,
@@ -270,28 +289,28 @@ func (s *E2ETestSuite) QueryProposalV1(ctx context.Context, chain ibc.Chain, pro
 
 // GetBlockHeaderByHeight fetches the block header at a given height.
 func (s *E2ETestSuite) GetBlockHeaderByHeight(ctx context.Context, chain ibc.Chain, height uint64) (Header, error) {
-	tmService := s.GetChainGRCPClients(chain).ConsensusServiceClient
-	res, err := tmService.GetBlockByHeight(ctx, &tmservice.GetBlockByHeightRequest{
+	consensusService := s.GetChainGRCPClients(chain).ConsensusServiceClient
+	res, err := consensusService.GetBlockByHeight(ctx, &cmtservice.GetBlockByHeightRequest{
 		Height: int64(height),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Clean up when v6 is not supported, see: https://github.com/cosmos/ibc-go/issues/3540
-	// versions newer than 0.47 SDK use the SdkBlock field while versions older
-	// than 0.47 SDK, which do not have the SdkBlock field, use the Block field.
+	// Clean up when v4 is not supported, see: https://github.com/cosmos/ibc-go/issues/3540
+	// versions newer than 0.46 SDK use the SdkBlock field while versions older
+	// than 0.46 SDK, which do not have the SdkBlock field, use the Block field.
 	if res.SdkBlock != nil {
 		return &res.SdkBlock.Header, nil
 	}
-	return &res.Block.Header, nil
+	return &res.Block.Header, nil // needed for v4 (uses SDK v0.45)
 }
 
 // GetValidatorSetByHeight returns the validators of the given chain at the specified height. The returned validators
 // are sorted by address.
-func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*tmservice.Validator, error) {
-	tmService := s.GetChainGRCPClients(chain).ConsensusServiceClient
-	res, err := tmService.GetValidatorSetByHeight(ctx, &tmservice.GetValidatorSetByHeightRequest{
+func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64) ([]*cmtservice.Validator, error) {
+	consensusService := s.GetChainGRCPClients(chain).ConsensusServiceClient
+	res, err := consensusService.GetValidatorSetByHeight(ctx, &cmtservice.GetValidatorSetByHeightRequest{
 		Height: int64(height),
 	})
 	if err != nil {
@@ -308,7 +327,6 @@ func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Ch
 // QueryModuleAccountAddress returns the sdk.AccAddress of a given module name.
 func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
 	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
-
 	resp, err := authClient.ModuleAccountByName(ctx, &authtypes.QueryModuleAccountByNameRequest{
 		Name: moduleName,
 	})
@@ -318,7 +336,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 
 	cfg := EncodingConfig()
 
-	var account authtypes.AccountI
+	var account sdk.AccountI
 	if err := cfg.InterfaceRegistry.UnpackAny(resp.Account, &account); err != nil {
 		return nil, err
 	}
@@ -343,4 +361,31 @@ func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.Cos
 	}
 
 	return grants.Grants, nil
+}
+
+// QueryBalances returns all the balances on the given chain for the provided address.
+func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, address string, resolveDenom bool) (sdk.Coins, error) {
+	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
+	res, err := queryClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
+		Address:      address,
+		ResolveDenom: resolveDenom,
+	})
+	if err != nil {
+		return sdk.Coins{}, err
+	}
+
+	return res.Balances, nil
+}
+
+// QueryDenomMetadata queries the metadata for the given denom.
+func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain *cosmos.CosmosChain, denom string) (banktypes.Metadata, error) {
+	bankClient := s.GetChainGRCPClients(chain).BankQueryClient
+	queryRequest := &banktypes.QueryDenomMetadataRequest{
+		Denom: denom,
+	}
+	res, err := bankClient.DenomMetadata(ctx, queryRequest)
+	if err != nil {
+		return banktypes.Metadata{}, err
+	}
+	return res.Metadata, nil
 }

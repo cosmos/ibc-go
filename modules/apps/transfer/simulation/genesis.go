@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 // Simulation parameter constants
@@ -24,19 +24,19 @@ func RadomEnabled(r *rand.Rand) bool {
 func RandomizedGenState(simState *module.SimulationState) {
 	var portID string
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, port, &portID, simState.Rand,
+		port, &portID, simState.Rand,
 		func(r *rand.Rand) { portID = strings.ToLower(simtypes.RandStringOfLength(r, 20)) },
 	)
 
 	var sendEnabled bool
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, string(types.KeySendEnabled), &sendEnabled, simState.Rand,
+		string(types.KeySendEnabled), &sendEnabled, simState.Rand,
 		func(r *rand.Rand) { sendEnabled = RadomEnabled(r) },
 	)
 
 	var receiveEnabled bool
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, string(types.KeyReceiveEnabled), &receiveEnabled, simState.Rand,
+		string(types.KeyReceiveEnabled), &receiveEnabled, simState.Rand,
 		func(r *rand.Rand) { receiveEnabled = RadomEnabled(r) },
 	)
 
