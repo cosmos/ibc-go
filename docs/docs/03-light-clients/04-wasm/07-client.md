@@ -21,7 +21,13 @@ simd tx ibc-wasm --help
 
 #### `store-code`
 
-TODO: document CLI to submit gov v1 proposal with `MsgStoreCode`.
+The `store-code` command allows users to submit a governance proposal with a `MsgStoreCode` to store the byte code of a Wasm light client contract.
+
+```shell
+simd tx ibc-wasm store-code [path/to/wasm-file] [flags]
+```
+
+`path/to/wasm-file` is the path to the `.wasm` or `.wasm.gz` file.
 
 ### Query
 
