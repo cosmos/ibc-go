@@ -167,11 +167,11 @@ func (k Keeper) ChanUpgradeTry(
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
+		connection,
+		proofHeight, proofCounterpartyUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
-		connection,
 		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
-		proofCounterpartyUpgrade, proofHeight,
 	); err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
@@ -261,11 +261,11 @@ func (k Keeper) ChanUpgradeAck(
 	// verifies the proof that a particular proposed upgrade has been stored in the upgrade path of the counterparty
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
+		connection,
+		proofHeight, proofUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
-		connection,
 		counterpartyUpgrade,
-		proofUpgrade, proofHeight,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
@@ -389,11 +389,11 @@ func (k Keeper) ChanUpgradeConfirm(
 
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
+		connection,
+		proofHeight, proofUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
-		connection,
 		counterpartyUpgrade,
-		proofUpgrade, proofHeight,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
@@ -582,12 +582,12 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 
 	if err := k.connectionKeeper.VerifyChannelUpgradeError(
 		ctx,
+		connection,
+		proofHeight,
+		errorReceiptProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
-		connection,
 		errorReceipt,
-		errorReceiptProof,
-		proofHeight,
 	); err != nil {
 		return errorsmod.Wrap(err, "failed to verify counterparty error receipt")
 	}
