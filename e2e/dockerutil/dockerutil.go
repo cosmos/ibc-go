@@ -16,7 +16,7 @@ import (
 const testLabel = "ibc-test"
 
 // GetTestContainers returns all docker containers that have been created by interchain test.
-func GetTestContainers(t *testing.T, ctx context.Context, dc *dockerclient.Client) ([]dockertypes.Container, error) {
+func GetTestContainers(ctx context.Context, t *testing.T, dc *dockerclient.Client) ([]dockertypes.Container, error) {
 	t.Helper()
 
 	testContainers, err := dc.ContainerList(ctx, dockertypes.ContainerListOptions{

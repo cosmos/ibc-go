@@ -1,6 +1,5 @@
 {
   "chain-a": [
-    "v7.2.0",
     "release-v7.2.x"
   ],
   "chain-b": [
@@ -13,12 +12,6 @@
     "TestMsgTransfer_Localhost"
   ],
   "relayer-type": [
-    "rly"
-  ],
-  "chain-binary": [
-    "simd"
-  ],
-  "chain-image": [
-    "ghcr.io/cosmos/ibc-go-simd"
+    "hermes"
   ]
 }

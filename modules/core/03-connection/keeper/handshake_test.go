@@ -3,12 +3,12 @@ package keeper_test
 import (
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 // TestConnOpenInit - chainA initializes (INIT state) a connection with
@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			emptyConnBID = true
 		}, true},
 		{"success with non empty version", func() {
-			version = types.ExportedVersionsToProto(types.GetCompatibleVersions())[0]
+			version = types.GetCompatibleVersions()[0]
 		}, true},
 		{"success with non zero delayPeriod", func() {
 			delayPeriod = uint64(time.Hour.Nanoseconds())
@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 	var (
 		path               *ibctesting.Path
 		delayPeriod        uint64
-		versions           []exported.Version
+		versions           []*types.Version
 		consensusHeight    exported.Height
 		counterpartyClient exported.ClientState
 	)
@@ -181,7 +181,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			counterpartyClient = suite.chainA.GetClientState(path.EndpointA.ClientID)
 
 			version := types.NewVersion("0.0", nil)
-			versions = []exported.Version{version}
+			versions = []*types.Version{version}
 		}, false},
 		{"connection state verification failed", func() {
 			// chainA connection not created
@@ -478,9 +478,9 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.msg, func() {
-			suite.SetupTest()                                                         // reset
-			version = types.ExportedVersionsToProto(types.GetCompatibleVersions())[0] // must be explicitly changed in malleate
-			consensusHeight = clienttypes.ZeroHeight()                                // must be explicitly changed in malleate
+			suite.SetupTest()                          // reset
+			version = types.GetCompatibleVersions()[0] // must be explicitly changed in malleate
+			consensusHeight = clienttypes.ZeroHeight() // must be explicitly changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 

@@ -12,7 +12,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 )
 
 const msgDelegateMessage = `{
@@ -101,43 +101,46 @@ func TestGeneratePacketData(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
-		tc := tc
-		ir := codectypes.NewInterfaceRegistry()
-		if tc.registerInterfaceFn != nil {
-			tc.registerInterfaceFn(ir)
-		}
-
-		cdc := codec.NewProtoCodec(ir)
-
-		t.Run(tc.name, func(t *testing.T) {
-			bz, err := generatePacketData(cdc, []byte(tc.message), tc.memo)
-
-			if tc.expectedPass {
-				require.NoError(t, err)
-				require.NotNil(t, bz)
-
-				packetData := icatypes.InterchainAccountPacketData{}
-				err = cdc.UnmarshalJSON(bz, &packetData)
-				require.NoError(t, err)
-
-				require.Equal(t, icatypes.EXECUTE_TX, packetData.Type)
-				require.Equal(t, tc.memo, packetData.Memo)
-
-				data := packetData.Data
-				messages, err := icatypes.DeserializeCosmosTx(cdc, data)
-
-				require.NoError(t, err)
-				require.NotNil(t, messages)
-
-				if tc.assertionFn != nil {
-					tc.assertionFn(t, messages)
-				}
-			} else {
-				require.Error(t, err)
-				require.Nil(t, bz)
+	encodings := []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}
+	for _, encoding := range encodings {
+		for _, tc := range tests {
+			tc := tc
+			ir := codectypes.NewInterfaceRegistry()
+			if tc.registerInterfaceFn != nil {
+				tc.registerInterfaceFn(ir)
 			}
-		})
+
+			cdc := codec.NewProtoCodec(ir)
+
+			t.Run(fmt.Sprintf("%s with %s encoding", tc.name, encoding), func(t *testing.T) {
+				bz, err := generatePacketData(cdc, []byte(tc.message), tc.memo, encoding)
+
+				if tc.expectedPass {
+					require.NoError(t, err)
+					require.NotNil(t, bz)
+
+					packetData := icatypes.InterchainAccountPacketData{}
+					err = cdc.UnmarshalJSON(bz, &packetData)
+					require.NoError(t, err)
+
+					require.Equal(t, icatypes.EXECUTE_TX, packetData.Type)
+					require.Equal(t, tc.memo, packetData.Memo)
+
+					data := packetData.Data
+					messages, err := icatypes.DeserializeCosmosTx(cdc, data, encoding)
+
+					require.NoError(t, err)
+					require.NotNil(t, messages)
+
+					if tc.assertionFn != nil {
+						tc.assertionFn(t, messages)
+					}
+				} else {
+					require.Error(t, err)
+					require.Nil(t, bz)
+				}
+			})
+		}
 	}
 }
 

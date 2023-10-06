@@ -9,10 +9,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // TimeoutPacket is called by a module which originally attempted to send a
@@ -84,7 +84,7 @@ func (k Keeper) TimeoutPacket(
 		return types.ErrNoOpMsg
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel state is not OPEN (got %s)", channel.State.String(),
@@ -171,7 +171,7 @@ func (k Keeper) TimeoutExecuted(
 	// emit an event marking that we have processed the timeout
 	emitTimeoutPacketEvent(ctx, packet, channel)
 
-	if channel.Ordering == types.ORDERED && channel.State == types.CLOSED {
+	if channel.Ordering == types.ORDERED && channel.IsClosed() {
 		emitChannelClosedEvent(ctx, packet, channel)
 	}
 

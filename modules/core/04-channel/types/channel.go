@@ -3,8 +3,8 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
@@ -49,6 +49,16 @@ func (ch Channel) GetConnectionHops() []string {
 // GetVersion implements Channel interface.
 func (ch Channel) GetVersion() string {
 	return ch.Version
+}
+
+// IsOpen returns true if the channel state is OPEN
+func (ch Channel) IsOpen() bool {
+	return ch.State == OPEN
+}
+
+// IsClosed returns true if the channel state is CLOSED
+func (ch Channel) IsClosed() bool {
+	return ch.State == CLOSED
 }
 
 // ValidateBasic performs a basic validation of the channel fields

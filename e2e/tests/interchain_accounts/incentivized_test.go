@@ -1,28 +1,33 @@
-package interchain_accounts
+//go:build !test_e2e
+
+package interchainaccounts
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/cosmos/gogoproto/proto"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/gogoproto/proto"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestIncentivizedInterchainAccountsTestSuite(t *testing.T) {
-	suite.Run(t, new(IncentivizedInterchainAccountsTestSuite))
+	testifysuite.Run(t, new(IncentivizedInterchainAccountsTestSuite))
 }
 
 type IncentivizedInterchainAccountsTestSuite struct {
@@ -98,7 +103,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			// fund the interchain account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: interchainAcc,
-				Amount:  testvalues.StartingTokenAmount,
+				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
 				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
@@ -140,7 +145,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			}
 
 			cdc := testsuite.Codec()
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -163,9 +168,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
 
-			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
@@ -186,7 +191,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance)
+			s.Require().Equal(expected, balance.Int64())
 		})
 
 		t.Run("timeout fee is refunded", func(t *testing.T) {
@@ -309,7 +314,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			}
 
 			cdc := testsuite.Codec()
-			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend})
+			bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
 			s.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -332,9 +337,9 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
 
-			s.Require().True(actualFee.RecvFee.IsEqual(testFee.RecvFee))
-			s.Require().True(actualFee.AckFee.IsEqual(testFee.AckFee))
-			s.Require().True(actualFee.TimeoutFee.IsEqual(testFee.TimeoutFee))
+			s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+			s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
 		t.Run("start relayer", func(t *testing.T) {
@@ -355,7 +360,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount
-			s.Require().Equal(expected, balance, "tokens should not have been sent as interchain account was not funded")
+			s.Require().Equal(expected, balance.Int64(), "tokens should not have been sent as interchain account was not funded")
 		})
 
 		t.Run("timeout fee is refunded", func(t *testing.T) {

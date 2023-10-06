@@ -8,21 +8,21 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/simulation"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/simulation"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {
-	app := simapp.Setup(false)
+	app := simapp.Setup(t, false)
 	cdc := app.AppCodec()
 
 	connectionID := "connectionidone"
 
 	connection := types.ConnectionEnd{
 		ClientId: "clientidone",
-		Versions: types.ExportedVersionsToProto(types.GetCompatibleVersions()),
+		Versions: types.GetCompatibleVersions(),
 	}
 
 	paths := types.ClientPaths{

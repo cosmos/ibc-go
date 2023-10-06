@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 )
 
 // emitConnectionOpenInitEvent emits a connection open init event
@@ -14,7 +14,6 @@ func emitConnectionOpenInitEvent(ctx sdk.Context, connectionID string, clientID 
 			sdk.NewAttribute(types.AttributeKeyConnectionID, connectionID),
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, counterparty.ClientId),
-			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, counterparty.ConnectionId),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

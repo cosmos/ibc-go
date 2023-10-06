@@ -3,19 +3,19 @@ package keeper
 import (
 	"context"
 
-	metrics "github.com/armon/go-metrics"
+	metrics "github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
 var (
@@ -85,7 +85,7 @@ func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrade
 // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 // Warning: DEPRECATED
 // This handler is redudant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
-func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) {
+func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) { //nolint:staticcheck // for now, we're using msgsubmitmisbehaviour.
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	misbehaviour, err := clienttypes.UnpackClientMessage(msg.Misbehaviour)
@@ -98,6 +98,39 @@ func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSu
 	}
 
 	return &clienttypes.MsgSubmitMisbehaviourResponse{}, nil
+}
+
+// RecoverClient defines a rpc handler method for MsgRecoverClient.
+func (k Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecoverClient) (*clienttypes.MsgRecoverClientResponse, error) {
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := k.ClientKeeper.RecoverClient(ctx, msg.SubjectClientId, msg.SubstituteClientId); err != nil {
+		return nil, errorsmod.Wrap(err, "client recovery failed")
+	}
+
+	return &clienttypes.MsgRecoverClientResponse{}, nil
+}
+
+// IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
+func (k Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)
+	if err != nil {
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot unpack client state: %s", err)
+	}
+
+	if err = k.ClientKeeper.ScheduleIBCSoftwareUpgrade(ctx, msg.Plan, upgradedClientState); err != nil {
+		return nil, errorsmod.Wrap(err, "failed to schedule upgrade")
+	}
+
+	return &clienttypes.MsgIBCSoftwareUpgradeResponse{}, nil
 }
 
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
@@ -122,7 +155,7 @@ func (k Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.Ms
 
 	if _, err := k.ConnectionKeeper.ConnOpenTry(
 		ctx, msg.Counterparty, msg.DelayPeriod, msg.ClientId, targetClient,
-		connectiontypes.ProtoVersionsToExported(msg.CounterpartyVersions), msg.ProofInit, msg.ProofClient, msg.ProofConsensus,
+		msg.CounterpartyVersions, msg.ProofInit, msg.ProofClient, msg.ProofConsensus,
 		msg.ProofHeight, msg.ConsensusHeight,
 	); err != nil {
 		return nil, errorsmod.Wrap(err, "connection handshake open try failed")
@@ -523,6 +556,7 @@ func (k Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*c
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
+		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
 		return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
 	default:
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
@@ -594,6 +628,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
+		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
 		return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil
 	default:
 		ctx.Logger().Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout on close packet verification failed"))
@@ -668,6 +703,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 		writeFn()
 	case channeltypes.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
+		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
 		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
 	default:
 		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
@@ -699,8 +735,8 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAckn
 
 // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
 func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
-	if k.GetAuthority() != msg.Authority {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -711,8 +747,8 @@ func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUp
 
 // UpdateConnectionParams defines a rpc handler method for MsgUpdateParams for the 03-connection submodule.
 func (k Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
-	if k.GetAuthority() != msg.Authority {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)

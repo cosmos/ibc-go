@@ -5,12 +5,14 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/modules/capability/simulation"
 	"github.com/cosmos/ibc-go/modules/capability/types"
@@ -66,7 +68,8 @@ func TestRandomizedGenState1(t *testing.T) {
 			}, "assignment to entry in nil map"},
 	}
 
-	for _, tt := range tests {
-		require.Panicsf(t, func() { simulation.RandomizedGenState(&tt.simState) }, tt.panicMsg)
+	for _, tc := range tests {
+		tc := tc
+		require.Panicsf(t, func() { simulation.RandomizedGenState(&tc.simState) }, tc.panicMsg)
 	}
 }

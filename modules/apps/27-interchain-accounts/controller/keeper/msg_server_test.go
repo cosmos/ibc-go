@@ -10,12 +10,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
@@ -67,32 +67,37 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
+		tc := tc
 
-		path := NewICAPath(suite.chainA, suite.chainB)
-		suite.coordinator.SetupConnections(path)
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-		msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+			path := NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
 
-		tc.malleate()
+			msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 
-		ctx := suite.chainA.GetContext()
-		msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
-		res, err := msgServer.RegisterInterchainAccount(ctx, msg)
+			tc.malleate()
 
-		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
-			suite.Require().Equal(expectedChannelID, res.ChannelId)
+			ctx := suite.chainA.GetContext()
+			msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+			res, err := msgServer.RegisterInterchainAccount(ctx, msg)
 
-			events := ctx.EventManager().Events()
-			suite.Require().Len(events, 2)
-			suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
-			suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
-		} else {
-			suite.Require().Error(err)
-			suite.Require().Nil(res)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expectedChannelID, res.ChannelId)
+
+				events := ctx.EventManager().Events()
+				suite.Require().Len(events, 2)
+				suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
+				suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+			}
+		})
+
 	}
 }
 
@@ -171,7 +176,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				Amount:      sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))),
 			}
 
-			data, err := icatypes.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{icaMsg})
+			data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{icaMsg}, icatypes.EncodingProtobuf)
 			suite.Require().NoError(err)
 
 			packetData := icatypes.InterchainAccountPacketData{
@@ -204,34 +209,34 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 
 // TestUpdateParams tests UpdateParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateParams() {
-	validAuthority := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
+	signer := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name    string
 		msg     *types.MsgUpdateParams
 		expPass bool
 	}{
 		{
-			"success: valid authority and default params",
-			types.NewMsgUpdateParams(validAuthority, types.NewParams(!types.DefaultControllerEnabled)),
+			"success: valid signer and default params",
+			types.NewMsgUpdateParams(signer, types.NewParams(!types.DefaultControllerEnabled)),
 			true,
 		},
 		{
-			"failure: malformed authority address",
+			"failure: malformed signer address",
 			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
 			false,
 		},
 		{
-			"failure: empty authority address",
+			"failure: empty signer address",
 			types.NewMsgUpdateParams("", types.DefaultParams()),
 			false,
 		},
 		{
-			"failure: whitespace authority address",
+			"failure: whitespace signer address",
 			types.NewMsgUpdateParams("    ", types.DefaultParams()),
 			false,
 		},
 		{
-			"failure: unauthorized authority address",
+			"failure: unauthorized signer address",
 			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
 			false,
 		},
@@ -239,6 +244,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 
 	for _, tc := range testCases {
 		tc := tc
+
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			_, err := suite.chainA.GetSimApp().ICAControllerKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)

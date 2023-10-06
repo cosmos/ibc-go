@@ -1,17 +1,17 @@
 package keeper
 
 import (
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cometbft/cometbft/libs/log"
-
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
@@ -50,8 +50,15 @@ func NewKeeper(
 	}
 }
 
+// WithICS4Wrapper sets the ICS4Wrapper. This function may be used after
+// the keepers creation to set the middleware which is above this module
+// in the IBC application stack.
+func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = wrapper
+}
+
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.ModuleName)
 }
 
@@ -130,7 +137,7 @@ func (k Keeper) IsFeeEnabled(ctx sdk.Context, portID, channelID string) bool {
 // GetAllFeeEnabledChannels returns a list of all ics29 enabled channels containing portID & channelID that are stored in state
 func (k Keeper) GetAllFeeEnabledChannels(ctx sdk.Context) []types.FeeEnabledChannel {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.FeeEnabledKeyPrefix))
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var enabledChArr []types.FeeEnabledChannel
@@ -171,7 +178,7 @@ func (k Keeper) SetPayeeAddress(ctx sdk.Context, relayerAddr, payeeAddr, channel
 // GetAllPayees returns all registered payees addresses
 func (k Keeper) GetAllPayees(ctx sdk.Context) []types.RegisteredPayee {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.PayeeKeyPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.PayeeKeyPrefix))
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var registeredPayees []types.RegisteredPayee
@@ -216,7 +223,7 @@ func (k Keeper) GetCounterpartyPayeeAddress(ctx sdk.Context, address, channelID 
 // GetAllCounterpartyPayees returns all registered counterparty payee addresses
 func (k Keeper) GetAllCounterpartyPayees(ctx sdk.Context) []types.RegisteredCounterpartyPayee {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.CounterpartyPayeeKeyPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.CounterpartyPayeeKeyPrefix))
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var registeredCounterpartyPayees []types.RegisteredCounterpartyPayee
@@ -259,7 +266,7 @@ func (k Keeper) GetRelayerAddressForAsyncAck(ctx sdk.Context, packetID channelty
 // GetAllForwardRelayerAddresses returns all forward relayer addresses stored for async acknowledgements
 func (k Keeper) GetAllForwardRelayerAddresses(ctx sdk.Context) []types.ForwardRelayerAddress {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.ForwardRelayerPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.ForwardRelayerPrefix))
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var forwardRelayerAddr []types.ForwardRelayerAddress
@@ -326,7 +333,7 @@ func (k Keeper) GetIdentifiedPacketFeesForChannel(ctx sdk.Context, portID, chann
 	var identifiedPacketFees []types.IdentifiedPacketFees
 
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.KeyFeesInEscrowChannelPrefix(portID, channelID))
+	iterator := storetypes.KVStorePrefixIterator(store, types.KeyFeesInEscrowChannelPrefix(portID, channelID))
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -347,7 +354,7 @@ func (k Keeper) GetIdentifiedPacketFeesForChannel(ctx sdk.Context, portID, chann
 // GetAllIdentifiedPacketFees returns a list of all IdentifiedPacketFees that are stored in state
 func (k Keeper) GetAllIdentifiedPacketFees(ctx sdk.Context) []types.IdentifiedPacketFees {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.FeesInEscrowPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.FeesInEscrowPrefix))
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	var identifiedFees []types.IdentifiedPacketFees

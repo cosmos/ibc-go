@@ -3,6 +3,8 @@
     "release-v6.2.x"
   ],
   "chain-b": [
+    "v7.3.0",
+    "v7.2.1",
     "v7.2.0",
     "v6.2.0",
     "v6.1.1",
@@ -14,15 +16,10 @@
   "test": [
     "TestMsgSendTx_SuccessfulTransfer",
     "TestMsgSendTx_FailedTransfer_InsufficientFunds",
-    "TestMsgSendTx_SuccessfulTransfer_AfterReopeningICA"
+    "TestMsgSendTx_SuccessfulTransfer_AfterReopeningICA",
+    "TestControllerEnabledParam"
   ],
   "relayer-type": [
-    "rly"
-  ],
-  "chain-binary": [
-    "simd"
-  ],
-  "chain-image": [
-    "ghcr.io/cosmos/ibc-go-simd"
+    "hermes"
   ]
 }

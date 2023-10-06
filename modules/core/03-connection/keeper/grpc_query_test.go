@@ -3,13 +3,12 @@ package keeper_test
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryConnection() {
@@ -55,7 +54,7 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 				suite.Require().NoError(err)
 
 				counterparty := types.NewCounterparty(path.EndpointB.ClientID, "", suite.chainB.GetPrefix())
-				expConnection = types.NewConnectionEnd(types.INIT, path.EndpointA.ClientID, counterparty, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 500)
+				expConnection = types.NewConnectionEnd(types.INIT, path.EndpointA.ClientID, counterparty, types.GetCompatibleVersions(), 500)
 				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, expConnection)
 
 				req = &types.QueryConnectionRequest{
@@ -67,11 +66,13 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.Connection(ctx, req)
 
@@ -135,9 +136,9 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 				// counterparty connection id is blank after open init
 				counterparty3 := types.NewCounterparty(path3.EndpointB.ClientID, "", suite.chainB.GetPrefix())
 
-				conn1 := types.NewConnectionEnd(types.OPEN, path1.EndpointA.ClientID, counterparty1, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
-				conn2 := types.NewConnectionEnd(types.OPEN, path2.EndpointA.ClientID, counterparty2, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
-				conn3 := types.NewConnectionEnd(types.INIT, path3.EndpointA.ClientID, counterparty3, types.ExportedVersionsToProto(types.GetCompatibleVersions()), 0)
+				conn1 := types.NewConnectionEnd(types.OPEN, path1.EndpointA.ClientID, counterparty1, types.GetCompatibleVersions(), 0)
+				conn2 := types.NewConnectionEnd(types.OPEN, path2.EndpointA.ClientID, counterparty2, types.GetCompatibleVersions(), 0)
+				conn3 := types.NewConnectionEnd(types.INIT, path3.EndpointA.ClientID, counterparty3, types.GetCompatibleVersions(), 0)
 
 				iconn1 := types.NewIdentifiedConnection(path1.EndpointA.ConnectionID, conn1)
 				iconn2 := types.NewIdentifiedConnection(path2.EndpointA.ConnectionID, conn2)
@@ -157,11 +158,13 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.Connections(ctx, req)
 
@@ -235,11 +238,13 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.ClientConnections(ctx, req)
 
@@ -322,11 +327,13 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.ConnectionClientState(ctx, req)
 
@@ -421,11 +428,13 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
 			tc.malleate()
-			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+			ctx := suite.chainA.GetContext()
 
 			res, err := suite.chainA.QueryServer.ConnectionConsensusState(ctx, req)
 
@@ -448,7 +457,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 }
 
 func (suite *KeeperTestSuite) TestQueryConnectionParams() {
-	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+	ctx := suite.chainA.GetContext()
 	expParams := types.DefaultParams()
 	res, _ := suite.chainA.QueryServer.ConnectionParams(ctx, &types.QueryConnectionParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)

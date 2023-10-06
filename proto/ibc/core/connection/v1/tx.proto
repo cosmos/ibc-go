@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.connection.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types";
+option go_package = "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types";
 
 import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
@@ -129,12 +129,12 @@ message MsgConnectionOpenConfirmResponse {}
 
 // MsgUpdateParams defines the sdk.Msg type to update the connection parameters.
 message MsgUpdateParams {
-  option (cosmos.msg.v1.signer) = "authority";
+  option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.goproto_getters) = false;
 
-  // authority is the address that controls the module (defaults to x/gov unless overwritten).
-  string authority = 1;
+  // signer address
+  string signer = 1;
 
   // params defines the connection parameters to update.
   //

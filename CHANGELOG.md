@@ -38,17 +38,120 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#4763](https://github.com/cosmos/ibc-go/pull/4763) Bump SDK v0.50-rc.1.
+* [\#4398](https://github.com/cosmos/ibc-go/pull/4398) Update all modules to go 1.21.
+
 ### API Breaking
+
+* (core) [\#4703](https://github.com/cosmos/ibc-go/pull/4703) Make `PortKeeper` field of `IBCKeeper` a pointer.
+* (core/23-commitment) [\#4459](https://github.com/cosmos/ibc-go/pull/4459) Remove `Pretty` and `String` custom implementations of `MerklePath`.
+* [\#3205](https://github.com/cosmos/ibc-go/pull/3205) Make event emission functions unexported.
+* (apps/27-interchain-accounts, apps/transfer) [\#3253](https://github.com/cosmos/ibc-go/pull/3253) Rename `IsBound` to `HasCapability`.
+* (apps/27-interchain-accounts, apps/transfer) [\#3303](https://github.com/cosmos/ibc-go/pull/3303) Make `HasCapability` private.
+* [\#3303](https://github.com/cosmos/ibc-go/pull/3856) Add missing/remove unnecessary gogoproto directive.
+* (apps/27-interchain-accounts) [\#3967](https://github.com/cosmos/ibc-go/pull/3967) Add encoding type as argument to ICA encoding/decoding functions.
+* (core) [\#3867](https://github.com/cosmos/ibc-go/pull/3867) Remove unnecessary event attribute from INIT handshake msgs.
+* (core/04-channel) [\#3806](https://github.com/cosmos/ibc-go/pull/3806) Remove unused `EventTypeTimeoutPacketOnClose`.
+* (testing) [\#4018](https://github.com/cosmos/ibc-go/pull/4018) Allow failure expectations when using `chain.SendMsgs`.
 
 ### State Machine Breaking
 
 ### Improvements
 
-* (tests) [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Support benchmarks and fuzz tests through `testing.TB`.
+* [\#3304](https://github.com/cosmos/ibc-go/pull/3304) Remove unnecessary defer func statements.
+* (apps/29-fee) [\#3054](https://github.com/cosmos/ibc-go/pull/3054) Add page result to ics29-fee queries.
+* (apps/27-interchain-accounts, apps/transfer) [\#3077](https://github.com/cosmos/ibc-go/pull/3077) Add debug level logging for the error message which is discarded when generating a failed acknowledgement.
+* (core/03-connection) [\#3244](https://github.com/cosmos/ibc-go/pull/3244) Cleanup 03-connection msg validate basic test.
+* (core/02-client) [\#3514](https://github.com/cosmos/ibc-go/pull/3514) Add check for the client status in `CreateClient`.
+* (apps/29-fee) [\#4100](https://github.com/cosmos/ibc-go/pull/4100) Adding `MetadataFromVersion` to `29-fee` package `types`.
+* (apps/29-fee) [\#4290](https://github.com/cosmos/ibc-go/pull/4290) Use `types.MetadataFromVersion` helper function for callback handlers.
+* (core/04-channel) [\#4155](https://github.com/cosmos/ibc-go/pull/4155) Adding `IsOpen` and `IsClosed` methods to `Channel` type.
+* (core/03-connection) [\#4110](https://github.com/cosmos/ibc-go/pull/4110) Remove `Version` interface and casting functions from 03-connection.
+* (core) [\#4835](https://github.com/cosmos/ibc-go/pull/4835) Use expected interface for legacy params subspace parameter of keeper constructor functions.
 
 ### Features
 
+* (capability) [\#3097](https://github.com/cosmos/ibc-go/pull/3097) Migrate capability module from Cosmos SDK to ibc-go.
+* (core/02-client) [\#3640](https://github.com/cosmos/ibc-go/pull/3640) Migrate client params to be self managed.
+* (core/03-connection) [\#3650](https://github.com/cosmos/ibc-go/pull/3650) Migrate connection params to be self managed.
+* (apps/transfer) [\#3553](https://github.com/cosmos/ibc-go/pull/3553) Migrate transfer parameters to be self managed (#3553)
+* (apps/27-interchain-accounts) [\#3520](https://github.com/cosmos/ibc-go/pull/3590) Migrate ica/controller parameters to be self managed (#3590)
+* (apps/27-interchain-accounts) [\#3520](https://github.com/cosmos/ibc-go/pull/3520) Migrate ica/host to params to be self managed.
+* (apps/transfer) [\#3104](https://github.com/cosmos/ibc-go/pull/3104) Add metadata for IBC tokens.
+* [\#4620](https://github.com/cosmos/ibc-go/pull/4620) Migrate to gov v1 via the additions of `MsgRecoverClient` and `MsgIBCSoftwareUpgrade`. The legacy proposal types `ClientUpdateProposal` and `UpgradeProposal` have been deprecated and will be removed in the next major release.
+
 ### Bug Fixes
+
+* (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
+* (core/04-channel) [\#3357](https://github.com/cosmos/ibc-go/pull/3357) Handle unordered channels in `NextSequenceReceive` query.
+* (e2e) [\#3402](https://github.com/cosmos/ibc-go/pull/3402 Allow retries for messages signed by relayer.
+* (core/04-channel) [\#3417](https://github.com/cosmos/ibc-go/pull/3417) Add missing query for next sequence send.
+* (testing) [\#4630](https://github.com/cosmos/ibc-go/pull/4630) Update `testconfig` to use revision formatted chain IDs.
+* (core/04-channel) [\#4706](https://github.com/cosmos/ibc-go/pull/4706) Retrieve correct next send sequence for packets in unordered channels.
+* (core/02-client) [\#4746](https://github.com/cosmos/ibc-go/pull/4746) Register implementations against `govtypes.Content` interface.
+
+### Documentation
+
+* [\#3133](https://github.com/cosmos/ibc-go/pull/3133) Add linter for markdown documents.
+* [\#4693](https://github.com/cosmos/ibc-go/pull/4693) Migrate docs to docusaurus.
+
+### Testing
+
+* [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Use `testing.TB` instead of `testing.T` to support benchmarks and fuzz tests. 
+* [\#3980](https://github.com/cosmos/ibc-go/pull/3980) Change `sdk.Events` usage to `[]abci.Event` in the testing package.
+* [\#3986](https://github.com/cosmos/ibc-go/pull/3986) Add function `RelayPacketWithResults`.
+* [\#4182](https://github.com/cosmos/ibc-go/pull/4182) Return current validator set when requesting current height in `GetValsAtHeight`.
+* [\#4319](https://github.com/cosmos/ibc-go/pull/4319) Fix in `TimeoutPacket` function to use counterparty `portID`/`channelID` in `GetNextSequenceRecv` query.
+[\#4180](https://github.com/cosmos/ibc-go/pull/4180) Remove unused function `simapp.SetupWithGenesisAccounts`.
+
+### Miscellaneous Tasks
+
+* (apps/27-interchain-accounts) [\#4677](https://github.com/cosmos/ibc-go/pull/4677) Remove ica store key.
+* [\#4724](https://github.com/cosmos/ibc-go/pull/4724) Add `HasValidateBasic` compiler assertions to messages.
+* [\#4725](https://github.com/cosmos/ibc-go/pull/4725) Add fzf selection for config files.
+* [\#4741](https://github.com/cosmos/ibc-go/pull/4741) Panic with error.
+* [\#3186](https://github.com/cosmos/ibc-go/pull/3186) Migrate all SDK errors to the new errors go module.
+* [\#3216](https://github.com/cosmos/ibc-go/pull/3216) Modify `simapp` to fulfill the SDK `runtime.AppI` interface.
+* [\#3290](https://github.com/cosmos/ibc-go/pull/3290) Remove `gogoproto` yaml tags from proto files.
+* [\#3439](https://github.com/cosmos/ibc-go/pull/3439) Use nil pointer pattern to check for interface compliance.
+* [\#3433](https://github.com/cosmos/ibc-go/pull/3433) Add tests for `acknowledgement.Acknowledgement()`.
+* (core, apps/29-fee) [\#3462](https://github.com/cosmos/ibc-go/pull/3462) Add missing `nil` check and corresponding tests for query handlers.
+* (light-clients/07-tendermint, light-clients/06-solomachine) [\#3571](https://github.com/cosmos/ibc-go/pull/3571) Delete unused `GetProofSpecs` functions.
+* (core) [\#3616](https://github.com/cosmos/ibc-go/pull/3616) Add debug log for redundant relay.
+* (core) [\#3892](https://github.com/cosmos/ibc-go/pull/3892) Add deprecated option to `create_localhost` field.
+* (core) [\#3893](https://github.com/cosmos/ibc-go/pull/3893) Add deprecated option to `MsgSubmitMisbehaviour`.
+* (apps/transfer, apps/29-fee) [\#4570](https://github.com/cosmos/ibc-go/pull/4570) Remove `GetSignBytes` from 29-fee and transfer msgs.
+* [\#3630](https://github.com/cosmos/ibc-go/pull/3630) Add annotation to Msg service.
+
+## [v7.3.0](https://github.com/cosmos/ibc-go/releases/tag/v7.3.0) - 2023-08-31
+
+### Dependencies
+
+* [\#4122](https://github.com/cosmos/ibc-go/pull/4122) Update Cosmos SDK to v0.47.4.
+
+### Improvements
+
+* [\#4187](https://github.com/cosmos/ibc-go/pull/4187) Adds function `WithICS4Wrapper` to keepers to allow to set the middleware after the keeper's creation.
+* (light-clients/06-solomachine) [\#4429](https://github.com/cosmos/ibc-go/pull/4429) Remove IBC key from path of bytes signed by solomachine and not escape the path.
+
+### Features
+
+* (apps/27-interchain-accounts) [\#3796](https://github.com/cosmos/ibc-go/pull/3796) Adds support for json tx encoding for interchain accounts.
+* [\#4188](https://github.com/cosmos/ibc-go/pull/4188) Adds optional `PacketDataUnmarshaler` interface that allows a middleware to request the packet data to be unmarshaled by the base application.
+* [\#4199](https://github.com/cosmos/ibc-go/pull/4199) Adds optional `PacketDataProvider` interface for retrieving custom packet data stored on behalf of another application.
+* [\#4200](https://github.com/cosmos/ibc-go/pull/4200) Adds optional `PacketData` interface which application's packet data may implement.
+
+### Bug Fixes
+
+* (04-channel) [\#4476](https://github.com/cosmos/ibc-go/pull/4476) Use UTC time in log messages for packet timeout error.
+* (testing) [\#4483](https://github.com/cosmos/ibc-go/pull/4483) Use the correct revision height when querying trusted validator set.
+
+## [v7.2.1](https://github.com/cosmos/ibc-go/releases/tag/v7.2.1) - 2023-08-31
+
+### Bug Fixes
+
+* (04-channel) [\#4476](https://github.com/cosmos/ibc-go/pull/4476) Use UTC time in log messages for packet timeout error.
+* (testing) [\#4483](https://github.com/cosmos/ibc-go/pull/4483) Use the correct revision height when querying trusted validator set.
 
 ## [v7.2.0](https://github.com/cosmos/ibc-go/releases/tag/v7.2.0) - 2023-06-22
 
@@ -61,7 +164,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#3907](https://github.com/cosmos/ibc-go/pull/3907) Re-implemented missing functions of `LegacyMsg` interface to fix transaction signing with ledger.
 
-## [v7.1.0](https://github.com/cosmos/ibc-go/releases/tag/v7.1.0) - 2023-06-09 
+## [v7.1.0](https://github.com/cosmos/ibc-go/releases/tag/v7.1.0) - 2023-06-09
 
 ### Dependencies
 
@@ -82,10 +185,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 * (core/04-channel) [\#3593](https://github.com/cosmos/ibc-go/pull/3593) `SendPacket` now correctly returns `ErrClientNotFound` in favour of `ErrConsensusStateNotFound`.
 
-## [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.0.1) - 2023-05-25 
+## [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.0.1) - 2023-05-25
 
 ### Bug Fixes
- 
+
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
 ## [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v7.0.0) - 2023-03-17
@@ -118,7 +221,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps) [\#3149](https://github.com/cosmos/ibc-go/pull/3149) Remove legacy interface function `RandomizedParams`, which is no longer used.
 * (light-clients/06-solomachine) [\#2941](https://github.com/cosmos/ibc-go/pull/2941) Remove solomachine header sequence.
 * (core) [\#2982](https://github.com/cosmos/ibc-go/pull/2982) Moved the ibc module name into the exported package.
- 
+
 ### State Machine Breaking
 
 * (06-solomachine) [\#2744](https://github.com/cosmos/ibc-go/pull/2744) `Misbehaviour.ValidateBasic()` now only enforces that signature data does not match when the signature paths are different.
@@ -148,16 +251,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/02-client) [\#1741](https://github.com/cosmos/ibc-go/pull/1741) Emitting a new `upgrade_chain` event upon setting upgrade consensus state.
 * (client) [\#724](https://github.com/cosmos/ibc-go/pull/724) `IsRevisionFormat` and `IsClientIDFormat` have been updated to disallow newlines before the dash used to separate the chainID and revision number, and the client type and client sequence.
 * (02-client/cli) [\#897](https://github.com/cosmos/ibc-go/pull/897) Remove `GetClientID()` from `Misbehaviour` interface. Submit client misbehaviour cli command requires an explicit client id now.
-* (06-solomachine) [\#1972](https://github.com/cosmos/ibc-go/pull/1972) Solo machine implementation of `ZeroCustomFields` fn now panics as the fn is only used for upgrades which solo machine does not support.    
+* (06-solomachine) [\#1972](https://github.com/cosmos/ibc-go/pull/1972) Solo machine implementation of `ZeroCustomFields` fn now panics as the fn is only used for upgrades which solo machine does not support.
 * (light-clients/06-solomachine) Moving `verifyMisbehaviour` function from update.go to misbehaviour_handle.go.
 * [\#2434](https://github.com/cosmos/ibc-go/pull/2478) Removed all `TypeMsg` constants
-* (modules/core/exported) [\#2539] (https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
+* (modules/core/exported) [\#2539](https://github.com/cosmos/ibc-go/pull/2539) Removing `GetVersions` from `ConnectionI` interface.
 * (core/02-connection) [\#2419](https://github.com/cosmos/ibc-go/pull/2419) Add optional proof data to proto definitions of `MsgConnectionOpenTry` and `MsgConnectionOpenAck` for host state machines that are unable to introspect their own consensus state.
 * (light-clients/07-tendermint) [\#3046](https://github.com/cosmos/ibc-go/pull/3046) Moved non-verification misbehaviour checks to `CheckForMisbehaviour`.
 * (apps/29-fee) [\#2975](https://github.com/cosmos/ibc-go/pull/2975) Adding distribute fee events to ics29.
 * (light-clients/07-tendermint) [\#2965](https://github.com/cosmos/ibc-go/pull/2965) Prune expired `07-tendermint` consensus states on duplicate header updates.
 * (light-clients) [\#2736](https://github.com/cosmos/ibc-go/pull/2736) Updating `VerifyMembership` and `VerifyNonMembership` methods to use `Path` interface.
-* (light-clients) [\#3113](https://github.com/cosmos/ibc-go/pull/3113) Align light client module names. 
+* (light-clients) [\#3113](https://github.com/cosmos/ibc-go/pull/3113) Align light client module names.
 
 ### Features
 
@@ -165,10 +268,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/02-client) [\#2824](https://github.com/cosmos/ibc-go/pull/2824) Add genesis migrations for v6 to v7. The migration migrates the solo machine client state definition, removes all solo machine consensus states and removes the localhost client.
 * (core/24-host) [\#2856](https://github.com/cosmos/ibc-go/pull/2856) Add `PrefixedClientStorePath` and `PrefixedClientStoreKey` functions to 24-host
 * (core/02-client) [\#2819](https://github.com/cosmos/ibc-go/pull/2819) Add automatic in-place store migrations to remove the localhost client and migrate existing solo machine definitions.
-* (light-clients/06-solomachine) [\#2826](https://github.com/cosmos/ibc-go/pull/2826) Add `AppModuleBasic` for the 06-solomachine client and remove solo machine type registration from core IBC. Chains must register the `AppModuleBasic` of light clients. 
-* (light-clients/07-tendermint) [\#2825](https://github.com/cosmos/ibc-go/pull/2825) Add `AppModuleBasic` for the 07-tendermint client and remove tendermint type registration from core IBC. Chains must register the `AppModuleBasic` of light clients. 
+* (light-clients/06-solomachine) [\#2826](https://github.com/cosmos/ibc-go/pull/2826) Add `AppModuleBasic` for the 06-solomachine client and remove solo machine type registration from core IBC. Chains must register the `AppModuleBasic` of light clients.
+* (light-clients/07-tendermint) [\#2825](https://github.com/cosmos/ibc-go/pull/2825) Add `AppModuleBasic` for the 07-tendermint client and remove tendermint type registration from core IBC. Chains must register the `AppModuleBasic` of light clients.
 * (light-clients/07-tendermint) [\#2800](https://github.com/cosmos/ibc-go/pull/2800) Add optional in-place store migration function to prune all expired tendermint consensus states.
-* (core/24-host) [\#2820](https://github.com/cosmos/ibc-go/pull/2820) Add `MustParseClientStatePath` which parses the clientID from a client state key path. 
+* (core/24-host) [\#2820](https://github.com/cosmos/ibc-go/pull/2820) Add `MustParseClientStatePath` which parses the clientID from a client state key path.
 * (testing/simapp) [\#2842](https://github.com/cosmos/ibc-go/pull/2842) Adding the new upgrade handler for v6 -> v7 to simapp which prunes expired Tendermint consensus states.
 * (testing) [\#2829](https://github.com/cosmos/ibc-go/pull/2829) Add `AssertEvents` which asserts events against expected event map.
 
@@ -304,7 +407,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
+* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0.
 * [\#2944](https://github.com/cosmos/ibc-go/pull/2944) Bump Cosmos SDK to v0.46.7 and Tendermint to v0.34.24.
 
 ### State Machine Breaking
@@ -381,7 +484,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* [\#3662](https://github.com/cosmos/ibc-go/pull/3662) Retract v4.1.2 and v4.2.1. 
+* [\#3662](https://github.com/cosmos/ibc-go/pull/3662) Retract v4.1.2 and v4.2.1.
 
 ## [v4.4.1](https://github.com/cosmos/ibc-go/releases/tag/v4.4.1) - 2023-05-25
 
@@ -438,7 +541,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
+* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0.
 
 ### Improvements
 
@@ -478,7 +581,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0. 
+* [\#2868](https://github.com/cosmos/ibc-go/pull/2868) Bump ICS 23 to v0.9.0.
 
 ### Improvements
 
