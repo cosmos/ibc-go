@@ -134,7 +134,7 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 					{
 						Repository: "ghcr.io/misko9/parachain-node",
 						Version:    "latest",
-						UidGid:     "0:0",
+						UidGid:     "1000:1000",
 					},
 				},
 				Bin:            "polkadot",
