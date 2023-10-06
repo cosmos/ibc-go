@@ -127,13 +127,13 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 				ChainID: "rococo-local",
 				Images: []ibc.DockerImage{
 					{
-						Repository: "chatton/polkadot",
-						Version:    "v0.9.36",
+						Repository: "ghcr.io/misko9/polkadot-node",
+						Version:    "local",
 						UidGid:     "1000:1000",
 					},
 					{
-						Repository: "chatton/parachain-node",
-						Version:    "v39",
+						Repository: "ghcr.io/misko9/parachain-node",
+						Version:    "latest",
 						UidGid:     "0:0",
 					},
 				},
@@ -156,8 +156,8 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 				ChainID: "simd",
 				Images: []ibc.DockerImage{
 					{
-						Repository: "ghcr.io/cosmos/ibc-go-simd",
-						Version:    "pr-4801",
+						Repository: "ghcr.io/misko9/ibc-go-simd",
+						Version:    "local",
 						UidGid:     "1025:1025",
 					},
 				},
@@ -185,8 +185,8 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 	r := interchaintest.NewBuiltinRelayerFactory(
 		ibc.Hyperspace,
 		zaptest.NewLogger(t),
-		//relayer.ImagePull(false),
-		relayer.CustomDockerImage("chatton/hyperspace", "wasm", "1000:1000"),
+		relayer.ImagePull(true),
+		relayer.CustomDockerImage("ghcr.io/misko9/hyperspace", "local", "1000:1000"),
 	).Build(t, client, network)
 
 	// Build the network; spin up the chains and configure the relayer
