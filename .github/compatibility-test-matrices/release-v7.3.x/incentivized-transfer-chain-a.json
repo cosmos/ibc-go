@@ -25,6 +25,6 @@
     "TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }

@@ -20,6 +20,6 @@
     "TestControllerEnabledParam"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }
