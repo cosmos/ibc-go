@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
 	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
