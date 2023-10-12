@@ -1,11 +1,14 @@
 #!/usr/bin/python3
+
 import argparse
-import json
 import re
+import requests
 from typing import List
+import semver
+import json
 
 FROM_VERSION = "from_version"
-
+RELEASES_URL = "https://api.github.com/repos/cosmos/ibc-go/releases"
 CHAIN_A = "chain-a"
 CHAIN_B = "chain-b"
 HERMES = "hermes"
@@ -51,8 +54,9 @@ def main():
 
     release_versions = [args.release_version]
 
-    # TODO: this should be a list of all released versions after args.version (look on github releases or something)
-    other_versions = [args.version]
+    tags = _get_ibc_go_releases(args.version)
+
+    other_versions = tags
 
     # if we are specifying chain B, we invert the versions.
     if args.chain == CHAIN_B:
@@ -65,7 +69,41 @@ def main():
         "test": test_functions,
         "relayer-type": [args.relayer]
     }
+
+    # output the json on a single line. This ensures the output is directly passable to a github workflow.
     print(json.dumps(compatibility_json), end="")
+
+
+def _get_ibc_go_releases(from_version: str) -> List[str]:
+    releases = []
+
+    without_v = from_version
+    if without_v.startswith("v"):
+        without_v = without_v[1:]
+    from_version_semver = semver.Version.parse(without_v)
+
+    resp = requests.get(RELEASES_URL)
+    resp.raise_for_status()
+
+    response_body = resp.json()
+
+    all_tags = [release["tag_name"] for release in response_body]
+    for tag in all_tags:
+        without_v = tag
+        if without_v.startswith("v"):
+            without_v = without_v[1:]
+
+        # skip alphas, betas and rcs
+        if any(c in without_v for c in ["beta", "rc", "alpha"]):
+            continue
+        try:
+            semver_tag = semver.Version.parse(without_v)
+        except ValueError: # skip any non semver tags.
+            continue
+        if semver_tag >= from_version_semver:
+            releases.append(tag)
+
+    return releases
 
 
 def _extract_test_functions_to_run(version: str, file_lines: List[str]) -> List[str]:
