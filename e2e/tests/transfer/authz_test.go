@@ -30,6 +30,7 @@ type AuthzTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// from_version: v6.2.0
 func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
@@ -182,6 +183,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	})
 }
 
+// from_version: v6.2.0
 func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
