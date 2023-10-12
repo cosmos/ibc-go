@@ -42,6 +42,7 @@ func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.C
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
 // The transfer will occur over a basic transfer channel (non incentivized) and both native and non-native tokens
 // will be sent forwards and backwards in the IBC transfer timeline (both chains will act as source and receiver chains).
+// from_version: v4.4.0
 func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
@@ -158,6 +159,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 // TestMsgTransfer_Fails_InvalidAddress attempts to send an IBC transfer to an invalid address and ensures
 // that the tokens on the sending chain are unescrowed.
+// from_version: v4.4.0
 func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t := s.T()
 	ctx := context.TODO()
@@ -202,6 +204,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	})
 }
 
+// from_version: v4.4.0
 func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	t := s.T()
 	ctx := context.TODO()
@@ -250,6 +253,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 }
 
 // TestSendEnabledParam tests changing ics20 SendEnabled parameter
+// from_version: v4.4.0
 func (s *TransferTestSuite) TestSendEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
@@ -310,6 +314,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 }
 
 // TestReceiveEnabledParam tests changing ics20 ReceiveEnabled parameter
+// from_version: v4.4.0
 func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()

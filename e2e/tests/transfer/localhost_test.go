@@ -30,6 +30,7 @@ type LocalhostTransferTestSuite struct {
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth
 // to ensure ibc functions as expected on localhost. This test is largely the same as TestMsgTransfer_Succeeds_Nonincentivized
 // except that chain B is replaced with an additional wallet on chainA.
+// from_version: v7.2.0
 func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()

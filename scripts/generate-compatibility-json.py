@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 import argparse
+import json
 import re
 import requests
-from typing import List
 import semver
-import json
+from typing import List, Dict
 
 FROM_VERSION = "from_version"
 RELEASES_URL = "https://api.github.com/repos/cosmos/ibc-go/releases"
@@ -26,15 +26,15 @@ def parse_args() -> argparse.Namespace:
         "--version",
         help="The version to run tests for.",
     )
-    parser.add_argument(
-        "--release_version",
-        help="The release tag",
-    )
+    # parser.add_argument(
+    #     "--release_version",
+    #     help="The release tag",
+    # )
     parser.add_argument(
         "--chain",
-        choices=[CHAIN_A, CHAIN_A],
+        choices=[CHAIN_A, CHAIN_B],
         default=CHAIN_A,
-        help="Specify chain-a or chain-b for use with the json files.",
+        help=f"Specify {CHAIN_A} or {CHAIN_B} for use with the json files.",
     )
     parser.add_argument(
         "--relayer",
@@ -46,15 +46,25 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _to_release_version_str(version: str) -> str:
+    """convert a version to the release version tag
+    e.g.
+    v4.4.0 -> releases-v4.4.x
+    v7.3.0 -> releases-v7.3.x
+    """
+    return "".join(("release-", version[0:len(version) - 1], "x"))
+
+
 def main():
     args = parse_args()
     file_lines = _load_file_lines(args.file)
     test_suite_name = _extract_test_suite_function(file_lines)
     test_functions = _extract_test_functions_to_run(args.version, file_lines)
 
-    release_versions = [args.release_version]
+    release_versions = [_to_release_version_str(args.version)]
 
     tags = _get_ibc_go_releases(args.version)
+    tags.extend(release_versions)
 
     other_versions = tags
 
@@ -70,17 +80,41 @@ def main():
         "relayer-type": [args.relayer]
     }
 
+    _validate(compatibility_json, args.version)
     # output the json on a single line. This ensures the output is directly passable to a github workflow.
     print(json.dumps(compatibility_json), end="")
+
+
+def _validate(compatibility_json: Dict, version: str):
+    """validates that the generated compatibility json fields will be valid for a github workflow."""
+    required_keys = frozenset({"chain-a", "chain-b", "entrypoint", "test", "relayer-type"})
+    for k in required_keys:
+        if k not in compatibility_json:
+            raise ValueError(f"key {k} not found in {compatibility_json.keys()}")
+
+    if compatibility_json["chain-a"] == compatibility_json["chain-b"]:
+        raise ValueError("chain ids must be different")
+
+    if len(compatibility_json["entrypoint"]) != 1:
+        raise ValueError(f"found more than one entrypoint: {compatibility_json['entrypoint']}")
+
+    if len(compatibility_json["test"]) <= 0:
+        raise ValueError(f"no tests found for version {version}")
+
+    if len(compatibility_json["relayer-type"]) <= 0:
+        raise ValueError("no relayer specified")
+
+
+def _to_semver(version: str) -> semver.Version:
+    if version.startswith("v"):
+        version = version[1:]
+    return semver.Version.parse(version)
 
 
 def _get_ibc_go_releases(from_version: str) -> List[str]:
     releases = []
 
-    without_v = from_version
-    if without_v.startswith("v"):
-        without_v = without_v[1:]
-    from_version_semver = semver.Version.parse(without_v)
+    from_version_semver = _to_semver(from_version)
 
     resp = requests.get(RELEASES_URL)
     resp.raise_for_status()
@@ -89,16 +123,12 @@ def _get_ibc_go_releases(from_version: str) -> List[str]:
 
     all_tags = [release["tag_name"] for release in response_body]
     for tag in all_tags:
-        without_v = tag
-        if without_v.startswith("v"):
-            without_v = without_v[1:]
-
         # skip alphas, betas and rcs
-        if any(c in without_v for c in ["beta", "rc", "alpha"]):
+        if any(c in tag for c in ("beta", "rc", "alpha", "icq")):
             continue
         try:
-            semver_tag = semver.Version.parse(without_v)
-        except ValueError: # skip any non semver tags.
+            semver_tag = _to_semver(tag)
+        except ValueError:  # skip any non semver tags.
             continue
         if semver_tag >= from_version_semver:
             releases.append(tag)
