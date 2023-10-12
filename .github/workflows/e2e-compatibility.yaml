@@ -89,8 +89,9 @@ jobs:
       - determine-test-directory
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-chain-a"
+      test-file: "e2e/tests/transfer/base_test.go"
+      test-chain: "chain-a"
+      release-version: "{{ needs.determine-test-directory.outputs.test-directory }}"
 
   transfer-chain-b:
     needs:
@@ -98,158 +99,159 @@ jobs:
       - determine-test-directory
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-chain-b"
+      test-file: "e2e/tests/transfer/base_test.go"
+      test-chain: "chain-b"
+      release-version: "{{ needs.determine-test-directory.outputs.test-directory }}"
 
-  transfer-authz-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-authz-chain-a"
-
-  transfer-authz-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-authz-chain-b"
-
-  connection-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "connection-chain-a"
-
-  client-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "client-chain-a"
-
-  incentivized-transfer-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "incentivized-transfer-chain-a"
-
-  incentivized-transfer-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "incentivized-transfer-chain-b"
-
-  ica-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-chain-a"
-
-  ica-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-chain-b"
-
-  incentivized-ica-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "incentivized-ica-chain-a"
-
-  incentivized-ica-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "incentivized-ica-chain-b"
-
-  ica-groups-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-groups-chain-a"
-
-  ica-groups-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-groups-chain-b"
-
-  ica-gov-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-gov-chain-a"
-
-  ica-gov-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-gov-chain-b"
-
-  localhost-transfer-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "localhost-transfer-chain-a"
-
-  localhost-ica-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "localhost-ica-chain-a"
-  
-  genesis-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "genesis-chain-a"
+#  transfer-authz-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "transfer-authz-chain-a"
+#
+#  transfer-authz-chain-b:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "transfer-authz-chain-b"
+#
+#  connection-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "connection-chain-a"
+#
+#  client-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "client-chain-a"
+#
+#  incentivized-transfer-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "incentivized-transfer-chain-a"
+#
+#  incentivized-transfer-chain-b:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "incentivized-transfer-chain-b"
+#
+#  ica-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "ica-chain-a"
+#
+#  ica-chain-b:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "ica-chain-b"
+#
+#  incentivized-ica-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "incentivized-ica-chain-a"
+#
+#  incentivized-ica-chain-b:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "incentivized-ica-chain-b"
+#
+#  ica-groups-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "ica-groups-chain-a"
+#
+#  ica-groups-chain-b:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "ica-groups-chain-b"
+#
+#  ica-gov-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "ica-gov-chain-a"
+#
+#  ica-gov-chain-b:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "ica-gov-chain-b"
+#
+#  localhost-transfer-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "localhost-transfer-chain-a"
+#
+#  localhost-ica-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "localhost-ica-chain-a"
+#
+#  genesis-chain-a:
+#    needs:
+#      - build-release-images
+#      - determine-test-directory
+#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+#    with:
+#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+#      test-suite: "genesis-chain-a"

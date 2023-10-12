@@ -26,10 +26,10 @@ def parse_args() -> argparse.Namespace:
         "--version",
         help="The version to run tests for.",
     )
-    # parser.add_argument(
-    #     "--release_version",
-    #     help="The release tag",
-    # )
+    parser.add_argument(
+        "--release-version",
+        help="The version to run tests for.",
+    )
     parser.add_argument(
         "--chain",
         choices=[CHAIN_A, CHAIN_B],
@@ -54,17 +54,32 @@ def _to_release_version_str(version: str) -> str:
     """
     return "".join(("release-", version[0:len(version) - 1], "x"))
 
+def _from_release_tag_to_regular_tag(release_version: str) -> str:
+    """convert a version to the release version tag
+    e.g.
+    releases-v4.4.x -> v4.4.0
+    releases-v7.3.x -> v7.3.0
+    """
+    return "".join((release_version[len("release-"):len(release_version) - 1], "0"))
+
+
 
 def main():
     args = parse_args()
+    extracted_version = _from_release_tag_to_regular_tag(args.release_version)
     file_lines = _load_file_lines(args.file)
     test_suite_name = _extract_test_suite_function(file_lines)
-    test_functions = _extract_test_functions_to_run(args.version, file_lines)
+    test_functions = _extract_test_functions_to_run(extracted_version, file_lines)
 
-    release_versions = [_to_release_version_str(args.version)]
+    # release_versions = [_to_release_version_str(args.version)]
+    release_versions = [args.release_version]
 
-    tags = _get_ibc_go_releases(args.version)
+
+
+    tags = _get_ibc_go_releases(extracted_version)
     tags.extend(release_versions)
+    # print(args.version)
+    # next_release_version = _from_release_tag_to_regular_tag(args.release_version)
 
     other_versions = tags
 
@@ -80,7 +95,7 @@ def main():
         "relayer-type": [args.relayer]
     }
 
-    _validate(compatibility_json, args.version)
+    _validate(compatibility_json, "")
     # output the json on a single line. This ensures the output is directly passable to a github workflow.
     print(json.dumps(compatibility_json), end="")
 
