@@ -102,7 +102,8 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	t.Run("ics20: packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
