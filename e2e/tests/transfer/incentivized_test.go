@@ -24,12 +24,11 @@ import (
 type IncentivizedTransferTestSuite struct {
 	TransferTestSuite
 }
-
+// compatibility:from_version: v4.4.0
 func TestIncentivizedTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(IncentivizedTransferTestSuite))
 }
 
-// from_version: v4.4.0
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
@@ -147,7 +146,6 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	})
 }
 
-// from_version: v4.4.0
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
 	t := s.T()
 	ctx := context.TODO()
@@ -261,7 +259,6 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	})
 }
 
-// from_version: v4.4.0
 func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	t := s.T()
 	ctx := context.TODO()
@@ -368,7 +365,6 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	})
 }
 
-// from_version: v4.4.0
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 	t := s.T()
 	ctx := context.TODO()
@@ -484,7 +480,6 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	})
 }
 
-// from_version: v4.4.0
 func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress() {
 	t := s.T()
 	ctx := context.TODO()
@@ -585,7 +580,6 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 	})
 }
 
-// from_version: v4.4.0
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
