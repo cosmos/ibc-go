@@ -30,7 +30,7 @@ Note: Since upgrades are only implemented for Tendermint clients, this doc only 
 
 If the IBC-connected chain is conducting an upgrade that will break counterparty clients, it must ensure that the upgrade is first supported by IBC using the list above and then execute the upgrade process described below in order to prevent counterparty clients from breaking.
 
-1. Create a 02-client [`UpgradeProposal`](https://github.com/cosmos/ibc-go/blob/main/docs/ibc/proto-docs.md#upgradeproposal) with an `UpgradePlan` and a new IBC ClientState in the `UpgradedClientState` field. Note that the `UpgradePlan` must specify an upgrade height **only** (no upgrade time), and the `ClientState` should only include the fields common to all valid clients and zero out any client-customizable fields (such as TrustingPeriod).
+1. Create a 02-client [`UpgradeProposal`](../proto-docs.md#upgradeproposal) with an `UpgradePlan` and a new IBC ClientState in the `UpgradedClientState` field. Note that the `UpgradePlan` must specify an upgrade height **only** (no upgrade time), and the `ClientState` should only include the fields common to all valid clients and zero out any client-customizable fields (such as TrustingPeriod).
 2. Vote on and pass the `UpgradeProposal`
 
 Upon the `UpgradeProposal` passing, the upgrade module will commit the UpgradedClient under the key: `upgrade/UpgradedIBCState/{upgradeHeight}/upgradedClient`. On the block right before the upgrade height, the upgrade module will also commit an initial consensus state for the next chain under the key: `upgrade/UpgradedIBCState/{upgradeHeight}/upgradedConsState`.
