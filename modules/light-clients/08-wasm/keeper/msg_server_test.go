@@ -9,6 +9,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 func (suite *KeeperTestSuite) TestMsgStoreCode() {
@@ -21,14 +22,14 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success",
 			func() {
 				msg = types.NewMsgStoreCode(signer, data)
 			},
-			true,
+			nil,
 		},
 		{
 			"fails with duplicate wasm code",
@@ -38,14 +39,14 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 				_, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 			},
-			false,
+			types.ErrWasmCodeExists,
 		},
 		{
 			"fails with invalid wasm code",
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{})
 			},
-			false,
+			types.ErrWasmEmptyCode,
 		},
 		{
 			"fails with unauthorized signer",
@@ -53,7 +54,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 				signer = suite.chainA.SenderAccount.GetAddress().String()
 				msg = types.NewMsgStoreCode(signer, data)
 			},
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 	}
 
@@ -70,7 +71,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
 			events := ctx.EventManager().Events()
 
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().NotEmpty(res.Checksum)
@@ -88,6 +89,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 				}
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Nil(res)
 				suite.Require().Empty(events)
 			}

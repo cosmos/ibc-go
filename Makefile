@@ -137,6 +137,11 @@ go.sum: go.mod
 	go mod verify
 	go mod tidy
 
+python-install-deps:
+	@echo "Installing python dependencies..."
+	@pip3 install --upgrade pip
+	@pip3 install -r requirements.txt
+
 ###############################################################################
 ###                              Documentation                              ###
 ###############################################################################
