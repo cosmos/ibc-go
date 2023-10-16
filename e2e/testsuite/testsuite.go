@@ -88,7 +88,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 // using the given channel options. The relayer returned by this function has not yet started. It should be started
 // with E2ETestSuite.StartRelayer if needed.
 // This should be called at the start of every test, unless fine grained control is required.
-func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
+func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts...func(options *ChainOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
 
 	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
@@ -96,8 +96,8 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	pathName := s.generatePathName()
 
 	channelOptions := ibc.DefaultChannelOpts()
-	for _, opt := range channelOpts {
-		opt(&channelOptions)
+	if channelOpts != nil {
+		channelOpts(&channelOptions)
 	}
 
 	ic := interchaintest.NewInterchain().
@@ -222,7 +222,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 		opt(&chainOptions)
 	}
 
-	chainA, chainB := s.createCosmosChains(chainOptions)
+	chainA, chainB := s.createChains(chainOptions)
 	path = newPath(chainA, chainB)
 	s.paths[s.T().Name()] = path
 
@@ -344,9 +344,9 @@ func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain ibc.C
 	s.Require().Equal(strings.ToUpper(counterpartyNativeDenom), denomMetadata.Symbol, "denom metadata symbol does not match expected %s: got %s", strings.ToUpper(counterpartyNativeDenom), denomMetadata.Symbol)
 }
 
-// createCosmosChains creates two separate chains in docker containers.
+// createChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
-func (s *E2ETestSuite) createCosmosChains(chainOptions ChainOptions) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
+func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.Chain) {
 	client, network := interchaintest.DockerSetup(s.T())
 	t := s.T()
 
@@ -357,16 +357,20 @@ func (s *E2ETestSuite) createCosmosChains(chainOptions ChainOptions) (*cosmos.Co
 	logger := zaptest.NewLogger(t)
 
 	numValidators, numFullNodes := getValidatorsAndFullNodes(0)
-	chainA := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainAConfig, numValidators, numFullNodes, logger)
+	chainA := cosmos.NewCosmosChain(t.Name(), chainOptions.ChainASpec.ChainConfig, numValidators, numFullNodes, logger)
 	numValidators, numFullNodes = getValidatorsAndFullNodes(1)
-	chainB := cosmos.NewCosmosChain(t.Name(), *chainOptions.ChainBConfig, numValidators, numFullNodes, logger)
+	chainB := cosmos.NewCosmosChain(t.Name(), chainOptions.ChainBSpec.ChainConfig, numValidators, numFullNodes, logger)
+
+
+
+	//cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{}),
 
 	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
 	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
 	// this allows us to process the logs before the containers are removed.
 	t.Cleanup(func() {
 		debugModeEnabled := LoadConfig().DebugConfig.DumpLogs
-		chains := []string{chainOptions.ChainAConfig.Name, chainOptions.ChainBConfig.Name}
+		chains := []string{chainOptions.ChainASpec.ChainConfig.Name, chainOptions.ChainBSpec.ChainConfig.Name}
 		diagnostics.Collect(t, s.DockerClient, debugModeEnabled, chains...)
 	})
 

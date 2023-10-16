@@ -81,14 +81,11 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/config.toml"] = configTomlOverrides
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
-
-	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
-
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil, func(options *testsuite.ChainOptions) {
 		// configure chain A
-		options.ChainAConfig.ChainID = "rococo-local"
-		options.ChainAConfig.Name = "composable"
-		options.ChainAConfig.Images = []ibc.DockerImage{
+		options.ChainASpec.ChainID = "rococo-local"
+		options.ChainASpec.Name = "composable"
+		options.ChainASpec.Images = []ibc.DockerImage{
 			{
 				Repository: "ghcr.io/misko9/polkadot-node",
 				Version:    "local",
@@ -100,17 +97,18 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 				UidGid:     "1000:1000",
 			},
 		}
-		options.ChainAConfig.Bin = "polkadot"
-		options.ChainAConfig.Bech32Prefix = "composable"
-		options.ChainAConfig.Denom = "uDOT"
-		options.ChainAConfig.GasPrices = ""
-		options.ChainAConfig.GasAdjustment = 0
-		options.ChainAConfig.TrustingPeriod = ""
-		options.ChainAConfig.CoinType = "354"
-
-
+		options.ChainASpec.Bin = "polkadot"
+		options.ChainASpec.Bech32Prefix = "composable"
+		options.ChainASpec.Denom = "uDOT"
+		options.ChainASpec.GasPrices = ""
+		options.ChainASpec.GasAdjustment = 0
+		options.ChainASpec.TrustingPeriod = ""
+		options.ChainASpec.CoinType = "354"
+		
 		// configure chain B
 	})
+
+
 
 	// Get both chains
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{

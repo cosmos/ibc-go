@@ -79,7 +79,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
@@ -176,7 +176,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx)
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
@@ -259,7 +259,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx)
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
@@ -345,7 +345,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		err             error
 	)
 
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))

@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"gopkg.in/yaml.v2"
@@ -440,8 +441,10 @@ func IsCI() bool {
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
 type ChainOptions struct {
-	ChainAConfig *ibc.ChainConfig
-	ChainBConfig *ibc.ChainConfig
+	ChainASpec *interchaintest.ChainSpec
+	ChainBSpec *interchaintest.ChainSpec
+	//ChainAConfig *ibc.ChainConfig
+	//ChainBConfig *ibc.ChainConfig
 }
 
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
@@ -455,8 +458,12 @@ func DefaultChainOptions() ChainOptions {
 	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.GetChainAID(), "atoma", tc.CometBFTConfig)
 	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.GetChainBID(), "atomb", tc.CometBFTConfig)
 	return ChainOptions{
-		ChainAConfig: &chainACfg,
-		ChainBConfig: &chainBCfg,
+		ChainASpec: &interchaintest.ChainSpec{
+			ChainConfig:  chainACfg,
+		},
+		ChainBSpec: &interchaintest.ChainSpec{
+			ChainConfig:  chainBCfg,
+		},
 	}
 }
 
