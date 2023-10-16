@@ -39,7 +39,7 @@ const (
 	maxDepositPeriod = "10s"
 )
 
-// TestHyperspace features
+// TestGrandpaContract features
 // * sets up a Polkadot parachain
 // * sets up a Cosmos chain
 // * sets up the Hyperspace relayer
@@ -48,7 +48,7 @@ const (
 // * create client, connection, and channel in relayer
 // * start relayer
 // * send transfer over ibc
-func (s *GrandpaTestSuite) TestHyperspace() {
+func (s *GrandpaTestSuite) TestGrandpaContract() {
 
 	t := s.T()
 	client, network := interchaintest.DockerSetup(t)
@@ -58,13 +58,18 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 	s.Require().NoError(err)
 	// Reporter/logs
 	rep := testreporter.NewReporter(f)
-	//rep := testreporter.NewNopReporter()
 	eRep := rep.RelayerExecReporter(t)
 
 	ctx := context.Background()
 
+
+
 	nv := 2 // Number of validators
 	nf := 1 // Number of full nodes
+
+	if testsuite.IsCI() {
+		nv = 5
+	}
 
 	consensusOverrides := make(testutil.Toml)
 	blockTime := 5 // seconds, parachain is 12 second blocks, don't make relayer work harder than needed
