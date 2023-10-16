@@ -123,6 +123,9 @@ func (msg MsgChannelOpenTry) ValidateBasic() error {
 	if err := host.ChannelIdentifierValidator(msg.Channel.Counterparty.ChannelId); err != nil {
 		return errorsmod.Wrap(err, "invalid counterparty channel ID")
 	}
+	if len(msg.CounterpartyVersion) > MaximumVersionLength {
+		return errorsmod.Wrapf(ErrInvalidChannelVersion, "counterparty version must not exceed %d bytes", MaximumVersionLength)
+	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -169,6 +172,9 @@ func (msg MsgChannelOpenAck) ValidateBasic() error {
 	}
 	if len(msg.ProofTry) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty try proof")
+	}
+	if len(msg.CounterpartyVersion) > MaximumVersionLength {
+		return errorsmod.Wrapf(ErrInvalidChannelVersion, "counterparty version must not exceed %d bytes", MaximumVersionLength)
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
