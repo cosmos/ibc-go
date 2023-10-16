@@ -1,7 +1,7 @@
 package ibctesting
 
 import (
-	"rand"
+	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/require"
