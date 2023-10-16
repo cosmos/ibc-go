@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
+
 ## [v6.2.0](https://github.com/cosmos/ibc-go/releases/tag/v6.2.0) - 2023-05-31
 
 ### Dependencies
