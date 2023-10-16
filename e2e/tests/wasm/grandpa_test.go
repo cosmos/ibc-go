@@ -33,45 +33,6 @@ type GrandpaTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-
-// gh repo clone paritytech/polkadot
-// git checkout release-v0.9.36
-// docker build -f scripts/ci/dockerfiles/polkadot/polkadot_builder.Dockerfile . -t chatton/polkadot:v0.9.36
-
-// git clone https://github.com/ComposableFi/composable-ibc.git
-// cd composable-ibc
-// git checkout vmarkushin/wasm
-// docker build -f scripts/hyperspace.Dockerfile -t chatton/hyperspace:wasm .
-
-// gh repo clone ComposableFi/centauri
-// cd composable-ibc/
-// git checkout vmarkushin/wasm
-// ./scripts/build-parachain-node-docker.sh
-
-
-// TestHyperspace setup
-// Must build local docker images of hyperspace, parachain, and polkadot
-// ###### hyperspace ######
-// * Repo: ComposableFi/centauri
-// * Branch: vmarkushin/wasm
-// * Commit: 00ee58381df66b035be75721e6e16c2bbf82f076
-// * Build local Hyperspace docker from centauri repo:
-//    amd64: "docker build -f scripts/hyperspace.Dockerfile -t hyperspace:local ."
-//    arm64: "docker build -f scripts/hyperspace.aarch64.Dockerfile -t hyperspace:latest --platform=linux/arm64/v8 .
-// ###### parachain ######
-// * Repo: ComposableFi/centauri
-// * Branch: vmarkushin/wasm
-// * Commit: 00ee58381df66b035be75721e6e16c2bbf82f076
-// * Build local parachain docker from centauri repo:
-//     ./scripts/build-parachain-node-docker.sh (you can change the script to compile for ARM arch if needed)
-// ###### polkadot ######
-// * Repo: paritytech/polkadot
-// * Branch: release-v0.9.36
-// * Commit: dc25abc712e42b9b51d87ad1168e453a42b5f0bc
-// * Build local polkadot docker from  polkadot repo
-//     amd64: docker build -f scripts/ci/dockerfiles/polkadot/polkadot_builder.Dockerfile . -t polkadot-node:local
-//     arm64: docker build --platform linux/arm64 -f scripts/ci/dockerfiles/polkadot/polkadot_builder.aarch64.Dockerfile . -t polkadot-node:local
-
 const (
 	heightDelta      = uint64(20)
 	votingPeriod     = "30s"
