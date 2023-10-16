@@ -62,8 +62,6 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 
 	ctx := context.Background()
 
-
-
 	nv := 2 // Number of validators
 	nf := 1 // Number of full nodes
 
@@ -82,6 +80,32 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/config.toml"] = configTomlOverrides
+
+	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+
+	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
+		options.ChainAConfig.ChainID = "rococo-local"
+		options.ChainAConfig.Name = "composable"
+		options.ChainAConfig.Images = []ibc.DockerImage{
+			{
+				Repository: "ghcr.io/misko9/polkadot-node",
+				Version:    "local",
+				UidGid:     "1000:1000",
+			},
+			{
+				Repository: "ghcr.io/misko9/parachain-node",
+				Version:    "latest",
+				UidGid:     "1000:1000",
+			},
+		}
+		options.ChainAConfig.Bin = "polkadot"
+		options.ChainAConfig.Bech32Prefix = "composable"
+		options.ChainAConfig.Denom = "uDOT"
+		options.ChainAConfig.GasPrices = ""
+		options.ChainAConfig.GasAdjustment = 0
+		options.ChainAConfig.TrustingPeriod = ""
+		options.ChainAConfig.CoinType = "354"
+	})
 
 	// Get both chains
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
@@ -127,13 +151,13 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 						UidGid:     "1025:1025",
 					},
 				},
-				Bin:            "simd",
-				Bech32Prefix:   "cosmos",
-				Denom:          "stake",
-				GasPrices:      "0.00stake",
-				GasAdjustment:  1.3,
-				TrustingPeriod: "504h",
-				CoinType:       "118",
+				Bin:                 "simd",
+				Bech32Prefix:        "cosmos",
+				Denom:               "stake",
+				GasPrices:           "0.00stake",
+				GasAdjustment:       1.3,
+				TrustingPeriod:      "504h",
+				CoinType:            "118",
 				NoHostMount:         true,
 				ConfigFileOverrides: configFileOverrides,
 				ModifyGenesis:       modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
@@ -171,11 +195,11 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 		})
 
 	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
-		TestName:          t.Name(),
-		Client:            client,
-		NetworkID:         network,
+		TestName:  t.Name(),
+		Client:    client,
+		NetworkID: network,
 		//BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
-		SkipPathCreation:  true, // Skip path creation, so we can have granular control over the process
+		SkipPathCreation: true, // Skip path creation, so we can have granular control over the process
 	}))
 	fmt.Println("Interchain built")
 
@@ -353,9 +377,9 @@ func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Cont
 	err = cosmosChain.QueryClientContractCode(ctx, codeHash, &getCodeQueryMsgRsp)
 	codeHashByte32 := sha256.Sum256(getCodeQueryMsgRsp.Data)
 	codeHash2 := hex.EncodeToString(codeHashByte32[:])
-	s.Require().NoError( err)
-	s.Require().NotEmpty( getCodeQueryMsgRsp.Data)
-	s.Require().Equal( codeHash, codeHash2)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(getCodeQueryMsgRsp.Data)
+	s.Require().Equal(codeHash, codeHash2)
 
 	return codeHash
 }
