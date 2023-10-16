@@ -122,6 +122,13 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			false,
 		},
 		{
+			"owner address is too long",
+			func() {
+				msg.Owner = ibctesting.GenerateString(types.MaximumOwnerLength + 1)
+			},
+			false,
+		},
+		{
 			"relative timeout is not set",
 			func() {
 				msg.RelativeTimeout = 0
