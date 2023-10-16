@@ -1,15 +1,51 @@
-package wasmtesting
+package types
 
 import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
-
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 const DefaultGasUsed = uint64(1)
 
-var _ types.WasmEngine = (*MockWasmEngine)(nil)
+var _ WasmEngine = (*MockWasmEngine)(nil)
+
+type QueryFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error)
+
+func NewMockWasmEngine() *MockWasmEngine {
+	m := &MockWasmEngine{
+		queryCallbacks: map[string]QueryFn{},
+	}
+
+	allQueryTypes := []any{
+		StatusMessage{},
+		ExportMetadata{},
+		TimestampAtHeight{},
+		VerifyClientMessage{},
+		CheckForMisbehaviour{},
+	}
+
+	for _, msgType := range allQueryTypes {
+		typeName := reflect.TypeOf(msgType).Name()
+		m.queryCallbacks[typeName] = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+			panic(fmt.Errorf("no callback specified for type %s", typeName))
+		}
+	}
+
+	return m
+}
+
+// RegisterQueryCallback registers a callback for a specific message type.
+func (m *MockWasmEngine) RegisterQueryCallback(queryMessage any, fn QueryFn) {
+	typeName := reflect.TypeOf(queryMessage).Name()
+	if _, found := m.queryCallbacks[typeName]; !found {
+		panic(fmt.Errorf("unexpected argument of type %s passed", typeName))
+	}
+	m.queryCallbacks[typeName] = fn
+}
 
 // MockWasmEngine implements types.WasmEngine for testing purpose. One or multiple messages can be stubbed.
 // Without a stub function a panic is thrown.
@@ -21,6 +57,8 @@ type MockWasmEngine struct {
 	SudoFn        func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
 	GetCodeFn     func(codeID wasmvm.Checksum) (wasmvm.WasmCode, error)
 	PinFn         func(checksum wasmvm.Checksum) error
+
+	queryCallbacks map[string]QueryFn
 }
 
 // StoreCode implements the WasmEngine interface.
@@ -41,10 +79,7 @@ func (m *MockWasmEngine) Instantiate(codeID wasmvm.Checksum, env wasmvmtypes.Env
 
 // Query implements the WasmEngine interface.
 func (m *MockWasmEngine) Query(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-	if m.QueryFn == nil {
-		panic("mock engine is not properly initialized")
-	}
-	return m.QueryFn(codeID, env, queryMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
+	return m.queryCallbacks[getQueryType(queryMsg)](codeID, env, queryMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
 // Sudo implements the WasmEngine interface.
@@ -69,4 +104,28 @@ func (m *MockWasmEngine) Pin(checksum wasmvm.Checksum) error {
 		panic("mock engine is not properly initialized")
 	}
 	return m.PinFn(checksum)
+}
+
+func getQueryType(queryMsgBz []byte) string {
+	payload := queryMsg{}
+	if err := json.Unmarshal(queryMsgBz, &payload); err != nil {
+		panic(err)
+	}
+	if payload.Status != nil {
+		return reflect.TypeOf(*payload.Status).Name()
+	}
+	if payload.CheckForMisbehaviour != nil {
+		return reflect.TypeOf(*payload.CheckForMisbehaviour).Name()
+	}
+	if payload.ExportMetadata != nil {
+		return reflect.TypeOf(*payload.ExportMetadata).Name()
+	}
+	if payload.TimestampAtHeight != nil {
+		return reflect.TypeOf(*payload.TimestampAtHeight).Name()
+	}
+	if payload.VerifyClientMessage != nil {
+		return reflect.TypeOf(*payload.VerifyClientMessage).Name()
+	}
+	panic(fmt.Errorf("failed to extract valid query message from bytes: %s", string(queryMsgBz)))
+
 }

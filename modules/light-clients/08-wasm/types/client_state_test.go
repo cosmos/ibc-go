@@ -106,20 +106,20 @@ func (suite *TypesTestSuite) TestStatus() {
 		{
 			"client is frozen",
 			func() {
-				suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.StatusMessage{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp := fmt.Sprintf(`{"status":"%s"}`, exported.Frozen)
-					return []byte(resp), wasmtesting.DefaultGasUsed, nil
-				}
+					return []byte(resp), types.DefaultGasUsed, nil
+				})
 			},
 			exported.Frozen,
 		},
 		{
 			"client status is expired",
 			func() {
-				suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.StatusMessage{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp := fmt.Sprintf(`{"status":"%s"}`, exported.Expired)
-					return []byte(resp), wasmtesting.DefaultGasUsed, nil
-				}
+					return []byte(resp), types.DefaultGasUsed, nil
+				})
 			},
 			exported.Expired,
 		},

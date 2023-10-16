@@ -8,3 +8,9 @@ package types
 type InstantiateMessage struct {
 	instantiateMessage
 }
+
+type StatusMessage statusMsg
+type ExportMetadata exportMetadataMsg
+type TimestampAtHeight timestampAtHeightMsg
+type VerifyClientMessage verifyClientMessageMsg
+type CheckForMisbehaviour checkForMisbehaviourMsg

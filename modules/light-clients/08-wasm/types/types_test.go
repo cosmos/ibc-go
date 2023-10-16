@@ -23,7 +23,6 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmtypes "github.com/cometbft/cometbft/types"
 
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -42,7 +41,7 @@ type TypesTestSuite struct {
 	testifysuite.Suite
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
-	mockVM      *wasmtesting.MockWasmEngine
+	mockVM      *types.MockWasmEngine
 
 	ctx      sdk.Context
 	store    storetypes.KVStore
@@ -80,7 +79,7 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	suite.mockVM = &wasmtesting.MockWasmEngine{}
+	suite.mockVM = types.NewMockWasmEngine()
 	// TODO: move default functionality required for wasm client testing to the mock VM
 	suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 		var payload types.InstantiateMessage
@@ -94,7 +93,7 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 
 	suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 		resp := fmt.Sprintf(`{"status":"%s"}`, exported.Active)
-		return []byte(resp), wasmtesting.DefaultGasUsed, nil
+		return []byte(resp), types.DefaultGasUsed, nil
 	}
 
 	db := dbm.NewMemDB()
