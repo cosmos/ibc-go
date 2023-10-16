@@ -102,7 +102,7 @@ func (s *GrandpaTestSuite) TestHyperspace() {
 
 	ctx := context.Background()
 
-	nv := 1 // Number of validators
+	nv := 2 // Number of validators
 	nf := 1 // Number of full nodes
 
 	consensusOverrides := make(testutil.Toml)
