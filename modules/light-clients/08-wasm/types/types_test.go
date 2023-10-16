@@ -91,10 +91,10 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 		return nil, 0, nil
 	}
 
-	suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+	suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 		resp := fmt.Sprintf(`{"status":"%s"}`, exported.Active)
 		return []byte(resp), types.DefaultGasUsed, nil
-	}
+	})
 
 	db := dbm.NewMemDB()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, suite.mockVM)

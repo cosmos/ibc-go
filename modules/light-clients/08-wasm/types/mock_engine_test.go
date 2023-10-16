@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -20,12 +21,13 @@ func NewMockWasmEngine() *MockWasmEngine {
 		queryCallbacks: map[string]QueryFn{},
 	}
 
+	// all possible fields that can be passed to the query fn should be specified here.
 	allQueryTypes := []any{
-		StatusMessage{},
-		ExportMetadata{},
-		TimestampAtHeight{},
-		VerifyClientMessage{},
-		CheckForMisbehaviour{},
+		StatusMsg{},
+		ExportMetadataMsg{},
+		TimestampAtHeightMsg{},
+		VerifyClientMessageMsg{},
+		CheckForMisbehaviourMsg{},
 	}
 
 	for _, msgType := range allQueryTypes {
@@ -53,11 +55,11 @@ func (m *MockWasmEngine) RegisterQueryCallback(queryMessage any, fn QueryFn) {
 type MockWasmEngine struct {
 	StoreCodeFn   func(codeID wasmvm.WasmCode) (wasmvm.Checksum, error)
 	InstantiateFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
-	QueryFn       func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error)
 	SudoFn        func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
 	GetCodeFn     func(codeID wasmvm.Checksum) (wasmvm.WasmCode, error)
 	PinFn         func(checksum wasmvm.Checksum) error
 
+	// queryCallbacks contains a mapping of queryMsg field type name to callback function.
 	queryCallbacks map[string]QueryFn
 }
 
@@ -79,7 +81,14 @@ func (m *MockWasmEngine) Instantiate(codeID wasmvm.Checksum, env wasmvmtypes.Env
 
 // Query implements the WasmEngine interface.
 func (m *MockWasmEngine) Query(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-	return m.queryCallbacks[getQueryType(queryMsg)](codeID, env, queryMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
+	msgTypeName := getQueryMsgPayloadTypeName(queryMsg)
+
+	callbackFn, ok := m.queryCallbacks[msgTypeName]
+	if !ok {
+		panic(fmt.Errorf("no callback specified for %s", msgTypeName))
+	}
+
+	return callbackFn(codeID, env, queryMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
 // Sudo implements the WasmEngine interface.
@@ -106,26 +115,42 @@ func (m *MockWasmEngine) Pin(checksum wasmvm.Checksum) error {
 	return m.PinFn(checksum)
 }
 
-func getQueryType(queryMsgBz []byte) string {
+func upperCaseFirstChar(s string) string {
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
+// getQueryMsgPayloadTypeName extracts the name of the struct that is populated.
+// this value is used as a key to map to a callback function to handle that message type.
+func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
 	payload := queryMsg{}
 	if err := json.Unmarshal(queryMsgBz, &payload); err != nil {
 		panic(err)
 	}
-	if payload.Status != nil {
-		return reflect.TypeOf(*payload.Status).Name()
-	}
-	if payload.CheckForMisbehaviour != nil {
-		return reflect.TypeOf(*payload.CheckForMisbehaviour).Name()
-	}
-	if payload.ExportMetadata != nil {
-		return reflect.TypeOf(*payload.ExportMetadata).Name()
-	}
-	if payload.TimestampAtHeight != nil {
-		return reflect.TypeOf(*payload.TimestampAtHeight).Name()
-	}
-	if payload.VerifyClientMessage != nil {
-		return reflect.TypeOf(*payload.VerifyClientMessage).Name()
-	}
-	panic(fmt.Errorf("failed to extract valid query message from bytes: %s", string(queryMsgBz)))
 
+	var payloadField any
+	if payload.Status != nil {
+		payloadField = *payload.Status
+	}
+
+	if payload.CheckForMisbehaviour != nil {
+		payloadField = *payload.CheckForMisbehaviour
+	}
+
+	if payload.ExportMetadata != nil {
+		payloadField = *payload.ExportMetadata
+	}
+
+	if payload.TimestampAtHeight != nil {
+		payloadField = *payload.TimestampAtHeight
+	}
+
+	if payload.VerifyClientMessage != nil {
+		payloadField = *payload.VerifyClientMessage
+	}
+
+	if payloadField == nil {
+		panic(fmt.Errorf("failed to extract valid query message from bytes: %s", string(queryMsgBz)))
+	}
+
+	return upperCaseFirstChar(reflect.TypeOf(payloadField).Name())
 }
