@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -491,7 +490,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 
 // extractChainPrivateKeys returns a slice of tmtypes.PrivValidator which hold the private keys for all validator
 // nodes for a given chain.
-func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *cosmos.CosmosChain) []tmtypes.PrivValidator {
+func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc.Chain) []tmtypes.PrivValidator {
 	testContainers, err := dockerutil.GetTestContainers(ctx, s.T(), s.DockerClient)
 	s.Require().NoError(err)
 

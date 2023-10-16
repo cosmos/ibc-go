@@ -84,6 +84,8 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 	_, _ = s.SetupChainsRelayerAndChannel(ctx)
 
 	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
+
+		// configure chain A
 		options.ChainAConfig.ChainID = "rococo-local"
 		options.ChainAConfig.Name = "composable"
 		options.ChainAConfig.Images = []ibc.DockerImage{
@@ -105,6 +107,9 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 		options.ChainAConfig.GasAdjustment = 0
 		options.ChainAConfig.TrustingPeriod = ""
 		options.ChainAConfig.CoinType = "354"
+
+
+		// configure chain B
 	})
 
 	// Get both chains

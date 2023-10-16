@@ -60,7 +60,12 @@ type GRPCClients struct {
 
 // InitGRPCClients establishes GRPC clients with the given chain.
 // The created GRPCClients can be retrieved with GetChainGRCPClients.
-func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
+func (s *E2ETestSuite) InitGRPCClients(chain ibc.Chain) {
+	_, ok := chain.(*cosmos.CosmosChain)
+	if !ok {
+		return
+	}
+
 	// Create a connection to the gRPC server.
 	grpcConn, err := grpc.Dial(
 		chain.GetHostGRPCAddress(),
@@ -234,7 +239,7 @@ func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Cha
 // QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
 func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
 	ctx context.Context,
-	chain *cosmos.CosmosChain,
+	chain ibc.Chain,
 	portID,
 	channelID string,
 ) ([]*feetypes.IdentifiedPacketFees, error) {
@@ -325,7 +330,7 @@ func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Ch
 }
 
 // QueryModuleAccountAddress returns the sdk.AccAddress of a given module name.
-func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
+func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain ibc.Chain) (sdk.AccAddress, error) {
 	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
 	resp, err := authClient.ModuleAccountByName(ctx, &authtypes.QueryModuleAccountByNameRequest{
 		Name: moduleName,
@@ -349,7 +354,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 }
 
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
-func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.CosmosChain, granterAddress string) ([]*authz.GrantAuthorization, error) {
+func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain ibc.Chain, granterAddress string) ([]*authz.GrantAuthorization, error) {
 	authzClient := s.GetChainGRCPClients(chain).AuthZQueryClient
 	queryRequest := &authz.QueryGranterGrantsRequest{
 		Granter: granterAddress,
@@ -378,7 +383,7 @@ func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, ad
 }
 
 // QueryDenomMetadata queries the metadata for the given denom.
-func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain *cosmos.CosmosChain, denom string) (banktypes.Metadata, error) {
+func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain ibc.Chain, denom string) (banktypes.Metadata, error) {
 	bankClient := s.GetChainGRCPClients(chain).BankQueryClient
 	queryRequest := &banktypes.QueryDenomMetadataRequest{
 		Denom: denom,

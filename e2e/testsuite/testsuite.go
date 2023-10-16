@@ -51,11 +51,11 @@ type E2ETestSuite struct {
 
 // pathPair is a pairing of two chains which will be used in a test.
 type pathPair struct {
-	chainA, chainB *cosmos.CosmosChain
+	chainA, chainB ibc.Chain
 }
 
 // newPath returns a path built from the given chains.
-func newPath(chainA, chainB *cosmos.CosmosChain) pathPair {
+func newPath(chainA, chainB ibc.Chain) pathPair {
 	return pathPair{
 		chainA: chainA,
 		chainB: chainB,
@@ -145,7 +145,7 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 // This is useful for testing single chain functionality when performing coordinated upgrades as well as testing localhost ibc client functionality.
 // TODO: Actually setup a single chain. Seeing panic: runtime error: index out of range [0] with length 0 when using a single chain.
 // issue: https://github.com/strangelove-ventures/interchaintest/issues/401
-func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) *cosmos.CosmosChain {
+func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
 	chainA, chainB := s.GetChains()
 
 	ic := interchaintest.NewInterchain().AddChain(chainA).AddChain(chainB)
@@ -207,7 +207,7 @@ func (s *E2ETestSuite) UpdateClients(ctx context.Context, ibcrelayer ibc.Relayer
 
 // GetChains returns two chains that can be used in a test. The pair returned
 // is unique to the current test being run. Note: this function does not create containers.
-func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (*cosmos.CosmosChain, *cosmos.CosmosChain) {
+func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Chain, ibc.Chain) {
 	if s.paths == nil {
 		s.paths = map[string]pathPair{}
 	}
@@ -324,13 +324,13 @@ func (s *E2ETestSuite) GetChainGRCPClients(chain ibc.Chain) GRPCClients {
 
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
 // The packet commitment will be deleted upon a packet acknowledgement or timeout.
-func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.CosmosChain, portID, channelID string, sequence uint64) {
+func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain ibc.Chain, portID, channelID string, sequence uint64) {
 	commitment, _ := s.QueryPacketCommitment(ctx, chain, portID, channelID, sequence)
 	s.Require().Empty(commitment)
 }
 
 // AssertHumanReadableDenom asserts that a human readable denom is present for a given chain.
-func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain *cosmos.CosmosChain, counterpartyNativeDenom string, counterpartyChannel ibc.ChannelOutput) {
+func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain ibc.Chain, counterpartyNativeDenom string, counterpartyChannel ibc.ChannelOutput) {
 	chainIBCDenom := GetIBCToken(counterpartyNativeDenom, counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID)
 
 	denomMetadata, err := s.QueryDenomMetadata(ctx, chain, chainIBCDenom.IBCDenom())
@@ -391,7 +391,7 @@ func (*E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOpt
 
 // GetTimeoutHeight returns a timeout height of 1000 blocks above the current block height.
 // This function should be used when the timeout is never expected to be reached
-func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain *cosmos.CosmosChain) clienttypes.Height {
+func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain ibc.Chain) clienttypes.Height {
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err)
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), height+1000)

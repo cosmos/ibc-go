@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -313,7 +314,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				Msgs:    []*codectypes.Any{protoAny},
 			}
 
-			resp := suite.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+			resp := suite.BroadcastMessages(context.TODO(), chainA.(*cosmos.CosmosChain), granteeWallet, msgExec)
 			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
 				suite.AssertTxFailure(resp, ibcerrors.ErrInvalidAddress)
 			} else {
