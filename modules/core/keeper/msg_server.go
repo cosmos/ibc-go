@@ -494,6 +494,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
 	}
+	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 
 	// Set packet acknowledgement only if the acknowledgement is not nil.
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
