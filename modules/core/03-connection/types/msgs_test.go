@@ -99,6 +99,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {
 		{"invalid counterparty connection ID", &types.MsgConnectionOpenInit{connectionID, types.NewCounterparty("clienttotest", "connectiontotest", prefix), version, 500, signer}, false},
 		{"empty counterparty prefix", types.NewMsgConnectionOpenInit("clienttotest", "clienttotest", emptyPrefix, version, 500, signer), false},
 		{"supplied version fails basic validation", types.NewMsgConnectionOpenInit("clienttotest", "clienttotest", prefix, &types.Version{}, 500, signer), false},
+		{"too long version identifier", types.NewMsgConnectionOpenInit("clienttotest", "clienttotest", prefix, types.NewVersion(ibctesting.GenerateString(types.MaximumVersionFieldsLength+1), []string{"ORDER_ORDERED"}), 500, signer), false},
+		{"too long version feature", types.NewMsgConnectionOpenInit("clienttotest", "clienttotest", prefix, types.NewVersion(types.DefaultIBCVersionIdentifier, []string{ibctesting.GenerateString(types.MaximumVersionFieldsLength + 1)}), 500, signer), false},
 		{"empty singer", types.NewMsgConnectionOpenInit("clienttotest", "clienttotest", prefix, version, 500, ""), false},
 		{"success", types.NewMsgConnectionOpenInit("clienttotest", "clienttotest", prefix, version, 500, signer), true},
 	}
@@ -158,6 +160,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 		{"empty singer", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, ""), false},
 		{"success", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{ibctesting.ConnectionVersion}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, signer), true},
 		{"invalid version", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{{}}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, signer), false},
+		{"too long version identifier", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{types.NewVersion(ibctesting.GenerateString(types.MaximumVersionFieldsLength+1), []string{"ORDER_ORDERED"})}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, signer), false},
+		{"too long version feature", types.NewMsgConnectionOpenTry("clienttotesta", "connectiontotest", "clienttotest", clientState, prefix, []*types.Version{types.NewVersion(types.DefaultIBCVersionIdentifier, []string{ibctesting.GenerateString(types.MaximumVersionFieldsLength + 1)})}, 500, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, signer), false},
 	}
 
 	for _, tc := range testCases {
@@ -204,6 +208,8 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 		{"empty proofConsensus", types.NewMsgConnectionOpenAck(connectionID, connectionID, clientState, suite.proof, suite.proof, emptyProof, clientHeight, clientHeight, ibctesting.ConnectionVersion, signer), false},
 		{"invalid consensusHeight", types.NewMsgConnectionOpenAck(connectionID, connectionID, clientState, suite.proof, suite.proof, suite.proof, clientHeight, clienttypes.ZeroHeight(), ibctesting.ConnectionVersion, signer), false},
 		{"invalid version", types.NewMsgConnectionOpenAck(connectionID, connectionID, clientState, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, &types.Version{}, signer), false},
+		{"too long version identifier", types.NewMsgConnectionOpenAck(connectionID, connectionID, clientState, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, types.NewVersion(ibctesting.GenerateString(types.MaximumVersionFieldsLength+1), []string{"ORDER_ORDERED"}), signer), false},
+		{"too long version feature", types.NewMsgConnectionOpenAck(connectionID, connectionID, clientState, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, types.NewVersion(types.DefaultIBCVersionIdentifier, []string{ibctesting.GenerateString(types.MaximumVersionFieldsLength + 1)}), signer), false},
 		{"empty signer", types.NewMsgConnectionOpenAck(connectionID, connectionID, clientState, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, ibctesting.ConnectionVersion, ""), false},
 		{"success", types.NewMsgConnectionOpenAck(connectionID, connectionID, clientState, suite.proof, suite.proof, suite.proof, clientHeight, clientHeight, ibctesting.ConnectionVersion, signer), true},
 	}

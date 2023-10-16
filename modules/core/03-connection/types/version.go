@@ -56,9 +56,15 @@ func ValidateVersion(version *Version) error {
 	if strings.TrimSpace(version.Identifier) == "" {
 		return errorsmod.Wrap(ErrInvalidVersion, "version identifier cannot be blank")
 	}
+	if len(version.Identifier) > MaximumVersionFieldsLength {
+		return errorsmod.Wrapf(ErrInvalidVersion, "version identifier must not exceed %d bytes", MaximumVersionFieldsLength)
+	}
 	for i, feature := range version.Features {
 		if strings.TrimSpace(feature) == "" {
 			return errorsmod.Wrapf(ErrInvalidVersion, "feature cannot be blank, index %d", i)
+		}
+		if len(feature) > MaximumVersionFieldsLength {
+			return errorsmod.Wrapf(ErrInvalidVersion, "feature must not exceed %d bytes, index %d", MaximumVersionFieldsLength, i)
 		}
 	}
 
