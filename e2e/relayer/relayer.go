@@ -12,13 +12,17 @@ import (
 )
 
 const (
-	Rly    = "rly"
-	Hermes = "hermes"
+	Rly        = "rly"
+	Hermes     = "hermes"
+	Hyperspace = "hyperspace"
 
 	HermesRelayerRepository = "ghcr.io/informalsystems/hermes"
 	hermesRelayerUser       = "1000:1000"
 	RlyRelayerRepository    = "ghcr.io/cosmos/relayer"
 	rlyRelayerUser          = "100:1000" // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
+
+	HyperspaceRelayerRepository = "ghcr.io/misko9/hyperspace"
+	hyperspaceRelayerUser       = "1000:1000"
 )
 
 // Config holds configuration values for the relayer used in the tests.
@@ -39,6 +43,8 @@ func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclien
 		return newCosmosRelayer(t, cfg.Tag, logger, dockerClient, network, cfg.Image)
 	case Hermes:
 		return newHermesRelayer(t, cfg.Tag, logger, dockerClient, network, cfg.Image)
+	case Hyperspace:
+		return newHyperspaceRelayer(t, cfg.Tag, logger, dockerClient, network, cfg.Image)
 	default:
 		panic(fmt.Errorf("unknown relayer specified: %s", cfg.ID))
 	}
@@ -65,6 +71,18 @@ func newHermesRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 
 	customImageOption := relayer.CustomDockerImage(relayerImage, tag, hermesRelayerUser)
 	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.Hermes, logger, customImageOption)
+
+	return relayerFactory.Build(
+		t, dockerClient, network,
+	)
+}
+
+// newHyperspaceRelayer returns an instance of the hyperspace relayer.
+func newHyperspaceRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *dockerclient.Client, network, relayerImage string) ibc.Relayer {
+	t.Helper()
+
+	customImageOption := relayer.CustomDockerImage(relayerImage, tag, hyperspaceRelayerUser)
+	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.Hyperspace, logger, customImageOption)
 
 	return relayerFactory.Build(
 		t, dockerClient, network,
