@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -115,10 +114,6 @@ func (m *MockWasmEngine) Pin(checksum wasmvm.Checksum) error {
 	return m.PinFn(checksum)
 }
 
-func upperCaseFirstChar(s string) string {
-	return strings.ToUpper(s[:1]) + s[1:]
-}
-
 // getQueryMsgPayloadTypeName extracts the name of the struct that is populated.
 // this value is used as a key to map to a callback function to handle that message type.
 func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
@@ -152,5 +147,5 @@ func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
 		panic(fmt.Errorf("failed to extract valid query message from bytes: %s", string(queryMsgBz)))
 	}
 
-	return upperCaseFirstChar(reflect.TypeOf(payloadField).Name())
+	return reflect.TypeOf(payloadField).Name()
 }

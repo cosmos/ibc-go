@@ -12,8 +12,10 @@ type InstantiateMessage struct {
 // these fields are exported aliases for the payload fields passed to the wasm vm.
 // these are used to specify callback functions to handle specific queries in the mock vm.
 
-type StatusMsg statusMsg
-type ExportMetadataMsg exportMetadataMsg
-type TimestampAtHeightMsg timestampAtHeightMsg
-type VerifyClientMessageMsg verifyClientMessageMsg
-type CheckForMisbehaviourMsg checkForMisbehaviourMsg
+type (
+	StatusMsg               = statusMsg
+	ExportMetadataMsg       = exportMetadataMsg
+	TimestampAtHeightMsg    = timestampAtHeightMsg
+	VerifyClientMessageMsg  = verifyClientMessageMsg
+	CheckForMisbehaviourMsg = checkForMisbehaviourMsg
+)
