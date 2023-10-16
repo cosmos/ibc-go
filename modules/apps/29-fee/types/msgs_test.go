@@ -142,7 +142,7 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 		{
 			"invalid counterparty payee address: too long",
 			func() {
-				msg.CounterpartyPayee = ibctesting.LongString
+				msg.CounterpartyPayee = ibctesting.GenerateString(types.MaximumCounterpartyPayeeLength + 1)
 			},
 			false,
 		},
