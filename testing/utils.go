@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	"rand"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,4 +23,13 @@ func ApplyValSetChanges(tb testing.TB, valSet *tmtypes.ValidatorSet, valUpdates 
 	require.NoError(tb, err)
 
 	return newVals
+}
+
+// GenerateString generates a random string of the given length in bytes
+func GenerateString(length uint) string {
+	bytes := make([]byte, length)
+	for i := range bytes {
+		bytes[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(bytes)
 }
