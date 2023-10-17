@@ -49,7 +49,6 @@ const (
 func (s *GrandpaTestSuite) TestGrandpaContract() {
 
 	t := s.T()
-	//client, network := interchaintest.DockerSetup(t)
 
 	// Log location
 	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
@@ -135,41 +134,6 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 
 	polkadotChain := chainA.(*polkadot.PolkadotChain)
 	cosmosChain := chainB.(*cosmos.CosmosChain)
-
-	//// Get a relayer instance
-	//r := interchaintest.NewBuiltinRelayerFactory(
-	//	ibc.Hyperspace,
-	//	zaptest.NewLogger(t),
-	//	relayer.ImagePull(true),
-	//	relayer.CustomDockerImage("ghcr.io/misko9/hyperspace", "local", "1000:1000"),
-	//).Build(t, client, network)
-	//
-	//// Build the network; spin up the chains and configure the relayer
-	//const pathName = "composable-simd"
-	//const relayerName = "hyperspace"
-	//
-	//ic := interchaintest.NewInterchain().
-	//	AddChain(polkadotChain).
-	//	AddChain(cosmosChain).
-	//	AddRelayer(r, relayerName).
-	//	AddLink(interchaintest.InterchainLink{
-	//		Chain1:  polkadotChain,
-	//		Chain2:  cosmosChain,
-	//		Relayer: r,
-	//		Path:    pathName,
-	//	})
-	//
-	//s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
-	//	TestName:         t.Name(),
-	//	Client:           client,
-	//	NetworkID:        network,
-	//	SkipPathCreation: true, // Skip path creation, so we can have granular control over the process
-	//}))
-	//fmt.Println("Interchain built")
-	//
-	//t.Cleanup(func() {
-	//	_ = ic.Close()
-	//})
 
 	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
 	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
