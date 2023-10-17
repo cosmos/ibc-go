@@ -104,6 +104,9 @@ include contrib/devtools/Makefile
 
 BUILD_TARGETS := build install
 
+tidy-all:
+	./scripts/go-mod-tidy-all.sh
+
 build: BUILD_ARGS=-o $(BUILDDIR)/
 build-linux:
 	GOOS=linux GOARCH=amd64 LEDGER_ENABLED=false $(MAKE) build

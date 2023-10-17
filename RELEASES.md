@@ -70,7 +70,7 @@ Only the following major release series have a stable release status. All missin
 |Release|End of Life Date|
 |-------|----------------|
 |`v4.4.x`|October 31, 2023|
-|`v5.2.x`|September 28, 2023|
+|`v4.5.x`|October 31, 2023|
 |`v5.3.x`|October 31, 2023|
 |`v6.1.x`|December 09, 2023|
 |`v6.2.x`|December 09, 2023|
@@ -81,7 +81,7 @@ Only the following major release series have a stable release status. All missin
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.1.x-ibc-go-v7.3.x`|August 31, 2024|
+|`v0.1.x-ibc-go-v7.3.x`|March 17, 2024|
 
 ### What pull requests will be included in stable patch-releases?
 
@@ -114,7 +114,7 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 |----|--------|------------|---------------------|
 | 1.19 | v4.4.1 | v0.45.15 | v0.34.27 |
 | 1.19 | v4.4.2 | v0.45.15 | v0.34.27 |
-| 1.18 | v5.2.1 | v0.46.7  | v0.34.24 |
+| 1.19 | v4.5.0 | v0.45.16 | v0.34.27 |
 | 1.19 | v5.3.1 | v0.46.12 | v0.34.27 |
 | 1.18 | v6.1.1 | v0.46.7  | v0.34.24 |
 | 1.19 | v6.2.0 | v0.46.12 | v0.34.27 |

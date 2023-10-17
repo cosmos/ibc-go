@@ -25,7 +25,8 @@ func (fr FeatureReleases) IsSupported(versionStr string) bool {
 	const releasePrefix = "release-"
 	if strings.HasPrefix(versionStr, releasePrefix) {
 		versionStr = versionStr[len(releasePrefix):]
-		versionStr = strings.ReplaceAll(versionStr, "x", "0")
+		// replace x with 999 so the release version is always larger than the others in the release line.
+		versionStr = strings.ReplaceAll(versionStr, "x", "999")
 	}
 
 	// assume any non-semantic version formatted version supports the feature
