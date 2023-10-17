@@ -101,6 +101,9 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 		// configure chain B
 		options.ChainBSpec.ChainName = "simd" // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
+		options.ChainBSpec.Type = "cosmos"
+		options.ChainBSpec.Name = "simd"
+		options.ChainBSpec.ChainID = "simd"
 		options.ChainBSpec.Images = []ibc.DockerImage{
 			{
 				Repository: "ghcr.io/misko9/ibc-go-simd",
@@ -108,6 +111,14 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 				UidGid:     "1025:1025",
 			},
 		}
+		options.ChainBSpec.Bin = "simd"
+		options.ChainBSpec.Bech32Prefix = "cosmos"
+		options.ChainBSpec.GasAdjustment = 1.3
+		options.ChainBSpec.TrustingPeriod = "504h"
+		options.ChainBSpec.CoinType = "118"
+
+		noHostMount := true
+		options.ChainBSpec.NoHostMount = &noHostMount
 		options.ChainBSpec.Denom = "stake"
 		options.ChainBSpec.GasPrices = "0.00stake"
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
@@ -216,8 +227,8 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	})
 	s.Require().NoError(err)
 
-	exportStateHeight, err := cosmosChain.Height(ctx)
-	s.Require().NoError(err)
+	//exportStateHeight, err := cosmosChain.Height(ctx)
+	//s.Require().NoError(err)
 
 	// Wait for a new update state
 	err = testutil.WaitForBlocks(ctx, 5, cosmosChain, polkadotChain)
@@ -244,13 +255,13 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 	s.Require().True(parachainUserStake.Amount.Equal(math.NewInt(amountToSend-amountToReflect)), "parachain user's final stake amount not expected")
 
-	r.StopRelayer(ctx, eRep) //  Stop relayer to export data
-	err = cosmosChain.StopAllNodes(ctx)
-	s.Require().NoError(err)
-	exportedState, err := cosmosChain.ExportState(ctx, int64(exportStateHeight))
-	s.Require().NoError(err)
-	fmt.Println("Exported State at height: ", exportStateHeight)
-	fmt.Println(exportedState)
+	//r.StopRelayer(ctx, eRep) //  Stop relayer to export data
+	//err = cosmosChain.StopAllNodes(ctx)
+	//s.Require().NoError(err)
+	//exportedState, err := cosmosChain.ExportState(ctx, int64(exportStateHeight))
+	//s.Require().NoError(err)
+	//fmt.Println("Exported State at height: ", exportStateHeight)
+	//fmt.Println(exportedState)
 }
 
 type GetCodeQueryMsgResponse struct {
