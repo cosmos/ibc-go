@@ -114,6 +114,9 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 
 	db := dbm.NewMemDB()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, suite.mockVM)
+
+	// reset DefaultTestingAppInit to its original value
+	ibctesting.DefaultTestingAppInit = setupTestingApp
 	return app, app.DefaultGenesis()
 }
 

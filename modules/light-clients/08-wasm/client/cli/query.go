@@ -62,15 +62,7 @@ func getCmdCodeHashes() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
-
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			req := types.QueryCodeHashesRequest{
-				Pagination: pageReq,
-			}
+			req := types.QueryCodeHashesRequest{}
 
 			res, err := queryClient.CodeHashes(context.Background(), &req)
 			if err != nil {
