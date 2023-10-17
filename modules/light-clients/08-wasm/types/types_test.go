@@ -34,9 +34,9 @@ import (
 )
 
 const (
-	tmClientID      = "07-tendermint-0"
+	tmClientID   = "07-tendermint-0"
 	wasmClientID = "08-wasm-0"
-	codeHash        = "01234567012345670123456701234567" // TODO: remove in favour of wasmtesting.CodeHash
+	codeHash     = "01234567012345670123456701234567" // TODO: remove in favour of wasmtesting.CodeHash
 )
 
 type TypesTestSuite struct {
@@ -82,6 +82,9 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+
+	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
+	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, wasmClientID)
 
 	suite.codeHash = storeWasmCode(suite, wasmtesting.Code)
 }

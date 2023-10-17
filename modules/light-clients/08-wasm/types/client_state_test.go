@@ -262,50 +262,57 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 	}
 }
 
-/*
 func (suite *TypesTestSuite) TestInitialize() {
-	var consensusState exported.ConsensusState
+	var clientID string
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPass  bool
 	}{
 		{
-			name: "valid consensus",
+			name:     "success: new mock client",
+			malleate: func() {},
+			expPass:  true,
+		},
+		{
+			name: "success: new client with invalid clientID", // mockVM does not perform validation
 			malleate: func() {
+				clientID = ibctesting.InvalidID
 			},
 			expPass: true,
 		},
 	}
+
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
-			suite.Require().NoError(err)
-			clientState := types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 2))
+			codeHash := sha256.Sum256(wasmtesting.Code)
+			clientState := types.NewClientState([]byte{1}, codeHash[:], clienttypes.NewHeight(0, 1))
+			consensusState := types.NewConsensusState([]byte{2}, 0)
 
-			consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
-			suite.Require().NoError(err)
-			consensusState = types.NewConsensusState(consensusStateData, 0)
+			clientID = suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.ctx, clientState.ClientType())
 
 			tc.malleate()
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, wasmClientID)
-			err = clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, clientID)
+
+			err := clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().True(clientStore.Has(host.ClientStateKey()))
-				suite.Require().True(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
+
+				expClientState := clienttypes.MustMarshalClientState(suite.chainA.Codec, clientState)
+				suite.Require().Equal(clientStore.Get(host.ClientStateKey()), expClientState)
+
+				expConsensusState := clienttypes.MustMarshalConsensusState(suite.chainA.Codec, consensusState)
+				suite.Require().Equal(clientStore.Get(host.ConsensusStateKey(clientState.GetLatestHeight())), expConsensusState)
 			} else {
 				suite.Require().Error(err)
-				suite.Require().False(clientStore.Has(host.ClientStateKey()))
-				suite.Require().False(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
 			}
 		})
 	}
 }
-*/
 
 func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 	const (
