@@ -9,7 +9,7 @@ replace github.com/cosmos/ibc-go/v8 => ../../../
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 require (
-	cosmossdk.io/api v0.7.1
+	cosmossdk.io/api v0.7.2
 	cosmossdk.io/client/v2 v2.0.0-20230818115413-c402c51a1508
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
