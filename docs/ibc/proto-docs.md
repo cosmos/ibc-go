@@ -127,6 +127,10 @@
 - [ibc/applications/interchain_accounts/v1/metadata.proto](#ibc/applications/interchain_accounts/v1/metadata.proto)
     - [Metadata](#ibc.applications.interchain_accounts.v1.Metadata)
   
+- [ibc/applications/transfer/v1/authz.proto](#ibc/applications/transfer/v1/authz.proto)
+    - [Allocation](#ibc.applications.transfer.v1.Allocation)
+    - [TransferAuthorization](#ibc.applications.transfer.v1.TransferAuthorization)
+  
 - [ibc/applications/transfer/v1/transfer.proto](#ibc/applications/transfer/v1/transfer.proto)
     - [DenomTrace](#ibc.applications.transfer.v1.DenomTrace)
     - [Params](#ibc.applications.transfer.v1.Params)
@@ -153,10 +157,6 @@
     - [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse)
   
     - [Msg](#ibc.applications.transfer.v1.Msg)
-  
-- [ibc/applications/transfer/v2/authz.proto](#ibc/applications/transfer/v2/authz.proto)
-    - [PortChannelAmount](#ibc.applications.transfer.v2.PortChannelAmount)
-    - [TransferAuthorization](#ibc.applications.transfer.v2.TransferAuthorization)
   
 - [ibc/applications/transfer/v2/packet.proto](#ibc/applications/transfer/v2/packet.proto)
     - [FungibleTokenPacketData](#ibc.applications.transfer.v2.FungibleTokenPacketData)
@@ -1962,6 +1962,56 @@ See ICS004: https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-
 
 
 
+<a name="ibc/applications/transfer/v1/authz.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## ibc/applications/transfer/v1/authz.proto
+
+
+
+<a name="ibc.applications.transfer.v1.Allocation"></a>
+
+### Allocation
+Allocation defines the spend limit for a particular port and channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `source_port` | [string](#string) |  | the port on which the packet will be sent |
+| `source_channel` | [string](#string) |  | the channel by which the packet will be sent |
+| `spend_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | spend limitation on the channel |
+| `allow_list` | [string](#string) | repeated | allow list of receivers, an empty allow list permits any receiver address |
+
+
+
+
+
+
+<a name="ibc.applications.transfer.v1.TransferAuthorization"></a>
+
+### TransferAuthorization
+TransferAuthorization allows the grantee to spend up to spend_limit coins from
+the granter's account for ibc transfer on a specific channel
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allocations` | [Allocation](#ibc.applications.transfer.v1.Allocation) | repeated | port and channel amounts |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="ibc/applications/transfer/v1/transfer.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -2220,10 +2270,10 @@ Query provides defines the gRPC querier service.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `DenomTrace` | [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest) | [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | GET|/ibc/apps/transfer/v1/denom_traces/{hash}|
+| `DenomTrace` | [QueryDenomTraceRequest](#ibc.applications.transfer.v1.QueryDenomTraceRequest) | [QueryDenomTraceResponse](#ibc.applications.transfer.v1.QueryDenomTraceResponse) | DenomTrace queries a denomination trace information. | GET|/ibc/apps/transfer/v1/denom_traces/{hash=**}|
 | `DenomTraces` | [QueryDenomTracesRequest](#ibc.applications.transfer.v1.QueryDenomTracesRequest) | [QueryDenomTracesResponse](#ibc.applications.transfer.v1.QueryDenomTracesResponse) | DenomTraces queries all denomination traces. | GET|/ibc/apps/transfer/v1/denom_traces|
 | `Params` | [QueryParamsRequest](#ibc.applications.transfer.v1.QueryParamsRequest) | [QueryParamsResponse](#ibc.applications.transfer.v1.QueryParamsResponse) | Params queries all parameters of the ibc-transfer module. | GET|/ibc/apps/transfer/v1/params|
-| `DenomHash` | [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/apps/transfer/v1/denom_hashes/{trace}|
+| `DenomHash` | [QueryDenomHashRequest](#ibc.applications.transfer.v1.QueryDenomHashRequest) | [QueryDenomHashResponse](#ibc.applications.transfer.v1.QueryDenomHashResponse) | DenomHash queries a denomination hash information. | GET|/ibc/apps/transfer/v1/denom_hashes/{trace=**}|
 | `EscrowAddress` | [QueryEscrowAddressRequest](#ibc.applications.transfer.v1.QueryEscrowAddressRequest) | [QueryEscrowAddressResponse](#ibc.applications.transfer.v1.QueryEscrowAddressResponse) | EscrowAddress returns the escrow address for a particular port and channel id. | GET|/ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address|
 
  <!-- end services -->
@@ -2290,56 +2340,6 @@ Msg defines the ibc/transfer Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Transfer` | [MsgTransfer](#ibc.applications.transfer.v1.MsgTransfer) | [MsgTransferResponse](#ibc.applications.transfer.v1.MsgTransferResponse) | Transfer defines a rpc handler method for MsgTransfer. | |
-
- <!-- end services -->
-
-
-
-<a name="ibc/applications/transfer/v2/authz.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## ibc/applications/transfer/v2/authz.proto
-
-
-
-<a name="ibc.applications.transfer.v2.PortChannelAmount"></a>
-
-### PortChannelAmount
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `source_port` | [string](#string) |  | the port on which the packet will be sent |
-| `source_channel` | [string](#string) |  | the channel by which the packet will be sent |
-| `spend_limit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | spend limitation on the channel |
-| `allowed_addresses` | [string](#string) | repeated |  |
-
-
-
-
-
-
-<a name="ibc.applications.transfer.v2.TransferAuthorization"></a>
-
-### TransferAuthorization
-TransferAuthorization allows the grantee to spend up to spend_limit coins from
-the granter's account for ibc transfer on a specific channel
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `allocations` | [PortChannelAmount](#ibc.applications.transfer.v2.PortChannelAmount) | repeated | port and channel amounts |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
 
  <!-- end services -->
 
