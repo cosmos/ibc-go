@@ -344,17 +344,24 @@ func getChainConfigsFromEnv() []ChainConfig {
 		chainAImage = specifiedChainImage
 	}
 
+	nv := 5
+	nf := 1
+
 	chainBImage := chainAImage
 	return []ChainConfig{
 		{
-			Image:  chainAImage,
-			Tag:    chainATag,
-			Binary: chainBinary,
+			Image:         chainAImage,
+			Tag:           chainATag,
+			Binary:        chainBinary,
+			NumValidators: nv,
+			NumFullNodes:  nf,
 		},
 		{
-			Image:  chainBImage,
-			Tag:    chainBTag,
-			Binary: chainBinary,
+			Image:         chainBImage,
+			Tag:           chainBTag,
+			Binary:        chainBinary,
+			NumValidators: nv,
+			NumFullNodes:  nf,
 		},
 	}
 }
@@ -455,12 +462,20 @@ func DefaultChainOptions() ChainOptions {
 
 	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.GetChainAID(), "atoma", tc.CometBFTConfig)
 	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+
+	chainAVal, chainAFn := getValidatorsAndFullNodes(0)
+	chainBVal, chainBFn := getValidatorsAndFullNodes(1)
+
 	return ChainOptions{
 		ChainASpec: &interchaintest.ChainSpec{
-			ChainConfig:  chainACfg,
+			ChainConfig:   chainACfg,
+			NumFullNodes:  &chainAFn,
+			NumValidators: &chainAVal,
 		},
 		ChainBSpec: &interchaintest.ChainSpec{
-			ChainConfig:  chainBCfg,
+			ChainConfig:   chainBCfg,
+			NumFullNodes:  &chainBFn,
+			NumValidators: &chainBVal,
 		},
 	}
 }

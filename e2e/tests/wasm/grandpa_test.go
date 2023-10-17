@@ -37,7 +37,7 @@ const (
 	maxDepositPeriod = "10s"
 )
 
-// TestGrandpaContract features
+// TestMsgTransfer_Succeeds_GrandpaContract features
 // * sets up a Polkadot parachain
 // * sets up a Cosmos chain
 // * sets up the Hyperspace relayer
@@ -46,10 +46,9 @@ const (
 // * create client, connection, and channel in relayer
 // * start relayer
 // * send transfer over ibc
-func (s *GrandpaTestSuite) TestGrandpaContract() {
+func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	t := s.T()
-
 	// Log location
 	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
 	s.Require().NoError(err)
@@ -59,12 +58,6 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 
 	ctx := context.Background()
 
-	nv := 2 // Number of validators
-	nf := 1 // Number of full nodes
-
-	if testsuite.IsCI() {
-		nv = 5
-	}
 
 	consensusOverrides := make(testutil.Toml)
 	blockTime := 5 // seconds, parachain is 12 second blocks, don't make relayer work harder than needed
@@ -81,8 +74,7 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 	r, _ := s.SetupChainsRelayerAndChannel(ctx, nil, func(options *testsuite.ChainOptions) {
 		// configure chain A
 		options.ChainASpec.ChainName = "composable"
-		options.ChainASpec.NumValidators = &nv
-		options.ChainASpec.NumFullNodes = &nf
+		options.ChainASpec.Type = "polkadot"
 		options.ChainASpec.ChainID = "rococo-local"
 		options.ChainASpec.Name = "composable"
 		options.ChainASpec.Images = []ibc.DockerImage{
@@ -107,9 +99,6 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 
 		// configure chain B
 		options.ChainBSpec.ChainName = "simd" // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
-		options.ChainBSpec.Type = "cosmos"
-		options.ChainBSpec.Name = "simd"
-		options.ChainBSpec.ChainID = "simd"
 		options.ChainBSpec.Images = []ibc.DockerImage{
 			{
 				Repository: "ghcr.io/misko9/ibc-go-simd",
@@ -117,18 +106,9 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 				UidGid:     "1025:1025",
 			},
 		}
-		options.ChainBSpec.Bin = "simd"
-		options.ChainBSpec.Bech32Prefix = "cosmos"
-		options.ChainBSpec.Denom = "stake"
-		options.ChainBSpec.GasPrices = "0.00stake"
-		options.ChainBSpec.GasAdjustment = 1.3
-		options.ChainBSpec.TrustingPeriod = "504h"
-		options.ChainBSpec.CoinType = "118"
-		//options.ChainBSpec.NoHostMount=         true
 		options.ChainBSpec.ConfigFileOverrides = configFileOverrides
 		options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
 	})
-
 
 	chainA, chainB := s.GetChains()
 

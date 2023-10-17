@@ -14,7 +14,6 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
@@ -354,16 +353,8 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.C
 	s.DockerClient = client
 	s.network = network
 
-	logger := zaptest.NewLogger(t)
 
-
-	//chainOptions.ChainASpec.
-
-	numValidators, numFullNodes := getValidatorsAndFullNodes(0)
-	chainA := cosmos.NewCosmosChain(t.Name(), chainOptions.ChainASpec.ChainConfig, numValidators, numFullNodes, logger)
-	numValidators, numFullNodes = getValidatorsAndFullNodes(1)
-	chainB := cosmos.NewCosmosChain(t.Name(), chainOptions.ChainBSpec.ChainConfig, numValidators, numFullNodes, logger)
-
+	cf := interchaintest.NewBuiltinChainFactory(s.logger, []*interchaintest.ChainSpec{chainOptions.ChainASpec, chainOptions.ChainBSpec})
 
 	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
 	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
@@ -374,7 +365,10 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.C
 		diagnostics.Collect(t, s.DockerClient, debugModeEnabled, chains...)
 	})
 
-	return chainA, chainB
+	chains, err := cf.Chains(t.Name())
+	s.Require().NoError(err)
+
+	return chains[0], chains[1]
 }
 
 // GetRelayerExecReporter returns a testreporter.RelayerExecReporter instances
