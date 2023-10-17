@@ -1,6 +1,11 @@
 package types_test
 
-import "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+import (
+	"crypto/sha256"
+
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+)
 
 func (suite *TypesTestSuite) TestGetCodeHashes() {
 	testCases := []struct {
@@ -9,10 +14,12 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 		expResult func(codeHashes types.CodeHashes)
 	}{
 		{
-			"success: empty code hashes",
+			"success: default mock vm contract stored.",
 			func() {},
 			func(codeHashes types.CodeHashes) {
-				suite.Require().Empty(codeHashes.Hashes)
+				suite.Require().Len(codeHashes.Hashes, 1)
+				expectedCodeHash := sha256.Sum256(wasmtesting.Code)
+				suite.Require().Equal(expectedCodeHash[:], codeHashes.Hashes[0])
 			},
 		},
 		{
@@ -21,8 +28,8 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 				types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), []byte("codehash"))
 			},
 			func(codeHashes types.CodeHashes) {
-				suite.Require().Len(codeHashes.Hashes, 1)
-				suite.Require().Equal([]byte("codehash"), codeHashes.Hashes[0])
+				suite.Require().Len(codeHashes.Hashes, 2)
+				suite.Require().Equal([]byte("codehash"), codeHashes.Hashes[1])
 			},
 		},
 	}
@@ -44,7 +51,8 @@ func (suite *TypesTestSuite) TestAddCodeHash() {
 	suite.SetupWasmWithMockVM()
 
 	codeHashes := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
-	suite.Require().Empty(codeHashes.Hashes)
+	// default mock vm contract is stored
+	suite.Require().Len(codeHashes.Hashes, 1)
 
 	codeHash1 := []byte("codehash1")
 	codeHash2 := []byte("codehash2")
@@ -52,9 +60,9 @@ func (suite *TypesTestSuite) TestAddCodeHash() {
 	types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash2)
 
 	codeHashes = types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
-	suite.Require().Len(codeHashes.Hashes, 2)
-	suite.Require().Equal(codeHash1, codeHashes.Hashes[0])
-	suite.Require().Equal(codeHash2, codeHashes.Hashes[1])
+	suite.Require().Len(codeHashes.Hashes, 3)
+	suite.Require().Equal(codeHash1, codeHashes.Hashes[1])
+	suite.Require().Equal(codeHash2, codeHashes.Hashes[2])
 }
 
 func (suite *TypesTestSuite) TestHasCodeHash() {

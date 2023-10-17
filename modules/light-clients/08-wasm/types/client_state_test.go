@@ -3,8 +3,14 @@ package types_test
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
+	fmt "fmt"
 	"time"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -86,7 +92,6 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 	}
 }
 
-/*
 func (suite *TypesTestSuite) TestStatus() {
 	testCases := []struct {
 		name      string
@@ -147,7 +152,6 @@ func (suite *TypesTestSuite) TestStatus() {
 		})
 	}
 }
-*/
 
 func (suite *TypesTestSuite) TestValidate() {
 	testCases := []struct {

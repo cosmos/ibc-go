@@ -49,7 +49,7 @@ func NewKeeperWithVM(
 	}
 
 	ibcwasm.SetVM(vm)
-	ibcwasm.SetWasmStoreKey(cdc, key)
+	ibcwasm.SetWasmStoreKey(key)
 
 	return Keeper{
 		cdc:       cdc,
