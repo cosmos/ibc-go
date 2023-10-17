@@ -49,6 +49,8 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+* (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
+
 ## [v4.4.2](https://github.com/cosmos/ibc-go/releases/tag/v4.4.2) - 2023-05-25
 
 ### Bug Fixes
