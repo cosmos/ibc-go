@@ -75,6 +75,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	r, _ := s.SetupChainsRelayerAndChannel(ctx, nil, func(options *testsuite.ChainOptions) {
 		// configure chain A
+
 		options.ChainASpec.ChainName = "composable"
 		options.ChainASpec.Type = "polkadot"
 		options.ChainASpec.ChainID = "rococo-local"
@@ -99,6 +100,10 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainASpec.TrustingPeriod = ""
 		options.ChainASpec.CoinType = "354"
 
+		options.ChainASpec.ModifyGenesis = nil
+		options.ChainASpec.ConfigFileOverrides = nil
+		options.ChainASpec.EncodingConfig = nil
+
 		// configure chain B
 		options.ChainBSpec.ChainName = "simd" // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
 		options.ChainBSpec.Type = "cosmos"
@@ -113,13 +118,13 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		}
 		options.ChainBSpec.Bin = "simd"
 		options.ChainBSpec.Bech32Prefix = "cosmos"
+		options.ChainBSpec.Denom = "stake"
+		options.ChainBSpec.GasPrices = "0.00stake"
 		options.ChainBSpec.GasAdjustment = 1.3
 		options.ChainBSpec.TrustingPeriod = "504h"
 		options.ChainBSpec.CoinType = "118"
 
 		options.ChainBSpec.ChainConfig.NoHostMount = true
-		options.ChainBSpec.Denom = "stake"
-		options.ChainBSpec.GasPrices = "0.00stake"
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
 		options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
 		options.ChainBSpec.EncodingConfig = nil
