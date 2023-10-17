@@ -67,6 +67,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/29-fee) [\#4290](https://github.com/cosmos/ibc-go/pull/4290) Use `types.MetadataFromVersion` helper function for callback handlers.
 * (core/04-channel) [\#4155](https://github.com/cosmos/ibc-go/pull/4155) Adding `IsOpen` and `IsClosed` methods to `Channel` type.
 * (core/03-connection) [\#4110](https://github.com/cosmos/ibc-go/pull/4110) Remove `Version` interface and casting functions from 03-connection.
+* (core) [\#4835](https://github.com/cosmos/ibc-go/pull/4835) Use expected interface for legacy params subspace parameter of keeper constructor functions.
 
 ### Features
 
@@ -478,6 +479,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
 * (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
+
+## [v4.5.0](https://github.com/cosmos/ibc-go/releases/tag/v4.5.0) - 2023-10-03
+
+### Dependencies
+
+* [\#4738](https://github.com/cosmos/ibc-go/pull/4738) Bump Cosmos SDK to v0.45.16.
+* [\#4782](https://github.com/cosmos/ibc-go/pull/4782) Bump ics23 to v0.9.1.
 
 ## [v4.4.2](https://github.com/cosmos/ibc-go/releases/tag/v4.4.2) - 2023-05-25
 

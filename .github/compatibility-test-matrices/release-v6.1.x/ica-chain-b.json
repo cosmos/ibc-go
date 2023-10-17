@@ -20,6 +20,6 @@
     "TestHostEnabledParam"
   ],
   "relayer-type": [
-    "rly"
+    "hermes"
   ]
 }
