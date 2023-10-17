@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
-	fmt "fmt"
+	"fmt"
 	"time"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
