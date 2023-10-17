@@ -36,7 +36,6 @@ import (
 const (
 	tmClientID      = "07-tendermint-0"
 	grandpaClientID = "08-wasm-0"
-	codeHash        = "01234567012345670123456701234567" // TODO: remove in favour of wasmtesting.CodeHash
 )
 
 type TypesTestSuite struct {
