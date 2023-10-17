@@ -36,14 +36,13 @@ import (
 const (
 	tmClientID      = "07-tendermint-0"
 	grandpaClientID = "08-wasm-0"
-	codeHash        = "01234567012345670123456701234567" // TODO: remove in favour of wasmtesting.CodeHash
 )
 
 type TypesTestSuite struct {
 	testifysuite.Suite
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
-	mockVM      *wasmtesting.MockWasmEngine
+	mockVM      *types.MockWasmEngine
 
 	ctx      sdk.Context
 	store    storetypes.KVStore
@@ -87,7 +86,7 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	suite.mockVM = &wasmtesting.MockWasmEngine{}
+	suite.mockVM = types.NewMockWasmEngine()
 	// TODO: move default functionality required for wasm client testing to the mock VM
 	suite.mockVM.StoreCodeFn = func(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
 		hash := sha256.Sum256(code)
@@ -108,10 +107,10 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 		return nil, 0, nil
 	}
 
-	suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+	suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 		resp := fmt.Sprintf(`{"status":"%s"}`, exported.Active)
-		return []byte(resp), wasmtesting.DefaultGasUsed, nil
-	}
+		return []byte(resp), types.DefaultGasUsed, nil
+	})
 
 	db := dbm.NewMemDB()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, suite.mockVM)
