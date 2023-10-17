@@ -88,21 +88,16 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 // with E2ETestSuite.StartRelayer if needed.
 // This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
-	chainA, chainB := s.SetupChains(chainSpecOpts...)
-	r := s.SetupRelayer(ctx, chainA, chainB, channelOpts)
+	chainA, chainB := s.GetChains(chainSpecOpts...)
+	r := s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
+	s.InitGRPCClients(chainA)
+	s.InitGRPCClients(chainB)
 	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 	s.Require().NoError(err)
 	return r, chainAChannels[len(chainAChannels)-1]
 }
 
-func (s *E2ETestSuite) SetupChains(chainSpecOpts ...ChainOptionConfiguration) (ibc.Chain, ibc.Chain) {
-	chainA, chainB := s.GetChains(chainSpecOpts...)
-	s.InitGRPCClients(chainA)
-	s.InitGRPCClients(chainB)
-	return chainA, chainB
-}
-
-func (s *E2ETestSuite) SetupRelayer(ctx context.Context, chainA, chainB ibc.Chain, channelOpts func(*ibc.CreateChannelOptions), buildOptions ...func(options *interchaintest.InterchainBuildOptions)) ibc.Relayer {
+func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.Chain, channelOpts func(*ibc.CreateChannelOptions), buildOptions ...func(options *interchaintest.InterchainBuildOptions)) ibc.Relayer {
 	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
 
 	pathName := s.generatePathName()
@@ -150,45 +145,6 @@ func (s *E2ETestSuite) SetupRelayer(ctx context.Context, chainA, chainB ibc.Chai
 		// wait for relayer to start.
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 	}
-
-	return r
-}
-
-// SetupChainsRelayerAndChannel create two chains, a relayer, establishes a connection and creates a channel
-// using the given channel options. The relayer returned by this function has not yet started. It should be started
-// with E2ETestSuite.StartRelayer if needed.
-// This should be called at the start of every test, unless fine grained control is required.
-func (s *E2ETestSuite) SetupChainsAndRelayer(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) ibc.Relayer {
-	chainA, chainB := s.GetChains(chainSpecOpts...)
-
-	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
-
-	pathName := s.generatePathName()
-
-	channelOptions := ibc.DefaultChannelOpts()
-	if channelOpts != nil {
-		channelOpts(&channelOptions)
-	}
-
-	ic := interchaintest.NewInterchain().
-		AddChain(chainA).
-		AddChain(chainB).
-		AddRelayer(r, "r").
-		AddLink(interchaintest.InterchainLink{
-			Chain1:            chainA,
-			Chain2:            chainB,
-			Relayer:           r,
-			Path:              pathName,
-			CreateChannelOpts: channelOptions,
-		})
-
-	eRep := s.GetRelayerExecReporter()
-	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
-		TestName:         s.T().Name(),
-		Client:           s.DockerClient,
-		NetworkID:        s.network,
-		SkipPathCreation: true,
-	}))
 
 	return r
 }

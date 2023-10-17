@@ -71,7 +71,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	ctx := context.Background()
 
 
-	chainA, chainB := s.SetupChains(func(options *testsuite.ChainOptions) {
+	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
 		// configure chain A
 		options.ChainASpec.ChainName = "composable"
 		options.ChainASpec.Type = "polkadot"
@@ -123,11 +123,14 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	polkadotChain := chainA.(*polkadot.PolkadotChain)
 	cosmosChain := chainB.(*cosmos.CosmosChain)
-	
+
 	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
-	r := s.SetupRelayer(ctx, chainA, chainB, nil, func(options *interchaintest.InterchainBuildOptions) {
+	r := s.ConfigureRelayer(ctx, chainA, chainB, nil, func(options *interchaintest.InterchainBuildOptions) {
 		options.SkipPathCreation = true
 	})
+
+
+	s.InitGRPCClients(cosmosChain)
 
 	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
 	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
