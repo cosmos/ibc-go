@@ -4,13 +4,11 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
-	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/polkadot"
@@ -22,6 +20,10 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
+const (
+	heightDelta = uint64(20)
+)
+
 func TestGrandpaTestSuite(t *testing.T) {
 	validateTestConfig()
 	testifysuite.Run(t, new(GrandpaTestSuite))
@@ -31,18 +33,13 @@ type GrandpaTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// validateTestConfig ensures that the given test config is valid for this test suite.
 func validateTestConfig() {
 	tc := testsuite.LoadConfig()
 	if tc.ActiveRelayer != "hyperspace" {
 		panic(fmt.Errorf("hyperspace relayer must be specifed"))
 	}
 }
-
-const (
-	heightDelta      = uint64(20)
-	votingPeriod     = "30s"
-	maxDepositPeriod = "10s"
-)
 
 func getConfigOverrides() map[string]any {
 	consensusOverrides := make(testutil.Toml)
@@ -73,7 +70,8 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	ctx := context.Background()
 
-	r := s.SetupChainsAndRelayer(ctx, nil, func(options *testsuite.ChainOptions) {
+
+	chainA, chainB := s.SetupChains(func(options *testsuite.ChainOptions) {
 		// configure chain A
 		options.ChainASpec.ChainName = "composable"
 		options.ChainASpec.Type = "polkadot"
@@ -105,9 +103,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 		// configure chain B
 		options.ChainBSpec.ChainName = "simd" // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
-		//options.ChainBSpec.Type = "cosmos"
-		//options.ChainBSpec.Name = "simd"
-		//options.ChainBSpec.ChainID = "simd"
 		options.ChainBSpec.Images = []ibc.DockerImage{
 			{
 				Repository: "ghcr.io/misko9/ibc-go-simd",
@@ -115,27 +110,24 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 				UidGid:     "1025:1025",
 			},
 		}
-		//options.ChainBSpec.Bin = "simd"
-		//options.ChainBSpec.Bech32Prefix = "cosmos"
+
+		// the hyperspace relayer assumes "stake" as the denom.
 		options.ChainBSpec.Denom = "stake"
 		options.ChainBSpec.GasPrices = "0.00stake"
-		//options.ChainBSpec.GasAdjustment = 1.3
-		//options.ChainBSpec.TrustingPeriod = "504h"
-		//options.ChainBSpec.CoinType = "118"
 
 		options.ChainBSpec.ChainConfig.NoHostMount = true
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
-		//options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
 		options.ChainBSpec.EncodingConfig = nil
 	})
 
-	chainA, chainB := s.GetChains()
-
-	s.InitGRPCClients(chainA)
-	s.InitGRPCClients(chainB)
 
 	polkadotChain := chainA.(*polkadot.PolkadotChain)
 	cosmosChain := chainB.(*cosmos.CosmosChain)
+	
+	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
+	r := s.SetupRelayer(ctx, chainA, chainB, nil, func(options *interchaintest.InterchainBuildOptions) {
+		options.SkipPathCreation = true
+	})
 
 	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
 	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
@@ -179,14 +171,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 
 	// Start relayer
-	r.StartRelayer(ctx, eRep, pathName)
-	s.Require().NoError(err)
-	t.Cleanup(func() {
-		err = r.StopRelayer(ctx, eRep)
-		if err != nil {
-			panic(err)
-		}
-	})
+	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
 
 	// Send 1.77 stake from cosmosUser to parachainUser
 	amountToSend := int64(1_770_000)
@@ -235,9 +220,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	})
 	s.Require().NoError(err)
 
-	//exportStateHeight, err := cosmosChain.Height(ctx)
-	//s.Require().NoError(err)
-
 	// Wait for a new update state
 	err = testutil.WaitForBlocks(ctx, 5, cosmosChain, polkadotChain)
 	s.Require().NoError(err)
@@ -263,13 +245,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 	s.Require().True(parachainUserStake.Amount.Equal(math.NewInt(amountToSend-amountToReflect)), "parachain user's final stake amount not expected")
 
-	//r.StopRelayer(ctx, eRep) //  Stop relayer to export data
-	//err = cosmosChain.StopAllNodes(ctx)
-	//s.Require().NoError(err)
-	//exportedState, err := cosmosChain.ExportState(ctx, int64(exportStateHeight))
-	//s.Require().NoError(err)
-	//fmt.Println("Exported State at height: ", exportStateHeight)
-	//fmt.Println(exportedState)
 }
 
 type GetCodeQueryMsgResponse struct {
@@ -340,27 +315,4 @@ func (s *GrandpaTestSuite) fundUsers(t *testing.T, ctx context.Context, fundAmou
 	s.Require().True(cosmosUserAmount.Equal(amount), "Initial cosmos user amount not expected")
 
 	return polkadotUser, cosmosUser
-}
-
-func modifyGenesisShortProposals(votingPeriod string, maxDepositPeriod string) func(ibc.ChainConfig, []byte) ([]byte, error) {
-	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		g := make(map[string]interface{})
-		if err := json.Unmarshal(genbz, &g); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-		}
-		if err := dyno.Set(g, votingPeriod, "app_state", "gov", "params", "voting_period"); err != nil {
-			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, maxDepositPeriod, "app_state", "gov", "params", "max_deposit_period"); err != nil {
-			return nil, fmt.Errorf("failed to set max deposit period in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, chainConfig.Denom, "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
-			return nil, fmt.Errorf("failed to set min deposit in genesis json: %w", err)
-		}
-		out, err := json.Marshal(g)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-		}
-		return out, nil
-	}
 }

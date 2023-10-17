@@ -88,8 +88,21 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 // with E2ETestSuite.StartRelayer if needed.
 // This should be called at the start of every test, unless fine grained control is required.
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
-	chainA, chainB := s.GetChains(chainSpecOpts...)
+	chainA, chainB := s.SetupChains(chainSpecOpts...)
+	r := s.SetupRelayer(ctx, chainA, chainB, channelOpts)
+	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+	s.Require().NoError(err)
+	return r, chainAChannels[len(chainAChannels)-1]
+}
 
+func (s *E2ETestSuite) SetupChains(chainSpecOpts ...ChainOptionConfiguration) (ibc.Chain, ibc.Chain) {
+	chainA, chainB := s.GetChains(chainSpecOpts...)
+	s.InitGRPCClients(chainA)
+	s.InitGRPCClients(chainB)
+	return chainA, chainB
+}
+
+func (s *E2ETestSuite) SetupRelayer(ctx context.Context, chainA, chainB ibc.Chain, channelOpts func(*ibc.CreateChannelOptions), buildOptions ...func(options *interchaintest.InterchainBuildOptions)) ibc.Relayer {
 	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
 
 	pathName := s.generatePathName()
@@ -111,14 +124,18 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 			CreateChannelOpts: channelOptions,
 		})
 
-
-	eRep := s.GetRelayerExecReporter()
-	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
+	buildOpts := interchaintest.InterchainBuildOptions{
 		TestName:  s.T().Name(),
 		Client:    s.DockerClient,
 		NetworkID: s.network,
-		SkipPathCreation: true,
-	}))
+	}
+
+	for _, opt := range buildOptions {
+		opt(&buildOpts)
+	}
+
+	eRep := s.GetRelayerExecReporter()
+	s.Require().NoError(ic.Build(ctx, eRep, buildOpts))
 
 	s.startRelayerFn = func(relayer ibc.Relayer) {
 		err := relayer.StartRelayer(ctx, eRep, pathName)
@@ -134,21 +151,14 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 	}
 
-	s.InitGRPCClients(chainA)
-	s.InitGRPCClients(chainB)
-
-	chainAChannels, err := r.GetChannels(ctx, eRep, chainA.Config().ChainID)
-	s.Require().NoError(err)
-	return r, chainAChannels[len(chainAChannels)-1]
+	return r
 }
-
-
 
 // SetupChainsRelayerAndChannel create two chains, a relayer, establishes a connection and creates a channel
 // using the given channel options. The relayer returned by this function has not yet started. It should be started
 // with E2ETestSuite.StartRelayer if needed.
 // This should be called at the start of every test, unless fine grained control is required.
-func (s *E2ETestSuite) SetupChainsAndRelayer(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) ibc.Relayer{
+func (s *E2ETestSuite) SetupChainsAndRelayer(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) ibc.Relayer {
 	chainA, chainB := s.GetChains(chainSpecOpts...)
 
 	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
@@ -172,18 +182,16 @@ func (s *E2ETestSuite) SetupChainsAndRelayer(ctx context.Context, channelOpts fu
 			CreateChannelOpts: channelOptions,
 		})
 
-
 	eRep := s.GetRelayerExecReporter()
 	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
-		TestName:  s.T().Name(),
-		Client:    s.DockerClient,
-		NetworkID: s.network,
+		TestName:         s.T().Name(),
+		Client:           s.DockerClient,
+		NetworkID:        s.network,
 		SkipPathCreation: true,
 	}))
 
 	return r
 }
-
 
 // SetupSingleChain creates and returns a single CosmosChain for usage in e2e tests.
 // This is useful for testing single chain functionality when performing coordinated upgrades as well as testing localhost ibc client functionality.
@@ -397,7 +405,6 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.C
 	s.logger = zap.NewExample()
 	s.DockerClient = client
 	s.network = network
-
 
 	cf := interchaintest.NewBuiltinChainFactory(s.logger, []*interchaintest.ChainSpec{chainOptions.ChainASpec, chainOptions.ChainBSpec})
 
