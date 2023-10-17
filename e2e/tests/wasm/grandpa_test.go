@@ -132,6 +132,9 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	chainA, chainB := s.GetChains()
 
+	s.InitGRPCClients(chainA)
+	s.InitGRPCClients(chainB)
+
 	polkadotChain := chainA.(*polkadot.PolkadotChain)
 	cosmosChain := chainB.(*cosmos.CosmosChain)
 
@@ -282,7 +285,7 @@ func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Cont
 
 	contractUserBalInitial, err := cosmosChain.GetBalance(ctx, contractUser.FormattedAddress(), cosmosChain.Config().Denom)
 	s.Require().NoError(err, "error fetching initial balance of contract user")
-	s.Require().Equal(math.NewInt(fundAmountForGov), contractUserBalInitial, "initial balance of contract user not expected")
+	s.Require().Equal(math.NewInt(fundAmountForGov).Int64(), contractUserBalInitial.Int64(), "initial balance of contract user not expected")
 
 	proposal := cosmos.TxProposalv1{
 		Metadata: "none",
