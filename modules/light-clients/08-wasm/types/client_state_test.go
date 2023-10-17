@@ -47,7 +47,7 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 
 				clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 5))
 
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, wasmClientID, clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 			},
 			exported.Frozen,
 		},
@@ -59,7 +59,7 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 
 				clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 36))
 
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, wasmClientID, clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 			},
 			exported.Expired,
 		},
@@ -80,8 +80,8 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel()
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, wasmClientID)
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, wasmClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
 			suite.Require().True(ok)
 
 			tc.malleate()
@@ -246,7 +246,7 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 			consensusState = types.NewConsensusState(consensusStateData, 0)
 
 			tc.malleate()
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, wasmClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 			err = clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
 
 			if tc.expPass {
@@ -385,7 +385,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 				value, err = suite.chainA.Codec.Marshal(&connectiontypes.ConnectionEnd{
 					ClientId: tmClientID,
 					Counterparty: connectiontypes.Counterparty{
-						ClientId:     wasmClientID,
+						ClientId:     grandpaClientID,
 						ConnectionId: connectionID,
 						Prefix:       suite.chainA.GetPrefix(),
 					},
@@ -533,7 +533,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel() // reset
-			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, wasmClientID)
+			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
 			suite.Require().True(ok)
 
 			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
@@ -569,7 +569,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 
 			tc.malleate()
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, wasmClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 
 			err = clientState.VerifyMembership(
 				suite.ctx, clientStore, suite.chainA.Codec,
@@ -1004,7 +1004,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel() // reset
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, wasmClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
 			suite.Require().True(ok)
 
 			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
