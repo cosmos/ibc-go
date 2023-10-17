@@ -213,23 +213,35 @@ func (suite *TypesTestSuite) TestValidate() {
 }
 
 func (suite *TypesTestSuite) TestInitializeGrandpa() {
-	var consensusState exported.ConsensusState
+	var (
+		consensusState exported.ConsensusState
+		clientState    exported.ClientState
+	)
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			name:     "valid consensus",
 			malleate: func() {},
-			expPass:  true,
+			expErr:   nil,
 		},
 		{
 			name: "invalid consensus: consensus state is solomachine consensus",
 			malleate: func() {
 				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
 			},
-			expPass: false,
+			expErr: clienttypes.ErrInvalidConsensus,
+		},
+		{
+			name: "invalid client state: wasm code hasn't been stored",
+			malleate: func() {
+				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
+				suite.Require().NoError(err)
+				clientState = types.NewClientState(clientStateData, wasmtesting.Code, clienttypes.NewHeight(2000, 2))
+			},
+			expErr: types.ErrInvalidCodeHash,
 		},
 	}
 
@@ -239,7 +251,7 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 
 			clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
 			suite.Require().NoError(err)
-			clientState := types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 2))
+			clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 2))
 
 			consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
 			suite.Require().NoError(err)
@@ -249,7 +261,8 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
 			err = clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
 
-			if tc.expPass {
+			expPass := tc.expErr == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().True(clientStore.Has(host.ClientStateKey()))
 				suite.Require().True(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
