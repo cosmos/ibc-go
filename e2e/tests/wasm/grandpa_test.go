@@ -129,8 +129,8 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.SkipPathCreation = true
 	})
 
-
-	s.InitGRPCClients(cosmosChain)
+	s.InitGRPCClients(chainA)
+	s.InitGRPCClients(chainB)
 
 	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
 	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
