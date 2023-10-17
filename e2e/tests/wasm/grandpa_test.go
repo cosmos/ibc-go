@@ -15,7 +15,6 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/polkadot"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -24,11 +23,19 @@ import (
 )
 
 func TestGrandpaTestSuite(t *testing.T) {
+	validateTestConfig()
 	testifysuite.Run(t, new(GrandpaTestSuite))
 }
 
 type GrandpaTestSuite struct {
 	testsuite.E2ETestSuite
+}
+
+func validateTestConfig() {
+	tc := testsuite.LoadConfig()
+	if tc.ActiveRelayer != "hyperspace" {
+		panic(fmt.Errorf("hyperspace relayer must be specifed"))
+	}
 }
 
 const (
@@ -37,28 +44,7 @@ const (
 	maxDepositPeriod = "10s"
 )
 
-// TestMsgTransfer_Succeeds_GrandpaContract features
-// * sets up a Polkadot parachain
-// * sets up a Cosmos chain
-// * sets up the Hyperspace relayer
-// * Funds a user wallet on both chains
-// * Pushes a wasm client contract to the Cosmos chain
-// * create client, connection, and channel in relayer
-// * start relayer
-// * send transfer over ibc
-func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
-
-	t := s.T()
-	// Log location
-	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
-	s.Require().NoError(err)
-	// Reporter/logs
-	rep := testreporter.NewReporter(f)
-	eRep := rep.RelayerExecReporter(t)
-
-	ctx := context.Background()
-
-
+func getConfigOverrides() map[string]any {
 	consensusOverrides := make(testutil.Toml)
 	blockTime := 5 // seconds, parachain is 12 second blocks, don't make relayer work harder than needed
 	blockT := (time.Duration(blockTime) * time.Second).String()
@@ -70,6 +56,22 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/config.toml"] = configTomlOverrides
+	return configFileOverrides
+}
+
+// TestMsgTransfer_Succeeds_GrandpaContract features
+// * sets up a Polkadot parachain
+// * sets up a Cosmos chain
+// * sets up the Hyperspace relayer
+// * Funds a user wallet on both chains
+// * Pushes a wasm client contract to the Cosmos chain
+// * create client, connection, and channel in relayer
+// * start relayer
+// * send transfer over ibc
+func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
+	t := s.T()
+
+	ctx := context.Background()
 
 	r, _ := s.SetupChainsRelayerAndChannel(ctx, nil, func(options *testsuite.ChainOptions) {
 		// configure chain A
@@ -106,7 +108,9 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 				UidGid:     "1025:1025",
 			},
 		}
-		options.ChainBSpec.ConfigFileOverrides = configFileOverrides
+		options.ChainBSpec.Denom = "stake"
+		options.ChainBSpec.GasPrices = "0.00stake"
+		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
 		options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
 	})
 
@@ -118,8 +122,10 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
 	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
 
+	eRep := s.GetRelayerExecReporter()
+
 	// Set client contract hash in cosmos chain config
-	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
+	err := r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
 	s.Require().NoError(err)
 
 	// Ensure parachain has started (starts 1 session/epoch after relay chain)
