@@ -448,8 +448,9 @@ func IsCI() bool {
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
 type ChainOptions struct {
-	ChainASpec *interchaintest.ChainSpec
-	ChainBSpec *interchaintest.ChainSpec
+	ChainASpec       *interchaintest.ChainSpec
+	ChainBSpec       *interchaintest.ChainSpec
+	SkipPathCreation bool
 }
 
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.

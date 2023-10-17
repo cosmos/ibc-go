@@ -111,11 +111,13 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 			CreateChannelOpts: channelOptions,
 		})
 
+
 	eRep := s.GetRelayerExecReporter()
 	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
 		TestName:  s.T().Name(),
 		Client:    s.DockerClient,
 		NetworkID: s.network,
+		SkipPathCreation: true,
 	}))
 
 	s.startRelayerFn = func(relayer ibc.Relayer) {
