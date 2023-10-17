@@ -443,8 +443,6 @@ func IsCI() bool {
 type ChainOptions struct {
 	ChainASpec *interchaintest.ChainSpec
 	ChainBSpec *interchaintest.ChainSpec
-	//ChainAConfig *ibc.ChainConfig
-	//ChainBConfig *ibc.ChainConfig
 }
 
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.

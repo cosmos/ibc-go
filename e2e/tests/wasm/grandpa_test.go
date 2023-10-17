@@ -15,11 +15,9 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/polkadot"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/relayer"
 	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
-	"go.uber.org/zap/zaptest"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -51,7 +49,7 @@ const (
 func (s *GrandpaTestSuite) TestGrandpaContract() {
 
 	t := s.T()
-	client, network := interchaintest.DockerSetup(t)
+	//client, network := interchaintest.DockerSetup(t)
 
 	// Log location
 	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
@@ -81,8 +79,11 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/config.toml"] = configTomlOverrides
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil, func(options *testsuite.ChainOptions) {
+	r, _ := s.SetupChainsRelayerAndChannel(ctx, nil, func(options *testsuite.ChainOptions) {
 		// configure chain A
+		options.ChainASpec.ChainName = "composable"
+		options.ChainASpec.NumValidators = &nv
+		options.ChainASpec.NumFullNodes = &nf
 		options.ChainASpec.ChainID = "rococo-local"
 		options.ChainASpec.Name = "composable"
 		options.ChainASpec.Images = []ibc.DockerImage{
@@ -104,111 +105,71 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 		options.ChainASpec.GasAdjustment = 0
 		options.ChainASpec.TrustingPeriod = ""
 		options.ChainASpec.CoinType = "354"
-		
+
 		// configure chain B
-	})
-
-
-
-	// Get both chains
-	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
-		{
-			ChainName: "composable", // Set ChainName so that a suffix with a "dash" is not appended (required for hyperspace)
-			ChainConfig: ibc.ChainConfig{
-				Type:    "polkadot",
-				Name:    "composable",
-				ChainID: "rococo-local",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/misko9/polkadot-node",
-						Version:    "local",
-						UidGid:     "1000:1000",
-					},
-					{
-						Repository: "ghcr.io/misko9/parachain-node",
-						Version:    "latest",
-						UidGid:     "1000:1000",
-					},
-				},
-				Bin:            "polkadot",
-				Bech32Prefix:   "composable",
-				Denom:          "uDOT",
-				GasPrices:      "",
-				GasAdjustment:  0,
-				TrustingPeriod: "",
-				CoinType:       "354",
+		options.ChainBSpec.ChainName = "simd" // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
+		options.ChainBSpec.Type = "cosmos"
+		options.ChainBSpec.Name = "simd"
+		options.ChainBSpec.ChainID = "simd"
+		options.ChainBSpec.Images = []ibc.DockerImage{
+			{
+				Repository: "ghcr.io/misko9/ibc-go-simd",
+				Version:    "local",
+				UidGid:     "1025:1025",
 			},
-			NumValidators: &nv,
-			NumFullNodes:  &nf,
-		},
-		{
-			ChainName: "simd", // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
-			ChainConfig: ibc.ChainConfig{
-				Type:    "cosmos",
-				Name:    "simd",
-				ChainID: "simd",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/misko9/ibc-go-simd",
-						Version:    "local",
-						UidGid:     "1025:1025",
-					},
-				},
-				Bin:                 "simd",
-				Bech32Prefix:        "cosmos",
-				Denom:               "stake",
-				GasPrices:           "0.00stake",
-				GasAdjustment:       1.3,
-				TrustingPeriod:      "504h",
-				CoinType:            "118",
-				NoHostMount:         true,
-				ConfigFileOverrides: configFileOverrides,
-				ModifyGenesis:       modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
-			},
-		},
+		}
+		options.ChainBSpec.Bin = "simd"
+		options.ChainBSpec.Bech32Prefix = "cosmos"
+		options.ChainBSpec.Denom = "stake"
+		options.ChainBSpec.GasPrices = "0.00stake"
+		options.ChainBSpec.GasAdjustment = 1.3
+		options.ChainBSpec.TrustingPeriod = "504h"
+		options.ChainBSpec.CoinType = "118"
+		//options.ChainBSpec.NoHostMount=         true
+		options.ChainBSpec.ConfigFileOverrides = configFileOverrides
+		options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
 	})
 
-	chains, err := cf.Chains(t.Name())
-	s.Require().NoError(err)
 
-	polkadotChain := chains[0].(*polkadot.PolkadotChain)
-	cosmosChain := chains[1].(*cosmos.CosmosChain)
+	chainA, chainB := s.GetChains()
 
-	// Get a relayer instance
-	r := interchaintest.NewBuiltinRelayerFactory(
-		ibc.Hyperspace,
-		zaptest.NewLogger(t),
-		relayer.ImagePull(true),
-		relayer.CustomDockerImage("ghcr.io/misko9/hyperspace", "local", "1000:1000"),
-	).Build(t, client, network)
+	polkadotChain := chainA.(*polkadot.PolkadotChain)
+	cosmosChain := chainB.(*cosmos.CosmosChain)
 
-	// Build the network; spin up the chains and configure the relayer
-	const pathName = "composable-simd"
-	const relayerName = "hyperspace"
-
-	ic := interchaintest.NewInterchain().
-		AddChain(polkadotChain).
-		AddChain(cosmosChain).
-		AddRelayer(r, relayerName).
-		AddLink(interchaintest.InterchainLink{
-			Chain1:  polkadotChain,
-			Chain2:  cosmosChain,
-			Relayer: r,
-			Path:    pathName,
-		})
-
-	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
-		TestName:  t.Name(),
-		Client:    client,
-		NetworkID: network,
-		//BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
-		SkipPathCreation: true, // Skip path creation, so we can have granular control over the process
-	}))
-	fmt.Println("Interchain built")
-
-	t.Cleanup(func() {
-		_ = ic.Close()
-	})
+	//// Get a relayer instance
+	//r := interchaintest.NewBuiltinRelayerFactory(
+	//	ibc.Hyperspace,
+	//	zaptest.NewLogger(t),
+	//	relayer.ImagePull(true),
+	//	relayer.CustomDockerImage("ghcr.io/misko9/hyperspace", "local", "1000:1000"),
+	//).Build(t, client, network)
+	//
+	//// Build the network; spin up the chains and configure the relayer
+	//const pathName = "composable-simd"
+	//const relayerName = "hyperspace"
+	//
+	//ic := interchaintest.NewInterchain().
+	//	AddChain(polkadotChain).
+	//	AddChain(cosmosChain).
+	//	AddRelayer(r, relayerName).
+	//	AddLink(interchaintest.InterchainLink{
+	//		Chain1:  polkadotChain,
+	//		Chain2:  cosmosChain,
+	//		Relayer: r,
+	//		Path:    pathName,
+	//	})
+	//
+	//s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
+	//	TestName:         t.Name(),
+	//	Client:           client,
+	//	NetworkID:        network,
+	//	SkipPathCreation: true, // Skip path creation, so we can have granular control over the process
+	//}))
+	//fmt.Println("Interchain built")
+	//
+	//t.Cleanup(func() {
+	//	_ = ic.Close()
+	//})
 
 	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
 	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
@@ -224,6 +185,8 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 	// Fund users on both cosmos and parachain, mints Asset 1 for Alice
 	fundAmount := int64(12_333_000_000_000)
 	polkadotUser, cosmosUser := s.fundUsers(t, ctx, fundAmount, polkadotChain, cosmosChain)
+
+	pathName := s.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)

@@ -88,8 +88,8 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 // using the given channel options. The relayer returned by this function has not yet started. It should be started
 // with E2ETestSuite.StartRelayer if needed.
 // This should be called at the start of every test, unless fine grained control is required.
-func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts...func(options *ChainOptions)) (ibc.Relayer, ibc.ChannelOutput) {
-	chainA, chainB := s.GetChains()
+func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) (ibc.Relayer, ibc.ChannelOutput) {
+	chainA, chainB := s.GetChains(chainSpecOpts...)
 
 	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
 
@@ -356,14 +356,14 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.C
 
 	logger := zaptest.NewLogger(t)
 
+
+	//chainOptions.ChainASpec.
+
 	numValidators, numFullNodes := getValidatorsAndFullNodes(0)
 	chainA := cosmos.NewCosmosChain(t.Name(), chainOptions.ChainASpec.ChainConfig, numValidators, numFullNodes, logger)
 	numValidators, numFullNodes = getValidatorsAndFullNodes(1)
 	chainB := cosmos.NewCosmosChain(t.Name(), chainOptions.ChainBSpec.ChainConfig, numValidators, numFullNodes, logger)
 
-
-
-	//cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{}),
 
 	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
 	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
