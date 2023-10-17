@@ -47,7 +47,7 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 
 				clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 5))
 
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, wasmClientID, clientState)
 			},
 			exported.Frozen,
 		},
@@ -59,7 +59,7 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 
 				clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 36))
 
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, wasmClientID, clientState)
 			},
 			exported.Expired,
 		},
@@ -80,8 +80,8 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel()
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, wasmClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, wasmClientID)
 			suite.Require().True(ok)
 
 			tc.malleate()
@@ -246,7 +246,7 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 			consensusState = types.NewConsensusState(consensusStateData, 0)
 
 			tc.malleate()
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, wasmClientID)
 			err = clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
 
 			if tc.expPass {
@@ -262,66 +262,50 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 	}
 }
 
-// func (suite *TypesTestSuite) TestInitializeTendermint() {
-// 	var consensusState exported.ConsensusState
-// 	testCases := []struct {
-// 		name     string
-// 		malleate func()
-// 		expPass  bool
-// 	}{
-// 		{
-// 			name: "valid consensus",
-// 			malleate: func() {
-// 				tmConsensusState := tmtypes.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte{0}), []byte(codeHash))
-// 				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
-// 				suite.Require().NoError(err)
+/*
+func (suite *TypesTestSuite) TestInitialize() {
+	var consensusState exported.ConsensusState
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			name: "valid consensus",
+			malleate: func() {
+			},
+			expPass: true,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
 
-// 				consensusState = types.NewConsensusState(tmConsensusStateData, 1)
-// 			},
-// 			expPass: true,
-// 		},
-// 		{
-// 			name: "invalid consensus: consensus state is solomachine consensus",
-// 			malleate: func() {
-// 				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
-// 			},
-// 			expPass: false,
-// 		},
-// 	}
+			clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
+			suite.Require().NoError(err)
+			clientState := types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 2))
 
-// 	for _, tc := range testCases {
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupWasmTendermint()
-// 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			consensusStateData, err := base64.StdEncoding.DecodeString(suite.testData["consensus_state_data"])
+			suite.Require().NoError(err)
+			consensusState = types.NewConsensusState(consensusStateData, 0)
 
-// 			tmConfig, ok := path.EndpointB.ClientConfig.(*ibctesting.TendermintConfig)
-// 			suite.Require().True(ok)
+			tc.malleate()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, wasmClientID)
+			err = clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
 
-// 			tmClientState := tmtypes.NewClientState(
-// 				path.EndpointB.Chain.ChainID,
-// 				tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-// 				suite.chainB.LastHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
-// 			)
-// 			tmClientStateData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
-// 			suite.Require().NoError(err)
-// 			wasmClientState := types.NewClientState(tmClientStateData, suite.codeHash, tmClientState.LatestHeight)
-
-// 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, path.EndpointA.ClientID)
-// 			tc.malleate()
-// 			err = wasmClientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
-
-// 			if tc.expPass {
-// 				suite.Require().NoError(err)
-// 				suite.Require().True(clientStore.Has(host.ClientStateKey()))
-// 				suite.Require().True(clientStore.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetHeight())))
-// 			} else {
-// 				suite.Require().Error(err)
-// 				suite.Require().False(clientStore.Has(host.ClientStateKey()))
-// 				suite.Require().False(clientStore.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetHeight())))
-// 			}
-// 		})
-// 	}
-// }
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().True(clientStore.Has(host.ClientStateKey()))
+				suite.Require().True(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
+			} else {
+				suite.Require().Error(err)
+				suite.Require().False(clientStore.Has(host.ClientStateKey()))
+				suite.Require().False(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
+			}
+		})
+	}
+}
+*/
 
 func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 	const (
@@ -368,7 +352,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 				value, err = suite.chainA.Codec.Marshal(&connectiontypes.ConnectionEnd{
 					ClientId: tmClientID,
 					Counterparty: connectiontypes.Counterparty{
-						ClientId:     grandpaClientID,
+						ClientId:     wasmClientID,
 						ConnectionId: connectionID,
 						Prefix:       suite.chainA.GetPrefix(),
 					},
@@ -516,7 +500,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel() // reset
-			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, wasmClientID)
 			suite.Require().True(ok)
 
 			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
@@ -552,7 +536,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 
 			tc.malleate()
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, wasmClientID)
 
 			err = clientState.VerifyMembership(
 				suite.ctx, clientStore, suite.chainA.Codec,
@@ -987,7 +971,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel() // reset
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, wasmClientID)
 			suite.Require().True(ok)
 
 			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
