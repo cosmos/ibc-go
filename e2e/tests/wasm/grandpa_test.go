@@ -75,7 +75,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	r := s.SetupChainsAndRelayer(ctx, nil, func(options *testsuite.ChainOptions) {
 		// configure chain A
-
 		options.ChainASpec.ChainName = "composable"
 		options.ChainASpec.Type = "polkadot"
 		options.ChainASpec.ChainID = "rococo-local"
@@ -106,9 +105,9 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 		// configure chain B
 		options.ChainBSpec.ChainName = "simd" // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
-		options.ChainBSpec.Type = "cosmos"
-		options.ChainBSpec.Name = "simd"
-		options.ChainBSpec.ChainID = "simd"
+		//options.ChainBSpec.Type = "cosmos"
+		//options.ChainBSpec.Name = "simd"
+		//options.ChainBSpec.ChainID = "simd"
 		options.ChainBSpec.Images = []ibc.DockerImage{
 			{
 				Repository: "ghcr.io/misko9/ibc-go-simd",
@@ -116,17 +115,17 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 				UidGid:     "1025:1025",
 			},
 		}
-		options.ChainBSpec.Bin = "simd"
-		options.ChainBSpec.Bech32Prefix = "cosmos"
+		//options.ChainBSpec.Bin = "simd"
+		//options.ChainBSpec.Bech32Prefix = "cosmos"
 		options.ChainBSpec.Denom = "stake"
 		options.ChainBSpec.GasPrices = "0.00stake"
-		options.ChainBSpec.GasAdjustment = 1.3
-		options.ChainBSpec.TrustingPeriod = "504h"
-		options.ChainBSpec.CoinType = "118"
+		//options.ChainBSpec.GasAdjustment = 1.3
+		//options.ChainBSpec.TrustingPeriod = "504h"
+		//options.ChainBSpec.CoinType = "118"
 
 		options.ChainBSpec.ChainConfig.NoHostMount = true
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
-		options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
+		//options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
 		options.ChainBSpec.EncodingConfig = nil
 	})
 
