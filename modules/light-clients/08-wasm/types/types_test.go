@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,7 +24,6 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmtypes "github.com/cometbft/cometbft/types"
 
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -42,12 +42,16 @@ type TypesTestSuite struct {
 	testifysuite.Suite
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
-	mockVM      *wasmtesting.MockWasmEngine
+	mockVM      *types.MockWasmEngine
 
 	ctx      sdk.Context
 	store    storetypes.KVStore
 	codeHash []byte
 	testData map[string]string
+}
+
+func TestWasmTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(TypesTestSuite))
 }
 
 func init() {
@@ -77,11 +81,22 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+
+	suite.codeHash = storeWasmCode(suite, wasmtesting.Code)
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	suite.mockVM = &wasmtesting.MockWasmEngine{}
+	suite.mockVM = types.NewMockWasmEngine()
 	// TODO: move default functionality required for wasm client testing to the mock VM
+	suite.mockVM.StoreCodeFn = func(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
+		hash := sha256.Sum256(code)
+		return wasmvm.Checksum(hash[:]), nil
+	}
+
+	suite.mockVM.PinFn = func(codeID wasmvm.Checksum) error {
+		return nil
+	}
+
 	suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 		var payload types.InstantiateMessage
 		err := json.Unmarshal(initMsg, &payload)
@@ -92,10 +107,10 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 		return nil, 0, nil
 	}
 
-	suite.mockVM.QueryFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+	suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 		resp := fmt.Sprintf(`{"status":"%s"}`, exported.Active)
-		return []byte(resp), wasmtesting.DefaultGasUsed, nil
-	}
+		return []byte(resp), types.DefaultGasUsed, nil
+	})
 
 	db := dbm.NewMemDB()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, suite.mockVM)
@@ -121,11 +136,7 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 	wasmContract, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
 	suite.Require().NoError(err)
 
-	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmContract)
-	response, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.ctx, msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(response.Checksum)
-	suite.codeHash = response.Checksum
+	suite.codeHash = storeWasmCode(suite, wasmContract)
 }
 
 func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
@@ -172,6 +183,13 @@ func (suite *TypesTestSuite) SetupWasmGrandpaWithChannel() {
 	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
 }
 
-func TestWasmTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(TypesTestSuite))
+// storeWasmCode stores the wasm code on chain and returns the code hash.
+func storeWasmCode(suite *TypesTestSuite, wasmCode []byte) []byte {
+	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
+
+	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmCode)
+	response, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(response.Checksum)
+	return response.Checksum
 }

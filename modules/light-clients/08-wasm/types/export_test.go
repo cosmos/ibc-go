@@ -9,12 +9,13 @@ type InstantiateMessage struct {
 	instantiateMessage
 }
 
-// queryMsg is used to encode messages that are sent to the contract's query entry point.
-type QueryMsg struct {
-	queryMsg
-}
+// these fields are exported aliases for the payload fields passed to the wasm vm.
+// these are used to specify callback functions to handle specific queries in the mock vm.
 
-// sudoMsg is used to encode messages that are sent to the contract's sudo entry point.
-type SudoMsg struct {
-	sudoMsg
-}
+type (
+	StatusMsg               = statusMsg
+	ExportMetadataMsg       = exportMetadataMsg
+	TimestampAtHeightMsg    = timestampAtHeightMsg
+	VerifyClientMessageMsg  = verifyClientMessageMsg
+	CheckForMisbehaviourMsg = checkForMisbehaviourMsg
+)
