@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"golang.org/x/exp/slices"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
@@ -37,11 +38,5 @@ func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) {
 // false otherwise.
 func HasCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) bool {
 	codeHashes := GetCodeHashes(ctx, cdc)
-
-	for _, hash := range codeHashes.Hashes {
-		if bytes.Equal(hash, codeHash) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(codeHashes.Hashes, func(h []byte) bool { return bytes.Equal(codeHash, h) })
 }

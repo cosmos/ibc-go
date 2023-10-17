@@ -46,12 +46,15 @@ func (suite *TypesTestSuite) TestAddCodeHash() {
 	codeHashes := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
 	suite.Require().Empty(codeHashes.Hashes)
 
-	codeHash := []byte("codehash")
-	types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash)
+	codeHash1 := []byte("codehash1")
+	codeHash2 := []byte("codehash2")
+	types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash1)
+	types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash2)
 
 	codeHashes = types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
-	suite.Require().Len(codeHashes.Hashes, 1)
-	suite.Require().Equal(codeHash, codeHashes.Hashes[0])
+	suite.Require().Len(codeHashes.Hashes, 2)
+	suite.Require().Equal(codeHash1, codeHashes.Hashes[0])
+	suite.Require().Equal(codeHash2, codeHashes.Hashes[1])
 }
 
 func (suite *TypesTestSuite) TestHasCodeHash() {
