@@ -117,8 +117,9 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.TrustingPeriod = "504h"
 		options.ChainBSpec.CoinType = "118"
 
-		noHostMount := true
-		options.ChainBSpec.NoHostMount = &noHostMount
+		//noHostMount := true
+		//options.ChainBSpec.NoHostMount = &noHostMount
+		options.ChainBSpec.ChainConfig.NoHostMount = true
 		options.ChainBSpec.Denom = "stake"
 		options.ChainBSpec.GasPrices = "0.00stake"
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
