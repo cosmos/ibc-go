@@ -117,13 +117,12 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.TrustingPeriod = "504h"
 		options.ChainBSpec.CoinType = "118"
 
-		//noHostMount := true
-		//options.ChainBSpec.NoHostMount = &noHostMount
 		options.ChainBSpec.ChainConfig.NoHostMount = true
 		options.ChainBSpec.Denom = "stake"
 		options.ChainBSpec.GasPrices = "0.00stake"
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
 		options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
+		options.ChainBSpec.EncodingConfig = nil
 	})
 
 	chainA, chainB := s.GetChains()
@@ -133,6 +132,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
 	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
+	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
 
 	eRep := s.GetRelayerExecReporter()
 
