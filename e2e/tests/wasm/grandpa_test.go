@@ -73,7 +73,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	ctx := context.Background()
 
-	r, _ := s.SetupChainsRelayerAndChannel(ctx, nil, func(options *testsuite.ChainOptions) {
+	r := s.SetupChainsAndRelayer(ctx, nil, func(options *testsuite.ChainOptions) {
 		// configure chain A
 
 		options.ChainASpec.ChainName = "composable"

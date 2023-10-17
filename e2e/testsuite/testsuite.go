@@ -142,6 +142,49 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	return r, chainAChannels[len(chainAChannels)-1]
 }
 
+
+
+// SetupChainsRelayerAndChannel create two chains, a relayer, establishes a connection and creates a channel
+// using the given channel options. The relayer returned by this function has not yet started. It should be started
+// with E2ETestSuite.StartRelayer if needed.
+// This should be called at the start of every test, unless fine grained control is required.
+func (s *E2ETestSuite) SetupChainsAndRelayer(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainSpecOpts ...ChainOptionConfiguration) ibc.Relayer{
+	chainA, chainB := s.GetChains(chainSpecOpts...)
+
+	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
+
+	pathName := s.generatePathName()
+
+	channelOptions := ibc.DefaultChannelOpts()
+	if channelOpts != nil {
+		channelOpts(&channelOptions)
+	}
+
+	ic := interchaintest.NewInterchain().
+		AddChain(chainA).
+		AddChain(chainB).
+		AddRelayer(r, "r").
+		AddLink(interchaintest.InterchainLink{
+			Chain1:            chainA,
+			Chain2:            chainB,
+			Relayer:           r,
+			Path:              pathName,
+			CreateChannelOpts: channelOptions,
+		})
+
+
+	eRep := s.GetRelayerExecReporter()
+	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
+		TestName:  s.T().Name(),
+		Client:    s.DockerClient,
+		NetworkID: s.network,
+		SkipPathCreation: true,
+	}))
+
+	return r
+}
+
+
 // SetupSingleChain creates and returns a single CosmosChain for usage in e2e tests.
 // This is useful for testing single chain functionality when performing coordinated upgrades as well as testing localhost ibc client functionality.
 // TODO: Actually setup a single chain. Seeing panic: runtime error: index out of range [0] with length 0 when using a single chain.
