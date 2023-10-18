@@ -202,15 +202,18 @@ func (cs ClientState) VerifyNonMembership(
 	return err
 }
 
-func (cs ClientState) migrateStore(
+func (cs ClientState) MigrateStore(
 	ctx sdk.Context,
 	clientStore storetypes.KVStore,
-	subjectPrefix []byte,
 	substituteClient exported.ClientState,
 	substituteClientStore storetypes.KVStore,
-	substitutePrefix []byte,
 	cdc codec.BinaryCodec,
 ) error {
+	var (
+		subjectPrefix    = []byte("subject/")
+		substitutePrefix = []byte("substitute/")
+	)
+
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
 		return errorsmod.Wrapf(
@@ -220,17 +223,16 @@ func (cs ClientState) migrateStore(
 	}
 
 	// 08-wasm's implementation of Status will check that the code hash in substituteClientState
-	// is in the allow list of code hashes 
+	// is in the allow list of code hashes
 	if status := substituteClientState.Status(ctx, substituteClientStore, cdc); status != exported.Active {
-		return errorsmod.Wrapf(ErrClientNotActive, "cannot migrate to client with status %s", status)
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot migrate to client with status %s", status)
 	}
 
 	// assuming we implement #4547
 	store := newUpdateProposalWrappedStore(clientStore, substituteClientStore, subjectPrefix, substitutePrefix)
 
 	payload := sudoMsg{
-		MigrateStore: &migrateStoreMsg{
-		},
+		MigrateStore: &migrateStoreMsg{},
 	}
 
 	_, err := wasmCall[emptyResult](ctx, store, &cs, payload)
