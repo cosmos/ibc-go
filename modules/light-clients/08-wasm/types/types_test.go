@@ -24,6 +24,7 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmtypes "github.com/cometbft/cometbft/types"
 
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -79,6 +80,8 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 	ibctesting.DefaultTestingAppInit = suite.setupWasmWithMockVM
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+
+	suite.codeHash = storeWasmCode(suite, wasmtesting.Code)
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
