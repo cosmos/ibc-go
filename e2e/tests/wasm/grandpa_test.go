@@ -128,7 +128,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.TrustingPeriod = "504h"
 		options.ChainBSpec.CoinType = "118"
 
-		options.ChainBSpec.ChainConfig.NoHostMount = true
+		options.ChainBSpec.ChainConfig.NoHostMount = false
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
 		//options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
 		//options.ChainBSpec.EncodingConfig = nil
@@ -286,7 +286,7 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 	content, err = testutil.GzipIt(content)
 	s.Require().NoError(err)
 	message := wasmtypes.MsgStoreCode{
-		Signer:       types.MustBech32ifyAddressBytes("cosmos", authtypes.NewModuleAddress(govtypes.ModuleName)),
+		Signer:      authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		WasmByteCode: content,
 	}
 
