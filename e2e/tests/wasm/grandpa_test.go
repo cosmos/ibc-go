@@ -299,7 +299,6 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 	s.Require().NotEmpty(getCodeQueryMsgRsp.Data)
 	s.Require().Equal(codeHash, codeHash2)
 
-
 	return codeHash
 }
 
