@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -25,10 +26,7 @@ type KeeperTestSuite struct {
 
 	coordinator *ibctesting.Coordinator
 
-	// testing chains used for convenience and readability
 	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
 }
 
 func init() {
@@ -53,10 +51,8 @@ func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), GetSimApp(suite.chainA).InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, GetSimApp(suite.chainA).WasmClientKeeper)
@@ -80,7 +76,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					types.WasmVM,
+					ibcwasm.GetVM(),
 				)
 			},
 			true,
@@ -93,7 +89,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					"", // authority
-					types.WasmVM,
+					ibcwasm.GetVM(),
 				)
 			},
 			false,

@@ -24,6 +24,7 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmtypes "github.com/cometbft/cometbft/types"
 
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -35,7 +36,6 @@ import (
 const (
 	tmClientID      = "07-tendermint-0"
 	grandpaClientID = "08-wasm-0"
-	codeHash        = "01234567012345670123456701234567" // TODO: remove in favour of wasmtesting.CodeHash
 )
 
 type TypesTestSuite struct {
@@ -111,6 +111,9 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 
 	db := dbm.NewMemDB()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, suite.mockVM)
+
+	// reset DefaultTestingAppInit to its original value
+	ibctesting.DefaultTestingAppInit = setupTestingApp
 	return app, app.DefaultGenesis()
 }
 

@@ -161,17 +161,17 @@ func (suite *TypesTestSuite) TestValidate() {
 	}{
 		{
 			name:        "valid client",
-			clientState: types.NewClientState([]byte{0}, []byte(codeHash), clienttypes.ZeroHeight()),
+			clientState: types.NewClientState([]byte{0}, wasmtesting.Code, clienttypes.ZeroHeight()),
 			expPass:     true,
 		},
 		{
 			name:        "nil data",
-			clientState: types.NewClientState(nil, []byte(codeHash), clienttypes.ZeroHeight()),
+			clientState: types.NewClientState(nil, wasmtesting.Code, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
 			name:        "empty data",
-			clientState: types.NewClientState([]byte{}, []byte(codeHash), clienttypes.ZeroHeight()),
+			clientState: types.NewClientState([]byte{}, wasmtesting.Code, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
