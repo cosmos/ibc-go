@@ -116,7 +116,7 @@ func (m *MockWasmEngine) Query(codeID wasmvm.Checksum, env wasmvmtypes.Env, quer
 
 // Sudo implements the WasmEngine interface.
 func (m *MockWasmEngine) Sudo(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-	msgTypeName := getQueryMsgPayloadTypeName(sudoMsg)
+	msgTypeName := getSudoMsgPayloadTypeName(sudoMsg)
 
 	sudoFn, ok := m.sudoCallbacks[msgTypeName]
 	if !ok {
@@ -173,6 +173,46 @@ func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
 
 	if payloadField == nil {
 		panic(fmt.Errorf("failed to extract valid query message from bytes: %s", string(queryMsgBz)))
+	}
+
+	return reflect.TypeOf(payloadField).Name()
+}
+
+// getSudoMsgPayloadTypeName extracts the name of the struct that is populated.
+// this value is used as a key to map to a callback function to handle that message type.
+func getSudoMsgPayloadTypeName(sudoMsgBz []byte) string {
+	payload := sudoMsg{}
+	if err := json.Unmarshal(sudoMsgBz, &payload); err != nil {
+		panic(err)
+	}
+
+	var payloadField any
+	if payload.UpdateState != nil {
+		payloadField = *payload.UpdateState
+	}
+
+	if payload.UpdateStateOnMisbehaviour != nil {
+		payloadField = *payload.UpdateStateOnMisbehaviour
+	}
+
+	if payload.VerifyUpgradeAndUpdateState != nil {
+		payloadField = *payload.VerifyUpgradeAndUpdateState
+	}
+
+	if payload.CheckSubstituteAndUpdateState != nil {
+		payloadField = *payload.CheckSubstituteAndUpdateState
+	}
+
+	if payload.VerifyMembership != nil {
+		payloadField = *payload.VerifyMembership
+	}
+
+	if payload.VerifyNonMembership != nil {
+		payloadField = *payload.VerifyNonMembership
+	}
+
+	if payloadField == nil {
+		panic(fmt.Errorf("failed to extract valid sudo message from bytes: %s", string(sudoMsgBz)))
 	}
 
 	return reflect.TypeOf(payloadField).Name()
