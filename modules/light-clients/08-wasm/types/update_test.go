@@ -3,6 +3,10 @@ package types_test
 import (
 	"encoding/base64"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -449,208 +453,46 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 	}
 }
 
-// func (suite *TypesTestSuite) TestUpdateStateTendermint() {
-// 	var (
-// 		path               *ibctesting.Path
-// 		clientMessage      exported.ClientMessage
-// 		clientStore        sdk.KVStore
-// 		consensusHeights   []exported.Height
-// 		pruneHeight        clienttypes.Height
-// 		prevClientState    exported.ClientState
-// 		prevConsensusState exported.ConsensusState
-// 	)
+func (suite *TypesTestSuite) TestUpdateStateTendermint() {
+	var (
+		callbackFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+	)
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expPass   bool
+	}{
+		{
+			"success: ",
+			func() {
+				callbackFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					respData := 
+				}
+			},
+			true,
+		},
+		{
+			"failure: invalid ClientMessage type",
+			func() {},
+			false,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM() // reset
 
-// 	testCases := []struct {
-// 		name      string
-// 		malleate  func()
-// 		expResult func()
-// 		expPass   bool
-// 	}{
-// 		{
-// 			"success with height later than latest height", func() {
-// 				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().LT(height))
-// 			},
-// 			func() {
-// 				clientState := path.EndpointA.GetClientState()
-// 				suite.Require().True(clientState.GetLatestHeight().EQ(height)) // new update, updated client state should have changed
-// 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
-// 			}, true,
-// 		},
-// 		{
-// 			"success with height earlier than latest height", func() {
-// 				// commit a block so the pre-created ClientMessage
-// 				// isn't used to update the client to a newer height
-// 				suite.coordinator.CommitBlock(suite.chainB)
-// 				err := path.EndpointA.UpdateClient()
-// 				suite.Require().NoError(err)
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
 
-// 				suite.Require().True(path.EndpointA.GetClientState().GetLatestHeight().GT(height))
-
-// 				prevClientState = path.EndpointA.GetClientState()
-// 			},
-// 			func() {
-// 				clientState := path.EndpointA.GetClientState()
-// 				suite.Require().Equal(clientState, prevClientState) // fill in height, no change to client state
-// 				suite.Require().True(clientState.GetLatestHeight().GT(consensusHeights[0]))
-// 			}, true,
-// 		},
-// 		{
-// 			"success with duplicate header", func() {
-// 				// update client in advance
-// 				err := path.EndpointA.UpdateClient()
-// 				suite.Require().NoError(err)
-
-// 				// use the same header which just updated the client
-// 				clientMessage, height, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-// 				suite.Require().NoError(err)
-// 				suite.Require().Equal(path.EndpointA.GetClientState().GetLatestHeight(), height)
-
-// 				prevClientState = path.EndpointA.GetClientState()
-// 				prevConsensusState = path.EndpointA.GetConsensusState(height)
-// 			},
-// 			func() {
-// 				clientState := path.EndpointA.GetClientState()
-// 				suite.Require().Equal(clientState, prevClientState)
-// 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
-// 				suite.Require().Equal(path.EndpointA.GetConsensusState(height), prevConsensusState)
-// 			}, true,
-// 		},
-// 		{
-// 			"success with pruned consensus state", func() {
-// 				// this height will be expired and pruned
-// 				err := path.EndpointA.UpdateClient()
-// 				suite.Require().NoError(err)
-// 				pruneHeight = path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-
-// 				// Increment the time by a week
-// 				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-
-// 				// create the consensus state that can be used as trusted height for next update
-// 				err = path.EndpointA.UpdateClient()
-// 				suite.Require().NoError(err)
-
-// 				// Increment the time by another week, then update the client.
-// 				// This will cause the first two consensus states to become expired.
-// 				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-// 				err = path.EndpointA.UpdateClient()
-// 				suite.Require().NoError(err)
-
-// 				// ensure counterparty state is committed
-// 				suite.coordinator.CommitBlock(suite.chainB)
-// 				clientMessage, height, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-// 				suite.Require().NoError(err)
-// 			},
-// 			func() {
-// 				clientState := path.EndpointA.GetClientState()
-// 				suite.Require().True(clientState.GetLatestHeight().EQ(height)) // new update, updated client state should have changed
-// 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
-
-// 				// ensure consensus state was pruned
-// 				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
-// 				suite.Require().False(found)
-// 			}, true,
-// 		},
-// 		{
-// 			"success with pruned consensus state using duplicate header", func() {
-// 				// this height will be expired and pruned
-// 				err := path.EndpointA.UpdateClient()
-// 				suite.Require().NoError(err)
-// 				pruneHeight = path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-
-// 				// assert that a consensus state exists at the prune height
-// 				consensusState, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
-// 				suite.Require().True(found)
-// 				suite.Require().NotNil(consensusState)
-
-// 				// Increment the time by a week
-// 				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-
-// 				// create the consensus state that can be used as trusted height for next update
-// 				err = path.EndpointA.UpdateClient()
-// 				suite.Require().NoError(err)
-
-// 				// Increment the time by another week, then update the client.
-// 				// This will cause the first two consensus states to become expired.
-// 				suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-// 				err = path.EndpointA.UpdateClient()
-// 				suite.Require().NoError(err)
-
-// 				// use the same header which just updated the client
-// 				clientMessage, height, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-// 				suite.Require().NoError(err)
-// 			},
-// 			func() {
-// 				clientState := path.EndpointA.GetClientState()
-// 				suite.Require().True(clientState.GetLatestHeight().EQ(height)) // new update, updated client state should have changed
-// 				suite.Require().True(clientState.GetLatestHeight().EQ(consensusHeights[0]))
-
-// 				// ensure consensus state was pruned
-// 				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
-// 				suite.Require().False(found)
-// 			}, true,
-// 		},
-// 		{
-// 			"invalid ClientMessage type", func() {
-// 				clientMessage = &ibctm.Misbehaviour{}
-// 			},
-// 			func() {},
-// 			false,
-// 		},
-// 	}
-// 	for _, tc := range testCases {
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupWasmTendermint() // reset
-// 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-
-// 			err := path.EndpointA.CreateClient()
-// 			suite.Require().NoError(err)
-
-// 			// ensure counterparty state is committed
-// 			suite.coordinator.CommitBlock(suite.chainB)
-// 			clientMessage, height, err = path.EndpointA.Chain.ConstructUpdateWasmClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-// 			suite.Require().NoError(err)
-
-// 			tc.malleate()
-
-// 			clientState := path.EndpointA.GetClientState()
-// 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
-// 			if tc.expPass {
-// 				consensusHeights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
-
-// 				clientMessage, ok := clientMessage.(*types.ClientMessage)
-// 				suite.Require().True(ok)
-// 				var eHeader exported.ClientMessage
-// 				err := suite.chainA.Codec.UnmarshalInterface(clientMessage.Data, &eHeader)
-// 				tmHeader := eHeader.(*ibctm.Header)
-// 				suite.Require().NoError(err)
-// 				expTmConsensusState := &ibctm.ConsensusState{
-// 					Timestamp:          tmHeader.GetTime(),
-// 					Root:               commitmenttypes.NewMerkleRoot(tmHeader.Header.GetAppHash()),
-// 					NextValidatorsHash: tmHeader.Header.NextValidatorsHash,
-// 				}
-// 				wasmData, err := suite.chainA.Codec.MarshalInterface(expTmConsensusState)
-// 				suite.Require().NoError(err)
-// 				expWasmConsensusState := &types.ConsensusState{
-// 					Data: wasmData,
-// 				}
-
-// 				bz := clientStore.Get(host.ConsensusStateKey(height))
-// 				updatedConsensusState := clienttypes.MustUnmarshalConsensusState(suite.chainA.App.AppCodec(), bz)
-
-// 				suite.Require().Equal(expWasmConsensusState, updatedConsensusState)
-
-// 			} else {
-// 				suite.Require().Panics(func() {
-// 					clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
-// 				})
-// 			}
-
-// 			// perform custom checks
-// 			tc.expResult()
-// 		})
-// 	}
-// }
+			tc.malleate()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			if tc.expPass {
+			} else {
+			}
+		})
+	}
+}
 
 /* func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
 	var (
