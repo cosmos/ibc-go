@@ -27,7 +27,7 @@ const (
 	// ChainBRelayerName is the name given to the relayer wallet on ChainB
 	ChainBRelayerName = "rlyB"
 	// DefaultGasValue is the default gas value used to configure tx.Factory
-	DefaultGasValue = 500000
+	DefaultGasValue = 50000000
 )
 
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
