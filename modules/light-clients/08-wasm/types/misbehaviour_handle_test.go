@@ -574,7 +574,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 				}
 
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-
 					resp := "cannot be unmarshalled"
 					return []byte(resp), types.DefaultGasUsed, nil
 				})
