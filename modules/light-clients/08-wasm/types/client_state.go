@@ -70,7 +70,7 @@ func (cs ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, _ 
 		return exported.Unknown
 	}
 
-	return result.Status
+	return exported.Status(result.Status)
 }
 
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState
@@ -88,7 +88,7 @@ func (cs ClientState) GetTimestampAtHeight(
 ) (uint64, error) {
 	payload := queryMsg{
 		TimestampAtHeight: &timestampAtHeightMsg{
-			Height: height,
+			Height: height.(clienttypes.Height),
 		},
 	}
 
@@ -144,18 +144,18 @@ func (cs ClientState) VerifyMembership(
 		)
 	}
 
-	_, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	payload := sudoMsg{
 		VerifyMembership: &verifyMembershipMsg{
-			Height:           height,
+			Height:           height.(clienttypes.Height),
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             path,
+			Path:             merklePath,
 			Value:            value,
 		},
 	}
@@ -183,18 +183,18 @@ func (cs ClientState) VerifyNonMembership(
 		)
 	}
 
-	_, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
 	payload := sudoMsg{
 		VerifyNonMembership: &verifyNonMembershipMsg{
-			Height:           height,
+			Height:           height.(clienttypes.Height),
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             path,
+			Path:             merklePath,
 		},
 	}
 	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
