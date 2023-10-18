@@ -74,6 +74,7 @@ type sudoMsg struct {
 	CheckSubstituteAndUpdateState *checkSubstituteAndUpdateStateMsg `json:"check_substitute_and_update_state,omitempty"`
 	VerifyMembership              *verifyMembershipMsg              `json:"verify_membership,omitempty"`
 	VerifyNonMembership           *verifyNonMembershipMsg           `json:"verify_non_membership,omitempty"`
+	MigrateStore                  *migrateStoreMsg                  `json:"migrate_store,omitempty"`
 }
 
 // updateStateMsg is a sudoMsg sent to the contract to update the client state.
@@ -96,6 +97,9 @@ type verifyUpgradeAndUpdateStateMsg struct {
 
 // checkSubstituteAndUpdateStateMsg is a sudoMsg sent to the contract to check a given substitute client and update to its state.
 type checkSubstituteAndUpdateStateMsg struct{}
+
+// migrateStoreMsg is a sudoMsg sent to the contract to migrate contract to a new version.
+type migrateStoreMsg struct{}
 
 // ContractResult is a type constraint that defines the expected results that can be returned by a contract call/query.
 type ContractResult interface {
