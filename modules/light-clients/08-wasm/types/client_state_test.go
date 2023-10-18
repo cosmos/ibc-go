@@ -3,6 +3,7 @@ package types_test
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -584,7 +585,6 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestVerifyMembership() {
-
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -593,9 +593,12 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 		{
 			"success",
 			func() {
-				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(
-					codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					return nil, 0, nil
+				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
+					goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					bz, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.Response{Data: bz}, 0, nil
 				})
 			},
 			nil,
@@ -617,7 +620,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 
 			err = clientState.VerifyMembership(
 				suite.chainA.GetContext(), clientStore, suite.chainA.Codec, clienttypes.NewHeight(0, 1), 0, 0,
-				[]byte("proof"), commitmenttypes.NewMerklePath("/ibc"), []byte("value"),
+				[]byte("proof"), commitmenttypes.NewMerklePath("/ibc/key/path"), []byte("value"),
 			)
 
 			expPass := tc.expError == nil
