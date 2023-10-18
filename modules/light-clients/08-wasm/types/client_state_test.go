@@ -583,6 +583,54 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 	}
 }
 
+func (suite *TypesTestSuite) TestVerifyMembership() {
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(
+					codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					return nil, 0, nil
+				})
+			},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState := endpoint.GetClientState()
+
+			err = clientState.VerifyMembership(
+				suite.chainA.GetContext(), clientStore, suite.chainA.Codec, clienttypes.NewHeight(0, 1), 0, 0,
+				[]byte("proof"), commitmenttypes.NewMerklePath("/ibc"), []byte("value"),
+			)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError, "unexpected error in VerifyMembership")
+			}
+		})
+	}
+}
+
 // func (suite *TypesTestSuite) TestVerifyMembershipTendermint() {
 // 	var (
 // 		testingpath      *ibctesting.Path
