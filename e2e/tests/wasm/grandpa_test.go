@@ -129,7 +129,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.ChainConfig.NoHostMount = false
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
 		//options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
-		options.ChainBSpec.EncodingConfig = nil
+		//options.ChainBSpec.EncodingConfig = nil
 	})
 
 	polkadotChain := chainA.(*polkadot.PolkadotChain)
