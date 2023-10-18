@@ -277,7 +277,7 @@ type GetCodeQueryMsgResponse struct {
 }
 
 // PushNewWasmClientProposal submits a new wasm client governance proposal to the chain
-func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, proposalContent io.Reader) string {
+func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, proposalContent io.Reader) string {
 	content, err := io.ReadAll(proposalContent)
 	s.Require().NoError(err)
 
@@ -291,6 +291,16 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 	}
 
 	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
+
+	var getCodeQueryMsgRsp GetCodeQueryMsgResponse
+	err = chain.QueryClientContractCode(ctx, codeHash, &getCodeQueryMsgRsp)
+	codeHashByte32 = sha256.Sum256(getCodeQueryMsgRsp.Data)
+	codeHash2 := hex.EncodeToString(codeHashByte32[:])
+	s.Require().NoError(err)
+	s.Require().NotEmpty(getCodeQueryMsgRsp.Data)
+	s.Require().Equal(codeHash, codeHash2)
+
+
 	return codeHash
 }
 
