@@ -1,14 +1,21 @@
 package wasm
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/polkadot"
@@ -17,7 +24,9 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 const (
@@ -138,14 +147,23 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	s.InitGRPCClients(polkadotChain)
 	s.InitGRPCClients(cosmosChain)
 
+
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+
+	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
+	s.Require().NoError(err)
+
+	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
+
 	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
-	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
+	//codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
 	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
 
 	eRep := s.GetRelayerExecReporter()
 
 	// Set client contract hash in cosmos chain config
-	err := r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
+	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
 	s.Require().NoError(err)
 
 	// Ensure parachain has started (starts 1 session/epoch after relay chain)
@@ -258,6 +276,24 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 type GetCodeQueryMsgResponse struct {
 	Data []byte `json:"data"`
+}
+
+// PushNewWasmClientProposal submits a new wasm client governance proposal to the chain
+func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, proposalContent io.Reader) string {
+	content, err := io.ReadAll(proposalContent)
+	s.Require().NoError(err)
+
+	codeHashByte32 := sha256.Sum256(content)
+	codeHash := hex.EncodeToString(codeHashByte32[:])
+	content, err = testutil.GzipIt(content)
+	s.Require().NoError(err)
+	message := wasmtypes.MsgStoreCode{
+		Signer:       types.MustBech32ifyAddressBytes("cosmos", authtypes.NewModuleAddress(govtypes.ModuleName)),
+		WasmByteCode: content,
+	}
+
+	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
+	return codeHash
 }
 
 func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Context, cosmosChain *cosmos.CosmosChain) string {
