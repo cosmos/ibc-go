@@ -15,7 +15,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -50,9 +49,9 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
 	})
 
-	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
-		return factory.WithGas(DefaultGasValue).WithGasPrices(fmt.Sprintf("0.00%s", chain.Config().Denom)).WithGasAdjustment(1)
-	})
+	//broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
+		//return factory.WithGas(DefaultGasValue)
+	//})
 
 	// Retry the operation a few times if the user signing the transaction is a relayer. (See issue #3264)
 	var resp sdk.TxResponse

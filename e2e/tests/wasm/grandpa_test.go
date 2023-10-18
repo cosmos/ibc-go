@@ -141,9 +141,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.SkipPathCreation = true
 	})
 
-	s.InitGRPCClients(polkadotChain)
 	s.InitGRPCClients(cosmosChain)
-
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
