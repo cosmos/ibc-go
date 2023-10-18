@@ -54,27 +54,3 @@ func TestMsgStoreCode_ValidateBasic(t *testing.T) {
 		}
 	}
 }
-
-func TestMsgStoreCode_GetSigners(t *testing.T) {
-	testCases := []struct {
-		name    string
-		address sdk.AccAddress
-		expPass bool
-	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		msg := types.NewMsgStoreCode(tc.address.String(), wasmtesting.Code)
-		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
-		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
-		}
-	}
-}
