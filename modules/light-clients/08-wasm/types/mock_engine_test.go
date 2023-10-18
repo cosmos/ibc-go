@@ -13,27 +13,40 @@ import (
 
 const DefaultGasUsed = uint64(1)
 
-var _ ibcwasm.WasmEngine = (*MockWasmEngine)(nil)
+var (
+	_ ibcwasm.WasmEngine = (*MockWasmEngine)(nil)
 
-type QueryFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error)
+	// queryTypes contains all the possible query message types.
+	queryTypes = [...]any{StatusMsg{}, ExportMetadataMsg{}, TimestampAtHeightMsg{}, VerifyClientMessageMsg{}, CheckForMisbehaviourMsg{}}
+
+	// sudoTypes contains all the possible sudo message types.
+	sudoTypes = [...]any{UpdateStateMsg{}, UpdateStateOnMisbehaviourMsg{}, VerifyUpgradeAndUpdateStateMsg{}, CheckSubstituteAndUpdateStateMsg{}, VerifyMembershipMsg{}, VerifyNonMembershipMsg{}}
+)
+
+type (
+	// queryFn is a callback function that is invoked when a specific query message type is received.
+	queryFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error)
+
+	// sudoFn is a callback function that is invoked when a specific sudo message type is received.
+	sudoFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+)
 
 func NewMockWasmEngine() *MockWasmEngine {
 	m := &MockWasmEngine{
-		queryCallbacks: map[string]QueryFn{},
+		queryCallbacks: map[string]queryFn{},
+		sudoCallbacks:  map[string]sudoFn{},
 	}
 
-	// all possible fields that can be passed to the query fn should be specified here.
-	allQueryTypes := []any{
-		StatusMsg{},
-		ExportMetadataMsg{},
-		TimestampAtHeightMsg{},
-		VerifyClientMessageMsg{},
-		CheckForMisbehaviourMsg{},
-	}
-
-	for _, msgType := range allQueryTypes {
+	for _, msgType := range queryTypes {
 		typeName := reflect.TypeOf(msgType).Name()
 		m.queryCallbacks[typeName] = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+			panic(fmt.Errorf("no callback specified for type %s", typeName))
+		}
+	}
+
+	for _, msgType := range sudoTypes {
+		typeName := reflect.TypeOf(msgType).Name()
+		m.sudoCallbacks[typeName] = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 			panic(fmt.Errorf("no callback specified for type %s", typeName))
 		}
 	}
@@ -42,12 +55,21 @@ func NewMockWasmEngine() *MockWasmEngine {
 }
 
 // RegisterQueryCallback registers a callback for a specific message type.
-func (m *MockWasmEngine) RegisterQueryCallback(queryMessage any, fn QueryFn) {
+func (m *MockWasmEngine) RegisterQueryCallback(queryMessage any, fn queryFn) {
 	typeName := reflect.TypeOf(queryMessage).Name()
 	if _, found := m.queryCallbacks[typeName]; !found {
 		panic(fmt.Errorf("unexpected argument of type %s passed", typeName))
 	}
 	m.queryCallbacks[typeName] = fn
+}
+
+// RegisterSudoCallback registers a callback for a specific sudo message type.
+func (m *MockWasmEngine) RegisterSudoCallback(sudoMessage any, fn sudoFn) {
+	typeName := reflect.TypeOf(sudoMessage).Name()
+	if _, found := m.sudoCallbacks[typeName]; !found {
+		panic(fmt.Errorf("unexpected argument of type %s passed", typeName))
+	}
+	m.sudoCallbacks[typeName] = fn
 }
 
 // MockWasmEngine implements types.WasmEngine for testing purpose. One or multiple messages can be stubbed.
@@ -56,12 +78,12 @@ func (m *MockWasmEngine) RegisterQueryCallback(queryMessage any, fn QueryFn) {
 type MockWasmEngine struct {
 	StoreCodeFn   func(codeID wasmvm.WasmCode) (wasmvm.Checksum, error)
 	InstantiateFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
-	SudoFn        func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
 	GetCodeFn     func(codeID wasmvm.Checksum) (wasmvm.WasmCode, error)
 	PinFn         func(checksum wasmvm.Checksum) error
 
 	// queryCallbacks contains a mapping of queryMsg field type name to callback function.
-	queryCallbacks map[string]QueryFn
+	queryCallbacks map[string]queryFn
+	sudoCallbacks  map[string]sudoFn
 }
 
 // StoreCode implements the WasmEngine interface.
@@ -94,10 +116,14 @@ func (m *MockWasmEngine) Query(codeID wasmvm.Checksum, env wasmvmtypes.Env, quer
 
 // Sudo implements the WasmEngine interface.
 func (m *MockWasmEngine) Sudo(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-	if m.SudoFn == nil {
-		panic("mock engine is not properly initialized")
+	msgTypeName := getSudoMsgPayloadTypeName(sudoMsg)
+
+	sudoFn, ok := m.sudoCallbacks[msgTypeName]
+	if !ok {
+		panic(fmt.Errorf("no callback specified for %s", msgTypeName))
 	}
-	return m.SudoFn(codeID, env, sudoMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
+
+	return sudoFn(codeID, env, sudoMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
 // GetCode implements the WasmEngine interface.
@@ -147,6 +173,46 @@ func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
 
 	if payloadField == nil {
 		panic(fmt.Errorf("failed to extract valid query message from bytes: %s", string(queryMsgBz)))
+	}
+
+	return reflect.TypeOf(payloadField).Name()
+}
+
+// getSudoMsgPayloadTypeName extracts the name of the struct that is populated.
+// this value is used as a key to map to a callback function to handle that message type.
+func getSudoMsgPayloadTypeName(sudoMsgBz []byte) string {
+	payload := sudoMsg{}
+	if err := json.Unmarshal(sudoMsgBz, &payload); err != nil {
+		panic(err)
+	}
+
+	var payloadField any
+	if payload.UpdateState != nil {
+		payloadField = *payload.UpdateState
+	}
+
+	if payload.UpdateStateOnMisbehaviour != nil {
+		payloadField = *payload.UpdateStateOnMisbehaviour
+	}
+
+	if payload.VerifyUpgradeAndUpdateState != nil {
+		payloadField = *payload.VerifyUpgradeAndUpdateState
+	}
+
+	if payload.CheckSubstituteAndUpdateState != nil {
+		payloadField = *payload.CheckSubstituteAndUpdateState
+	}
+
+	if payload.VerifyMembership != nil {
+		payloadField = *payload.VerifyMembership
+	}
+
+	if payload.VerifyNonMembership != nil {
+		payloadField = *payload.VerifyNonMembership
+	}
+
+	if payloadField == nil {
+		panic(fmt.Errorf("failed to extract valid sudo message from bytes: %s", string(sudoMsgBz)))
 	}
 
 	return reflect.TypeOf(payloadField).Name()
