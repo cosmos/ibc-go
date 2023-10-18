@@ -6,6 +6,9 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	storetypes "cosmossdk.io/store/types"
+
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -104,35 +107,35 @@ import (
 //		misbehaviour exported.ClientMessage
 //	)
 //
-//	testCases := []struct {
-//		name     string
-//		malleate func()
-//		expPass  bool
-//	}{
-//		{
-//			"valid fork misbehaviour", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Second), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			},
-//			true,
-//		},
+// testCases := []struct {
+// 	name     string
+// 	malleate func()
+// 	expPass  bool
+// }{
+// 	{
+// 		"valid fork misbehaviour", func() {
+// 			trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+// 			trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
+// 			suite.Require().True(found)
+
+// 			err := path.EndpointA.UpdateClient()
+// 			suite.Require().NoError(err)
+
+// 			height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
+
+// 			tmMisbehaviour := &ibctm.Misbehaviour{
+// 				Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Second), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
+// 				Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
+// 			}
+// 			wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
+// 			suite.Require().NoError(err)
+// 			misbehaviour = &types.ClientMessage{
+// 				Data: wasmData,
+// 			}
+// 		},
+// 		true,
+// 	},
 //		{
 //			"valid time misbehaviour", func() {
 //				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
@@ -480,67 +483,67 @@ import (
 //				}
 //			}, false,
 //		},
-//	}
-//
-//	for _, tc := range testCases {
-//		suite.Run(tc.name, func() {
-//			suite.SetupWasmTendermint()
-//			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-//
-//			err := path.EndpointA.CreateClient()
-//			suite.Require().NoError(err)
-//
-//			tc.malleate()
-//
-//			clientState := path.EndpointA.GetClientState()
-//			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-//
-//			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, misbehaviour)
-//
-//			if tc.expPass {
-//				suite.Require().NoError(err)
-//			} else {
-//				suite.Require().Error(err)
-//			}
-//		})
-//	}
+// 	}
+
+// 	for _, tc := range testCases {
+// 		suite.Run(tc.name, func() {
+// 			// reset suite to create fresh application state
+// 			suite.SetupWasmWithMockVM()
+
+// 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+// 			err := endpoint.CreateClient()
+// 			suite.Require().NoError(err)
+
+// 			tc.malleate()
+
+// 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+// 			clientState := endpoint.GetClientState()
+// 			foundMisbehaviour := clientState.CheckForMisbehaviour(
+// 				suite.chainA.GetContext(),
+// 				suite.chainA.App.AppCodec(),
+// 				clientStore, // pass in clientID prefixed clientStore
+// 				clientMessage,
+// 			)
+
+// 			suite.Require().Equal(tc.foundMisbehaviour, foundMisbehaviour)
+// 		})
+// 	}
 // }
 
 func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 	var (
-		clientMessage exported.ClientMessage
+		clientState       exported.ClientState
+		clientStore       storetypes.KVStore
+		clientMessage     exported.ClientMessage
+		foundMisbehaviour bool
 	)
 
 	testCases := []struct {
 		name              string
-		malleate          func()
+		checkMisbehaviour func()
+		expPass           bool
 		foundMisbehaviour bool
 	}{
 		{
 			"no misbehaviour",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					resp := fmt.Sprintf(`{"found_misbehaviour":"%t"}`, false)
+					resp := fmt.Sprintf(`{"found_misbehaviour":%t}`, false)
 					return []byte(resp), types.DefaultGasUsed, nil
 				})
+
+				foundMisbehaviour = clientState.CheckForMisbehaviour(
+					suite.chainA.GetContext(),
+					suite.chainA.App.AppCodec(),
+					clientStore,
+					clientMessage,
+				)
 			},
+			true,
 			false,
 		},
 		{
 			"misbehaviour found", func() {
-				// var wasmData exported.ClientMessage
-				// err := suite.chainA.Codec.UnmarshalInterface(wasmHeader.Data, &wasmData)
-				// suite.Require().NoError(err)
-
-				// tmHeader, ok := wasmData.(*ibctm.Header)
-				// suite.Require().True(ok)
-
-				// // offset header timestamp before previous consensus state timestamp
-				// tmHeader.Header.Time = tmHeader.GetTime().Add(-time.Hour)
-
-				// wasmHeader.Data, err = suite.chainA.Codec.MarshalInterface(tmHeader)
-				// suite.Require().NoError(err)
-
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
 				suite.Require().NoError(err)
 				clientMessage = &types.ClientMessage{
@@ -548,10 +551,43 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 				}
 
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					resp := fmt.Sprintf(`{"found_misbehaviour":"%t"}`, true)
+					resp := fmt.Sprintf(`{"found_misbehaviour":%t}`, true)
 					return []byte(resp), types.DefaultGasUsed, nil
 				})
-			}, true,
+
+				foundMisbehaviour = clientState.CheckForMisbehaviour(
+					suite.chainA.GetContext(),
+					suite.chainA.App.AppCodec(),
+					clientStore,
+					clientMessage,
+				)
+			},
+			true,
+			true,
+		},
+		{
+			"query failed, vm panic", func() {
+				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
+				suite.Require().NoError(err)
+				clientMessage = &types.ClientMessage{
+					Data: data,
+				}
+
+				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+
+					resp := "cannot be unmarshalled"
+					return []byte(resp), types.DefaultGasUsed, nil
+				})
+
+				foundMisbehaviour = clientState.CheckForMisbehaviour(
+					suite.chainA.GetContext(),
+					suite.chainA.App.AppCodec(),
+					clientStore,
+					clientMessage,
+				)
+			},
+			false,
+			false,
 		},
 	}
 
@@ -564,18 +600,15 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			tc.malleate()
+			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState = endpoint.GetClientState()
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState()
-			foundMisbehaviour := clientState.CheckForMisbehaviour(
-				suite.chainA.GetContext(),
-				suite.chainA.App.AppCodec(),
-				clientStore, // pass in clientID prefixed clientStore
-				clientMessage,
-			)
-
-			suite.Require().Equal(tc.foundMisbehaviour, foundMisbehaviour)
+			if tc.expPass {
+				suite.Require().NotPanics(tc.checkMisbehaviour, "unexpected panic")
+				suite.Require().Equal(tc.foundMisbehaviour, foundMisbehaviour)
+			} else {
+				suite.Require().Panicsf(tc.checkMisbehaviour, "failed to unmarshal result of wasm query")
+			}
 		})
 	}
 }
