@@ -2,7 +2,7 @@ package types_test
 
 import (
 	"encoding/base64"
-	"fmt"
+	"encoding/json"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -528,8 +528,9 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 			"no misbehaviour",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					resp := fmt.Sprintf(`{"found_misbehaviour":%t}`, false)
-					return []byte(resp), types.DefaultGasUsed, nil
+					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: false})
+					suite.Assert().NoError(err)
+					return resp, types.DefaultGasUsed, nil
 				})
 
 				foundMisbehaviour = clientState.CheckForMisbehaviour(
@@ -551,7 +552,8 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 				}
 
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					resp := fmt.Sprintf(`{"found_misbehaviour":%t}`, true)
+					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: false})
+					suite.Assert().NoError(err)
 					return []byte(resp), types.DefaultGasUsed, nil
 				})
 
