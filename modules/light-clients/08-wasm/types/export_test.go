@@ -29,4 +29,12 @@ type (
 	CheckSubstituteAndUpdateStateMsg = checkSubstituteAndUpdateStateMsg
 	VerifyMembershipMsg              = verifyMembershipMsg
 	VerifyNonMembershipMsg           = verifyNonMembershipMsg
+
+	// Contract response types
+	EmptyResult                = emptyResult
+	StatusResult               = statusResult
+	ExportMetadataResult       = exportMetadataResult
+	TimestampAtHeightResult    = timestampAtHeightResult
+	CheckForMisbehaviourResult = checkForMisbehaviourResult
+	UpdateStateResult          = updateStateResult
 )
