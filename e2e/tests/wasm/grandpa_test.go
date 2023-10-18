@@ -115,8 +115,8 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.ChainID = "simd"
 		options.ChainBSpec.Images = []ibc.DockerImage{
 			{
-				Repository: "docker.io/chatton/ibc-go-simd",
-				Version:    "wasm",
+				Repository: "chatton/ibc-go-simd-wasm",
+				Version:    "latest",
 				UidGid:     "1000:1000",
 			},
 		}
