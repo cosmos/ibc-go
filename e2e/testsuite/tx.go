@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
@@ -49,9 +50,9 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
 	})
 
-	//broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
-		//return factory.WithGas(DefaultGasValue)
-	//})
+	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
+		return factory.WithGas(DefaultGasValue)
+	})
 
 	// Retry the operation a few times if the user signing the transaction is a relayer. (See issue #3264)
 	var resp sdk.TxResponse
