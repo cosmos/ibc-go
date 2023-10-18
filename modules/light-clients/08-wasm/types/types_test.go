@@ -78,6 +78,7 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 // SetupWasmWithMockVM sets up mock cometbft chain with a mock vm.
 func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 	ibctesting.DefaultTestingAppInit = suite.setupWasmWithMockVM
+
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 

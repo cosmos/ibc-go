@@ -521,7 +521,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 	testCases := []struct {
 		name              string
 		checkMisbehaviour func()
-		expPass           bool
 		foundMisbehaviour bool
 	}{
 		{
@@ -540,7 +539,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 					clientMessage,
 				)
 			},
-			true,
 			false,
 		},
 		{
@@ -552,9 +550,9 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 				}
 
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: false})
+					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: true})
 					suite.Assert().NoError(err)
-					return []byte(resp), types.DefaultGasUsed, nil
+					return resp, types.DefaultGasUsed, nil
 				})
 
 				foundMisbehaviour = clientState.CheckForMisbehaviour(
@@ -565,10 +563,9 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 				)
 			},
 			true,
-			true,
 		},
 		{
-			"query failed, vm panic", func() {
+			"contract error, resp cannot be marshalled", func() {
 				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
 				suite.Require().NoError(err)
 				clientMessage = &types.ClientMessage{
@@ -588,7 +585,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 				)
 			},
 			false,
-			false,
 		},
 	}
 
@@ -596,7 +592,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 		suite.Run(tc.name, func() {
 			// reset suite to create fresh application state
 			suite.SetupWasmWithMockVM()
-
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
@@ -604,12 +599,9 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState = endpoint.GetClientState()
 
-			if tc.expPass {
-				suite.Require().NotPanics(tc.checkMisbehaviour, "unexpected panic")
-				suite.Require().Equal(tc.foundMisbehaviour, foundMisbehaviour)
-			} else {
-				suite.Require().Panicsf(tc.checkMisbehaviour, "failed to unmarshal result of wasm query")
-			}
+			tc.checkMisbehaviour()
+
+			suite.Require().Equal(tc.foundMisbehaviour, foundMisbehaviour)
 		})
 	}
 }
