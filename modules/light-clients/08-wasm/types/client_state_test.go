@@ -217,6 +217,7 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 		consensusState exported.ConsensusState
 		clientState    exported.ClientState
 	)
+
 	testCases := []struct {
 		name     string
 		malleate func()
