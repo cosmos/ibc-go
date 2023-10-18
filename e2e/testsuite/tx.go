@@ -51,7 +51,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 	})
 
 	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
-		return factory.WithGas(DefaultGasValue).WithGasPrices(fmt.Sprintf("0.00%s", chain.Config().Denom))
+		return factory.WithGas(DefaultGasValue).WithGasPrices(fmt.Sprintf("0.00%s", chain.Config().Denom)).WithGasAdjustment(1)
 	})
 
 	// Retry the operation a few times if the user signing the transaction is a relayer. (See issue #3264)

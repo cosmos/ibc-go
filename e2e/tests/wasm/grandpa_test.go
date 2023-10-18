@@ -22,8 +22,8 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 const (
@@ -123,7 +123,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.Bech32Prefix = "cosmos"
 		options.ChainBSpec.Denom = "stake"
 		options.ChainBSpec.GasPrices = "0.00stake"
-		options.ChainBSpec.GasAdjustment = 1.3
+		options.ChainBSpec.GasAdjustment = 1
 		options.ChainBSpec.TrustingPeriod = "504h"
 		options.ChainBSpec.CoinType = "118"
 
