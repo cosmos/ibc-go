@@ -56,6 +56,7 @@ func getConfigOverrides() map[string]any {
 
 	configTomlOverrides := make(testutil.Toml)
 	configTomlOverrides["consensus"] = consensusOverrides
+	configTomlOverrides["log_level"] = "debug"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/config.toml"] = configTomlOverrides
