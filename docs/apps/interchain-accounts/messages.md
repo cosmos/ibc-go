@@ -69,6 +69,6 @@ The packet `Sequence` is returned in the message response.
 
 ## Atomicity
 
-As the Interchain Accounts module supports the execution of multiple transactions using the Cosmos SDK `Msg` interface, it provides the same atomicity guarantees as Cosmos SDK-based applications, leveraging the [`CacheMultiStore`](https://docs.cosmos.network/main/core/store.html#cachemultistore) architecture provided by the [`Context`](https://docs.cosmos.network/main/core/context.html) type. 
+As the Interchain Accounts module supports the execution of multiple transactions using the Cosmos SDK `Msg` interface, it provides the same atomicity guarantees as Cosmos SDK-based applications, leveraging the [`CacheMultiStore`](https://docs.cosmos.network/main/learn/advanced/store#cachemultistore) architecture provided by the [`Context`](https://docs.cosmos.network/main/learn/advanced/context) type. 
 
 This provides atomic execution of transactions when using Interchain Accounts, where state changes are only committed if all `Msg`s succeed.
