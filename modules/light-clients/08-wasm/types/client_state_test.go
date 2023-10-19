@@ -271,30 +271,30 @@ func (suite *TypesTestSuite) TestInitialize() {
 		expPanic interface{}
 	}{
 		{
-			name:     "success: new mock client",
-			malleate: func() {},
-			expError: nil,
-			expPanic: nil,
+			"success: new mock client",
+			func() {},
+			nil,
+			nil,
 		},
 		{
-			name: "failure: InstantiateFn returns error",
-			malleate: func() {
+			"failure: InstantiateFn returns error",
+			func() {
 				suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					return nil, 0, clienttypes.ErrInvalidClientType
 				}
 			},
-			expError: clienttypes.ErrInvalidClientType,
-			expPanic: nil,
+			clienttypes.ErrInvalidClientType,
+			nil,
 		},
 		{
-			name: "failure: InstantiateFn panics",
-			malleate: func() {
+			"failure: InstantiateFn panics",
+			func() {
 				suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					panic(panicMsg)
 				}
 			},
-			expError: nil,
-			expPanic: panicMsg,
+			nil,
+			panicMsg,
 		},
 	}
 
@@ -365,8 +365,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 	}{
 		{
 			"successful ClientState verification",
-			func() {
-			},
+			func() {},
 			true,
 		},
 		{
