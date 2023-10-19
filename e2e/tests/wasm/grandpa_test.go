@@ -160,7 +160,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	eRep := s.GetRelayerExecReporter()
 
 	// Set client contract hash in cosmos chain config
-	err := r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
+	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
 	s.Require().NoError(err)
 
 	// Ensure parachain has started (starts 1 session/epoch after relay chain)
