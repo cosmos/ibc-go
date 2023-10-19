@@ -509,9 +509,7 @@ import (
 // }
 
 func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
-	var (
-		foundMisbehaviour bool
-	)
+	var foundMisbehaviour bool
 
 	testCases := []struct {
 		name                 string
