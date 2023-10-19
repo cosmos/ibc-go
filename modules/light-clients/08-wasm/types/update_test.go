@@ -558,12 +558,11 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 			suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, callbackFn)
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState := endpoint.GetClientState()
 
 			var heights []exported.Height
 			updateState := func() {
-				heights = clientState.UpdateState(suite.ctx, suite.chainA.Codec, clientStore, clientMsg)
+				heights = clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 			}
 
 			if tc.expPanic == nil {
@@ -571,7 +570,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				suite.Require().Equal(tc.expHeights, heights)
 
 				if tc.expClientState != nil {
-					clientStateBz := clientStore.Get(host.ClientStateKey())
+					clientStateBz := suite.store.Get(host.ClientStateKey())
 					suite.Require().Equal(tc.expClientState, clientStateBz)
 				}
 			} else {
