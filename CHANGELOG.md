@@ -49,6 +49,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
+* (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
 ## [v6.1.1](https://github.com/cosmos/ibc-go/releases/tag/v6.1.1) - 2023-05-25
 
