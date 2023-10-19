@@ -580,7 +580,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState := endpoint.GetClientState()
 
 			tc.malleate()
@@ -592,13 +591,13 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 			}
 
 			if tc.panicErr == nil {
-				foundMisbehaviour = clientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+				foundMisbehaviour = clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMessage)
 				suite.Require().Equal(tc.expFoundMisbehaviour, foundMisbehaviour)
 			} else {
 				suite.PanicsWithError(
 					tc.panicErr.Error(),
 					func() {
-						clientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+						clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMessage)
 					})
 			}
 		})
