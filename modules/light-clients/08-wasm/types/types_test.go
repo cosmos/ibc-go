@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"testing"
 
@@ -82,6 +81,9 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 
+	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
+	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
+
 	suite.codeHash = storeWasmCode(suite, wasmtesting.Code)
 }
 
@@ -108,8 +110,9 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 	}
 
 	suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-		resp := fmt.Sprintf(`{"status":"%s"}`, exported.Active)
-		return []byte(resp), types.DefaultGasUsed, nil
+		resp, err := json.Marshal(types.StatusResult{Status: exported.Active})
+		suite.Require().NoError(err)
+		return resp, types.DefaultGasUsed, nil
 	})
 
 	db := dbm.NewMemDB()
