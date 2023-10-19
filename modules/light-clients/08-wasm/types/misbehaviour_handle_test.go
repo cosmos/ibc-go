@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 
@@ -518,7 +517,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 		panicErr             error
 	}{
 		{
-			"no misbehaviour",
+			"success: no misbehaviour",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: false})
@@ -530,7 +529,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 			nil,
 		},
 		{
-			"misbehaviour found", func() {
+			"success: misbehaviour found", func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: true})
 					suite.Require().NoError(err)
@@ -541,7 +540,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 			nil,
 		},
 		{
-			"contract error, resp cannot be marshalled", func() {
+			"success: contract error, resp cannot be marshalled", func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp := "cannot be unmarshalled"
 					return []byte(resp), types.DefaultGasUsed, nil
@@ -551,7 +550,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 			nil,
 		},
 		{
-			"vm returns error, ", func() {
+			"success: vm returns error, ", func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					return nil, 0, errors.New("invalid block ID")
 				})
@@ -560,7 +559,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 			nil,
 		},
 		{
-			"contract panics, panic propogated", func() {
+			"failure: contract panics, panic propogated", func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					panic(errors.New("panic in query to contract"))
 				})
@@ -579,14 +578,11 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 			suite.Require().NoError(err)
 
 			clientState := endpoint.GetClientState()
+			clientMessage := &types.ClientMessage{
+				Data: []byte{1},
+			}
 
 			tc.malleate()
-
-			data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
-			suite.Require().NoError(err)
-			clientMessage := &types.ClientMessage{
-				Data: data,
-			}
 
 			if tc.panicErr == nil {
 				foundMisbehaviour = clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMessage)
