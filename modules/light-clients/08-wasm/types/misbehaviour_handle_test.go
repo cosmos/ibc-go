@@ -511,37 +511,36 @@ import (
 func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 	var (
 		foundMisbehaviour bool
-		panicErr          error
 	)
 
 	testCases := []struct {
 		name                 string
 		malleate             func()
 		expFoundMisbehaviour bool
-		expPanic             bool
+		panicErr             error
 	}{
 		{
 			"no misbehaviour",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: false})
-					suite.Assert().NoError(err)
+					suite.Require().NoError(err)
 					return resp, types.DefaultGasUsed, nil
 				})
 			},
 			false,
-			false,
+			nil,
 		},
 		{
 			"misbehaviour found", func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: true})
-					suite.Assert().NoError(err)
+					suite.Require().NoError(err)
 					return resp, types.DefaultGasUsed, nil
 				})
 			},
 			true,
-			false,
+			nil,
 		},
 		{
 			"contract error, resp cannot be marshalled", func() {
@@ -551,7 +550,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				})
 			},
 			false,
-			false,
+			nil,
 		},
 		{
 			"vm returns error, ", func() {
@@ -560,17 +559,16 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				})
 			},
 			false,
-			false,
+			nil,
 		},
 		{
 			"contract panics, panic propogated", func() {
-				panicErr = errors.New("panic in query to contract")
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					panic(panicErr)
+					panic(errors.New("panic in query to contract"))
 				})
 			},
 			false,
-			true,
+			errors.New("panic in query to contract"),
 		},
 	}
 
@@ -593,12 +591,12 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				Data: data,
 			}
 
-			if !tc.expPanic {
+			if tc.panicErr == nil {
 				foundMisbehaviour = clientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
 				suite.Require().Equal(tc.expFoundMisbehaviour, foundMisbehaviour)
 			} else {
 				suite.PanicsWithError(
-					panicErr.Error(),
+					tc.panicErr.Error(),
 					func() {
 						clientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
 					})
