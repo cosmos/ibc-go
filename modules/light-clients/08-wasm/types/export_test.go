@@ -37,4 +37,8 @@ type (
 	TimestampAtHeightResult    = timestampAtHeightResult
 	CheckForMisbehaviourResult = checkForMisbehaviourResult
 	UpdateStateResult          = updateStateResult
+
+	// CallbackFn types
+	QueryFn = queryFn
+	SudoFn  = sudoFn
 )

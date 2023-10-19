@@ -464,7 +464,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 	mockHeight := clienttypes.NewHeight(1, 1)
 
 	var (
-		callbackFn func(wasmvm.Checksum, wasmvmtypes.Env, []byte, wasmvm.KVStore, wasmvm.GoAPI, wasmvm.Querier, wasmvm.GasMeter, uint64, wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+		callbackFn types.SudoFn
 		clientMsg  exported.ClientMessage
 	)
 
