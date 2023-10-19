@@ -86,9 +86,14 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
+	timestampHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	payload := queryMsg{
 		TimestampAtHeight: &timestampAtHeightMsg{
-			Height: height.(clienttypes.Height),
+			Height: timestampHeight,
 		},
 	}
 
@@ -149,9 +154,14 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	payload := sudoMsg{
 		VerifyMembership: &verifyMembershipMsg{
-			Height:           height.(clienttypes.Height),
+			Height:           proofHeight,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
@@ -188,9 +198,14 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	payload := sudoMsg{
 		VerifyNonMembership: &verifyNonMembershipMsg{
-			Height:           height.(clienttypes.Height),
+			Height:           proofHeight,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
