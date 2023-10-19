@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"encoding/base64"
+	"encoding/json"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -453,42 +454,72 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 	}
 }
 
-func (suite *TypesTestSuite) TestUpdateStateTendermint() {
-	var (
-		callbackFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
-	)
+func (suite *TypesTestSuite) TestUpdateState() {
+	var callbackFn func(wasmvm.Checksum, wasmvmtypes.Env, []byte, wasmvm.KVStore, wasmvm.GoAPI, wasmvm.Querier, wasmvm.GasMeter, uint64, wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
 	testCases := []struct {
-		name      string
-		malleate  func()
-		expPass   bool
+		name       string
+		malleate   func()
+		expPanic   interface{}
+		expHeights []exported.Height
 	}{
 		{
-			"success: ",
+			"success: no update",
 			func() {
-				callbackFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					respData := 
+				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					updateStateResp := types.UpdateStateResult{
+						Heights: []clienttypes.Height{},
+					}
+
+					resp, err := json.Marshal(updateStateResp)
+					if err != nil {
+						return nil, 0, err
+					}
+
+					return &wasmvmtypes.Response{
+						Data: resp,
+					}, types.DefaultGasUsed, nil
 				}
 			},
-			true,
+			nil,
+			[]exported.Height{},
 		},
-		{
-			"failure: invalid ClientMessage type",
-			func() {},
-			false,
-		},
+		/*
+			{
+				"failure: invalid ClientMessage type",
+				func() {},
+				"TODO",
+				nil,
+			},
+		*/
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM() // reset
+
+			clientMsg := &types.ClientMessage{
+				Data: []byte{1},
+			}
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
 			tc.malleate()
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			if tc.expPass {
+
+			suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, callbackFn)
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState := endpoint.GetClientState()
+
+			var heights []exported.Height
+			updateState := func() {
+				heights = clientState.UpdateState(suite.ctx, suite.chainA.Codec, clientStore, clientMsg)
+			}
+			if tc.expPanic == nil {
+				updateState()
+				suite.Require().Equal(tc.expHeights, heights)
 			} else {
+				suite.Require().PanicsWithValue(tc.expPanic, updateState)
 			}
 		})
 	}
