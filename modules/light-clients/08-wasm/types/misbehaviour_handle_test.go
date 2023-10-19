@@ -3,15 +3,13 @@ package types_test
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
-	storetypes "cosmossdk.io/store/types"
-
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 /* func (suite *TypesTestSuite) TestVerifyMisbehaviourGrandpa() {
@@ -510,18 +508,17 @@ import (
 // 	}
 // }
 
-func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
+func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 	var (
-		clientState       exported.ClientState
-		clientStore       storetypes.KVStore
-		clientMessage     exported.ClientMessage
 		foundMisbehaviour bool
+		panicErr          error
 	)
 
 	testCases := []struct {
-		name              string
-		checkMisbehaviour func()
-		foundMisbehaviour bool
+		name                 string
+		malleate             func()
+		expFoundMisbehaviour bool
+		expPanic             bool
 	}{
 		{
 			"no misbehaviour",
@@ -531,60 +528,49 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 					suite.Assert().NoError(err)
 					return resp, types.DefaultGasUsed, nil
 				})
-
-				foundMisbehaviour = clientState.CheckForMisbehaviour(
-					suite.chainA.GetContext(),
-					suite.chainA.App.AppCodec(),
-					clientStore,
-					clientMessage,
-				)
 			},
+			false,
 			false,
 		},
 		{
 			"misbehaviour found", func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
-				suite.Require().NoError(err)
-				clientMessage = &types.ClientMessage{
-					Data: data,
-				}
-
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: true})
 					suite.Assert().NoError(err)
 					return resp, types.DefaultGasUsed, nil
 				})
-
-				foundMisbehaviour = clientState.CheckForMisbehaviour(
-					suite.chainA.GetContext(),
-					suite.chainA.App.AppCodec(),
-					clientStore,
-					clientMessage,
-				)
 			},
 			true,
+			false,
 		},
 		{
 			"contract error, resp cannot be marshalled", func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
-				suite.Require().NoError(err)
-				clientMessage = &types.ClientMessage{
-					Data: data,
-				}
-
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp := "cannot be unmarshalled"
 					return []byte(resp), types.DefaultGasUsed, nil
 				})
-
-				foundMisbehaviour = clientState.CheckForMisbehaviour(
-					suite.chainA.GetContext(),
-					suite.chainA.App.AppCodec(),
-					clientStore,
-					clientMessage,
-				)
 			},
 			false,
+			false,
+		},
+		{
+			"vm returns error, ", func() {
+				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					return nil, 0, errors.New("invalid block ID")
+				})
+			},
+			false,
+			false,
+		},
+		{
+			"contract panics, panic propogated", func() {
+				panicErr = errors.New("panic in query to contract")
+				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					panic(panicErr)
+				})
+			},
+			false,
+			true,
 		},
 	}
 
@@ -596,12 +582,27 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviourTendermint() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState = endpoint.GetClientState()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState := endpoint.GetClientState()
 
-			tc.checkMisbehaviour()
+			tc.malleate()
 
-			suite.Require().Equal(tc.foundMisbehaviour, foundMisbehaviour)
+			data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
+			suite.Require().NoError(err)
+			clientMessage := &types.ClientMessage{
+				Data: data,
+			}
+
+			if !tc.expPanic {
+				foundMisbehaviour = clientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+				suite.Require().Equal(tc.expFoundMisbehaviour, foundMisbehaviour)
+			} else {
+				suite.PanicsWithError(
+					panicErr.Error(),
+					func() {
+						clientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+					})
+			}
 		})
 	}
 }
