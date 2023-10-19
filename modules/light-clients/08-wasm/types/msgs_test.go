@@ -13,7 +13,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func TestMsgStoreCode_ValidateBasic(t *testing.T) {
+func TestMsgStoreCodeValidateBasic(t *testing.T) {
 	signer := sdk.AccAddress(ibctesting.TestAccAddress).String()
 	testCases := []struct {
 		name   string
@@ -55,7 +55,7 @@ func TestMsgStoreCode_ValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgStoreCode_GetSigners() {
+func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
