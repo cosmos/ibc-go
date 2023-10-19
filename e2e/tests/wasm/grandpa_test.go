@@ -54,7 +54,7 @@ func getConfigOverrides() map[string]any {
 
 	configTomlOverrides := make(testutil.Toml)
 	configTomlOverrides["consensus"] = consensusOverrides
-	configTomlOverrides["log_level"] = "debug"
+	configTomlOverrides["log_level"] = "info"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/config.toml"] = configTomlOverrides
@@ -305,6 +305,9 @@ func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Cont
 	fundAmountForGov := int64(10_000_000_000)
 	contractUsers := interchaintest.GetAndFundTestUsers(t, ctx, "default", int64(fundAmountForGov), cosmosChain)
 	contractUser := contractUsers[0]
+
+	err := testutil.WaitForBlocks(ctx, 1, cosmosChain)
+	s.Require().NoError(err)
 
 	contractUserBalInitial, err := cosmosChain.GetBalance(ctx, contractUser.FormattedAddress(), cosmosChain.Config().Denom)
 	s.Require().NoError(err, "error fetching initial balance of contract user")
