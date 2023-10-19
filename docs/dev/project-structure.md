@@ -1,6 +1,6 @@
 # Project structure
 
-If you're not familiar with the overall module structure from the SDK modules, please check this [document](https://github.com/cosmos/cosmos-sdk/blob/main/docs/docs/building-modules/11-structure.md) as prerequisite reading.
+If you're not familiar with the overall module structure from the SDK modules, please check this [document](https://github.com/cosmos/cosmos-sdk/blob/main/docs/build/building-modules/11-structure.md) as prerequisite reading.
 
 Every Interchain Standard (ICS) has been developed in its own package. The development team separated the IBC TAO (Transport, Authentication, Ordering) ICS specifications from the IBC application level specification. The following sections describe the architecture of the most relevant directories that comprise this repository.
 
