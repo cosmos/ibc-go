@@ -3,15 +3,19 @@ package types_test
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	errorsmod "cosmossdk.io/errors"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	tmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
@@ -455,48 +459,64 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestUpdateState() {
-	var callbackFn func(wasmvm.Checksum, wasmvmtypes.Env, []byte, wasmvm.KVStore, wasmvm.GoAPI, wasmvm.Querier, wasmvm.GasMeter, uint64, wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+	errMsg := fmt.Errorf("callbackFn error")
+	var (
+		callbackFn func(wasmvm.Checksum, wasmvmtypes.Env, []byte, wasmvm.KVStore, wasmvm.GoAPI, wasmvm.Querier, wasmvm.GasMeter, uint64, wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+		clientMsg  exported.ClientMessage
+	)
+
 	testCases := []struct {
 		name       string
 		malleate   func()
-		expPanic   interface{}
+		expPanic   error
 		expHeights []exported.Height
 	}{
 		{
 			"success: no update",
-			func() {
-				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					updateStateResp := types.UpdateStateResult{
-						Heights: []clienttypes.Height{},
-					}
-
-					resp, err := json.Marshal(updateStateResp)
-					if err != nil {
-						return nil, 0, err
-					}
-
-					return &wasmvmtypes.Response{
-						Data: resp,
-					}, types.DefaultGasUsed, nil
-				}
-			},
+			func() {},
 			nil,
 			[]exported.Height{},
 		},
-		/*
-			{
-				"failure: invalid ClientMessage type",
-				func() {},
-				"TODO",
-				nil,
+		{
+			"failure: invalid ClientMessage type",
+			func() {
+				clientMsg = &tmtypes.Misbehaviour{}
 			},
-		*/
+			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*tmtypes.Misbehaviour)(nil)),
+			nil,
+		},
+		{
+			"failure: callbackFn returns error",
+			func() {
+				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					return nil, 0, errMsg
+				}
+			},
+			errorsmod.Wrapf(errMsg, "call to wasm contract failed"),
+			nil,
+		},
 	}
+
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM() // reset
 
-			clientMsg := &types.ClientMessage{
+			callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				updateStateResp := types.UpdateStateResult{
+					Heights: []clienttypes.Height{},
+				}
+
+				resp, err := json.Marshal(updateStateResp)
+				if err != nil {
+					return nil, 0, err
+				}
+
+				return &wasmvmtypes.Response{
+					Data: resp,
+				}, types.DefaultGasUsed, nil
+			}
+
+			clientMsg = &types.ClientMessage{
 				Data: []byte{1},
 			}
 
@@ -515,11 +535,12 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			updateState := func() {
 				heights = clientState.UpdateState(suite.ctx, suite.chainA.Codec, clientStore, clientMsg)
 			}
+
 			if tc.expPanic == nil {
 				updateState()
 				suite.Require().Equal(tc.expHeights, heights)
 			} else {
-				suite.Require().PanicsWithValue(tc.expPanic, updateState)
+				suite.Require().PanicsWithError(tc.expPanic.Error(), updateState)
 			}
 		})
 	}
