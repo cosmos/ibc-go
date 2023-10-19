@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	metrics "github.com/armon/go-metrics"
+	metrics "github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -12,12 +12,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
 // sendTransfer handles transfer sending logic. There are 2 possible cases:
@@ -126,7 +126,7 @@ func (k Keeper) sendTransfer(
 			// NOTE: should not happen as the module account was
 			// retrieved on the step above and it has enough balace
 			// to burn.
-			panic(fmt.Sprintf("cannot burn coins after a successful send to a module account: %v", err))
+			panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
 		}
 	}
 
@@ -261,6 +261,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	voucherDenom := denomTrace.IBCDenom()
+	if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
+		k.setDenomMetadata(ctx, denomTrace)
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDenomTrace,
@@ -363,7 +367,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 	}
 
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.NewCoins(token)); err != nil {
-		panic(fmt.Sprintf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+		panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 	}
 
 	return nil

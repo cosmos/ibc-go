@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // getCmdCode defines the command to query wasm code for given code hash.
@@ -62,15 +62,7 @@ func getCmdCodeHashes() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
-
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			req := types.QueryCodeHashesRequest{
-				Pagination: pageReq,
-			}
+			req := types.QueryCodeHashesRequest{}
 
 			res, err := queryClient.CodeHashes(context.Background(), &req)
 			if err != nil {

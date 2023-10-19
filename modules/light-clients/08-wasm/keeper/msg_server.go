@@ -6,9 +6,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 var _ types.MsgServer = (*Keeper)(nil)
@@ -16,7 +16,7 @@ var _ types.MsgServer = (*Keeper)(nil)
 // StoreCode defines a rpc handler method for MsgStoreCode
 func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
 	if k.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority: expected %s, got %s", k.GetAuthority(), msg.Signer)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)

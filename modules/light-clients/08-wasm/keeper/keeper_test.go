@@ -2,25 +2,26 @@ package keeper_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
+	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
-
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type KeeperTestSuite struct {
@@ -28,10 +29,7 @@ type KeeperTestSuite struct {
 
 	coordinator *ibctesting.Coordinator
 
-	// testing chains used for convenience and readability
 	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
 }
 
 func init() {
@@ -41,9 +39,8 @@ func init() {
 // setupTestingApp provides the duplicated simapp which is specific to the 08-wasm module on chain creation.
 func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
-	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
+	return app, app.DefaultGenesis()
 }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
@@ -51,16 +48,14 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 	app, ok := chain.App.(*simapp.SimApp)
 	if !ok {
-		panic("chain is not a simapp.SimApp")
+		panic(errors.New("chain is not a simapp.SimApp"))
 	}
 	return app
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), GetSimApp(suite.chainA).InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, GetSimApp(suite.chainA).WasmClientKeeper)
@@ -136,7 +131,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					types.WasmVM,
+					ibcwasm.GetVM(),
 				)
 			},
 			true,
@@ -149,7 +144,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					"", // authority
-					types.WasmVM,
+					ibcwasm.GetVM(),
 				)
 			},
 			false,
@@ -167,22 +162,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			},
 			false,
 			fmt.Errorf("wasm VM must be not nil"),
-		},
-		{
-			"failure: different VM instances",
-			func() {
-				vm, err := wasmvm.NewVM("", "", 16, true, 64)
-				suite.Require().NoError(err)
-
-				keeper.NewKeeperWithVM(
-					GetSimApp(suite.chainA).AppCodec(),
-					GetSimApp(suite.chainA).GetKey(types.StoreKey),
-					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					vm,
-				)
-			},
-			false,
-			fmt.Errorf("global Wasm VM instance should not be set to a different instance"),
 		},
 	}
 

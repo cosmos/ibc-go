@@ -6,6 +6,7 @@
     "release-v6.1.x",
     "release-v5.3.x",
     "release-v5.2.x",
+    "release-v4.5.x",
     "release-v4.4.x"
   ],
   "chain-b": [
@@ -15,23 +16,18 @@
     "release-v6.1.x",
     "release-v5.3.x",
     "release-v5.2.x",
+    "release-v4.5.x",
     "release-v4.4.x"
   ],
   "entrypoint": [
     "TestClientTestSuite"
   ],
   "test": [
-    "TestClientUpdateProposal_Succeeds",
+    "TestRecoverClient_Succeeds",
     "TestClient_Update_Misbehaviour",
     "TestAllowedClientsParam"
   ],
   "relayer-type": [
-    "rly"
-  ],
-  "chain-binary": [
-    "simd"
-  ],
-  "chain-image": [
-    "ghcr.io/cosmos/ibc-go-simd"
+    "hermes"
   ]
 }
