@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"os"
 	"testing"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
@@ -114,7 +116,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.Images = []ibc.DockerImage{
 			{
 				Repository: "chatton/ibc-go-simd-wasm",
-				Version:    "latest",
+				Version:    "wasm",
 				UidGid:     "1000:1000",
 			},
 		}
@@ -142,14 +144,14 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	s.InitGRPCClients(cosmosChain)
 
-	//cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	//
-	//file, err := os.Open("../data/ics10_grandpa_cw.wasm")
-	//s.Require().NoError(err)
-	//
-	//codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
+	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
+	s.Require().NoError(err)
+
+	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
+	//
+	//codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
 
 	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
 	//codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
