@@ -276,66 +276,83 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 	}
 }
 
-// func (suite *TypesTestSuite) TestInitializeTendermint() {
-// 	var consensusState exported.ConsensusState
-// 	testCases := []struct {
-// 		name     string
-// 		malleate func()
-// 		expPass  bool
-// 	}{
-// 		{
-// 			name: "valid consensus",
-// 			malleate: func() {
-// 				tmConsensusState := tmtypes.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte{0}), []byte(codeHash))
-// 				tmConsensusStateData, err := suite.chainA.Codec.MarshalInterface(tmConsensusState)
-// 				suite.Require().NoError(err)
+func (suite *TypesTestSuite) TestInitialize() {
+	panicMsg := errors.New("panic in InstantiateFn")
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+		expPanic interface{}
+	}{
+		{
+			"success: new mock client",
+			func() {},
+			nil,
+			nil,
+		},
+		{
+			"failure: InstantiateFn returns error",
+			func() {
+				suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					return nil, 0, clienttypes.ErrInvalidClientType
+				}
+			},
+			clienttypes.ErrInvalidClientType,
+			nil,
+		},
+		{
+			"failure: InstantiateFn panics",
+			func() {
+				suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					panic(panicMsg)
+				}
+			},
+			nil,
+			panicMsg,
+		},
+	}
 
-// 				consensusState = types.NewConsensusState(tmConsensusStateData, 1)
-// 			},
-// 			expPass: true,
-// 		},
-// 		{
-// 			name: "invalid consensus: consensus state is solomachine consensus",
-// 			malleate: func() {
-// 				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
-// 			},
-// 			expPass: false,
-// 		},
-// 	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
 
-// 	for _, tc := range testCases {
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupWasmTendermint()
-// 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			codeHash := sha256.Sum256(wasmtesting.Code)
+			clientState := types.NewClientState([]byte{1}, codeHash[:], clienttypes.NewHeight(0, 1))
+			consensusState := types.NewConsensusState([]byte{2}, 0)
 
-// 			tmConfig, ok := path.EndpointB.ClientConfig.(*ibctesting.TendermintConfig)
-// 			suite.Require().True(ok)
+			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.ctx, clientState.ClientType())
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, clientID)
 
-// 			tmClientState := tmtypes.NewClientState(
-// 				path.EndpointB.Chain.ChainID,
-// 				tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-// 				suite.chainB.LastHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
-// 			)
-// 			tmClientStateData, err := suite.chainA.Codec.MarshalInterface(tmClientState)
-// 			suite.Require().NoError(err)
-// 			wasmClientState := types.NewClientState(tmClientStateData, suite.codeHash, tmClientState.LatestHeight)
+			tc.malleate()
 
-// 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, path.EndpointA.ClientID)
-// 			tc.malleate()
-// 			err = wasmClientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
+			var err error
+			initialize := func() {
+				err = clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
+			}
 
-// 			if tc.expPass {
-// 				suite.Require().NoError(err)
-// 				suite.Require().True(clientStore.Has(host.ClientStateKey()))
-// 				suite.Require().True(clientStore.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetHeight())))
-// 			} else {
-// 				suite.Require().Error(err)
-// 				suite.Require().False(clientStore.Has(host.ClientStateKey()))
-// 				suite.Require().False(clientStore.Has(host.ConsensusStateKey(suite.chainB.LastHeader.GetHeight())))
-// 			}
-// 		})
-// 	}
-// }
+			switch {
+			case tc.expPanic != nil:
+				suite.Require().PanicsWithValue(tc.expPanic, initialize)
+			case tc.expError != nil:
+				initialize()
+
+				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().False(clientStore.Has(host.ClientStateKey()))
+				suite.Require().False(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
+			default:
+				initialize()
+
+				suite.Require().NoError(err)
+
+				expClientState := clienttypes.MustMarshalClientState(suite.chainA.Codec, clientState)
+				suite.Require().Equal(clientStore.Get(host.ClientStateKey()), expClientState)
+
+				expConsensusState := clienttypes.MustMarshalConsensusState(suite.chainA.Codec, consensusState)
+				suite.Require().Equal(clientStore.Get(host.ConsensusStateKey(clientState.GetLatestHeight())), expConsensusState)
+			}
+		})
+	}
+}
 
 func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 	const (
@@ -362,8 +379,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 	}{
 		{
 			"successful ClientState verification",
-			func() {
-			},
+			func() {},
 			true,
 		},
 		{
