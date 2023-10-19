@@ -460,22 +460,50 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 
 func (suite *TypesTestSuite) TestUpdateState() {
 	errMsg := fmt.Errorf("callbackFn error")
+	mockClientStateBz := []byte("mockClientStateBz")
+	mockHeight := clienttypes.NewHeight(1, 1)
+
 	var (
 		callbackFn func(wasmvm.Checksum, wasmvmtypes.Env, []byte, wasmvm.KVStore, wasmvm.GoAPI, wasmvm.Querier, wasmvm.GasMeter, uint64, wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
 		clientMsg  exported.ClientMessage
 	)
 
 	testCases := []struct {
-		name       string
-		malleate   func()
-		expPanic   error
-		expHeights []exported.Height
+		name           string
+		malleate       func()
+		expPanic       error
+		expHeights     []exported.Height
+		expClientState []byte
 	}{
 		{
 			"success: no update",
 			func() {},
 			nil,
 			[]exported.Height{},
+			nil,
+		},
+		{
+			"success: update client",
+			func() {
+				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					store.Set(host.ClientStateKey(), mockClientStateBz)
+					updateStateResp := types.UpdateStateResult{
+						Heights: []clienttypes.Height{mockHeight},
+					}
+
+					resp, err := json.Marshal(updateStateResp)
+					if err != nil {
+						return nil, 0, err
+					}
+
+					return &wasmvmtypes.Response{
+						Data: resp,
+					}, types.DefaultGasUsed, nil
+				}
+			},
+			nil,
+			[]exported.Height{mockHeight},
+			mockClientStateBz,
 		},
 		{
 			"failure: invalid ClientMessage type",
@@ -483,6 +511,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				clientMsg = &tmtypes.Misbehaviour{}
 			},
 			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*tmtypes.Misbehaviour)(nil)),
+			nil,
 			nil,
 		},
 		{
@@ -493,6 +522,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				}
 			},
 			errorsmod.Wrapf(errMsg, "call to wasm contract failed"),
+			nil,
 			nil,
 		},
 	}
@@ -539,6 +569,11 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			if tc.expPanic == nil {
 				updateState()
 				suite.Require().Equal(tc.expHeights, heights)
+
+				if tc.expClientState != nil {
+					clientStateBz := clientStore.Get(host.ClientStateKey())
+					suite.Require().Equal(tc.expClientState, clientStateBz)
+				}
 			} else {
 				suite.Require().PanicsWithError(tc.expPanic.Error(), updateState)
 			}
