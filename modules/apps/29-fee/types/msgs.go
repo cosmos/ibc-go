@@ -12,6 +12,8 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
+const MaximumCounterpartyPayeeLength = 2048 // maximum length of the counterparty payee in bytes
+
 var (
 	_ sdk.Msg = (*MsgRegisterPayee)(nil)
 	_ sdk.Msg = (*MsgRegisterCounterpartyPayee)(nil)
@@ -98,6 +100,10 @@ func (msg MsgRegisterCounterpartyPayee) ValidateBasic() error {
 
 	if strings.TrimSpace(msg.CounterpartyPayee) == "" {
 		return ErrCounterpartyPayeeEmpty
+	}
+
+	if len(msg.CounterpartyPayee) > MaximumCounterpartyPayeeLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "counterparty payee addresss must not exceed %d bytes", MaximumCounterpartyPayeeLength)
 	}
 
 	return nil
