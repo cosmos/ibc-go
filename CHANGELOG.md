@@ -34,21 +34,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v7.3.1](https://github.com/cosmos/ibc-go/releases/tag/v7.3.1) - 2023-10-20
 
 ### Dependencies
 
 * [\#4539](https://github.com/cosmos/ibc-go/pull/4539) Update Cosmos SDK to v0.47.5.
 
-### API Breaking
-
-### State Machine Breaking
-
 ### Improvements
 
 * (apps/27-interchain-accounts) [\#4537](https://github.com/cosmos/ibc-go/pull/4537) Add argument to `generate-packet-data` cli to choose the encoding format for the messages in the ICA packet data.
-
-### Features
 
 ### Bug Fixes
 
