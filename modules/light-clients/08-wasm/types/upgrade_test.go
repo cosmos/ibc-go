@@ -64,10 +64,10 @@ func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
 		suite.Run(tc.name, func() {
 			// reset suite
 			suite.SetupWasmGrandpaWithChannel()
-			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
 			suite.Require().True(ok)
 			upgradedClient = clientState
-			upgradedConsState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.ctx, grandpaClientID)
+			upgradedConsState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.ctx, defaultWasmClientID)
 			suite.Require().True(ok)
 			proofUpgradedClient = []byte("upgraded client state proof")
 			proofUpgradedConsState = []byte("upgraded consensus state proof")

@@ -37,7 +37,7 @@ import (
 				clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
 
 				// Reset client state to the previous for the test
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, defaultWasmClientID, clientState)
 
 				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
 				suite.Require().NoError(err)
@@ -70,7 +70,7 @@ import (
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel()
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
 			suite.Require().True(ok)
 
 			tc.malleate()
