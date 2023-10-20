@@ -59,6 +59,11 @@ def parse_args() -> argparse.Namespace:
         default=HERMES,
         help=f"Specify relayer, either {HERMES} or {RLY}",
     )
+    parser.add_argument(
+        "--fallback-on-file",
+        default=False,
+        help="if a json file exists under .github/compatibility-test-matrices, use that instead"
+    )
 
     return parser.parse_args()
 
