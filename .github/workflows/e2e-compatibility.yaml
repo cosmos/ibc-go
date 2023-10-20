@@ -20,11 +20,6 @@ on:
         description: 'The version of ibc-go that is going to be released'
         required: true
         type: string
-      build-release-image:
-        description: 'whether or not to build the docker images for the release branch'
-        required: true
-        type: bool
-        default: true
 
 env:
   REGISTRY: ghcr.io
@@ -75,11 +70,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
-        if: ${{ inputs.build-release-image }} && env.RELEASE_BRANCH == matrix.release-branch
+        if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
           docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
-          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
-          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+#          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
+#          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
       - name: Display image details
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
