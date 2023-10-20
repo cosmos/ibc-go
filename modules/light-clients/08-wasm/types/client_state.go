@@ -70,7 +70,7 @@ func (cs ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, _ 
 		return exported.Unknown
 	}
 
-	return result.Status
+	return exported.Status(result.Status)
 }
 
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState
@@ -86,9 +86,14 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
+	timestampHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	payload := queryMsg{
 		TimestampAtHeight: &timestampAtHeightMsg{
-			Height: height,
+			Height: timestampHeight,
 		},
 	}
 
@@ -144,18 +149,23 @@ func (cs ClientState) VerifyMembership(
 		)
 	}
 
-	_, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	payload := sudoMsg{
 		VerifyMembership: &verifyMembershipMsg{
-			Height:           height,
+			Height:           proofHeight,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             path,
+			Path:             merklePath,
 			Value:            value,
 		},
 	}
@@ -183,18 +193,23 @@ func (cs ClientState) VerifyNonMembership(
 		)
 	}
 
-	_, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	payload := sudoMsg{
 		VerifyNonMembership: &verifyNonMembershipMsg{
-			Height:           height,
+			Height:           proofHeight,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             path,
+			Path:             merklePath,
 		},
 	}
 	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
