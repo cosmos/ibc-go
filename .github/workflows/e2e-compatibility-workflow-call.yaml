@@ -32,7 +32,7 @@ jobs:
       - run: |
           # use jq -c to compact the full json contents into a single line. This is required when using the json body
           # to create the matrix in the following job.
-          test_matrix="$(python scripts/generate-compatibility-json.py --file ${{ inputs.test-file }} --release-version ${{ inputs.release-version }} )"
+          test_matrix="$(python scripts/generate-compatibility-json.py --file ${{ inputs.test-file }} --release-version ${{ inputs.release-version }})"
           echo "test-matrix=$test_matrix" >> $GITHUB_OUTPUT
         id: set-test-matrix
 

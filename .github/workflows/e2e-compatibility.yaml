@@ -20,6 +20,11 @@ on:
         description: 'The version of ibc-go that is going to be released'
         required: true
         type: string
+      build-release-image:
+        description: 'whether or not to build the docker images for the release branch'
+        required: true
+        type: bool
+        default: true
 
 env:
   REGISTRY: ghcr.io
@@ -70,7 +75,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
-        if: env.RELEASE_BRANCH == matrix.release-branch
+        if: ${{ inputs.build-release-image }} && env.RELEASE_BRANCH == matrix.release-branch
         run: |
           docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
           docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
@@ -89,7 +94,7 @@ jobs:
     with:
       test-file: "e2e/tests/transfer/base_test.go"
       test-chain: "chain-a"
-      release-version: "{{ needs.determine-test-directory.outputs.test-directory }}"
+      release-version: "${{ needs.determine-test-directory.outputs.test-directory }}"
 
   transfer-chain-b:
     needs:
@@ -99,7 +104,7 @@ jobs:
     with:
       test-file: "e2e/tests/transfer/base_test.go"
       test-chain: "chain-b"
-      release-version: "{{ needs.determine-test-directory.outputs.test-directory }}"
+      release-version: "${{ needs.determine-test-directory.outputs.test-directory }}"
 
 #  transfer-authz-chain-a:
 #    needs:

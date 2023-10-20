@@ -39,10 +39,6 @@ def parse_args() -> argparse.Namespace:
         help="The test file to look at.",
     )
     parser.add_argument(
-        "--version",
-        help="The version to run tests for.",
-    )
-    parser.add_argument(
         "--release-version",
         help="The version to run tests for.",
     )
@@ -65,15 +61,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     return parser.parse_args()
-
-
-def _from_release_tag_to_regular_tag(release_version: str) -> str:
-    """convert a version to the release version tag
-    e.g.
-    releases-v4.4.x -> v4.4.0
-    releases-v7.3.x -> v7.3.0
-    """
-    return "".join((release_version[len("release-"):len(release_version) - 1], "0"))
 
 
 def _get_max_version(versions):
