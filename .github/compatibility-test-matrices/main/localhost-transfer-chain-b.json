@@ -5,8 +5,7 @@
   "chain-b": [
     "main",
     "v7.3.1",
-    "v7.2.2",
-    "v7.2.0"
+    "v7.2.2"
   ],
   "entrypoint": [
     "LocalhostTransferTestSuite"
