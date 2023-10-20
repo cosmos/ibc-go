@@ -23,7 +23,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-// compatibility:from_version: v4.4.0
+// compatibility:from_version: v4.4.2
 func TestTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TransferTestSuite))
 }

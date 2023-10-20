@@ -24,7 +24,7 @@ import (
 type IncentivizedTransferTestSuite struct {
 	TransferTestSuite
 }
-// compatibility:from_version: v4.4.0
+// compatibility:from_version: v4.4.2
 func TestIncentivizedTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(IncentivizedTransferTestSuite))
 }

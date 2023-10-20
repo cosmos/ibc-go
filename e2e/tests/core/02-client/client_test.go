@@ -45,6 +45,7 @@ const (
 	invalidHashValue = "invalid_hash"
 )
 
+// compatibility:from_version: v6.1.0
 func TestClientTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(ClientTestSuite))
 }

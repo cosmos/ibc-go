@@ -33,6 +33,7 @@ func TestInterchainAccountsLocalhostTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(LocalhostInterchainAccountsTestSuite))
 }
 
+// compatibility:from_version: v7.2.0
 type LocalhostInterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
