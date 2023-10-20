@@ -104,6 +104,9 @@ include contrib/devtools/Makefile
 
 BUILD_TARGETS := build install
 
+tidy-all:
+	./scripts/go-mod-tidy-all.sh
+
 build: BUILD_ARGS=-o $(BUILDDIR)/
 build-linux:
 	GOOS=linux GOARCH=amd64 LEDGER_ENABLED=false $(MAKE) build
@@ -166,6 +169,13 @@ endif
 ###############################################################################
 ###                           Tests & Simulation                            ###
 ###############################################################################
+
+# make init-simapp initializes a single local node network
+# it is useful for testing and development
+# Usage: make install && make init-simapp && simd start
+# Warning: make init-simapp will remove all data in simapp home directory
+init-simapp:
+	./scripts/init-simapp.sh
 
 test: test-unit
 test-all: test-unit test-ledger-mock test-race test-cover
