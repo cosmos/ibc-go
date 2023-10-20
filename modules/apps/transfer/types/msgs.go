@@ -12,8 +12,10 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-const MaximumMemoLength = 32768    // maximum length of the memo in bytes
-const MaximumReceiverLength = 2048 // maximum length of the receiver address in bytes
+const (
+	MaximumMemoLength     = 32768 // maximum length of the memo in bytes
+	MaximumReceiverLength = 2048  // maximum length of the receiver address in bytes
+)
 
 var (
 	_ sdk.Msg              = (*MsgUpdateParams)(nil)
