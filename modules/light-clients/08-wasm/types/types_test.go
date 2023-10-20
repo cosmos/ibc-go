@@ -110,7 +110,7 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 	}
 
 	suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-		resp, err := json.Marshal(types.StatusResult{Status: exported.Active})
+		resp, err := json.Marshal(types.StatusResult{Status: exported.Active.String()})
 		suite.Require().NoError(err)
 		return resp, types.DefaultGasUsed, nil
 	})
