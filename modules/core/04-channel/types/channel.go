@@ -7,6 +7,8 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
+const MaximumVersionLength = 8192 // maximum length of the version in bytes
+
 var (
 	_ exported.ChannelI             = (*Channel)(nil)
 	_ exported.CounterpartyChannelI = (*Counterparty)(nil)
@@ -77,6 +79,9 @@ func (ch Channel) ValidateBasic() error {
 	}
 	if err := host.ConnectionIdentifierValidator(ch.ConnectionHops[0]); err != nil {
 		return errorsmod.Wrap(err, "invalid connection hop ID")
+	}
+	if len(ch.Version) > MaximumVersionLength {
+		return errorsmod.Wrapf(ErrInvalidChannelVersion, "version must not exceed %d bytes", MaximumVersionLength)
 	}
 	return ch.Counterparty.ValidateBasic()
 }
