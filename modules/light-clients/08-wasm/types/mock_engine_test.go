@@ -21,6 +21,9 @@ var (
 
 	// sudoTypes contains all the possible sudo message types.
 	sudoTypes = [...]any{UpdateStateMsg{}, UpdateStateOnMisbehaviourMsg{}, VerifyUpgradeAndUpdateStateMsg{}, CheckSubstituteAndUpdateStateMsg{}, VerifyMembershipMsg{}, VerifyNonMembershipMsg{}}
+
+	MockClientStateBz = []byte("mockClientStateBz")
+	MockClientMessage = &ClientMessage{Data: []byte{1}}
 )
 
 type (

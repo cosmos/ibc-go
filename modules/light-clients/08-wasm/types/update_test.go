@@ -2,11 +2,20 @@ package types_test
 
 import (
 	"encoding/base64"
+	"encoding/json"
+	fmt "fmt"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	errorsmod "cosmossdk.io/errors"
+
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
@@ -652,115 +661,99 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 // 	}
 // }
 
-/* func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourGrandpa() {
-	var (
-		ok          bool
-		clientMsg   exported.ClientMessage
-		clientState exported.ClientState
-	)
+func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
+	var clientMsg exported.ClientMessage
 
 	testCases := []struct {
-		name    string
-		setup   func()
-		expPass bool
+		name               string
+		malleate           func()
+		panicErr           error
+		updatedClientState []byte
 	}{
 		{
-			"successful update",
+			"success: no update",
 			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
-				suite.Require().NoError(err)
-				clientMsg = &types.ClientMessage{
-					Data: data,
-				}
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					resp, err := json.Marshal(types.EmptyResult{})
+					if err != nil {
+						return nil, 0, err
+					}
 
-				clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
-				suite.Require().True(ok)
+					return &wasmvmtypes.Response{Data: resp}, types.DefaultGasUsed, nil
+				})
 			},
-			true,
+			nil,
+			nil,
+		},
+		{
+			"success: client state updated on valid misbehaviour",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					// set new client state in store
+					store.Set(host.ClientStateKey(), types.MockClientStateBz)
+					resp, err := json.Marshal(types.EmptyResult{})
+					if err != nil {
+						return nil, 0, err
+					}
+
+					return &wasmvmtypes.Response{Data: resp}, types.DefaultGasUsed, nil
+				})
+			},
+			nil,
+			types.MockClientStateBz,
+		},
+		{
+			"failure: invalid client message",
+			func() {
+				clientMsg = &ibctmtypes.Header{}
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					resp, err := json.Marshal(types.EmptyResult{})
+					if err != nil {
+						return nil, 0, err
+					}
+
+					return &wasmvmtypes.Response{Data: resp}, types.DefaultGasUsed, nil
+				})
+			},
+			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*ibctmtypes.Header)(nil)),
+			nil,
+		},
+		{
+			"failure: err return from contract vm",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					errMsg := fmt.Errorf("callbackFn error")
+					return nil, 0, errMsg
+				})
+			},
+			errorsmod.Wrapf(fmt.Errorf("callbackFn error"), "call to wasm contract failed"),
+			nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWasmGrandpaWithChannel()
-			tc.setup()
+			// reset suite to create fresh application state
+			suite.SetupWasmWithMockVM()
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
 
-			if tc.expPass {
-				suite.Require().NotPanics(func() {
-					clientState.UpdateStateOnMisbehaviour(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
-				})
-				clientStateBz := suite.store.Get(host.ClientStateKey())
-				suite.Require().NotEmpty(clientStateBz)
+			clientMsg = types.MockClientMessage
+			clientState := endpoint.GetClientState()
 
-				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-				status := newClientState.Status(suite.ctx, suite.store, suite.chainA.Codec)
-				suite.Require().Equal(exported.Frozen, status)
+			tc.malleate()
+
+			if tc.panicErr == nil {
+				clientState.UpdateStateOnMisbehaviour(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMsg)
+				if tc.updatedClientState != nil {
+					suite.Require().Equal(tc.updatedClientState, suite.store.Get(host.ClientStateKey()))
+				}
 			} else {
-				suite.Require().Panics(func() {
-					clientState.UpdateStateOnMisbehaviour(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+				suite.Require().PanicsWithError(tc.panicErr.Error(), func() {
+					clientState.UpdateStateOnMisbehaviour(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMsg)
 				})
 			}
 		})
 	}
-}*/
-
-// func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviourTendermint() {
-// 	var path *ibctesting.Path
-
-// 	testCases := []struct {
-// 		name     string
-// 		malleate func()
-// 		expPass  bool
-// 	}{
-// 		{
-// 			"success",
-// 			func() {},
-// 			true,
-// 		},
-// 	}
-
-// 	for _, tc := range testCases {
-// 		suite.Run(tc.name, func() {
-// 			// reset suite to create fresh application state
-// 			suite.SetupWasmTendermint()
-// 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-
-// 			err := path.EndpointA.CreateClient()
-// 			suite.Require().NoError(err)
-
-// 			tc.malleate()
-
-// 			clientState := path.EndpointA.GetClientState()
-// 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-
-// 			misbehaviourHeader, err := path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-// 			suite.Require().NoError(err)
-// 			tmMisbehaviour := &ibctm.Misbehaviour{
-// 				Header1: misbehaviourHeader,
-// 				Header2: misbehaviourHeader,
-// 			}
-// 			wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-// 			suite.Require().NoError(err)
-// 			clientMessage := &types.ClientMessage{
-// 				Data: wasmData,
-// 			}
-// 			clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
-
-// 			if tc.expPass {
-// 				clientStateBz := clientStore.Get(host.ClientStateKey())
-// 				suite.Require().NotEmpty(clientStateBz)
-
-// 				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-// 				newWasmClientState := newClientState.(*types.ClientState)
-
-// 				var innerClientState exported.ClientState
-// 				err = suite.chainA.Codec.UnmarshalInterface(newWasmClientState.Data, &innerClientState)
-// 				suite.Require().NoError(err)
-// 				suite.Require().Equal(misbehaviourHeader.GetHeight(), innerClientState.(*ibctm.ClientState).FrozenHeight)
-
-// 				status := clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.Codec)
-// 				suite.Require().Equal(exported.Frozen, status)
-// 			}
-// 		})
-// 	}
-// }
+}
