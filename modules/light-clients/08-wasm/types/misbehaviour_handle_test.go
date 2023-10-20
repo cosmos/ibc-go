@@ -1,499 +1,92 @@
 package types_test
 
-/* func (suite *TypesTestSuite) TestVerifyMisbehaviourGrandpa() {
-	var (
-		ok          bool
-		clientMsg   exported.ClientMessage
-		clientState exported.ClientState
-	)
+import (
+	"encoding/json"
+	fmt "fmt"
+
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	errorsmod "cosmossdk.io/errors"
+
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+)
+
+func (suite *TypesTestSuite) TestVerifyClientMessage() {
+	var clientMsg exported.ClientMessage
 
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"successful misbehaviour verification",
+			"success: valid misbehaviour",
 			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
-				suite.Require().NoError(err)
-				clientMsg = &types.ClientMessage{
-					Data: data,
-				}
-				// VerifyClientMessage must be run first
-				err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
-				suite.Require().NoError(err)
-				clientState.UpdateState(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					resp, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
 
-				// Reset client state to the previous for the test
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, defaultWasmClientID, clientState)
-
-				data, err = base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
-				suite.Require().NoError(err)
-				clientMsg = &types.ClientMessage{
-					Data: data,
-				}
+					return resp, types.DefaultGasUsed, nil
+				})
 			},
-			true,
+			nil,
 		},
 		{
-			"trusted consensus state does not exist",
+			"failure: invalid client message",
 			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
-				suite.Require().NoError(err)
-				clientMsg = &types.ClientMessage{
-					Data: data,
-				}
+				clientMsg = &ibctmtypes.Header{}
+
+				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					resp, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+
+					return resp, types.DefaultGasUsed, nil
+				})
 			},
-			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T", exported.ClientMessage(&types.ClientMessage{}), &ibctmtypes.Header{}),
 		},
 		{
-			"invalid wasm misbehaviour",
+			"failure: error return from contract vm",
 			func() {
-				clientMsg = &solomachine.Misbehaviour{}
+				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					return nil, 0, fmt.Errorf("callbackFn error")
+				})
 			},
-			false,
+			errorsmod.Wrapf(fmt.Errorf("callbackFn error"), "query to wasm contract failed"),
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWasmGrandpaWithChannel()
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
-			suite.Require().True(ok)
+			// reset suite to create fresh application state
+			suite.SetupWasmWithMockVM()
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
+
+			clientState := endpoint.GetClientState()
+
+			clientMsg = &types.ClientMessage{
+				Data: []byte{1},
+			}
 
 			tc.malleate()
 
-			err := clientState.VerifyClientMessage(suite.ctx, suite.chainA.Codec, suite.store, clientMsg)
+			err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMsg)
 
-			if tc.expPass {
-				suite.Require().NoError(err)
+			if tc.expErr != nil {
+				suite.Require().ErrorIs(err, tc.expErr)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().NoError(err)
 			}
 		})
 	}
-}*/
-
-// func (suite *TypesTestSuite) TestVerifyMisbehaviourTendermint() {
-//	// Setup different validators and signers for testing different types of updates
-//	altPrivVal := ibctestingmock.NewPV()
-//	altPubKey, err := altPrivVal.GetPubKey()
-//	suite.Require().NoError(err)
-//
-//	// create modified heights to use for test-cases
-//	altVal := tmtypes.NewValidator(altPubKey, 100)
-//
-//	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-//	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
-//	altSigners := getAltSigners(altVal, altPrivVal)
-//
-//	var (
-//		path         *ibctesting.Path
-//		misbehaviour exported.ClientMessage
-//	)
-//
-//	testCases := []struct {
-//		name     string
-//		malleate func()
-//		expPass  bool
-//	}{
-//		{
-//			"valid fork misbehaviour", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Second), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			},
-//			true,
-//		},
-//		{
-//			"valid time misbehaviour", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+3, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			},
-//			true,
-//		},
-//		{
-//			"valid time misbehaviour, header 1 time stricly less than header 2 time", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+3, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Second), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			},
-//			true,
-//		},
-//		{
-//			"valid misbehavior at height greater than last consensusState", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+1, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height+1, trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Second), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			}, true,
-//		},
-//		{
-//			"valid misbehaviour with different trusted heights", func() {
-//				trustedHeight1 := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals1, found := suite.chainB.GetValsAtHeight(int64(trustedHeight1.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				trustedHeight2 := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals2, found := suite.chainB.GetValsAtHeight(int64(trustedHeight2.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight1, suite.chainB.CurrentHeader.Time.Add(time.Second), suite.chainB.Vals, suite.chainB.NextVals, trustedVals1, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight2, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals2, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			},
-//			true,
-//		},
-//		{
-//			"valid misbehaviour at a previous revision", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Second), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//
-//				// increment revision number
-//				err = path.EndpointB.UpgradeChain()
-//				suite.Require().NoError(err)
-//			},
-//			true,
-//		},
-//		{
-//			"valid misbehaviour at a future revision", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				futureRevision := fmt.Sprintf("%s-%d", strings.TrimSuffix(suite.chainB.ChainID, fmt.Sprintf("-%d", clienttypes.ParseChainID(suite.chainB.ChainID))), height.GetRevisionNumber()+1)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(futureRevision, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Second), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(futureRevision, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			},
-//			true,
-//		},
-//		{
-//			"valid misbehaviour with trusted heights at a previous revision", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				// increment revision of chainID
-//				err := path.EndpointB.UpgradeChain()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			},
-//			true,
-//		},
-//		{
-//			"consensus state's valset hash different from misbehaviour should still pass", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				// Create bothValSet with both suite validator and altVal
-//				bothValSet := tmtypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altValSet.Proposer))
-//				bothSigners := suite.chainB.Signers
-//				bothSigners[altValSet.Proposer.Address.String()] = altPrivVal
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), bothValSet, suite.chainB.NextVals, trustedVals, bothSigners),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, bothValSet, suite.chainB.NextVals, trustedVals, bothSigners),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			}, true,
-//		},
-//		{
-//			"invalid misbehaviour: misbehaviour from different chain", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader("evmos", int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader("evmos", int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			}, false,
-//		},
-//		{
-//			"misbehaviour trusted validators does not match validator hash in trusted consensus state", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, altValSet, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, altValSet, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			}, false,
-//		},
-//		{
-//			"trusted consensus state does not exist", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight.Increment().(clienttypes.Height), suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.CurrentHeader.Height, trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			}, false,
-//		},
-//		{
-//			"invalid tendermint misbehaviour", func() {
-//				misbehaviour = &solomachine.Misbehaviour{}
-//			}, false,
-//		},
-//		{
-//			"trusting period expired", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				suite.chainA.ExpireClient(path.EndpointA.ClientConfig.(*ibctesting.TendermintConfig).TrustingPeriod)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			}, false,
-//		},
-//		{
-//			"header 1 valset has too much change", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight+1), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), altValSet, suite.chainB.NextVals, trustedVals, altSigners),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			}, false,
-//		},
-//		{
-//			"header 2 valset has too much change", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight+1), trustedHeight, suite.chainB.CurrentHeader.Time, altValSet, suite.chainB.NextVals, trustedVals, altSigners),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			}, false,
-//		},
-//		{
-//			"both header 1 and header 2 valsets have too much change", func() {
-//				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-//				suite.Require().True(found)
-//
-//				err := path.EndpointA.UpdateClient()
-//				suite.Require().NoError(err)
-//
-//				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
-//
-//				tmMisbehaviour := &ibctm.Misbehaviour{
-//					Header1: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight+1), trustedHeight, suite.chainB.CurrentHeader.Time.Add(time.Minute), altValSet, suite.chainB.NextVals, trustedVals, altSigners),
-//					Header2: suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(height.RevisionHeight+1), trustedHeight, suite.chainB.CurrentHeader.Time, altValSet, suite.chainB.NextVals, trustedVals, altSigners),
-//				}
-//				wasmData, err := suite.chainB.Codec.MarshalInterface(tmMisbehaviour)
-//				suite.Require().NoError(err)
-//				misbehaviour = &types.ClientMessage{
-//					Data: wasmData,
-//				}
-//			}, false,
-//		},
-//	}
-//
-//	for _, tc := range testCases {
-//		suite.Run(tc.name, func() {
-//			suite.SetupWasmTendermint()
-//			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-//
-//			err := path.EndpointA.CreateClient()
-//			suite.Require().NoError(err)
-//
-//			tc.malleate()
-//
-//			clientState := path.EndpointA.GetClientState()
-//			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-//
-//			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, misbehaviour)
-//
-//			if tc.expPass {
-//				suite.Require().NoError(err)
-//			} else {
-//				suite.Require().Error(err)
-//			}
-//		})
-//	}
-// }
+}
 
 /* func (suite *TypesTestSuite) TestCheckForMisbehaviourGrandpa() {
 	var (
