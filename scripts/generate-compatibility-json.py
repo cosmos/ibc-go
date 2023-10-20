@@ -13,7 +13,7 @@ RELEASES_URL = "https://api.github.com/repos/cosmos/ibc-go/releases"
 CHAIN_A = "chain-a"
 CHAIN_B = "chain-b"
 HERMES = "hermes"
-DEFAULT_IMAGE="ghcr.io/cosmos/ibc-go-simd"
+DEFAULT_IMAGE = "ghcr.io/cosmos/ibc-go-simd"
 RLY = "rly"
 
 
@@ -85,17 +85,18 @@ def _get_tags_to_test(min_version: semver.Version, max_version: semver.Version, 
     all_versions = [parse_version(v) for v in all_versions]
     """return all tags that are between the min and max versions"""
     # TODO: fix this hack
-    return ["v"+str(v) for v in all_versions if min_version < v < max_version]
+    return ["v" + str(v) for v in all_versions if min_version < v < max_version]
 
 
 def main():
     args = parse_args()
-    # extracted_version = _from_release_tag_to_regular_tag(args.release_version)
     file_lines = _load_file_lines(args.file)
     file_metadata = _build_file_metadata(file_lines)
     tags = _get_ibc_go_releases(args.release_version)
 
-    min_version = file_metadata["from_version"]
+    # TODO: fix hack
+    # strip the v
+    min_version = file_metadata["fields"]["from_version"][1:]
     max_version = _get_max_version(tags)
 
     release_versions = [args.release_version]
@@ -132,9 +133,6 @@ def _validate(compatibility_json: Dict, version: str):
     for k in required_keys:
         if k not in compatibility_json:
             raise ValueError(f"key {k} not found in {compatibility_json.keys()}")
-
-    if compatibility_json["chain-a"] == compatibility_json["chain-b"]:
-        raise ValueError("chain ids must be different")
 
     if len(compatibility_json["entrypoint"]) != 1:
         raise ValueError(f"found more than one entrypoint: {compatibility_json['entrypoint']}")
@@ -215,13 +213,26 @@ def _load_file_lines(file_name: str) -> List[str]:
         return f.readlines()
 
 
-def _extract_from_version(file_lines: List[str]) -> str:
+def _extract_script_fields(file_lines: List[str]) -> Dict:
+    """extract any field in the format of
+    // compatibility:field_name:value
+    e.g.
+    // compatibility:from_version: v7.0.0
+    // compatibility:foo: bar
+    becomes
+    {
+      "from_version": "v7.0.0",
+      "foo": "bar"
+    }
+    """
+    script_fields = {}
     for line in file_lines:
         line = line.strip()
-        match = re.match(rf"//\s*{COMPATIBILITY_FLAG}:{FROM_VERSION}.*v(.*)", line)
+        match = re.match(rf"//\s*{COMPATIBILITY_FLAG}\s*:\s*(.*):\s*(.*)", line)
         if match:
-            return match.group(1)
-    raise ValueError("no from version found in file")
+            script_fields[match.group(1)] = match.group(2)
+    return script_fields
+
 
 
 def _semver_to_str(semver_version: semver.Version) -> str:
@@ -238,7 +249,7 @@ def _build_file_metadata(file_lines: List[str]) -> Dict:
     return {
         "test_suite": _extract_test_suite_function(file_lines),
         "tests": _extract_all_test_functions(file_lines),
-        "from_version": _extract_from_version(file_lines)
+        "fields": _extract_script_fields(file_lines)
     }
 
 
