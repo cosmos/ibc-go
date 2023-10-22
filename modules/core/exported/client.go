@@ -25,6 +25,9 @@ const (
 	// Localhost is the client type for the localhost client.
 	Localhost string = "09-localhost"
 
+	// Avalanche is the client type for Avalanche Network
+	Avalanche string = "14-avalanche"
+
 	// LocalhostClientID is the sentinel client ID for the localhost client.
 	LocalhostClientID string = Localhost
 

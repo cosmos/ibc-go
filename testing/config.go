@@ -7,6 +7,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibcava "github.com/cosmos/ibc-go/v8/modules/light-clients/14-avalanche"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
@@ -32,6 +33,22 @@ func NewTendermintConfig() *TendermintConfig {
 
 func (*TendermintConfig) GetClientType() string {
 	return exported.Tendermint
+}
+
+type AvalancheConfig struct {
+	TrustLevel      ibcava.Fraction
+	TrustingPeriod  time.Duration
+}
+
+func NewAvalancheConfig() *AvalancheConfig {
+	return &AvalancheConfig{
+		TrustLevel:      ibcava.DefaultTrustLevel,
+		TrustingPeriod:  TrustingPeriod,
+	}
+}
+
+func (avacfg *AvalancheConfig) GetClientType() string {
+	return exported.Avalanche
 }
 
 type ConnectionConfig struct {
