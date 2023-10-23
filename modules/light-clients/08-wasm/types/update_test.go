@@ -3,6 +3,7 @@ package types_test
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -459,7 +460,7 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestUpdateState() {
-	errMsg := fmt.Errorf("callbackFn error")
+	errMsg := errors.New("callbackFn error")
 	mockClientStateBz := []byte("mockClientStateBz")
 	mockHeight := clienttypes.NewHeight(1, 1)
 
