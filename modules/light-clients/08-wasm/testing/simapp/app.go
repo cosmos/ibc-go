@@ -813,7 +813,6 @@ func NewSimApp(
 	app.ScopedICAMockKeeper = scopedICAMockKeeper
 	app.ScopedFeeMockKeeper = scopedFeeMockKeeper
 
-
 	fmt.Println("======================================================")
 	fmt.Println("======================================================")
 	fmt.Println("======================================================")

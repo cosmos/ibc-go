@@ -4,6 +4,7 @@ package ibc.lightclients.wasm.v1;
 option go_package = "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types";
 
 import "cosmos/msg/v1/msg.proto";
+import "amino/amino.proto";
 
 // Msg defines the ibc/08-wasm Msg service.
 service Msg {
@@ -15,6 +16,7 @@ service Msg {
 
 // MsgStoreCode defines the request type for the StoreCode rpc.
 message MsgStoreCode {
+  option (amino.name)           = "cosmos-sdk/MsgStoreCode";
   option (cosmos.msg.v1.signer) = "signer";
 
   string signer = 1;
