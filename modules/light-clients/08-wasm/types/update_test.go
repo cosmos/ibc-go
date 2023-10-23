@@ -479,7 +479,11 @@ func (suite *TypesTestSuite) TestUpdateState() {
 		{
 			"success: no update",
 			func() {
-				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					var msg *types.SudoMsg
+					err := json.Unmarshal(sudoMsg, &msg)
+					suite.Require().NoError(err)
+
 					updateStateResp := types.UpdateStateResult{
 						Heights: []clienttypes.Height{},
 					}
@@ -502,8 +506,12 @@ func (suite *TypesTestSuite) TestUpdateState() {
 		{
 			"success: update client",
 			func() {
-				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					store.Set(host.ClientStateKey(), mockClientStateBz)
+				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					var msg *types.SudoMsg
+					err := json.Unmarshal(sudoMsg, &msg)
+					suite.Require().NoError(err)
+
+					store.Set(host.ClientStateKey(), msg.UpdateState.ClientMessage.Data)
 					updateStateResp := types.UpdateStateResult{
 						Heights: []clienttypes.Height{mockHeight},
 					}
@@ -555,7 +563,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			suite.SetupWasmWithMockVM() // reset
 
 			clientMsg = &types.ClientMessage{
-				Data: []byte{1},
+				Data: mockClientStateBz,
 			}
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
