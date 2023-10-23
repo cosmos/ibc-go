@@ -16,4 +16,5 @@ var (
 	ErrWasmSubMessagesNotAllowed = errorsmod.Register(ModuleName, 11, "execution of sub messages is not allowed")
 	ErrWasmEventsNotAllowed      = errorsmod.Register(ModuleName, 12, "returning events from a contract is not allowed")
 	ErrWasmAttributesNotAllowed  = errorsmod.Register(ModuleName, 13, "returning attributes from a contract is not allowed")
+	ErrWasmContractCallFailed    = errorsmod.Register(ModuleName, 14, "wasm contract call failed")
 )
