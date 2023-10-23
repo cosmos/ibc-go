@@ -534,10 +534,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 		{
 			"failure: invalid ClientMessage type",
 			func() {
-				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					panic("unreachable")
-				}
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, callbackFn)
+				// callbackFn left nil because clientMsg is checked by 08-wasm before callbackFn is called.
 				clientMsg = &tmtypes.Misbehaviour{}
 			},
 			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*tmtypes.Misbehaviour)(nil)),
