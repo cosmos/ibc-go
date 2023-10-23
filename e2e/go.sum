@@ -316,8 +316,8 @@ github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghf
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/cespare/xxhash/v2 v2.2.0 h1:DC2CZ1Ep5Y4k3ZQ899DldepgrayRUGE6BBZ/cd9Cj44=
 github.com/cespare/xxhash/v2 v2.2.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
-github.com/chatton/interchaintest/v8 v8.0.0-20231023145956-aeeecb1e3d88 h1:aJtncJy7zpuPNujxog8vFtx7/fe/thffPMLnC8MtRGU=
-github.com/chatton/interchaintest/v8 v8.0.0-20231023145956-aeeecb1e3d88/go.mod h1:PjgiNKXZN9sRig0ObiPjNeklNVF8YnXvLaOaDu9LX90=
+github.com/chatton/interchaintest/v8 v8.0.0-20231023151514-03f00dac1ff5 h1:JqP7+K2pNjrLNVAP25OI7tzKVOkvJMsq4TpNv1qhgDU=
+github.com/chatton/interchaintest/v8 v8.0.0-20231023151514-03f00dac1ff5/go.mod h1:PjgiNKXZN9sRig0ObiPjNeklNVF8YnXvLaOaDu9LX90=
 github.com/cheggaaa/pb v1.0.27/go.mod h1:pQciLPpbU0oxA0h+VJYYLxO+XeDQb5pZijXscXHm81s=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/logex v1.2.1 h1:XHDu3E6q+gdHgsdTPH6ImJMIp436vR6MPtH8gP05QzM=
