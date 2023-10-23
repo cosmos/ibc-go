@@ -15,6 +15,8 @@ type InstantiateMessage struct {
 // these fields are exported aliases for the payload fields passed to the wasm vm.
 // these are used to specify callback functions to handle specific queries in the mock vm.
 type (
+	SudoMsg = sudoMsg
+
 	// Query payload types
 	StatusMsg               = statusMsg
 	ExportMetadataMsg       = exportMetadataMsg
