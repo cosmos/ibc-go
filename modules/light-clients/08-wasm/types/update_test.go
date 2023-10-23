@@ -44,7 +44,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 					CodeHash:     suite.codeHash,
 					LatestHeight: clienttypes.NewHeight(2000, 39),
 				}
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, defaultWasmClientID, clientState)
 			},
 			false,
 		},
@@ -63,7 +63,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel()
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
 			suite.Require().True(ok)
 
 			data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
@@ -433,7 +433,7 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel()
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
 			suite.Require().True(ok)
 
 			tc.malleate()
@@ -601,7 +601,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					Data: data,
 				}
 
-				clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+				clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
 				suite.Require().True(ok)
 			},
 			true,

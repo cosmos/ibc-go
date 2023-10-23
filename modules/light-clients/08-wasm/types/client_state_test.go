@@ -3,8 +3,8 @@ package types_test
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -47,7 +47,7 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 
 				clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 5))
 
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, defaultWasmClientID, clientState)
 			},
 			exported.Frozen,
 		},
@@ -59,7 +59,7 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 
 				clientState = types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 36))
 
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
+				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, defaultWasmClientID, clientState)
 			},
 			exported.Expired,
 		},
@@ -80,8 +80,8 @@ func (suite *TypesTestSuite) TestStatusGrandpa() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel()
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
 			suite.Require().True(ok)
 
 			tc.malleate()
@@ -107,8 +107,9 @@ func (suite *TypesTestSuite) TestStatus() {
 			"client is frozen",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					resp := fmt.Sprintf(`{"status":"%s"}`, exported.Frozen)
-					return []byte(resp), types.DefaultGasUsed, nil
+					resp, err := json.Marshal(types.StatusResult{Status: exported.Frozen.String()})
+					suite.Require().NoError(err)
+					return resp, types.DefaultGasUsed, nil
 				})
 			},
 			exported.Frozen,
@@ -117,8 +118,9 @@ func (suite *TypesTestSuite) TestStatus() {
 			"client status is expired",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					resp := fmt.Sprintf(`{"status":"%s"}`, exported.Expired)
-					return []byte(resp), types.DefaultGasUsed, nil
+					resp, err := json.Marshal(types.StatusResult{Status: exported.Expired.String()})
+					suite.Require().NoError(err)
+					return resp, types.DefaultGasUsed, nil
 				})
 			},
 			exported.Expired,
@@ -259,7 +261,7 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 			consensusState = types.NewConsensusState(consensusStateData, 0)
 
 			tc.malleate()
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
 			err = clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
 
 			expPass := tc.expErr == nil
@@ -398,7 +400,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 				value, err = suite.chainA.Codec.Marshal(&connectiontypes.ConnectionEnd{
 					ClientId: tmClientID,
 					Counterparty: connectiontypes.Counterparty{
-						ClientId:     grandpaClientID,
+						ClientId:     defaultWasmClientID,
 						ConnectionId: connectionID,
 						Prefix:       suite.chainA.GetPrefix(),
 					},
@@ -546,7 +548,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel() // reset
-			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
 			suite.Require().True(ok)
 
 			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
@@ -582,7 +584,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 
 			tc.malleate()
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
 
 			err = clientState.VerifyMembership(
 				suite.ctx, clientStore, suite.chainA.Codec,
@@ -1017,7 +1019,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel() // reset
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
 			suite.Require().True(ok)
 
 			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay

@@ -13,7 +13,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func TestMsgStoreCode_ValidateBasic(t *testing.T) {
+func TestMsgStoreCodeValidateBasic(t *testing.T) {
 	signer := sdk.AccAddress(ibctesting.TestAccAddress).String()
 	testCases := []struct {
 		name   string
@@ -55,7 +55,7 @@ func TestMsgStoreCode_ValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgStoreCode_GetSigners(t *testing.T) {
+func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -67,14 +67,19 @@ func TestMsgStoreCode_GetSigners(t *testing.T) {
 
 	for _, tc := range testCases {
 		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
 
-		msg := types.NewMsgStoreCode(tc.address.String(), wasmtesting.Code)
-		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
-		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
-		}
+			address := tc.address
+			msg := types.NewMsgStoreCode(address.String(), wasmtesting.Code)
+
+			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(address.Bytes(), signers[0])
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }

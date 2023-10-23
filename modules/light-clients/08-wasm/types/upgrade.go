@@ -45,8 +45,8 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 
 	payload := sudoMsg{
 		VerifyUpgradeAndUpdateState: &verifyUpgradeAndUpdateStateMsg{
-			UpgradeClientState:         upgradedClient,
-			UpgradeConsensusState:      upgradedConsState,
+			UpgradeClientState:         *wasmUpgradeClientState,
+			UpgradeConsensusState:      *wasmUpgradeConsState,
 			ProofUpgradeClient:         proofUpgradeClient,
 			ProofUpgradeConsensusState: proofUpgradeConsState,
 		},
