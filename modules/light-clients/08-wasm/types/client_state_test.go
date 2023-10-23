@@ -619,7 +619,8 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			"success",
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
-					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
+				) (*wasmvmtypes.Response, uint64, error) {
 					var payload types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &payload)
 					suite.Require().NoError(err)
@@ -644,7 +645,8 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 				proof = []byte("invalid proof")
 
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
-					goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction,
+				) (*wasmvmtypes.Response, uint64, error) {
 					return nil, types.DefaultGasUsed, commitmenttypes.ErrInvalidProof
 				})
 			},

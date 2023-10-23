@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -20,6 +19,8 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap/zaptest"
+
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -49,7 +50,6 @@ const (
 // * start relayer
 // * send transfer over ibc
 func (s *GrandpaTestSuite) TestGrandpaContract() {
-
 	t := s.T()
 	client, network := interchaintest.DockerSetup(t)
 
@@ -61,8 +61,6 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 	eRep := rep.RelayerExecReporter(t)
 
 	ctx := context.Background()
-
-
 
 	nv := 2 // Number of validators
 	nf := 1 // Number of full nodes
@@ -127,13 +125,13 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 						UidGid:     "1025:1025",
 					},
 				},
-				Bin:            "simd",
-				Bech32Prefix:   "cosmos",
-				Denom:          "stake",
-				GasPrices:      "0.00stake",
-				GasAdjustment:  1.3,
-				TrustingPeriod: "504h",
-				CoinType:       "118",
+				Bin:                 "simd",
+				Bech32Prefix:        "cosmos",
+				Denom:               "stake",
+				GasPrices:           "0.00stake",
+				GasAdjustment:       1.3,
+				TrustingPeriod:      "504h",
+				CoinType:            "118",
 				NoHostMount:         true,
 				ConfigFileOverrides: configFileOverrides,
 				ModifyGenesis:       modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
@@ -171,11 +169,11 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 		})
 
 	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
-		TestName:          t.Name(),
-		Client:            client,
-		NetworkID:         network,
-		//BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
-		SkipPathCreation:  true, // Skip path creation, so we can have granular control over the process
+		TestName:  t.Name(),
+		Client:    client,
+		NetworkID: network,
+		// BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
+		SkipPathCreation: true, // Skip path creation, so we can have granular control over the process
 	}))
 	fmt.Println("Interchain built")
 
@@ -353,9 +351,9 @@ func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Cont
 	err = cosmosChain.QueryClientContractCode(ctx, codeHash, &getCodeQueryMsgRsp)
 	codeHashByte32 := sha256.Sum256(getCodeQueryMsgRsp.Data)
 	codeHash2 := hex.EncodeToString(codeHashByte32[:])
-	s.Require().NoError( err)
-	s.Require().NotEmpty( getCodeQueryMsgRsp.Data)
-	s.Require().Equal( codeHash, codeHash2)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(getCodeQueryMsgRsp.Data)
+	s.Require().Equal(codeHash, codeHash2)
 
 	return codeHash
 }
