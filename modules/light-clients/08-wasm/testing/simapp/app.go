@@ -813,6 +813,22 @@ func NewSimApp(
 	app.ScopedICAMockKeeper = scopedICAMockKeeper
 	app.ScopedFeeMockKeeper = scopedFeeMockKeeper
 
+
+	fmt.Println("======================================================")
+	fmt.Println("======================================================")
+	fmt.Println("======================================================")
+	fmt.Println("======================================================")
+	fmt.Println("======================================================")
+	sdkMsgs := app.appCodec.InterfaceRegistry().ListImplementations("cosmos.base.v1beta1.Msg")
+	for _, msg := range sdkMsgs {
+		fmt.Println(msg)
+	}
+	fmt.Println("======================================================")
+	fmt.Println("======================================================")
+	fmt.Println("======================================================")
+	fmt.Println("======================================================")
+	fmt.Println("======================================================")
+
 	return app
 }
 
