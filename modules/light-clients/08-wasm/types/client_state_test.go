@@ -300,7 +300,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 					return nil, 0, clienttypes.ErrInvalidClientType
 				}
 			},
-			clienttypes.ErrInvalidClientType,
+			types.ErrWasmContractCallFailed,
 			nil,
 		},
 		{
