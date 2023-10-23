@@ -486,6 +486,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					suite.Require().NotNil(msg.UpdateState)
 					suite.Require().NotNil(msg.UpdateState.ClientMessage)
+					suite.Require().Equal(msg.UpdateState.ClientMessage.Data, mockClientStateBz)
 					suite.Require().Nil(msg.VerifyMembership)
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
