@@ -484,6 +484,14 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					err := json.Unmarshal(sudoMsg, &msg)
 					suite.Require().NoError(err)
 
+					suite.Require().NotNil(msg.UpdateState)
+					suite.Require().NotNil(msg.UpdateState.ClientMessage)
+					suite.Require().Nil(msg.VerifyMembership)
+					suite.Require().Nil(msg.VerifyNonMembership)
+					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
+					suite.Require().Nil(msg.VerifyUpgradeAndUpdateState)
+					suite.Require().Nil(msg.CheckSubstituteAndUpdateState)
+
 					updateStateResp := types.UpdateStateResult{
 						Heights: []clienttypes.Height{},
 					}
