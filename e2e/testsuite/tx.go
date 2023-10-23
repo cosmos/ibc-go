@@ -161,8 +161,9 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.
 	s.Require().NoError(err)
 
 	resp := s.BroadcastMessages(ctx, cosmosChain, user, msgSubmitProposal)
-	//time.Sleep(1 * time.Hour)
 	s.AssertTxSuccess(resp)
+
+	time.Sleep(time.Hour * 1)
 
 	s.Require().NoError(cosmosChain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
