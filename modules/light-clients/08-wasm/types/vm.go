@@ -65,7 +65,7 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []b
 }
 
 // wasmInit accepts a message to instantiate a wasm contract, JSON encodes it and calls initContract.
-func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload instantiateMessage) error {
+func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
@@ -85,7 +85,7 @@ func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, 
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload sudoMsg) (T, error) {
+func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -120,7 +120,7 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 // - the payload cannot be marshaled to JSON
 // - the contract query returns an error
 // - the data bytes of the response cannot be unmarshal into the result type
-func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload queryMsg) (T, error) {
+func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload QueryMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
