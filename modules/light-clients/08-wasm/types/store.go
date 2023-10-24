@@ -131,7 +131,7 @@ func (s storeAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
 func getClientID(clientStore storetypes.KVStore) (string, error) {
 	store, ok := clientStore.(storeprefix.Store)
 	if !ok {
-		return "", errorsmod.Wrapf(ErrRetrieveClientID, "store is not a prefix store")
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "clientStore is not a prefix store")
 	}
 
 	r := reflect.ValueOf(&store).Elem()

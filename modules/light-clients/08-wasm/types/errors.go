@@ -15,5 +15,5 @@ var (
 	ErrWasmSubMessagesNotAllowed = errorsmod.Register(ModuleName, 10, "execution of sub messages is not allowed")
 	ErrWasmEventsNotAllowed      = errorsmod.Register(ModuleName, 11, "returning events from a contract is not allowed")
 	ErrWasmAttributesNotAllowed  = errorsmod.Register(ModuleName, 12, "returning attributes from a contract is not allowed")
-	ErrRetrieveClientID	  = errorsmod.Register(ModuleName, 13, "failed to retrieve client id")
+	ErrRetrieveClientID          = errorsmod.Register(ModuleName, 13, "failed to retrieve client id")
 )
