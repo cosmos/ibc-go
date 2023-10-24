@@ -23,7 +23,6 @@ var (
 	sudoTypes = [...]any{UpdateStateMsg{}, UpdateStateOnMisbehaviourMsg{}, VerifyUpgradeAndUpdateStateMsg{}, CheckSubstituteAndUpdateStateMsg{}, VerifyMembershipMsg{}, VerifyNonMembershipMsg{}}
 
 	MockClientStateBz = []byte("mockClientStateBz")
-	MockClientMessage = &ClientMessage{Data: []byte{1}}
 )
 
 type (
