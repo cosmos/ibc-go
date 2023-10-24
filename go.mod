@@ -243,4 +243,4 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 
 replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.50.0-rc.0.0.20230911190209-e4033faa38ef
 
-replace github.com/ava-labs/avalanchego => github.com/chist100/avalanchego v1.0.0
+replace github.com/ava-labs/avalanchego => github.com/ConsiderItDone/avalanchego v1.5.0-fuji.0.20231023221552-417b4c7b2e13
