@@ -51,9 +51,7 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterLegacyAminoCodec performs a no-op. The Wasm client does not support amino.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
-}
+func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any. This allows core IBC
 // to unmarshal Wasm light client types.
