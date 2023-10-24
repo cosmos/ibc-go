@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"reflect"
+	"strings"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/cachekv"
 	"cosmossdk.io/store/listenkv"
+	storeprefix "cosmossdk.io/store/prefix"
 	"cosmossdk.io/store/tracekv"
 	storetypes "cosmossdk.io/store/types"
 )
@@ -122,4 +126,33 @@ func (s storeAdapter) Iterator(start, end []byte) wasmvmtypes.Iterator {
 
 func (s storeAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
 	return s.parent.ReverseIterator(start, end)
+}
+
+func getClientID(clientStore storetypes.KVStore) (string, error) {
+	store, ok := clientStore.(storeprefix.Store)
+	if !ok {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "store is not a prefix store")
+	}
+
+	r := reflect.ValueOf(&store).Elem()
+
+	f := r.FieldByName("prefix")
+	if !f.IsValid() {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix field not found")
+	}
+
+	prefix := f.Bytes()
+	prefixStr := string(prefix)
+
+	lastSlash := strings.LastIndex(prefixStr, "/")
+	if lastSlash == -1 {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a slash")
+	}
+	secondLastSlash := strings.LastIndex(prefixStr[:lastSlash], "/")
+	if secondLastSlash == -1 {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a second slash")
+	}
+
+	clientID := prefixStr[secondLastSlash+1 : lastSlash]
+	return clientID, nil
 }
