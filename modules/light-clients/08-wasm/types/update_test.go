@@ -3,6 +3,7 @@ package types_test
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	fmt "fmt"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -673,13 +674,29 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 		{
 			"success: no update",
 			func() {
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					var msg *types.SudoMsg
+
+					err := json.Unmarshal(sudoMsg, &msg)
+					suite.Require().NoError(err)
+
+					suite.Require().NotNil(msg.UpdateStateOnMisbehaviour)
+					suite.Require().NotNil(msg.UpdateStateOnMisbehaviour.ClientMessage)
+					suite.Require().Nil(msg.UpdateState)
+					suite.Require().Nil(msg.UpdateState)
+					suite.Require().Nil(msg.VerifyMembership)
+					suite.Require().Nil(msg.VerifyNonMembership)
+					suite.Require().Nil(msg.VerifyUpgradeAndUpdateState)
+					suite.Require().Nil(msg.CheckSubstituteAndUpdateState)
+
 					resp, err := json.Marshal(types.EmptyResult{})
 					if err != nil {
 						return nil, 0, err
 					}
 
-					return &wasmvmtypes.Response{Data: resp}, types.DefaultGasUsed, nil
+					return &wasmvmtypes.Response{
+						Data: resp,
+					}, types.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -688,9 +705,13 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 		{
 			"success: client state updated on valid misbehaviour",
 			func() {
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					var msg *types.SudoMsg
+					err := json.Unmarshal(sudoMsg, &msg)
+					suite.Require().NoError(err)
+
 					// set new client state in store
-					store.Set(host.ClientStateKey(), types.MockClientStateBz)
+					store.Set(host.ClientStateKey(), msg.UpdateStateOnMisbehaviour.ClientMessage.Data)
 					resp, err := json.Marshal(types.EmptyResult{})
 					if err != nil {
 						return nil, 0, err
@@ -707,12 +728,8 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 			func() {
 				clientMsg = &ibctmtypes.Header{}
 				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					resp, err := json.Marshal(types.EmptyResult{})
-					if err != nil {
-						return nil, 0, err
-					}
-
-					return &wasmvmtypes.Response{Data: resp}, types.DefaultGasUsed, nil
+					// empty resp because this test case does not reach the VM
+					return &wasmvmtypes.Response{}, types.DefaultGasUsed, nil
 				})
 			},
 			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*ibctmtypes.Header)(nil)),
@@ -722,11 +739,11 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 			"failure: err return from contract vm",
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					errMsg := fmt.Errorf("callbackFn error")
+					errMsg := errors.New("callbackfn Error")
 					return nil, 0, errMsg
 				})
 			},
-			errorsmod.Wrapf(fmt.Errorf("callbackFn error"), "call to wasm contract failed"),
+			errorsmod.Wrapf(errors.New("callbackfn Error"), "call to wasm contract failed"),
 			nil,
 		},
 	}
@@ -739,7 +756,9 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			clientMsg = types.MockClientMessage
+			clientMsg = &types.ClientMessage{
+				Data: types.MockClientStateBz,
+			}
 			clientState := endpoint.GetClientState()
 
 			tc.malleate()
