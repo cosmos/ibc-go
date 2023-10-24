@@ -20,6 +20,7 @@
     "@docusaurus/plugin-content-docs": "^2.4.3",
     "@docusaurus/preset-classic": "^2.4.3",
     "@easyops-cn/docusaurus-search-local": "^0.36.0",
+    "@gracefullight/docusaurus-plugin-microsoft-clarity": "^0.1.3",
     "@mdx-js/react": "^1.6.22",
     "@saucelabs/theme-github-codeblock": "^0.2.3",
     "autoprefixer": "^10.4.14",
