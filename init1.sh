@@ -6,19 +6,19 @@ fi
 
 cd ./build
 
-./simd init ibc --chain-id ibcgo1 --home "/Users/aleksejcistakov/.simapp1"
-export VALIDATOR_MNEM=$(./simd keys add validator001 --keyring-backend=test --output json --home "/Users/aleksejcistakov/.simapp1" | jq -r '.mnemonic')
-export VALIDATOR_ADDR=$(./simd keys show validator001 --keyring-backend=test --output json  --home "/Users/aleksejcistakov/.simapp1" | jq -r '.address')
+./simd init ibc --chain-id ibcgo1 --home "$HOME/.simapp1"
+export VALIDATOR_MNEM=$(./simd keys add validator001 --keyring-backend=test --output json --home "$HOME/.simapp1" | jq -r '.mnemonic')
+export VALIDATOR_ADDR=$(./simd keys show validator001 --keyring-backend=test --output json  --home "$HOME/.simapp1" | jq -r '.address')
 
-export SIMD_RELAYER_MNEM=$(./simd keys add simd_relayer --keyring-backend=test --output json  --home "/Users/aleksejcistakov/.simapp1" | jq -r '.mnemonic')
-export SIMD_RELAYER_ADDR=$(./simd keys show simd_relayer --keyring-backend=test --output json  --home "/Users/aleksejcistakov/.simapp1" | jq -r '.address')
+export SIMD_RELAYER_MNEM=$(./simd keys add simd_relayer --keyring-backend=test --output json  --home "$HOME/.simapp1" | jq -r '.mnemonic')
+export SIMD_RELAYER_ADDR=$(./simd keys show simd_relayer --keyring-backend=test --output json  --home "$HOME/.simapp1" | jq -r '.address')
 
 
-./simd genesis add-genesis-account validator001 100000000stake --keyring-backend=test  --home "/Users/aleksejcistakov/.simapp1"
-./simd genesis add-genesis-account simd_relayer 10stake --keyring-backend=test  --home "/Users/aleksejcistakov/.simapp1"
+./simd genesis add-genesis-account validator001 100000000stake --keyring-backend=test  --home "$HOME/.simapp1"
+./simd genesis add-genesis-account simd_relayer 10stake --keyring-backend=test  --home "$HOME/.simapp1"
 
-./simd genesis gentx validator001 "100000000stake" --amount="100000000stake" --keyring-backend=test --chain-id=ibcgo1 --from=validator001  --home "/Users/aleksejcistakov/.simapp1"
-./simd genesis collect-gentxs  --home "/Users/aleksejcistakov/.simapp1"
+./simd genesis gentx validator001 "100000000stake" --amount="100000000stake" --keyring-backend=test --chain-id=ibcgo1 --from=validator001  --home "$HOME/.simapp1"
+./simd genesis collect-gentxs  --home "$HOME/.simapp1"
 
 MONIKER="node001"
 P2P_URL=tcp://0.0.0.0:26756
@@ -51,4 +51,4 @@ echo "VALIDATOR_MNEM=${VALIDATOR_MNEM}"
 echo "export SIMD_RELAYER_MNEM=${SIMD_RELAYER_MNEM}"
 echo "export SIMD_RELAYER_ADDR=${SIMD_RELAYER_ADDR}"
  
-./simd start --moniker ${MONIKER} --p2p.laddr=${P2P_URL} --rpc.laddr=${RPC_URL} --p2p.persistent_peers=${PERSISTENT_PEERS}  --rpc.pprof_laddr=${PPROF_LADR}  --home "/Users/aleksejcistakov/.simapp1" --grpc.address=${GRPS_ADDR}
+./simd start --moniker ${MONIKER} --p2p.laddr=${P2P_URL} --rpc.laddr=${RPC_URL} --p2p.persistent_peers=${PERSISTENT_PEERS}  --rpc.pprof_laddr=${PPROF_LADR}  --home "$HOME/.simapp1" --grpc.address=${GRPS_ADDR}
