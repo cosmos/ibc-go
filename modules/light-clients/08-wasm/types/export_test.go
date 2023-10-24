@@ -11,6 +11,12 @@ import (
 // MaxWasmSize is the maximum size of a wasm code in bytes.
 const MaxWasmSize = maxWasmSize
 
+// GetClientID is a wrapper around getClientID to allow the function to be directly called in tests.
 func GetClientID(clientStore storetypes.KVStore) (string, error) {
 	return getClientID(clientStore)
+}
+
+// NewUpdateProposalWrappedStore is a wrapper around newUpdateProposalWrappedStore to allow the function to be directly called in tests.
+func NewUpdateProposalWrappedStore(subjectStore, substituteStore storetypes.KVStore, subjectPrefix, substitutePrefix []byte) updateProposalWrappedStore {
+	return newUpdateProposalWrappedStore(subjectStore, substituteStore, subjectPrefix, substitutePrefix)
 }

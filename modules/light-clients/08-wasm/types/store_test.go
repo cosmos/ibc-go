@@ -21,6 +21,13 @@ func (suite *TypesTestSuite) TestGetClientID() {
 			nil,
 		},
 		{
+			"success: clientID retrieved from updateProposalWrappedStore",
+			func() {
+				clientStore = types.NewUpdateProposalWrappedStore(clientStore, nil, nil, nil)
+			},
+			nil,
+		},
+		{
 			"failure: clientStore is nil",
 			func() {
 				clientStore = nil
