@@ -74,7 +74,7 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	return app, app.DefaultGenesis()
 }
 
-// SetupWasmTendermint sets up mock cometbft chain with a mock vm.
+// SetupWasmWithMockVM sets up mock cometbft chain with a mock vm.
 func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 	ibctesting.DefaultTestingAppInit = suite.setupWasmWithMockVM
 

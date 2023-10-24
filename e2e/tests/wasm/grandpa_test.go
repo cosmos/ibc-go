@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package wasm
 
 import (
@@ -62,8 +64,6 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 
 	ctx := context.Background()
 
-
-
 	nv := 2 // Number of validators
 	nf := 1 // Number of full nodes
 
@@ -127,13 +127,13 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 						UidGid:     "1025:1025",
 					},
 				},
-				Bin:            "simd",
-				Bech32Prefix:   "cosmos",
-				Denom:          "stake",
-				GasPrices:      "0.00stake",
-				GasAdjustment:  1.3,
-				TrustingPeriod: "504h",
-				CoinType:       "118",
+				Bin:                 "simd",
+				Bech32Prefix:        "cosmos",
+				Denom:               "stake",
+				GasPrices:           "0.00stake",
+				GasAdjustment:       1.3,
+				TrustingPeriod:      "504h",
+				CoinType:            "118",
 				NoHostMount:         true,
 				ConfigFileOverrides: configFileOverrides,
 				ModifyGenesis:       modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
@@ -171,11 +171,11 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 		})
 
 	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
-		TestName:          t.Name(),
-		Client:            client,
-		NetworkID:         network,
+		TestName:  t.Name(),
+		Client:    client,
+		NetworkID: network,
 		//BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
-		SkipPathCreation:  true, // Skip path creation, so we can have granular control over the process
+		SkipPathCreation: true, // Skip path creation, so we can have granular control over the process
 	}))
 	fmt.Println("Interchain built")
 
@@ -353,9 +353,9 @@ func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Cont
 	err = cosmosChain.QueryClientContractCode(ctx, codeHash, &getCodeQueryMsgRsp)
 	codeHashByte32 := sha256.Sum256(getCodeQueryMsgRsp.Data)
 	codeHash2 := hex.EncodeToString(codeHashByte32[:])
-	s.Require().NoError( err)
-	s.Require().NotEmpty( getCodeQueryMsgRsp.Data)
-	s.Require().Equal( codeHash, codeHash2)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(getCodeQueryMsgRsp.Data)
+	s.Require().Equal(codeHash, codeHash2)
 
 	return codeHash
 }
