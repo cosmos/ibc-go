@@ -1,7 +1,8 @@
 package types_test
+
 import (
 	"encoding/json"
-	fmt "fmt"
+	"errors"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -26,9 +27,23 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 		{
 			"success: valid misbehaviour",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					resp, err := json.Marshal(types.EmptyResult{})
+				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					var msg *types.QueryMsg
+
+					err := json.Unmarshal(queryMsg, &msg)
 					suite.Require().NoError(err)
+
+					suite.Require().NotNil(msg.VerifyClientMessage)
+					suite.Require().NotNil(msg.VerifyClientMessage.ClientMessage)
+					suite.Require().Nil(msg.Status)
+					suite.Require().Nil(msg.CheckForMisbehaviour)
+					suite.Require().Nil(msg.TimestampAtHeight)
+					suite.Require().Nil(msg.ExportMetadata)
+
+					resp, err := json.Marshal(types.EmptyResult{})
+					if err != nil {
+						return nil, 0, err
+					}
 
 					return resp, types.DefaultGasUsed, nil
 				})
@@ -40,7 +55,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			func() {
 				clientMsg = &ibctmtypes.Header{}
 
-				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
@@ -52,11 +67,11 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 		{
 			"failure: error return from contract vm",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					return nil, 0, fmt.Errorf("callbackFn error")
+				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					return nil, 0, errors.New("callbackFn error")
 				})
 			},
-			errorsmod.Wrapf(fmt.Errorf("callbackFn error"), "query to wasm contract failed"),
+			errorsmod.Wrapf(errors.New("callbackFn error"), "query to wasm contract failed"),
 		},
 	}
 
@@ -79,18 +94,16 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMsg)
 
 			if tc.expErr != nil {
-				suite.Require().ErrorIs(err, tc.expErr)
+				suite.Require().ErrorContains(err, tc.expErr.Error())
 			} else {
 				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
 			}
 		})
 	}
 }
 
-
 func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
+	var clientMessage exported.ClientMessage
 	var foundMisbehaviour bool
 
 	testCases := []struct {
@@ -142,6 +155,18 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 			nil,
 		},
 		{
+			"success: invalid client message", func() {
+				clientMessage = &ibctmtypes.Header{}
+
+				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					// this test case will not reach the VM
+					return nil, 0, nil
+				})
+			},
+			false,
+			nil,
+		},
+		{
 			"failure: contract panics, panic propogated", func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					panic(errors.New("panic in query to contract"))
@@ -161,7 +186,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 			suite.Require().NoError(err)
 
 			clientState := endpoint.GetClientState()
-			clientMessage := &types.ClientMessage{
+			clientMessage = &types.ClientMessage{
 				Data: []byte{1},
 			}
 
