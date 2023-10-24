@@ -73,7 +73,7 @@ func (suite *TypesTestSuite) TestGetClientID() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(defaultWasmClientID, clientID)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
