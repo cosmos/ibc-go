@@ -40,9 +40,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 					suite.Require().Nil(msg.ExportMetadata)
 
 					resp, err := json.Marshal(types.EmptyResult{})
-					if err != nil {
-						return nil, 0, err
-					}
+					suite.Require().NoError(err)
 
 					return resp, types.DefaultGasUsed, nil
 				})
@@ -78,6 +76,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 		suite.Run(tc.name, func() {
 			// reset suite to create fresh application state
 			suite.SetupWasmWithMockVM()
+
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
