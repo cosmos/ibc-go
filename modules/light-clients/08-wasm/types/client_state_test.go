@@ -604,10 +604,12 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 
 func (suite *TypesTestSuite) TestVerifyMembership() {
 	var (
-		path        exported.Path
-		proof       []byte
-		proofHeight exported.Height
-		value       []byte
+		clientState      exported.ClientState
+		expClientStateBz []byte
+		path             exported.Path
+		proof            []byte
+		proofHeight      exported.Height
+		value            []byte
 	)
 
 	testCases := []struct {
@@ -618,6 +620,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 		{
 			"success",
 			func() {
+				expClientStateBz = suite.store.Get(host.ClientStateKey())
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.Response, uint64, error) {
@@ -626,6 +629,11 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					suite.Require().NotNil(payload.VerifyMembership)
+					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
+					suite.Require().Nil(payload.UpdateState)
+					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
+					suite.Require().Nil(payload.VerifyNonMembership)
+					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyMembership.Height)
 					suite.Require().Equal(path, payload.VerifyMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyMembership.Proof)
@@ -633,6 +641,38 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
+
+					return &wasmvmtypes.Response{Data: bz}, types.DefaultGasUsed, nil
+				})
+			},
+			nil,
+		},
+		{
+			"success: with update client state",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
+					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
+				) (*wasmvmtypes.Response, uint64, error) {
+					var payload types.SudoMsg
+					err := json.Unmarshal(sudoMsg, &payload)
+					suite.Require().NoError(err)
+
+					suite.Require().NotNil(payload.VerifyMembership)
+					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
+					suite.Require().Nil(payload.UpdateState)
+					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
+					suite.Require().Nil(payload.VerifyNonMembership)
+					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
+					suite.Require().Equal(proofHeight, payload.VerifyMembership.Height)
+					suite.Require().Equal(path, payload.VerifyMembership.Path)
+					suite.Require().Equal(proof, payload.VerifyMembership.Proof)
+					suite.Require().Equal(value, payload.VerifyMembership.Value)
+
+					bz, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+
+					expClientStateBz = []byte("client-state-data")
+					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, types.DefaultGasUsed, nil
 				})
@@ -684,13 +724,16 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState()
+			clientState = endpoint.GetClientState()
 
 			err = clientState.VerifyMembership(suite.chainA.GetContext(), clientStore, suite.chainA.Codec, proofHeight, 0, 0, proof, path, value)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
+
+				clientStateBz := clientStore.Get(host.ClientStateKey())
+				suite.Require().Equal(expClientStateBz, clientStateBz)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError, "unexpected error in VerifyMembership")
