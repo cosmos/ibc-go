@@ -295,6 +295,10 @@ const config = {
       },
     ],
     [
+      "@gracefullight/docusaurus-plugin-microsoft-clarity",
+      { projectId: "idk9udvhuu" },
+    ],
+    [
       require.resolve("@easyops-cn/docusaurus-search-local"),
       {
         indexBlog: false,
