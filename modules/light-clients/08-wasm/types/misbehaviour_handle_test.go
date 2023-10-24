@@ -7,8 +7,6 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
-	errorsmod "cosmossdk.io/errors"
-
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -18,6 +16,7 @@ import (
 
 func (suite *TypesTestSuite) TestVerifyClientMessage() {
 	var clientMsg exported.ClientMessage
+	contractError := errors.New("callbackFn error")
 
 	testCases := []struct {
 		name     string
@@ -62,16 +61,16 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 					return resp, types.DefaultGasUsed, nil
 				})
 			},
-			errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T", exported.ClientMessage(&types.ClientMessage{}), &ibctmtypes.Header{}),
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: error return from contract vm",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					return nil, 0, errors.New("callbackFn error")
+					return nil, 0, contractError
 				})
 			},
-			errorsmod.Wrapf(errors.New("callbackFn error"), "query to wasm contract failed"),
+			contractError,
 		},
 	}
 
@@ -94,7 +93,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMsg)
 
 			if tc.expErr != nil {
-				suite.Require().ErrorContains(err, tc.expErr.Error())
+				suite.Require().ErrorIs(err, tc.expErr)
 			} else {
 				suite.Require().NoError(err)
 			}
