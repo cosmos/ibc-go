@@ -91,10 +91,11 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 
 			err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMsg)
 
-			if tc.expErr != nil {
-				suite.Require().ErrorIs(err, tc.expErr)
-			} else {
+			expPass := tc.expErr == nil
+			if expPass {
 				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
