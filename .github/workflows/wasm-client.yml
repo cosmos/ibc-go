@@ -20,7 +20,7 @@ jobs:
       - uses: golangci/golangci-lint-action@v3.6.0
         with:
           version: v1.54.2
-          args: --timeout 5m
+          args: --timeout 10m
           working-directory: modules/light-clients/08-wasm
 
   build:
