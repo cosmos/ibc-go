@@ -145,7 +145,7 @@ func (m *MockWasmEngine) Pin(checksum wasmvm.Checksum) error {
 // getQueryMsgPayloadTypeName extracts the name of the struct that is populated.
 // this value is used as a key to map to a callback function to handle that message type.
 func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
-	payload := queryMsg{}
+	payload := QueryMsg{}
 	if err := json.Unmarshal(queryMsgBz, &payload); err != nil {
 		panic(err)
 	}
@@ -181,7 +181,7 @@ func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
 // getSudoMsgPayloadTypeName extracts the name of the struct that is populated.
 // this value is used as a key to map to a callback function to handle that message type.
 func getSudoMsgPayloadTypeName(sudoMsgBz []byte) string {
-	payload := sudoMsg{}
+	payload := SudoMsg{}
 	if err := json.Unmarshal(sudoMsgBz, &payload); err != nil {
 		panic(err)
 	}
