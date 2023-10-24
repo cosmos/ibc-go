@@ -15,6 +15,8 @@ import (
 	storeprefix "cosmossdk.io/store/prefix"
 	"cosmossdk.io/store/tracekv"
 	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // updateProposalWrappedStore combines two KVStores into one while transparently routing the calls based on key prefix
@@ -134,6 +136,7 @@ func getClientID(clientStore storetypes.KVStore) (string, error) {
 		return "", errorsmod.Wrapf(ErrRetrieveClientID, "clientStore is not a prefix store")
 	}
 
+	// using reflect to retrieve the private prefix field
 	r := reflect.ValueOf(&store).Elem()
 
 	f := r.FieldByName("prefix")
@@ -154,5 +157,11 @@ func getClientID(clientStore storetypes.KVStore) (string, error) {
 	}
 
 	clientID := prefixStr[secondLastSlash+1 : lastSlash]
+
+	isClientID := strings.HasPrefix(clientID, exported.Wasm)
+	if !isClientID {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a clientID")
+	}
+
 	return clientID, nil
 }
