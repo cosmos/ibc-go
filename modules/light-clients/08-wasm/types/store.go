@@ -131,6 +131,13 @@ func (s storeAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
 }
 
 func getClientID(clientStore storetypes.KVStore) (string, error) {
+	upws, isUpdateProposalWrappedStore := clientStore.(updateProposalWrappedStore)
+	if isUpdateProposalWrappedStore {
+		// if the clientStore is a updateProposalWrappedStore, we retrieve the subjectStore
+		// because the contract call will be made on the client with the ID of the subjectStore
+		clientStore = upws.subjectStore
+	}
+
 	store, ok := clientStore.(storeprefix.Store)
 	if !ok {
 		return "", errorsmod.Wrapf(ErrRetrieveClientID, "clientStore is not a prefix store")
