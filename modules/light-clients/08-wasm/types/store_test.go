@@ -60,7 +60,7 @@ func (suite *TypesTestSuite) TestGetClientID() {
 			func() {
 				clientStore = prefixstore.NewStore(nil, []byte("/not-client-id/"))
 			},
-			errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a clientID"),
+			errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a 08-wasm clientID"),
 		},
 	}
 
