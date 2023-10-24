@@ -8,21 +8,21 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 
 require (
 	cosmossdk.io/api v0.7.2
-	cosmossdk.io/client/v2 v2.0.0-20230818115413-c402c51a1508
+	cosmossdk.io/client/v2 v2.0.0-20231006102024-9af83f4b9295
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.1
 	cosmossdk.io/store v1.0.0-rc.0
-	cosmossdk.io/tools/confix v0.0.0-20230818115413-c402c51a1508
-	cosmossdk.io/x/circuit v0.0.0-20230818115413-c402c51a1508
-	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508
-	cosmossdk.io/x/feegrant v0.0.0-20230818115413-c402c51a1508
+	cosmossdk.io/tools/confix v0.0.0-20231006102024-9af83f4b9295
+	cosmossdk.io/x/circuit v0.0.0-20231006102024-9af83f4b9295
+	cosmossdk.io/x/evidence v0.0.0-20231006102024-9af83f4b9295
+	cosmossdk.io/x/feegrant v0.0.0-20231006102024-9af83f4b9295
 	cosmossdk.io/x/tx v0.11.0
-	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
+	cosmossdk.io/x/upgrade v0.0.0-20231006102024-9af83f4b9295
 	github.com/CosmWasm/wasmvm v1.4.1
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-db v1.0.0
-	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20231020163020-ee589c81d48d
+	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20231006102024-9af83f4b9295
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc6
 	github.com/cosmos/ibc-go/v8 v8.0.0
@@ -147,8 +147,8 @@ require (
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230110094441-db37f07504ce // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.9 // indirect
-	github.com/petermattis/goid v0.0.0-20230518223814-80aa455d8761 // indirect
+	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
+	github.com/petermattis/goid v0.0.0-20230808133559-b036b712a89b // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
