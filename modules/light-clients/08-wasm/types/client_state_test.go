@@ -684,8 +684,8 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			func() {
 				proof = []byte("invalid proof")
 
-				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore,
-					goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction,
+				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore,
+					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.Response, uint64, error) {
 					return nil, types.DefaultGasUsed, commitmenttypes.ErrInvalidProof
 				})
