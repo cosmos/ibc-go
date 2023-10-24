@@ -735,7 +735,6 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 				clientStateBz := clientStore.Get(host.ClientStateKey())
 				suite.Require().Equal(expClientStateBz, clientStateBz)
 			} else {
-				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError, "unexpected error in VerifyMembership")
 			}
 		})
