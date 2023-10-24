@@ -464,10 +464,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 	mockClientStateBz := []byte("mockClientStateBz")
 	mockHeight := clienttypes.NewHeight(1, 1)
 
-	var (
-		callbackFn types.SudoFn
-		clientMsg  exported.ClientMessage
-	)
+	var clientMsg exported.ClientMessage
 
 	testCases := []struct {
 		name           string
@@ -479,7 +476,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 		{
 			"success: no update",
 			func() {
-				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					var msg *types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &msg)
 					suite.Require().NoError(err)
@@ -505,8 +502,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					return &wasmvmtypes.Response{
 						Data: resp,
 					}, types.DefaultGasUsed, nil
-				}
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, callbackFn)
+				})
 			},
 			nil,
 			[]exported.Height{},
@@ -515,7 +511,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 		{
 			"success: update client",
 			func() {
-				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					var msg *types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &msg)
 					suite.Require().NoError(err)
@@ -533,8 +529,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					return &wasmvmtypes.Response{
 						Data: resp,
 					}, types.DefaultGasUsed, nil
-				}
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, callbackFn)
+				})
 			},
 			nil,
 			[]exported.Height{mockHeight},
@@ -543,7 +538,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 		{
 			"failure: invalid ClientMessage type",
 			func() {
-				// callbackFn left nil because clientMsg is checked by 08-wasm before callbackFn is called.
+				// SudoCallback left nil because clientMsg is checked by 08-wasm before callbackFn is called.
 				clientMsg = &tmtypes.Misbehaviour{}
 			},
 			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*tmtypes.Misbehaviour)(nil)),
@@ -553,10 +548,9 @@ func (suite *TypesTestSuite) TestUpdateState() {
 		{
 			"failure: callbackFn returns error",
 			func() {
-				callbackFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					return nil, 0, errMsg
-				}
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, callbackFn)
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					return nil, 0, errors.New("callbackFn error")
+				})
 			},
 			errorsmod.Wrapf(errMsg, "call to wasm contract failed"),
 			nil,
