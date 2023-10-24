@@ -17,6 +17,8 @@ func GetClientID(clientStore storetypes.KVStore) (string, error) {
 }
 
 // NewUpdateProposalWrappedStore is a wrapper around newUpdateProposalWrappedStore to allow the function to be directly called in tests.
+//
+//nolint:revive // Returning unexported type for testing purposes.
 func NewUpdateProposalWrappedStore(subjectStore, substituteStore storetypes.KVStore, subjectPrefix, substitutePrefix []byte) updateProposalWrappedStore {
 	return newUpdateProposalWrappedStore(subjectStore, substituteStore, subjectPrefix, substitutePrefix)
 }
