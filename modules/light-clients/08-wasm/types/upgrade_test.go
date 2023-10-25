@@ -109,6 +109,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
 func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 	// TODO: PR 4934 exposes a ErrMockContract that can be re-used
 	contractError := errors.New("contract error")
+
 	var (
 		endpoint               *wasmtesting.WasmEndpoint
 		upgradedClient         exported.ClientState
@@ -118,9 +119,9 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 	)
 
 	testCases := []struct {
-		name      string
-		malleate  func()
-		expResult func(err error)
+		name     string
+		malleate func()
+		expErr   error
 	}{
 		{
 			"success: successful upgrade",
@@ -154,18 +155,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					return &wasmvmtypes.Response{Data: data}, types.DefaultGasUsed, nil
 				})
 			},
-			func(err error) {
-				suite.Require().NoError(err)
-
-				// verify new client state and consensus state
-				clientStateBz := suite.store.Get(host.ClientStateKey())
-				suite.Require().NotEmpty(clientStateBz)
-				suite.Require().Equal(upgradedClient, clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz))
-
-				consStateBz := suite.store.Get(host.ConsensusStateKey(upgradedClient.GetLatestHeight()))
-				suite.Require().NotEmpty(consStateBz)
-				suite.Require().Equal(upgradedConsState, clienttypes.MustUnmarshalConsensusState(suite.chainA.Codec, consStateBz))
-			},
+			nil,
 		},
 		{
 			"failure: upgraded client state is not wasm client state",
@@ -173,14 +163,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 				// set upgraded client state to solomachine client state
 				upgradedClient = &solomachine.ClientState{}
 			},
-			func(err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, clienttypes.ErrInvalidClient)
-
-				// verify client state is unchanged
-				clientStateBz := suite.store.Get(host.ClientStateKey())
-				suite.Require().Equal(clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz), endpoint.GetClientState().(*types.ClientState))
-			},
+			clienttypes.ErrInvalidClient,
 		},
 		{
 			"failure: upgraded consensus state is not wasm client state",
@@ -188,14 +171,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 				// set upgraded consensus state to solomachine consensus state
 				upgradedConsState = &solomachine.ConsensusState{}
 			},
-			func(err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, clienttypes.ErrInvalidConsensus)
-
-				// verify client state is unchanged
-				clientStateBz := suite.store.Get(host.ClientStateKey())
-				suite.Require().Equal(clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz), endpoint.GetClientState().(*types.ClientState))
-			},
+			clienttypes.ErrInvalidConsensus,
 		},
 		{
 			"failure: contract returns error",
@@ -204,14 +180,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					return nil, 0, contractError
 				})
 			},
-			func(err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, contractError)
-
-				// verify client state is unchanged
-				clientStateBz := suite.store.Get(host.ClientStateKey())
-				suite.Require().Equal(clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz), endpoint.GetClientState().(*types.ClientState))
-			},
+			contractError,
 		},
 	}
 
@@ -244,7 +213,30 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 				proofUpgradedConsState,
 			)
 
-			tc.expResult(err)
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				// verify new client state and consensus state
+				clientStateBz := suite.store.Get(host.ClientStateKey())
+				suite.Require().NotEmpty(clientStateBz)
+				suite.Require().Equal(upgradedClient, clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz))
+
+				consStateBz := suite.store.Get(host.ConsensusStateKey(upgradedClient.GetLatestHeight()))
+				suite.Require().NotEmpty(consStateBz)
+				suite.Require().Equal(upgradedConsState, clienttypes.MustUnmarshalConsensusState(suite.chainA.Codec, consStateBz))
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
+
+				// verify client state is unchanged
+				clientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, suite.store.Get(host.ClientStateKey()))
+				suite.Require().Equal(clientState, endpoint.GetClientState().(*types.ClientState))
+
+				// verify consensus state is unchanged
+				consensusState := clienttypes.MustUnmarshalConsensusState(suite.chainA.Codec, suite.store.Get(host.ConsensusStateKey(clientState.GetLatestHeight())))
+				suite.Require().Equal(consensusState, endpoint.GetConsensusState(clientState.GetLatestHeight()).(*types.ConsensusState))
+			}
 		})
 	}
 }
