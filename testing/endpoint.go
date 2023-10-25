@@ -2,7 +2,6 @@ package ibctesting
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/stretchr/testify/require"
@@ -619,15 +618,8 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 		return err
 	}
 
-	events := res.Events
-	for _, event := range events {
-		for _, attribute := range event.Attributes {
-			if attribute.Key == "proposal_id" {
-				proposalID, err = strconv.ParseUint(attribute.Value, 10, 64)
-				require.NoError(endpoint.Chain.TB, err)
-			}
-		}
-	}
+	proposalID, err = ParseProposalIDFromEvents(res.Events)
+	require.NoError(endpoint.Chain.TB, err)
 
 	return VoteAndCheckProposalStatus(endpoint, proposalID)
 }
