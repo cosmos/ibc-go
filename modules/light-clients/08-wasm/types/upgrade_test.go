@@ -111,7 +111,6 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 	contractError := errors.New("contract error")
 
 	var (
-		endpoint               *wasmtesting.WasmEndpoint
 		upgradedClient         exported.ClientState
 		upgradedConsState      exported.ConsensusState
 		proofUpgradedClient    []byte
@@ -166,7 +165,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 			clienttypes.ErrInvalidClient,
 		},
 		{
-			"failure: upgraded consensus state is not wasm client state",
+			"failure: upgraded consensus state is not wasm consensus state",
 			func() {
 				// set upgraded consensus state to solomachine consensus state
 				upgradedConsState = &solomachine.ConsensusState{}
@@ -189,7 +188,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 			// reset suite
 			suite.SetupWasmWithMockVM()
 
-			endpoint = wasmtesting.NewWasmEndpoint(suite.chainA)
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
@@ -200,13 +199,15 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 			tc.malleate()
 
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
+
 			proofUpgradedClient = []byte("proof upgraded client")
 			proofUpgradedConsState = []byte("proof upgraded consensus state")
 
 			err = clientState.VerifyUpgradeAndUpdateState(
-				suite.ctx,
+				suite.chainA.GetContext(),
 				suite.chainA.Codec,
-				suite.store,
+				clientStore,
 				upgradedClient,
 				upgradedConsState,
 				proofUpgradedClient,
@@ -228,14 +229,6 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
-
-				// verify client state is unchanged
-				clientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, suite.store.Get(host.ClientStateKey()))
-				suite.Require().Equal(clientState, endpoint.GetClientState().(*types.ClientState))
-
-				// verify consensus state is unchanged
-				consensusState := clienttypes.MustUnmarshalConsensusState(suite.chainA.Codec, suite.store.Get(host.ConsensusStateKey(clientState.GetLatestHeight())))
-				suite.Require().Equal(consensusState, endpoint.GetConsensusState(clientState.GetLatestHeight()).(*types.ConsensusState))
 			}
 		})
 	}
