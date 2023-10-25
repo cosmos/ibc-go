@@ -19,8 +19,7 @@ service Query {
 }
 
 // QueryCodeHashesRequest is the request type for the Query/CodeHashes RPC method.
-message QueryCodeHashesRequest {
-}
+message QueryCodeHashesRequest {}
 
 // QueryCodeHashesResponse is the response type for the Query/CodeHashes RPC method.
 message QueryCodeHashesResponse {
