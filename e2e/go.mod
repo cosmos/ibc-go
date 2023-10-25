@@ -7,7 +7,7 @@ require (
 	cosmossdk.io/math v1.1.3-rc.1
 	cosmossdk.io/x/upgrade v0.0.0-20231006102024-9af83f4b9295
 	github.com/cometbft/cometbft v0.38.0
-	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20231025083925-9d08b3d7dd19
+	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20231025125555-301ceca874dc
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0
 	github.com/cosmos/ibc-go/v8 v8.0.0
