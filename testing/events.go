@@ -135,6 +135,20 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	return nil, fmt.Errorf("acknowledgement event attribute not found")
 }
 
+// ParseProposalIDFromEvents parses events emitted from MsgSubmitProposal and returns proposalID
+func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
+	for _, event := range events {
+		for _, attribute := range event.Attributes {
+			if attribute.Key == "proposal_id" {
+				proposalID, err := strconv.ParseUint(attribute.Value, 10, 64)
+				return proposalID, err
+			}
+		}
+	}
+
+	return 0, fmt.Errorf("proposalID event attribute not found")
+}
+
 // AssertEventsLegacy asserts that expected events are present in the actual events.
 // Expected map needs to be a subset of actual events to pass.
 func AssertEventsLegacy(
