@@ -140,8 +140,7 @@ func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 	for _, event := range events {
 		for _, attribute := range event.Attributes {
 			if attribute.Key == "proposal_id" {
-				proposalID, err := strconv.ParseUint(attribute.Value, 10, 64)
-				return proposalID, err
+				return strconv.ParseUint(attribute.Value, 10, 64)
 			}
 		}
 	}
