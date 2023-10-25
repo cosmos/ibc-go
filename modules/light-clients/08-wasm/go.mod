@@ -8,7 +8,7 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 
 require (
 	cosmossdk.io/api v0.7.2
-	cosmossdk.io/client/v2 v2.0.0-20231006102024-9af83f4b9295
+	cosmossdk.io/client/v2 v2.0.0-20231025090759-420ce4f9788f
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.1
@@ -22,7 +22,7 @@ require (
 	github.com/CosmWasm/wasmvm v1.4.1
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-db v1.0.0
-	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20231006102024-9af83f4b9295
+	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20231025083925-9d08b3d7dd19
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc6
 	github.com/cosmos/ibc-go/v8 v8.0.0
@@ -173,7 +173,7 @@ require (
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
