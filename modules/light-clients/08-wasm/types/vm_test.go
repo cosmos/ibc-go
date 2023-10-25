@@ -85,6 +85,15 @@ func (suite *TypesTestSuite) TestWasmQuery() {
 			},
 			types.ErrWasmContractCallFailed,
 		},
+		{
+			"failure: response fails to unmarshal",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					return []byte("invalid json"), types.DefaultGasUsed, nil
+				})
+			},
+			types.ErrWasmInvalidResponseData,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -180,6 +189,15 @@ func (suite *TypesTestSuite) TestWasmCall() {
 				})
 			},
 			types.ErrWasmAttributesNotAllowed,
+		},
+		{
+			"failure: response fails to unmarshal",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					return &wasmvmtypes.Response{Data: []byte("invalid json")}, types.DefaultGasUsed, nil
+				})
+			},
+			types.ErrWasmInvalidResponseData,
 		},
 	}
 

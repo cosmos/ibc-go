@@ -123,7 +123,7 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 	}
 
 	if err := json.Unmarshal(resp.Data, &result); err != nil {
-		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm execution")
+		return result, errorsmod.Wrapf(ErrWasmInvalidResponseData, "failed to unmarshal result of wasm execution: %v", err)
 	}
 	return result, nil
 }
@@ -147,7 +147,7 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore
 	}
 
 	if err := json.Unmarshal(resp, &result); err != nil {
-		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm query")
+		return result, errorsmod.Wrapf(ErrWasmInvalidResponseData, "failed to unmarshal result of wasm query: %v", err)
 	}
 
 	return result, nil
