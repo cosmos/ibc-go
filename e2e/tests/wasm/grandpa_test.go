@@ -288,7 +288,6 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 	message := wasmtypes.MsgStoreCode{
 		Signer:      authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		WasmByteCode: content,
-		//WasmByteCode: []byte("foo"),
 	}
 
 	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
