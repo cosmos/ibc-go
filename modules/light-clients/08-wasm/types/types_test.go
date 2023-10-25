@@ -192,5 +192,6 @@ func storeWasmCode(suite *TypesTestSuite, wasmCode []byte) []byte {
 	response, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.Checksum)
+
 	return response.Checksum
 }
