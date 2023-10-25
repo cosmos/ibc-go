@@ -78,6 +78,7 @@ func (m *MockWasmEngine) RegisterSudoCallback(sudoMessage any, fn sudoFn) {
 type MockWasmEngine struct {
 	StoreCodeFn   func(codeID wasmvm.WasmCode) (wasmvm.Checksum, error)
 	InstantiateFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+	MigrateFn     func(codeID wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
 	GetCodeFn     func(codeID wasmvm.Checksum) (wasmvm.WasmCode, error)
 	PinFn         func(checksum wasmvm.Checksum) error
 
@@ -112,6 +113,14 @@ func (m *MockWasmEngine) Query(codeID wasmvm.Checksum, env wasmvmtypes.Env, quer
 	}
 
 	return callbackFn(codeID, env, queryMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
+}
+
+// Migrate implements the WasmEngine interface.
+func (m *MockWasmEngine) Migrate(codeID wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+	if m.MigrateFn == nil {
+		panic("mock engine is not properly initialized")
+	}
+	return m.MigrateFn(codeID, env, migrateMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
 // Sudo implements the WasmEngine interface.
