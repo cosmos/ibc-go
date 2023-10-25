@@ -275,21 +275,24 @@ type GetCodeQueryMsgResponse struct {
 	Data []byte `json:"data"`
 }
 
+func (s *GrandpaTestSuite) extractCodeHashFromGzippedContent(zippedContent []byte) string {
+	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmByteSize())
+	s.Require().NoError(err)
+
+	codeHashByte32 := sha256.Sum256(content)
+	return hex.EncodeToString(codeHashByte32[:])
+}
+
 // PushNewWasmClientProposal submits a new wasm client governance proposal to the chain
 func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, proposalContent io.Reader) string {
 	zippedContent, err := io.ReadAll(proposalContent)
 	s.Require().NoError(err)
 
-	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmByteSize())
-	s.Require().NoError(err)
-
-	codeHashByte32 := sha256.Sum256(content)
-	codeHash := hex.EncodeToString(codeHashByte32[:])
-	//content, err = testutil.GzipIt(content)
+	codeHash := s.extractCodeHashFromGzippedContent(zippedContent)
 
 	s.Require().NoError(err)
 	message := wasmtypes.MsgStoreCode{
-		Signer:      authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Signer:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		WasmByteCode: zippedContent,
 	}
 
@@ -297,7 +300,7 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 
 	var getCodeQueryMsgRsp GetCodeQueryMsgResponse
 	err = chain.QueryClientContractCode(ctx, codeHash, &getCodeQueryMsgRsp)
-	codeHashByte32 = sha256.Sum256(getCodeQueryMsgRsp.Data)
+	codeHashByte32 := sha256.Sum256(getCodeQueryMsgRsp.Data)
 	codeHash2 := hex.EncodeToString(codeHashByte32[:])
 	s.Require().NoError(err)
 	s.Require().NotEmpty(getCodeQueryMsgRsp.Data)
