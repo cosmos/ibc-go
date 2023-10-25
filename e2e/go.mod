@@ -270,4 +270,4 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/strangelove-ventures/interchaintest/v8 => github.com/chatton/interchaintest/v8 v8.0.0-20231023151514-03f00dac1ff5
+replace github.com/strangelove-ventures/interchaintest/v8 => github.com/chatton/interchaintest/v8 v8.0.0-20231025153423-68e4d0a32a39
