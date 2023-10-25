@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -22,6 +21,8 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap/zaptest"
+
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -51,7 +52,6 @@ const (
 // * start relayer
 // * send transfer over ibc
 func (s *GrandpaTestSuite) TestGrandpaContract() {
-
 	t := s.T()
 	client, network := interchaintest.DockerSetup(t)
 
@@ -174,7 +174,7 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 		TestName:  t.Name(),
 		Client:    client,
 		NetworkID: network,
-		//BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
+		// BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
 		SkipPathCreation: true, // Skip path creation, so we can have granular control over the process
 	}))
 	fmt.Println("Interchain built")
