@@ -390,8 +390,6 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 		clientState exported.ClientState
 	)
 
-	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
-
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -406,7 +404,7 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 					Data: data,
 				}
 				// VerifyClientMessage must be run first
-				err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
+				err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID), clientMsg)
 				suite.Require().NoError(err)
 			},
 			true,
@@ -441,6 +439,8 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 			suite.Require().True(ok)
 
 			tc.malleate()
+
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
 
 			if tc.expPass {
 				consensusHeights := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
@@ -600,7 +600,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 	var clientMsg exported.ClientMessage
-	errMsg := errors.New("callbackfn Error")
 
 	testCases := []struct {
 		name               string
@@ -673,10 +672,11 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 			"failure: err return from contract vm",
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					errMsg := errors.New("callbackfn Error")
 					return nil, 0, errMsg
 				})
 			},
-			errMsg,
+			errorsmod.Wrapf(errors.New("callbackfn Error"), "call to wasm contract failed"),
 			nil,
 		},
 	}
