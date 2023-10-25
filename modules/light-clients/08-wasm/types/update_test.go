@@ -3,7 +3,6 @@ package types_test
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -460,7 +459,6 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestUpdateState() {
-	errMsg := errors.New("callbackFn error")
 	mockClientStateBz := []byte("mockClientStateBz")
 	mockHeight := clienttypes.NewHeight(1, 1)
 
@@ -549,10 +547,10 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			"failure: callbackFn returns error",
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					return nil, 0, errors.New("callbackFn error")
+					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			errorsmod.Wrapf(errMsg, "call to wasm contract failed"),
+			errorsmod.Wrapf(types.ErrWasmContractCallFailed, "call to wasm contract failed: %v", wasmtesting.ErrMockContract),
 			nil,
 			nil,
 		},
