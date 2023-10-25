@@ -53,6 +53,13 @@ func TestWasmTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TypesTestSuite))
 }
 
+func (suite *TypesTestSuite) SetupTest() {
+	ibctesting.DefaultTestingAppInit = setupTestingApp
+
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+}
+
 func init() {
 	ibctesting.DefaultTestingAppInit = setupTestingApp
 }
