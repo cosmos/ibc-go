@@ -26,10 +26,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
-const (
-	heightDelta = uint64(20)
-)
-
 func TestGrandpaTestSuite(t *testing.T) {
 	validateTestConfig()
 	testifysuite.Run(t, new(GrandpaTestSuite))
@@ -129,7 +125,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 		options.ChainBSpec.ChainConfig.NoHostMount = false
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
-		//options.ChainBSpec.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
 		options.ChainBSpec.EncodingConfig = testsuite.SDKEncodingConfig()
 	})
 
@@ -150,11 +145,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 
 	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
-	//
-	//codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
 
-	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
-	//codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
 	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
 
 	eRep := s.GetRelayerExecReporter()
@@ -309,52 +300,6 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 	return codeHash
 }
 
-func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Context, cosmosChain *cosmos.CosmosChain) string {
-	// Set up cosmos user for pushing new wasm code msg via governance
-	fundAmountForGov := int64(10_000_000_000)
-	contractUsers := interchaintest.GetAndFundTestUsers(t, ctx, "default", int64(fundAmountForGov), cosmosChain)
-	contractUser := contractUsers[0]
-
-	err := testutil.WaitForBlocks(ctx, 1, cosmosChain)
-	s.Require().NoError(err)
-
-	contractUserBalInitial, err := cosmosChain.GetBalance(ctx, contractUser.FormattedAddress(), cosmosChain.Config().Denom)
-	s.Require().NoError(err, "error fetching initial balance of contract user")
-	s.Require().Equal(math.NewInt(fundAmountForGov).Int64(), contractUserBalInitial.Int64(), "initial balance of contract user not expected")
-
-	proposal := cosmos.TxProposalv1{
-		Metadata: "none",
-		Deposit:  "500000000" + cosmosChain.Config().Denom, // greater than min deposit
-		Title:    "Grandpa Contract",
-		Summary:  "new grandpa contract",
-	}
-
-	proposalTx, codeHash, err := cosmosChain.PushNewWasmClientProposal(ctx, contractUser.KeyName(), "../data/ics10_grandpa_cw.wasm", proposal)
-	s.Require().NoError(err, "error submitting new wasm contract proposal tx")
-
-	height, err := cosmosChain.Height(ctx)
-	s.Require().NoError(err, "error fetching height before submit upgrade proposal")
-
-	err = cosmosChain.VoteOnProposalAllValidators(ctx, proposalTx.ProposalID, cosmos.ProposalVoteYes)
-	s.Require().NoError(err, "failed to submit votes")
-
-	_, err = cosmos.PollForProposalStatus(ctx, cosmosChain, height, height+heightDelta, proposalTx.ProposalID, cosmos.ProposalStatusPassed)
-	s.Require().NoError(err, "proposal status did not change to passed in expected number of blocks")
-
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain)
-	s.Require().NoError(err)
-
-	var getCodeQueryMsgRsp GetCodeQueryMsgResponse
-	err = cosmosChain.QueryClientContractCode(ctx, codeHash, &getCodeQueryMsgRsp)
-	codeHashByte32 := sha256.Sum256(getCodeQueryMsgRsp.Data)
-	codeHash2 := hex.EncodeToString(codeHashByte32[:])
-	s.Require().NoError(err)
-	s.Require().NotEmpty(getCodeQueryMsgRsp.Data)
-	s.Require().Equal(codeHash, codeHash2)
-
-	return codeHash
-}
-
 func (s *GrandpaTestSuite) fundUsers(t *testing.T, ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "user", fundAmount, polkadotChain, cosmosChain)
 	polkadotUser, cosmosUser := users[0], users[1]
@@ -377,26 +322,3 @@ func (s *GrandpaTestSuite) fundUsers(t *testing.T, ctx context.Context, fundAmou
 
 	return polkadotUser, cosmosUser
 }
-
-//func modifyGenesisShortProposals(votingPeriod string, maxDepositPeriod string) func(ibc.ChainConfig, []byte) ([]byte, error) {
-//	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-//		g := make(map[string]interface{})
-//		if err := json.Unmarshal(genbz, &g); err != nil {
-//			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-//		}
-//		if err := dyno.Set(g, votingPeriod, "app_state", "gov", "params", "voting_period"); err != nil {
-//			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-//		}
-//		if err := dyno.Set(g, maxDepositPeriod, "app_state", "gov", "params", "max_deposit_period"); err != nil {
-//			return nil, fmt.Errorf("failed to set max deposit period in genesis json: %w", err)
-//		}
-//		if err := dyno.Set(g, chainConfig.Denom, "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
-//			return nil, fmt.Errorf("failed to set min deposit in genesis json: %w", err)
-//		}
-//		out, err := json.Marshal(g)
-//		if err != nil {
-//			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-//		}
-//		return out, nil
-//	}
-//}
