@@ -66,6 +66,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 			suite.SetupWasmGrandpaWithChannel()
 			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), defaultWasmClientID)
 			suite.Require().True(ok)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
 
 			data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
 			suite.Require().NoError(err)
@@ -74,7 +75,7 @@ func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
 			}
 
 			tc.setup()
-			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -389,6 +390,8 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 		clientState exported.ClientState
 	)
 
+	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -403,7 +406,7 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 					Data: data,
 				}
 				// VerifyClientMessage must be run first
-				err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
 				suite.Require().NoError(err)
 			},
 			true,
@@ -440,9 +443,9 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 			tc.malleate()
 
 			if tc.expPass {
-				consensusHeights := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				consensusHeights := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
 
-				clientStateBz := suite.store.Get(host.ClientStateKey())
+				clientStateBz := store.Get(host.ClientStateKey())
 				suite.Require().NotEmpty(clientStateBz)
 
 				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
@@ -452,7 +455,7 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 				suite.Require().Equal(consensusHeights[0], newClientState.(*types.ClientState).LatestHeight)
 			} else {
 				suite.Require().Panics(func() {
-					clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+					clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
 				})
 			}
 		})
@@ -569,6 +572,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 
 			tc.malleate()
 
@@ -576,7 +580,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 			var heights []exported.Height
 			updateState := func() {
-				heights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, suite.store, clientMsg)
+				heights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
 			}
 
 			if tc.expPanic == nil {
@@ -584,7 +588,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				suite.Require().Equal(tc.expHeights, heights)
 
 				if tc.expClientState != nil {
-					clientStateBz := suite.store.Get(host.ClientStateKey())
+					clientStateBz := store.Get(host.ClientStateKey())
 					suite.Require().Equal(tc.expClientState, clientStateBz)
 				}
 			} else {
