@@ -19,6 +19,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	tmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -281,6 +282,12 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 
 func (suite *TypesTestSuite) TestInitialize() {
 	panicMsg := errors.New("panic in InstantiateFn")
+
+	var (
+		consensusState exported.ConsensusState
+		clientState    exported.ClientState
+	)
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -291,6 +298,23 @@ func (suite *TypesTestSuite) TestInitialize() {
 			"success: new mock client",
 			func() {},
 			nil,
+			nil,
+		},
+		{
+			"failure: invalid consensus state",
+			func() {
+				// set upgraded consensus state to solomachine consensus state
+				consensusState = &solomachine.ConsensusState{}
+			},
+			clienttypes.ErrInvalidConsensus,
+			nil,
+		},
+		{
+			"failure: code hash has not been stored.",
+			func() {
+				clientState = types.NewClientState([]byte{1}, []byte("unknown"), clienttypes.NewHeight(0, 1))
+			},
+			types.ErrInvalidCodeHash,
 			nil,
 		},
 		{
@@ -320,8 +344,8 @@ func (suite *TypesTestSuite) TestInitialize() {
 			suite.SetupWasmWithMockVM()
 
 			codeHash := sha256.Sum256(wasmtesting.Code)
-			clientState := types.NewClientState([]byte{1}, codeHash[:], clienttypes.NewHeight(0, 1))
-			consensusState := types.NewConsensusState([]byte{2}, 0)
+			clientState = types.NewClientState([]byte{1}, codeHash[:], clienttypes.NewHeight(0, 1))
+			consensusState = types.NewConsensusState([]byte{2}, 0)
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.ctx, clientState.ClientType())
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, clientID)
