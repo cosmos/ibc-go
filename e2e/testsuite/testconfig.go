@@ -498,6 +498,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 			{
 				Repository: cc.Image,
 				Version:    cc.Tag,
+				UidGid: "1000:1000",
 			},
 		},
 		Bin:                 cc.Binary,
