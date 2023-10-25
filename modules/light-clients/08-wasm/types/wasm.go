@@ -11,32 +11,49 @@ import (
 )
 
 // GetCodeHashes returns all the code hashes stored.
-func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) CodeHashes {
+func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) (CodeHashes, error) {
 	wasmStoreKey := ibcwasm.GetWasmStoreKey()
 	store := ctx.KVStore(wasmStoreKey)
 	bz := store.Get([]byte(KeyCodeHashes))
 	if len(bz) == 0 {
-		return CodeHashes{}
+		return CodeHashes{}, nil
 	}
 	var hashes CodeHashes
-	cdc.MustUnmarshal(bz, &hashes)
-	return hashes
+	err := cdc.Unmarshal(bz, &hashes)
+	if err != nil {
+		return CodeHashes{}, err
+	}
+	return hashes, nil
 }
 
 // AddCodeHash adds a new code hash to the list of stored code hashes.
-func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) {
-	codeHashes := GetCodeHashes(ctx, cdc)
+func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) error {
+	codeHashes, err := GetCodeHashes(ctx, cdc)
+	if err != nil {
+		return err
+	}
+
 	codeHashes.Hashes = append(codeHashes.Hashes, codeHash)
 
 	wasmStoreKey := ibcwasm.GetWasmStoreKey()
 	store := ctx.KVStore(wasmStoreKey)
-	bz := cdc.MustMarshal(&codeHashes)
+	bz, err := cdc.Marshal(&codeHashes)
+	if err != nil {
+		return err
+	}
+
 	store.Set([]byte(KeyCodeHashes), bz)
+
+	return nil
 }
 
 // HasCodeHash returns true if the given code hash exists in the store and
 // false otherwise.
 func HasCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) bool {
-	codeHashes := GetCodeHashes(ctx, cdc)
+	codeHashes, err := GetCodeHashes(ctx, cdc)
+	if err != nil {
+		return false
+	}
+
 	return slices.ContainsFunc(codeHashes.Hashes, func(h []byte) bool { return bytes.Equal(codeHash, h) })
 }

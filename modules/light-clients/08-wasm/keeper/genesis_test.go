@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			suite.Require().NoError(err)
 
 			var storedHashes []string
-			res := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+			res, err := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
 			for _, hash := range res.Hashes {
 				storedHashes = append(storedHashes, hex.EncodeToString(hash))
 			}
