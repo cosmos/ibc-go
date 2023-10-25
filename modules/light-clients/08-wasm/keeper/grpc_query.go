@@ -31,6 +31,7 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 	if !types.HasCodeHash(sdk.UnwrapSDKContext(goCtx), k.cdc, codeHash) {
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.CodeHash).Error())
 	}
+
 	code, err := k.wasmVM.GetCode(codeHash)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.CodeHash).Error())
@@ -50,6 +51,7 @@ func (k Keeper) CodeHashes(goCtx context.Context, req *types.QueryCodeHashesRequ
 	if err != nil {
 		return nil, status.Error(codes.DataLoss, err.Error())
 	}
+
 	for _, hash := range storedHashes.Hashes {
 		codeHashes = append(codeHashes, hex.EncodeToString(hash))
 	}

@@ -18,11 +18,13 @@ func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) (CodeHashes, error) {
 	if len(bz) == 0 {
 		return CodeHashes{}, nil
 	}
+
 	var hashes CodeHashes
 	err := cdc.Unmarshal(bz, &hashes)
 	if err != nil {
 		return CodeHashes{}, err
 	}
+
 	return hashes, nil
 }
 

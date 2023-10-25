@@ -14,8 +14,17 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 		expResult func(codeHashes types.CodeHashes)
 	}{
 		{
-			"success: default mock vm contract stored.",
+			"success: no contract stored.",
 			func() {},
+			func(codeHashes types.CodeHashes) {
+				suite.Require().Len(codeHashes.Hashes, 0)
+			},
+		},
+		{
+			"success: default mock vm contract stored.",
+			func() {
+				suite.SetupWasmWithMockVM()
+			},
 			func(codeHashes types.CodeHashes) {
 				suite.Require().Len(codeHashes.Hashes, 1)
 				expectedCodeHash := sha256.Sum256(wasmtesting.Code)
@@ -25,6 +34,8 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 		{
 			"success: non-empty code hashes",
 			func() {
+				suite.SetupWasmWithMockVM()
+
 				err := types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), []byte("codehash"))
 				suite.Require().NoError(err)
 			},
@@ -38,8 +49,6 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
-
 			tc.malleate()
 
 			codeHashes, err := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
