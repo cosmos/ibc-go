@@ -15,7 +15,7 @@ require (
 	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20231002160758-6312d792a16d
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.26.0
-	golang.org/x/mod v0.12.0
+	golang.org/x/mod v0.13.0
 	google.golang.org/grpc v1.58.3
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -27,7 +27,7 @@ require (
 	cloud.google.com/go/iam v1.1.2 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	cosmossdk.io/api v0.7.2 // indirect
-	cosmossdk.io/client/v2 v2.0.0-20231006102024-9af83f4b9295 // indirect
+	cosmossdk.io/client/v2 v2.0.0-20231025092924-0c4c24bb3b14 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.11.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
@@ -217,14 +217,14 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/sync v0.4.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/tools v0.13.0 // indirect
+	golang.org/x/tools v0.14.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.128.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
