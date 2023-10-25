@@ -19,6 +19,10 @@ var _ module.AppModuleBasic = (*AppModuleBasic)(nil)
 // a no-op.
 type AppModuleBasic struct{}
 
+func (AppModuleBasic) IsOnePerModuleType() {}
+
+func (AppModuleBasic) IsAppModule() {}
+
 // Name returns the solo machine module name.
 func (AppModuleBasic) Name() string {
 	return ModuleName

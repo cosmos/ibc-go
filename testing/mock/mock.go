@@ -58,6 +58,10 @@ type PortKeeper interface {
 // AppModuleBasic is the mock AppModuleBasic.
 type AppModuleBasic struct{}
 
+func (AppModule) IsOnePerModuleType() {}
+
+func (AppModule) IsAppModule() {}
+
 // Name implements AppModuleBasic interface.
 func (AppModuleBasic) Name() string {
 	return ModuleName
