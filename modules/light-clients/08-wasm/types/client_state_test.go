@@ -790,7 +790,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					return nil, wasmtesting.DefaultGasUsed, commitmenttypes.ErrInvalidProof
 				})
 			},
-			commitmenttypes.ErrInvalidProof,
+			types.ErrWasmContractCallFailed,
 		},
 		{
 			"proof height greater than client state latest height",

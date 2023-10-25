@@ -569,7 +569,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			errorsmod.Wrapf(wasmtesting.ErrMockContract, "call to wasm contract failed"),
+			errorsmod.Wrapf(types.ErrWasmContractCallFailed, "call to wasm contract failed: %v", wasmtesting.ErrMockContract),
 			nil,
 			nil,
 		},
