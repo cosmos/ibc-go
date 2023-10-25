@@ -1,8 +1,6 @@
 package wasm
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -277,44 +275,18 @@ type GetCodeQueryMsgResponse struct {
 	Data []byte `json:"data"`
 }
 
-func gUnzipData(data []byte) (resData []byte, err error) {
-	b := bytes.NewBuffer(data)
-
-	var r io.Reader
-	r, err = gzip.NewReader(b)
-	if err != nil {
-		return
-	}
-
-	var resB bytes.Buffer
-	_, err = resB.ReadFrom(r)
-	if err != nil {
-		return
-	}
-
-	resData = resB.Bytes()
-
-	return
-}
-
-
 // PushNewWasmClientProposal submits a new wasm client governance proposal to the chain
-func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, proposalContentReader io.Reader) string {
-
-	zippedContent, err := io.ReadAll(proposalContentReader)
+func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, proposalContent io.Reader) string {
+	content, err := io.ReadAll(proposalContent)
 	s.Require().NoError(err)
 
-	unZippedContent, err := gUnzipData(zippedContent)
-	s.Require().NoError(err)
-
-	codeHashByte32 := sha256.Sum256(unZippedContent)
+	codeHashByte32 := sha256.Sum256(content)
 	codeHash := hex.EncodeToString(codeHashByte32[:])
-
-	//content, err = testutil.GzipIt(content)
+	content, err = testutil.GzipIt(content)
 	s.Require().NoError(err)
 	message := wasmtypes.MsgStoreCode{
-		Signer:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		WasmByteCode: zippedContent,
+		Signer:      authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		WasmByteCode: content,
 	}
 
 	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
