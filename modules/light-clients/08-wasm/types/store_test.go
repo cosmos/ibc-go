@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	prefixstore "cosmossdk.io/store/prefix"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -32,35 +31,35 @@ func (suite *TypesTestSuite) TestGetClientID() {
 			func() {
 				clientStore = nil
 			},
-			errorsmod.Wrapf(types.ErrRetrieveClientID, "clientStore is not a prefix store"),
+			types.ErrRetrieveClientID,
 		},
 		{
 			"failure: prefix store does not contain prefix",
 			func() {
 				clientStore = prefixstore.NewStore(nil, nil)
 			},
-			errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix field not found"),
+			types.ErrRetrieveClientID,
 		},
 		{
 			"failure: prefix does not contain slash separated path",
 			func() {
 				clientStore = prefixstore.NewStore(nil, []byte("not-a-slash-separated-path"))
 			},
-			errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a slash"),
+			types.ErrRetrieveClientID,
 		},
 		{
 			"failure: prefix only contains one slash",
 			func() {
 				clientStore = prefixstore.NewStore(nil, []byte("only-one-slash/"))
 			},
-			errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a slash"),
+			types.ErrRetrieveClientID,
 		},
 		{
 			"failure: prefix does not contain a wasm clientID",
 			func() {
 				clientStore = prefixstore.NewStore(nil, []byte("/not-client-id/"))
 			},
-			errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a 08-wasm clientID"),
+			types.ErrRetrieveClientID,
 		},
 	}
 

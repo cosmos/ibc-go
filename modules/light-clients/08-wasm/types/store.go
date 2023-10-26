@@ -130,6 +130,12 @@ func (s storeAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
 	return s.parent.ReverseIterator(start, end)
 }
 
+// getClientID extracts and validates the clientID from the clientStore's prefix.
+//
+// Due to the 02-client module not passing the clientID to the 08-wasm module,
+// this function was devised to infer it from the store's prefix.
+// The expected format of the clientStore prefix is "<placeholder>/{clientID}/".
+// If the clientStore is of type updateProposalWrappedStore, the subjectStore's prefix is utilized instead.
 func getClientID(clientStore storetypes.KVStore) (string, error) {
 	upws, isUpdateProposalWrappedStore := clientStore.(updateProposalWrappedStore)
 	if isUpdateProposalWrappedStore {
@@ -151,20 +157,16 @@ func getClientID(clientStore storetypes.KVStore) (string, error) {
 		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix field not found")
 	}
 
-	prefix := f.Bytes()
-	prefixStr := string(prefix)
+	prefix := string(f.Bytes())
 
-	lastSlash := strings.LastIndex(prefixStr, "/")
-	if lastSlash == -1 {
-		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a slash")
-	}
-	secondLastSlash := strings.LastIndex(prefixStr[:lastSlash], "/")
-	if secondLastSlash == -1 {
-		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a second slash")
+	split := strings.Split(prefix, "/")
+	if len(split) < 3 {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix is not of the expected form")
 	}
 
-	clientID := prefixStr[secondLastSlash+1 : lastSlash]
-
+	// the clientID is the second to last element of the prefix
+	// the prefix is expected to be of the form "<placeholder>/{clientID}/"
+	clientID := split[len(split)-2]
 	isClientID := strings.HasPrefix(clientID, exported.Wasm)
 	if !isClientID {
 		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a %s clientID", exported.Wasm)
