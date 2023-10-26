@@ -5,7 +5,7 @@ go 1.21
 require (
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/math v1.1.3-rc.1
-	cosmossdk.io/x/upgrade v0.0.0-20231006102024-9af83f4b9295
+	cosmossdk.io/x/upgrade v0.0.0-20231023160833-026631cd833c
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20231026141021-0469fc17e158
 	github.com/cosmos/gogoproto v1.4.11
@@ -27,15 +27,15 @@ require (
 	cloud.google.com/go/iam v1.1.2 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	cosmossdk.io/api v0.7.2 // indirect
-	cosmossdk.io/client/v2 v2.0.0-20230818115413-c402c51a1508 // indirect
+	cosmossdk.io/client/v2 v2.0.0-20231024213736-e269ea8c13d8 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.11.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/log v1.2.1 // indirect
 	cosmossdk.io/store v1.0.0-rc.0 // indirect
-	cosmossdk.io/x/circuit v0.0.0-20230818115413-c402c51a1508 // indirect
-	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508 // indirect
-	cosmossdk.io/x/feegrant v0.0.0-20230818115413-c402c51a1508 // indirect
+	cosmossdk.io/x/circuit v0.0.0-20231023160833-026631cd833c // indirect
+	cosmossdk.io/x/evidence v0.0.0-20231023160833-026631cd833c // indirect
+	cosmossdk.io/x/feegrant v0.0.0-20231023160833-026631cd833c // indirect
 	cosmossdk.io/x/tx v0.11.0 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -219,7 +219,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sync v0.4.0 // indirect
