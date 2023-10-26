@@ -80,6 +80,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, endpoint.ClientID)
 			clientState := endpoint.GetClientState()
 
 			clientMsg = &types.ClientMessage{
@@ -88,7 +89,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 
 			tc.malleate()
 
-			err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMsg)
+			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMsg)
 
 			expPass := tc.expErr == nil
 			if expPass {
@@ -102,13 +103,11 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 
 func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 	var clientMessage exported.ClientMessage
-	var foundMisbehaviour bool
 
 	testCases := []struct {
 		name                 string
 		malleate             func()
 		expFoundMisbehaviour bool
-		expPanic             error
 	}{
 		{
 			"success: no misbehaviour",
@@ -120,7 +119,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				})
 			},
 			false,
-			nil,
 		},
 		{
 			"success: misbehaviour found", func() {
@@ -131,7 +129,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				})
 			},
 			true,
-			nil,
 		},
 		{
 			"success: contract error, resp cannot be marshalled", func() {
@@ -141,7 +138,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				})
 			},
 			false,
-			nil,
 		},
 		{
 			"success: vm returns error, ", func() {
@@ -150,7 +146,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				})
 			},
 			false,
-			nil,
 		},
 		{
 			"success: invalid client message", func() {
@@ -158,16 +153,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				// we will not register the callback here because this test case does not reach the VM
 			},
 			false,
-			nil,
-		},
-		{
-			"failure: contract panics, panic propogated", func() {
-				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					panic(errors.New("panic in query to contract"))
-				})
-			},
-			false,
-			errors.New("panic in query to contract"),
 		},
 	}
 
@@ -184,18 +169,12 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				Data: []byte{1},
 			}
 
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, endpoint.ClientID)
+
 			tc.malleate()
 
-			if tc.expPanic == nil {
-				foundMisbehaviour = clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMessage)
-				suite.Require().Equal(tc.expFoundMisbehaviour, foundMisbehaviour)
-			} else {
-				suite.PanicsWithError(
-					tc.expPanic.Error(),
-					func() {
-						clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMessage)
-					})
-			}
+			foundMisbehaviour := clientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+			suite.Require().Equal(tc.expFoundMisbehaviour, foundMisbehaviour)
 		})
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"time"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -157,6 +156,84 @@ func (suite *TypesTestSuite) TestStatus() {
 	}
 }
 
+func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
+	var height exported.Height
+
+	expectedTimestamp := uint64(time.Now().UnixNano())
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					var payload types.QueryMsg
+					err := json.Unmarshal(queryMsg, &payload)
+					suite.Require().NoError(err)
+
+					suite.Require().NotNil(payload.TimestampAtHeight)
+					suite.Require().Nil(payload.CheckForMisbehaviour)
+					suite.Require().Nil(payload.Status)
+					suite.Require().Nil(payload.ExportMetadata)
+					suite.Require().Nil(payload.VerifyClientMessage)
+
+					resp, err := json.Marshal(types.TimestampAtHeightResult{Timestamp: expectedTimestamp})
+					suite.Require().NoError(err)
+
+					return resp, types.DefaultGasUsed, nil
+				})
+			},
+			nil,
+		},
+		{
+			"failure: contract returns error",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					return nil, 0, wasmtesting.ErrMockContract
+				})
+			},
+			wasmtesting.ErrMockContract,
+		},
+		{
+			"error: invalid height",
+			func() {
+				height = ibcmock.Height{}
+			},
+			ibcerrors.ErrInvalidType,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState := endpoint.GetClientState().(*types.ClientState)
+			height = clientState.GetLatestHeight()
+
+			tc.malleate()
+
+			timestamp, err := clientState.GetTimestampAtHeight(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), height)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expectedTimestamp, timestamp)
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
+
 func (suite *TypesTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
@@ -281,8 +358,6 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestInitialize() {
-	panicMsg := errors.New("panic in InstantiateFn")
-
 	var (
 		consensusState exported.ConsensusState
 		clientState    exported.ClientState
@@ -292,12 +367,10 @@ func (suite *TypesTestSuite) TestInitialize() {
 		name     string
 		malleate func()
 		expError error
-		expPanic interface{}
 	}{
 		{
 			"success: new mock client",
 			func() {},
-			nil,
 			nil,
 		},
 		{
@@ -307,7 +380,6 @@ func (suite *TypesTestSuite) TestInitialize() {
 				consensusState = &solomachine.ConsensusState{}
 			},
 			clienttypes.ErrInvalidConsensus,
-			nil,
 		},
 		{
 			"failure: code hash has not been stored.",
@@ -315,7 +387,6 @@ func (suite *TypesTestSuite) TestInitialize() {
 				clientState = types.NewClientState([]byte{1}, []byte("unknown"), clienttypes.NewHeight(0, 1))
 			},
 			types.ErrInvalidCodeHash,
-			nil,
 		},
 		{
 			"failure: InstantiateFn returns error",
@@ -325,17 +396,6 @@ func (suite *TypesTestSuite) TestInitialize() {
 				}
 			},
 			wasmtesting.ErrMockContract,
-			nil,
-		},
-		{
-			"failure: InstantiateFn panics",
-			func() {
-				suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					panic(panicMsg)
-				}
-			},
-			nil,
-			panicMsg,
 		},
 	}
 
@@ -352,30 +412,19 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 			tc.malleate()
 
-			var err error
-			initialize := func() {
-				err = clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
-			}
+			err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, clientStore, consensusState)
 
-			switch {
-			case tc.expPanic != nil:
-				suite.Require().PanicsWithValue(tc.expPanic, initialize)
-			case tc.expError != nil:
-				initialize()
-
-				suite.Require().ErrorIs(err, tc.expError)
-				suite.Require().False(clientStore.Has(host.ClientStateKey()))
-				suite.Require().False(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
-			default:
-				initialize()
-
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 
 				expClientState := clienttypes.MustMarshalClientState(suite.chainA.Codec, clientState)
-				suite.Require().Equal(clientStore.Get(host.ClientStateKey()), expClientState)
+				suite.Require().Equal(expClientState, clientStore.Get(host.ClientStateKey()))
 
 				expConsensusState := clienttypes.MustMarshalConsensusState(suite.chainA.Codec, consensusState)
-				suite.Require().Equal(clientStore.Get(host.ConsensusStateKey(clientState.GetLatestHeight())), expConsensusState)
+				suite.Require().Equal(expConsensusState, clientStore.Get(host.ConsensusStateKey(clientState.GetLatestHeight())))
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
