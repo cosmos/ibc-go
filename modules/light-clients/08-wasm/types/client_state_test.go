@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"time"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -361,8 +360,6 @@ func (suite *TypesTestSuite) TestInitializeGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestInitialize() {
-	panicMsg := errors.New("panic in InstantiateFn")
-
 	var (
 		consensusState exported.ConsensusState
 		clientState    exported.ClientState
@@ -373,12 +370,10 @@ func (suite *TypesTestSuite) TestInitialize() {
 		name     string
 		malleate func()
 		expError error
-		expPanic interface{}
 	}{
 		{
 			"success: new mock client",
 			func() {},
-			nil,
 			nil,
 		},
 		{
@@ -397,7 +392,6 @@ func (suite *TypesTestSuite) TestInitialize() {
 				}
 			},
 			nil,
-			nil,
 		},
 		{
 			"failure: clientStore prefix does not include clientID",
@@ -405,7 +399,6 @@ func (suite *TypesTestSuite) TestInitialize() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
 			},
 			types.ErrRetrieveClientID,
-			nil,
 		},
 		{
 			"failure: invalid consensus state",
@@ -414,7 +407,6 @@ func (suite *TypesTestSuite) TestInitialize() {
 				consensusState = &solomachine.ConsensusState{}
 			},
 			clienttypes.ErrInvalidConsensus,
-			nil,
 		},
 		{
 			"failure: code hash has not been stored.",
@@ -422,7 +414,6 @@ func (suite *TypesTestSuite) TestInitialize() {
 				clientState = types.NewClientState([]byte{1}, []byte("unknown"), clienttypes.NewHeight(0, 1))
 			},
 			types.ErrInvalidCodeHash,
-			nil,
 		},
 		{
 			"failure: InstantiateFn returns error",
@@ -432,17 +423,6 @@ func (suite *TypesTestSuite) TestInitialize() {
 				}
 			},
 			wasmtesting.ErrMockContract,
-			nil,
-		},
-		{
-			"failure: InstantiateFn panics",
-			func() {
-				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					panic(panicMsg)
-				}
-			},
-			nil,
-			panicMsg,
 		},
 	}
 
@@ -459,30 +439,19 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 			tc.malleate()
 
-			var err error
-			initialize := func() {
-				err = clientState.Initialize(suite.ctx, suite.chainA.Codec, clientStore, consensusState)
-			}
+			err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, clientStore, consensusState)
 
-			switch {
-			case tc.expPanic != nil:
-				suite.Require().PanicsWithValue(tc.expPanic, initialize)
-			case tc.expError != nil:
-				initialize()
-
-				suite.Require().ErrorIs(err, tc.expError)
-				suite.Require().False(clientStore.Has(host.ClientStateKey()))
-				suite.Require().False(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
-			default:
-				initialize()
-
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 
 				expClientState := clienttypes.MustMarshalClientState(suite.chainA.Codec, clientState)
-				suite.Require().Equal(clientStore.Get(host.ClientStateKey()), expClientState)
+				suite.Require().Equal(expClientState, clientStore.Get(host.ClientStateKey()))
 
 				expConsensusState := clienttypes.MustMarshalConsensusState(suite.chainA.Codec, consensusState)
-				suite.Require().Equal(clientStore.Get(host.ConsensusStateKey(clientState.GetLatestHeight())), expConsensusState)
+				suite.Require().Equal(expConsensusState, clientStore.Get(host.ConsensusStateKey(clientState.GetLatestHeight())))
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}

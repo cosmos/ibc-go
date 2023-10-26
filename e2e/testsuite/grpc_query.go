@@ -23,6 +23,7 @@ import (
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
@@ -44,6 +45,7 @@ type GRPCClients struct {
 	FeeQueryClient           feetypes.QueryClient
 	ICAControllerQueryClient controllertypes.QueryClient
 	ICAHostQueryClient       hosttypes.QueryClient
+	WasmQueryClient          wasmtypes.QueryClient
 
 	// SDK query clients
 	BankQueryClient    banktypes.QueryClient
@@ -60,7 +62,12 @@ type GRPCClients struct {
 
 // InitGRPCClients establishes GRPC clients with the given chain.
 // The created GRPCClients can be retrieved with GetChainGRCPClients.
-func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
+func (s *E2ETestSuite) InitGRPCClients(chain ibc.Chain) {
+	_, ok := chain.(*cosmos.CosmosChain)
+	if !ok {
+		return
+	}
+
 	// Create a connection to the gRPC server.
 	grpcConn, err := grpc.Dial(
 		chain.GetHostGRPCAddress(),
@@ -85,6 +92,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		FeeQueryClient:           feetypes.NewQueryClient(grpcConn),
 		ICAControllerQueryClient: controllertypes.NewQueryClient(grpcConn),
 		ICAHostQueryClient:       hosttypes.NewQueryClient(grpcConn),
+		WasmQueryClient:          wasmtypes.NewQueryClient(grpcConn),
 		BankQueryClient:          banktypes.NewQueryClient(grpcConn),
 		GovQueryClient:           govtypesv1beta1.NewQueryClient(grpcConn),
 		GovQueryClientV1:         govtypesv1.NewQueryClient(grpcConn),
@@ -234,7 +242,7 @@ func (s *E2ETestSuite) QueryInterchainAccount(ctx context.Context, chain ibc.Cha
 // QueryIncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
 func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
 	ctx context.Context,
-	chain *cosmos.CosmosChain,
+	chain ibc.Chain,
 	portID,
 	channelID string,
 ) ([]*feetypes.IdentifiedPacketFees, error) {
@@ -325,7 +333,7 @@ func (s *E2ETestSuite) GetValidatorSetByHeight(ctx context.Context, chain ibc.Ch
 }
 
 // QueryModuleAccountAddress returns the sdk.AccAddress of a given module name.
-func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain *cosmos.CosmosChain) (sdk.AccAddress, error) {
+func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName string, chain ibc.Chain) (sdk.AccAddress, error) {
 	authClient := s.GetChainGRCPClients(chain).AuthQueryClient
 	resp, err := authClient.ModuleAccountByName(ctx, &authtypes.QueryModuleAccountByNameRequest{
 		Name: moduleName,
@@ -349,7 +357,7 @@ func (s *E2ETestSuite) QueryModuleAccountAddress(ctx context.Context, moduleName
 }
 
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
-func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain *cosmos.CosmosChain, granterAddress string) ([]*authz.GrantAuthorization, error) {
+func (s *E2ETestSuite) QueryGranterGrants(ctx context.Context, chain ibc.Chain, granterAddress string) ([]*authz.GrantAuthorization, error) {
 	authzClient := s.GetChainGRCPClients(chain).AuthZQueryClient
 	queryRequest := &authz.QueryGranterGrantsRequest{
 		Granter: granterAddress,
@@ -378,7 +386,7 @@ func (s *E2ETestSuite) QueryAllBalances(ctx context.Context, chain ibc.Chain, ad
 }
 
 // QueryDenomMetadata queries the metadata for the given denom.
-func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain *cosmos.CosmosChain, denom string) (banktypes.Metadata, error) {
+func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain ibc.Chain, denom string) (banktypes.Metadata, error) {
 	bankClient := s.GetChainGRCPClients(chain).BankQueryClient
 	queryRequest := &banktypes.QueryDenomMetadataRequest{
 		Denom: denom,
@@ -388,4 +396,17 @@ func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain *cosmos.Cos
 		return banktypes.Metadata{}, err
 	}
 	return res.Metadata, nil
+}
+
+// QueryWasmCode queries the code for a wasm contract.
+func (s *E2ETestSuite) QueryWasmCode(ctx context.Context, chain ibc.Chain, codehash string) ([]byte, error) {
+	queryClient := s.GetChainGRCPClients(chain).WasmQueryClient
+	queryRequest := &wasmtypes.QueryCodeRequest{
+		CodeHash: codehash,
+	}
+	res, err := queryClient.Code(ctx, queryRequest)
+	if err != nil {
+		return nil, err
+	}
+	return res.Data, nil
 }
