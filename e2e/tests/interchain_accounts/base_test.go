@@ -9,7 +9,6 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -36,7 +35,7 @@ type InterchainAccountsTestSuite struct {
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
+func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
 	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
 	s.AssertTxSuccess(txResp)
 }
@@ -47,7 +46,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
@@ -143,7 +142,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
@@ -232,7 +231,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
