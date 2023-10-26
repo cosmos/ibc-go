@@ -12,7 +12,7 @@ require (
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0
 	github.com/cosmos/ibc-go/v8 v8.0.0
 	github.com/docker/docker v24.0.6+incompatible
-	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20231002160758-6312d792a16d
+	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20231025175148-71fa3a9e603d
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.26.0
 	golang.org/x/mod v0.13.0
@@ -269,5 +269,3 @@ replace github.com/cosmos/ibc-go/modules/light-clients/08-wasm => ../modules/lig
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-
-replace github.com/strangelove-ventures/interchaintest/v8 => github.com/chatton/interchaintest/v8 v8.0.0-20231025153423-68e4d0a32a39
