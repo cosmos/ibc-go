@@ -156,3 +156,10 @@ func (KeyPath) String() string {
 func (KeyPath) Empty() bool {
 	return false
 }
+
+var _ exported.Height = Height{}
+
+// Height defines a placeholder struct which implements the exported.Height interface
+type Height struct {
+	exported.Height
+}
