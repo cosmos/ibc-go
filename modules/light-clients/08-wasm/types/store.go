@@ -167,7 +167,7 @@ func getClientID(clientStore storetypes.KVStore) (string, error) {
 
 	isClientID := strings.HasPrefix(clientID, exported.Wasm)
 	if !isClientID {
-		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a 08-wasm clientID")
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a %s clientID", exported.Wasm)
 	}
 
 	return clientID, nil
