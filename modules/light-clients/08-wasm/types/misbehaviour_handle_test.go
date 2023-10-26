@@ -16,7 +16,6 @@ import (
 
 func (suite *TypesTestSuite) TestVerifyClientMessage() {
 	var clientMsg exported.ClientMessage
-	contractError := errors.New("callbackFn error")
 
 	testCases := []struct {
 		name     string
@@ -65,10 +64,10 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			"failure: error return from contract vm",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					return nil, 0, contractError
+					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			contractError,
+			wasmtesting.ErrMockContract,
 		},
 	}
 
