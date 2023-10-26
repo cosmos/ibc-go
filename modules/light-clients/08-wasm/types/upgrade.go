@@ -43,15 +43,15 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 			upgradedClient.GetLatestHeight(), lastHeight)
 	}
 
-	payload := sudoMsg{
-		VerifyUpgradeAndUpdateState: &verifyUpgradeAndUpdateStateMsg{
-			UpgradeClientState:         upgradedClient,
-			UpgradeConsensusState:      upgradedConsState,
+	payload := SudoMsg{
+		VerifyUpgradeAndUpdateState: &VerifyUpgradeAndUpdateStateMsg{
+			UpgradeClientState:         *wasmUpgradeClientState,
+			UpgradeConsensusState:      *wasmUpgradeConsState,
 			ProofUpgradeClient:         proofUpgradeClient,
 			ProofUpgradeConsensusState: proofUpgradeConsState,
 		},
 	}
 
-	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmCall[EmptyResult](ctx, clientStore, &cs, payload)
 	return err
 }

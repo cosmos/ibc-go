@@ -9,7 +9,7 @@ require (
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20231025125555-301ceca874dc
 	github.com/cosmos/gogoproto v1.4.11
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0-00010101000000-000000000000
 	github.com/cosmos/ibc-go/v8 v8.0.0
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20231025175148-71fa3a9e603d

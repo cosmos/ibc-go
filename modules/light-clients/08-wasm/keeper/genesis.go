@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	storetypes "cosmossdk.io/store/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -20,17 +18,25 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 	return nil
 }
 
-// ExportGenesis returns the 08-wasm module's exported genesis.
+// ExportGenesis returns the 08-wasm module's exported genesis. This includes the code
+// for all contracts previously stored.
 func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
-	store := ctx.KVStore(k.storeKey)
-	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.KeyCodeHashPrefix))
-	defer iterator.Close()
+	codeHashes, err := types.GetCodeHashes(ctx, k.cdc)
+	if err != nil {
+		panic(err)
+	}
 
+	// Grab code from wasmVM and add to genesis state.
 	var genesisState types.GenesisState
-	for ; iterator.Valid(); iterator.Next() {
+	for _, codeHash := range codeHashes.Hashes {
+		code, err := k.wasmVM.GetCode(codeHash)
+		if err != nil {
+			panic(err)
+		}
 		genesisState.Contracts = append(genesisState.Contracts, types.Contract{
-			CodeBytes: iterator.Value(),
+			CodeBytes: code,
 		})
 	}
+
 	return genesisState
 }

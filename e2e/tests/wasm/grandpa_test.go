@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package wasm
 
 import (
@@ -10,9 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/polkadot"
@@ -20,10 +19,20 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/math"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+)
+
+const (
+	composable = "composable"
+	simd       = "simd"
 )
 
 func TestGrandpaTestSuite(t *testing.T) {
@@ -39,7 +48,7 @@ type GrandpaTestSuite struct {
 func validateTestConfig() {
 	tc := testsuite.LoadConfig()
 	if tc.ActiveRelayer != "hyperspace" {
-		panic(fmt.Errorf("hyperspace relayer must be specifed"))
+		panic(fmt.Errorf("hyperspace relayer must be specified"))
 	}
 }
 
@@ -69,13 +78,11 @@ func getConfigOverrides() map[string]any {
 // * start relayer
 // * send transfer over ibc
 func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
-	t := s.T()
-
 	ctx := context.Background()
 
 	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
 		// configure chain A (polkadot)
-		options.ChainASpec.ChainName = "composable"
+		options.ChainASpec.ChainName = composable
 		options.ChainASpec.Type = "polkadot"
 		options.ChainASpec.ChainID = "rococo-local"
 		options.ChainASpec.Name = "composable"
@@ -92,7 +99,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 			},
 		}
 		options.ChainASpec.Bin = "polkadot"
-		options.ChainASpec.Bech32Prefix = "composable"
+		options.ChainASpec.Bech32Prefix = composable
 		options.ChainASpec.Denom = "uDOT"
 		options.ChainASpec.GasPrices = ""
 		options.ChainASpec.GasAdjustment = 0
@@ -105,10 +112,10 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainASpec.EncodingConfig = nil
 
 		// configure chain B (cosmos)
-		options.ChainBSpec.ChainName = "simd" // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
+		options.ChainBSpec.ChainName = simd // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
 		options.ChainBSpec.Type = "cosmos"
 		options.ChainBSpec.Name = "simd"
-		options.ChainBSpec.ChainID = "simd"
+		options.ChainBSpec.ChainID = simd
 		options.ChainBSpec.Images = []ibc.DockerImage{
 			{
 				Repository: "chatton/ibc-go-simd-wasm",
@@ -116,7 +123,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 				UidGid:     "1000:1000",
 			},
 		}
-		options.ChainBSpec.Bin = "simd"
+		options.ChainBSpec.Bin = simd
 		options.ChainBSpec.Bech32Prefix = "cosmos"
 
 		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here for now.
@@ -163,7 +170,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	// Fund users on both cosmos and parachain, mints Asset 1 for Alice
 	fundAmount := int64(12_333_000_000_000)
-	polkadotUser, cosmosUser := s.fundUsers(t, ctx, fundAmount, polkadotChain, cosmosChain)
+	polkadotUser, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
 
 	pathName := s.GetPathName(0)
 
@@ -190,7 +197,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	// Start relayer
 	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
-
 
 	// TODO: this can be refactored to broadcast a MsgTransfer instead of CLI.
 	// Send 1.77 stake from cosmosUser to parachainUser
@@ -264,7 +270,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	parachainUserStake, err = polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 2)
 	s.Require().NoError(err)
 	s.Require().True(parachainUserStake.Amount.Equal(math.NewInt(amountToSend-amountToReflect)), "parachain user's final stake amount not expected")
-
 }
 
 // extractCodeHashFromGzippedContent takes a gzipped wasm contract and returns the codehash.
@@ -292,6 +297,7 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
 
 	codeHashBz, err := s.QueryWasmCode(ctx, chain, computedCodeHash)
+	s.Require().NoError(err)
 
 	codeHashByte32 := sha256.Sum256(codeHashBz)
 	actualCodeHash := hex.EncodeToString(codeHashByte32[:])
@@ -300,8 +306,8 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 	return actualCodeHash
 }
 
-func (s *GrandpaTestSuite) fundUsers(t *testing.T, ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
-	users := interchaintest.GetAndFundTestUsers(t, ctx, "user", fundAmount, polkadotChain, cosmosChain)
+func (s *GrandpaTestSuite) fundUsers(ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
+	users := interchaintest.GetAndFundTestUsers(s.T(), ctx, "user", fundAmount, polkadotChain, cosmosChain)
 	polkadotUser, cosmosUser := users[0], users[1]
 	err := testutil.WaitForBlocks(ctx, 2, polkadotChain, cosmosChain) // Only waiting 1 block is flaky for parachain
 	s.Require().NoError(err, "cosmos or polkadot chain failed to make blocks")

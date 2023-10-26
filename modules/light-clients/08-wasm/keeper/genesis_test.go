@@ -56,12 +56,17 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			err := GetSimApp(suite.chainA).WasmClientKeeper.InitGenesis(ctx, genesisState)
 			suite.Require().NoError(err)
 
-			req := &types.QueryCodeHashesRequest{}
-			res, err := GetSimApp(suite.chainA).WasmClientKeeper.CodeHashes(ctx, req)
+			var storedHashes []string
+			res, err := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
-			suite.Require().Equal(len(expCodeHashes), len(res.CodeHashes))
-			suite.Require().ElementsMatch(expCodeHashes, res.CodeHashes)
+
+			for _, hash := range res.Hashes {
+				storedHashes = append(storedHashes, hex.EncodeToString(hash))
+			}
+
+			suite.Require().Equal(len(expCodeHashes), len(storedHashes))
+			suite.Require().ElementsMatch(expCodeHashes, storedHashes)
 		})
 	}
 }

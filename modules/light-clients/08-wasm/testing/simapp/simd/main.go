@@ -11,8 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/simd/cmd"
 )
 
-
-
 func main() {
 	rootCmd := cmd.NewRootCmd()
 

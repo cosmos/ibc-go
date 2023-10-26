@@ -36,10 +36,10 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, subjectPrefix, substitutePrefix)
 
-	payload := sudoMsg{
-		CheckSubstituteAndUpdateState: &checkSubstituteAndUpdateStateMsg{},
+	payload := SudoMsg{
+		CheckSubstituteAndUpdateState: &CheckSubstituteAndUpdateStateMsg{},
 	}
 
-	_, err := wasmCall[emptyResult](ctx, store, &cs, payload)
+	_, err := wasmCall[EmptyResult](ctx, store, &cs, payload)
 	return err
 }

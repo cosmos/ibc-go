@@ -12,17 +12,11 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
-var (
-	WasmVM WasmEngine
-	// Store key for 08-wasm module, required as a global so that the KV store can be retrieved
-	// in the ClientState Initialize function which doesn't have access to the keeper.
-	// The storeKey is used to check the code hash of the contract and determine if the light client
-	// is allowed to be instantiated.
-	WasmStoreKey  storetypes.StoreKey
-	VMGasRegister = NewDefaultWasmGasRegister()
-)
+var VMGasRegister = NewDefaultWasmGasRegister()
 
 // initContract calls vm.Init with appropriate arguments.
 func initContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
@@ -38,7 +32,7 @@ func initContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []by
 	}
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(len(msg)), "Loading CosmWasm module: instantiate")
-	response, gasUsed, err := WasmVM.Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	response, gasUsed, err := ibcwasm.GetVM().Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return response, err
 }
@@ -51,7 +45,7 @@ func callContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []by
 	env := getEnv(ctx)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: sudo")
-	resp, gasUsed, err := WasmVM.Sudo(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Sudo(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -65,13 +59,13 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []b
 	env := getEnv(ctx)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: query")
-	resp, gasUsed, err := WasmVM.Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
 
 // wasmInit accepts a message to instantiate a wasm contract, JSON encodes it and calls initContract.
-func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload instantiateMessage) error {
+func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
@@ -91,7 +85,7 @@ func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, 
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload sudoMsg) (T, error) {
+func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -126,7 +120,7 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 // - the payload cannot be marshaled to JSON
 // - the contract query returns an error
 // - the data bytes of the response cannot be unmarshal into the result type
-func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload queryMsg) (T, error) {
+func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload QueryMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)

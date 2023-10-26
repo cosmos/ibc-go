@@ -59,8 +59,6 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
-
 	t.Run("ensure capability module BeginBlock is executed", func(t *testing.T) {
 		// by restarting the chain we ensure that the capability module's BeginBlocker is executed.
 		s.Require().NoError(chainA.(*cosmos.CosmosChain).StopAllNodes(ctx))
