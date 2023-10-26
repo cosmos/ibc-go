@@ -6,29 +6,40 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"testing"
 	"time"
 
-	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/polkadot"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/relayer"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
-	"go.uber.org/zap/zaptest"
 
 	"cosmossdk.io/math"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
+const (
+	composable = "composable"
+	simd       = "simd"
+)
+
 func TestGrandpaTestSuite(t *testing.T) {
+	// this test suite only works with the hyperspace relayer, for now hard code this here.
+	// this will enforce that the hyperspace relayer is used in CI.
+	t.Setenv(testsuite.RelayerIDEnv, "hyperspace")
+	validateTestConfig()
 	testifysuite.Run(t, new(GrandpaTestSuite))
 }
 
@@ -36,13 +47,7 @@ type GrandpaTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-const (
-	heightDelta      = uint64(20)
-	votingPeriod     = "30s"
-	maxDepositPeriod = "10s"
-)
-
-// TestGrandpaContract features
+// TestMsgTransfer_Succeeds_GrandpaContract features
 // * sets up a Polkadot parachain
 // * sets up a Cosmos chain
 // * sets up the Hyperspace relayer
@@ -51,140 +56,91 @@ const (
 // * create client, connection, and channel in relayer
 // * start relayer
 // * send transfer over ibc
-func (s *GrandpaTestSuite) TestGrandpaContract() {
-	t := s.T()
-	client, network := interchaintest.DockerSetup(t)
-
-	// Log location
-	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
-	s.Require().NoError(err)
-	// Reporter/logs
-	rep := testreporter.NewReporter(f)
-	eRep := rep.RelayerExecReporter(t)
-
+func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	ctx := context.Background()
 
-	nv := 2 // Number of validators
-	nf := 1 // Number of full nodes
-
-	if testsuite.IsCI() {
-		nv = 5
-	}
-
-	consensusOverrides := make(testutil.Toml)
-	blockTime := 5 // seconds, parachain is 12 second blocks, don't make relayer work harder than needed
-	blockT := (time.Duration(blockTime) * time.Second).String()
-	consensusOverrides["timeout_commit"] = blockT
-	consensusOverrides["timeout_propose"] = blockT
-
-	configTomlOverrides := make(testutil.Toml)
-	configTomlOverrides["consensus"] = consensusOverrides
-
-	configFileOverrides := make(map[string]any)
-	configFileOverrides["config/config.toml"] = configTomlOverrides
-
-	// Get both chains
-	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
-		{
-			ChainName: "composable", // Set ChainName so that a suffix with a "dash" is not appended (required for hyperspace)
-			ChainConfig: ibc.ChainConfig{
-				Type:    "polkadot",
-				Name:    "composable",
-				ChainID: "rococo-local",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/misko9/polkadot-node",
-						Version:    "local",
-						UidGid:     "1000:1000",
-					},
-					{
-						Repository: "ghcr.io/misko9/parachain-node",
-						Version:    "latest",
-						UidGid:     "1000:1000",
-					},
-				},
-				Bin:            "polkadot",
-				Bech32Prefix:   "composable",
-				Denom:          "uDOT",
-				GasPrices:      "",
-				GasAdjustment:  0,
-				TrustingPeriod: "",
-				CoinType:       "354",
+	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
+		// configure chain A (polkadot)
+		options.ChainASpec.ChainName = composable
+		options.ChainASpec.Type = "polkadot"
+		options.ChainASpec.ChainID = "rococo-local"
+		options.ChainASpec.Name = "composable"
+		options.ChainASpec.Images = []ibc.DockerImage{
+			// TODO: https://github.com/cosmos/ibc-go/issues/4965
+			{
+				Repository: "ghcr.io/misko9/polkadot-node",
+				Version:    "local",
+				UidGid:     "1000:1000",
 			},
-			NumValidators: &nv,
-			NumFullNodes:  &nf,
-		},
-		{
-			ChainName: "simd", // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
-			ChainConfig: ibc.ChainConfig{
-				Type:    "cosmos",
-				Name:    "simd",
-				ChainID: "simd",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/misko9/ibc-go-simd",
-						Version:    "local",
-						UidGid:     "1025:1025",
-					},
-				},
-				Bin:                 "simd",
-				Bech32Prefix:        "cosmos",
-				Denom:               "stake",
-				GasPrices:           "0.00stake",
-				GasAdjustment:       1.3,
-				TrustingPeriod:      "504h",
-				CoinType:            "118",
-				NoHostMount:         true,
-				ConfigFileOverrides: configFileOverrides,
-				ModifyGenesis:       modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
+			{
+				Repository: "ghcr.io/misko9/parachain-node",
+				Version:    "latest",
+				UidGid:     "1000:1000",
 			},
-		},
+		}
+		options.ChainASpec.Bin = "polkadot"
+		options.ChainASpec.Bech32Prefix = composable
+		options.ChainASpec.Denom = "uDOT"
+		options.ChainASpec.GasPrices = ""
+		options.ChainASpec.GasAdjustment = 0
+		options.ChainASpec.TrustingPeriod = ""
+		options.ChainASpec.CoinType = "354"
+
+		// these values are set by default for our cosmos chains, we need to explicitly remove them here.
+		options.ChainASpec.ModifyGenesis = nil
+		options.ChainASpec.ConfigFileOverrides = nil
+		options.ChainASpec.EncodingConfig = nil
+
+		// configure chain B (cosmos)
+		options.ChainBSpec.ChainName = simd // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
+		options.ChainBSpec.Type = "cosmos"
+		options.ChainBSpec.Name = "simd"
+		options.ChainBSpec.ChainID = simd
+		options.ChainBSpec.Images = []ibc.DockerImage{
+			{
+				// TODO: https://github.com/cosmos/ibc-go/issues/4965
+				Repository: "chatton/ibc-go-simd-wasm",
+				Version:    "sdk50",
+				UidGid:     "1000:1000",
+			},
+		}
+		options.ChainBSpec.Bin = simd
+		options.ChainBSpec.Bech32Prefix = "cosmos"
+
+		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here right now.
+		// https://github.com/cosmos/ibc-go/issues/4964
+		options.ChainBSpec.Denom = "stake"
+		options.ChainBSpec.GasPrices = "0.00stake"
+		options.ChainBSpec.GasAdjustment = 1
+		options.ChainBSpec.TrustingPeriod = "504h"
+		options.ChainBSpec.CoinType = "118"
+
+		options.ChainBSpec.ChainConfig.NoHostMount = false
+		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
+		options.ChainBSpec.EncodingConfig = testsuite.SDKEncodingConfig()
 	})
 
-	chains, err := cf.Chains(t.Name())
+	polkadotChain := chainA.(*polkadot.PolkadotChain)
+	cosmosChain := chainB.(*cosmos.CosmosChain)
+
+	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
+	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
+		options.SkipPathCreation = true
+	})
+
+	s.InitGRPCClients(cosmosChain)
+
+	var err error
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
 	s.Require().NoError(err)
 
-	polkadotChain := chains[0].(*polkadot.PolkadotChain)
-	cosmosChain := chains[1].(*cosmos.CosmosChain)
+	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
 
-	// Get a relayer instance
-	r := interchaintest.NewBuiltinRelayerFactory(
-		ibc.Hyperspace,
-		zaptest.NewLogger(t),
-		relayer.ImagePull(true),
-		relayer.CustomDockerImage("ghcr.io/misko9/hyperspace", "local", "1000:1000"),
-	).Build(t, client, network)
+	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
 
-	// Build the network; spin up the chains and configure the relayer
-	const pathName = "composable-simd"
-	const relayerName = "hyperspace"
-
-	ic := interchaintest.NewInterchain().
-		AddChain(polkadotChain).
-		AddChain(cosmosChain).
-		AddRelayer(r, relayerName).
-		AddLink(interchaintest.InterchainLink{
-			Chain1:  polkadotChain,
-			Chain2:  cosmosChain,
-			Relayer: r,
-			Path:    pathName,
-		})
-
-	s.Require().NoError(ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
-		TestName:  t.Name(),
-		Client:    client,
-		NetworkID: network,
-		// BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
-		SkipPathCreation: true, // Skip path creation, so we can have granular control over the process
-	}))
-	fmt.Println("Interchain built")
-
-	t.Cleanup(func() {
-		_ = ic.Close()
-	})
-
-	// Create a proposal, vote, and wait for it to pass. Return code hash for relayer.
-	codeHash := s.pushWasmContractViaGov(t, ctx, cosmosChain)
+	eRep := s.GetRelayerExecReporter()
 
 	// Set client contract hash in cosmos chain config
 	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
@@ -196,7 +152,9 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 
 	// Fund users on both cosmos and parachain, mints Asset 1 for Alice
 	fundAmount := int64(12_333_000_000_000)
-	polkadotUser, cosmosUser := s.fundUsers(t, ctx, fundAmount, polkadotChain, cosmosChain)
+	polkadotUser, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
+
+	pathName := s.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
@@ -220,15 +178,10 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 	s.Require().NoError(err)
 
 	// Start relayer
-	r.StartRelayer(ctx, eRep, pathName)
-	s.Require().NoError(err)
-	t.Cleanup(func() {
-		err = r.StopRelayer(ctx, eRep)
-		if err != nil {
-			panic(err)
-		}
-	})
+	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
 
+	// TODO: this can be refactored to broadcast a MsgTransfer instead of CLI.
+	// https://github.com/cosmos/ibc-go/issues/4963
 	// Send 1.77 stake from cosmosUser to parachainUser
 	amountToSend := int64(1_770_000)
 	transfer := ibc.WalletAmount{
@@ -276,9 +229,6 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 	})
 	s.Require().NoError(err)
 
-	exportStateHeight, err := cosmosChain.Height(ctx)
-	s.Require().NoError(err)
-
 	// Wait for a new update state
 	err = testutil.WaitForBlocks(ctx, 5, cosmosChain, polkadotChain)
 	s.Require().NoError(err)
@@ -303,65 +253,44 @@ func (s *GrandpaTestSuite) TestGrandpaContract() {
 	parachainUserStake, err = polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 2)
 	s.Require().NoError(err)
 	s.Require().True(parachainUserStake.Amount.Equal(math.NewInt(amountToSend-amountToReflect)), "parachain user's final stake amount not expected")
-
-	r.StopRelayer(ctx, eRep) //  Stop relayer to export data
-	err = cosmosChain.StopAllNodes(ctx)
-	s.Require().NoError(err)
-	exportedState, err := cosmosChain.ExportState(ctx, int64(exportStateHeight))
-	s.Require().NoError(err)
-	fmt.Println("Exported State at height: ", exportStateHeight)
-	fmt.Println(exportedState)
 }
 
-type GetCodeQueryMsgResponse struct {
-	Data []byte `json:"data"`
+// extractCodeHashFromGzippedContent takes a gzipped wasm contract and returns the codehash.
+func (s *GrandpaTestSuite) extractCodeHashFromGzippedContent(zippedContent []byte) string {
+	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmByteSize())
+	s.Require().NoError(err)
+
+	codeHashByte32 := sha256.Sum256(content)
+	return hex.EncodeToString(codeHashByte32[:])
 }
 
-func (s *GrandpaTestSuite) pushWasmContractViaGov(t *testing.T, ctx context.Context, cosmosChain *cosmos.CosmosChain) string {
-	// Set up cosmos user for pushing new wasm code msg via governance
-	fundAmountForGov := int64(10_000_000_000)
-	contractUsers := interchaintest.GetAndFundTestUsers(t, ctx, "default", int64(fundAmountForGov), cosmosChain)
-	contractUser := contractUsers[0]
+// PushNewWasmClientProposal submits a new wasm client governance proposal to the chain.
+func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, proposalContentReader io.Reader) string {
+	zippedContent, err := io.ReadAll(proposalContentReader)
+	s.Require().NoError(err)
 
-	contractUserBalInitial, err := cosmosChain.GetBalance(ctx, contractUser.FormattedAddress(), cosmosChain.Config().Denom)
-	s.Require().NoError(err, "error fetching initial balance of contract user")
-	s.Require().Equal(math.NewInt(fundAmountForGov), contractUserBalInitial, "initial balance of contract user not expected")
+	computedCodeHash := s.extractCodeHashFromGzippedContent(zippedContent)
 
-	proposal := cosmos.TxProposalv1{
-		Metadata: "none",
-		Deposit:  "500000000" + cosmosChain.Config().Denom, // greater than min deposit
-		Title:    "Grandpa Contract",
-		Summary:  "new grandpa contract",
+	s.Require().NoError(err)
+	message := wasmtypes.MsgStoreCode{
+		Signer:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		WasmByteCode: zippedContent,
 	}
 
-	proposalTx, codeHash, err := cosmosChain.PushNewWasmClientProposal(ctx, contractUser.KeyName(), "../data/ics10_grandpa_cw.wasm", proposal)
-	s.Require().NoError(err, "error submitting new wasm contract proposal tx")
+	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
 
-	height, err := cosmosChain.Height(ctx)
-	s.Require().NoError(err, "error fetching height before submit upgrade proposal")
-
-	err = cosmosChain.VoteOnProposalAllValidators(ctx, proposalTx.ProposalID, cosmos.ProposalVoteYes)
-	s.Require().NoError(err, "failed to submit votes")
-
-	_, err = cosmos.PollForProposalStatus(ctx, cosmosChain, height, height+heightDelta, proposalTx.ProposalID, cosmos.ProposalStatusPassed)
-	s.Require().NoError(err, "proposal status did not change to passed in expected number of blocks")
-
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain)
+	codeHashBz, err := s.QueryWasmCode(ctx, chain, computedCodeHash)
 	s.Require().NoError(err)
 
-	var getCodeQueryMsgRsp GetCodeQueryMsgResponse
-	err = cosmosChain.QueryClientContractCode(ctx, codeHash, &getCodeQueryMsgRsp)
-	codeHashByte32 := sha256.Sum256(getCodeQueryMsgRsp.Data)
-	codeHash2 := hex.EncodeToString(codeHashByte32[:])
-	s.Require().NoError(err)
-	s.Require().NotEmpty(getCodeQueryMsgRsp.Data)
-	s.Require().Equal(codeHash, codeHash2)
+	codeHashByte32 := sha256.Sum256(codeHashBz)
+	actualCodeHash := hex.EncodeToString(codeHashByte32[:])
+	s.Require().Equal(computedCodeHash, actualCodeHash, "code hash returned from query did not match the computed code hash")
 
-	return codeHash
+	return actualCodeHash
 }
 
-func (s *GrandpaTestSuite) fundUsers(t *testing.T, ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
-	users := interchaintest.GetAndFundTestUsers(t, ctx, "user", fundAmount, polkadotChain, cosmosChain)
+func (s *GrandpaTestSuite) fundUsers(ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
+	users := interchaintest.GetAndFundTestUsers(s.T(), ctx, "user", fundAmount, polkadotChain, cosmosChain)
 	polkadotUser, cosmosUser := users[0], users[1]
 	err := testutil.WaitForBlocks(ctx, 2, polkadotChain, cosmosChain) // Only waiting 1 block is flaky for parachain
 	s.Require().NoError(err, "cosmos or polkadot chain failed to make blocks")
@@ -383,25 +312,27 @@ func (s *GrandpaTestSuite) fundUsers(t *testing.T, ctx context.Context, fundAmou
 	return polkadotUser, cosmosUser
 }
 
-func modifyGenesisShortProposals(votingPeriod string, maxDepositPeriod string) func(ibc.ChainConfig, []byte) ([]byte, error) {
-	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		g := make(map[string]interface{})
-		if err := json.Unmarshal(genbz, &g); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-		}
-		if err := dyno.Set(g, votingPeriod, "app_state", "gov", "params", "voting_period"); err != nil {
-			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, maxDepositPeriod, "app_state", "gov", "params", "max_deposit_period"); err != nil {
-			return nil, fmt.Errorf("failed to set max deposit period in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, chainConfig.Denom, "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
-			return nil, fmt.Errorf("failed to set min deposit in genesis json: %w", err)
-		}
-		out, err := json.Marshal(g)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-		}
-		return out, nil
+// validateTestConfig ensures that the given test config is valid for this test suite.
+func validateTestConfig() {
+	tc := testsuite.LoadConfig()
+	if tc.ActiveRelayer != "hyperspace" {
+		panic(fmt.Errorf("hyperspace relayer must be specified"))
 	}
+}
+
+// getConfigOverrides returns configuration overrides that will be applied to the simapp.
+func getConfigOverrides() map[string]any {
+	consensusOverrides := make(testutil.Toml)
+	blockTime := 5
+	blockT := (time.Duration(blockTime) * time.Second).String()
+	consensusOverrides["timeout_commit"] = blockT
+	consensusOverrides["timeout_propose"] = blockT
+
+	configTomlOverrides := make(testutil.Toml)
+	configTomlOverrides["consensus"] = consensusOverrides
+	configTomlOverrides["log_level"] = "info"
+
+	configFileOverrides := make(map[string]any)
+	configFileOverrides["config/config.toml"] = configTomlOverrides
+	return configFileOverrides
 }
