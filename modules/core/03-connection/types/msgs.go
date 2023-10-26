@@ -13,6 +13,8 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
+const MaximumVersionFieldsLength = 4096 // maximum length in bytes for the fields in version
+
 var (
 	_ sdk.Msg = (*MsgConnectionOpenInit)(nil)
 	_ sdk.Msg = (*MsgConnectionOpenConfirm)(nil)
