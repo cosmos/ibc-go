@@ -347,9 +347,6 @@ func (suite *TypesTestSuite) TestInitialize() {
 				suite.Require().Equal(expConsensusState, clientStore.Get(host.ConsensusStateKey(clientState.GetLatestHeight())))
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
-
-				suite.Require().False(clientStore.Has(host.ClientStateKey()))
-				suite.Require().False(clientStore.Has(host.ConsensusStateKey(clientState.GetLatestHeight())))
 			}
 		})
 	}

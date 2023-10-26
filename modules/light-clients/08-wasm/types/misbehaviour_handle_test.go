@@ -80,6 +80,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, endpoint.ClientID)
 			clientState := endpoint.GetClientState()
 
 			clientMsg = &types.ClientMessage{
@@ -88,7 +89,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 
 			tc.malleate()
 
-			err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMsg)
+			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMsg)
 
 			expPass := tc.expErr == nil
 			if expPass {
