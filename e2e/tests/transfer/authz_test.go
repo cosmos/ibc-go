@@ -137,7 +137,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	t.Run("verify receiver wallet amount", func(t *testing.T) {
 		chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
-		actualBalance, err := chainB.GetBalance(ctx, receiverWalletAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := suite.QueryBalance(ctx, chainB, receiverWalletAddress, chainBIBCToken.IBCDenom())
+
 		suite.Require().NoError(err)
 		suite.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
 	})
@@ -273,7 +274,8 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 		t.Run("verify receiver wallet amount", func(t *testing.T) {
 			chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
-			actualBalance, err := chainB.GetBalance(ctx, receiverWalletAddress, chainBIBCToken.IBCDenom())
+			actualBalance, err := suite.QueryBalance(ctx, chainB, receiverWalletAddress, chainBIBCToken.IBCDenom())
+
 			suite.Require().NoError(err)
 			suite.Require().Equal(int64(0), actualBalance.Int64())
 		})
