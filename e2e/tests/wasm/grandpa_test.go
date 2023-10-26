@@ -66,6 +66,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainASpec.ChainID = "rococo-local"
 		options.ChainASpec.Name = "composable"
 		options.ChainASpec.Images = []ibc.DockerImage{
+			// TODO: determine best way to provide the correct images via CI.
 			{
 				Repository: "ghcr.io/misko9/polkadot-node",
 				Version:    "local",
@@ -97,6 +98,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.ChainID = simd
 		options.ChainBSpec.Images = []ibc.DockerImage{
 			{
+				// TODO: build wasm simd and pass it in here.
 				Repository: "chatton/ibc-go-simd-wasm",
 				Version:    "sdk50",
 				UidGid:     "1000:1000",
@@ -105,7 +107,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.Bin = simd
 		options.ChainBSpec.Bech32Prefix = "cosmos"
 
-		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here for now.
+		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here right now.
 		options.ChainBSpec.Denom = "stake"
 		options.ChainBSpec.GasPrices = "0.00stake"
 		options.ChainBSpec.GasAdjustment = 1
