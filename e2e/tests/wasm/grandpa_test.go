@@ -143,7 +143,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	var err error
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	//
+
 	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
 	s.Require().NoError(err)
 
@@ -279,7 +279,7 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 	zippedContent, err := io.ReadAll(proposalContentReader)
 	s.Require().NoError(err)
 
-	codeHash := s.extractCodeHashFromGzippedContent(zippedContent)
+	computedCodeHash := s.extractCodeHashFromGzippedContent(zippedContent)
 
 	s.Require().NoError(err)
 	message := wasmtypes.MsgStoreCode{
@@ -289,13 +289,13 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 
 	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
 
-	codeBz, err := s.QueryWasmCode(ctx, chain, codeHash)
+	codeHashBz, err := s.QueryWasmCode(ctx, chain, computedCodeHash)
 
-	codeHashByte32 := sha256.Sum256(codeBz)
-	codeHash2 := hex.EncodeToString(codeHashByte32[:])
-	s.Require().Equal(codeHash, codeHash2)
+	codeHashByte32 := sha256.Sum256(codeHashBz)
+	actualCodeHash := hex.EncodeToString(codeHashByte32[:])
+	s.Require().Equal(computedCodeHash, actualCodeHash, "code hash returned from query did not match the computed code hash")
 
-	return codeHash
+	return actualCodeHash
 }
 
 func (s *GrandpaTestSuite) fundUsers(t *testing.T, ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
