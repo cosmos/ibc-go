@@ -8,7 +8,7 @@ import (
 )
 
 func (suite *TypesTestSuite) TestGetClientID() {
-	clientStore := suite.store
+	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
 
 	testCases := []struct {
 		name     string
