@@ -2,6 +2,7 @@ package testing
 
 import (
 	"crypto/sha256"
+	"errors"
 
 	"github.com/stretchr/testify/require"
 
@@ -21,6 +22,7 @@ var (
 	Code                   = []byte("01234567012345670123456701234567")
 	contractClientState    = []byte{1}
 	contractConsensusState = []byte{2}
+	ErrMockContract        = errors.New("mock contract error")
 )
 
 // NewWasmEndpoint returns a wasm endpoint with the default ibctesting pkg

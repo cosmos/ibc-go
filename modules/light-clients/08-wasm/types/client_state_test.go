@@ -131,7 +131,7 @@ func (suite *TypesTestSuite) TestStatus() {
 			"client status is unknown: vm returns an error",
 			func() {
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					return nil, 0, errors.New("client status not implemented")
+					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
 			exported.Unknown,
@@ -321,10 +321,10 @@ func (suite *TypesTestSuite) TestInitialize() {
 			"failure: InstantiateFn returns error",
 			func() {
 				suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					return nil, 0, clienttypes.ErrInvalidClientType
+					return nil, 0, wasmtesting.ErrMockContract
 				}
 			},
-			clienttypes.ErrInvalidClientType,
+			wasmtesting.ErrMockContract,
 			nil,
 		},
 		{
