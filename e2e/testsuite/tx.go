@@ -153,7 +153,7 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.
 
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
 		msgs,
-		sdk.NewCoins(sdk.NewCoin(cosmosChain.Config().Denom, sdkmath.NewInt(500000000))),
+		sdk.NewCoins(sdk.NewCoin(cosmosChain.Config().Denom, sdkmath.NewInt(testvalues.DefaultProposalTokenAmount))),
 		sender.String(),
 		"",
 		fmt.Sprintf("e2e gov proposal: %d", proposalID),

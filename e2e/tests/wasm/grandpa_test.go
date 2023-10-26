@@ -66,7 +66,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainASpec.ChainID = "rococo-local"
 		options.ChainASpec.Name = "composable"
 		options.ChainASpec.Images = []ibc.DockerImage{
-			// TODO: determine best way to provide the correct images via CI.
+			// TODO: https://github.com/cosmos/ibc-go/issues/4965
 			{
 				Repository: "ghcr.io/misko9/polkadot-node",
 				Version:    "local",
@@ -98,7 +98,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.ChainID = simd
 		options.ChainBSpec.Images = []ibc.DockerImage{
 			{
-				// TODO: build wasm simd and pass it in here.
+				// TODO: https://github.com/cosmos/ibc-go/issues/4965
 				Repository: "chatton/ibc-go-simd-wasm",
 				Version:    "sdk50",
 				UidGid:     "1000:1000",
@@ -108,6 +108,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.Bech32Prefix = "cosmos"
 
 		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here right now.
+		// https://github.com/cosmos/ibc-go/issues/4964
 		options.ChainBSpec.Denom = "stake"
 		options.ChainBSpec.GasPrices = "0.00stake"
 		options.ChainBSpec.GasAdjustment = 1
@@ -180,6 +181,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
 
 	// TODO: this can be refactored to broadcast a MsgTransfer instead of CLI.
+	// https://github.com/cosmos/ibc-go/issues/4963
 	// Send 1.77 stake from cosmosUser to parachainUser
 	amountToSend := int64(1_770_000)
 	transfer := ibc.WalletAmount{
@@ -318,9 +320,10 @@ func validateTestConfig() {
 	}
 }
 
+// getConfigOverrides returns configuration overrides that will be applied to the simapp.
 func getConfigOverrides() map[string]any {
 	consensusOverrides := make(testutil.Toml)
-	blockTime := 5 // seconds, parachain is 12 second blocks, don't make relayer work harder than needed
+	blockTime := 5
 	blockT := (time.Duration(blockTime) * time.Second).String()
 	consensusOverrides["timeout_commit"] = blockT
 	consensusOverrides["timeout_propose"] = blockT

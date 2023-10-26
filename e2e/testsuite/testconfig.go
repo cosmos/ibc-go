@@ -55,7 +55,7 @@ const (
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
 	defaultRlyTag = "latest"
 
-	// TODO: local is just a dev image that needs to change.
+	// TODO: https://github.com/cosmos/ibc-go/issues/4965
 	defaultHyperspaceTag = "local"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
 	defaultHermesTag = "bef2f53"
@@ -345,8 +345,8 @@ func getChainConfigsFromEnv() []ChainConfig {
 		chainAImage = specifiedChainImage
 	}
 
-	nv := 4
-	nf := 1
+	numValidators := 4
+	numFullNodes := 1
 
 	chainBImage := chainAImage
 	return []ChainConfig{
@@ -354,15 +354,15 @@ func getChainConfigsFromEnv() []ChainConfig {
 			Image:         chainAImage,
 			Tag:           chainATag,
 			Binary:        chainBinary,
-			NumValidators: nv,
-			NumFullNodes:  nf,
+			NumValidators: numValidators,
+			NumFullNodes:  numFullNodes,
 		},
 		{
 			Image:         chainBImage,
 			Tag:           chainBTag,
 			Binary:        chainBinary,
-			NumValidators: nv,
-			NumFullNodes:  nf,
+			NumValidators: numValidators,
+			NumFullNodes:  numFullNodes,
 		},
 	}
 }
