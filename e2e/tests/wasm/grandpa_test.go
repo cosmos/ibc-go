@@ -36,36 +36,15 @@ const (
 )
 
 func TestGrandpaTestSuite(t *testing.T) {
+	// this test suite only works with the hyperspace relayer, for now hard code this here.
+	// this will enforce that the hyperspace relayer is used in CI.
+	t.Setenv(testsuite.RelayerIDEnv, "hyperspace")
 	validateTestConfig()
 	testifysuite.Run(t, new(GrandpaTestSuite))
 }
 
 type GrandpaTestSuite struct {
 	testsuite.E2ETestSuite
-}
-
-// validateTestConfig ensures that the given test config is valid for this test suite.
-func validateTestConfig() {
-	tc := testsuite.LoadConfig()
-	if tc.ActiveRelayer != "hyperspace" {
-		panic(fmt.Errorf("hyperspace relayer must be specified"))
-	}
-}
-
-func getConfigOverrides() map[string]any {
-	consensusOverrides := make(testutil.Toml)
-	blockTime := 5 // seconds, parachain is 12 second blocks, don't make relayer work harder than needed
-	blockT := (time.Duration(blockTime) * time.Second).String()
-	consensusOverrides["timeout_commit"] = blockT
-	consensusOverrides["timeout_propose"] = blockT
-
-	configTomlOverrides := make(testutil.Toml)
-	configTomlOverrides["consensus"] = consensusOverrides
-	configTomlOverrides["log_level"] = "info"
-
-	configFileOverrides := make(map[string]any)
-	configFileOverrides["config/config.toml"] = configTomlOverrides
-	return configFileOverrides
 }
 
 // TestMsgTransfer_Succeeds_GrandpaContract features
@@ -327,4 +306,28 @@ func (s *GrandpaTestSuite) fundUsers(ctx context.Context, fundAmount int64, polk
 	s.Require().True(cosmosUserAmount.Equal(amount), "Initial cosmos user amount not expected")
 
 	return polkadotUser, cosmosUser
+}
+
+// validateTestConfig ensures that the given test config is valid for this test suite.
+func validateTestConfig() {
+	tc := testsuite.LoadConfig()
+	if tc.ActiveRelayer != "hyperspace" {
+		panic(fmt.Errorf("hyperspace relayer must be specified"))
+	}
+}
+
+func getConfigOverrides() map[string]any {
+	consensusOverrides := make(testutil.Toml)
+	blockTime := 5 // seconds, parachain is 12 second blocks, don't make relayer work harder than needed
+	blockT := (time.Duration(blockTime) * time.Second).String()
+	consensusOverrides["timeout_commit"] = blockT
+	consensusOverrides["timeout_propose"] = blockT
+
+	configTomlOverrides := make(testutil.Toml)
+	configTomlOverrides["consensus"] = consensusOverrides
+	configTomlOverrides["log_level"] = "info"
+
+	configFileOverrides := make(map[string]any)
+	configFileOverrides["config/config.toml"] = configTomlOverrides
+	return configFileOverrides
 }

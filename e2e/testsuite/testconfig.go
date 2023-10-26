@@ -345,7 +345,7 @@ func getChainConfigsFromEnv() []ChainConfig {
 		chainAImage = specifiedChainImage
 	}
 
-	nv := 5
+	nv := 4
 	nf := 1
 
 	chainBImage := chainAImage
