@@ -156,6 +156,84 @@ func (suite *TypesTestSuite) TestStatus() {
 	}
 }
 
+func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
+	var height exported.Height
+
+	expectedTimestamp := uint64(time.Now().UnixNano())
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					var payload types.QueryMsg
+					err := json.Unmarshal(queryMsg, &payload)
+					suite.Require().NoError(err)
+
+					suite.Require().NotNil(payload.TimestampAtHeight)
+					suite.Require().Nil(payload.CheckForMisbehaviour)
+					suite.Require().Nil(payload.Status)
+					suite.Require().Nil(payload.ExportMetadata)
+					suite.Require().Nil(payload.VerifyClientMessage)
+
+					resp, err := json.Marshal(types.TimestampAtHeightResult{Timestamp: expectedTimestamp})
+					suite.Require().NoError(err)
+
+					return resp, types.DefaultGasUsed, nil
+				})
+			},
+			nil,
+		},
+		{
+			"failure: contract returns error",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.TimestampAtHeightMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					return nil, 0, wasmtesting.ErrMockContract
+				})
+			},
+			wasmtesting.ErrMockContract,
+		},
+		{
+			"error: invalid height",
+			func() {
+				height = ibcmock.Height{}
+			},
+			ibcerrors.ErrInvalidType,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientState := endpoint.GetClientState().(*types.ClientState)
+			height = clientState.GetLatestHeight()
+
+			tc.malleate()
+
+			timestamp, err := clientState.GetTimestampAtHeight(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec(), height)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expectedTimestamp, timestamp)
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
+
 func (suite *TypesTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
