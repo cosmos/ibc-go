@@ -730,6 +730,13 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			},
 			ibcerrors.ErrInvalidType,
 		},
+		{
+			"proof height is invalid type",
+			func() {
+				proofHeight = ibcmock.Height{}
+			},
+			ibcerrors.ErrInvalidType,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1060,6 +1067,13 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 			"invalid path argument",
 			func() {
 				path = ibcmock.KeyPath{}
+			},
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"proof height is invalid type",
+			func() {
+				proofHeight = ibcmock.Height{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
