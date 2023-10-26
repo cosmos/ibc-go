@@ -74,7 +74,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	ctx := context.Background()
 
 	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
-		// configure chain A
+		// configure chain A (polkadot)
 		options.ChainASpec.ChainName = "composable"
 		options.ChainASpec.Type = "polkadot"
 		options.ChainASpec.ChainID = "rococo-local"
@@ -99,11 +99,12 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainASpec.TrustingPeriod = ""
 		options.ChainASpec.CoinType = "354"
 
+		// these values are set by default for our cosmos chains, we need to explicitly remove them here.
 		options.ChainASpec.ModifyGenesis = nil
 		options.ChainASpec.ConfigFileOverrides = nil
 		options.ChainASpec.EncodingConfig = nil
 
-		// configure chain B
+		// configure chain B (cosmos)
 		options.ChainBSpec.ChainName = "simd" // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
 		options.ChainBSpec.Type = "cosmos"
 		options.ChainBSpec.Name = "simd"
@@ -117,6 +118,8 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		}
 		options.ChainBSpec.Bin = "simd"
 		options.ChainBSpec.Bech32Prefix = "cosmos"
+
+		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here for now.
 		options.ChainBSpec.Denom = "stake"
 		options.ChainBSpec.GasPrices = "0.00stake"
 		options.ChainBSpec.GasAdjustment = 1
@@ -262,10 +265,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 }
 
-type GetCodeQueryMsgResponse struct {
-	Data []byte `json:"data"`
-}
-
+// extractCodeHashFromGzippedContent takes a gzipped wasm contract and returns the codehash.
 func (s *GrandpaTestSuite) extractCodeHashFromGzippedContent(zippedContent []byte) string {
 	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmByteSize())
 	s.Require().NoError(err)
@@ -274,9 +274,9 @@ func (s *GrandpaTestSuite) extractCodeHashFromGzippedContent(zippedContent []byt
 	return hex.EncodeToString(codeHashByte32[:])
 }
 
-// PushNewWasmClientProposal submits a new wasm client governance proposal to the chain
-func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, proposalContent io.Reader) string {
-	zippedContent, err := io.ReadAll(proposalContent)
+// PushNewWasmClientProposal submits a new wasm client governance proposal to the chain.
+func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, proposalContentReader io.Reader) string {
+	zippedContent, err := io.ReadAll(proposalContentReader)
 	s.Require().NoError(err)
 
 	codeHash := s.extractCodeHashFromGzippedContent(zippedContent)
@@ -289,12 +289,10 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 
 	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
 
-	var getCodeQueryMsgRsp GetCodeQueryMsgResponse
-	err = chain.QueryClientContractCode(ctx, codeHash, &getCodeQueryMsgRsp)
-	codeHashByte32 := sha256.Sum256(getCodeQueryMsgRsp.Data)
+	codeBz, err := s.QueryWasmCode(ctx, chain, codeHash)
+
+	codeHashByte32 := sha256.Sum256(codeBz)
 	codeHash2 := hex.EncodeToString(codeHashByte32[:])
-	s.Require().NoError(err)
-	s.Require().NotEmpty(getCodeQueryMsgRsp.Data)
 	s.Require().Equal(codeHash, codeHash2)
 
 	return codeHash

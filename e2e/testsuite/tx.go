@@ -165,10 +165,9 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.
 	resp := s.BroadcastMessages(ctx, cosmosChain, user, msgSubmitProposal)
 	s.AssertTxSuccess(resp)
 
-	time.Sleep(1 * time.Minute)
-
 	s.Require().NoError(cosmosChain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
+	// poll for the query for the entire voting period to see if the proposal has passed.
 	err = test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
 		proposal, err := s.QueryProposalV1(ctx, cosmosChain, proposalID)
 		if err != nil {

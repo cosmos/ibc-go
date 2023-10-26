@@ -23,6 +23,7 @@ import (
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
@@ -44,6 +45,7 @@ type GRPCClients struct {
 	FeeQueryClient           feetypes.QueryClient
 	ICAControllerQueryClient controllertypes.QueryClient
 	ICAHostQueryClient       hosttypes.QueryClient
+	WasmQueryClient          wasmtypes.QueryClient
 
 	// SDK query clients
 	BankQueryClient    banktypes.QueryClient
@@ -90,6 +92,7 @@ func (s *E2ETestSuite) InitGRPCClients(chain ibc.Chain) {
 		FeeQueryClient:           feetypes.NewQueryClient(grpcConn),
 		ICAControllerQueryClient: controllertypes.NewQueryClient(grpcConn),
 		ICAHostQueryClient:       hosttypes.NewQueryClient(grpcConn),
+		WasmQueryClient:          wasmtypes.NewQueryClient(grpcConn),
 		BankQueryClient:          banktypes.NewQueryClient(grpcConn),
 		GovQueryClient:           govtypesv1beta1.NewQueryClient(grpcConn),
 		GovQueryClientV1:         govtypesv1.NewQueryClient(grpcConn),
@@ -393,4 +396,17 @@ func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain ibc.Chain, 
 		return banktypes.Metadata{}, err
 	}
 	return res.Metadata, nil
+}
+
+// QueryWasmCode queries the code for a wasm contract.
+func (s *E2ETestSuite) QueryWasmCode(ctx context.Context, chain ibc.Chain, codehash string) ([]byte, error) {
+	queryClient := s.GetChainGRCPClients(chain).WasmQueryClient
+	queryRequest := &wasmtypes.QueryCodeRequest{
+		CodeHash: codehash,
+	}
+	res, err := queryClient.Code(ctx, queryRequest)
+	if err != nil {
+		return nil, err
+	}
+	return res.Data, nil
 }
