@@ -191,16 +191,37 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	// Start relayer
 	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
 
-	// Send 1.77 stake from cosmosUser to parachainUser
+	// (ctx context.Context, chain ibc.Chain, user ibc.Wallet,
+	//	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
+	//)
+
+	// transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+
 	amountToSend := int64(1_770_000)
-	transfer := ibc.WalletAmount{
-		Address: polkadotUser.FormattedAddress(),
-		Denom:   cosmosChain.Config().Denom,
-		Amount:  math.NewInt(amountToSend),
-	}
-	tx, err := cosmosChain.SendIBCTransfer(ctx, "channel-0", cosmosUser.KeyName(), transfer, ibc.TransferOptions{})
-	s.Require().NoError(err)
-	s.Require().NoError(tx.Validate()) // test source wallet has decreased funds
+	resp := s.Transfer(
+		ctx,
+		cosmosChain,
+		cosmosWallet,
+		"transfer",
+		"channel-0",
+		testvalues.TransferAmount(amountToSend, cosmosChain.Config().Denom),
+		cosmosUser.FormattedAddress(),
+		polkadotUser.FormattedAddress(),
+		s.GetTimeoutHeight(ctx, polkadotChain),
+		0,
+		"",
+	)
+	s.AssertTxSuccess(resp)
+
+	//// Send 1.77 stake from cosmosUser to parachainUser
+	//transfer := ibc.WalletAmount{
+	//	Address: polkadotUser.FormattedAddress(),
+	//	Denom:   cosmosChain.Config().Denom,
+	//	Amount:  math.NewInt(amountToSend),
+	//}
+	//tx, err := cosmosChain.SendIBCTransfer(ctx, "channel-0", cosmosUser.KeyName(), transfer, ibc.TransferOptions{})
+	//s.Require().NoError(err)
+	//s.Require().NoError(tx.Validate()) // test source wallet has decreased funds
 	err = testutil.WaitForBlocks(ctx, 15, cosmosChain, polkadotChain)
 	s.Require().NoError(err)
 

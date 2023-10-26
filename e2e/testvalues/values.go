@@ -40,6 +40,10 @@ func DefaultTransferAmount(denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(IBCTransferAmount)}
 }
 
+func TransferAmount(amount int64, denom string) sdk.Coin {
+	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(amount)}
+}
+
 func TendermintClientID(id int) string {
 	return fmt.Sprintf("07-tendermint-%d", id)
 }
