@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -46,7 +47,12 @@ var (
 	MockApplicationCallbackError error = &applicationCallbackError{}
 )
 
-var _ porttypes.IBCModule = (*IBCModule)(nil)
+var (
+	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
+	_ appmodule.AppModule   = (*AppModule)(nil)
+
+	_ porttypes.IBCModule = (*IBCModule)(nil)
+)
 
 // Expected Interface
 // PortKeeper defines the expected IBC port keeper
@@ -62,6 +68,12 @@ type AppModuleBasic struct{}
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec implements AppModuleBasic interface.
 func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
