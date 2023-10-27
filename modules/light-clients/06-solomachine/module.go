@@ -19,6 +19,12 @@ var _ module.AppModuleBasic = (*AppModuleBasic)(nil)
 // a no-op.
 type AppModuleBasic struct{}
 
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModuleBasic) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModuleBasic) IsAppModule() {}
+
 // Name returns the solo machine module name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
