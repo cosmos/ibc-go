@@ -48,14 +48,14 @@ type CheckForMisbehaviourMsg struct {
 // The json omitempty tag is mandatory since it omits any empty (default initialized) fields from the encoded JSON,
 // this is required in order to be compatible with Rust's enum matching as used in the contract.
 // Only one field should be set at a time.
-type sudoMsg struct {
-	UpdateState                   *updateStateMsg                   `json:"update_state,omitempty"`
-	UpdateStateOnMisbehaviour     *updateStateOnMisbehaviourMsg     `json:"update_state_on_misbehaviour,omitempty"`
-	VerifyUpgradeAndUpdateState   *verifyUpgradeAndUpdateStateMsg   `json:"verify_upgrade_and_update_state,omitempty"`
-	CheckSubstituteAndUpdateState *checkSubstituteAndUpdateStateMsg `json:"check_substitute_and_update_state,omitempty"`
-	VerifyMembership              *verifyMembershipMsg              `json:"verify_membership,omitempty"`
-	VerifyNonMembership           *verifyNonMembershipMsg           `json:"verify_non_membership,omitempty"`
-	MigrateClientStore            *migrateClientStoreMsg            `json:"migrate_client_store,omitempty"`
+type SudoMsg struct {
+	UpdateState                   *UpdateStateMsg                   `json:"update_state,omitempty"`
+	UpdateStateOnMisbehaviour     *UpdateStateOnMisbehaviourMsg     `json:"update_state_on_misbehaviour,omitempty"`
+	VerifyUpgradeAndUpdateState   *VerifyUpgradeAndUpdateStateMsg   `json:"verify_upgrade_and_update_state,omitempty"`
+	CheckSubstituteAndUpdateState *CheckSubstituteAndUpdateStateMsg `json:"check_substitute_and_update_state,omitempty"`
+	VerifyMembership              *VerifyMembershipMsg              `json:"verify_membership,omitempty"`
+	VerifyNonMembership           *VerifyNonMembershipMsg           `json:"verify_non_membership,omitempty"`
+	MigrateClientStore            *MigrateClientStoreMsg            `json:"migrate_client_store,omitempty"`
 }
 
 // UpdateStateMsg is a sudoMsg sent to the contract to update the client state.

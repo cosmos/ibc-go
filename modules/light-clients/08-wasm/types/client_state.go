@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 
@@ -217,12 +218,13 @@ func (cs ClientState) VerifyNonMembership(
 	return err
 }
 
-func (cs ClientState) MigrateStore(
+// MigrateClientStore will verify that a substitute client state is valid and update the subject client state.
+// Note that this method is used only for recovery and will not allow changes to the code hash.
+func (cs ClientState) MigrateClientStore(
 	ctx sdk.Context,
-	clientStore storetypes.KVStore,
+	_ codec.BinaryCodec,
+	subjectClientStore, substituteClientStore storetypes.KVStore,
 	substituteClient exported.ClientState,
-	substituteClientStore storetypes.KVStore,
-	cdc codec.BinaryCodec,
 ) error {
 	var (
 		subjectPrefix    = []byte("subject/")
@@ -233,23 +235,22 @@ func (cs ClientState) MigrateStore(
 	if !ok {
 		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidClient,
-			fmt.Sprintf("invalid substitute client state. expected type %T, got %T", &ClientState{}, substituteClient),
+			fmt.Sprintf("invalid substitute client state. Expected type %T, got %T", &ClientState{}, substituteClient),
 		)
 	}
 
-	// 08-wasm's implementation of Status will check that the code hash in substituteClientState
-	// is in the allow list of code hashes
-	if status := substituteClientState.Status(ctx, substituteClientStore, cdc); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot migrate to client with status %s", status)
+	// check that code hashes of subject client state and substitute client state match
+	// changing the code hash is only allowed through the migrate contract RPC endpoint
+	if !bytes.Equal(cs.CodeHash, substituteClientState.CodeHash) {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected code hashes to be equal: expected %s, got %s", hex.EncodeToString(cs.CodeHash), hex.EncodeToString(substituteClientState.CodeHash))
 	}
 
-	// assuming we implement #4547
-	store := newUpdateProposalWrappedStore(clientStore, substituteClientStore, subjectPrefix, substitutePrefix)
+	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, subjectPrefix, substitutePrefix)
 
-	payload := sudoMsg{
-		MigrateStore: &migrateStoreMsg{},
+	payload := SudoMsg{
+		MigrateClientStore: &MigrateClientStoreMsg{},
 	}
 
-	_, err := wasmCall[emptyResult](ctx, store, &cs, payload)
+	_, err := wasmCall[EmptyResult](ctx, store, &cs, payload)
 	return err
 }
