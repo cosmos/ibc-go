@@ -138,8 +138,6 @@ func enrichAutoCliOpts(autoCliOpts autocli.AppOptions, clientCtx client.Context)
 		return autocli.AppOptions{}, err
 	}
 
-	autoCliOpts.ClientCtx = clientCtx
-
 	autoCliOpts.Keyring, err = keyring.NewAutoCLIKeyring(clientCtx.Keyring)
 	if err != nil {
 		return autocli.AppOptions{}, err
