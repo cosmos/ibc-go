@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"encoding/json"
-	"errors"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -107,9 +106,6 @@ func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
-	// TODO: PR 4934 exposes a ErrMockContract that can be re-used
-	contractError := errors.New("contract error")
-
 	var (
 		upgradedClient         exported.ClientState
 		upgradedConsState      exported.ConsensusState
@@ -151,7 +147,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), upgradedClient))
 					store.Set(host.ConsensusStateKey(upgradedClient.GetLatestHeight()), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState))
 
-					return &wasmvmtypes.Response{Data: data}, types.DefaultGasUsed, nil
+					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -176,10 +172,10 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 			"failure: contract returns error",
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.VerifyUpgradeAndUpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					return nil, 0, contractError
+					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			contractError,
+			wasmtesting.ErrMockContract,
 		},
 	}
 

@@ -7,16 +7,21 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
+	storetypes "cosmossdk.io/store/types"
+
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *TypesTestSuite) TestVerifyClientMessage() {
-	var clientMsg exported.ClientMessage
-	contractError := errors.New("callbackFn error")
+	var (
+		clientMsg   exported.ClientMessage
+		clientStore storetypes.KVStore
+	)
 
 	testCases := []struct {
 		name     string
@@ -26,7 +31,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 		{
 			"success: valid misbehaviour",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					var msg *types.QueryMsg
 
 					err := json.Unmarshal(queryMsg, &msg)
@@ -39,24 +44,33 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 					suite.Require().Nil(msg.TimestampAtHeight)
 					suite.Require().Nil(msg.ExportMetadata)
 
+					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
+
 					resp, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					return resp, types.DefaultGasUsed, nil
+					return resp, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
+		},
+		{
+			"failure: clientStore prefix does not include clientID",
+			func() {
+				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
+			},
+			types.ErrRetrieveClientID,
 		},
 		{
 			"failure: invalid client message",
 			func() {
 				clientMsg = &ibctmtypes.Header{}
 
-				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					return resp, types.DefaultGasUsed, nil
+					return resp, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			ibcerrors.ErrInvalidType,
@@ -64,11 +78,11 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 		{
 			"failure: error return from contract vm",
 			func() {
-				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					return nil, 0, contractError
+				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			contractError,
+			wasmtesting.ErrMockContract,
 		},
 	}
 
@@ -81,6 +95,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
+			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, endpoint.ClientID)
 			clientState := endpoint.GetClientState()
 
 			clientMsg = &types.ClientMessage{
@@ -89,7 +104,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 
 			tc.malleate()
 
-			err = clientState.VerifyClientMessage(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMsg)
+			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMsg)
 
 			expPass := tc.expErr == nil
 			if expPass {
@@ -103,13 +118,11 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 
 func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 	var clientMessage exported.ClientMessage
-	var foundMisbehaviour bool
 
 	testCases := []struct {
 		name                 string
 		malleate             func()
 		expFoundMisbehaviour bool
-		expPanic             error
 	}{
 		{
 			"success: no misbehaviour",
@@ -117,32 +130,29 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: false})
 					suite.Require().NoError(err)
-					return resp, types.DefaultGasUsed, nil
+					return resp, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			false,
-			nil,
 		},
 		{
 			"success: misbehaviour found", func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.CheckForMisbehaviourResult{FoundMisbehaviour: true})
 					suite.Require().NoError(err)
-					return resp, types.DefaultGasUsed, nil
+					return resp, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			true,
-			nil,
 		},
 		{
 			"success: contract error, resp cannot be marshalled", func() {
 				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp := "cannot be unmarshalled"
-					return []byte(resp), types.DefaultGasUsed, nil
+					return []byte(resp), wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			false,
-			nil,
 		},
 		{
 			"success: vm returns error, ", func() {
@@ -151,7 +161,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				})
 			},
 			false,
-			nil,
 		},
 		{
 			"success: invalid client message", func() {
@@ -159,16 +168,6 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				// we will not register the callback here because this test case does not reach the VM
 			},
 			false,
-			nil,
-		},
-		{
-			"failure: contract panics, panic propogated", func() {
-				suite.mockVM.RegisterQueryCallback(types.CheckForMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
-					panic(errors.New("panic in query to contract"))
-				})
-			},
-			false,
-			errors.New("panic in query to contract"),
 		},
 	}
 
@@ -185,18 +184,12 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				Data: []byte{1},
 			}
 
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, endpoint.ClientID)
+
 			tc.malleate()
 
-			if tc.expPanic == nil {
-				foundMisbehaviour = clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMessage)
-				suite.Require().Equal(tc.expFoundMisbehaviour, foundMisbehaviour)
-			} else {
-				suite.PanicsWithError(
-					tc.expPanic.Error(),
-					func() {
-						clientState.CheckForMisbehaviour(suite.ctx, suite.chainA.App.AppCodec(), suite.store, clientMessage)
-					})
-			}
+			foundMisbehaviour := clientState.CheckForMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, clientMessage)
+			suite.Require().Equal(tc.expFoundMisbehaviour, foundMisbehaviour)
 		})
 	}
 }

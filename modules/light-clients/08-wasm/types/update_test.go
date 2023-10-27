@@ -3,13 +3,13 @@ package types_test
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -17,6 +17,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	tmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
@@ -463,11 +464,13 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestUpdateState() {
-	errMsg := errors.New("callbackFn error")
 	mockClientStateBz := []byte("mockClientStateBz")
 	mockHeight := clienttypes.NewHeight(1, 1)
 
-	var clientMsg exported.ClientMessage
+	var (
+		clientMsg   exported.ClientMessage
+		clientStore storetypes.KVStore
+	)
 
 	testCases := []struct {
 		name           string
@@ -479,7 +482,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 		{
 			"success: no update",
 			func() {
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					var msg types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &msg)
 					suite.Require().NoError(err)
@@ -493,6 +496,8 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					suite.Require().Nil(msg.VerifyUpgradeAndUpdateState)
 					suite.Require().Nil(msg.CheckSubstituteAndUpdateState)
 
+					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
+
 					updateStateResp := types.UpdateStateResult{
 						Heights: []clienttypes.Height{},
 					}
@@ -504,7 +509,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					return &wasmvmtypes.Response{
 						Data: resp,
-					}, types.DefaultGasUsed, nil
+					}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -531,12 +536,21 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					return &wasmvmtypes.Response{
 						Data: resp,
-					}, types.DefaultGasUsed, nil
+					}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
 			[]exported.Height{mockHeight},
 			mockClientStateBz,
+		},
+		{
+			"failure: clientStore prefix does not include clientID",
+			func() {
+				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
+			},
+			errorsmod.Wrapf(errorsmod.Wrapf(errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a %s clientID", exported.Wasm), "failed to retrieve clientID for wasm contract call"), "call to wasm contract failed"),
+			nil,
+			nil,
 		},
 		{
 			"failure: invalid ClientMessage type",
@@ -552,10 +566,10 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			"failure: callbackFn returns error",
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					return nil, 0, errors.New("callbackFn error")
+					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			errorsmod.Wrapf(errMsg, "call to wasm contract failed"),
+			errorsmod.Wrapf(wasmtesting.ErrMockContract, "call to wasm contract failed"),
 			nil,
 			nil,
 		},
@@ -572,7 +586,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 
 			tc.malleate()
 
@@ -580,7 +594,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 			var heights []exported.Height
 			updateState := func() {
-				heights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
+				heights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, clientStore, clientMsg)
 			}
 
 			if tc.expPanic == nil {
@@ -588,7 +602,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				suite.Require().Equal(tc.expHeights, heights)
 
 				if tc.expClientState != nil {
-					clientStateBz := store.Get(host.ClientStateKey())
+					clientStateBz := clientStore.Get(host.ClientStateKey())
 					suite.Require().Equal(tc.expClientState, clientStateBz)
 				}
 			} else {
@@ -632,7 +646,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 
 					return &wasmvmtypes.Response{
 						Data: resp,
-					}, types.DefaultGasUsed, nil
+					}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -653,7 +667,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 						return nil, 0, err
 					}
 
-					return &wasmvmtypes.Response{Data: resp}, types.DefaultGasUsed, nil
+					return &wasmvmtypes.Response{Data: resp}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -672,11 +686,10 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 			"failure: err return from contract vm",
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					errMsg := errors.New("callbackfn Error")
-					return nil, 0, errMsg
+					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			errorsmod.Wrapf(errors.New("callbackfn Error"), "call to wasm contract failed"),
+			errorsmod.Wrapf(wasmtesting.ErrMockContract, "call to wasm contract failed"),
 			nil,
 		},
 	}
