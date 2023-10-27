@@ -28,7 +28,7 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 	}
 
 	// Only return code hashes we previously stored, not arbitrary code hashes that might be stored via e.g Wasmd.
-	if !types.HasCodeHash(sdk.UnwrapSDKContext(goCtx), k.cdc, codeHash) {
+	if !types.HasCodeHash(sdk.UnwrapSDKContext(goCtx), codeHash) {
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.CodeHash).Error())
 	}
 
