@@ -22,12 +22,12 @@ func GetVM() WasmEngine {
 	return vm
 }
 
-// SetWasmStoreKey sets the store key for the 08-wasm module.
+// SetWasmStoreService sets the storage service for 08-wasm module.
 func SetWasmStoreService(storeService storetypes.KVStoreService) {
 	wasmStoreService = storeService
 }
 
-// GetWasmStoreKey returns the store key for the 08-wasm module.
+// GetWasmStoreServiceKey returns the storage service for the 08-wasm module.
 func GetWasmStoreService() storetypes.KVStoreService {
 	return wasmStoreService
 }
