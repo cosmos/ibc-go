@@ -62,8 +62,8 @@ func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	return "", fmt.Errorf("channel identifier event attribute not found")
 }
 
-// ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns the
-// acknowledgement.
+// ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns
+// the first packet found.
 func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeSendPacket {
@@ -118,6 +118,22 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 		}
 	}
 	return channeltypes.Packet{}, fmt.Errorf("acknowledgement event attribute not found")
+}
+
+// ParsePacketsFromEvents parses events emitted from a MsgRecvPacket and returns
+// all the packets found.
+func ParsePacketsFromEvents(events []abci.Event) ([]channeltypes.Packet, error) {
+	var packets []channeltypes.Packet
+	for i, ev := range events {
+		if ev.Type == channeltypes.EventTypeSendPacket {
+			packet, err := ParsePacketFromEvents(events[i:])
+			if err != nil {
+				return nil, err
+			}
+			packets = append(packets, packet)
+		}
+	}
+	return packets, nil
 }
 
 // ParseAckFromEvents parses events emitted from a MsgRecvPacket and returns the
