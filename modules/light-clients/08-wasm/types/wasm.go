@@ -33,6 +33,10 @@ func GetAllCodeHashes(ctx sdk.Context) ([][]byte, error) {
 		return nil, err
 	}
 
+	if codeHashes == nil {
+		codeHashes = [][]byte{}
+	}
+
 	return codeHashes, nil
 }
 

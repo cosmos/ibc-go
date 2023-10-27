@@ -45,7 +45,7 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 }
 
 // CodeHashes implements the Query/CodeHashes gRPC method. It returns a list of hex encoded code hashes stored.
-func (k Keeper) CodeHashes(goCtx context.Context, req *types.QueryCodeHashesRequest) (*types.QueryCodeHashesResponse, error) {
+func (Keeper) CodeHashes(goCtx context.Context, req *types.QueryCodeHashesRequest) (*types.QueryCodeHashesResponse, error) {
 	codeHashes, pageRes, err := sdkquery.CollectionPaginate(
 		goCtx,
 		types.GetCodeHashKeySet(goCtx),

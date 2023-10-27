@@ -41,7 +41,7 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 			},
 			func(codeHashes [][]byte) {
 				suite.Require().Len(codeHashes, 2)
-				suite.Require().Equal([]byte("codehash"), codeHashes[1])
+				suite.Require().Contains(codeHashes, []byte("codehash"))
 			},
 		},
 	}
@@ -76,8 +76,8 @@ func (suite *TypesTestSuite) TestAddCodeHash() {
 	codeHashes, err = types.GetAllCodeHashes(suite.chainA.GetContext())
 	suite.Require().NoError(err)
 	suite.Require().Len(codeHashes, 3)
-	suite.Require().Equal(codeHash1, codeHashes[1])
-	suite.Require().Equal(codeHash2, codeHashes[2])
+	suite.Require().Contains(codeHashes, codeHash1)
+	suite.Require().Contains(codeHashes, codeHash2)
 }
 
 func (suite *TypesTestSuite) TestHasCodeHash() {
