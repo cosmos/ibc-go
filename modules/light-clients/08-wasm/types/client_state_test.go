@@ -112,7 +112,7 @@ func (suite *TypesTestSuite) TestStatus() {
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.StatusResult{Status: exported.Frozen.String()})
 					suite.Require().NoError(err)
-					return resp, types.DefaultGasUsed, nil
+					return resp, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			exported.Frozen,
@@ -123,7 +123,7 @@ func (suite *TypesTestSuite) TestStatus() {
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.StatusResult{Status: exported.Expired.String()})
 					suite.Require().NoError(err)
-					return resp, types.DefaultGasUsed, nil
+					return resp, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			exported.Expired,
@@ -185,7 +185,7 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 					resp, err := json.Marshal(types.TimestampAtHeightResult{Timestamp: expectedTimestamp})
 					suite.Require().NoError(err)
 
-					return resp, types.DefaultGasUsed, nil
+					return resp, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -742,7 +742,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					return &wasmvmtypes.Response{Data: bz}, types.DefaultGasUsed, nil
+					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -774,7 +774,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					expClientStateBz = []byte("client-state-data")
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
-					return &wasmvmtypes.Response{Data: bz}, types.DefaultGasUsed, nil
+					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -787,7 +787,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.Response, uint64, error) {
-					return nil, types.DefaultGasUsed, commitmenttypes.ErrInvalidProof
+					return nil, wasmtesting.DefaultGasUsed, commitmenttypes.ErrInvalidProof
 				})
 			},
 			commitmenttypes.ErrInvalidProof,
@@ -1083,7 +1083,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					return &wasmvmtypes.Response{Data: bz}, types.DefaultGasUsed, nil
+					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -1114,7 +1114,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					expClientStateBz = []byte("client-state-data")
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
-					return &wasmvmtypes.Response{Data: bz}, types.DefaultGasUsed, nil
+					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -1127,7 +1127,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.Response, uint64, error) {
-					return nil, types.DefaultGasUsed, commitmenttypes.ErrInvalidProof
+					return nil, wasmtesting.DefaultGasUsed, commitmenttypes.ErrInvalidProof
 				})
 			},
 			commitmenttypes.ErrInvalidProof,

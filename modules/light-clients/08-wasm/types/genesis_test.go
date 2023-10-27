@@ -56,7 +56,7 @@ func (suite *TypesTestSuite) TestExportMetatada() {
 					})
 					suite.Require().NoError(err)
 
-					return resp, types.DefaultGasUsed, nil
+					return resp, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
