@@ -147,7 +147,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), upgradedClient))
 					store.Set(host.ConsensusStateKey(upgradedClient.GetLatestHeight()), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState))
 
-					return &wasmvmtypes.Response{Data: data}, types.DefaultGasUsed, nil
+					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,

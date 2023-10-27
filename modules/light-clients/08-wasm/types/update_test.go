@@ -509,7 +509,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					return &wasmvmtypes.Response{
 						Data: resp,
-					}, types.DefaultGasUsed, nil
+					}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -536,7 +536,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					return &wasmvmtypes.Response{
 						Data: resp,
-					}, types.DefaultGasUsed, nil
+					}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -646,7 +646,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 
 					return &wasmvmtypes.Response{
 						Data: resp,
-					}, types.DefaultGasUsed, nil
+					}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
@@ -667,7 +667,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 						return nil, 0, err
 					}
 
-					return &wasmvmtypes.Response{Data: resp}, types.DefaultGasUsed, nil
+					return &wasmvmtypes.Response{Data: resp}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
 			nil,
