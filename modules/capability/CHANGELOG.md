@@ -31,7 +31,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#4068](https://github.com/cosmos/ibc-go/pull/4068) Upgrade capability module to cosmos-sdk v0.50
+- [\#4068](https://github.com/cosmos/ibc-go/pull/4068) Upgrade capability module to cosmos-sdk v0.50
 
 ### API Breaking
 
@@ -39,13 +39,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* [\#4068](https://github.com/cosmos/ibc-go/pull/4068) Various improvements made to testing to reduce the dependency tree and use new cosmos-sdk test utils.
+- [\#4068](https://github.com/cosmos/ibc-go/pull/4068) Various improvements made to testing to reduce the dependency tree and use new cosmos-sdk test utils.
 
 ### Features
 
 ### Bug Fixes
 
-* [\#15030](https://github.com/cosmos/cosmos-sdk/pull/15030) `InitMemStore` now correctly uses a `NewInfiniteGasMeter` for both `GasMeter` **and** `BlockGasMeter`. This fixes an issue where the `gasMeter` was incremented non-deterministically across validators. See [\#15015](https://github.com/cosmos/cosmos-sdk/issues/15015) for more information.
+- [\#15030](https://github.com/cosmos/cosmos-sdk/pull/15030) `InitMemStore` now correctly uses a `NewInfiniteGasMeter` for both `GasMeter` **and** `BlockGasMeter`. This fixes an issue where the `gasMeter` was incremented non-deterministically across validators. See [\#15015](https://github.com/cosmos/cosmos-sdk/issues/15015) for more information.
 
 ## Capability in the Cosmos SDK Repository
 
