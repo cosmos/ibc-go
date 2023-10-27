@@ -1,14 +1,15 @@
 package ibcwasm
 
 import (
-	storetypes "cosmossdk.io/store/types"
+	storetypes "cosmossdk.io/core/store"
 )
 
 var (
 	vm WasmEngine
-	// storeKeyMap stores the storeKey for the 08-wasm module. Using a global storeKey is required since
-	// the client state interface functions do not have access to the keeper.
-	wasmStoreKey storetypes.StoreKey
+	// wasmStoreService stores the key-value storage service for the 08-wasm module.
+	// Using a global storage service is required since the client state interface functions
+	// do not have access to the keeper.
+	wasmStoreService storetypes.KVStoreService 
 )
 
 // SetVM sets the wasm VM for the 08-wasm module.
@@ -22,11 +23,11 @@ func GetVM() WasmEngine {
 }
 
 // SetWasmStoreKey sets the store key for the 08-wasm module.
-func SetWasmStoreKey(storeKey storetypes.StoreKey) {
-	wasmStoreKey = storeKey
+func SetWasmStoreService(storeService storetypes.KVStoreService) {
+	wasmStoreService = storeService
 }
 
 // GetWasmStoreKey returns the store key for the 08-wasm module.
-func GetWasmStoreKey() storetypes.StoreKey {
-	return wasmStoreKey
+func GetWasmStoreService() storetypes.KVStoreService {
+	return wasmStoreService
 }
