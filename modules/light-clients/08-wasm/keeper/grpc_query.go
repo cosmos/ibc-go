@@ -48,7 +48,7 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 func (Keeper) CodeHashes(goCtx context.Context, req *types.QueryCodeHashesRequest) (*types.QueryCodeHashesResponse, error) {
 	codeHashes, pageRes, err := sdkquery.CollectionPaginate(
 		goCtx,
-		types.GetCodeHashKeySet(goCtx),
+		types.GetCodeHashKeySet(),
 		req.Pagination,
 		func(key []byte, value collections.NoValue) (string, error) {
 			return hex.EncodeToString(key), nil

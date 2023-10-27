@@ -1,8 +1,6 @@
 package types
 
 import (
-	"context"
-
 	"cosmossdk.io/collections"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,7 +9,7 @@ import (
 )
 
 // GetCodeHasheKeySet returns the KeySet collection for the code hashes.
-func GetCodeHashKeySet(ctx context.Context) collections.KeySet[[]byte] {
+func GetCodeHashKeySet() collections.KeySet[[]byte] {
 	wasmStoreService := ibcwasm.GetWasmStoreService()
 	sb := collections.NewSchemaBuilder(wasmStoreService)
 
@@ -21,7 +19,7 @@ func GetCodeHashKeySet(ctx context.Context) collections.KeySet[[]byte] {
 // GetAllCodeHashes is a helper to get all code hashes from the store.
 // It returns an empty slice if no code hashes are found
 func GetAllCodeHashes(ctx sdk.Context) ([][]byte, error) {
-	keyset := GetCodeHashKeySet(ctx)
+	keyset := GetCodeHashKeySet()
 
 	iterator, err := keyset.Iterate(ctx, nil)
 	if err != nil {
@@ -42,7 +40,7 @@ func GetAllCodeHashes(ctx sdk.Context) ([][]byte, error) {
 
 // AddCodeHash adds a new code hash to the list of stored code hashes.
 func AddCodeHash(ctx sdk.Context, codeHash []byte) error {
-	keyset := GetCodeHashKeySet(ctx)
+	keyset := GetCodeHashKeySet()
 
 	return keyset.Set(ctx, codeHash)
 }
@@ -50,7 +48,7 @@ func AddCodeHash(ctx sdk.Context, codeHash []byte) error {
 // HasCodeHash returns true if the given code hash exists in the store and
 // false otherwise.
 func HasCodeHash(ctx sdk.Context, codeHash []byte) bool {
-	keyset := GetCodeHashKeySet(ctx)
+	keyset := GetCodeHashKeySet()
 
 	has, err := keyset.Has(ctx, codeHash)
 	if err != nil {
