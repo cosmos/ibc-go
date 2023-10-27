@@ -10,7 +10,5 @@ const (
 	StoreKey = ModuleName
 )
 
-var (
-	// CodeHashesKey is the key under which all code hashes are stored
-	CodeHashesKey = collections.NewPrefix(0)
-)
+// CodeHashesKey is the key under which all code hashes are stored
+var CodeHashesKey = collections.NewPrefix(0)

@@ -10,8 +10,8 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
-	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/core/store"
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"

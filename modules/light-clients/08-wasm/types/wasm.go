@@ -5,42 +5,40 @@ import (
 
 	"cosmossdk.io/collections"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
-// getCodeHasheKeySet returns the KeySet collection for the code hashes.
-func getCodeHashKeySet(ctx context.Context) collections.KeySet[[]byte] {
+// GetCodeHasheKeySet returns the KeySet collection for the code hashes.
+func GetCodeHashKeySet(ctx context.Context) collections.KeySet[[]byte] {
 	wasmStoreService := ibcwasm.GetWasmStoreService()
 	sb := collections.NewSchemaBuilder(wasmStoreService)
 
 	return collections.NewKeySet(sb, CodeHashesKey, "code_hashes", collections.BytesKey)
 }
 
+// GetAllCodeHashes is a helper to get all code hashes from the store.
+// It returns an empty slice if no code hashes are found
+func GetAllCodeHashes(ctx sdk.Context) ([][]byte, error) {
+	keyset := GetCodeHashKeySet(ctx)
 
-// GetCodeHashes returns all the code hashes stored.
-func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) (CodeHashes, error) {
-	wasmStoreKey := ibcwasm.GetWasmStoreKey()
-	store := ctx.KVStore(wasmStoreKey)
-	bz := store.Get([]byte(KeyCodeHashes))
-	if len(bz) == 0 {
-		return CodeHashes{}, nil
-	}
-
-	var hashes CodeHashes
-	err := cdc.Unmarshal(bz, &hashes)
+	iterator, err := keyset.Iterate(ctx, nil)
 	if err != nil {
-		return CodeHashes{}, err
+		return nil, err
 	}
 
-	return hashes, nil
+	codeHashes, err := iterator.Keys()
+	if err != nil {
+		return nil, err
+	}
+
+	return codeHashes, nil
 }
 
 // AddCodeHash adds a new code hash to the list of stored code hashes.
 func AddCodeHash(ctx sdk.Context, codeHash []byte) error {
-	keyset := getCodeHashKeySet(ctx)
+	keyset := GetCodeHashKeySet(ctx)
 
 	return keyset.Set(ctx, codeHash)
 }
@@ -48,7 +46,7 @@ func AddCodeHash(ctx sdk.Context, codeHash []byte) error {
 // HasCodeHash returns true if the given code hash exists in the store and
 // false otherwise.
 func HasCodeHash(ctx sdk.Context, codeHash []byte) bool {
-	keyset := getCodeHashKeySet(ctx)
+	keyset := GetCodeHashKeySet(ctx)
 
 	has, err := keyset.Has(ctx, codeHash)
 	if err != nil {

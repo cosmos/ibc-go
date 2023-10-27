@@ -11,13 +11,13 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expResult func(codeHashes types.CodeHashes)
+		expResult func(codeHashes [][]byte)
 	}{
 		{
 			"success: no contract stored.",
 			func() {},
-			func(codeHashes types.CodeHashes) {
-				suite.Require().Len(codeHashes.Hashes, 0)
+			func(codeHashes [][]byte) {
+				suite.Require().Len(codeHashes, 0)
 			},
 		},
 		{
@@ -25,10 +25,10 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 			func() {
 				suite.SetupWasmWithMockVM()
 			},
-			func(codeHashes types.CodeHashes) {
-				suite.Require().Len(codeHashes.Hashes, 1)
+			func(codeHashes [][]byte) {
+				suite.Require().Len(codeHashes, 1)
 				expectedCodeHash := sha256.Sum256(wasmtesting.Code)
-				suite.Require().Equal(expectedCodeHash[:], codeHashes.Hashes[0])
+				suite.Require().Equal(expectedCodeHash[:], codeHashes[0])
 			},
 		},
 		{
@@ -39,9 +39,9 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 				err := types.AddCodeHash(suite.chainA.GetContext(), []byte("codehash"))
 				suite.Require().NoError(err)
 			},
-			func(codeHashes types.CodeHashes) {
-				suite.Require().Len(codeHashes.Hashes, 2)
-				suite.Require().Equal([]byte("codehash"), codeHashes.Hashes[1])
+			func(codeHashes [][]byte) {
+				suite.Require().Len(codeHashes, 2)
+				suite.Require().Equal([]byte("codehash"), codeHashes[1])
 			},
 		},
 	}
@@ -51,7 +51,7 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 		suite.Run(tc.name, func() {
 			tc.malleate()
 
-			codeHashes, err := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+			codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
 			suite.Require().NoError(err)
 			tc.expResult(codeHashes)
 		})
@@ -61,10 +61,10 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 func (suite *TypesTestSuite) TestAddCodeHash() {
 	suite.SetupWasmWithMockVM()
 
-	codeHashes, err := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+	codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
 	suite.Require().NoError(err)
 	// default mock vm contract is stored
-	suite.Require().Len(codeHashes.Hashes, 1)
+	suite.Require().Len(codeHashes, 1)
 
 	codeHash1 := []byte("codehash1")
 	codeHash2 := []byte("codehash2")
@@ -73,11 +73,11 @@ func (suite *TypesTestSuite) TestAddCodeHash() {
 	err = types.AddCodeHash(suite.chainA.GetContext(), codeHash2)
 	suite.Require().NoError(err)
 
-	codeHashes, err = types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+	codeHashes, err = types.GetAllCodeHashes(suite.chainA.GetContext())
 	suite.Require().NoError(err)
-	suite.Require().Len(codeHashes.Hashes, 3)
-	suite.Require().Equal(codeHash1, codeHashes.Hashes[1])
-	suite.Require().Equal(codeHash2, codeHashes.Hashes[2])
+	suite.Require().Len(codeHashes, 3)
+	suite.Require().Equal(codeHash1, codeHashes[1])
+	suite.Require().Equal(codeHash2, codeHashes[2])
 }
 
 func (suite *TypesTestSuite) TestHasCodeHash() {

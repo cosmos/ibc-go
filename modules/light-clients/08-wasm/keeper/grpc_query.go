@@ -7,9 +7,11 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -44,19 +46,19 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 
 // CodeHashes implements the Query/CodeHashes gRPC method. It returns a list of hex encoded code hashes stored.
 func (k Keeper) CodeHashes(goCtx context.Context, req *types.QueryCodeHashesRequest) (*types.QueryCodeHashesResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	var codeHashes []string
-	storedHashes, err := types.GetCodeHashes(ctx, k.cdc)
+	codeHashes, pageRes, err := sdkquery.CollectionPaginate(
+		goCtx,
+		types.GetCodeHashKeySet(goCtx),
+		req.Pagination,
+		func(key []byte, value collections.NoValue) (string, error) {
+			return hex.EncodeToString(key), nil
+		})
 	if err != nil {
-		return nil, status.Error(codes.DataLoss, err.Error())
-	}
-
-	for _, hash := range storedHashes.Hashes {
-		codeHashes = append(codeHashes, hex.EncodeToString(hash))
+		return nil, err
 	}
 
 	return &types.QueryCodeHashesResponse{
 		CodeHashes: codeHashes,
+		Pagination: pageRes,
 	}, nil
 }

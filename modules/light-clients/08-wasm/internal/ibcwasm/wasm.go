@@ -9,7 +9,7 @@ var (
 	// wasmStoreService stores the key-value storage service for the 08-wasm module.
 	// Using a global storage service is required since the client state interface functions
 	// do not have access to the keeper.
-	wasmStoreService storetypes.KVStoreService 
+	wasmStoreService storetypes.KVStoreService
 )
 
 // SetVM sets the wasm VM for the 08-wasm module.
