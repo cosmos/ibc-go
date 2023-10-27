@@ -24,7 +24,11 @@ func initContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []by
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
 
-	env := getEnv(ctx)
+	clientID, err := getClientID(clientStore)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to retrieve clientID for wasm contract instantiation")
+	}
+	env := getEnv(ctx, clientID)
 
 	msgInfo := wasmvmtypes.MessageInfo{
 		Sender: "",
@@ -42,7 +46,12 @@ func callContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []by
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
-	env := getEnv(ctx)
+
+	clientID, err := getClientID(clientStore)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to retrieve clientID for wasm contract call")
+	}
+	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: sudo")
 	resp, gasUsed, err := ibcwasm.GetVM().Sudo(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
@@ -56,7 +65,11 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []b
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
 
-	env := getEnv(ctx)
+	clientID, err := getClientID(clientStore)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to retrieve clientID for wasm contract query")
+	}
+	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: query")
 	resp, gasUsed, err := ibcwasm.GetVM().Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
@@ -141,7 +154,7 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore
 }
 
 // getEnv returns the state of the blockchain environment the contract is running on
-func getEnv(ctx sdk.Context) wasmvmtypes.Env {
+func getEnv(ctx sdk.Context, contractAddr string) wasmvmtypes.Env {
 	chainID := ctx.BlockHeader().ChainID
 	height := ctx.BlockHeader().Height
 
@@ -161,7 +174,7 @@ func getEnv(ctx sdk.Context) wasmvmtypes.Env {
 			ChainID: chainID,
 		},
 		Contract: wasmvmtypes.ContractInfo{
-			Address: "",
+			Address: contractAddr,
 		},
 	}
 

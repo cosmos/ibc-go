@@ -4,13 +4,19 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"reflect"
+	"strings"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/cachekv"
 	"cosmossdk.io/store/listenkv"
+	storeprefix "cosmossdk.io/store/prefix"
 	"cosmossdk.io/store/tracekv"
 	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // updateProposalWrappedStore combines two KVStores into one while transparently routing the calls based on key prefix
@@ -122,4 +128,49 @@ func (s storeAdapter) Iterator(start, end []byte) wasmvmtypes.Iterator {
 
 func (s storeAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
 	return s.parent.ReverseIterator(start, end)
+}
+
+// getClientID extracts and validates the clientID from the clientStore's prefix.
+//
+// Due to the 02-client module not passing the clientID to the 08-wasm module,
+// this function was devised to infer it from the store's prefix.
+// The expected format of the clientStore prefix is "<placeholder>/{clientID}/".
+// If the clientStore is of type updateProposalWrappedStore, the subjectStore's prefix is utilized instead.
+func getClientID(clientStore storetypes.KVStore) (string, error) {
+	upws, isUpdateProposalWrappedStore := clientStore.(updateProposalWrappedStore)
+	if isUpdateProposalWrappedStore {
+		// if the clientStore is a updateProposalWrappedStore, we retrieve the subjectStore
+		// because the contract call will be made on the client with the ID of the subjectStore
+		clientStore = upws.subjectStore
+	}
+
+	store, ok := clientStore.(storeprefix.Store)
+	if !ok {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "clientStore is not a prefix store")
+	}
+
+	// using reflect to retrieve the private prefix field
+	r := reflect.ValueOf(&store).Elem()
+
+	f := r.FieldByName("prefix")
+	if !f.IsValid() {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix field not found")
+	}
+
+	prefix := string(f.Bytes())
+
+	split := strings.Split(prefix, "/")
+	if len(split) < 3 {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix is not of the expected form")
+	}
+
+	// the clientID is the second to last element of the prefix
+	// the prefix is expected to be of the form "<placeholder>/{clientID}/"
+	clientID := split[len(split)-2]
+	isClientID := strings.HasPrefix(clientID, exported.Wasm)
+	if !isClientID {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a %s clientID", exported.Wasm)
+	}
+
+	return clientID, nil
 }

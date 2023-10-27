@@ -9,6 +9,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -16,6 +17,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	tmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
@@ -465,7 +467,10 @@ func (suite *TypesTestSuite) TestUpdateState() {
 	mockClientStateBz := []byte("mockClientStateBz")
 	mockHeight := clienttypes.NewHeight(1, 1)
 
-	var clientMsg exported.ClientMessage
+	var (
+		clientMsg   exported.ClientMessage
+		clientStore storetypes.KVStore
+	)
 
 	testCases := []struct {
 		name           string
@@ -477,7 +482,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 		{
 			"success: no update",
 			func() {
-				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					var msg types.SudoMsg
 					err := json.Unmarshal(sudoMsg, &msg)
 					suite.Require().NoError(err)
@@ -490,6 +495,8 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(msg.VerifyUpgradeAndUpdateState)
 					suite.Require().Nil(msg.CheckSubstituteAndUpdateState)
+
+					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
 
 					updateStateResp := types.UpdateStateResult{
 						Heights: []clienttypes.Height{},
@@ -537,6 +544,15 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			mockClientStateBz,
 		},
 		{
+			"failure: clientStore prefix does not include clientID",
+			func() {
+				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
+			},
+			errorsmod.Wrapf(errorsmod.Wrapf(errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a %s clientID", exported.Wasm), "failed to retrieve clientID for wasm contract call"), "call to wasm contract failed"),
+			nil,
+			nil,
+		},
+		{
 			"failure: invalid ClientMessage type",
 			func() {
 				// SudoCallback left nil because clientMsg is checked by 08-wasm before callbackFn is called.
@@ -570,7 +586,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
+			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 
 			tc.malleate()
 
@@ -578,7 +594,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 			var heights []exported.Height
 			updateState := func() {
-				heights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
+				heights = clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, clientStore, clientMsg)
 			}
 
 			if tc.expPanic == nil {
@@ -586,7 +602,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				suite.Require().Equal(tc.expHeights, heights)
 
 				if tc.expClientState != nil {
-					clientStateBz := store.Get(host.ClientStateKey())
+					clientStateBz := clientStore.Get(host.ClientStateKey())
 					suite.Require().Equal(tc.expClientState, clientStateBz)
 				}
 			} else {
