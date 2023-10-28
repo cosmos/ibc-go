@@ -26,7 +26,6 @@ import (
 
 var (
 	_ module.AppModule           = (*AppModule)(nil)
-	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
 	_ module.HasName             = (*AppModule)(nil)
 	_ module.HasConsensusVersion = (*AppModule)(nil)
