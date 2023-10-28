@@ -27,11 +27,11 @@ You can find the React app we created in the previous section [here](https://git
 Ignite supports running multiple chains locally with different configs. The source chain will be called earth and the destination chain will be called mars.
 Add the following config files to the root of the project:
 
-```yaml reference title="earth.yaml"
+```yaml reference title="earth.yml"
 https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/96cb63bf2e60b4613a89841416066551dd666c0d/earth.yml
 ```
 
-```yaml reference title="mars.yaml"
+```yaml reference title="mars.yml"
 https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/96cb63bf2e60b4613a89841416066551dd666c0d/mars.yml
 ```
 
