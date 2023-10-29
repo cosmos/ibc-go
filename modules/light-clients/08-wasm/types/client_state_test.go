@@ -26,10 +26,6 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-var (
-	MockClientStateBz = []byte("client-state-data")
-)
-
 func (suite *TypesTestSuite) TestStatusGrandpa() {
 	var (
 		ok          bool
@@ -775,7 +771,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					store.Set(host.ClientStateKey(), MockClientStateBz)
+					store.Set(host.ClientStateKey(), wasmtesting.MockClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 				})
@@ -1114,7 +1110,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					store.Set(host.ClientStateKey(), MockClientStateBz)
+					store.Set(host.ClientStateKey(), wasmtesting.MockClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 				})

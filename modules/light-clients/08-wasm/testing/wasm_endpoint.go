@@ -23,6 +23,7 @@ var (
 	contractClientState    = []byte{1}
 	contractConsensusState = []byte{2}
 	ErrMockContract        = errors.New("mock contract error")
+	MockClientStateBz      = []byte("client-state-data")
 )
 
 // NewWasmEndpoint returns a wasm endpoint with the default ibctesting pkg
