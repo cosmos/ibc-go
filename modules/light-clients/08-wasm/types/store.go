@@ -15,8 +15,6 @@ import (
 	storeprefix "cosmossdk.io/store/prefix"
 	"cosmossdk.io/store/tracekv"
 	storetypes "cosmossdk.io/store/types"
-
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // updateProposalWrappedStore combines two KVStores into one while transparently routing the calls based on key prefix
@@ -167,9 +165,8 @@ func getClientID(clientStore storetypes.KVStore) (string, error) {
 	// the clientID is the second to last element of the prefix
 	// the prefix is expected to be of the form "<placeholder>/{clientID}/"
 	clientID := split[len(split)-2]
-	isClientID := strings.HasPrefix(clientID, exported.Wasm)
-	if !isClientID {
-		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a %s clientID", exported.Wasm)
+	if err := ValidateClientID(clientID); err != nil {
+		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix does not contain a valid clientID: %s", err.Error())
 	}
 
 	return clientID, nil
