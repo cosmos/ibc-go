@@ -771,7 +771,8 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					store.Set(host.ClientStateKey(), wasmtesting.MockClientStateBz)
+					expClientStateBz = wasmtesting.MockClientStateBz
+					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 				})
@@ -1110,7 +1111,8 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					store.Set(host.ClientStateKey(), wasmtesting.MockClientStateBz)
+					expClientStateBz = wasmtesting.MockClientStateBz
+					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 				})
