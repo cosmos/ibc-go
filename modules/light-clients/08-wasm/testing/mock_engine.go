@@ -1,4 +1,4 @@
-package types
+package testing
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 const DefaultGasUsed = uint64(1)
@@ -17,10 +18,10 @@ var (
 	_ ibcwasm.WasmEngine = (*MockWasmEngine)(nil)
 
 	// queryTypes contains all the possible query message types.
-	queryTypes = [...]any{StatusMsg{}, ExportMetadataMsg{}, TimestampAtHeightMsg{}, VerifyClientMessageMsg{}, CheckForMisbehaviourMsg{}}
+	queryTypes = [...]any{types.StatusMsg{}, types.ExportMetadataMsg{}, types.TimestampAtHeightMsg{}, types.VerifyClientMessageMsg{}, types.CheckForMisbehaviourMsg{}}
 
 	// sudoTypes contains all the possible sudo message types.
-	sudoTypes = [...]any{UpdateStateMsg{}, UpdateStateOnMisbehaviourMsg{}, VerifyUpgradeAndUpdateStateMsg{}, CheckSubstituteAndUpdateStateMsg{}, VerifyMembershipMsg{}, VerifyNonMembershipMsg{}}
+	sudoTypes = [...]any{types.UpdateStateMsg{}, types.UpdateStateOnMisbehaviourMsg{}, types.VerifyUpgradeAndUpdateStateMsg{}, types.CheckSubstituteAndUpdateStateMsg{}, types.VerifyMembershipMsg{}, types.VerifyNonMembershipMsg{}}
 )
 
 type (
@@ -145,7 +146,7 @@ func (m *MockWasmEngine) Pin(checksum wasmvm.Checksum) error {
 // getQueryMsgPayloadTypeName extracts the name of the struct that is populated.
 // this value is used as a key to map to a callback function to handle that message type.
 func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
-	payload := QueryMsg{}
+	payload := types.QueryMsg{}
 	if err := json.Unmarshal(queryMsgBz, &payload); err != nil {
 		panic(err)
 	}
@@ -181,7 +182,7 @@ func getQueryMsgPayloadTypeName(queryMsgBz []byte) string {
 // getSudoMsgPayloadTypeName extracts the name of the struct that is populated.
 // this value is used as a key to map to a callback function to handle that message type.
 func getSudoMsgPayloadTypeName(sudoMsgBz []byte) string {
-	payload := SudoMsg{}
+	payload := types.SudoMsg{}
 	if err := json.Unmarshal(sudoMsgBz, &payload); err != nil {
 		panic(err)
 	}

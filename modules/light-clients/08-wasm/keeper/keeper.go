@@ -125,6 +125,10 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	}
 
 	// store the code hash
-	types.AddCodeHash(ctx, k.cdc, codeHash)
+	err = types.AddCodeHash(ctx, k.cdc, codeHash)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to store contract")
+	}
+
 	return codeHash, nil
 }

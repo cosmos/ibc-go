@@ -13,14 +13,6 @@ import (
 // MaxWasmSize is the maximum size of a wasm code in bytes.
 const MaxWasmSize = maxWasmSize
 
-// these fields are exported aliases for the payload fields passed to the wasm vm.
-// these are used to specify callback functions to handle specific queries in the mock vm.
-type (
-	// CallbackFn types
-	QueryFn = queryFn
-	SudoFn  = sudoFn
-)
-
 // WasmQuery wraps wasmQuery and is used solely for testing.
 func WasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload QueryMsg) (T, error) {
 	return wasmQuery[T](ctx, clientStore, cs, payload)
@@ -34,4 +26,16 @@ func WasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 // WasmInit wraps wasmInit and is used solely for testing.
 func WasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	return wasmInit(ctx, clientStore, cs, payload)
+}
+
+// GetClientID is a wrapper around getClientID to allow the function to be directly called in tests.
+func GetClientID(clientStore storetypes.KVStore) (string, error) {
+	return getClientID(clientStore)
+}
+
+// NewUpdateProposalWrappedStore is a wrapper around newUpdateProposalWrappedStore to allow the function to be directly called in tests.
+//
+//nolint:revive // Returning unexported type for testing purposes.
+func NewUpdateProposalWrappedStore(subjectStore, substituteStore storetypes.KVStore, subjectPrefix, substitutePrefix []byte) updateProposalWrappedStore {
+	return newUpdateProposalWrappedStore(subjectStore, substituteStore, subjectPrefix, substitutePrefix)
 }

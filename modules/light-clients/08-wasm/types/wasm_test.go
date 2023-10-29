@@ -14,8 +14,17 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 		expResult func(codeHashes types.CodeHashes)
 	}{
 		{
-			"success: default mock vm contract stored.",
+			"success: no contract stored.",
 			func() {},
+			func(codeHashes types.CodeHashes) {
+				suite.Require().Len(codeHashes.Hashes, 0)
+			},
+		},
+		{
+			"success: default mock vm contract stored.",
+			func() {
+				suite.SetupWasmWithMockVM()
+			},
 			func(codeHashes types.CodeHashes) {
 				suite.Require().Len(codeHashes.Hashes, 1)
 				expectedCodeHash := sha256.Sum256(wasmtesting.Code)
@@ -25,7 +34,10 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 		{
 			"success: non-empty code hashes",
 			func() {
-				types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), []byte("codehash"))
+				suite.SetupWasmWithMockVM()
+
+				err := types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), []byte("codehash"))
+				suite.Require().NoError(err)
 			},
 			func(codeHashes types.CodeHashes) {
 				suite.Require().Len(codeHashes.Hashes, 2)
@@ -37,11 +49,10 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
-
 			tc.malleate()
 
-			codeHashes := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+			codeHashes, err := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+			suite.Require().NoError(err)
 			tc.expResult(codeHashes)
 		})
 	}
@@ -50,16 +61,20 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 func (suite *TypesTestSuite) TestAddCodeHash() {
 	suite.SetupWasmWithMockVM()
 
-	codeHashes := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+	codeHashes, err := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+	suite.Require().NoError(err)
 	// default mock vm contract is stored
 	suite.Require().Len(codeHashes.Hashes, 1)
 
 	codeHash1 := []byte("codehash1")
 	codeHash2 := []byte("codehash2")
-	types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash1)
-	types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash2)
+	err = types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash1)
+	suite.Require().NoError(err)
+	err = types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash2)
+	suite.Require().NoError(err)
 
-	codeHashes = types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+	codeHashes, err = types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+	suite.Require().NoError(err)
 	suite.Require().Len(codeHashes.Hashes, 3)
 	suite.Require().Equal(codeHash1, codeHashes.Hashes[1])
 	suite.Require().Equal(codeHash2, codeHashes.Hashes[2])
@@ -77,7 +92,8 @@ func (suite *TypesTestSuite) TestHasCodeHash() {
 			"success: code hash exists",
 			func() {
 				codeHash = []byte("codehash")
-				types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash)
+				err := types.AddCodeHash(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec(), codeHash)
+				suite.Require().NoError(err)
 			},
 			true,
 		},
