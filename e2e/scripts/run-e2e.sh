@@ -82,4 +82,5 @@ test_dir="$(dirname $test_file)"
 
 # run the test file directly, this allows log output to be streamed directly in the terminal sessions
 # without needed to wait for the test to finish.
-go test -v "${test_dir}" --run ${ENTRY_POINT} -testify.m ^${TEST}$ -timeout 20m
+# it shouldn't take 30m, but the wasm test can be quite slow, so we can be generous.
+go test -v "${test_dir}" --run ${ENTRY_POINT} -testify.m ^${TEST}$ -timeout 30m

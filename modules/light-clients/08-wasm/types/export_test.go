@@ -1,5 +1,9 @@
 package types
 
+import (
+	storetypes "cosmossdk.io/store/types"
+)
+
 /*
 	This file is to allow for unexported functions and fields to be accessible to the testing package.
 */
@@ -7,10 +11,14 @@ package types
 // MaxWasmSize is the maximum size of a wasm code in bytes.
 const MaxWasmSize = maxWasmSize
 
-// these fields are exported aliases for the payload fields passed to the wasm vm.
-// these are used to specify callback functions to handle specific queries in the mock vm.
-type (
-	// CallbackFn types
-	QueryFn = queryFn
-	SudoFn  = sudoFn
-)
+// GetClientID is a wrapper around getClientID to allow the function to be directly called in tests.
+func GetClientID(clientStore storetypes.KVStore) (string, error) {
+	return getClientID(clientStore)
+}
+
+// NewUpdateProposalWrappedStore is a wrapper around newUpdateProposalWrappedStore to allow the function to be directly called in tests.
+//
+//nolint:revive // Returning unexported type for testing purposes.
+func NewUpdateProposalWrappedStore(subjectStore, substituteStore storetypes.KVStore, subjectPrefix, substitutePrefix []byte) updateProposalWrappedStore {
+	return newUpdateProposalWrappedStore(subjectStore, substituteStore, subjectPrefix, substitutePrefix)
+}

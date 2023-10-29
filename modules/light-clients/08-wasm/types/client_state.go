@@ -138,6 +138,11 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
@@ -148,11 +153,6 @@ func (cs ClientState) VerifyMembership(
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
-	}
-
-	proofHeight, ok := height.(clienttypes.Height)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
 	}
 
 	payload := SudoMsg{
@@ -182,6 +182,11 @@ func (cs ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
@@ -192,11 +197,6 @@ func (cs ClientState) VerifyNonMembership(
 	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
-	}
-
-	proofHeight, ok := height.(clienttypes.Height)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
 	}
 
 	payload := SudoMsg{

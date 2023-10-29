@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	StartingTokenAmount int64         = 100_000_000
-	IBCTransferAmount   int64         = 10_000
-	InvalidAddress      string        = "<invalid-address>"
-	VotingPeriod        time.Duration = time.Second * 30
+	StartingTokenAmount        int64         = 500_000_000_000
+	IBCTransferAmount          int64         = 10_000
+	InvalidAddress             string        = "<invalid-address>"
+	VotingPeriod               time.Duration = time.Minute * 5
+	DefaultProposalTokenAmount               = 500000000
 )
 
 // ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immediately.
@@ -38,6 +39,10 @@ func DefaultFee(denom string) feetypes.Fee {
 
 func DefaultTransferAmount(denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(IBCTransferAmount)}
+}
+
+func TransferAmount(amount int64, denom string) sdk.Coin {
+	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(amount)}
 }
 
 func TendermintClientID(id int) string {
