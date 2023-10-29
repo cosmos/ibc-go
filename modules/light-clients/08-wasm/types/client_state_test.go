@@ -1164,7 +1164,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 			suite.Require().NoError(err)
 
 			path = commitmenttypes.NewMerklePath("/ibc/key/path")
-			proof = []byte("valid proof")
+			proof = wasmtesting.MockInValidProofBytes
 			proofHeight = clienttypes.NewHeight(0, 1)
 
 			tc.malleate()
