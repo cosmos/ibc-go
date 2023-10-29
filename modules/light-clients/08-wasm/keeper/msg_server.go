@@ -37,6 +37,14 @@ func (k Keeper) MigrateContract(goCtx context.Context, msg *types.MsgMigrateCont
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	_ = sdk.UnwrapSDKContext(goCtx)
-	panic("todo: not implemented")
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := k.migrateContractCode(ctx, msg.ClientId, msg.CodeHash, msg.Msg)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to migrate contract")
+	}
+
+	// event emission is handled in migrateContract
+
+	return &types.MsgMigrateContractResponse{}, nil
 }

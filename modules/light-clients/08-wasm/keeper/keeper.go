@@ -142,3 +142,51 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	return codeHash, nil
 }
+
+func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newCodeHash, migrateMsg []byte) error {
+	wasmClientState, err := k.GetWasmClientState(ctx, clientID)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to retrieve wasm client state")
+	}
+
+	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
+
+	err = wasmClientState.MigrateContract(ctx, k.cdc, clientID, clientStore, newCodeHash, migrateMsg)
+	if err != nil {
+		return errorsmod.Wrap(err, "contract migration failed")
+	}
+
+	oldCodeHash := wasmClientState.CodeHash
+
+	// client state may be updated by the contract migration
+	wasmClientState, err = k.GetWasmClientState(ctx, clientID)
+	if err != nil {
+		// note that this also ensures that the updated client state is
+		// still a wasm client state
+		return errorsmod.Wrap(err, "failed to retrieve the updated wasm client state")
+	}
+
+	// update the code hash
+	wasmClientState.CodeHash = newCodeHash
+
+	k.clientKeeper.SetClientState(ctx, clientID, wasmClientState)
+
+	emitMigrateContractEvent(ctx, clientID, oldCodeHash, newCodeHash)
+
+	return nil
+}
+
+// GetWasmClientState returns the 08-wasm client state for the given client identifier.
+func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.ClientState, error) {
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrClientNotFound, "wasm client with the given identifier (%s) not found", clientID)
+	}
+
+	wasmClientState, ok := clientState.(*types.ClientState)
+	if !ok {
+		return nil, errorsmod.Wrapf(types.ErrInvalidData, "client state is not a wasm client state")
+	}
+
+	return wasmClientState, nil
+}
