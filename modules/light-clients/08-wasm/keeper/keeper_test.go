@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 
 	dbm "github.com/cosmos/cosmos-db"
@@ -75,6 +74,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
 				)
@@ -88,12 +88,27 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
 					ibcwasm.GetVM(),
 				)
 			},
 			false,
-			fmt.Errorf("authority must be non-empty"),
+			errors.New("authority must be non-empty"),
+		},
+		{
+			"failure: nil client keeper",
+			func() {
+				keeper.NewKeeperWithVM(
+					GetSimApp(suite.chainA).AppCodec(),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					nil, // client keeper,
+					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
+					ibcwasm.GetVM(),
+				)
+			},
+			false,
+			errors.New("client keeper must be not nil"),
 		},
 		{
 			"failure: nil wasm VM",
@@ -101,12 +116,13 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
 					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
 				)
 			},
 			false,
-			fmt.Errorf("wasm VM must be not nil"),
+			errors.New("wasm VM must be not nil"),
 		},
 	}
 

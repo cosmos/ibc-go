@@ -469,9 +469,15 @@ func NewSimApp(
 	}
 	if mockVM != nil {
 		// NOTE: mockVM is used for testing purposes only!
-		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM)
+		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
+			appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM,
+		)
 	} else {
-		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig)
+		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
+			appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig,
+		)
 	}
 
 	// IBC Fee Module keeper

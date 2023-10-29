@@ -25,9 +25,12 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	storeKey  storetypes.StoreKey
-	cdc       codec.BinaryCodec
-	wasmVM    ibcwasm.WasmEngine
+	storeKey storetypes.StoreKey
+	cdc      codec.BinaryCodec
+	wasmVM   ibcwasm.WasmEngine
+
+	clientKeeper types.ClientKeeper
+
 	authority string
 }
 
@@ -37,9 +40,14 @@ type Keeper struct {
 func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
+	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
 ) Keeper {
+	if clientKeeper == nil {
+		panic(errors.New("client keeper must be not nil"))
+	}
+
 	if vm == nil {
 		panic(errors.New("wasm VM must be not nil"))
 	}
@@ -52,10 +60,11 @@ func NewKeeperWithVM(
 	ibcwasm.SetWasmStoreKey(key)
 
 	return Keeper{
-		cdc:       cdc,
-		storeKey:  key,
-		wasmVM:    vm,
-		authority: authority,
+		cdc:          cdc,
+		storeKey:     key,
+		wasmVM:       vm,
+		clientKeeper: clientKeeper,
+		authority:    authority,
 	}
 }
 
@@ -65,6 +74,7 @@ func NewKeeperWithVM(
 func NewKeeperWithConfig(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
+	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
 ) Keeper {
@@ -73,7 +83,7 @@ func NewKeeperWithConfig(
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(cdc, key, authority, vm)
+	return NewKeeperWithVM(cdc, key, clientKeeper, authority, vm)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
