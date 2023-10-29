@@ -72,7 +72,7 @@ type AppModule struct {
 	AppModuleBasic
 }
 
-// NewAppModule creates a new Solomachine client module module
+// NewAppModule creates a new Solomachine client module
 func NewAppModule() AppModule {
 	return AppModule{}
 }

@@ -72,7 +72,7 @@ type AppModule struct {
 	AppModuleBasic
 }
 
-// NewAppModule creates a new Tendermint client module module
+// NewAppModule creates a new Tendermint client module
 func NewAppModule() AppModule {
 	return AppModule{}
 }
