@@ -12,7 +12,10 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-const MaximumMemoLength = 32768 // maximum length of the memo in bytes
+const (
+	MaximumReceiverLength = 2048  // maximum length of the receiver address in bytes
+	MaximumMemoLength     = 32768 // maximum length of the memo in bytes
+)
 
 var (
 	_ sdk.Msg              = (*MsgUpdateParams)(nil)
@@ -92,6 +95,9 @@ func (msg MsgTransfer) ValidateBasic() error {
 	}
 	if strings.TrimSpace(msg.Receiver) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing recipient address")
+	}
+	if len(msg.Receiver) > MaximumReceiverLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "recipient addresss must not exceed %d bytes", MaximumReceiverLength)
 	}
 	if len(msg.Memo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
