@@ -80,6 +80,10 @@ func (msg MsgSendTx) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "owner address cannot be empty")
 	}
 
+	if len(msg.Owner) > MaximumOwnerLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner addresss must not exceed %d bytes", MaximumOwnerLength)
+	}
+
 	if err := msg.PacketData.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(err, "invalid interchain account packet data")
 	}
