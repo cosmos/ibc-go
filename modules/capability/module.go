@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"time"
 
 	"cosmossdk.io/core/appmodule"
 
