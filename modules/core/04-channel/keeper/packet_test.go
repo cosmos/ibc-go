@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-
 	"cosmossdk.io/errors"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
