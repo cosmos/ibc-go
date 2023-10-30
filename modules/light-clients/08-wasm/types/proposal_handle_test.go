@@ -159,12 +159,12 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpointA.ClientID)
 			subjectClientState := endpointA.GetClientState()
 
-			endpointB := wasmtesting.NewWasmEndpoint(suite.chainA)
-			err = endpointB.CreateClient()
+			substituteEndpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err = substituteEndpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			substituteClientState = endpointB.GetClientState()
-			substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpointB.ClientID)
+			substituteClientState = substituteEndpoint.GetClientState()
+			substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substituteEndpoint.ClientID)
 
 			tc.malleate()
 
