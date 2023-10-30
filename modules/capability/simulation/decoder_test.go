@@ -16,7 +16,7 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModule{})
 	dec := simulation.NewDecodeStore(encodingCfg.Codec)
 
 	capOwners := types.CapabilityOwners{
