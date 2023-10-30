@@ -59,7 +59,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			func() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
 			},
-			types.ErrRetrieveClientID,
+			types.ErrWasmContractCallFailed,
 		},
 		{
 			"failure: invalid client message",
@@ -82,7 +82,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			wasmtesting.ErrMockContract,
+			types.ErrWasmContractCallFailed,
 		},
 	}
 

@@ -57,11 +57,11 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			suite.Require().NoError(err)
 
 			var storedHashes []string
-			res, err := types.GetCodeHashes(suite.chainA.GetContext(), GetSimApp(suite.chainA).AppCodec())
+			codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
 			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
+			suite.Require().NotNil(codeHashes)
 
-			for _, hash := range res.Hashes {
+			for _, hash := range codeHashes {
 				storedHashes = append(storedHashes, hex.EncodeToString(hash))
 			}
 

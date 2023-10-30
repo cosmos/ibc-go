@@ -197,7 +197,7 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			wasmtesting.ErrMockContract,
+			types.ErrWasmContractCallFailed,
 		},
 		{
 			"error: invalid height",
@@ -398,7 +398,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 			func() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
 			},
-			types.ErrRetrieveClientID,
+			types.ErrWasmContractCallFailed,
 		},
 		{
 			"failure: invalid consensus state",
@@ -422,7 +422,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 					return nil, 0, wasmtesting.ErrMockContract
 				}
 			},
-			wasmtesting.ErrMockContract,
+			types.ErrWasmContractCallFailed,
 		},
 	}
 
@@ -729,7 +729,6 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					suite.Require().NotNil(payload.VerifyMembership)
-					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
 					suite.Require().Nil(payload.UpdateState)
 					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(payload.VerifyNonMembership)
@@ -758,7 +757,6 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					suite.Require().NotNil(payload.VerifyMembership)
-					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
 					suite.Require().Nil(payload.UpdateState)
 					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(payload.VerifyNonMembership)
@@ -790,7 +788,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					return nil, wasmtesting.DefaultGasUsed, commitmenttypes.ErrInvalidProof
 				})
 			},
-			commitmenttypes.ErrInvalidProof,
+			types.ErrWasmContractCallFailed,
 		},
 		{
 			"proof height greater than client state latest height",
@@ -1071,7 +1069,6 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					suite.Require().NoError(err)
 
 					suite.Require().NotNil(payload.VerifyNonMembership)
-					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
 					suite.Require().Nil(payload.UpdateState)
 					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(payload.VerifyMembership)
@@ -1099,7 +1096,6 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					suite.Require().NoError(err)
 
 					suite.Require().NotNil(payload.VerifyNonMembership)
-					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
 					suite.Require().Nil(payload.UpdateState)
 					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(payload.VerifyMembership)
@@ -1130,7 +1126,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					return nil, wasmtesting.DefaultGasUsed, commitmenttypes.ErrInvalidProof
 				})
 			},
-			commitmenttypes.ErrInvalidProof,
+			types.ErrWasmContractCallFailed,
 		},
 		{
 			"proof height greater than client state latest height",
