@@ -16,10 +16,10 @@ This is a tutorial for wiring up the ICS-29 Fee Middleware to a Cosmos SDK block
 
 <HighlightBox type="prerequisite" title="Prerequisites">
 
-- Basic Knowledge of [Go](https://golang.org/doc/tutorial/getting-started)
-- Basic Knowledge of [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+- Basic Knowledge of [TypeScript](https://www.typescriptlang.org/)
 - Basic Knowledge of Cosmos SDK
     - If you are new to Cosmos SDK, we recommend you to go through the first two categories of the [Developer Portal](https://tutorials.cosmos.network/academy/1-what-is-cosmos/)
+- Basic Knowledge of [the Fee Middleware module](https://ibc.cosmos.network/main/middleware/ics29-fee/overview)
 
 </HighlightBox>
 
