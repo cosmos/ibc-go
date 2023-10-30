@@ -4,18 +4,18 @@ module github.com/cosmos/ibc-go/v8
 
 require (
 	cosmossdk.io/api v0.7.2
-	cosmossdk.io/client/v2 v2.0.0-20230818115413-c402c51a1508
+	cosmossdk.io/client/v2 v2.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.1
 	cosmossdk.io/math v1.1.3-rc.1
 	cosmossdk.io/store v1.0.0-rc.0
-	cosmossdk.io/tools/confix v0.0.0-20230818115413-c402c51a1508
-	cosmossdk.io/x/circuit v0.0.0-20230818115413-c402c51a1508
-	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508
-	cosmossdk.io/x/feegrant v0.0.0-20230818115413-c402c51a1508
+	cosmossdk.io/tools/confix v0.0.0-20231026141021-0469fc17e158
+	cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158
+	cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158
+	cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/x/tx v0.11.0
-	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
+	cosmossdk.io/x/upgrade v0.0.0-20231026141021-0469fc17e158
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
@@ -145,7 +145,7 @@ require (
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230110094441-db37f07504ce // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
-	github.com/petermattis/goid v0.0.0-20230518223814-80aa455d8761 // indirect
+	github.com/petermattis/goid v0.0.0-20230808133559-b036b712a89b // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
@@ -173,7 +173,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
