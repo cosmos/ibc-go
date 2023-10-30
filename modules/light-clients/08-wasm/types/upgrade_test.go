@@ -175,7 +175,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			wasmtesting.ErrMockContract,
+			types.ErrWasmContractCallFailed,
 		},
 	}
 

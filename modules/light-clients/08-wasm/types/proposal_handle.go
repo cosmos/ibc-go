@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -30,7 +28,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	if !ok {
 		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidClient,
-			fmt.Sprintf("invalid substitute client state. expected type %T, got %T", &ClientState{}, substituteClient),
+			"invalid substitute client state. expected type %T, got %T", &ClientState{}, substituteClient,
 		)
 	}
 
@@ -40,6 +38,6 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		CheckSubstituteAndUpdateState: &CheckSubstituteAndUpdateStateMsg{},
 	}
 
-	_, err := wasmCall[EmptyResult](ctx, store, &cs, payload)
+	_, err := wasmSudo[EmptyResult](ctx, store, &cs, payload)
 	return err
 }
