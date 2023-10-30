@@ -66,8 +66,8 @@ const config = {
               path: "v5.3.x",
               banner: "none",
             },
-            "v4.4.x": {
-              path: "v4.4.x",
+            "v4.5.x": {
+              path: "v4.5.x",
               banner: "none",
             },
           },
