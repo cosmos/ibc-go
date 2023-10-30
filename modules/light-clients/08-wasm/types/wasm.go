@@ -9,9 +9,7 @@ import (
 // GetAllCodeHashes is a helper to get all code hashes from the store.
 // It returns an empty slice if no code hashes are found
 func GetAllCodeHashes(ctx sdk.Context) ([][]byte, error) {
-	keyset := ibcwasm.CodeHashes
-
-	iterator, err := keyset.Iterate(ctx, nil)
+	iterator, err := ibcwasm.CodeHashes.Iterate(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
