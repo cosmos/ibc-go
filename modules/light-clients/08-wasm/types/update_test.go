@@ -494,7 +494,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(msg.VerifyUpgradeAndUpdateState)
-					suite.Require().Nil(msg.CheckSubstituteAndUpdateState)
 
 					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
 
@@ -548,7 +547,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			func() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
 			},
-			errorsmod.Wrapf(errorsmod.Wrapf(errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a %s clientID", exported.Wasm), "failed to retrieve clientID for wasm contract call"), "call to wasm contract failed"),
+			errorsmod.Wrap(types.ErrWasmContractCallFailed, errorsmod.Wrap(errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a %s clientID", exported.Wasm), "failed to retrieve clientID for wasm contract call").Error()),
 			nil,
 			nil,
 		},
@@ -569,7 +568,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			errorsmod.Wrapf(wasmtesting.ErrMockContract, "call to wasm contract failed"),
+			errorsmod.Wrap(types.ErrWasmContractCallFailed, wasmtesting.ErrMockContract.Error()),
 			nil,
 			nil,
 		},
@@ -637,7 +636,6 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 					suite.Require().Nil(msg.VerifyMembership)
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.VerifyUpgradeAndUpdateState)
-					suite.Require().Nil(msg.CheckSubstituteAndUpdateState)
 
 					resp, err := json.Marshal(types.EmptyResult{})
 					if err != nil {
@@ -689,7 +687,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			errorsmod.Wrapf(wasmtesting.ErrMockContract, "call to wasm contract failed"),
+			errorsmod.Wrap(types.ErrWasmContractCallFailed, wasmtesting.ErrMockContract.Error()),
 			nil,
 		},
 	}

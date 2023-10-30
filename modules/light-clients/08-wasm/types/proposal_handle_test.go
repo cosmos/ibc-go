@@ -84,6 +84,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 	}
 }
 
+
 func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 	var substituteClientState exported.ClientState
 	contractErr := errors.New("contract error")
@@ -177,6 +178,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 		})
 	}
 }
+
 
 func GetProcessedHeight(clientStore storetypes.KVStore, height exported.Height) (uint64, bool) {
 	key := ibctm.ProcessedHeightKey(height)

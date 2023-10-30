@@ -49,12 +49,12 @@ type CheckForMisbehaviourMsg struct {
 // this is required in order to be compatible with Rust's enum matching as used in the contract.
 // Only one field should be set at a time.
 type SudoMsg struct {
-	UpdateState                   *UpdateStateMsg                   `json:"update_state,omitempty"`
-	UpdateStateOnMisbehaviour     *UpdateStateOnMisbehaviourMsg     `json:"update_state_on_misbehaviour,omitempty"`
-	VerifyUpgradeAndUpdateState   *VerifyUpgradeAndUpdateStateMsg   `json:"verify_upgrade_and_update_state,omitempty"`
-	CheckSubstituteAndUpdateState *CheckSubstituteAndUpdateStateMsg `json:"check_substitute_and_update_state,omitempty"`
-	VerifyMembership              *VerifyMembershipMsg              `json:"verify_membership,omitempty"`
-	VerifyNonMembership           *VerifyNonMembershipMsg           `json:"verify_non_membership,omitempty"`
+	UpdateState                 *UpdateStateMsg                 `json:"update_state,omitempty"`
+	UpdateStateOnMisbehaviour   *UpdateStateOnMisbehaviourMsg   `json:"update_state_on_misbehaviour,omitempty"`
+	VerifyUpgradeAndUpdateState *VerifyUpgradeAndUpdateStateMsg `json:"verify_upgrade_and_update_state,omitempty"`
+	VerifyMembership            *VerifyMembershipMsg            `json:"verify_membership,omitempty"`
+	VerifyNonMembership         *VerifyNonMembershipMsg         `json:"verify_non_membership,omitempty"`
+	MigrateClientStore          *MigrateClientStoreMsg          `json:"migrate_client_store,omitempty"`
 }
 
 // UpdateStateMsg is a sudoMsg sent to the contract to update the client state.
@@ -94,8 +94,8 @@ type VerifyUpgradeAndUpdateStateMsg struct {
 	ProofUpgradeConsensusState []byte         `json:"proof_upgrade_consensus_state"`
 }
 
-// CheckSubstituteAndUpdateStateMsg is a sudoMsg sent to the contract to check a given substitute client and update to its state.
-type CheckSubstituteAndUpdateStateMsg struct{}
+// MigrateClientStore is a sudoMsg sent to the contract to verify a given substitute client and update to its state.
+type MigrateClientStoreMsg struct{}
 
 // ContractResult is a type constraint that defines the expected results that can be returned by a contract call/query.
 type ContractResult interface {
