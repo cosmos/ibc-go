@@ -12,7 +12,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-const MaximumOwnerLength = 2048 // maximum length of the owner in bytes
+const MaximumOwnerLength = 2048 // maximum length of the owner in bytes (value chosen arbitrarily)
 
 var (
 	_ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)

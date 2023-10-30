@@ -12,7 +12,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-const MaximumCounterpartyPayeeLength = 2048 // maximum length of the counterparty payee in bytes
+const MaximumCounterpartyPayeeLength = 2048 // maximum length of the counterparty payee in bytes (value chosen arbitrarily)
 
 var (
 	_ sdk.Msg = (*MsgRegisterPayee)(nil)
