@@ -44,7 +44,7 @@ func (suite *TypesTestSuite) TestWasmInit() {
 
 			tc.malleate()
 
-			err := types.WasmInit(suite.ctx, suite.store, &types.ClientState{}, types.InstantiateMessage{})
+			err := types.WasmInstantiate(suite.ctx, suite.store, &types.ClientState{}, types.InstantiateMessage{})
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -219,7 +219,7 @@ func (suite *TypesTestSuite) TestWasmCall() {
 
 			tc.malleate()
 
-			res, err := types.WasmCall[types.UpdateStateResult](suite.ctx, suite.store, wasmClientState, payload)
+			res, err := types.WasmSudo[types.UpdateStateResult](suite.ctx, suite.store, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
