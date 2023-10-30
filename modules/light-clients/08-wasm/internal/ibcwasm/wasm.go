@@ -1,15 +1,21 @@
 package ibcwasm
 
 import (
+	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
 )
 
 var (
 	vm WasmEngine
-	// wasmStoreService stores the key-value storage service for the 08-wasm module.
-	// Using a global storage service is required since the client state interface functions
-	// do not have access to the keeper.
-	wasmStoreService storetypes.KVStoreService
+
+	// state management
+	Schema     collections.Schema
+	CodeHashes collections.KeySet[[]byte]
+
+	// keys:
+
+	// CodeHashesKey is the key under which all code hashes are stored
+	CodeHashesKey = collections.NewPrefix(0)
 )
 
 // SetVM sets the wasm VM for the 08-wasm module.
@@ -24,10 +30,14 @@ func GetVM() WasmEngine {
 
 // SetWasmStoreService sets the storage service for 08-wasm module.
 func SetWasmStoreService(storeService storetypes.KVStoreService) {
-	wasmStoreService = storeService
-}
+	sb := collections.NewSchemaBuilder(storeService)
 
-// GetWasmStoreServiceKey returns the storage service for the 08-wasm module.
-func GetWasmStoreService() storetypes.KVStoreService {
-	return wasmStoreService
+	CodeHashes = collections.NewKeySet(sb, CodeHashesKey, "code_hashes", collections.BytesKey)
+
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	Schema = schema
 }

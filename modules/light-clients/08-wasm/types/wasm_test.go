@@ -3,6 +3,7 @@ package types_test
 import (
 	"crypto/sha256"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -36,7 +37,7 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 			func() {
 				suite.SetupWasmWithMockVM()
 
-				err := types.AddCodeHash(suite.chainA.GetContext(), []byte("codehash"))
+				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), []byte("codehash"))
 				suite.Require().NoError(err)
 			},
 			func(codeHashes [][]byte) {
@@ -68,9 +69,9 @@ func (suite *TypesTestSuite) TestAddCodeHash() {
 
 	codeHash1 := []byte("codehash1")
 	codeHash2 := []byte("codehash2")
-	err = types.AddCodeHash(suite.chainA.GetContext(), codeHash1)
+	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash1)
 	suite.Require().NoError(err)
-	err = types.AddCodeHash(suite.chainA.GetContext(), codeHash2)
+	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash2)
 	suite.Require().NoError(err)
 
 	codeHashes, err = types.GetAllCodeHashes(suite.chainA.GetContext())
@@ -92,7 +93,7 @@ func (suite *TypesTestSuite) TestHasCodeHash() {
 			"success: code hash exists",
 			func() {
 				codeHash = []byte("codehash")
-				err := types.AddCodeHash(suite.chainA.GetContext(), codeHash)
+				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash)
 				suite.Require().NoError(err)
 			},
 			true,

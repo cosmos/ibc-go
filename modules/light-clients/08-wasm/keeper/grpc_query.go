@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -48,7 +49,7 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 func (Keeper) CodeHashes(goCtx context.Context, req *types.QueryCodeHashesRequest) (*types.QueryCodeHashesResponse, error) {
 	codeHashes, pageRes, err := sdkquery.CollectionPaginate(
 		goCtx,
-		types.GetCodeHashKeySet(),
+		ibcwasm.CodeHashes,
 		req.Pagination,
 		func(key []byte, value collections.NoValue) (string, error) {
 			return hex.EncodeToString(key), nil
