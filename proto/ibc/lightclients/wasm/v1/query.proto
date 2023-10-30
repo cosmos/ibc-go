@@ -21,11 +21,16 @@ service Query {
 
 // QueryCodeHashesRequest is the request type for the Query/CodeHashes RPC method.
 message QueryCodeHashesRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
 // QueryCodeHashesResponse is the response type for the Query/CodeHashes RPC method.
 message QueryCodeHashesResponse {
   repeated string code_hashes = 1;
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryCodeRequest is the request type for the Query/Code RPC method.

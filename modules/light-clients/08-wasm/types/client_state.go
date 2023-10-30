@@ -116,7 +116,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	}
 
 	// Do not allow initialization of a client with a code hash that hasn't been previously stored via storeWasmCode.
-	if !HasCodeHash(ctx, cdc, cs.CodeHash) {
+	if !HasCodeHash(ctx, cs.CodeHash) {
 		return errorsmod.Wrapf(ErrInvalidCodeHash, "code hash (%s) has not been previously stored", hex.EncodeToString(cs.CodeHash))
 	}
 

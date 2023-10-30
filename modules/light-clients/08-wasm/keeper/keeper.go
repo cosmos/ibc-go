@@ -10,8 +10,8 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
+	storetypes "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,7 +25,6 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	storeKey  storetypes.StoreKey
 	cdc       codec.BinaryCodec
 	wasmVM    ibcwasm.WasmEngine
 	authority string
@@ -36,7 +35,7 @@ type Keeper struct {
 // and the same Wasm VM instance should be shared with it.
 func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
-	key storetypes.StoreKey,
+	storeService storetypes.KVStoreService,
 	authority string,
 	vm ibcwasm.WasmEngine,
 ) Keeper {
@@ -44,16 +43,19 @@ func NewKeeperWithVM(
 		panic(errors.New("wasm VM must be not nil"))
 	}
 
+	if storeService == nil {
+		panic(errors.New("store service must be not nil"))
+	}
+
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
 	ibcwasm.SetVM(vm)
-	ibcwasm.SetWasmStoreKey(key)
+	ibcwasm.SetupWasmStoreService(storeService)
 
 	return Keeper{
 		cdc:       cdc,
-		storeKey:  key,
 		wasmVM:    vm,
 		authority: authority,
 	}
@@ -64,7 +66,7 @@ func NewKeeperWithVM(
 // and a Wasm VM needs to be instantiated using the provided parameters.
 func NewKeeperWithConfig(
 	cdc codec.BinaryCodec,
-	key storetypes.StoreKey,
+	storeService storetypes.KVStoreService,
 	authority string,
 	wasmConfig types.WasmConfig,
 ) Keeper {
@@ -73,7 +75,7 @@ func NewKeeperWithConfig(
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(cdc, key, authority, vm)
+	return NewKeeperWithVM(cdc, storeService, authority, vm)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
@@ -98,7 +100,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// Check to see if store already has codeHash.
 	codeHash := generateWasmCodeHash(code)
-	if types.HasCodeHash(ctx, k.cdc, codeHash) {
+	if types.HasCodeHash(ctx, codeHash) {
 		return nil, types.ErrWasmCodeExists
 	}
 
@@ -125,9 +127,9 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	}
 
 	// store the code hash
-	err = types.AddCodeHash(ctx, k.cdc, codeHash)
+	err = ibcwasm.CodeHashes.Set(ctx, codeHash)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to store contract")
+		return nil, errorsmod.Wrap(err, "failed to store code hash")
 	}
 
 	return codeHash, nil
