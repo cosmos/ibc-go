@@ -3,7 +3,6 @@ package types_test
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -84,10 +83,8 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateStateGrandpa() {
 	}
 }
 
-
 func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 	var substituteClientState exported.ClientState
-	contractErr := errors.New("contract error")
 
 	testCases := []struct {
 		name     string
@@ -98,13 +95,13 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			"success",
 			func() {
 				suite.mockVM.RegisterSudoCallback(
-					types.CheckSubstituteAndUpdateStateMsg{},
+					types.MigrateClientStoreMsg{},
 					func(_ cosmwasm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store cosmwasm.KVStore, _ cosmwasm.GoAPI, _ cosmwasm.Querier, _ cosmwasm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 						var payload types.SudoMsg
 						err := json.Unmarshal(sudoMsg, &payload)
 						suite.Require().NoError(err)
 
-						suite.Require().NotNil(payload.CheckSubstituteAndUpdateState)
+						suite.Require().NotNil(payload.MigrateClientStore)
 						suite.Require().Nil(payload.UpdateState)
 						suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
 						suite.Require().Nil(payload.VerifyMembership)
@@ -114,7 +111,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 						bz, err := json.Marshal(types.EmptyResult{})
 						suite.Require().NoError(err)
 
-						return &wasmvmtypes.Response{Data: bz}, types.DefaultGasUsed, nil
+						return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 					},
 				)
 			},
@@ -128,16 +125,25 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			clienttypes.ErrInvalidClient,
 		},
 		{
+			"failure: code hashes do not match",
+			func() {
+				substituteClientState = &types.ClientState{
+					CodeHash: []byte("invalid"),
+				}
+			},
+			clienttypes.ErrInvalidClient,
+		},
+		{
 			"failure: contract returns error",
 			func() {
 				suite.mockVM.RegisterSudoCallback(
-					types.CheckSubstituteAndUpdateStateMsg{},
-					func(_ cosmwasm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store cosmwasm.KVStore, _ cosmwasm.GoAPI, _ cosmwasm.Querier, _ cosmwasm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-						return nil, types.DefaultGasUsed, contractErr
+					types.MigrateClientStoreMsg{},
+					func(_ cosmwasm.Checksum, _ wasmvmtypes.Env, _ []byte, _ cosmwasm.KVStore, _ cosmwasm.GoAPI, _ cosmwasm.Querier, _ cosmwasm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+						return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockContract
 					},
 				)
 			},
-			contractErr,
+			types.ErrWasmContractCallFailed,
 		},
 	}
 
@@ -156,6 +162,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			endpointB := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err = endpointB.CreateClient()
 			suite.Require().NoError(err)
+
 			substituteClientState = endpointB.GetClientState()
 			substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpointB.ClientID)
 
@@ -178,7 +185,6 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 		})
 	}
 }
-
 
 func GetProcessedHeight(clientStore storetypes.KVStore, height exported.Height) (uint64, bool) {
 	key := ibctm.ProcessedHeightKey(height)
