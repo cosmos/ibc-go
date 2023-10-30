@@ -36,12 +36,3 @@ func (m MsgStoreCode) ValidateBasic() error {
 
 	return nil
 }
-
-// GetSigners implements sdk.Msg
-func (m MsgStoreCode) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(m.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}

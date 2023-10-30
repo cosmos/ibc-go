@@ -58,6 +58,12 @@ type PortKeeper interface {
 // AppModuleBasic is the mock AppModuleBasic.
 type AppModuleBasic struct{}
 
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModuleBasic) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModuleBasic) IsAppModule() {}
+
 // Name implements AppModuleBasic interface.
 func (AppModuleBasic) Name() string {
 	return ModuleName
@@ -149,4 +155,11 @@ func (KeyPath) String() string {
 // Empty implements the exported.Path interface
 func (KeyPath) Empty() bool {
 	return false
+}
+
+var _ exported.Height = Height{}
+
+// Height defines a placeholder struct which implements the exported.Height interface
+type Height struct {
+	exported.Height
 }

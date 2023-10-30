@@ -1,5 +1,9 @@
 package types
 
+import (
+	storetypes "cosmossdk.io/store/types"
+)
+
 /*
 	This file is to allow for unexported functions and fields to be accessible to the testing package.
 */
@@ -7,34 +11,14 @@ package types
 // MaxWasmSize is the maximum size of a wasm code in bytes.
 const MaxWasmSize = maxWasmSize
 
-// instantiateMessage is the message that is sent to the contract's instantiate entry point.
-type InstantiateMessage struct {
-	instantiateMessage
+// GetClientID is a wrapper around getClientID to allow the function to be directly called in tests.
+func GetClientID(clientStore storetypes.KVStore) (string, error) {
+	return getClientID(clientStore)
 }
 
-// these fields are exported aliases for the payload fields passed to the wasm vm.
-// these are used to specify callback functions to handle specific queries in the mock vm.
-type (
-	// Query payload types
-	StatusMsg               = statusMsg
-	ExportMetadataMsg       = exportMetadataMsg
-	TimestampAtHeightMsg    = timestampAtHeightMsg
-	VerifyClientMessageMsg  = verifyClientMessageMsg
-	CheckForMisbehaviourMsg = checkForMisbehaviourMsg
-
-	// Sudo payload types
-	UpdateStateMsg                   = updateStateMsg
-	UpdateStateOnMisbehaviourMsg     = updateStateOnMisbehaviourMsg
-	VerifyUpgradeAndUpdateStateMsg   = verifyUpgradeAndUpdateStateMsg
-	CheckSubstituteAndUpdateStateMsg = checkSubstituteAndUpdateStateMsg
-	VerifyMembershipMsg              = verifyMembershipMsg
-	VerifyNonMembershipMsg           = verifyNonMembershipMsg
-
-	// Contract response types
-	EmptyResult                = emptyResult
-	StatusResult               = statusResult
-	ExportMetadataResult       = exportMetadataResult
-	TimestampAtHeightResult    = timestampAtHeightResult
-	CheckForMisbehaviourResult = checkForMisbehaviourResult
-	UpdateStateResult          = updateStateResult
-)
+// NewUpdateProposalWrappedStore is a wrapper around newUpdateProposalWrappedStore to allow the function to be directly called in tests.
+//
+//nolint:revive // Returning unexported type for testing purposes.
+func NewUpdateProposalWrappedStore(subjectStore, substituteStore storetypes.KVStore, subjectPrefix, substitutePrefix []byte) updateProposalWrappedStore {
+	return newUpdateProposalWrappedStore(subjectStore, substituteStore, subjectPrefix, substitutePrefix)
+}

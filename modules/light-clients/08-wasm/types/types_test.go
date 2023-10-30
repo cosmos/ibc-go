@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"testing"
 
@@ -34,15 +33,15 @@ import (
 )
 
 const (
-	tmClientID      = "07-tendermint-0"
-	grandpaClientID = "08-wasm-0"
+	tmClientID          = "07-tendermint-0"
+	defaultWasmClientID = "08-wasm-0"
 )
 
 type TypesTestSuite struct {
 	testifysuite.Suite
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
-	mockVM      *types.MockWasmEngine
+	mockVM      *wasmtesting.MockWasmEngine
 
 	ctx      sdk.Context
 	store    storetypes.KVStore
@@ -52,6 +51,13 @@ type TypesTestSuite struct {
 
 func TestWasmTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TypesTestSuite))
+}
+
+func (suite *TypesTestSuite) SetupTest() {
+	ibctesting.DefaultTestingAppInit = setupTestingApp
+
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 }
 
 func init() {
@@ -75,18 +81,21 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	return app, app.DefaultGenesis()
 }
 
-// SetupWasmTendermint sets up mock cometbft chain with a mock vm.
+// SetupWasmWithMockVM sets up mock cometbft chain with a mock vm.
 func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 	ibctesting.DefaultTestingAppInit = suite.setupWasmWithMockVM
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 
+	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
+	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
+
 	suite.codeHash = storeWasmCode(suite, wasmtesting.Code)
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	suite.mockVM = types.NewMockWasmEngine()
+	suite.mockVM = wasmtesting.NewMockWasmEngine()
 	// TODO: move default functionality required for wasm client testing to the mock VM
 	suite.mockVM.StoreCodeFn = func(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
 		hash := sha256.Sum256(code)
@@ -108,8 +117,9 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 	}
 
 	suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
-		resp := fmt.Sprintf(`{"status":"%s"}`, exported.Active)
-		return []byte(resp), types.DefaultGasUsed, nil
+		resp, err := json.Marshal(types.StatusResult{Status: exported.Active.String()})
+		suite.Require().NoError(err)
+		return resp, wasmtesting.DefaultGasUsed, nil
 	})
 
 	db := dbm.NewMemDB()
@@ -134,7 +144,7 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 	suite.Require().NoError(err)
 
 	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
-	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, grandpaClientID)
+	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
 
 	wasmContract, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
 	suite.Require().NoError(err)
@@ -179,11 +189,11 @@ func (suite *TypesTestSuite) SetupWasmGrandpaWithChannel() {
 	// in 08-wasm directory so this should not affect what test app we use.
 	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
 	suite.SetupWasmGrandpa()
-	exportedClientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, grandpaClientID)
+	exportedClientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
 	suite.Require().True(ok)
 	clientState := exportedClientState.(*types.ClientState)
 	clientState.CodeHash = suite.codeHash
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, grandpaClientID, clientState)
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, defaultWasmClientID, clientState)
 }
 
 // storeWasmCode stores the wasm code on chain and returns the code hash.

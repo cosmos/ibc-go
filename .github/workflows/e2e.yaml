@@ -40,24 +40,6 @@ jobs:
             echo "Using tag $tag"
             echo "simd-tag=$tag" >> $GITHUB_OUTPUT
           fi
-  # build-e2e ensures that all test code compiles.
-  build-e2e:
-    if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-      - name: Build e2e
-        run: |
-          cd e2e
-          find ./tests -type d | while IFS= read -r dir
-          do
-              if ls "${dir}"/*.go >/dev/null 2>&1; then
-                  go test -c "$dir"
-              fi
-          done
 
   # e2e generates the e2e tests for the non-forked PRs. It does so by using the
   # e2e-test-workflow-call.yml each test runs the jobs defined in that file.
@@ -65,9 +47,7 @@ jobs:
     # we will be running this job if the PR has not yet been marked for review, and we push additional changes.
     # we skip the job in this case.
     if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-    needs:
-      - determine-image-tag # we are required to have a docker tag before we can build any images.
-      - build-e2e # don't attempt any tests unless the e2e code compiles successfully.
+    needs: determine-image-tag # we are required to have a docker tag before we can build any images.
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     # unless we explicitly tell the workflow to inherit secrets, required secrets such as GITHUB_TOKEN will not be
     # provided to the workflow. This would cause privileged operations to fail.

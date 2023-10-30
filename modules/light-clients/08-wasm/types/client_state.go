@@ -63,14 +63,14 @@ func (cs ClientState) Validate() error {
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
 func (cs ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
-	payload := queryMsg{Status: &statusMsg{}}
+	payload := QueryMsg{Status: &StatusMsg{}}
 
-	result, err := wasmQuery[statusResult](ctx, clientStore, &cs, payload)
+	result, err := wasmQuery[StatusResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		return exported.Unknown
 	}
 
-	return result.Status
+	return exported.Status(result.Status)
 }
 
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState
@@ -86,13 +86,18 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	payload := queryMsg{
-		TimestampAtHeight: &timestampAtHeightMsg{
-			Height: height,
+	timestampHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
+	payload := QueryMsg{
+		TimestampAtHeight: &TimestampAtHeightMsg{
+			Height: timestampHeight,
 		},
 	}
 
-	result, err := wasmQuery[timestampAtHeightResult](ctx, clientStore, &cs, payload)
+	result, err := wasmQuery[TimestampAtHeightResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		return 0, errorsmod.Wrapf(err, "height (%s)", height)
 	}
@@ -115,7 +120,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 		return errorsmod.Wrapf(ErrInvalidCodeHash, "code hash (%s) has not been previously stored", hex.EncodeToString(cs.CodeHash))
 	}
 
-	payload := instantiateMessage{
+	payload := InstantiateMessage{
 		ClientState:    &cs,
 		ConsensusState: consensusState,
 	}
@@ -137,6 +142,11 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
@@ -144,22 +154,22 @@ func (cs ClientState) VerifyMembership(
 		)
 	}
 
-	_, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	payload := sudoMsg{
-		VerifyMembership: &verifyMembershipMsg{
-			Height:           height,
+	payload := SudoMsg{
+		VerifyMembership: &VerifyMembershipMsg{
+			Height:           proofHeight,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             path,
+			Path:             merklePath,
 			Value:            value,
 		},
 	}
-	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmCall[EmptyResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
@@ -176,6 +186,11 @@ func (cs ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
@@ -183,20 +198,20 @@ func (cs ClientState) VerifyNonMembership(
 		)
 	}
 
-	_, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	payload := sudoMsg{
-		VerifyNonMembership: &verifyNonMembershipMsg{
-			Height:           height,
+	payload := SudoMsg{
+		VerifyNonMembership: &VerifyNonMembershipMsg{
+			Height:           proofHeight,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             path,
+			Path:             merklePath,
 		},
 	}
-	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmCall[EmptyResult](ctx, clientStore, &cs, payload)
 	return err
 }

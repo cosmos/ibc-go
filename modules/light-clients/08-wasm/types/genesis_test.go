@@ -2,9 +2,17 @@ package types_test
 
 import (
 	"encoding/base64"
+	"encoding/json"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	errorsmod "cosmossdk.io/errors"
+
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
@@ -19,82 +27,80 @@ func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
 	suite.Require().Len(gm, 0, "exported metadata has unexpected length")
 }
 
-// expected export ordering:
-// processed height and processed time per height
-// then all iteration keys
-// func (suite *TypesTestSuite) TestExportMetadataTendermint() {
-// 	suite.SetupWasmTendermint()
+func (suite *TypesTestSuite) TestExportMetatada() {
+	mockMetadata := clienttypes.NewGenesisMetadata([]byte("key"), []byte("value"))
 
-// 	// test intializing client and exporting metadata
-// 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-// 	suite.coordinator.SetupClients(path)
-// 	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-// 	clientState := path.EndpointA.GetClientState()
-// 	height := clientState.GetLatestHeight()
+	testCases := []struct {
+		name        string
+		malleate    func()
+		expPanic    error
+		expMetadata []exported.GenesisMetadata
+	}{
+		{
+			"success",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.ExportMetadataMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					var msg types.QueryMsg
 
-// 	initIteration := ibctm.GetIterationKey(clientStore, height)
-// 	suite.Require().NotEqual(0, len(initIteration))
-// 	initProcessedTime, found := ibctm.GetProcessedTime(clientStore, height)
-// 	suite.Require().True(found)
-// 	initProcessedHeight, found := GetProcessedHeight(clientStore, height)
-// 	suite.Require().True(found)
+					err := json.Unmarshal(queryMsg, &msg)
+					suite.Require().NoError(err)
 
-// 	gm := clientState.ExportMetadata(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID))
-// 	suite.Require().NotNil(gm, "client with metadata returned nil exported metadata")
-// 	suite.Require().Len(gm, 3, "exported metadata has unexpected length")
+					suite.Require().NotNil(msg.ExportMetadata)
+					suite.Require().Nil(msg.VerifyClientMessage)
+					suite.Require().Nil(msg.Status)
+					suite.Require().Nil(msg.CheckForMisbehaviour)
+					suite.Require().Nil(msg.TimestampAtHeight)
 
-// 	suite.Require().Equal(ibctm.ProcessedHeightKey(height), gm[0].GetKey(), "metadata has unexpected key")
-// 	actualProcessedHeight := sdk.BigEndianToUint64(gm[0].GetValue())
-// 	suite.Require().Equal(initProcessedHeight, actualProcessedHeight, "metadata has unexpected value")
+					resp, err := json.Marshal(types.ExportMetadataResult{
+						GenesisMetadata: []clienttypes.GenesisMetadata{mockMetadata},
+					})
+					suite.Require().NoError(err)
 
-// 	suite.Require().Equal(ibctm.ProcessedTimeKey(height), gm[1].GetKey(), "metadata has unexpected key")
-// 	suite.Require().Equal(initProcessedTime, sdk.BigEndianToUint64(gm[1].GetValue()), "metadata has unexpected value")
+					return resp, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			nil,
+			[]exported.GenesisMetadata{mockMetadata},
+		},
+		{
+			"failure: contract returns an error",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.ExportMetadataMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					return nil, 0, wasmtesting.ErrMockContract
+				})
+			},
+			errorsmod.Wrapf(wasmtesting.ErrMockContract, "query to wasm contract failed"),
+			nil,
+		},
+	}
 
-// 	suite.Require().Equal(ibctm.IterationKey(height), gm[2].GetKey(), "metadata has unexpected key")
-// 	suite.Require().Equal(initIteration, gm[2].GetValue(), "metadata has unexpected value")
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
 
-// 	// test updating client and exporting metadata
-// 	err := path.EndpointA.UpdateClient()
-// 	suite.Require().NoError(err)
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
 
-// 	clientState = path.EndpointA.GetClientState()
-// 	updateHeight := clientState.GetLatestHeight()
+			clientState := endpoint.GetClientState()
 
-// 	iteration := ibctm.GetIterationKey(clientStore, updateHeight)
-// 	suite.Require().NotEqual(0, len(initIteration))
-// 	processedTime, found := ibctm.GetProcessedTime(clientStore, updateHeight)
-// 	suite.Require().True(found)
-// 	processedHeight, found := GetProcessedHeight(clientStore, updateHeight)
-// 	suite.Require().True(found)
+			tc.malleate()
 
-// 	gm = clientState.ExportMetadata(suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID))
-// 	suite.Require().NotNil(gm, "client with metadata returned nil exported metadata")
-// 	suite.Require().Len(gm, 6, "exported metadata has unexpected length")
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 
-// 	// expected ordering:
-// 	// initProcessedHeight, initProcessedTime, processedHeight, processedTime, initIteration, iteration
+			var metadata []exported.GenesisMetadata
+			exportMetadata := func() {
+				metadata = clientState.ExportMetadata(store)
+			}
 
-// 	// check init processed height and time
-// 	suite.Require().Equal(ibctm.ProcessedHeightKey(height), gm[0].GetKey(), "metadata has unexpected key")
-// 	actualProcessedHeight = sdk.BigEndianToUint64(gm[0].GetValue())
-// 	suite.Require().Equal(initProcessedHeight, actualProcessedHeight, "metadata has unexpected value")
+			if tc.expPanic == nil {
+				exportMetadata()
 
-// 	suite.Require().Equal(ibctm.ProcessedTimeKey(height), gm[1].GetKey(), "metadata has unexpected key")
-// 	suite.Require().Equal(initProcessedTime, sdk.BigEndianToUint64(gm[1].GetValue()), "metadata has unexpected value")
-
-// 	// check processed height and time after update
-// 	suite.Require().Equal(ibctm.ProcessedHeightKey(updateHeight), gm[2].GetKey(), "metadata has unexpected key")
-// 	actualProcessedHeight = sdk.BigEndianToUint64(gm[2].GetValue())
-// 	suite.Require().NoError(err)
-// 	suite.Require().Equal(processedHeight, actualProcessedHeight, "metadata has unexpected value")
-
-// 	suite.Require().Equal(ibctm.ProcessedTimeKey(updateHeight), gm[3].GetKey(), "metadata has unexpected key")
-// 	suite.Require().Equal(processedTime, sdk.BigEndianToUint64(gm[3].GetValue()), "metadata has unexpected value")
-
-// 	// check iteration keys
-// 	suite.Require().Equal(ibctm.IterationKey(height), gm[4].GetKey(), "metadata has unexpected key")
-// 	suite.Require().Equal(initIteration, gm[4].GetValue(), "metadata has unexpected value")
-
-// 	suite.Require().Equal(ibctm.IterationKey(updateHeight), gm[5].GetKey(), "metadata has unexpected key")
-// 	suite.Require().Equal(iteration, gm[5].GetValue(), "metadata has unexpected value")
-// }
+				suite.Require().Equal(tc.expMetadata, metadata)
+			} else {
+				suite.Require().PanicsWithError(tc.expPanic.Error(), exportMetadata)
+			}
+		})
+	}
+}
