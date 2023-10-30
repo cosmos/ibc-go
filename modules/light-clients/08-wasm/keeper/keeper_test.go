@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 
 	dbm "github.com/cosmos/cosmos-db"
@@ -94,7 +93,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			false,
-			fmt.Errorf("authority must be non-empty"),
+			errors.New("authority must be non-empty"),
 		},
 		{
 			"failure: nil wasm VM",
@@ -107,7 +106,20 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			false,
-			fmt.Errorf("wasm VM must be not nil"),
+			errors.New("wasm VM must be not nil"),
+		},
+		{
+			"failure: nil store service",
+			func() {
+				keeper.NewKeeperWithVM(
+					GetSimApp(suite.chainA).AppCodec(),
+					nil,
+					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
+					ibcwasm.GetVM(),
+				)
+			},
+			false,
+			errors.New("store service must be not nil"),
 		},
 	}
 

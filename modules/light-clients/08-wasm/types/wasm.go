@@ -31,10 +31,10 @@ func GetAllCodeHashes(ctx sdk.Context) ([][]byte, error) {
 // HasCodeHash returns true if the given code hash exists in the store and
 // false otherwise.
 func HasCodeHash(ctx sdk.Context, codeHash []byte) bool {
-	has, err := ibcwasm.CodeHashes.Has(ctx, codeHash)
+	found, err := ibcwasm.CodeHashes.Has(ctx, codeHash)
 	if err != nil {
 		return false
 	}
 
-	return has
+	return found
 }

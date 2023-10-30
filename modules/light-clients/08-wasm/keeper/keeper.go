@@ -43,12 +43,16 @@ func NewKeeperWithVM(
 		panic(errors.New("wasm VM must be not nil"))
 	}
 
+	if storeService == nil {
+		panic(errors.New("store service must be not nil"))
+	}
+
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
 	ibcwasm.SetVM(vm)
-	ibcwasm.SetWasmStoreService(storeService)
+	ibcwasm.SetupWasmStoreService(storeService)
 
 	return Keeper{
 		cdc:       cdc,
@@ -125,7 +129,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	// store the code hash
 	err = ibcwasm.CodeHashes.Set(ctx, codeHash)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to store contract")
+		return nil, errorsmod.Wrap(err, "failed to store code hash")
 	}
 
 	return codeHash, nil

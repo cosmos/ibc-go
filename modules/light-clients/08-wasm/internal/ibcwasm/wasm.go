@@ -12,8 +12,6 @@ var (
 	Schema     collections.Schema
 	CodeHashes collections.KeySet[[]byte]
 
-	// keys:
-
 	// CodeHashesKey is the key under which all code hashes are stored
 	CodeHashesKey = collections.NewPrefix(0)
 )
@@ -28,8 +26,8 @@ func GetVM() WasmEngine {
 	return vm
 }
 
-// SetWasmStoreService sets the storage service for 08-wasm module.
-func SetWasmStoreService(storeService storetypes.KVStoreService) {
+// SetupWasmStoreService sets up the 08-wasm module's collections.
+func SetupWasmStoreService(storeService storetypes.KVStoreService) {
 	sb := collections.NewSchemaBuilder(storeService)
 
 	CodeHashes = collections.NewKeySet(sb, CodeHashesKey, "code_hashes", collections.BytesKey)
