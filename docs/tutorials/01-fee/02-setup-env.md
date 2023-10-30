@@ -48,7 +48,13 @@ go version
 
 ## Hermes
 
-Install Hermes relayer version `v1.6.0` via cargo following the instructions on the [Hermes website](https://hermes.informal.systems/quick-start/installation.html#install-via-cargo). Test if Hermes is installed by running.
+Install Hermes relayer version `v1.6.0` via cargo following the instructions on the [Hermes website](https://hermes.informal.systems/quick-start/installation.html#install-via-cargo) or by using the command below.
+
+```bash
+cargo install ibc-relayer-cli --version 1.6.0 --bin hermes --locked
+```
+
+Test if Hermes is installed by running the following command:
 
 ```bash
 hermes version
