@@ -73,6 +73,10 @@ func (suite *TypesTestSuite) TestAddCodeHash() {
 	suite.Require().NoError(err)
 	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash2)
 	suite.Require().NoError(err)
+	
+	// Test adding the same code hash twice
+	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash1)
+	suite.Require().NoError(err)
 
 	codeHashes, err = types.GetAllCodeHashes(suite.chainA.GetContext())
 	suite.Require().NoError(err)
