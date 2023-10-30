@@ -30,12 +30,12 @@ func WasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore
 	return wasmQuery[T](ctx, clientStore, cs, payload)
 }
 
-// WasmCall wraps wasmCall and is used solely for testing.
-func WasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
-	return wasmCall[T](ctx, clientStore, cs, payload)
+// WasmSudo wraps wasmCall and is used solely for testing.
+func WasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
+	return wasmSudo[T](ctx, clientStore, cs, payload)
 }
 
-// WasmInit wraps wasmInit and is used solely for testing.
-func WasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
-	return wasmInit(ctx, clientStore, cs, payload)
+// WasmInstantiate wraps wasmInit and is used solely for testing.
+func WasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
+	return wasmInstantiate(ctx, clientStore, cs, payload)
 }
