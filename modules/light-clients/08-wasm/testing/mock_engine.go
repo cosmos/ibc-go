@@ -21,7 +21,7 @@ var (
 	queryTypes = [...]any{types.StatusMsg{}, types.ExportMetadataMsg{}, types.TimestampAtHeightMsg{}, types.VerifyClientMessageMsg{}, types.CheckForMisbehaviourMsg{}}
 
 	// sudoTypes contains all the possible sudo message types.
-	sudoTypes = [...]any{types.UpdateStateMsg{}, types.UpdateStateOnMisbehaviourMsg{}, types.VerifyUpgradeAndUpdateStateMsg{}, types.CheckSubstituteAndUpdateStateMsg{}, types.VerifyMembershipMsg{}, types.VerifyNonMembershipMsg{}}
+	sudoTypes = [...]any{types.UpdateStateMsg{}, types.UpdateStateOnMisbehaviourMsg{}, types.VerifyUpgradeAndUpdateStateMsg{}, types.VerifyMembershipMsg{}, types.VerifyNonMembershipMsg{}}
 )
 
 type (
@@ -198,10 +198,6 @@ func getSudoMsgPayloadTypeName(sudoMsgBz []byte) string {
 
 	if payload.VerifyUpgradeAndUpdateState != nil {
 		payloadField = *payload.VerifyUpgradeAndUpdateState
-	}
-
-	if payload.CheckSubstituteAndUpdateState != nil {
-		payloadField = *payload.CheckSubstituteAndUpdateState
 	}
 
 	if payload.VerifyMembership != nil {
