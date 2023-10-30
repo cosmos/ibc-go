@@ -69,7 +69,7 @@ func (suite *TypesTestSuite) TestExportMetatada() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			errorsmod.Wrapf(wasmtesting.ErrMockContract, "query to wasm contract failed"),
+			errorsmod.Wrapf(types.ErrWasmContractCallFailed, wasmtesting.ErrMockContract.Error()),
 			nil,
 		},
 	}
