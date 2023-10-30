@@ -85,7 +85,7 @@ func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, 
 	}
 	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
-		return errorsmod.Wrapf(ErrWasmContractCallFailed, "call to wasm contract failed: %v", err)
+		return errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
 	return nil
 }
@@ -108,7 +108,7 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 
 	resp, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
-		return result, errorsmod.Wrapf(ErrWasmContractCallFailed, "call to wasm contract failed: %v", err)
+		return result, errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
 	}
 
 	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
@@ -123,7 +123,7 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 	}
 
 	if err := json.Unmarshal(resp.Data, &result); err != nil {
-		return result, errorsmod.Wrapf(ErrWasmInvalidResponseData, "failed to unmarshal result of wasm execution: %v", err)
+		return result, errorsmod.Wrapf(ErrWasmInvalidResponseData, err.Error())
 	}
 	return result, nil
 }
@@ -143,7 +143,7 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore
 
 	resp, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
-		return result, errorsmod.Wrapf(ErrWasmContractCallFailed, "query to wasm contract failed: %v", err)
+		return result, errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
 	}
 
 	if err := json.Unmarshal(resp, &result); err != nil {

@@ -197,7 +197,7 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			wasmtesting.ErrMockContract,
+			types.ErrWasmContractCallFailed,
 		},
 		{
 			"error: invalid height",
@@ -398,7 +398,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 			func() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
 			},
-			types.ErrRetrieveClientID,
+			types.ErrWasmContractCallFailed,
 		},
 		{
 			"failure: invalid consensus state",
@@ -422,7 +422,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 					return nil, 0, wasmtesting.ErrMockContract
 				}
 			},
-			wasmtesting.ErrMockContract,
+			types.ErrWasmContractCallFailed,
 		},
 	}
 
@@ -1130,7 +1130,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					return nil, wasmtesting.DefaultGasUsed, commitmenttypes.ErrInvalidProof
 				})
 			},
-			commitmenttypes.ErrInvalidProof,
+			types.ErrWasmContractCallFailed,
 		},
 		{
 			"proof height greater than client state latest height",
