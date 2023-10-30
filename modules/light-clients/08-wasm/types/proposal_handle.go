@@ -28,7 +28,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 	_, ok := substituteClient.(*ClientState)
 	if !ok {
-		return errorsmod.Wrapf(
+		return errorsmod.Wrap(
 			clienttypes.ErrInvalidClient,
 			fmt.Sprintf("invalid substitute client state. expected type %T, got %T", &ClientState{}, substituteClient),
 		)
