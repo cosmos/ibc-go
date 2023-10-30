@@ -494,7 +494,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(msg.VerifyUpgradeAndUpdateState)
-					suite.Require().Nil(msg.CheckSubstituteAndUpdateState)
 
 					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
 
@@ -637,7 +636,6 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 					suite.Require().Nil(msg.VerifyMembership)
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.VerifyUpgradeAndUpdateState)
-					suite.Require().Nil(msg.CheckSubstituteAndUpdateState)
 
 					resp, err := json.Marshal(types.EmptyResult{})
 					if err != nil {
