@@ -729,7 +729,6 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					suite.Require().NotNil(payload.VerifyMembership)
-					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
 					suite.Require().Nil(payload.UpdateState)
 					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(payload.VerifyNonMembership)
@@ -758,7 +757,6 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					suite.Require().NoError(err)
 
 					suite.Require().NotNil(payload.VerifyMembership)
-					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
 					suite.Require().Nil(payload.UpdateState)
 					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(payload.VerifyNonMembership)
@@ -1071,7 +1069,6 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					suite.Require().NoError(err)
 
 					suite.Require().NotNil(payload.VerifyNonMembership)
-					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
 					suite.Require().Nil(payload.UpdateState)
 					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(payload.VerifyMembership)
@@ -1099,7 +1096,6 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					suite.Require().NoError(err)
 
 					suite.Require().NotNil(payload.VerifyNonMembership)
-					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
 					suite.Require().Nil(payload.UpdateState)
 					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(payload.VerifyMembership)
