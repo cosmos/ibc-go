@@ -548,7 +548,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			func() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
 			},
-			errorsmod.Wrap(types.ErrWasmContractCallFailed, errorsmod.Wrapf(errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a %s clientID", exported.Wasm), "failed to retrieve clientID for wasm contract call").Error()),
+			errorsmod.Wrap(types.ErrWasmContractCallFailed, errorsmod.Wrap(errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a %s clientID", exported.Wasm), "failed to retrieve clientID for wasm contract call").Error()),
 			nil,
 			nil,
 		},
@@ -569,7 +569,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			errorsmod.Wrapf(types.ErrWasmContractCallFailed, wasmtesting.ErrMockContract.Error()),
+			errorsmod.Wrap(types.ErrWasmContractCallFailed, wasmtesting.ErrMockContract.Error()),
 			nil,
 			nil,
 		},
@@ -689,7 +689,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			errorsmod.Wrapf(types.ErrWasmContractCallFailed, wasmtesting.ErrMockContract.Error()),
+			errorsmod.Wrap(types.ErrWasmContractCallFailed, wasmtesting.ErrMockContract.Error()),
 			nil,
 		},
 	}

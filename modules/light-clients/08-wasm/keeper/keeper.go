@@ -104,7 +104,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// run the code through the wasm light client validation process
 	if err := types.ValidateWasmCode(code); err != nil {
-		return nil, errorsmod.Wrapf(err, "wasm bytecode validation failed")
+		return nil, errorsmod.Wrap(err, "wasm bytecode validation failed")
 	}
 
 	// create the code in the vm
