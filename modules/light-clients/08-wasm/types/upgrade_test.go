@@ -54,14 +54,14 @@ func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
 		{
 			"unsuccessful upgrade: invalid client state proof",
 			func() {
-				proofUpgradedClient = []byte("invalid client state proof")
+				proofUpgradedClient = wasmtesting.MockInvalidClientStateProofBz
 			},
 			false,
 		},
 		{
 			"unsuccessful upgrade: invalid consensus state proof",
 			func() {
-				proofUpgradedConsState = []byte("invalid consensus state proof")
+				proofUpgradedConsState = wasmtesting.MockInvalidConsensusStateProofBz
 			},
 			false,
 		},
@@ -76,8 +76,8 @@ func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
 			upgradedClient = clientState
 			upgradedConsState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.ctx, defaultWasmClientID)
 			suite.Require().True(ok)
-			proofUpgradedClient = []byte("upgraded client state proof")
-			proofUpgradedConsState = []byte("upgraded consensus state proof")
+			proofUpgradedClient = wasmtesting.MockUpgradedClientStateProofBz
+			proofUpgradedConsState = wasmtesting.MockUpgradedConsensusStateProofBz
 
 			tc.setup()
 
@@ -189,15 +189,15 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 			clientState := endpoint.GetClientState().(*types.ClientState)
 
-			upgradedClient = types.NewClientState([]byte("client state"), clientState.CodeHash, clienttypes.NewHeight(0, clientState.GetLatestHeight().GetRevisionHeight()+1))
-			upgradedConsState = &types.ConsensusState{[]byte("consensus state")}
+			upgradedClient = types.NewClientState(wasmtesting.MockClientStateBz, clientState.CodeHash, clienttypes.NewHeight(0, clientState.GetLatestHeight().GetRevisionHeight()+1))
+			upgradedConsState = &types.ConsensusState{wasmtesting.MockConsensusStateBz}
 
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
 
-			proofUpgradedClient = []byte("proof upgraded client")
-			proofUpgradedConsState = []byte("proof upgraded consensus state")
+			proofUpgradedClient = wasmtesting.MockUpgradedClientStateProofBz
+			proofUpgradedConsState = wasmtesting.MockUpgradedConsensusStateProofBz
 
 			err = clientState.VerifyUpgradeAndUpdateState(
 				suite.chainA.GetContext(),

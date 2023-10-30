@@ -19,13 +19,18 @@ type WasmEndpoint struct {
 
 var (
 	// Represents the code of the wasm contract used in the tests with a mock vm.
-	Code                   = []byte("01234567012345670123456701234567")
-	contractClientState    = []byte{1}
-	contractConsensusState = []byte{2}
-	ErrMockContract        = errors.New("mock contract error")
-	MockClientStateBz      = []byte("client-state-data")
-	MockValidProofBytes    = []byte("valid proof")
-	MockInValidProofBytes  = []byte("invalid proof")
+	Code                              = []byte("01234567012345670123456701234567")
+	contractClientState               = []byte{1}
+	contractConsensusState            = []byte{2}
+	ErrMockContract                   = errors.New("mock contract error")
+	MockClientStateBz                 = []byte("client-state-data")
+	MockConsensusStateBz              = []byte("consensus-state-data")
+	MockValidProofBz                  = []byte("valid proof")
+	MockInvalidProofBz                = []byte("invalid proof")
+	MockInvalidClientStateProofBz     = []byte("invalid client state proof")
+	MockUpgradedClientStateProofBz    = []byte("upgraded client state proof")
+	MockInvalidConsensusStateProofBz  = []byte("invalid consensus state proof")
+	MockUpgradedConsensusStateProofBz = []byte("upgraded consensus state proof")
 )
 
 // NewWasmEndpoint returns a wasm endpoint with the default ibctesting pkg
