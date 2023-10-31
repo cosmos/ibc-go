@@ -25,8 +25,8 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc      codec.BinaryCodec
-	wasmVM   ibcwasm.WasmEngine
+	cdc    codec.BinaryCodec
+	wasmVM ibcwasm.WasmEngine
 
 	clientKeeper types.ClientKeeper
 
