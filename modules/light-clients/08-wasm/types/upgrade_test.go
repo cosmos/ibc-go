@@ -54,14 +54,14 @@ func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
 		{
 			"unsuccessful upgrade: invalid client state proof",
 			func() {
-				proofUpgradedClient = wasmtesting.MockInvalidClientStateProofBz
+				proofUpgradedClient = wasmtesting.MockInvalidProofBz
 			},
 			false,
 		},
 		{
 			"unsuccessful upgrade: invalid consensus state proof",
 			func() {
-				proofUpgradedConsState = wasmtesting.MockInvalidConsensusStateProofBz
+				proofUpgradedConsState = wasmtesting.MockInvalidProofBz
 			},
 			false,
 		},

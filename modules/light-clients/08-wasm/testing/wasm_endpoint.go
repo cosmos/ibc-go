@@ -27,9 +27,7 @@ var (
 	MockConsensusStateBz              = []byte("consensus-state-data")
 	MockValidProofBz                  = []byte("valid proof")
 	MockInvalidProofBz                = []byte("invalid proof")
-	MockInvalidClientStateProofBz     = []byte("invalid client state proof")
 	MockUpgradedClientStateProofBz    = []byte("upgraded client state proof")
-	MockInvalidConsensusStateProofBz  = []byte("invalid consensus state proof")
 	MockUpgradedConsensusStateProofBz = []byte("upgraded consensus state proof")
 )
 
