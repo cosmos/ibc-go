@@ -21,6 +21,8 @@ const SnapshotFormat = 1
 
 // WasmSnapshotter implements the snapshot.ExtensionSnapshotter interface and is used to
 // import and export state maintained within the wasmvm cache.
+// NOTE: The following ExtensionSnapshotter has been adapted from CosmWasm's x/wasm:
+// https://github.com/CosmWasm/wasmd/blob/v0.43.0/x/wasm/keeper/snapshotter.go
 type WasmSnapshotter struct {
 	cms    storetypes.MultiStore
 	keeper *Keeper
