@@ -9,7 +9,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// MigrateContract migrates the contract bytecode.
+// MigrateContract calls the migrate entry point on the contract with the given
+// migrateMsg. The contract must exist and the code hash must be found in the
+// store. If the code hash is the same as the current code hash, return nil.
+// This does not update the code hash in the client state.
 func (cs ClientState) MigrateContract(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientID string,
 	clientStore storetypes.KVStore, newCodeHash []byte, migrateMsg []byte,
