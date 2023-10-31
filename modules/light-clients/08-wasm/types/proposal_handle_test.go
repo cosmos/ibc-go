@@ -13,6 +13,7 @@ import (
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
@@ -44,6 +45,10 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 
 						bz, err := json.Marshal(types.EmptyResult{})
 						suite.Require().NoError(err)
+
+						prefixedKey := types.SubjectPrefix
+						prefixedKey = append(prefixedKey, host.ClientStateKey()...)
+						store.Set(prefixedKey, wasmtesting.MockClientStateBz)
 
 						return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 					},
@@ -113,6 +118,9 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			expPass := tc.expErr == nil
 			if expPass {
 				suite.Require().NoError(tc.expErr)
+
+				clientStateBz := subjectClientStore.Get(host.ClientStateKey())
+				suite.Require().Equal(wasmtesting.MockClientStateBz, clientStateBz)
 			} else {
 				suite.Require().ErrorIs(err, tc.expErr)
 			}

@@ -17,11 +17,6 @@ import (
 // CheckSubstituteAndUpdateState will verify that a substitute client state is valid and update the subject client state.
 // Note that this method is used only for recovery and will not allow changes to the code hash.
 func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, _ codec.BinaryCodec, subjectClientStore, substituteClientStore storetypes.KVStore, substituteClient exported.ClientState) error {
-	var (
-		subjectPrefix    = []byte("subject/")
-		substitutePrefix = []byte("substitute/")
-	)
-
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
 		return errorsmod.Wrapf(
@@ -36,7 +31,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, _ codec.Bin
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected code hashes to be equal: expected %s, got %s", hex.EncodeToString(cs.CodeHash), hex.EncodeToString(substituteClientState.CodeHash))
 	}
 
-	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, subjectPrefix, substitutePrefix)
+	store := newMigrateClientWrappedStore(subjectClientStore, substituteClientStore)
 
 	payload := SudoMsg{
 		MigrateClientStore: &MigrateClientStoreMsg{},
