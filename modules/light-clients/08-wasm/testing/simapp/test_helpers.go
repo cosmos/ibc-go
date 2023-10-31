@@ -25,11 +25,13 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
+func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint, mockVM ibcwasm.WasmEngine) (*SimApp, GenesisState) {
 	tb.Helper()
+
 	db := dbm.NewMemDB()
 	nodeHome := tb.TempDir()
 	snapshotDir := filepath.Join(nodeHome, "data", "snapshots")
@@ -43,7 +45,7 @@ func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint)
 	appOptions := make(simtestutil.AppOptionsMap, 0)
 	appOptions[flags.FlagHome] = nodeHome // ensure unique folder
 	appOptions[server.FlagInvCheckPeriod] = invCheckPeriod
-	app := NewSimApp(log.NewNopLogger(), db, nil, true, appOptions, nil, bam.SetChainID(chainID), bam.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}))
+	app := NewSimApp(log.NewNopLogger(), db, nil, true, appOptions, mockVM, bam.SetChainID(chainID), bam.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}))
 
 	if withGenesis {
 		return app, app.DefaultGenesis()
@@ -53,10 +55,10 @@ func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint)
 }
 
 // SetupWithEmptyStore set up a simapp instance with empty DB
-func SetupWithEmptyStore(tb testing.TB) *SimApp {
+func SetupWithEmptyStore(tb testing.TB, mockVM ibcwasm.WasmEngine) *SimApp {
 	tb.Helper()
 
-	app, _ := setup(tb, "", false, 0)
+	app, _ := setup(tb, "", false, 0, mockVM)
 	return app
 }
 
@@ -64,10 +66,10 @@ func SetupWithEmptyStore(tb testing.TB) *SimApp {
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSetSnapshotter(t *testing.T, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *SimApp {
+func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM ibcwasm.WasmEngine, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *SimApp {
 	t.Helper()
 
-	app, genesisState := setup(t, "", true, 5)
+	app, genesisState := setup(t, "", true, 5, mockVM)
 	genesisState, err := simtestutil.GenesisStateWithValSet(app.AppCodec(), genesisState, valSet, genAccs, balances...)
 	require.NoError(t, err)
 
@@ -86,7 +88,7 @@ func SetupWithGenesisValSetSnapshotter(t *testing.T, valSet *cmttypes.ValidatorS
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
-func SetupWithSnapShotter(t *testing.T) *SimApp {
+func SetupWithSnapShotter(t *testing.T, mockVM ibcwasm.WasmEngine) *SimApp {
 	t.Helper()
 
 	privVal := mock.NewPV()
@@ -105,7 +107,7 @@ func SetupWithSnapShotter(t *testing.T) *SimApp {
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000000000000))),
 	}
 
-	app := SetupWithGenesisValSetSnapshotter(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	app := SetupWithGenesisValSetSnapshotter(t, mockVM, valSet, []authtypes.GenesisAccount{acc}, balance)
 
 	return app
 }

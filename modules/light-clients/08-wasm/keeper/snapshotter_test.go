@@ -2,11 +2,7 @@ package keeper_test
 
 import (
 	"encoding/hex"
-	"os"
-	"testing"
 	"time"
-
-	"github.com/stretchr/testify/require"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -14,31 +10,36 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
-func TestSnapshotter(t *testing.T) {
+func (suite *KeeperTestSuite) TestSnapshotter() {
+	gzippedContract, err := types.GzipIt([]byte("gzipped-contract"))
+	suite.Require().NoError(err)
+
 	testCases := []struct {
 		name      string
-		wasmFiles []string
+		contracts [][]byte
 	}{
 		{
 			name:      "single contract",
-			wasmFiles: []string{"../test_data/ics10_grandpa_cw.wasm.gz"},
+			contracts: [][]byte{wasmtesting.Code},
 		},
-
 		{
-			name:      "multiple contract",
-			wasmFiles: []string{"../test_data/ics07_tendermint_cw.wasm.gz", "../test_data/ics10_grandpa_cw.wasm.gz"},
+			name:      "multiple contracts",
+			contracts: [][]byte{wasmtesting.Code, gzippedContract},
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		t.Run(tc.name, func(t *testing.T) {
-			wasmClientApp := simapp.SetupWithSnapShotter(t)
+		suite.Run(tc.name, func() {
+			t := suite.T()
+			wasmClientApp := suite.SetupSnapshotterWithMockVM()
+
 			ctx := wasmClientApp.NewUncachedContext(false, tmproto.Header{
 				ChainID: "foo",
 				Height:  wasmClientApp.LastBlockHeight() + 1,
@@ -48,37 +49,40 @@ func TestSnapshotter(t *testing.T) {
 			var srcChecksumCodes []byte
 			var codeHashes [][]byte
 			// store contract on chain
-			for _, contractDir := range tc.wasmFiles {
+			for _, contract := range tc.contracts {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-				code, _ := os.ReadFile(contractDir)
-				msg := types.NewMsgStoreCode(signer, code)
+				msg := types.NewMsgStoreCode(signer, contract)
 
 				res, err := wasmClientApp.WasmClientKeeper.StoreCode(ctx, msg)
+				suite.Require().NoError(err)
+
 				codeHashes = append(codeHashes, res.Checksum)
 				srcChecksumCodes = append(srcChecksumCodes, res.Checksum...)
 
-				require.NoError(t, err)
+				suite.Require().NoError(err)
 			}
 
 			// create snapshot
 			res, err := wasmClientApp.Commit()
-			require.NoError(t, err)
-			require.NotNil(t, res)
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
 
 			snapshotHeight := uint64(wasmClientApp.LastBlockHeight())
 			snapshot, err := wasmClientApp.SnapshotManager().Create(snapshotHeight)
-			require.NoError(t, err)
-			require.NotNil(t, snapshot)
+			suite.Require().NoError(err)
+			suite.Require().NotNil(snapshot)
 
 			// setup dest app with snapshot imported
-			destWasmClientApp := simapp.SetupWithEmptyStore(t)
+			destWasmClientApp := simapp.SetupWithEmptyStore(t, suite.mockVM)
+			suite.Require().NoError(destWasmClientApp.SnapshotManager().Restore(*snapshot))
 
-			require.NoError(t, destWasmClientApp.SnapshotManager().Restore(*snapshot))
 			for i := uint32(0); i < snapshot.Chunks; i++ {
 				chunkBz, err := wasmClientApp.SnapshotManager().LoadChunk(snapshot.Height, snapshot.Format, i)
-				require.NoError(t, err)
+				suite.Require().NoError(err)
+
 				end, err := destWasmClientApp.SnapshotManager().RestoreChunk(chunkBz)
-				require.NoError(t, err)
+				suite.Require().NoError(err)
+
 				if end {
 					break
 				}
@@ -94,13 +98,12 @@ func TestSnapshotter(t *testing.T) {
 
 			for _, codeHash := range codeHashes {
 				resp, err := destWasmClientApp.WasmClientKeeper.Code(ctx, &types.QueryCodeRequest{CodeHash: hex.EncodeToString(codeHash)})
-				require.NoError(t, err)
+				suite.Require().NoError(err)
 
 				allDestAppCodeHashInWasmVMStore = append(allDestAppCodeHashInWasmVMStore, keeper.GenerateWasmCodeHash(resp.Data)...)
-
 			}
 
-			require.Equal(t, srcChecksumCodes, allDestAppCodeHashInWasmVMStore)
+			suite.Require().Equal(srcChecksumCodes, allDestAppCodeHashInWasmVMStore)
 		})
 	}
 }

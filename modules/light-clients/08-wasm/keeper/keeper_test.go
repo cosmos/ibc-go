@@ -1,10 +1,13 @@
 package keeper_test
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"testing"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
 	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -16,6 +19,7 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -25,6 +29,11 @@ type KeeperTestSuite struct {
 	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
+
+	// mockVM is a mock wasm VM that implements the WasmEngine interface
+	mockVM *wasmtesting.MockWasmEngine
+	// storedContracts is a map of hash(code) -> code. Used for the mockVM's GetCodeFn
+	storedContracts map[uint32][]byte
 
 	chainA *ibctesting.TestChain
 }
@@ -56,6 +65,34 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), GetSimApp(suite.chainA).InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, GetSimApp(suite.chainA).WasmClientKeeper)
+}
+
+func (suite *KeeperTestSuite) SetupSnapshotterWithMockVM() *simapp.SimApp {
+	suite.mockVM = wasmtesting.NewMockWasmEngine()
+	suite.storedContracts = make(map[uint32][]byte)
+
+	// TODO: move default functionality required for wasm client testing to the mock VM
+	suite.mockVM.StoreCodeFn = func(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
+		hash := sha256.Sum256(code)
+		checkSum := wasmvm.Checksum(hash[:])
+
+		suite.storedContracts[binary.LittleEndian.Uint32(checkSum)] = code
+		return checkSum, nil
+	}
+
+	suite.mockVM.PinFn = func(codeID wasmvm.Checksum) error {
+		return nil
+	}
+
+	suite.mockVM.GetCodeFn = func(codeID wasmvm.Checksum) (wasmvm.WasmCode, error) {
+		code, ok := suite.storedContracts[binary.LittleEndian.Uint32(codeID)]
+		if !ok {
+			return nil, errors.New("code not found")
+		}
+		return code, nil
+	}
+
+	return simapp.SetupWithSnapShotter(suite.T(), suite.mockVM)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
