@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"os"
 	"testing"
 
 	dbm "github.com/cosmos/cosmos-db"
@@ -13,9 +11,8 @@ import (
 	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
@@ -65,58 +62,6 @@ func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestIterateCode() {
-	testCases := []struct {
-		name      string
-		wasmFiles []string
-	}{
-		{
-			name:      "single contract",
-			wasmFiles: []string{"../test_data/ics10_grandpa_cw.wasm.gz"},
-		},
-
-		{
-			name:      "multiple contract",
-			wasmFiles: []string{"../test_data/ics07_tendermint_cw.wasm.gz", "../test_data/ics10_grandpa_cw.wasm.gz"},
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.SetupTest()
-
-		suite.Run(tc.name, func() {
-			var expectedAllCodeHash []byte
-			for _, contractDir := range tc.wasmFiles {
-				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-				code, _ := os.ReadFile(contractDir)
-				msg := types.NewMsgStoreCode(signer, code)
-
-				ctx := suite.chainA.GetContext()
-				_, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
-				suite.NoError(err)
-				var hashCode []byte
-				if types.IsGzip(code) {
-					code, err = types.Uncompress(code, types.MaxWasmByteSize())
-					suite.NoError(err)
-					hashCode = keeper.GenerateWasmCodeHash(code)
-				}
-				expectedAllCodeHash = append(expectedAllCodeHash, hashCode...)
-			}
-
-			var allCodeHash []byte
-			GetSimApp(suite.chainA).WasmClientKeeper.IterateCode(
-				suite.chainA.GetContext(), func(b []byte) bool {
-					allCodeHash = append(allCodeHash, keeper.GenerateWasmCodeHash(b)...)
-					return false
-				},
-			)
-
-			suite.ElementsMatch(expectedAllCodeHash, allCodeHash)
-		})
-	}
-}
-
 func (suite *KeeperTestSuite) TestNewKeeper() {
 	testCases := []struct {
 		name          string
@@ -129,7 +74,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
 				)
@@ -142,26 +87,39 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					"", // authority
 					ibcwasm.GetVM(),
 				)
 			},
 			false,
-			fmt.Errorf("authority must be non-empty"),
+			errors.New("authority must be non-empty"),
 		},
 		{
 			"failure: nil wasm VM",
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
 				)
 			},
 			false,
-			fmt.Errorf("wasm VM must be not nil"),
+			errors.New("wasm VM must be not nil"),
+		},
+		{
+			"failure: nil store service",
+			func() {
+				keeper.NewKeeperWithVM(
+					GetSimApp(suite.chainA).AppCodec(),
+					nil,
+					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
+					ibcwasm.GetVM(),
+				)
+			},
+			false,
+			errors.New("store service must be not nil"),
 		},
 	}
 

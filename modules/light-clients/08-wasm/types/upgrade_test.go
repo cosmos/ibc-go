@@ -134,7 +134,6 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					suite.Require().Equal(proofUpgradedConsState, payload.VerifyUpgradeAndUpdateState.ProofUpgradeConsensusState)
 
 					// verify other Sudo fields are nil
-					suite.Require().Nil(payload.CheckSubstituteAndUpdateState)
 					suite.Require().Nil(payload.UpdateState)
 					suite.Require().Nil(payload.UpdateStateOnMisbehaviour)
 					suite.Require().Nil(payload.VerifyMembership)
@@ -175,7 +174,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					return nil, 0, wasmtesting.ErrMockContract
 				})
 			},
-			wasmtesting.ErrMockContract,
+			types.ErrWasmContractCallFailed,
 		},
 	}
 
