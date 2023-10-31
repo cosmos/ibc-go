@@ -167,15 +167,31 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.
 
 	s.Require().NoError(cosmosChain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
-	// poll for the query for the entire voting period to see if the proposal has passed.
-	err = test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
-		proposal, err := s.QueryProposalV1(ctx, cosmosChain, proposalID)
-		if err != nil {
-			return false, err
-		}
-		return proposal.Status == govtypesv1.StatusPassed, nil
-	})
+	err = s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
+
 	s.Require().NoError(err)
+}
+
+// waitForGovV1ProposalToPass polls for the entire voting period to see if the proposal has passed.
+// if the proposal has not passed within the duration of the voting period, an error is returned.
+func (s *E2ETestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
+	var govProposal govtypesv1.Proposal
+	// poll for the query for the entire voting period to see if the proposal has passed.
+	err := test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
+		proposal, err := s.QueryProposalV1(ctx, chain, proposalID)
+		if err != nil {
+			return false, nil
+		}
+
+		govProposal = proposal
+		return govProposal.Status == govtypesv1.StatusPassed, nil
+	})
+
+	// in the case of a failed proposal, we wrap the polling error with additional information about why the proposal failed.
+	if err != nil && govProposal.FailedReason != "" {
+		err = errorsmod.Wrap(err, govProposal.FailedReason)
+	}
+	return err
 }
 
 // ExecuteAndPassGovV1Beta1Proposal submits the given v1beta1 governance proposal using the provided user and uses all validators to vote yes on the proposal.
