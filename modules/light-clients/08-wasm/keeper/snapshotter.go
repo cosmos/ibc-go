@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"io"
 
 	errorsmod "cosmossdk.io/errors"
@@ -103,15 +104,21 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 	if !types.IsGzip(compressedCode) {
 		return types.ErrInvalid.Wrap("not a gzip")
 	}
+
 	wasmCode, err := types.Uncompress(compressedCode, types.MaxWasmByteSize())
 	if err != nil {
 		return errorsmod.Wrap(errorsmod.Wrap(err, "failed to store contract"), err.Error())
 	}
 
-	_, err = k.wasmVM.StoreCode(wasmCode)
+	codeHash, err := k.wasmVM.StoreCode(wasmCode)
 	if err != nil {
 		return errorsmod.Wrap(errorsmod.Wrap(err, "failed to store contract"), err.Error())
 	}
+
+	if err := k.wasmVM.Pin(codeHash); err != nil {
+		return errorsmod.Wrapf(err, "failed to pin code hash: %s to in-memory cache", hex.EncodeToString(codeHash))
+	}
+
 	return nil
 }
 
