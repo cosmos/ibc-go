@@ -180,7 +180,7 @@ func (s *E2ETestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc
 	err := test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
 		proposal, err := s.QueryProposalV1(ctx, chain, proposalID)
 		if err != nil {
-			return false, nil
+			return false, err
 		}
 
 		govProposal = proposal
