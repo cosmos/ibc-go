@@ -42,6 +42,12 @@ func (suite *TypesTestSuite) TestGetStore() {
 			nil,
 			errors.New("key must be prefixed with either subject/ or substitute/"),
 		},
+		{
+			"failure: invalid prefix contains both subject/ and substitute/",
+			append(types.SubjectPrefix, types.SubstitutePrefix...),
+			nil,
+			errors.New("key must be prefixed with either subject/ or substitute/"),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -60,6 +66,8 @@ func (suite *TypesTestSuite) TestGetStore() {
 
 // TestSplitPrefix tests the splitPrefix function.
 func (suite *TypesTestSuite) TestSplitPrefix() {
+	clientStateKey := host.ClientStateKey()
+
 	testCases := []struct {
 		name      string
 		prefix    []byte
@@ -67,18 +75,23 @@ func (suite *TypesTestSuite) TestSplitPrefix() {
 	}{
 		{
 			"success: subject prefix",
-			types.SubjectPrefix,
-			[][]byte{types.SubjectPrefix, []byte("")},
+			append(types.SubjectPrefix, clientStateKey...),
+			[][]byte{types.SubjectPrefix, clientStateKey},
 		},
 		{
 			"success: substitute prefix",
-			types.SubstitutePrefix,
-			[][]byte{types.SubstitutePrefix, []byte("")},
+			append(types.SubstitutePrefix, clientStateKey...),
+			[][]byte{types.SubstitutePrefix, clientStateKey},
 		},
 		{
 			"success: prefix returned unchanged",
 			invalidPrefix,
 			[][]byte{nil, invalidPrefix},
+		},
+		{
+			"success: invalid prefix contains both subject/ and substitute/",
+			append(types.SubjectPrefix, types.SubstitutePrefix...),
+			[][]byte{types.SubjectPrefix, types.SubstitutePrefix},
 		},
 	}
 

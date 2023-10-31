@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"reflect"
 	"strings"
@@ -67,7 +68,7 @@ func (ws updateProposalWrappedStore) Has(key []byte) bool {
 func (ws updateProposalWrappedStore) Set(key, value []byte) {
 	prefix, key := splitPrefix(key)
 	if !bytes.Equal(prefix, subjectPrefix) {
-		panic(errors.New("key must be prefixed with subject/"))
+		panic(errors.New("writes only allowed on subject store; key must be prefixed with subject/"))
 	}
 
 	ws.subjectStore.Set(key, value)
@@ -79,7 +80,7 @@ func (ws updateProposalWrappedStore) Set(key, value []byte) {
 func (ws updateProposalWrappedStore) Delete(key []byte) {
 	prefix, key := splitPrefix(key)
 	if !bytes.Equal(prefix, subjectPrefix) {
-		panic(errors.New("key must be prefixed with subject/"))
+		panic(fmt.Errorf("writes only allowed on subject store; key must be prefixed with %s", subjectPrefix))
 	}
 
 	ws.subjectStore.Delete(key)
@@ -93,7 +94,7 @@ func (ws updateProposalWrappedStore) Iterator(start, end []byte) storetypes.Iter
 	prefixEnd, end := splitPrefix(end)
 
 	if !bytes.Equal(prefixStart, prefixEnd) {
-		panic(errors.New("start and end keys must be prefixed with the same prefix"))
+		panic(fmt.Errorf("writes only allowed on subject store; key must be prefixed with %s", subjectPrefix))
 	}
 
 	return ws.getStore(prefixStart).Iterator(start, end)
