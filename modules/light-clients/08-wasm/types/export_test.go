@@ -23,11 +23,11 @@ func GetClientID(clientStore storetypes.KVStore) (string, error) {
 	return getClientID(clientStore)
 }
 
-// NewUpdateProposalWrappedStore is a wrapper around newUpdateProposalWrappedStore to allow the function to be directly called in tests.
+// NewMigrateProposalWrappedStore is a wrapper around newMigrateProposalWrappedStore to allow the function to be directly called in tests.
 //
 //nolint:revive // Returning unexported type for testing purposes.
-func NewUpdateProposalWrappedStore(subjectStore, substituteStore storetypes.KVStore) migrateClientWrappedStore {
-	return newUpdateProposalWrappedStore(subjectStore, substituteStore)
+func NewMigrateProposalWrappedStore(subjectStore, substituteStore storetypes.KVStore) migrateClientWrappedStore {
+	return newMigrateClientWrappedStore(subjectStore, substituteStore)
 }
 
 // GetStore is a wrapper around getStore to allow the function to be directly called in tests.

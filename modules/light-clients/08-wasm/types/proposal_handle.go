@@ -31,7 +31,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, _ codec.Bin
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected code hashes to be equal: expected %s, got %s", hex.EncodeToString(cs.CodeHash), hex.EncodeToString(substituteClientState.CodeHash))
 	}
 
-	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore)
+	store := newMigrateClientWrappedStore(subjectClientStore, substituteClientStore)
 
 	payload := SudoMsg{
 		MigrateClientStore: &MigrateClientStoreMsg{},

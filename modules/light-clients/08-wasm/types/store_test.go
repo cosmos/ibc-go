@@ -14,8 +14,8 @@ import (
 
 var invalidPrefix = []byte("invalid/")
 
-// TestUpdateProposalWrappedStoreGetStore tests the getStore method of the updateProposalWrappedStore.
-func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreGetStore() {
+// TestMigrateClientWrappedStoreGetStore tests the getStore method of the migrateClientWrappedStore.
+func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
@@ -54,7 +54,7 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreGetStore() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewUpdateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
 
 			if tc.expPanic == nil {
 				suite.Require().Equal(tc.expStore, wrappedStore.GetStore(tc.prefix))
@@ -107,8 +107,8 @@ func (suite *TypesTestSuite) TestSplitPrefix() {
 	}
 }
 
-// TestUpdateProposalWrappedStoreGet tests the Get method of the updateProposalWrappedStore.
-func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreGet() {
+// TestMigrateClientWrappedStoreGet tests the Get method of the migrateClientWrappedStore.
+func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
@@ -145,7 +145,7 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreGet() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewUpdateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -161,8 +161,8 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreGet() {
 	}
 }
 
-// TestUpdateProposalWrappedStoreSet tests the Set method of the updateProposalWrappedStore.
-func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreSet() {
+// TestMigrateClientWrappedStoreSet tests the Set method of the migrateClientWrappedStore.
+func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
@@ -192,7 +192,7 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreSet() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewUpdateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -210,8 +210,8 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreSet() {
 	}
 }
 
-// TestUpdateProposalWrappedStoreDelete tests the Delete method of the updateProposalWrappedStore.
-func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreDelete() {
+// TestMigrateClientWrappedStoreDelete tests the Delete method of the migrateClientWrappedStore.
+func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
@@ -241,7 +241,7 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreDelete() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewUpdateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
@@ -257,8 +257,8 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreDelete() {
 	}
 }
 
-// TestUpdateProposalWrappedStoreIterators tests the Iterator/ReverseIterator methods of the updateProposalWrappedStore.
-func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreIterators() {
+// TestMigrateClientWrappedStoreIterators tests the Iterator/ReverseIterator methods of the migrateClientWrappedStore.
+func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
@@ -307,7 +307,7 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreIterators() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			wrappedStore := types.NewUpdateProposalWrappedStore(subjectStore, substituteStore)
+			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
 
 			prefixedKeyStart := tc.prefixStart
 			prefixedKeyStart = append(prefixedKeyStart, tc.start...)
@@ -339,9 +339,9 @@ func (suite *TypesTestSuite) TestGetClientID() {
 			nil,
 		},
 		{
-			"success: clientID retrieved from updateProposalWrappedStore",
+			"success: clientID retrieved from migrateClientWrappedStore",
 			func() {
-				clientStore = types.NewUpdateProposalWrappedStore(clientStore, nil)
+				clientStore = types.NewMigrateProposalWrappedStore(clientStore, nil)
 			},
 			nil,
 		},

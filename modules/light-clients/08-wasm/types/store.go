@@ -37,7 +37,7 @@ type migrateClientWrappedStore struct {
 	substituteStore storetypes.KVStore
 }
 
-func newUpdateProposalWrappedStore(subjectStore, substituteStore storetypes.KVStore) migrateClientWrappedStore {
+func newMigrateClientWrappedStore(subjectStore, substituteStore storetypes.KVStore) migrateClientWrappedStore {
 	return migrateClientWrappedStore{
 		subjectStore:    subjectStore,
 		substituteStore: substituteStore,
@@ -193,11 +193,11 @@ func (s storeAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
 // Due to the 02-client module not passing the clientID to the 08-wasm module,
 // this function was devised to infer it from the store's prefix.
 // The expected format of the clientStore prefix is "<placeholder>/{clientID}/".
-// If the clientStore is of type updateProposalWrappedStore, the subjectStore's prefix is utilized instead.
+// If the clientStore is of type migrateProposalWrappedStore, the subjectStore's prefix is utilized instead.
 func getClientID(clientStore storetypes.KVStore) (string, error) {
-	upws, isUpdateProposalWrappedStore := clientStore.(migrateClientWrappedStore)
-	if isUpdateProposalWrappedStore {
-		// if the clientStore is a updateProposalWrappedStore, we retrieve the subjectStore
+	upws, isMigrateProposalWrappedStore := clientStore.(migrateClientWrappedStore)
+	if isMigrateProposalWrappedStore {
+		// if the clientStore is a migrateProposalWrappedStore, we retrieve the subjectStore
 		// because the contract call will be made on the client with the ID of the subjectStore
 		clientStore = upws.subjectStore
 	}
