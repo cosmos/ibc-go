@@ -15,34 +15,46 @@ import (
 
 var _ snapshot.ExtensionSnapshotter = &WasmSnapshotter{}
 
-// SnapshotFormat format 1 is just gzipped wasm byte code for each item payload. No protobuf envelope, no metadata.
+// SnapshotFormat defines the default snapshot extension encoding format.
+// SnapshotFormat 1 is gzipped wasm byte code for each item payload. No protobuf envelope, no metadata.
 const SnapshotFormat = 1
 
+// WasmSnapshotter implements the snapshot.ExtensionSnapshotter interface and is used to
+// import and export state maintained within the wasmvm cache.
 type WasmSnapshotter struct {
 	cms    storetypes.MultiStore
 	keeper *Keeper
 }
 
-func NewWasmSnapshotter(cms storetypes.MultiStore, keeper *Keeper) *WasmSnapshotter {
+// NewWasmSnapshotter creates and returns a new snapshot.ExtensionSnapshotter implementation for the 08-wasm module.
+func NewWasmSnapshotter(cms storetypes.MultiStore, keeper *Keeper) snapshot.ExtensionSnapshotter {
 	return &WasmSnapshotter{
 		cms:    cms,
 		keeper: keeper,
 	}
 }
 
+// SnapshotName implements the snapshot.ExtensionSnapshotter interface.
+// A unique name should be provided such that the implementation can be identified by the manager.
 func (*WasmSnapshotter) SnapshotName() string {
 	return types.ModuleName
 }
 
+// SnapshotFormat implements the snapshot.ExtensionSnapshotter interface.
+// This is the default format used for encoding payloads when taking a snapshot.
 func (*WasmSnapshotter) SnapshotFormat() uint32 {
 	return SnapshotFormat
 }
 
+// SupportedFormats implements the snapshot.ExtensionSnapshotter interface.
+// This defines a list of supported formats the snapshotter extension can restore from.
 func (*WasmSnapshotter) SupportedFormats() []uint32 {
 	// If we support older formats, add them here and handle them in Restore
 	return []uint32{SnapshotFormat}
 }
 
+// SnapshotExtension implements the snapshot.ExntensionSnapshotter interface.
+// SnapshotExtension is used to write data payloads into the underlying protobuf stream from the 08-wasm module.
 func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapshot.ExtensionPayloadWriter) error {
 	cacheMS, err := ws.cms.CacheMultiStoreWithVersion(int64(height))
 	if err != nil {
@@ -75,6 +87,9 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 	return nil
 }
 
+// RestoreExtension implements the snapshot.ExtensionSnapshotter interface.
+// RestoreExtension is used to read data from an existing extension state snapshot into the 08-wasm module.
+// The payload reader returns io.EOF when it has reached the end of the extension state snapshot.
 func (ws *WasmSnapshotter) RestoreExtension(height uint64, format uint32, payloadReader snapshot.ExtensionPayloadReader) error {
 	if format == SnapshotFormat {
 		return ws.processAllItems(height, payloadReader, restoreV1, finalizeV1)
