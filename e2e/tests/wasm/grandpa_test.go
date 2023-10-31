@@ -66,7 +66,179 @@ type GrandpaTestSuite struct {
 // * send transfer over ibc
 func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	ctx := context.Background()
+	t := s.T()
 
+	// Setup chains, relayer, and channel
+	cosmosChain, polkadotChain, relayer := s.SetupChainsRelayerAndChannel(ctx)
+
+	// Fund users on both cosmos and parachain, setup transfer amounts
+	fundAmount := int64(12_333_000_000_000)
+	polkadotUser, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
+	amountToSend := int64(1_770_000)
+	channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), cosmosChain.Config().ChainID)
+	s.Require().NoError(err)
+	channelA := channels[len(channels)-1]
+
+	t.Run("send successful IBC transfer from Cosmos to Polkadot parachain", func(t *testing.T) {
+		// Send 1.77 stake from cosmosUser to parachainUser
+		transferAmount := testvalues.TransferAmount(amountToSend, cosmosChain.Config().Denom)
+		transferTxResp := s.Transfer(ctx, cosmosChain, cosmosUser, channelA.PortID, channelA.ChannelID, transferAmount, cosmosUser.FormattedAddress(), polkadotUser.FormattedAddress(), s.GetTimeoutHeight(ctx, polkadotChain), 0, "")
+		s.AssertTxSuccess(transferTxResp)
+		// verify token balance for cosmos user has decreased
+		balance, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
+		s.Require().NoError(err)
+		s.Require().Equal(balance, math.NewInt(fundAmount-amountToSend), "unexpected cosmos user balance after first tx")
+		err = testutil.WaitForBlocks(ctx, 15, cosmosChain, polkadotChain)
+		s.Require().NoError(err)
+
+		// Verify tokens arrived on parachain user
+		parachainUserStake, err := polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 2)
+		s.Require().NoError(err)
+		s.Require().Equal(amountToSend, parachainUserStake.Amount.Int64(), "unexpected parachain user balance after first tx")
+	})
+
+	t.Run("send two successful IBC transfers from Polkadot parachain to Cosmos, first with ibc denom, second with parachain denom", func(t *testing.T) {
+		// Send 1.16 stake from parachainUser to cosmosUser
+		amountToReflect := int64(1_160_000)
+		reflectTransfer := ibc.WalletAmount{
+			Address: cosmosUser.FormattedAddress(),
+			Denom:   "2", // stake
+			Amount:  math.NewInt(amountToReflect),
+		}
+		tx, err := polkadotChain.SendIBCTransfer(ctx, "channel-0", polkadotUser.KeyName(), reflectTransfer, ibc.TransferOptions{})
+		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
+		s.Require().NoError(err)
+
+		// Send 1.88 "UNIT" from Alice to cosmosUser
+		amountUnits := math.NewInt(1_880_000_000_000)
+		unitTransfer := ibc.WalletAmount{
+			Address: cosmosUser.FormattedAddress(),
+			Denom:   "1", // UNIT
+			Amount:  amountUnits,
+		}
+		tx, err = polkadotChain.SendIBCTransfer(ctx, "channel-0", "alice", unitTransfer, ibc.TransferOptions{})
+		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
+		s.Require().NoError(err)
+
+		// Wait for MsgRecvPacket on cosmos chain
+		finalStakeBal := math.NewInt(fundAmount - amountToSend + amountToReflect)
+		err = cosmos.PollForBalance(ctx, cosmosChain, 20, ibc.WalletAmount{
+			Address: cosmosUser.FormattedAddress(),
+			Denom:   cosmosChain.Config().Denom,
+			Amount:  finalStakeBal,
+		})
+		s.Require().NoError(err)
+
+		// Wait for a new update state
+		err = testutil.WaitForBlocks(ctx, 5, cosmosChain, polkadotChain)
+		s.Require().NoError(err)
+
+		// Verify cosmos user's final "stake" balance
+		cosmosUserStakeBal, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
+		s.Require().NoError(err)
+		s.Require().True(cosmosUserStakeBal.Equal(finalStakeBal))
+
+		// Verify cosmos user's final "unit" balance
+		unitDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom("transfer", "channel-0", "UNIT"))
+		cosmosUserUnitBal, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), unitDenomTrace.IBCDenom())
+		s.Require().NoError(err)
+		s.Require().True(cosmosUserUnitBal.Equal(amountUnits))
+
+		// Verify parachain user's final "unit" balance (will be less than expected due gas costs for stake tx)
+		parachainUserUnits, err := polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 1)
+		s.Require().NoError(err)
+		s.Require().True(parachainUserUnits.Amount.LTE(math.NewInt(fundAmount)), "parachain user's final unit amount not expected")
+
+		// Verify parachain user's final "stake" balance
+		parachainUserStake, err := polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 2)
+		s.Require().NoError(err)
+		s.Require().True(parachainUserStake.Amount.Equal(math.NewInt(amountToSend-amountToReflect)), "parachain user's final stake amount not expected")
+	})
+}
+
+// extractCodeHashFromGzippedContent takes a gzipped wasm contract and returns the codehash.
+func (s *GrandpaTestSuite) extractCodeHashFromGzippedContent(zippedContent []byte) string {
+	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmByteSize())
+	s.Require().NoError(err)
+
+	codeHashByte32 := sha256.Sum256(content)
+	return hex.EncodeToString(codeHashByte32[:])
+}
+
+// PushNewWasmClientProposal submits a new wasm client governance proposal to the chain.
+func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, proposalContentReader io.Reader) string {
+	zippedContent, err := io.ReadAll(proposalContentReader)
+	s.Require().NoError(err)
+
+	computedCodeHash := s.extractCodeHashFromGzippedContent(zippedContent)
+
+	s.Require().NoError(err)
+	message := wasmtypes.MsgStoreCode{
+		Signer:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		WasmByteCode: zippedContent,
+	}
+
+	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
+
+	codeHashBz, err := s.QueryWasmCode(ctx, chain, computedCodeHash)
+	s.Require().NoError(err)
+
+	codeHashByte32 := sha256.Sum256(codeHashBz)
+	actualCodeHash := hex.EncodeToString(codeHashByte32[:])
+	s.Require().Equal(computedCodeHash, actualCodeHash, "code hash returned from query did not match the computed code hash")
+
+	return actualCodeHash
+}
+
+func (s *GrandpaTestSuite) fundUsers(ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
+	users := interchaintest.GetAndFundTestUsers(s.T(), ctx, "user", fundAmount, polkadotChain, cosmosChain)
+	polkadotUser, cosmosUser := users[0], users[1]
+	err := testutil.WaitForBlocks(ctx, 2, polkadotChain, cosmosChain) // Only waiting 1 block is flaky for parachain
+	s.Require().NoError(err, "cosmos or polkadot chain failed to make blocks")
+
+	// Check balances are correct
+	amount := math.NewInt(fundAmount)
+	polkadotUserAmount, err := polkadotChain.GetBalance(ctx, polkadotUser.FormattedAddress(), polkadotChain.Config().Denom)
+	s.Require().NoError(err)
+	s.Require().True(polkadotUserAmount.Equal(amount), "Initial polkadot user amount not expected")
+
+	parachainUserAmount, err := polkadotChain.GetBalance(ctx, polkadotUser.FormattedAddress(), "")
+	s.Require().NoError(err)
+	s.Require().True(parachainUserAmount.Equal(amount), "Initial parachain user amount not expected")
+
+	cosmosUserAmount, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
+	s.Require().NoError(err)
+	s.Require().True(cosmosUserAmount.Equal(amount), "Initial cosmos user amount not expected")
+
+	return polkadotUser, cosmosUser
+}
+
+// validateTestConfig ensures that the given test config is valid for this test suite.
+func validateTestConfig() {
+	tc := testsuite.LoadConfig()
+	if tc.ActiveRelayer != "hyperspace" {
+		panic(fmt.Errorf("hyperspace relayer must be specified"))
+	}
+}
+
+// getConfigOverrides returns configuration overrides that will be applied to the simapp.
+func getConfigOverrides() map[string]any {
+	consensusOverrides := make(testutil.Toml)
+	blockTime := 5
+	blockT := (time.Duration(blockTime) * time.Second).String()
+	consensusOverrides["timeout_commit"] = blockT
+	consensusOverrides["timeout_propose"] = blockT
+
+	configTomlOverrides := make(testutil.Toml)
+	configTomlOverrides["consensus"] = consensusOverrides
+	configTomlOverrides["log_level"] = "info"
+
+	configFileOverrides := make(map[string]any)
+	configFileOverrides["config/config.toml"] = configTomlOverrides
+	return configFileOverrides
+}
+
+func (s *GrandpaTestSuite) SetupChainsRelayerAndChannel(ctx context.Context) (*cosmos.CosmosChain, *polkadot.PolkadotChain, ibc.Relayer) {
 	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
 		// configure chain A (polkadot)
 		options.ChainASpec.ChainName = composable
@@ -150,10 +322,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
 	s.Require().NoError(err, "polkadot chain failed to make blocks")
 
-	// Fund users on both cosmos and parachain, mints Asset 1 for Alice
-	fundAmount := int64(12_333_000_000_000)
-	polkadotUser, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
-
 	pathName := s.GetPathName(0)
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
@@ -179,160 +347,5 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	// Start relayer
 	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
-
-	// TODO: this can be refactored to broadcast a MsgTransfer instead of CLI.
-	// https://github.com/cosmos/ibc-go/issues/4963
-	// Send 1.77 stake from cosmosUser to parachainUser
-	amountToSend := int64(1_770_000)
-	transfer := ibc.WalletAmount{
-		Address: polkadotUser.FormattedAddress(),
-		Denom:   cosmosChain.Config().Denom,
-		Amount:  math.NewInt(amountToSend),
-	}
-	tx, err := cosmosChain.SendIBCTransfer(ctx, "channel-0", cosmosUser.KeyName(), transfer, ibc.TransferOptions{})
-	s.Require().NoError(err)
-	s.Require().NoError(tx.Validate()) // test source wallet has decreased funds
-	err = testutil.WaitForBlocks(ctx, 15, cosmosChain, polkadotChain)
-	s.Require().NoError(err)
-
-	// Verify tokens arrived on parachain user
-	parachainUserStake, err := polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 2)
-	s.Require().NoError(err)
-	s.Require().Equal(amountToSend, parachainUserStake.Amount.Int64(), "parachain user's stake amount not expected after first tx")
-
-	// Send 1.16 stake from parachainUser to cosmosUser
-	amountToReflect := int64(1_160_000)
-	reflectTransfer := ibc.WalletAmount{
-		Address: cosmosUser.FormattedAddress(),
-		Denom:   "2", // stake
-		Amount:  math.NewInt(amountToReflect),
-	}
-	_, err = polkadotChain.SendIBCTransfer(ctx, "channel-0", polkadotUser.KeyName(), reflectTransfer, ibc.TransferOptions{})
-	s.Require().NoError(err)
-
-	// Send 1.88 "UNIT" from Alice to cosmosUser
-	amountUnits := math.NewInt(1_880_000_000_000)
-	unitTransfer := ibc.WalletAmount{
-		Address: cosmosUser.FormattedAddress(),
-		Denom:   "1", // UNIT
-		Amount:  amountUnits,
-	}
-	_, err = polkadotChain.SendIBCTransfer(ctx, "channel-0", "alice", unitTransfer, ibc.TransferOptions{})
-	s.Require().NoError(err)
-
-	// Wait for MsgRecvPacket on cosmos chain
-	finalStakeBal := math.NewInt(fundAmount - amountToSend + amountToReflect)
-	err = cosmos.PollForBalance(ctx, cosmosChain, 20, ibc.WalletAmount{
-		Address: cosmosUser.FormattedAddress(),
-		Denom:   cosmosChain.Config().Denom,
-		Amount:  finalStakeBal,
-	})
-	s.Require().NoError(err)
-
-	// Wait for a new update state
-	err = testutil.WaitForBlocks(ctx, 5, cosmosChain, polkadotChain)
-	s.Require().NoError(err)
-
-	// Verify cosmos user's final "stake" balance
-	cosmosUserStakeBal, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
-	s.Require().NoError(err)
-	s.Require().True(cosmosUserStakeBal.Equal(finalStakeBal))
-
-	// Verify cosmos user's final "unit" balance
-	unitDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom("transfer", "channel-0", "UNIT"))
-	cosmosUserUnitBal, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), unitDenomTrace.IBCDenom())
-	s.Require().NoError(err)
-	s.Require().True(cosmosUserUnitBal.Equal(amountUnits))
-
-	// Verify parachain user's final "unit" balance (will be less than expected due gas costs for stake tx)
-	parachainUserUnits, err := polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 1)
-	s.Require().NoError(err)
-	s.Require().True(parachainUserUnits.Amount.LTE(math.NewInt(fundAmount)), "parachain user's final unit amount not expected")
-
-	// Verify parachain user's final "stake" balance
-	parachainUserStake, err = polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 2)
-	s.Require().NoError(err)
-	s.Require().True(parachainUserStake.Amount.Equal(math.NewInt(amountToSend-amountToReflect)), "parachain user's final stake amount not expected")
-}
-
-// extractCodeHashFromGzippedContent takes a gzipped wasm contract and returns the codehash.
-func (s *GrandpaTestSuite) extractCodeHashFromGzippedContent(zippedContent []byte) string {
-	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmByteSize())
-	s.Require().NoError(err)
-
-	codeHashByte32 := sha256.Sum256(content)
-	return hex.EncodeToString(codeHashByte32[:])
-}
-
-// PushNewWasmClientProposal submits a new wasm client governance proposal to the chain.
-func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, proposalContentReader io.Reader) string {
-	zippedContent, err := io.ReadAll(proposalContentReader)
-	s.Require().NoError(err)
-
-	computedCodeHash := s.extractCodeHashFromGzippedContent(zippedContent)
-
-	s.Require().NoError(err)
-	message := wasmtypes.MsgStoreCode{
-		Signer:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		WasmByteCode: zippedContent,
-	}
-
-	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
-
-	codeHashBz, err := s.QueryWasmCode(ctx, chain, computedCodeHash)
-	s.Require().NoError(err)
-
-	codeHashByte32 := sha256.Sum256(codeHashBz)
-	actualCodeHash := hex.EncodeToString(codeHashByte32[:])
-	s.Require().Equal(computedCodeHash, actualCodeHash, "code hash returned from query did not match the computed code hash")
-
-	return actualCodeHash
-}
-
-func (s *GrandpaTestSuite) fundUsers(ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
-	users := interchaintest.GetAndFundTestUsers(s.T(), ctx, "user", fundAmount, polkadotChain, cosmosChain)
-	polkadotUser, cosmosUser := users[0], users[1]
-	err := testutil.WaitForBlocks(ctx, 2, polkadotChain, cosmosChain) // Only waiting 1 block is flaky for parachain
-	s.Require().NoError(err, "cosmos or polkadot chain failed to make blocks")
-
-	// Check balances are correct
-	amount := math.NewInt(fundAmount)
-	polkadotUserAmount, err := polkadotChain.GetBalance(ctx, polkadotUser.FormattedAddress(), polkadotChain.Config().Denom)
-	s.Require().NoError(err)
-	s.Require().True(polkadotUserAmount.Equal(amount), "Initial polkadot user amount not expected")
-
-	parachainUserAmount, err := polkadotChain.GetBalance(ctx, polkadotUser.FormattedAddress(), "")
-	s.Require().NoError(err)
-	s.Require().True(parachainUserAmount.Equal(amount), "Initial parachain user amount not expected")
-
-	cosmosUserAmount, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
-	s.Require().NoError(err)
-	s.Require().True(cosmosUserAmount.Equal(amount), "Initial cosmos user amount not expected")
-
-	return polkadotUser, cosmosUser
-}
-
-// validateTestConfig ensures that the given test config is valid for this test suite.
-func validateTestConfig() {
-	tc := testsuite.LoadConfig()
-	if tc.ActiveRelayer != "hyperspace" {
-		panic(fmt.Errorf("hyperspace relayer must be specified"))
-	}
-}
-
-// getConfigOverrides returns configuration overrides that will be applied to the simapp.
-func getConfigOverrides() map[string]any {
-	consensusOverrides := make(testutil.Toml)
-	blockTime := 5
-	blockT := (time.Duration(blockTime) * time.Second).String()
-	consensusOverrides["timeout_commit"] = blockT
-	consensusOverrides["timeout_propose"] = blockT
-
-	configTomlOverrides := make(testutil.Toml)
-	configTomlOverrides["consensus"] = consensusOverrides
-	configTomlOverrides["log_level"] = "info"
-
-	configFileOverrides := make(map[string]any)
-	configFileOverrides["config/config.toml"] = configTomlOverrides
-	return configFileOverrides
+	return cosmosChain, polkadotChain, r
 }
