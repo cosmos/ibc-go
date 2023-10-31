@@ -17,9 +17,9 @@ import (
 
 func (suite *TypesTestSuite) TestMigrateContract() {
 	var (
-		oldHash [32]byte
-		newHash [32]byte
-		payload []byte
+		oldHash        [32]byte
+		newHash        [32]byte
+		payload        []byte
 		expClientState *types.ClientState
 	)
 
