@@ -630,7 +630,7 @@ func (suite *TypesTestSuite) TestVerifyMembershipGrandpa() {
 		},
 		{
 			"failed to unmarshal merkle proof", func() {
-				proof = []byte("invalid proof")
+				proof = wasmtesting.MockInvalidProofBz
 			}, false,
 		},
 		{
@@ -769,7 +769,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					expClientStateBz = []byte("client-state-data")
+					expClientStateBz = wasmtesting.MockClientStateBz
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
@@ -780,7 +780,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 		{
 			"wasm vm returns invalid proof error",
 			func() {
-				proof = []byte("invalid proof")
+				proof = wasmtesting.MockInvalidProofBz
 
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
@@ -822,7 +822,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			suite.Require().NoError(err)
 
 			path = commitmenttypes.NewMerklePath("/ibc/key/path")
-			proof = []byte("valid proof")
+			proof = wasmtesting.MockValidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 			value = []byte("value")
 
@@ -984,7 +984,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 		},
 		{
 			"failed to unmarshal merkle proof", func() {
-				proof = []byte("invalid proof")
+				proof = wasmtesting.MockInvalidProofBz
 			}, false,
 		},
 		{
@@ -1107,7 +1107,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					expClientStateBz = []byte("client-state-data")
+					expClientStateBz = wasmtesting.MockClientStateBz
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
@@ -1118,7 +1118,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 		{
 			"wasm vm returns invalid proof error",
 			func() {
-				proof = []byte("invalid proof")
+				proof = wasmtesting.MockInvalidProofBz
 
 				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
@@ -1160,7 +1160,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 			suite.Require().NoError(err)
 
 			path = commitmenttypes.NewMerklePath("/ibc/key/path")
-			proof = []byte("valid proof")
+			proof = wasmtesting.MockInvalidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 
 			tc.malleate()
