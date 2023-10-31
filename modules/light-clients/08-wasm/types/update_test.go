@@ -167,7 +167,6 @@ func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
 }
 
 func (suite *TypesTestSuite) TestUpdateState() {
-	mockClientStateBz := []byte("mockClientStateBz")
 	mockHeight := clienttypes.NewHeight(1, 1)
 
 	var (
@@ -192,7 +191,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					suite.Require().NotNil(msg.UpdateState)
 					suite.Require().NotNil(msg.UpdateState.ClientMessage)
-					suite.Require().Equal(msg.UpdateState.ClientMessage.Data, mockClientStateBz)
+					suite.Require().Equal(msg.UpdateState.ClientMessage.Data, wasmtesting.MockClientStateBz)
 					suite.Require().Nil(msg.VerifyMembership)
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
@@ -243,7 +242,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			},
 			nil,
 			[]exported.Height{mockHeight},
-			mockClientStateBz,
+			wasmtesting.MockClientStateBz,
 		},
 		{
 			"failure: clientStore prefix does not include clientID",
@@ -282,7 +281,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			suite.SetupWasmWithMockVM() // reset
 
 			clientMsg = &types.ClientMessage{
-				Data: mockClientStateBz,
+				Data: wasmtesting.MockClientStateBz,
 			}
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -372,7 +371,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 				})
 			},
 			nil,
-			[]byte("mockClientStateBz"),
+			wasmtesting.MockClientStateBz,
 		},
 		{
 			"failure: invalid client message",
@@ -406,7 +405,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientMsg = &types.ClientMessage{
-				Data: []byte("mockClientStateBz"),
+				Data: wasmtesting.MockClientStateBz,
 			}
 			clientState := endpoint.GetClientState()
 
