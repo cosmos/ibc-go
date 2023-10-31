@@ -19,14 +19,14 @@ var _ snapshot.ExtensionSnapshotter = &WasmSnapshotter{}
 const SnapshotFormat = 1
 
 type WasmSnapshotter struct {
-	wasm *Keeper
-	cms  storetypes.MultiStore
+	cms    storetypes.MultiStore
+	keeper *Keeper
 }
 
-func NewWasmSnapshotter(cms storetypes.MultiStore, wasm *Keeper) *WasmSnapshotter {
+func NewWasmSnapshotter(cms storetypes.MultiStore, keeper *Keeper) *WasmSnapshotter {
 	return &WasmSnapshotter{
-		wasm: wasm,
-		cms:  cms,
+		cms:    cms,
+		keeper: keeper,
 	}
 }
 
@@ -51,15 +51,26 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 
 	ctx := sdk.NewContext(cacheMS, tmproto.Header{}, false, nil)
 
-	ws.wasm.IterateCode(ctx, func(code []byte) bool {
-		compressedWasm, err := types.GzipIt(code)
+	codeHashes, err := types.GetAllCodeHashes(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, codeHash := range codeHashes {
+		wasmCode, err := ws.keeper.wasmVM.GetCode(codeHash)
 		if err != nil {
-			return true
+			return err
 		}
 
-		err = payloadWriter(compressedWasm)
-		return err != nil
-	})
+		compressedWasm, err := types.GzipIt(wasmCode)
+		if err != nil {
+			return err
+		}
+
+		if err = payloadWriter(compressedWasm); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -106,10 +117,10 @@ func (ws *WasmSnapshotter) processAllItems(
 			return err
 		}
 
-		if err := cb(ctx, ws.wasm, payload); err != nil {
+		if err := cb(ctx, ws.keeper, payload); err != nil {
 			return errorsmod.Wrap(err, "processing snapshot item")
 		}
 	}
 
-	return finalize(ctx, ws.wasm)
+	return finalize(ctx, ws.keeper)
 }

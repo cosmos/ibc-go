@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"encoding/hex"
 	"os"
 	"testing"
 	"time"
@@ -87,10 +88,12 @@ func TestSnapshotter(t *testing.T) {
 				Height:  destWasmClientApp.LastBlockHeight() + 1,
 				Time:    time.Now(),
 			})
+
 			for _, codeHash := range codeHashes {
-				code, err := destWasmClientApp.WasmClientKeeper.GetCodeByCodeHash(ctx, codeHash)
+				resp, err := destWasmClientApp.WasmClientKeeper.Code(ctx, &types.QueryCodeRequest{CodeHash: hex.EncodeToString(codeHash)})
 				require.NoError(t, err)
-				allDestAppCodeHashInWasmVMStore = append(allDestAppCodeHashInWasmVMStore, keeper.GenerateWasmCodeHash(code)...)
+
+				allDestAppCodeHashInWasmVMStore = append(allDestAppCodeHashInWasmVMStore, keeper.GenerateWasmCodeHash(resp.Data)...)
 
 			}
 
