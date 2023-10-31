@@ -26,7 +26,7 @@ func initContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []by
 
 	clientID, err := getClientID(clientStore)
 	if err != nil {
-		return nil, errorsmod.Wrapf(err, "failed to retrieve clientID for wasm contract instantiation")
+		return nil, errorsmod.Wrap(err, "failed to retrieve clientID for wasm contract instantiation")
 	}
 	env := getEnv(ctx, clientID)
 
@@ -49,7 +49,7 @@ func callContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []by
 
 	clientID, err := getClientID(clientStore)
 	if err != nil {
-		return nil, errorsmod.Wrapf(err, "failed to retrieve clientID for wasm contract call")
+		return nil, errorsmod.Wrap(err, "failed to retrieve clientID for wasm contract call")
 	}
 	env := getEnv(ctx, clientID)
 
@@ -81,7 +81,7 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []b
 
 	clientID, err := getClientID(clientStore)
 	if err != nil {
-		return nil, errorsmod.Wrapf(err, "failed to retrieve clientID for wasm contract query")
+		return nil, errorsmod.Wrap(err, "failed to retrieve clientID for wasm contract query")
 	}
 	env := getEnv(ctx, clientID)
 
@@ -91,38 +91,38 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []b
 	return resp, err
 }
 
-// wasmInit accepts a message to instantiate a wasm contract, JSON encodes it and calls initContract.
-func wasmInit(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
+// wasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls initContract.
+func wasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return errorsmod.Wrapf(err, "failed to marshal payload for wasm contract instantiation")
+		return errorsmod.Wrap(err, "failed to marshal payload for wasm contract instantiation")
 	}
 	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
-		return errorsmod.Wrapf(err, "call to wasm contract failed")
+		return errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
 	return nil
 }
 
-// wasmCall calls the contract with the given payload and returns the result.
-// wasmCall returns an error if:
+// wasmSudo calls the contract with the given payload and returns the result.
+// wasmSudo returns an error if:
 // - the payload cannot be marshaled to JSON
 // - the contract call returns an error
 // - the response of the contract call contains non-empty messages
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
+func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return result, errorsmod.Wrapf(err, "failed to marshal payload for wasm execution")
+		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm execution")
 	}
 
 	resp, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
-		return result, errorsmod.Wrapf(err, "call to wasm contract failed")
+		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
 
 	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
@@ -137,7 +137,7 @@ func wasmCall[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 	}
 
 	if err := json.Unmarshal(resp.Data, &result); err != nil {
-		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm execution")
+		return result, errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
 	}
 	return result, nil
 }
@@ -185,16 +185,16 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore
 
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
-		return result, errorsmod.Wrapf(err, "failed to marshal payload for wasm query")
+		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm query")
 	}
 
 	resp, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
-		return result, errorsmod.Wrapf(err, "query to wasm contract failed")
+		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
 
 	if err := json.Unmarshal(resp, &result); err != nil {
-		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm query")
+		return result, errorsmod.Wrapf(ErrWasmInvalidResponseData, "failed to unmarshal result of wasm query: %v", err)
 	}
 
 	return result, nil

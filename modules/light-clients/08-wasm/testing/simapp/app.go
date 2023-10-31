@@ -470,12 +470,12 @@ func NewSimApp(
 	if mockVM != nil {
 		// NOTE: mockVM is used for testing purposes only!
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
-			appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper,
+			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM,
 		)
 	} else {
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
-			appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper,
+			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig,
 		)
 	}

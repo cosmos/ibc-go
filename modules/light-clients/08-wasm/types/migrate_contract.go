@@ -14,7 +14,7 @@ func (cs ClientState) MigrateContract(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientID string,
 	clientStore storetypes.KVStore, newCodeHash []byte, migrateMsg []byte,
 ) error {
-	if !HasCodeHash(ctx, cdc, newCodeHash) {
+	if !HasCodeHash(ctx, newCodeHash) {
 		return ErrWasmCodeHashNotFound
 	}
 

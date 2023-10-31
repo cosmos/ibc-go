@@ -112,7 +112,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	}
 
 	// Do not allow initialization of a client with a code hash that hasn't been previously stored via storeWasmCode.
-	if !HasCodeHash(ctx, cdc, cs.CodeHash) {
+	if !HasCodeHash(ctx, cs.CodeHash) {
 		return errorsmod.Wrapf(ErrInvalidCodeHash, "code hash (%s) has not been previously stored", hex.EncodeToString(cs.CodeHash))
 	}
 
@@ -121,7 +121,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 		ConsensusState: consensusState,
 	}
 
-	return wasmInit(ctx, clientStore, &cs, payload)
+	return wasmInstantiate(ctx, clientStore, &cs, payload)
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
@@ -165,7 +165,7 @@ func (cs ClientState) VerifyMembership(
 			Value:            value,
 		},
 	}
-	_, err := wasmCall[EmptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmSudo[EmptyResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
@@ -208,6 +208,6 @@ func (cs ClientState) VerifyNonMembership(
 			Path:             merklePath,
 		},
 	}
-	_, err := wasmCall[EmptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmSudo[EmptyResult](ctx, clientStore, &cs, payload)
 	return err
 }

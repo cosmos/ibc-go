@@ -1,61 +1,38 @@
 package types
 
 import (
-	"bytes"
-	"slices"
-
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
-// GetCodeHashes returns all the code hashes stored.
-func GetCodeHashes(ctx sdk.Context, cdc codec.BinaryCodec) (CodeHashes, error) {
-	wasmStoreKey := ibcwasm.GetWasmStoreKey()
-	store := ctx.KVStore(wasmStoreKey)
-	bz := store.Get([]byte(KeyCodeHashes))
-	if len(bz) == 0 {
-		return CodeHashes{}, nil
-	}
-
-	var hashes CodeHashes
-	err := cdc.Unmarshal(bz, &hashes)
+// GetAllCodeHashes is a helper to get all code hashes from the store.
+// It returns an empty slice if no code hashes are found
+func GetAllCodeHashes(ctx sdk.Context) ([][]byte, error) {
+	iterator, err := ibcwasm.CodeHashes.Iterate(ctx, nil)
 	if err != nil {
-		return CodeHashes{}, err
+		return nil, err
 	}
 
-	return hashes, nil
-}
-
-// AddCodeHash adds a new code hash to the list of stored code hashes.
-func AddCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) error {
-	codeHashes, err := GetCodeHashes(ctx, cdc)
+	codeHashes, err := iterator.Keys()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	codeHashes.Hashes = append(codeHashes.Hashes, codeHash)
-
-	wasmStoreKey := ibcwasm.GetWasmStoreKey()
-	store := ctx.KVStore(wasmStoreKey)
-	bz, err := cdc.Marshal(&codeHashes)
-	if err != nil {
-		return err
+	if codeHashes == nil {
+		codeHashes = [][]byte{}
 	}
 
-	store.Set([]byte(KeyCodeHashes), bz)
-
-	return nil
+	return codeHashes, nil
 }
 
 // HasCodeHash returns true if the given code hash exists in the store and
 // false otherwise.
-func HasCodeHash(ctx sdk.Context, cdc codec.BinaryCodec, codeHash []byte) bool {
-	codeHashes, err := GetCodeHashes(ctx, cdc)
+func HasCodeHash(ctx sdk.Context, codeHash []byte) bool {
+	found, err := ibcwasm.CodeHashes.Has(ctx, codeHash)
 	if err != nil {
 		return false
 	}
 
-	return slices.ContainsFunc(codeHashes.Hashes, func(h []byte) bool { return bytes.Equal(codeHash, h) })
+	return found
 }

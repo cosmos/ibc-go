@@ -144,7 +144,7 @@ func getClientID(clientStore storetypes.KVStore) (string, error) {
 
 	store, ok := clientStore.(storeprefix.Store)
 	if !ok {
-		return "", errorsmod.Wrapf(ErrRetrieveClientID, "clientStore is not a prefix store")
+		return "", errorsmod.Wrap(ErrRetrieveClientID, "clientStore is not a prefix store")
 	}
 
 	// using reflect to retrieve the private prefix field
@@ -152,14 +152,14 @@ func getClientID(clientStore storetypes.KVStore) (string, error) {
 
 	f := r.FieldByName("prefix")
 	if !f.IsValid() {
-		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix field not found")
+		return "", errorsmod.Wrap(ErrRetrieveClientID, "prefix field not found")
 	}
 
 	prefix := string(f.Bytes())
 
 	split := strings.Split(prefix, "/")
 	if len(split) < 3 {
-		return "", errorsmod.Wrapf(ErrRetrieveClientID, "prefix is not of the expected form")
+		return "", errorsmod.Wrap(ErrRetrieveClientID, "prefix is not of the expected form")
 	}
 
 	// the clientID is the second to last element of the prefix
