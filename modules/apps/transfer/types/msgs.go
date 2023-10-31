@@ -97,7 +97,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing recipient address")
 	}
 	if len(msg.Receiver) > MaximumReceiverLength {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "recipient addresss must not exceed %d bytes", MaximumReceiverLength)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "recipient address must not exceed %d bytes", MaximumReceiverLength)
 	}
 	if len(msg.Memo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)

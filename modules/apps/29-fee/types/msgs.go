@@ -103,7 +103,7 @@ func (msg MsgRegisterCounterpartyPayee) ValidateBasic() error {
 	}
 
 	if len(msg.CounterpartyPayee) > MaximumCounterpartyPayeeLength {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "counterparty payee addresss must not exceed %d bytes", MaximumCounterpartyPayeeLength)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "counterparty payee address must not exceed %d bytes", MaximumCounterpartyPayeeLength)
 	}
 
 	return nil

@@ -44,7 +44,7 @@ func (msg MsgRegisterInterchainAccount) ValidateBasic() error {
 	}
 
 	if len(msg.Owner) > MaximumOwnerLength {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner addresss must not exceed %d bytes", MaximumOwnerLength)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner address must not exceed %d bytes", MaximumOwnerLength)
 	}
 
 	return nil
@@ -81,7 +81,7 @@ func (msg MsgSendTx) ValidateBasic() error {
 	}
 
 	if len(msg.Owner) > MaximumOwnerLength {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner addresss must not exceed %d bytes", MaximumOwnerLength)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner address must not exceed %d bytes", MaximumOwnerLength)
 	}
 
 	if err := msg.PacketData.ValidateBasic(); err != nil {
