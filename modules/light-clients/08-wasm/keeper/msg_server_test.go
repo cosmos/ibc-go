@@ -88,7 +88,6 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 					suite.Require().Contains(events, evt)
 				}
 			} else {
-				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Nil(res)
 				suite.Require().Empty(events)
