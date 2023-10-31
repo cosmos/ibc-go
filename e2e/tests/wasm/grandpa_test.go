@@ -31,14 +31,21 @@ import (
 )
 
 const (
-	composable = "composable"
-	simd       = "simd"
+	composable    = "composable"
+	simd          = "simd"
+	wasmSimdImage = "ghcr.io/cosmos/ibc-go-wasm-simd"
 )
 
 func TestGrandpaTestSuite(t *testing.T) {
 	// this test suite only works with the hyperspace relayer, for now hard code this here.
 	// this will enforce that the hyperspace relayer is used in CI.
 	t.Setenv(testsuite.RelayerIDEnv, "hyperspace")
+
+	// TODO: this value should be passed in via the config file / CI, not hard coded in the test.
+	if testsuite.IsCI() {
+		t.Setenv(testsuite.ChainImageEnv, wasmSimdImage)
+	}
+
 	validateTestConfig()
 	testifysuite.Run(t, new(GrandpaTestSuite))
 }
@@ -96,14 +103,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		options.ChainBSpec.Type = "cosmos"
 		options.ChainBSpec.Name = "simd"
 		options.ChainBSpec.ChainID = simd
-		options.ChainBSpec.Images = []ibc.DockerImage{
-			{
-				// TODO: https://github.com/cosmos/ibc-go/issues/4965
-				Repository: "chatton/ibc-go-simd-wasm",
-				Version:    "sdk50",
-				UidGid:     "1000:1000",
-			},
-		}
 		options.ChainBSpec.Bin = simd
 		options.ChainBSpec.Bech32Prefix = "cosmos"
 
