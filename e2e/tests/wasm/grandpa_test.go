@@ -42,6 +42,7 @@ func TestGrandpaTestSuite(t *testing.T) {
 	t.Setenv(testsuite.RelayerIDEnv, "hyperspace")
 
 	// TODO: this value should be passed in via the config file / CI, not hard coded in the test.
+	// This configuration can be handled in https://github.com/cosmos/ibc-go/issues/4697
 	if testsuite.IsCI() {
 		t.Setenv(testsuite.ChainImageEnv, wasmSimdImage)
 	}
