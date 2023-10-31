@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"errors"
+	fmt "fmt"
 
 	prefixstore "cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
@@ -13,8 +14,8 @@ import (
 
 var invalidPrefix = []byte("invalid/")
 
-// TestGetStore tests the getStore method of the updateProposalWrappedStore.
-func (suite *TypesTestSuite) TestGetStore() {
+// TestUpdateProposalWrappedStoreGetStore tests the getStore method of the updateProposalWrappedStore.
+func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreGetStore() {
 	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
 	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
@@ -84,7 +85,7 @@ func (suite *TypesTestSuite) TestSplitPrefix() {
 			[][]byte{types.SubstitutePrefix, clientStateKey},
 		},
 		{
-			"success: prefix returned unchanged",
+			"success: nil prefix returned",
 			invalidPrefix,
 			[][]byte{nil, invalidPrefix},
 		},
@@ -113,29 +114,29 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreGet() {
 
 	testCases := []struct {
 		name     string
-		key      []byte
 		prefix   []byte
+		key      []byte
 		expStore storetypes.KVStore
 		expPanic error
 	}{
 		{
 			"success: subject store Get",
-			host.ClientStateKey(),
 			types.SubjectPrefix,
+			host.ClientStateKey(),
 			subjectStore,
 			nil,
 		},
 		{
 			"success: substitute store Get",
-			host.ClientStateKey(),
 			types.SubstitutePrefix,
+			host.ClientStateKey(),
 			substituteStore,
 			nil,
 		},
 		{
 			"failure: key not prefixed with subject/ or substitute/",
-			host.ClientStateKey(),
 			invalidPrefix,
+			host.ClientStateKey(),
 			nil,
 			errors.New("key must be prefixed with either subject/ or substitute/"),
 		},
@@ -167,24 +168,24 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreSet() {
 
 	testCases := []struct {
 		name     string
-		key      []byte
 		prefix   []byte
+		key      []byte
 		expStore storetypes.KVStore
 		expPanic error
 	}{
 		{
 			"success: subject store Set",
-			host.ClientStateKey(),
 			types.SubjectPrefix,
+			host.ClientStateKey(),
 			subjectStore,
 			nil,
 		},
 		{
 			"failure: cannot Set on substitute store",
-			host.ClientStateKey(),
 			types.SubstitutePrefix,
+			host.ClientStateKey(),
 			nil,
-			errors.New("key must be prefixed with subject/"),
+			fmt.Errorf("writes only allowed on subject store; key must be prefixed with \"%s\"", types.SubjectPrefix),
 		},
 	}
 
@@ -201,7 +202,7 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreSet() {
 
 				expValue := tc.expStore.Get(tc.key)
 
-				suite.Require().Equal(wasmtesting.MockClientStateBz, expValue)
+				suite.Require().Equal(expValue, wasmtesting.MockClientStateBz)
 			} else {
 				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { wrappedStore.Set(prefixedKey, wasmtesting.MockClientStateBz) })
 			}
@@ -216,24 +217,24 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreDelete() {
 
 	testCases := []struct {
 		name     string
-		key      []byte
 		prefix   []byte
+		key      []byte
 		expStore storetypes.KVStore
 		expPanic error
 	}{
 		{
 			"success: subject store Delete",
-			host.ClientStateKey(),
 			types.SubjectPrefix,
+			host.ClientStateKey(),
 			subjectStore,
 			nil,
 		},
 		{
 			"failure: cannot Delete on substitute store",
-			host.ClientStateKey(),
 			types.SubstitutePrefix,
+			host.ClientStateKey(),
 			nil,
-			errors.New("key must be prefixed with subject/"),
+			fmt.Errorf("writes only allowed on subject store; key must be prefixed with \"%s\"", types.SubjectPrefix),
 		},
 	}
 
@@ -263,42 +264,42 @@ func (suite *TypesTestSuite) TestUpdateProposalWrappedStoreIterators() {
 
 	testCases := []struct {
 		name        string
-		start       []byte
-		end         []byte
 		prefixStart []byte
 		prefixEnd   []byte
+		start       []byte
+		end         []byte
 		expPanic    error
 	}{
 		{
 			"success: subject store Iterate",
+			types.SubjectPrefix,
+			types.SubjectPrefix,
 			[]byte("start"),
 			[]byte("end"),
-			types.SubjectPrefix,
-			types.SubjectPrefix,
 			nil,
 		},
 		{
 			"success: substitute store Iterate",
+			types.SubstitutePrefix,
+			types.SubstitutePrefix,
 			[]byte("start"),
 			[]byte("end"),
-			types.SubstitutePrefix,
-			types.SubstitutePrefix,
 			nil,
 		},
 		{
 			"failure: key not prefixed",
+			invalidPrefix,
+			invalidPrefix,
 			[]byte("start"),
 			[]byte("end"),
-			invalidPrefix,
-			invalidPrefix,
 			errors.New("key must be prefixed with either subject/ or substitute/"),
 		},
 		{
 			"failure: start and end keys not prefixed with same prefix",
-			[]byte("start"),
-			[]byte("end"),
 			types.SubjectPrefix,
 			types.SubstitutePrefix,
+			[]byte("start"),
+			[]byte("end"),
 			errors.New("start and end keys must be prefixed with the same prefix"),
 		},
 	}
