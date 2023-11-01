@@ -36,3 +36,27 @@ func (m MsgStoreCode) ValidateBasic() error {
 
 	return nil
 }
+
+// NewMsgRemoveCodeHash creates a new MsgRemoveCodeHash instance
+//
+//nolint:interfacer
+func NewMsgRemoveCodeHash(signer string, codeHash []byte) *MsgRemoveCodeHash {
+	return &MsgRemoveCodeHash{
+		Signer:   signer,
+		CodeHash: codeHash,
+	}
+}
+
+// ValidateBasic implements sdk.Msg
+func (m MsgRemoveCodeHash) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	if err := ValidateWasmCodeHash(m.CodeHash); err != nil {
+		return err
+	}
+
+	return nil
+}
