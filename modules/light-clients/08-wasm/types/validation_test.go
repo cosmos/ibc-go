@@ -11,6 +11,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -136,13 +137,13 @@ func TestValidateClientID(t *testing.T) {
 			func() {
 				clientID = ""
 			},
-			errorsmod.Wrapf(types.ErrInvalidWasmClientID, "invalid client identifier %s", clientID),
+			errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s", clientID),
 		},
 		{
 			"failure: clientID is not a wasm client identifier",
 			func() {
 			},
-			errorsmod.Wrapf(types.ErrInvalidWasmClientID, "client identifier %s does not contain %s prefix", ibctesting.FirstClientID, exported.Wasm),
+			errorsmod.Wrapf(host.ErrInvalidID, "client identifier %s does not contain %s prefix", ibctesting.FirstClientID, exported.Wasm),
 		},
 	}
 

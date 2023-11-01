@@ -95,10 +95,10 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 				suite.Require().NoError(err)
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					return nil, wasmtesting.DefaultGasUsed, types.ErrInvalid
+					return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockContract
 				}
 			},
-			types.ErrInvalid,
+			wasmtesting.ErrMockContract,
 		},
 	}
 

@@ -12,6 +12,7 @@ import (
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -110,12 +111,12 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 		{
 			"failure: clientID is not a valid client identifier",
 			types.NewMsgMigrateContract(signer, ibctesting.InvalidID, validCodeHash[:], validMigrateMsg),
-			types.ErrInvalidWasmClientID,
+			host.ErrInvalidID,
 		},
 		{
 			"failure: clientID is not a wasm client identifier",
 			types.NewMsgMigrateContract(signer, ibctesting.FirstClientID, validCodeHash[:], validMigrateMsg),
-			types.ErrInvalidWasmClientID,
+			host.ErrInvalidID,
 		},
 		{
 			"failure: code hash is nil",

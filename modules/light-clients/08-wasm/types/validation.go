@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -44,14 +45,12 @@ func ValidateWasmCodeHash(codeHash []byte) error {
 
 // ValidateClientID validates the client identifier
 func ValidateClientID(clientID string) error {
-	isClientID := clienttypes.IsValidClientID(clientID)
-	if !isClientID {
-		return errorsmod.Wrapf(ErrInvalidWasmClientID, "invalid client identifier %s", clientID)
+	if !clienttypes.IsValidClientID(clientID) {
+		return errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s", clientID)
 	}
 
-	hasWasmPrefix := strings.HasPrefix(clientID, exported.Wasm)
-	if !hasWasmPrefix {
-		return errorsmod.Wrapf(ErrInvalidWasmClientID, "client identifier %s does not contain %s prefix", clientID, exported.Wasm)
+	if !strings.HasPrefix(clientID, exported.Wasm) {
+		return errorsmod.Wrapf(host.ErrInvalidID, "client identifier %s does not contain %s prefix", clientID, exported.Wasm)
 	}
 
 	return nil

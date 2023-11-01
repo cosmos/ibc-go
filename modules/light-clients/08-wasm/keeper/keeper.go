@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -187,7 +188,7 @@ func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.Cli
 
 	wasmClientState, ok := clientState.(*types.ClientState)
 	if !ok {
-		return nil, errorsmod.Wrapf(types.ErrInvalidData, "client state is not a wasm client state")
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected type %T, got %T", (*types.ClientState)(nil), wasmClientState)
 	}
 
 	return wasmClientState, nil

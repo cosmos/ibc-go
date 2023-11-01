@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 	oldCodeHash := sha256.Sum256(wasmtesting.Code)
 
-	mockByteCode := []byte("MockByteCode-TestMsgMigrateContract")
+	newByteCode := []byte("MockByteCode-TestMsgMigrateContract")
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -194,10 +194,10 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newCodeHash, []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					return nil, wasmtesting.DefaultGasUsed, types.ErrInvalid
+					return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockContract
 				}
 			},
-			types.ErrInvalid,
+			wasmtesting.ErrMockContract,
 		},
 	}
 
@@ -205,7 +205,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			newCodeHash = storeWasmCode(suite, mockByteCode)
+			newCodeHash = storeWasmCode(suite, newByteCode)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
