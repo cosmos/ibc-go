@@ -128,35 +128,132 @@ func (m *MsgStoreCodeResponse) GetChecksum() []byte {
 	return nil
 }
 
+// MsgRemoveCodeHash defines the request type for the MsgRemoveCodeHash rpc.
+type MsgRemoveCodeHash struct {
+	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
+	// code hash to be removed from the store
+	CodeHash []byte `protobuf:"bytes,2,opt,name=code_hash,json=codeHash,proto3" json:"code_hash,omitempty"`
+}
+
+func (m *MsgRemoveCodeHash) Reset()         { *m = MsgRemoveCodeHash{} }
+func (m *MsgRemoveCodeHash) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveCodeHash) ProtoMessage()    {}
+func (*MsgRemoveCodeHash) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1d9737363bf1e38d, []int{2}
+}
+func (m *MsgRemoveCodeHash) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRemoveCodeHash) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRemoveCodeHash.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRemoveCodeHash) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveCodeHash.Merge(m, src)
+}
+func (m *MsgRemoveCodeHash) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRemoveCodeHash) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveCodeHash.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRemoveCodeHash proto.InternalMessageInfo
+
+func (m *MsgRemoveCodeHash) GetSigner() string {
+	if m != nil {
+		return m.Signer
+	}
+	return ""
+}
+
+func (m *MsgRemoveCodeHash) GetCodeHash() []byte {
+	if m != nil {
+		return m.CodeHash
+	}
+	return nil
+}
+
+// MsgStoreCodeResponse defines the response type for the StoreCode rpc
+type MsgRemoveCodeHashResponse struct {
+}
+
+func (m *MsgRemoveCodeHashResponse) Reset()         { *m = MsgRemoveCodeHashResponse{} }
+func (m *MsgRemoveCodeHashResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveCodeHashResponse) ProtoMessage()    {}
+func (*MsgRemoveCodeHashResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1d9737363bf1e38d, []int{3}
+}
+func (m *MsgRemoveCodeHashResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRemoveCodeHashResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRemoveCodeHashResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRemoveCodeHashResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveCodeHashResponse.Merge(m, src)
+}
+func (m *MsgRemoveCodeHashResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRemoveCodeHashResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveCodeHashResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRemoveCodeHashResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgStoreCode)(nil), "ibc.lightclients.wasm.v1.MsgStoreCode")
 	proto.RegisterType((*MsgStoreCodeResponse)(nil), "ibc.lightclients.wasm.v1.MsgStoreCodeResponse")
+	proto.RegisterType((*MsgRemoveCodeHash)(nil), "ibc.lightclients.wasm.v1.MsgRemoveCodeHash")
+	proto.RegisterType((*MsgRemoveCodeHashResponse)(nil), "ibc.lightclients.wasm.v1.MsgRemoveCodeHashResponse")
 }
 
 func init() { proto.RegisterFile("ibc/lightclients/wasm/v1/tx.proto", fileDescriptor_1d9737363bf1e38d) }
 
 var fileDescriptor_1d9737363bf1e38d = []byte{
-	// 312 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0xcc, 0x4c, 0x4a, 0xd6,
-	0xcf, 0xc9, 0x4c, 0xcf, 0x28, 0x49, 0xce, 0xc9, 0x4c, 0xcd, 0x2b, 0x29, 0xd6, 0x2f, 0x4f, 0x2c,
-	0xce, 0xd5, 0x2f, 0x33, 0xd4, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x92, 0xc8,
-	0x4c, 0x4a, 0xd6, 0x43, 0x56, 0xa2, 0x07, 0x52, 0xa2, 0x57, 0x66, 0x28, 0x25, 0x9e, 0x9c, 0x5f,
-	0x9c, 0x9b, 0x5f, 0xac, 0x9f, 0x5b, 0x9c, 0x0e, 0xd2, 0x91, 0x5b, 0x9c, 0x0e, 0xd1, 0xa2, 0x14,
-	0xc9, 0xc5, 0xe3, 0x5b, 0x9c, 0x1e, 0x5c, 0x92, 0x5f, 0x94, 0xea, 0x9c, 0x9f, 0x92, 0x2a, 0x24,
-	0xc6, 0xc5, 0x56, 0x9c, 0x99, 0x9e, 0x97, 0x5a, 0x24, 0xc1, 0xa8, 0xc0, 0xa8, 0xc1, 0x19, 0x04,
-	0xe5, 0x09, 0xa9, 0x70, 0xf1, 0x81, 0xcc, 0x8a, 0x4f, 0xaa, 0x2c, 0x49, 0x8d, 0x4f, 0xce, 0x4f,
-	0x49, 0x95, 0x60, 0x52, 0x60, 0xd4, 0xe0, 0x09, 0xe2, 0x01, 0x89, 0x3a, 0x55, 0x96, 0x80, 0x75,
-	0x5b, 0x71, 0x37, 0x3d, 0xdf, 0xa0, 0x05, 0xd5, 0xa2, 0x64, 0xc4, 0x25, 0x82, 0x6c, 0x74, 0x50,
-	0x6a, 0x71, 0x41, 0x7e, 0x5e, 0x71, 0xaa, 0x90, 0x14, 0x17, 0x47, 0x72, 0x46, 0x6a, 0x72, 0x76,
-	0x71, 0x69, 0x2e, 0xd8, 0x12, 0x9e, 0x20, 0x38, 0xdf, 0xa8, 0x90, 0x8b, 0xd9, 0xb7, 0x38, 0x5d,
-	0x28, 0x99, 0x8b, 0x13, 0xe1, 0x24, 0x35, 0x3d, 0x5c, 0xde, 0xd2, 0x43, 0x36, 0x5f, 0x4a, 0x8f,
-	0x38, 0x75, 0x30, 0x77, 0x48, 0xb1, 0x36, 0x3c, 0xdf, 0xa0, 0xc5, 0xe8, 0x14, 0x76, 0xe2, 0x91,
-	0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c, 0xc7, 0x70, 0xe1,
-	0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x51, 0x36, 0xe9, 0x99, 0x25, 0x19, 0xa5, 0x49, 0x7a,
-	0xc9, 0xf9, 0xb9, 0xfa, 0xd0, 0xf0, 0xcb, 0x4c, 0x4a, 0xd6, 0x4d, 0xcf, 0xd7, 0xcf, 0xcd, 0x4f,
-	0x29, 0xcd, 0x49, 0x2d, 0x86, 0x44, 0x87, 0x2e, 0x2c, 0x3e, 0x0c, 0x2c, 0x74, 0xc1, 0x51, 0x52,
-	0x52, 0x59, 0x90, 0x5a, 0x9c, 0xc4, 0x06, 0x0e, 0x60, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0xea, 0x8d, 0x6f, 0x6d, 0xb8, 0x01, 0x00, 0x00,
+	// 375 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0x41, 0x4b, 0x32, 0x41,
+	0x18, 0xc7, 0x9d, 0xf7, 0xe5, 0x15, 0x9d, 0x77, 0x11, 0xde, 0xe5, 0xa5, 0x6c, 0x85, 0xc5, 0x24,
+	0x42, 0x0c, 0x67, 0x53, 0x2f, 0x11, 0x9d, 0xec, 0xd2, 0xc5, 0xcb, 0x46, 0x41, 0x5d, 0xc4, 0x1d,
+	0x87, 0xd9, 0x21, 0xc7, 0x91, 0x7d, 0x46, 0xcb, 0x5b, 0xf4, 0x09, 0xfa, 0x28, 0x7e, 0x8c, 0x8e,
+	0x1e, 0x3b, 0x86, 0x12, 0x7e, 0x8d, 0xd8, 0x75, 0x35, 0x2d, 0x8c, 0x3a, 0xce, 0xf0, 0xff, 0xfd,
+	0x9f, 0xff, 0xf3, 0xf0, 0xc7, 0xbb, 0xc2, 0xa3, 0x4e, 0x47, 0x70, 0x5f, 0xd3, 0x8e, 0x60, 0x5d,
+	0x0d, 0xce, 0x6d, 0x0b, 0xa4, 0x33, 0xa8, 0x38, 0xfa, 0x8e, 0xf4, 0x02, 0xa5, 0x95, 0x99, 0x15,
+	0x1e, 0x25, 0xab, 0x12, 0x12, 0x4a, 0xc8, 0xa0, 0x62, 0x6d, 0x53, 0x05, 0x52, 0x81, 0x23, 0x81,
+	0x87, 0x84, 0x04, 0x3e, 0x47, 0x0a, 0x57, 0xd8, 0x68, 0x00, 0x3f, 0xd7, 0x2a, 0x60, 0xa7, 0xaa,
+	0xcd, 0xcc, 0x2d, 0x9c, 0x04, 0xc1, 0xbb, 0x2c, 0xc8, 0xa2, 0x3c, 0x2a, 0xa6, 0xdd, 0xf8, 0x65,
+	0xee, 0xe1, 0x4c, 0xe8, 0xd5, 0xf4, 0x86, 0x9a, 0x35, 0xa9, 0x6a, 0xb3, 0xec, 0xaf, 0x3c, 0x2a,
+	0x1a, 0xae, 0x11, 0xfe, 0xd6, 0x87, 0x3a, 0xa2, 0x8f, 0xff, 0x3e, 0xcc, 0x46, 0xa5, 0x18, 0x29,
+	0x54, 0xf1, 0xff, 0x55, 0x6b, 0x97, 0x41, 0x4f, 0x75, 0x81, 0x99, 0x16, 0x4e, 0x51, 0x9f, 0xd1,
+	0x1b, 0xe8, 0xcb, 0x68, 0x88, 0xe1, 0x2e, 0xdf, 0x85, 0x0b, 0xfc, 0xaf, 0x01, 0xdc, 0x65, 0x52,
+	0x0d, 0x22, 0xe8, 0xac, 0x05, 0xfe, 0xc6, 0x4c, 0x39, 0x9c, 0x0e, 0x93, 0x34, 0xfd, 0x16, 0xf8,
+	0x71, 0x9c, 0x14, 0x8d, 0xa1, 0xf5, 0x28, 0x39, 0xbc, 0xf3, 0xc9, 0x76, 0x91, 0xa7, 0xfa, 0x8a,
+	0xf0, 0xef, 0x06, 0x70, 0x93, 0xe2, 0xf4, 0xfb, 0x1d, 0xf6, 0xc9, 0xa6, 0x5b, 0x92, 0xd5, 0xa5,
+	0x2c, 0xf2, 0x3d, 0xdd, 0x72, 0xf9, 0x00, 0x67, 0x3e, 0x6c, 0x77, 0xf0, 0xa5, 0xc3, 0xba, 0xd8,
+	0xaa, 0xfd, 0x40, 0xbc, 0x98, 0x69, 0xfd, 0xb9, 0x9f, 0x8d, 0x4a, 0xa8, 0x7e, 0xf9, 0x34, 0xb1,
+	0xd1, 0x78, 0x62, 0xa3, 0x97, 0x89, 0x8d, 0x1e, 0xa7, 0x76, 0x62, 0x3c, 0xb5, 0x13, 0xcf, 0x53,
+	0x3b, 0x71, 0x7d, 0xc2, 0x85, 0xf6, 0xfb, 0x1e, 0xa1, 0x4a, 0x3a, 0x71, 0x51, 0x84, 0x47, 0xcb,
+	0x5c, 0x39, 0x52, 0xb5, 0xfb, 0x1d, 0x06, 0xf3, 0xde, 0x95, 0x17, 0xc5, 0x3b, 0x3c, 0x2a, 0x47,
+	0xdd, 0xd3, 0xc3, 0x1e, 0x03, 0x2f, 0x19, 0x35, 0xa9, 0xf6, 0x16, 0x00, 0x00, 0xff, 0xff, 0x9a,
+	0x9d, 0xd7, 0x0b, 0xa1, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -173,6 +270,8 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// StoreCode defines a rpc handler method for MsgStoreCode.
 	StoreCode(ctx context.Context, in *MsgStoreCode, opts ...grpc.CallOption) (*MsgStoreCodeResponse, error)
+	// RemoveCodeHash defines a rpc handler method for MsgRemoveCodeHash.
+	RemoveCodeHash(ctx context.Context, in *MsgRemoveCodeHash, opts ...grpc.CallOption) (*MsgRemoveCodeHashResponse, error)
 }
 
 type msgClient struct {
@@ -192,10 +291,21 @@ func (c *msgClient) StoreCode(ctx context.Context, in *MsgStoreCode, opts ...grp
 	return out, nil
 }
 
+func (c *msgClient) RemoveCodeHash(ctx context.Context, in *MsgRemoveCodeHash, opts ...grpc.CallOption) (*MsgRemoveCodeHashResponse, error) {
+	out := new(MsgRemoveCodeHashResponse)
+	err := c.cc.Invoke(ctx, "/ibc.lightclients.wasm.v1.Msg/RemoveCodeHash", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// StoreCode defines a rpc handler method for MsgStoreCode.
 	StoreCode(context.Context, *MsgStoreCode) (*MsgStoreCodeResponse, error)
+	// RemoveCodeHash defines a rpc handler method for MsgRemoveCodeHash.
+	RemoveCodeHash(context.Context, *MsgRemoveCodeHash) (*MsgRemoveCodeHashResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -204,6 +314,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) StoreCode(ctx context.Context, req *MsgStoreCode) (*MsgStoreCodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StoreCode not implemented")
+}
+func (*UnimplementedMsgServer) RemoveCodeHash(ctx context.Context, req *MsgRemoveCodeHash) (*MsgRemoveCodeHashResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveCodeHash not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -228,6 +341,24 @@ func _Msg_StoreCode_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_RemoveCodeHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveCodeHash)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RemoveCodeHash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.lightclients.wasm.v1.Msg/RemoveCodeHash",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RemoveCodeHash(ctx, req.(*MsgRemoveCodeHash))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.lightclients.wasm.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -235,6 +366,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StoreCode",
 			Handler:    _Msg_StoreCode_Handler,
+		},
+		{
+			MethodName: "RemoveCodeHash",
+			Handler:    _Msg_RemoveCodeHash_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -308,6 +443,66 @@ func (m *MsgStoreCodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgRemoveCodeHash) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRemoveCodeHash) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRemoveCodeHash) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.CodeHash) > 0 {
+		i -= len(m.CodeHash)
+		copy(dAtA[i:], m.CodeHash)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.CodeHash)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRemoveCodeHashResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRemoveCodeHashResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRemoveCodeHashResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -346,6 +541,32 @@ func (m *MsgStoreCodeResponse) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
+	return n
+}
+
+func (m *MsgRemoveCodeHash) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.CodeHash)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgRemoveCodeHashResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -534,6 +755,172 @@ func (m *MsgStoreCodeResponse) Unmarshal(dAtA []byte) error {
 				m.Checksum = []byte{}
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRemoveCodeHash) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRemoveCodeHash: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRemoveCodeHash: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CodeHash", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CodeHash = append(m.CodeHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.CodeHash == nil {
+				m.CodeHash = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRemoveCodeHashResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRemoveCodeHashResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRemoveCodeHashResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
