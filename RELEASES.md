@@ -69,9 +69,6 @@ Only the following major release series have a stable release status. All missin
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v4.4.x`|October 31, 2023|
-|`v4.5.x`|October 31, 2023|
-|`v5.3.x`|October 31, 2023|
 |`v6.1.x`|December 09, 2023|
 |`v6.2.x`|December 09, 2023|
 |`v7.2.x`|March 17, 2024|
@@ -112,13 +109,6 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 
 | Go | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|--------|------------|---------------------|
-| 1.19 | v4.4.1 | v0.45.15 | v0.34.27 |
-| 1.19 | v4.4.2 | v0.45.15 | v0.34.27 |
-| 1.19 | v4.4.3 | v0.45.15 | v0.34.27 |
-| 1.19 | v4.5.0 | v0.45.16 | v0.34.27 |
-| 1.19 | v4.5.1 | v0.45.16 | v0.34.27 |
-| 1.19 | v5.3.1 | v0.46.12 | v0.34.27 |
-| 1.19 | v5.3.2 | v0.46.12 | v0.34.27 |
 | 1.18 | v6.1.1 | v0.46.7  | v0.34.24 |
 | 1.18 | v6.1.2 | v0.46.7  | v0.34.24 |
 | 1.19 | v6.2.0 | v0.46.12 | v0.34.27 |
