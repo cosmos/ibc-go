@@ -43,6 +43,7 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v4
         with:
+          cache-dependency-path: "**/*.sum"
           go-version: '1.21'
       - name: Run e2e Test
         run: |
