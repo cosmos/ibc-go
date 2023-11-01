@@ -83,7 +83,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	const planHeight = int64(75)
+	const planHeight = int64(300)
 	const legacyPlanHeight = planHeight * 2
 	var newChainID string
 

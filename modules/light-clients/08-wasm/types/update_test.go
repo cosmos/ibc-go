@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -20,154 +19,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func (suite *TypesTestSuite) TestVerifyHeaderGrandpa() {
-	var (
-		ok          bool
-		clientMsg   exported.ClientMessage
-		clientState exported.ClientState
-	)
-
-	testCases := []struct {
-		name    string
-		setup   func()
-		expPass bool
-	}{
-		{
-			"successful verify header", func() {},
-			true,
-		},
-		{
-			"unsuccessful verify header: para id mismatch", func() {
-				clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_para_id_mismatch"])
-				suite.Require().NoError(err)
-
-				clientState = &types.ClientState{
-					Data:         clientStateData,
-					CodeHash:     suite.codeHash,
-					LatestHeight: clienttypes.NewHeight(2000, 39),
-				}
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), defaultWasmClientID, clientState)
-			},
-			false,
-		},
-		{
-			"unsuccessful verify header: head height < consensus height", func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header_old"])
-				suite.Require().NoError(err)
-				clientMsg = &types.ClientMessage{
-					Data: data,
-				}
-			},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupWasmGrandpaWithChannel()
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), defaultWasmClientID)
-			suite.Require().True(ok)
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
-
-			data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
-			suite.Require().NoError(err)
-			clientMsg = &types.ClientMessage{
-				Data: data,
-			}
-
-			tc.setup()
-			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
-
-func (suite *TypesTestSuite) TestUpdateStateGrandpa() {
-	var (
-		ok          bool
-		clientMsg   exported.ClientMessage
-		clientState exported.ClientState
-	)
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			"success with height later than latest height",
-			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
-				suite.Require().NoError(err)
-				clientMsg = &types.ClientMessage{
-					Data: data,
-				}
-				// VerifyClientMessage must be run first
-				err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.Codec, suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID), clientMsg)
-				suite.Require().NoError(err)
-			},
-			true,
-		},
-		{
-			"success with not verifying client message",
-			func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["header"])
-				suite.Require().NoError(err)
-				clientMsg = &types.ClientMessage{
-					Data: data,
-				}
-			},
-			true,
-		},
-		{
-			"invalid ClientMessage type", func() {
-				data, err := base64.StdEncoding.DecodeString(suite.testData["misbehaviour"])
-				suite.Require().NoError(err)
-				clientMsg = &types.ClientMessage{
-					Data: data,
-				}
-			},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupWasmGrandpaWithChannel()
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), defaultWasmClientID)
-			suite.Require().True(ok)
-
-			tc.malleate()
-
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
-
-			if tc.expPass {
-				consensusHeights := clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
-
-				clientStateBz := store.Get(host.ClientStateKey())
-				suite.Require().NotEmpty(clientStateBz)
-
-				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-
-				suite.Require().Len(consensusHeights, 1)
-				suite.Require().Equal(clienttypes.NewHeight(2000, 47), consensusHeights[0])
-				suite.Require().Equal(consensusHeights[0], newClientState.(*types.ClientState).LatestHeight)
-			} else {
-				suite.Require().Panics(func() {
-					clientState.UpdateState(suite.chainA.GetContext(), suite.chainA.Codec, store, clientMsg)
-				})
-			}
-		})
-	}
-}
-
 func (suite *TypesTestSuite) TestUpdateState() {
-	mockClientStateBz := []byte("mockClientStateBz")
 	mockHeight := clienttypes.NewHeight(1, 1)
 
 	var (
@@ -192,7 +44,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					suite.Require().NotNil(msg.UpdateState)
 					suite.Require().NotNil(msg.UpdateState.ClientMessage)
-					suite.Require().Equal(msg.UpdateState.ClientMessage.Data, mockClientStateBz)
+					suite.Require().Equal(msg.UpdateState.ClientMessage.Data, wasmtesting.MockClientStateBz)
 					suite.Require().Nil(msg.VerifyMembership)
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
@@ -243,7 +95,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			},
 			nil,
 			[]exported.Height{mockHeight},
-			mockClientStateBz,
+			wasmtesting.MockClientStateBz,
 		},
 		{
 			"failure: clientStore prefix does not include clientID",
@@ -282,7 +134,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			suite.SetupWasmWithMockVM() // reset
 
 			clientMsg = &types.ClientMessage{
-				Data: mockClientStateBz,
+				Data: wasmtesting.MockClientStateBz,
 			}
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -372,7 +224,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 				})
 			},
 			nil,
-			[]byte("mockClientStateBz"),
+			wasmtesting.MockClientStateBz,
 		},
 		{
 			"failure: invalid client message",
@@ -406,7 +258,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientMsg = &types.ClientMessage{
-				Data: []byte("mockClientStateBz"),
+				Data: wasmtesting.MockClientStateBz,
 			}
 			clientState := endpoint.GetClientState()
 
