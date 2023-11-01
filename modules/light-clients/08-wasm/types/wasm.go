@@ -22,7 +22,7 @@ func GetAllCodeHashes(ctx sdk.Context) ([]CodeHash, error) {
 		return nil, err
 	}
 
-	var codeHashes []CodeHash
+	codeHashes := []CodeHash{}
 	for _, key := range keys {
 		codeHashes = append(codeHashes, key)
 	}
