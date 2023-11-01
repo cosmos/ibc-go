@@ -53,7 +53,6 @@ func (*WasmSnapshotter) SnapshotFormat() uint32 {
 // SupportedFormats implements the snapshot.ExtensionSnapshotter interface.
 // This defines a list of supported formats the snapshotter extension can restore from.
 func (*WasmSnapshotter) SupportedFormats() []uint32 {
-	// If we support older formats, add them here and handle them in Restore
 	return []uint32{SnapshotFormat}
 }
 
@@ -95,25 +94,26 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 // RestoreExtension is used to read data from an existing extension state snapshot into the 08-wasm module.
 // The payload reader returns io.EOF when it has reached the end of the extension state snapshot.
 func (ws *WasmSnapshotter) RestoreExtension(height uint64, format uint32, payloadReader snapshot.ExtensionPayloadReader) error {
-	if format == SnapshotFormat {
-		return ws.processAllItems(height, payloadReader, restoreV1, finalizeV1)
+	if format == ws.SnapshotFormat() {
+		return ws.processAllItems(height, payloadReader, restoreV1)
 	}
-	return snapshot.ErrUnknownFormat
+
+	return errorsmod.Wrapf(snapshot.ErrUnknownFormat, "expected %d, got %d", ws.SnapshotFormat(), format)
 }
 
 func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 	if !types.IsGzip(compressedCode) {
-		return types.ErrInvalid.Wrap("not a gzip")
+		return errorsmod.Wrap(types.ErrInvalidData, "expected wasm code is not gzip format")
 	}
 
 	wasmCode, err := types.Uncompress(compressedCode, types.MaxWasmByteSize())
 	if err != nil {
-		return errorsmod.Wrap(errorsmod.Wrap(err, "failed to store contract"), err.Error())
+		return errorsmod.Wrap(err, "failed to uncompress wasm code")
 	}
 
 	codeHash, err := k.wasmVM.StoreCode(wasmCode)
 	if err != nil {
-		return errorsmod.Wrap(errorsmod.Wrap(err, "failed to store contract"), err.Error())
+		return errorsmod.Wrap(err, "failed to store wasm code")
 	}
 
 	if err := k.wasmVM.Pin(codeHash); err != nil {
@@ -123,15 +123,10 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 	return nil
 }
 
-func finalizeV1(ctx sdk.Context, k *Keeper) error {
-	return nil
-}
-
 func (ws *WasmSnapshotter) processAllItems(
 	height uint64,
 	payloadReader snapshot.ExtensionPayloadReader,
 	cb func(sdk.Context, *Keeper, []byte) error,
-	finalize func(sdk.Context, *Keeper) error,
 ) error {
 	ctx := sdk.NewContext(ws.cms, tmproto.Header{Height: int64(height)}, false, nil)
 	for {
@@ -143,9 +138,9 @@ func (ws *WasmSnapshotter) processAllItems(
 		}
 
 		if err := cb(ctx, ws.keeper, payload); err != nil {
-			return errorsmod.Wrap(err, "processing snapshot item")
+			return errorsmod.Wrap(err, "failure processing snapshot item")
 		}
 	}
 
-	return finalize(ctx, ws.keeper)
+	return nil
 }
