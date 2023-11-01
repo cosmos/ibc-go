@@ -74,6 +74,16 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 
 			// setup dest app with snapshot imported
 			destWasmClientApp := simapp.SetupWithEmptyStore(t, suite.mockVM)
+			destCtx := destWasmClientApp.NewUncachedContext(false, tmproto.Header{
+				ChainID: "bar",
+				Height:  destWasmClientApp.LastBlockHeight() + 1,
+				Time:    time.Now(),
+			})
+
+			resp, err := destWasmClientApp.WasmClientKeeper.CodeHashes(destCtx, &types.QueryCodeHashesRequest{})
+			suite.Require().NoError(err)
+			suite.Require().Empty(resp.CodeHashes)
+
 			suite.Require().NoError(destWasmClientApp.SnapshotManager().Restore(*snapshot))
 
 			for i := uint32(0); i < snapshot.Chunks; i++ {

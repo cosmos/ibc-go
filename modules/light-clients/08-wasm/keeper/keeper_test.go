@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) SetupSnapshotterWithMockVM() *simapp.SimApp {
 	suite.mockVM = wasmtesting.NewMockWasmEngine()
 
-	return simapp.SetupWithSnapShotter(suite.T(), suite.mockVM)
+	return simapp.SetupWithSnapshotter(suite.T(), suite.mockVM)
 }
 
 func TestKeeperTestSuite(t *testing.T) {

@@ -87,8 +87,8 @@ func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM ibcwasm.WasmEngine, 
 	return app
 }
 
-// Setup initializes a new SimApp. A Nop logger is set in SimApp.
-func SetupWithSnapShotter(t *testing.T, mockVM ibcwasm.WasmEngine) *SimApp {
+// SetupWithSnapshotter initializes a new SimApp with a configured snapshot db. A Nop logger is set in SimApp.
+func SetupWithSnapshotter(t *testing.T, mockVM ibcwasm.WasmEngine) *SimApp {
 	t.Helper()
 
 	privVal := mock.NewPV()
