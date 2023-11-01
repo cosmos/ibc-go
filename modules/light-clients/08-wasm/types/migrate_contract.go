@@ -2,7 +2,9 @@ package types
 
 import (
 	"bytes"
+	"encoding/hex"
 
+	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -22,7 +24,7 @@ func (cs ClientState) MigrateContract(
 	}
 
 	if bytes.Equal(cs.CodeHash, newCodeHash) {
-		return nil
+		return errorsmod.Wrapf(ErrWasmCodeExists, "new code hash (%s) is the same as current code hash (%s)", hex.EncodeToString(newCodeHash), hex.EncodeToString(cs.CodeHash))
 	}
 
 	_, err := wasmMigrate[EmptyResult](ctx, clientID, clientStore, &cs, migrateMsg)

@@ -156,7 +156,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			nil,
 		},
 		{
-			"success: same code hash",
+			"failure: same code hash",
 			func() {
 				newCodeHash = oldCodeHash[:]
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newCodeHash, []byte("{}"))
@@ -165,7 +165,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 					panic("unreachable")
 				}
 			},
-			nil,
+			types.ErrWasmCodeExists,
 		},
 		{
 			"failure: unauthorized signer",

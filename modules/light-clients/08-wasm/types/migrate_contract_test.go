@@ -71,14 +71,14 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 			nil,
 		},
 		{
-			"success: new and old code hash are the same",
+			"failure: new and old code hash are the same",
 			func() {
 				// this should not be called
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					panic("unreachable")
 				}
 			},
-			nil,
+			types.ErrWasmCodeExists,
 		},
 		{
 			"failure: code hash not found",
