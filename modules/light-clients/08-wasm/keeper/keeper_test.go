@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"testing"
@@ -40,8 +39,9 @@ type KeeperTestSuite struct {
 
 	coordinator *ibctesting.Coordinator
 
-	chainA *ibctesting.TestChain
+	// mockVM is a mock wasm VM that implements the WasmEngine interface
 	mockVM *wasmtesting.MockWasmEngine
+	chainA *ibctesting.TestChain
 }
 
 func init() {
@@ -85,15 +85,6 @@ func (suite *KeeperTestSuite) SetupWasmWithMockVM() {
 
 func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	suite.mockVM = wasmtesting.NewMockWasmEngine()
-	// TODO: move default functionality required for wasm client testing to the mock VM
-	suite.mockVM.StoreCodeFn = func(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
-		hash := sha256.Sum256(code)
-		return wasmvm.Checksum(hash[:]), nil
-	}
-
-	suite.mockVM.PinFn = func(codeID wasmvm.Checksum) error {
-		return nil
-	}
 
 	suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 		var payload types.InstantiateMessage
@@ -128,6 +119,12 @@ func storeWasmCode(suite *KeeperTestSuite, wasmCode []byte) []byte {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.Checksum)
 	return response.Checksum
+}
+
+func (suite *KeeperTestSuite) SetupSnapshotterWithMockVM() *simapp.SimApp {
+	suite.mockVM = wasmtesting.NewMockWasmEngine()
+
+	return simapp.SetupWithSnapshotter(suite.T(), suite.mockVM)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
