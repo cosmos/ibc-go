@@ -9,7 +9,7 @@ slug: /ibc/light-clients/wasm/messages
 
 ## `MsgStoreCode`
 
-Uploading to the Wasm VM storage the bytecode of a Wasm light client contract is achieved by means of `MsgStoreCode`:
+Uploading the Wasm light client contract to the Wasm VM storage is achieved by means of `MsgStoreCode`:
 
 ```go
 type MsgStoreCode struct {
