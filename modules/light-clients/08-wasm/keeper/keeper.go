@@ -16,9 +16,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 // Keeper defines the 08-wasm keeper
@@ -154,7 +154,7 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newCodeHas
 
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
-	err = wasmClientState.MigrateContract(ctx, k.cdc, clientID, clientStore, newCodeHash, migrateMsg)
+	err = wasmClientState.MigrateContract(ctx, k.cdc, clientStore, clientID, newCodeHash, migrateMsg)
 	if err != nil {
 		return errorsmod.Wrap(err, "contract migration failed")
 	}
@@ -183,7 +183,7 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newCodeHas
 func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.ClientState, error) {
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return nil, errorsmod.Wrapf(clienttypes.ErrClientTypeNotFound, "wasm client with the given identifier (%s) not found", clientID)
+		return nil, errorsmod.Wrapf(clienttypes.ErrClientTypeNotFound, "clientID %s", clientID)
 	}
 
 	wasmClientState, ok := clientState.(*types.ClientState)
