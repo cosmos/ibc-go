@@ -16,6 +16,7 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -26,6 +27,8 @@ type KeeperTestSuite struct {
 
 	coordinator *ibctesting.Coordinator
 
+	// mockVM is a mock wasm VM that implements the WasmEngine interface
+	mockVM *wasmtesting.MockWasmEngine
 	chainA *ibctesting.TestChain
 }
 
@@ -56,6 +59,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), GetSimApp(suite.chainA).InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, GetSimApp(suite.chainA).WasmClientKeeper)
+}
+
+func (suite *KeeperTestSuite) SetupSnapshotterWithMockVM() *simapp.SimApp {
+	suite.mockVM = wasmtesting.NewMockWasmEngine()
+
+	return simapp.SetupWithSnapshotter(suite.T(), suite.mockVM)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
