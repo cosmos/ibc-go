@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 
 	dbm "github.com/cosmos/cosmos-db"
@@ -12,9 +11,12 @@ import (
 	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -25,10 +27,9 @@ type KeeperTestSuite struct {
 
 	coordinator *ibctesting.Coordinator
 
-	// testing chains used for convenience and readability
+	// mockVM is a mock wasm VM that implements the WasmEngine interface
+	mockVM *wasmtesting.MockWasmEngine
 	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
 }
 
 func init() {
@@ -53,13 +54,17 @@ func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), GetSimApp(suite.chainA).InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, GetSimApp(suite.chainA).WasmClientKeeper)
+}
+
+func (suite *KeeperTestSuite) SetupSnapshotterWithMockVM() *simapp.SimApp {
+	suite.mockVM = wasmtesting.NewMockWasmEngine()
+
+	return simapp.SetupWithSnapshotter(suite.T(), suite.mockVM)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -78,9 +83,9 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					types.WasmVM,
+					ibcwasm.GetVM(),
 				)
 			},
 			true,
@@ -91,26 +96,39 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					"", // authority
-					types.WasmVM,
+					ibcwasm.GetVM(),
 				)
 			},
 			false,
-			fmt.Errorf("authority must be non-empty"),
+			errors.New("authority must be non-empty"),
 		},
 		{
 			"failure: nil wasm VM",
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
 				)
 			},
 			false,
-			fmt.Errorf("wasm VM must be not nil"),
+			errors.New("wasm VM must be not nil"),
+		},
+		{
+			"failure: nil store service",
+			func() {
+				keeper.NewKeeperWithVM(
+					GetSimApp(suite.chainA).AppCodec(),
+					nil,
+					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
+					ibcwasm.GetVM(),
+				)
+			},
+			false,
+			errors.New("store service must be not nil"),
 		},
 	}
 

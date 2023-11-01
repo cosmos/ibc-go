@@ -1,7 +1,8 @@
 package types
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/hex"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -13,33 +14,29 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// CheckSubstituteAndUpdateState will try to update the client with the state of the
-// substitute.
-func (cs ClientState) CheckSubstituteAndUpdateState(
-	ctx sdk.Context,
-	_ codec.BinaryCodec,
-	subjectClientStore, substituteClientStore storetypes.KVStore,
-	substituteClient exported.ClientState,
-) error {
-	var (
-		subjectPrefix    = []byte("subject/")
-		substitutePrefix = []byte("substitute/")
-	)
-
-	_, ok := substituteClient.(*ClientState)
+// CheckSubstituteAndUpdateState will verify that a substitute client state is valid and update the subject client state.
+// Note that this method is used only for recovery and will not allow changes to the code hash.
+func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, _ codec.BinaryCodec, subjectClientStore, substituteClientStore storetypes.KVStore, substituteClient exported.ClientState) error {
+	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
 		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidClient,
-			fmt.Sprintf("invalid substitute client state. expected type %T, got %T", &ClientState{}, substituteClient),
+			"invalid substitute client state: expected type %T, got %T", &ClientState{}, substituteClient,
 		)
 	}
 
-	store := newUpdateProposalWrappedStore(subjectClientStore, substituteClientStore, subjectPrefix, substitutePrefix)
-
-	payload := sudoMsg{
-		CheckSubstituteAndUpdateState: &checkSubstituteAndUpdateStateMsg{},
+	// check that code hashes of subject client state and substitute client state match
+	// changing the code hash is only allowed through the migrate contract RPC endpoint
+	if !bytes.Equal(cs.CodeHash, substituteClientState.CodeHash) {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected code hashes to be equal: expected %s, got %s", hex.EncodeToString(cs.CodeHash), hex.EncodeToString(substituteClientState.CodeHash))
 	}
 
-	_, err := wasmCall[emptyResult](ctx, store, &cs, payload)
+	store := newMigrateClientWrappedStore(subjectClientStore, substituteClientStore)
+
+	payload := SudoMsg{
+		MigrateClientStore: &MigrateClientStoreMsg{},
+	}
+
+	_, err := wasmSudo[EmptyResult](ctx, store, &cs, payload)
 	return err
 }

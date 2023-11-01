@@ -1,9 +1,12 @@
-package wasmtesting
+package testing
 
 import (
+	"crypto/sha256"
+	"errors"
+
 	"github.com/stretchr/testify/require"
 
-	types "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -15,9 +18,17 @@ type WasmEndpoint struct {
 }
 
 var (
-	CodeHash               = []byte("01234567012345670123456701234567")
-	contractClientState    = []byte{1}
-	contractConsensusState = []byte{2}
+	// Represents the code of the wasm contract used in the tests with a mock vm.
+	Code                              = []byte("01234567012345670123456701234567")
+	contractClientState               = []byte{1}
+	contractConsensusState            = []byte{2}
+	ErrMockContract                   = errors.New("mock contract error")
+	MockClientStateBz                 = []byte("client-state-data")
+	MockConsensusStateBz              = []byte("consensus-state-data")
+	MockValidProofBz                  = []byte("valid proof")
+	MockInvalidProofBz                = []byte("invalid proof")
+	MockUpgradedClientStateProofBz    = []byte("upgraded client state proof")
+	MockUpgradedConsensusStateProofBz = []byte("upgraded consensus state proof")
 )
 
 // NewWasmEndpoint returns a wasm endpoint with the default ibctesting pkg
@@ -32,7 +43,8 @@ func NewWasmEndpoint(chain *ibctesting.TestChain) *WasmEndpoint {
 // The client and consensus states are represented by byte slices
 // and the starting height is 1.
 func (endpoint *WasmEndpoint) CreateClient() error {
-	clientState := types.NewClientState(contractClientState, CodeHash, clienttypes.NewHeight(0, 1))
+	codeHash := sha256.Sum256(Code)
+	clientState := types.NewClientState(contractClientState, codeHash[:], clienttypes.NewHeight(0, 1))
 	consensusState := types.NewConsensusState(contractConsensusState, 0)
 
 	msg, err := clienttypes.NewMsgCreateClient(

@@ -78,7 +78,7 @@ func (m *QueryCodeHashesRequest) GetPagination() *query.PageRequest {
 // QueryCodeHashesResponse is the response type for the Query/CodeHashes RPC method.
 type QueryCodeHashesResponse struct {
 	CodeHashes []string `protobuf:"bytes,1,rep,name=code_hashes,json=codeHashes,proto3" json:"code_hashes,omitempty"`
-	// pagination defines an optional pagination for the request.
+	// pagination defines the pagination in the response.
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 

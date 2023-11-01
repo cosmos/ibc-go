@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/hex"
+
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -61,14 +63,14 @@ func (cs ClientState) Validate() error {
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
 func (cs ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
-	payload := queryMsg{Status: &statusMsg{}}
+	payload := QueryMsg{Status: &StatusMsg{}}
 
-	result, err := wasmQuery[statusResult](ctx, clientStore, &cs, payload)
+	result, err := wasmQuery[StatusResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		return exported.Unknown
 	}
 
-	return result.Status
+	return exported.Status(result.Status)
 }
 
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState
@@ -84,13 +86,18 @@ func (cs ClientState) GetTimestampAtHeight(
 	cdc codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
-	payload := queryMsg{
-		TimestampAtHeight: &timestampAtHeightMsg{
-			Height: height,
+	timestampHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
+	payload := QueryMsg{
+		TimestampAtHeight: &TimestampAtHeightMsg{
+			Height: timestampHeight,
 		},
 	}
 
-	result, err := wasmQuery[timestampAtHeightResult](ctx, clientStore, &cs, payload)
+	result, err := wasmQuery[TimestampAtHeightResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		return 0, errorsmod.Wrapf(err, "height (%s)", height)
 	}
@@ -101,22 +108,24 @@ func (cs ClientState) GetTimestampAtHeight(
 // Initialize checks that the initial consensus state is an 08-wasm consensus state and
 // sets the client state, consensus state in the provided client store.
 // It also initializes the wasm contract for the client.
-func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore storetypes.KVStore, state exported.ConsensusState) error {
+func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, state exported.ConsensusState) error {
 	consensusState, ok := state.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, state)
 	}
 
-	payload := instantiateMessage{
+	// Do not allow initialization of a client with a code hash that hasn't been previously stored via storeWasmCode.
+	if !HasCodeHash(ctx, cs.CodeHash) {
+		return errorsmod.Wrapf(ErrInvalidCodeHash, "code hash (%s) has not been previously stored", hex.EncodeToString(cs.CodeHash))
+	}
+
+	payload := InstantiateMessage{
 		ClientState:    &cs,
 		ConsensusState: consensusState,
 	}
 
-	// The global store key can be used here to implement #4085
-	// wasmStore := ctx.KVStore(WasmStoreKey)
-
-	return wasmInit(ctx, clientStore, &cs, payload)
+	return wasmInstantiate(ctx, clientStore, &cs, payload)
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
@@ -133,6 +142,11 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
@@ -140,22 +154,22 @@ func (cs ClientState) VerifyMembership(
 		)
 	}
 
-	_, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	payload := queryMsg{
-		VerifyMembership: &verifyMembershipMsg{
-			Height:           height,
+	payload := SudoMsg{
+		VerifyMembership: &VerifyMembershipMsg{
+			Height:           proofHeight,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             path,
+			Path:             merklePath,
 			Value:            value,
 		},
 	}
-	_, err := wasmQuery[emptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmSudo[EmptyResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
@@ -172,6 +186,11 @@ func (cs ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
+	proofHeight, ok := height.(clienttypes.Height)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", clienttypes.Height{}, height)
+	}
+
 	if cs.GetLatestHeight().LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
@@ -179,20 +198,20 @@ func (cs ClientState) VerifyNonMembership(
 		)
 	}
 
-	_, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypes.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
 	}
 
-	payload := queryMsg{
-		VerifyNonMembership: &verifyNonMembershipMsg{
-			Height:           height,
+	payload := SudoMsg{
+		VerifyNonMembership: &VerifyNonMembershipMsg{
+			Height:           proofHeight,
 			DelayTimePeriod:  delayTimePeriod,
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
-			Path:             path,
+			Path:             merklePath,
 		},
 	}
-	_, err := wasmQuery[emptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmSudo[EmptyResult](ctx, clientStore, &cs, payload)
 	return err
 }

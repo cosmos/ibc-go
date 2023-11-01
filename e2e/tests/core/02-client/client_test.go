@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -80,11 +79,11 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	const planHeight = int64(75)
+	const planHeight = int64(300)
 	const legacyPlanHeight = planHeight * 2
 	var newChainID string
 
@@ -177,7 +176,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx)
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
@@ -260,7 +259,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx)
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
@@ -346,7 +345,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		err             error
 	)
 
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
@@ -491,7 +490,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 
 // extractChainPrivateKeys returns a slice of tmtypes.PrivValidator which hold the private keys for all validator
 // nodes for a given chain.
-func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *cosmos.CosmosChain) []tmtypes.PrivValidator {
+func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc.Chain) []tmtypes.PrivValidator {
 	testContainers, err := dockerutil.GetTestContainers(ctx, s.T(), s.DockerClient)
 	s.Require().NoError(err)
 

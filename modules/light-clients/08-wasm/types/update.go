@@ -25,10 +25,10 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, 
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T", &ClientMessage{}, clientMsg)
 	}
 
-	payload := queryMsg{
-		VerifyClientMessage: &verifyClientMessageMsg{ClientMessage: clientMessage},
+	payload := QueryMsg{
+		VerifyClientMessage: &VerifyClientMessageMsg{ClientMessage: clientMessage},
 	}
-	_, err := wasmQuery[emptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmQuery[EmptyResult](ctx, clientStore, &cs, payload)
 	return err
 }
 
@@ -39,11 +39,11 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		panic(fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
 	}
 
-	payload := sudoMsg{
-		UpdateState: &updateStateMsg{ClientMessage: clientMessage},
+	payload := SudoMsg{
+		UpdateState: &UpdateStateMsg{ClientMessage: clientMessage},
 	}
 
-	result, err := wasmCall[updateStateResult](ctx, clientStore, &cs, payload)
+	result, err := wasmSudo[UpdateStateResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}
@@ -64,11 +64,11 @@ func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryC
 		panic(fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
 	}
 
-	payload := sudoMsg{
-		UpdateStateOnMisbehaviour: &updateStateOnMisbehaviourMsg{ClientMessage: clientMessage},
+	payload := SudoMsg{
+		UpdateStateOnMisbehaviour: &UpdateStateOnMisbehaviourMsg{ClientMessage: clientMessage},
 	}
 
-	_, err := wasmCall[emptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmSudo[EmptyResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		panic(err)
 	}

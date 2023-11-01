@@ -108,6 +108,7 @@ import (
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
@@ -249,7 +250,7 @@ func NewSimApp(
 	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
-	mockVM wasmtypes.WasmEngine,
+	mockVM ibcwasm.WasmEngine,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 	interfaceRegistry, _ := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
@@ -468,9 +469,15 @@ func NewSimApp(
 	}
 	if mockVM != nil {
 		// NOTE: mockVM is used for testing purposes only!
-		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM)
+		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
+			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM,
+		)
 	} else {
-		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(appCodec, keys[wasmtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig)
+		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
+			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig,
+		)
 	}
 
 	// IBC Fee Module keeper
@@ -760,6 +767,16 @@ func NewSimApp(
 	app.SetEndBlocker(app.EndBlocker)
 	app.setAnteHandler(txConfig)
 
+	// must be before Loading version
+	if manager := app.SnapshotManager(); manager != nil {
+		err := manager.RegisterExtensions(
+			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmClientKeeper),
+		)
+		if err != nil {
+			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
+		}
+	}
+
 	// In v0.46, the SDK introduces _postHandlers_. PostHandlers are like
 	// antehandlers, but are run _after_ the `runMsgs` execution. They are also
 	// defined as a chain, and have the same signature as antehandlers.
@@ -927,11 +944,8 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 	}
 
 	return autocli.AppOptions{
-		Modules:               modules,
-		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.ModuleManager.Modules),
-		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
-		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
-		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+		Modules:       modules,
+		ModuleOptions: runtimeservices.ExtractAutoCLIOptions(app.ModuleManager.Modules),
 	}
 }
 
