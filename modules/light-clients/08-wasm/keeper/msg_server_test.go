@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, ibctesting.InvalidID, newCodeHash, []byte("{}"))
 			},
-			types.ErrClientNotFound,
+			clienttypes.ErrClientTypeNotFound,
 		},
 		{
 			"failure: contract returns error",

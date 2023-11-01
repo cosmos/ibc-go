@@ -183,7 +183,7 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newCodeHas
 func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.ClientState, error) {
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
-		return nil, errorsmod.Wrapf(types.ErrClientNotFound, "wasm client with the given identifier (%s) not found", clientID)
+		return nil, errorsmod.Wrapf(clienttypes.ErrClientTypeNotFound, "wasm client with the given identifier (%s) not found", clientID)
 	}
 
 	wasmClientState, ok := clientState.(*types.ClientState)
