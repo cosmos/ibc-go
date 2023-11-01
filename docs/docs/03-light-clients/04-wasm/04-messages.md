@@ -22,7 +22,7 @@ type MsgStoreCode struct {
 This message is expected to fail if:
 
 - `Signer` is an invalid Bech32 address, or it does not match the designated authority address.
-- `WasmByteCode` is empty.
+- `WasmByteCode` is empty or it exceeds the maximum size, currently set to 3MB.
 
 Only light client contracts stored using `MsgStoreCode` are allowed to be instantiated. An attempt to create a light client from contracts uploaded via other means (e.g. through `x/wasm` if the module shares the same Wasm VM instance with 08-wasm) will fail. Due to the idempotent nature of the Wasm VM's `StoreCode` function, it is possible to store the same bytecode multiple times.
 

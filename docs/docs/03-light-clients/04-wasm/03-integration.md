@@ -88,6 +88,21 @@ func NewSimApp(
   app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
   app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
   ...
+
+	// initialize BaseApp
+	app.SetInitChainer(app.InitChainer)
+  ...
+
+	// must be before Loading version
+	if manager := app.SnapshotManager(); manager != nil {
+		err := manager.RegisterExtensions(
+			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmClientKeeper),
+		)
+		if err != nil {
+			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
+		}
+	}
+  ...
 }
 ```
 
@@ -219,3 +234,8 @@ clientKeeper.SetParams(ctx, params)
 ```
 
 Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients`](../01-developer-guide/09-setup.md#creating-clients) for an example of how to do this).
+
+### Adding Snapshot support
+
+In order to use the `08-wasm` module chains are required to register the `WasmSnapshotter` extension in the snapshot manager. This snapshotter takes care
+of persisting the external state, in the form of contract code, of the Wasm VM instance to disk when the chain is snapshotted.
