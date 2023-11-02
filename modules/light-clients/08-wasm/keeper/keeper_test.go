@@ -31,10 +31,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-const (
-	defaultWasmClientID = "08-wasm-0"
-)
-
 type KeeperTestSuite struct {
 	testifysuite.Suite
 
