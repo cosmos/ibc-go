@@ -145,34 +145,13 @@ func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 // wasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
 // wasmMigrate returns an error if:
 // - the contract migration returns an error
-// - the response of the contract call contains non-empty messages
-// - the response of the contract call contains non-empty events
-// - the response of the contract call contains non-empty attributes
-// - the data bytes of the response cannot be unmarshal into the result type
-func wasmMigrate[T ContractResult](ctx sdk.Context, clientID string, clientStore storetypes.KVStore, cs *ClientState, payload []byte) (T, error) {
-	var result T
-
-	resp, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
+func wasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
+	_, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
 	if err != nil {
-		return result, errorsmod.Wrapf(err, "migration of wasm contract failed")
+		return errorsmod.Wrapf(err, "migration of wasm contract failed")
 	}
 
-	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
-	if len(resp.Messages) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmSubMessagesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-	}
-	if len(resp.Events) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmEventsNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-	}
-	if len(resp.Attributes) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmAttributesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-	}
-
-	if err := json.Unmarshal(resp.Data, &result); err != nil {
-		return result, errorsmod.Wrapf(err, "failed to unmarshal result of wasm migration")
-	}
-
-	return result, nil
+	return nil
 }
 
 // wasmQuery queries the contract with the given payload and returns the result.

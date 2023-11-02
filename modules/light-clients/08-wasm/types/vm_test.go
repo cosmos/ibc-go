@@ -128,7 +128,7 @@ func (suite *TypesTestSuite) TestWasmQuery() {
 	}
 }
 
-func (suite *TypesTestSuite) TestWasmCall() {
+func (suite *TypesTestSuite) TestWasmSudo() {
 	var payload types.SudoMsg
 
 	testCases := []struct {
