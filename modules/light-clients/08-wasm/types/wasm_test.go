@@ -12,12 +12,12 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expResult func(codeHashes [][]byte)
+		expResult func(codeHashes []types.CodeHash)
 	}{
 		{
 			"success: no contract stored.",
 			func() {},
-			func(codeHashes [][]byte) {
+			func(codeHashes []types.CodeHash) {
 				suite.Require().Len(codeHashes, 0)
 			},
 		},
@@ -26,10 +26,10 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 			func() {
 				suite.SetupWasmWithMockVM()
 			},
-			func(codeHashes [][]byte) {
+			func(codeHashes []types.CodeHash) {
 				suite.Require().Len(codeHashes, 1)
 				expectedCodeHash := sha256.Sum256(wasmtesting.Code)
-				suite.Require().Equal(expectedCodeHash[:], codeHashes[0])
+				suite.Require().Equal(types.CodeHash(expectedCodeHash[:]), codeHashes[0])
 			},
 		},
 		{
@@ -37,12 +37,12 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 			func() {
 				suite.SetupWasmWithMockVM()
 
-				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), []byte("codehash"))
+				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), types.CodeHash("codehash"))
 				suite.Require().NoError(err)
 			},
-			func(codeHashes [][]byte) {
+			func(codeHashes []types.CodeHash) {
 				suite.Require().Len(codeHashes, 2)
-				suite.Require().Contains(codeHashes, []byte("codehash"))
+				suite.Require().Contains(codeHashes, types.CodeHash("codehash"))
 			},
 		},
 	}
@@ -67,8 +67,8 @@ func (suite *TypesTestSuite) TestAddCodeHash() {
 	// default mock vm contract is stored
 	suite.Require().Len(codeHashes, 1)
 
-	codeHash1 := []byte("codehash1")
-	codeHash2 := []byte("codehash2")
+	codeHash1 := types.CodeHash("codehash1")
+	codeHash2 := types.CodeHash("codehash2")
 	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash1)
 	suite.Require().NoError(err)
 	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash2)
@@ -86,7 +86,7 @@ func (suite *TypesTestSuite) TestAddCodeHash() {
 }
 
 func (suite *TypesTestSuite) TestHasCodeHash() {
-	var codeHash []byte
+	var codeHash types.CodeHash
 
 	testCases := []struct {
 		name       string
@@ -96,7 +96,7 @@ func (suite *TypesTestSuite) TestHasCodeHash() {
 		{
 			"success: code hash exists",
 			func() {
-				codeHash = []byte("codehash")
+				codeHash = types.CodeHash("codehash")
 				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash)
 				suite.Require().NoError(err)
 			},
@@ -105,7 +105,7 @@ func (suite *TypesTestSuite) TestHasCodeHash() {
 		{
 			"success: code hash does not exist",
 			func() {
-				codeHash = []byte("non-existent-codehash")
+				codeHash = types.CodeHash("non-existent-codehash")
 			},
 			false,
 		},

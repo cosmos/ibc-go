@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"io"
 
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
 	errorsmod "cosmossdk.io/errors"
 	snapshot "cosmossdk.io/store/snapshots/types"
 	storetypes "cosmossdk.io/store/types"
@@ -72,7 +74,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 	}
 
 	for _, codeHash := range codeHashes {
-		wasmCode, err := ws.keeper.wasmVM.GetCode(codeHash)
+		wasmCode, err := ws.keeper.wasmVM.GetCode(wasmvmtypes.Checksum(codeHash))
 		if err != nil {
 			return err
 		}
