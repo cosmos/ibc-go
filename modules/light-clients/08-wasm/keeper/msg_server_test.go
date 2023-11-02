@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"os"
 
@@ -8,6 +9,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
@@ -91,6 +93,69 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Nil(res)
 				suite.Require().Empty(events)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
+	codeHash := sha256.Sum256(wasmtesting.Code)
+
+	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
+	var msg *types.MsgRemoveCodeHash
+
+	testCases := []struct {
+		name          string
+		malleate      func()
+		expCodeHashes [][]byte
+		expError      error
+	}{
+		{
+			"success",
+			func() {
+				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
+			},
+			[][]byte{},
+			nil,
+		},
+		{
+			"failure: code hash is missing",
+			func() {
+				msg = types.NewMsgRemoveCodeHash(govAcc, []byte{1})
+			},
+			[][]byte{codeHash[:]},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			ctx := suite.chainA.GetContext()
+			res, err := GetSimApp(suite.chainA).WasmClientKeeper.RemoveCodeHash(ctx, msg)
+			events := ctx.EventManager().Events().ToABCIEvents()
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
+				suite.Require().NoError(err)
+				suite.Require().Equal(tc.expCodeHashes, codeHashes)
+
+				// Verify events
+				suite.Require().Len(events, 0)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Nil(res)
 			}
 		})
 	}
