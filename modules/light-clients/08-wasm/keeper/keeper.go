@@ -168,7 +168,7 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newCodeHas
 		return errorsmod.Wrap(err, "failed to retrieve the updated wasm client state")
 	}
 
-	// update the code hash
+	// update the client state code hash before persisting it
 	wasmClientState.CodeHash = newCodeHash
 
 	k.clientKeeper.SetClientState(ctx, clientID, wasmClientState)

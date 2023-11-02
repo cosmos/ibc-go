@@ -27,6 +27,11 @@ func (cs ClientState) MigrateContract(
 		return errorsmod.Wrapf(ErrWasmCodeExists, "new code hash (%s) is the same as current code hash (%s)", hex.EncodeToString(newCodeHash), hex.EncodeToString(cs.CodeHash))
 	}
 
+	// update the code hash, this needs to be done before the contract migration
+	// so that wasmMigrate can call the right code. Note that this is not
+	// persisted to the client store.
+	cs.CodeHash = newCodeHash
+
 	_, err := wasmMigrate[EmptyResult](ctx, clientID, clientStore, &cs, migrateMsg)
 	if err != nil {
 		return err
