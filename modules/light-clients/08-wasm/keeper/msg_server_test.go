@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 	testCases := []struct {
 		name          string
 		malleate      func()
-		expCodeHashes [][]byte
+		expCodeHashes []types.CodeHash
 		expError      error
 	}{
 		{
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			func() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
 			},
-			[][]byte{},
+			[]types.CodeHash{},
 			nil,
 		},
 		{
@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			func() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, []byte{1})
 			},
-			[][]byte{codeHash[:]},
+			[]types.CodeHash{codeHash[:]},
 			nil,
 		},
 	}

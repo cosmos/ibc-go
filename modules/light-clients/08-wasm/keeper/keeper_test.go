@@ -40,8 +40,9 @@ type KeeperTestSuite struct {
 
 	coordinator *ibctesting.Coordinator
 
-	chainA *ibctesting.TestChain
+	// mockVM is a mock wasm VM that implements the WasmEngine interface
 	mockVM *wasmtesting.MockWasmEngine
+	chainA *ibctesting.TestChain
 }
 
 func init() {
@@ -128,6 +129,12 @@ func storeWasmCode(suite *KeeperTestSuite, wasmCode []byte) []byte {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(response.Checksum)
 	return response.Checksum
+}
+
+func (suite *KeeperTestSuite) SetupSnapshotterWithMockVM() *simapp.SimApp {
+	suite.mockVM = wasmtesting.NewMockWasmEngine()
+
+	return simapp.SetupWithSnapshotter(suite.T(), suite.mockVM)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
