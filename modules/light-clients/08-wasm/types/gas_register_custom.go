@@ -14,8 +14,6 @@ import (
 // While gas_register.go is a direct copy of https://github.com/CosmWasm/wasmd/blob/main/x/wasm/types/gas_register.go
 // This file contains additional constructs that can be maintained separately.
 // Most of these functions are slight modifications of keeper function from wasmd, which act on `WasmGasRegister` instead of `Keeper`.
-
-
 const (
 	// DefaultDeserializationCostPerByte The formula should be `len(data) * deserializationCostPerByte`
 	DefaultDeserializationCostPerByte = 1
