@@ -223,7 +223,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 
 			ctx := suite.chainA.GetContext()
 			res, err := GetSimApp(suite.chainA).WasmClientKeeper.MigrateContract(ctx, msg)
-			events := ctx.EventManager().Events()
+			events := ctx.EventManager().Events().ToABCIEvents()
 
 			// updated client state
 			clientState, ok := endpoint.GetClientState().(*types.ClientState)
@@ -249,7 +249,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 						sdk.EventTypeMessage,
 						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 					),
-				}
+				}.ToABCIEvents()
 
 				for _, evt := range expectedEvents {
 					suite.Require().Contains(events, evt)
