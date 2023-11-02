@@ -40,12 +40,12 @@ func (m MsgStoreCode) ValidateBasic() error {
 // MsgMigrateContract creates a new MsgMigrateContract instance
 //
 //nolint:interfacer
-func NewMsgMigrateContract(signer string, clientID string, codeHash []byte, migrateMsg []byte) *MsgMigrateContract {
+func NewMsgMigrateContract(signer, clientID string, newCodeHash, migrateMsg []byte) *MsgMigrateContract {
 	return &MsgMigrateContract{
-		Signer:   signer,
-		ClientId: clientID,
-		CodeHash: codeHash,
-		Msg:      migrateMsg,
+		Signer:      signer,
+		ClientId:    clientID,
+		NewCodeHash: newCodeHash,
+		Msg:         migrateMsg,
 	}
 }
 
@@ -56,7 +56,7 @@ func (m MsgMigrateContract) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := ValidateWasmCodeHash(m.CodeHash); err != nil {
+	if err := ValidateWasmCodeHash(m.NewCodeHash); err != nil {
 		return err
 	}
 
