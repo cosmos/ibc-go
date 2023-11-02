@@ -13,7 +13,7 @@ import (
 
 // MigrateContract calls the migrate entry point on the contract with the given
 // migrateMsg. The contract must exist and the code hash must be found in the
-// store. If the code hash is the same as the current code hash, return nil.
+// store. If the code hash is the same as the current code hash, an error is returned.
 // This does not update the code hash in the client state.
 func (cs ClientState) MigrateContract(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,

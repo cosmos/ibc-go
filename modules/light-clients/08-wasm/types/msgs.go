@@ -38,6 +38,8 @@ func (m MsgStoreCode) ValidateBasic() error {
 }
 
 // MsgMigrateContract creates a new MsgMigrateContract instance
+//
+//nolint:interfacer
 func NewMsgMigrateContract(signer string, clientID string, codeHash []byte, migrateMsg []byte) *MsgMigrateContract {
 	return &MsgMigrateContract{
 		Signer:   signer,

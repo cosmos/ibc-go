@@ -45,7 +45,7 @@ func (k Keeper) MigrateContract(goCtx context.Context, msg *types.MsgMigrateCont
 		return nil, errorsmod.Wrap(err, "failed to migrate contract")
 	}
 
-	// event emission is handled in migrateContract
+	// event emission is handled in migrateContractCode
 
 	return &types.MsgMigrateContractResponse{}, nil
 }

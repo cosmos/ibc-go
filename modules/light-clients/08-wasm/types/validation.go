@@ -43,7 +43,8 @@ func ValidateWasmCodeHash(codeHash []byte) error {
 	return nil
 }
 
-// ValidateClientID validates the client identifier
+// ValidateClientID validates the client identifier by ensuring that it conforms
+// to the 02-client identifier format and that it is a 08-wasm clientID.
 func ValidateClientID(clientID string) error {
 	if !clienttypes.IsValidClientID(clientID) {
 		return errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s", clientID)

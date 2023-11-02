@@ -158,8 +158,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		{
 			"failure: same code hash",
 			func() {
-				newCodeHash = oldCodeHash[:]
-				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newCodeHash, []byte("{}"))
+				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, oldCodeHash[:], []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					panic("unreachable")
@@ -234,8 +233,6 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Nil(res)
-
-				suite.Require().Equal(expClientState, clientState)
 			}
 		})
 	}

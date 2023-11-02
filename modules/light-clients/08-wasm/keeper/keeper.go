@@ -151,6 +151,7 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newCodeHas
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to retrieve wasm client state")
 	}
+	oldCodeHash := wasmClientState.CodeHash
 
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
@@ -158,8 +159,6 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newCodeHas
 	if err != nil {
 		return errorsmod.Wrap(err, "contract migration failed")
 	}
-
-	oldCodeHash := wasmClientState.CodeHash
 
 	// client state may be updated by the contract migration
 	wasmClientState, err = k.GetWasmClientState(ctx, clientID)
