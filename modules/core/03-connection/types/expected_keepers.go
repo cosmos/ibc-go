@@ -1,10 +1,12 @@
 package types
 
 import (
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // ClientKeeper expected account IBC client keeper
@@ -16,4 +18,9 @@ type ClientKeeper interface {
 	ValidateSelfClient(ctx sdk.Context, clientState exported.ClientState) error
 	IterateClientStates(ctx sdk.Context, prefix []byte, cb func(string, exported.ClientState) bool)
 	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
+}
+
+// ParamSubspace defines the expected Subspace interface for module parameters.
+type ParamSubspace interface {
+	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
 }

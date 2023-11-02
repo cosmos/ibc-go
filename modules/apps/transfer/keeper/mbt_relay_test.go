@@ -1,11 +1,12 @@
 package keeper_test
 
-/// This file is a test driver for model-based tests generated from the TLA+ model of token transfer
-/// Written by Andrey Kuprianov within the scope of IBC Audit performed by Informal Systems.
-/// In case of any questions please don't hesitate to contact andrey@informal.systems.
+// This file is a test driver for model-based tests generated from the TLA+ model of token transfer
+// Written by Andrey Kuprianov within the scope of IBC Audit performed by Informal Systems.
+// In case of any questions please don't hesitate to contact andrey@informal.systems.
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -18,11 +19,11 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type TlaBalance struct {
@@ -99,7 +100,7 @@ func AddressFromString(address string) string {
 
 func AddressFromTla(addr []string) string {
 	if len(addr) != 3 {
-		panic("failed to convert from TLA+ address: wrong number of address components")
+		panic(errors.New("failed to convert from TLA+ address: wrong number of address components"))
 	}
 	s := ""
 	if len(addr[0]) == 0 && len(addr[1]) == 0 { //nolint:gocritic
@@ -109,7 +110,7 @@ func AddressFromTla(addr []string) string {
 		// escrow address: ics20-1\x00port/channel
 		s = fmt.Sprintf("%s\x00%s/%s", types.Version, addr[0], addr[1])
 	} else {
-		panic("failed to convert from TLA+ address: neither simple nor escrow address")
+		panic(errors.New("failed to convert from TLA+ address: neither simple nor escrow address"))
 	}
 	return s
 }
@@ -269,13 +270,13 @@ func BankOfChain(chain *ibctesting.TestChain) Bank {
 }
 
 // Check that the state of the bank is the bankBefore + expectedBankChange
-func (suite *KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefore *Bank, expectedBankChange *Bank) error {
+func (*KeeperTestSuite) CheckBankBalances(chain *ibctesting.TestChain, bankBefore *Bank, expectedBankChange *Bank) error {
 	bankAfter := BankOfChain(chain)
 	bankChange := bankAfter.Sub(bankBefore)
 	diff := bankChange.Sub(expectedBankChange)
-	NonZeroString := diff.NonZeroString()
-	if len(NonZeroString) != 0 {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+NonZeroString)
+	nonZeroString := diff.NonZeroString()
+	if len(nonZeroString) != 0 {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "Unexpected changes in the bank: \n"+nonZeroString)
 	}
 	return nil
 }
@@ -333,7 +334,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					var sender sdk.AccAddress
 					sender, err = sdk.AccAddressFromBech32(tc.packet.Data.Sender)
 					if err != nil {
-						panic("MBT failed to convert sender address")
+						panic(errors.New("MBT failed to convert sender address"))
 					}
 					registerDenomFn()
 					denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
@@ -342,7 +343,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					if err == nil {
 						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Amount)
 						if !ok {
-							panic("MBT failed to parse amount from string")
+							panic(errors.New("MBT failed to parse amount from string"))
 						}
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
@@ -354,7 +355,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 							"",
 						)
 
-						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
+						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
 
 					}
 				case "OnRecvPacket":

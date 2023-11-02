@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	dockerclient "github.com/docker/docker/client"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/relayer"
 	"go.uber.org/zap"
 )
 
@@ -15,38 +15,41 @@ const (
 	Rly    = "rly"
 	Hermes = "hermes"
 
-	hermesRelayerRepository = "ghcr.io/informalsystems/hermes"
+	HermesRelayerRepository = "ghcr.io/informalsystems/hermes"
 	hermesRelayerUser       = "1000:1000"
-	rlyRelayerRepository    = "damiannolan/rly" //"ghcr.io/cosmos/relayer"
-	rlyRelayerUser          = "100:1000"        // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
+	RlyRelayerRepository    = "ghcr.io/cosmos/relayer"
+	rlyRelayerUser          = "100:1000" // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
 )
 
 // Config holds configuration values for the relayer used in the tests.
 type Config struct {
 	// Tag is the tag used for the relayer image.
 	Tag string `yaml:"tag"`
-	// Type specifies the type of relayer that this is.
-	Type string `yaml:"type"`
+	// ID specifies the type of relayer that this is.
+	ID string `yaml:"id"`
 	// Image is the image that should be used for the relayer.
 	Image string `yaml:"image"`
 }
 
 // New returns an implementation of ibc.Relayer depending on the provided RelayerType.
 func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
-	switch cfg.Type {
+	t.Helper()
+	switch cfg.ID {
 	case Rly:
-		return newCosmosRelayer(t, cfg.Tag, logger, dockerClient, network)
+		return newCosmosRelayer(t, cfg.Tag, logger, dockerClient, network, cfg.Image)
 	case Hermes:
-		return newHermesRelayer(t, cfg.Tag, logger, dockerClient, network)
+		return newHermesRelayer(t, cfg.Tag, logger, dockerClient, network, cfg.Image)
 	default:
-		panic(fmt.Sprintf("unknown relayer specified: %s", cfg.Type))
+		panic(fmt.Errorf("unknown relayer specified: %s", cfg.ID))
 	}
 }
 
 // newCosmosRelayer returns an instance of the go relayer.
 // Options are used to allow for relayer version selection and specifying the default processing option.
-func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
-	customImageOption := relayer.CustomDockerImage(rlyRelayerRepository, tag, rlyRelayerUser)
+func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *dockerclient.Client, network, relayerImage string) ibc.Relayer {
+	t.Helper()
+
+	customImageOption := relayer.CustomDockerImage(relayerImage, tag, rlyRelayerUser)
 	relayerProcessingOption := relayer.StartupFlags("-p", "events") // relayer processes via events
 
 	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, logger, customImageOption, relayerProcessingOption)
@@ -57,8 +60,10 @@ func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 }
 
 // newHermesRelayer returns an instance of the hermes relayer.
-func newHermesRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
-	customImageOption := relayer.CustomDockerImage(hermesRelayerRepository, tag, hermesRelayerUser)
+func newHermesRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *dockerclient.Client, network, relayerImage string) ibc.Relayer {
+	t.Helper()
+
+	customImageOption := relayer.CustomDockerImage(relayerImage, tag, hermesRelayerUser)
 	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.Hermes, logger, customImageOption)
 
 	return relayerFactory.Build(
@@ -66,19 +71,19 @@ func newHermesRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 	)
 }
 
-// RelayerMap is a mapping from test names to a relayer set for that test.
-type RelayerMap map[string]map[ibc.Wallet]bool
+// Map is a mapping from test names to a relayer set for that test.
+type Map map[string]map[ibc.Wallet]bool
 
 // AddRelayer adds the given relayer to the relayer set for the given test name.
-func (r RelayerMap) AddRelayer(testName string, relayer ibc.Wallet) {
+func (r Map) AddRelayer(testName string, ibcrelayer ibc.Wallet) {
 	if _, ok := r[testName]; !ok {
 		r[testName] = make(map[ibc.Wallet]bool)
 	}
-	r[testName][relayer] = true
+	r[testName][ibcrelayer] = true
 }
 
 // containsRelayer returns true if the given relayer is in the relayer set for the given test name.
-func (r RelayerMap) ContainsRelayer(testName string, wallet ibc.Wallet) bool {
+func (r Map) ContainsRelayer(testName string, wallet ibc.Wallet) bool {
 	if relayerSet, ok := r[testName]; ok {
 		return relayerSet[wallet]
 	}

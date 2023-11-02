@@ -7,16 +7,11 @@ on:
         required: true
         type: choice
         options:
-          - release/v4.1.x
-          - release/v4.2.x
-          - release/v4.3.x
-          - release/v4.4.x
-          - release/v5.2.x
-          - release/v5.3.x
           - release/v6.1.x
           - release/v6.2.x
           - release/v7.2.x
           - release/v7.3.x
+          - release/v8.0.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -49,26 +44,21 @@ jobs:
     strategy:
       matrix:
         release-branch:
-          - release/v4.1.x
-          - release/v4.2.x
-          - release/v4.3.x
-          - release/v4.4.x
-          - release/v5.2.x
-          - release/v5.3.x
           - release/v6.1.x
           - release/v6.2.x
           - release/v7.2.x
           - release/v7.3.x
+          - release/v8.0.x
           - main
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: env.RELEASE_BRANCH == matrix.release-branch
         with:
           ref: "${{ matrix.release-branch }}"
           fetch-depth: 0
       - name: Log in to the Container registry
         if: env.RELEASE_BRANCH == matrix.release-branch
-        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -130,15 +120,6 @@ jobs:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "connection-chain-a"
 
-  connection-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "connection-chain-b"
-
   client-chain-a:
     needs:
       - build-release-images
@@ -147,15 +128,6 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "client-chain-a"
-
-  client-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "client-chain-b"
 
   incentivized-transfer-chain-a:
     needs:
@@ -264,3 +236,12 @@ jobs:
     with:
       test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
       test-suite: "localhost-ica-chain-a"
+  
+  genesis-chain-a:
+    needs:
+      - build-release-images
+      - determine-test-directory
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      test-suite: "genesis-chain-a"

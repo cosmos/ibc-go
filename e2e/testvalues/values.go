@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
-	feetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 )
 
 const (
@@ -46,33 +48,18 @@ func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
 }
 
+// TokenMetadataFeatureReleases represents the releases the token metadata was released in.
+var TokenMetadataFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
+}
+
 // GovGenesisFeatureReleases represents the releases the governance module genesis
 // was upgraded from v1beta1 to v1.
 var GovGenesisFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v7",
 }
 
-// IcadGovGenesisFeatureReleases represents the releases of icad where the governance module genesis
-// was upgraded from v1beta1 to v1.
-var IcadGovGenesisFeatureReleases = semverutil.FeatureReleases{
-	MinorVersions: []string{
-		"v0.5",
-	},
-}
-
-// IcadNewGenesisCommandsFeatureReleases represents the releases of icad using the new genesis commands.
-var IcadNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
-	MinorVersions: []string{
-		"v0.5",
-	},
-}
-
-// SimdNewGenesisCommandsFeatureReleases represents the releases the simd binary started using the new genesis command.
-var SimdNewGenesisCommandsFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v8",
-}
-
-// TransferSelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
+// SelfParamsFeatureReleases represents the releases the transfer module started managing its own params.
 var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
@@ -90,6 +77,7 @@ var MemoFeatureReleases = semverutil.FeatureReleases{
 
 // TotalEscrowFeatureReleases represents the releases the total escrow state entry was released in.
 var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 	MinorVersions: []string{
 		"v7.1",
 	},
@@ -97,5 +85,13 @@ var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
 
 // IbcErrorsFeatureReleases represents the releases the IBC module level errors was released in.
 var IbcErrorsFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v8.0",
+	MajorVersion: "v8",
+}
+
+// LocalhostClientFeatureReleases represents the releases the localhost client was released in.
+var LocalhostClientFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
+	MinorVersions: []string{
+		"v7.1",
+	},
 }

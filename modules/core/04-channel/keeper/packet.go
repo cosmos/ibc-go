@@ -10,11 +10,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // SendPacket is called by a module in order to send an IBC packet on a channel.
@@ -34,10 +34,10 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return 0, errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
-			"channel is not OPEN (got %s)", channel.State.String(),
+			"channel state is not OPEN (got %s)", channel.State.String(),
 		)
 	}
 
@@ -93,7 +93,7 @@ func (k Keeper) SendPacket(
 	if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
 		return 0, errorsmod.Wrapf(
 			types.ErrPacketTimeout,
-			"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
+			"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)).UTC(), time.Unix(0, int64(packet.GetTimeoutTimestamp())).UTC(),
 		)
 	}
 
@@ -130,7 +130,7 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel state is not OPEN (got %s)", channel.State.String(),
@@ -190,7 +190,7 @@ func (k Keeper) RecvPacket(
 	if packet.GetTimeoutTimestamp() != 0 && uint64(ctx.BlockTime().UnixNano()) >= packet.GetTimeoutTimestamp() {
 		return errorsmod.Wrapf(
 			types.ErrPacketTimeout,
-			"block timestamp >= packet timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(packet.GetTimeoutTimestamp())),
+			"block timestamp >= packet timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(packet.GetTimeoutTimestamp())).UTC(),
 		)
 	}
 
@@ -296,7 +296,7 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel state is not OPEN (got %s)", channel.State.String(),
@@ -371,7 +371,7 @@ func (k Keeper) AcknowledgePacket(
 		)
 	}
 
-	if channel.State != types.OPEN {
+	if !channel.IsOpen() {
 		return errorsmod.Wrapf(
 			types.ErrInvalidChannelState,
 			"channel state is not OPEN (got %s)", channel.State.String(),

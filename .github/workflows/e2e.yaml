@@ -1,14 +1,8 @@
 # The Tests / E2E workflow is used to run end-to-end tests on pull requests originating
 # from the ibc-go repository. The workflow is triggered on a PR opening, when new commits
 # are pushed to the PR, or when the PR is marked ready for review.
-#
-# A scheduled job is also set up to run every night. This job is used to run e2e tests
-# using the hermes relayer.
 name: Tests / E2E
 on:
-  # This schedule is used solely for hermes and is set to run every night.
-  schedule:
-    - cron: "0 0 * * *"
   workflow_dispatch:
   pull_request:
     types:
@@ -30,14 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
-      # Temporarily, see: https://github.com/cosmos/ibc-go/issues/3981
-      relayer: ${{ steps.get-relayer.outputs.relayer }}
-      relayer-tag: ${{ steps.get-relayer.outputs.relayer-tag }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.21'
       - id: get-tag
         run: |
           if [ -z "${{ github.event.pull_request.number }}" ]
@@ -48,27 +39,15 @@ jobs:
             echo "Using tag $tag"
             echo "simd-tag=$tag" >> $GITHUB_OUTPUT
           fi
-      # get-relayer will return either hermes or rly depending on whether the workflow was triggered
-      # by a scheduled run or not.
-      - id: get-relayer
-        run: |
-          if [ "${{ github.event_name }}" == "schedule" ]
-          then
-            echo "relayer=hermes" >> $GITHUB_OUTPUT
-            echo "relayer-tag=1.4.0" >> $GITHUB_OUTPUT
-          else
-            echo "relayer=rly" >> $GITHUB_OUTPUT
-            echo "relayer-tag=latest" >> $GITHUB_OUTPUT
-          fi
 
   # build-e2e ensures that all test code compiles.
   build-e2e:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.21'
       - name: Build e2e
         run: |
           cd e2e
@@ -99,11 +78,8 @@ jobs:
       chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-binary: 'simd'
-      # on regular PRs we won't run interchain account or upgrade tests.
-      test-exclusions: 'TestInterTxTestSuite,TestIncentivizedInterTxTestSuite,TestUpgradeTestSuite'
-      # Temporarily, see: https://github.com/cosmos/ibc-go/issues/3981
-      relayer-type: "${{ needs.determine-image-tag.outputs.relayer }}"
-      relayer-tag: "${{ needs.determine-image-tag.outputs.relayer-tag }}"
+      # on regular PRs we won't run upgrade tests.
+      test-exclusions: 'TestUpgradeTestSuite'
       # we will be running each e2e test if the PR has not yet been marked for review, and we push additional changes.
       # we skip the job in this case.
       skip-tests: ${{ !(!github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]') }}

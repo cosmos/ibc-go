@@ -2,23 +2,24 @@ package testsuite
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	dockerclient "github.com/docker/docker/client"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
-	test "github.com/strangelove-ventures/interchaintest/v7/testutil"
-	"github.com/stretchr/testify/suite"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 const (
@@ -32,11 +33,13 @@ const (
 
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
 type E2ETestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
+	// proposalIDs keeps track of the active proposal ID for each chain.
+	proposalIDs    map[string]uint64
 	grpcClients    map[string]GRPCClients
 	paths          map[string]pathPair
-	relayers       relayer.RelayerMap
+	relayers       relayer.Map
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
 	network        string
@@ -73,7 +76,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 	chainBRelayerUser := cosmos.NewWallet(ChainBRelayerName, chainBAccountBytes, "", chainB.Config())
 
 	if s.relayers == nil {
-		s.relayers = make(relayer.RelayerMap)
+		s.relayers = make(relayer.Map)
 	}
 	s.relayers.AddRelayer(s.T().Name(), chainARelayerUser)
 	s.relayers.AddRelayer(s.T().Name(), chainBRelayerUser)
@@ -88,7 +91,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOp
 func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channelOpts ...func(*ibc.CreateChannelOptions)) (ibc.Relayer, ibc.ChannelOutput) {
 	chainA, chainB := s.GetChains()
 
-	r := relayer.New(s.T(), LoadConfig().RelayerConfig, s.logger, s.DockerClient, s.network)
+	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
 
 	pathName := s.generatePathName()
 
@@ -176,29 +179,29 @@ func (s *E2ETestSuite) GetPathName(idx int64) string {
 }
 
 // generatePath generates the path name using the test suites name
-func (s *E2ETestSuite) generatePath(ctx context.Context, relayer ibc.Relayer) string {
+func (s *E2ETestSuite) generatePath(ctx context.Context, ibcrelayer ibc.Relayer) string {
 	chainA, chainB := s.GetChains()
 	chainAID := chainA.Config().ChainID
 	chainBID := chainB.Config().ChainID
 
 	pathName := s.generatePathName()
 
-	err := relayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
+	err := ibcrelayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
 	s.Require().NoError(err)
 
 	return pathName
 }
 
 // SetupClients creates clients on chainA and chainB using the provided create client options
-func (s *E2ETestSuite) SetupClients(ctx context.Context, relayer ibc.Relayer, opts ibc.CreateClientOptions) {
-	pathName := s.generatePath(ctx, relayer)
-	err := relayer.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, opts)
+func (s *E2ETestSuite) SetupClients(ctx context.Context, ibcrelayer ibc.Relayer, opts ibc.CreateClientOptions) {
+	pathName := s.generatePath(ctx, ibcrelayer)
+	err := ibcrelayer.CreateClients(ctx, s.GetRelayerExecReporter(), pathName, opts)
 	s.Require().NoError(err)
 }
 
 // UpdateClients updates clients on chainA and chainB
-func (s *E2ETestSuite) UpdateClients(ctx context.Context, relayer ibc.Relayer, pathName string) {
-	err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), pathName)
+func (s *E2ETestSuite) UpdateClients(ctx context.Context, ibcrelayer ibc.Relayer, pathName string) {
+	err := ibcrelayer.UpdateClients(ctx, s.GetRelayerExecReporter(), pathName)
 	s.Require().NoError(err)
 }
 
@@ -223,28 +226,35 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (*cosmos
 	path = newPath(chainA, chainB)
 	s.paths[s.T().Name()] = path
 
+	if s.proposalIDs == nil {
+		s.proposalIDs = map[string]uint64{}
+	}
+
+	s.proposalIDs[chainA.Config().ChainID] = 1
+	s.proposalIDs[chainB.Config().ChainID] = 1
+
 	return path.chainA, path.chainB
 }
 
-// GetRelayerWallets returns the relayer wallets associated with the chains.
-func (s *E2ETestSuite) GetRelayerWallets(relayer ibc.Relayer) (ibc.Wallet, ibc.Wallet, error) {
+// GetRelayerWallets returns the ibcrelayer wallets associated with the chains.
+func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer) (ibc.Wallet, ibc.Wallet, error) {
 	chainA, chainB := s.GetChains()
-	chainARelayerWallet, ok := relayer.GetWallet(chainA.Config().ChainID)
+	chainARelayerWallet, ok := ibcrelayer.GetWallet(chainA.Config().ChainID)
 	if !ok {
 		return nil, nil, fmt.Errorf("unable to find chain A relayer wallet")
 	}
 
-	chainBRelayerWallet, ok := relayer.GetWallet(chainB.Config().ChainID)
+	chainBRelayerWallet, ok := ibcrelayer.GetWallet(chainB.Config().ChainID)
 	if !ok {
 		return nil, nil, fmt.Errorf("unable to find chain B relayer wallet")
 	}
 	return chainARelayerWallet, chainBRelayerWallet, nil
 }
 
-// RecoverRelayerWallets adds the corresponding relayer address to the keychain of the chain.
+// RecoverRelayerWallets adds the corresponding ibcrelayer address to the keychain of the chain.
 // This is useful if commands executed on the chains expect the relayer information to present in the keychain.
-func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Relayer) error {
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
+func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc.Relayer) error {
+	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(ibcrelayer)
 	if err != nil {
 		return err
 	}
@@ -260,19 +270,25 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, relayer ibc.Re
 	return nil
 }
 
-// StartRelayer starts the given relayer.
-func (s *E2ETestSuite) StartRelayer(relayer ibc.Relayer) {
+// StartRelayer starts the given ibcrelayer.
+func (s *E2ETestSuite) StartRelayer(ibcrelayer ibc.Relayer) {
 	if s.startRelayerFn == nil {
-		panic("cannot start relayer before it is created!")
+		panic(errors.New("cannot start relayer before it is created"))
 	}
 
-	s.startRelayerFn(relayer)
+	s.startRelayerFn(ibcrelayer)
 }
 
-// StopRelayer stops the given relayer.
-func (s *E2ETestSuite) StopRelayer(ctx context.Context, relayer ibc.Relayer) {
-	err := relayer.StopRelayer(ctx, s.GetRelayerExecReporter())
+// StopRelayer stops the given ibcrelayer.
+func (s *E2ETestSuite) StopRelayer(ctx context.Context, ibcrelayer ibc.Relayer) {
+	err := ibcrelayer.StopRelayer(ctx, s.GetRelayerExecReporter())
 	s.Require().NoError(err)
+}
+
+// RestartRelayer restarts the given relayer.
+func (s *E2ETestSuite) RestartRelayer(ctx context.Context, ibcrelayer ibc.Relayer) {
+	s.StopRelayer(ctx, ibcrelayer)
+	s.StartRelayer(ibcrelayer)
 }
 
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
@@ -290,13 +306,22 @@ func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc
 // GetChainANativeBalance gets the balance of a given user on chain A.
 func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	chainA, _ := s.GetChains()
-	return GetNativeChainBalance(ctx, chainA, user)
+
+	balance, err := s.QueryBalance(ctx, chainA, user.FormattedAddress(), chainA.Config().Denom)
+	if err != nil {
+		return 0, err
+	}
+	return balance.Int64(), nil
 }
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
 func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	_, chainB := s.GetChains()
-	return GetNativeChainBalance(ctx, chainB, user)
+	balance, err := s.QueryBalance(ctx, chainB, user.FormattedAddress(), chainB.Config().Denom)
+	if err != nil {
+		return -1, err
+	}
+	return balance.Int64(), nil
 }
 
 // GetChainGRCPClients gets the GRPC clients associated with the given chain.
@@ -311,6 +336,21 @@ func (s *E2ETestSuite) GetChainGRCPClients(chain ibc.Chain) GRPCClients {
 func (s *E2ETestSuite) AssertPacketRelayed(ctx context.Context, chain *cosmos.CosmosChain, portID, channelID string, sequence uint64) {
 	commitment, _ := s.QueryPacketCommitment(ctx, chain, portID, channelID, sequence)
 	s.Require().Empty(commitment)
+}
+
+// AssertHumanReadableDenom asserts that a human readable denom is present for a given chain.
+func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain *cosmos.CosmosChain, counterpartyNativeDenom string, counterpartyChannel ibc.ChannelOutput) {
+	chainIBCDenom := GetIBCToken(counterpartyNativeDenom, counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID)
+
+	denomMetadata, err := s.QueryDenomMetadata(ctx, chain, chainIBCDenom.IBCDenom())
+	s.Require().NoError(err)
+
+	s.Require().Equal(chainIBCDenom.IBCDenom(), denomMetadata.Base, "denom metadata base does not match expected %s: got %s", chainIBCDenom.IBCDenom(), denomMetadata.Base)
+	expectedName := fmt.Sprintf("%s/%s/%s IBC token", counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID, counterpartyNativeDenom)
+	s.Require().Equal(expectedName, denomMetadata.Name, "denom metadata name does not match expected %s: got %s", expectedName, denomMetadata.Name)
+	expectedDisplay := fmt.Sprintf("%s/%s/%s", counterpartyChannel.Counterparty.PortID, counterpartyChannel.Counterparty.ChannelID, counterpartyNativeDenom)
+	s.Require().Equal(expectedDisplay, denomMetadata.Display, "denom metadata display does not match expected %s: got %s", expectedDisplay, denomMetadata.Display)
+	s.Require().Equal(strings.ToUpper(counterpartyNativeDenom), denomMetadata.Symbol, "denom metadata symbol does not match expected %s: got %s", strings.ToUpper(counterpartyNativeDenom), denomMetadata.Symbol)
 }
 
 // createCosmosChains creates two separate chains in docker containers.
@@ -350,7 +390,7 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (s *E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
+func (*E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOptions) {
 	return func(opts *ibc.CreateChannelOptions) {
 		opts.Version = transfertypes.Version
 		opts.SourcePortName = transfertypes.PortID
@@ -363,16 +403,7 @@ func (s *E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelO
 func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain *cosmos.CosmosChain) clienttypes.Height {
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err)
-	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
-}
-
-// GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.
-func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user ibc.Wallet) (int64, error) {
-	bal, err := chain.GetBalance(ctx, user.FormattedAddress(), chain.Config().Denom)
-	if err != nil {
-		return -1, err
-	}
-	return bal, nil
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), height+1000)
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel

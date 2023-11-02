@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* 2023-05-24: Initial draft
+- 2023-05-24: Initial draft
 
 ## Status
 
@@ -123,7 +123,7 @@ query ibc-transfer total-escrow [denom]
 
 ### Positive
 
-* Possibility to retrieve the total amount of a particular denomination in escrow across all transfer channels without iteration.
+- Possibility to retrieve the total amount of a particular denomination in escrow across all transfer channels without iteration.
 
 ### Negative
 
@@ -131,15 +131,15 @@ No notable consequences
 
 ### Neutral
 
-* A new entry is added to state for every denomination that is transferred out of the chain.
+- A new entry is added to state for every denomination that is transferred out of the chain.
 
 ## References
 
 Issues:
 
-* [#2664](https://github.com/cosmos/ibc-go/issues/2664)
+- [#2664](https://github.com/cosmos/ibc-go/issues/2664)
 
 PRs:
 
-* [#3019](https://github.com/cosmos/ibc-go/pull/3019)
-* [#3558](https://github.com/cosmos/ibc-go/pull/3558)
+- [#3019](https://github.com/cosmos/ibc-go/pull/3019)
+- [#3558](https://github.com/cosmos/ibc-go/pull/3558)

@@ -21,7 +21,7 @@ var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 // RegisterInterfaces registers the interchain accounts controller types and the concrete InterchainAccount implementation
 // against the associated x/auth AccountI and GenesisAccount interfaces.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*authtypes.AccountI)(nil), &InterchainAccount{})
+	registry.RegisterImplementations((*sdk.AccountI)(nil), &InterchainAccount{})
 	registry.RegisterImplementations((*authtypes.GenesisAccount)(nil), &InterchainAccount{})
 }
 
@@ -84,7 +84,7 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 	switch encoding {
 	case EncodingProtobuf:
 		if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
-			return nil, errorsmod.Wrapf(err, "cannot unmarshal CosmosTx with protobuf")
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal CosmosTx with protobuf: %v", err)
 		}
 	case EncodingProto3JSON:
 		if err := cdc.UnmarshalJSON(data, &cosmosTx); err != nil {

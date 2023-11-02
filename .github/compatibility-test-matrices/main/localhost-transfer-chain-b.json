@@ -4,7 +4,8 @@
   ],
   "chain-b": [
     "main",
-    "v7.2.0"
+    "v7.3.1",
+    "v7.2.2"
   ],
   "entrypoint": [
     "LocalhostTransferTestSuite"
@@ -13,12 +14,6 @@
     "TestMsgTransfer_Localhost"
   ],
   "relayer-type": [
-    "rly"
-  ],
-  "chain-binary": [
-    "simd"
-  ],
-  "chain-image": [
-    "ghcr.io/cosmos/ibc-go-simd"
+    "hermes"
   ]
 }

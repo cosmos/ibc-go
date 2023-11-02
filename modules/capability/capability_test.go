@@ -3,14 +3,14 @@ package capability_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	dbm "github.com/cosmos/cosmos-db"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
 
-	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -26,7 +26,7 @@ import (
 const mockMemStoreKey = "memory:mock"
 
 type CapabilityTestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	cdc codec.Codec
 	ctx sdk.Context
@@ -39,7 +39,7 @@ type CapabilityTestSuite struct {
 }
 
 func (suite *CapabilityTestSuite) SetupTest() {
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModule{})
 	suite.cdc = encodingCfg.Codec
 
 	suite.storeKey = storetypes.NewKVStoreKey(types.StoreKey)
@@ -99,7 +99,8 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 	prevBlockGas := ctx.BlockGasMeter().GasConsumed()
 
 	// call app module BeginBlock and ensure that no gas has been consumed
-	newModule.BeginBlock(ctx)
+	err = newModule.BeginBlock(ctx)
+	suite.Require().NoError(err)
 
 	gasUsed := ctx.GasMeter().GasConsumed()
 	blockGasUsed := ctx.BlockGasMeter().GasConsumed()
@@ -117,7 +118,9 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 
 	// ensure capabilities do not get reinitialized on next BeginBlock by comparing capability pointers
 	// and assert that the in-memory store is still initialized
-	newModule.BeginBlock(ctx)
+	err = newModule.BeginBlock(ctx)
+	suite.Require().NoError(err)
+
 	refreshedCap, ok := scopedKeeper.GetCapability(ctx, "transfer")
 	suite.Require().True(ok)
 	suite.Require().Equal(cap1, refreshedCap, "capabilities got reinitialized after second BeginBlock")
@@ -125,5 +128,5 @@ func (suite *CapabilityTestSuite) TestInitializeMemStore() {
 }
 
 func TestCapabilityTestSuite(t *testing.T) {
-	suite.Run(t, new(CapabilityTestSuite))
+	testifysuite.Run(t, new(CapabilityTestSuite))
 }

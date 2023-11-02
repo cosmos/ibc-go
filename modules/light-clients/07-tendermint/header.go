@@ -8,9 +8,9 @@ import (
 
 	tmtypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var _ exported.ClientMessage = (*Header)(nil)
@@ -25,7 +25,7 @@ func (h Header) ConsensusState() *ConsensusState {
 }
 
 // ClientType defines that the Header is a Tendermint consensus algorithm
-func (h Header) ClientType() string {
+func (Header) ClientType() string {
 	return exported.Tendermint
 }
 

@@ -3,24 +3,24 @@ package v7_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
-	clientv7 "github.com/cosmos/ibc-go/v7/modules/core/02-client/migrations/v7"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	v7 "github.com/cosmos/ibc-go/v7/modules/core/migrations/v7"
-	"github.com/cosmos/ibc-go/v7/modules/core/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
+	clientv7 "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	v7 "github.com/cosmos/ibc-go/v8/modules/core/migrations/v7"
+	"github.com/cosmos/ibc-go/v8/modules/core/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type MigrationsV7TestSuite struct {
-	suite.Suite
+	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
 
@@ -31,7 +31,7 @@ type MigrationsV7TestSuite struct {
 
 // TestMigrationsV7TestSuite runs all the tests within this package.
 func TestMigrationsV7TestSuite(t *testing.T) {
-	suite.Run(t, new(MigrationsV7TestSuite))
+	testifysuite.Run(t, new(MigrationsV7TestSuite))
 }
 
 // SetupTest creates a coordinator with 2 test chains.

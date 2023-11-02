@@ -7,18 +7,18 @@ import (
 	ics23 "github.com/cosmos/ics23/go"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cometbft/cometbft/light"
 	tmtypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -49,7 +49,7 @@ func (cs ClientState) GetChainID() string {
 }
 
 // ClientType is tendermint.
-func (cs ClientState) ClientType() string {
+func (ClientState) ClientType() string {
 	return exported.Tendermint
 }
 
@@ -59,7 +59,7 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 }
 
 // GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
-func (cs ClientState) GetTimestampAtHeight(
+func (ClientState) GetTimestampAtHeight(
 	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,

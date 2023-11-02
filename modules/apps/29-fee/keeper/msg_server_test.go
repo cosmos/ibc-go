@@ -6,12 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestRegisterPayee() {
@@ -58,6 +58,8 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.SetupTest()
 		suite.coordinator.Setup(suite.path)
 
@@ -70,7 +72,7 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 
 		tc.malleate()
 
-		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterPayee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterPayee(suite.chainA.GetContext(), msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -131,6 +133,8 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		suite.SetupTest()
 		suite.coordinator.Setup(suite.path) // setup channel
 
@@ -144,7 +148,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 
 		tc.malleate()
 
-		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyPayee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyPayee(suite.chainA.GetContext(), msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -316,7 +320,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 
 			tc.malleate()
 
-			_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFee(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+			_, err := suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFee(suite.chainA.GetContext(), msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err) // message committed
@@ -530,7 +534,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 
 			tc.malleate()
 
-			_, err = suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFeeAsync(sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
+			_, err = suite.chainA.GetSimApp().IBCFeeKeeper.PayPacketFeeAsync(suite.chainA.GetContext(), msg)
 
 			if tc.expPass {
 				suite.Require().NoError(err) // message committed

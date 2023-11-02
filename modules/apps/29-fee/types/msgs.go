@@ -6,26 +6,24 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	legacytx "github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-// msg types
-const (
-	TypeMsgPayPacketFee      = "payPacketFee"
-	TypeMsgPayPacketFeeAsync = "payPacketFeeAsync"
-)
+const MaximumCounterpartyPayeeLength = 2048 // maximum length of the counterparty payee in bytes (value chosen arbitrarily)
 
 var (
-	_ sdk.Msg            = (*MsgRegisterPayee)(nil)
-	_ sdk.Msg            = (*MsgRegisterCounterpartyPayee)(nil)
-	_ sdk.Msg            = (*MsgPayPacketFee)(nil)
-	_ sdk.Msg            = (*MsgPayPacketFeeAsync)(nil)
-	_ legacytx.LegacyMsg = (*MsgPayPacketFee)(nil)
-	_ legacytx.LegacyMsg = (*MsgPayPacketFeeAsync)(nil)
+	_ sdk.Msg = (*MsgRegisterPayee)(nil)
+	_ sdk.Msg = (*MsgRegisterCounterpartyPayee)(nil)
+	_ sdk.Msg = (*MsgPayPacketFee)(nil)
+	_ sdk.Msg = (*MsgPayPacketFeeAsync)(nil)
+
+	_ sdk.HasValidateBasic = (*MsgRegisterPayee)(nil)
+	_ sdk.HasValidateBasic = (*MsgRegisterCounterpartyPayee)(nil)
+	_ sdk.HasValidateBasic = (*MsgPayPacketFee)(nil)
+	_ sdk.HasValidateBasic = (*MsgPayPacketFeeAsync)(nil)
 )
 
 // NewMsgRegisterPayee creates a new instance of MsgRegisterPayee
@@ -104,6 +102,10 @@ func (msg MsgRegisterCounterpartyPayee) ValidateBasic() error {
 		return ErrCounterpartyPayeeEmpty
 	}
 
+	if len(msg.CounterpartyPayee) > MaximumCounterpartyPayeeLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "counterparty payee address must not exceed %d bytes", MaximumCounterpartyPayeeLength)
+	}
+
 	return nil
 }
 
@@ -162,21 +164,6 @@ func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-// Type implements legacytx.LegacyMsg
-func (msg MsgPayPacketFee) Type() string {
-	return TypeMsgPayPacketFee
-}
-
-// Route implements legacytx.LegacyMsg
-func (msg MsgPayPacketFee) Route() string {
-	return RouterKey
-}
-
-// GetSignBytes implements legacytx.LegacyMsg
-func (msg MsgPayPacketFee) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
-}
-
 // NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
 func NewMsgPayPacketFeeAsync(packetID channeltypes.PacketId, packetFee PacketFee) *MsgPayPacketFeeAsync {
 	return &MsgPayPacketFeeAsync{
@@ -202,19 +189,4 @@ func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
-}
-
-// Type implements legacytx.LegacyMsg
-func (msg MsgPayPacketFeeAsync) Type() string {
-	return TypeMsgPayPacketFeeAsync
-}
-
-// Route implements legacytx.LegacyMsg
-func (msg MsgPayPacketFeeAsync) Route() string {
-	return RouterKey
-}
-
-// GetSignBytes implements legacytx.LegacyMsg
-func (msg MsgPayPacketFeeAsync) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
 }

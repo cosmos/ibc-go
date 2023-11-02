@@ -1,10 +1,9 @@
-FROM golang:1.20-alpine3.18 as builder
+FROM golang:1.21-alpine3.18 as builder
 ARG IBC_GO_VERSION
 
 RUN set -eux; apk add --no-cache git libusb-dev linux-headers gcc musl-dev make;
 
 ENV GOPATH=""
-ENV GOMODULE="on"
 
 # ensure the ibc go version is being specified for this image.
 RUN test -n "${IBC_GO_VERSION}"
