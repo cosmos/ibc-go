@@ -9,6 +9,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -103,29 +104,61 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
-	var msg *types.MsgRemoveCodeHash
-
-	testCases := []struct {
-		name          string
-		malleate      func()
+	var (
+		msg           *types.MsgRemoveCodeHash
 		expCodeHashes []types.CodeHash
 		expFound      bool
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
 	}{
 		{
 			"success",
 			func() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
+
+				expCodeHashes = []types.CodeHash{}
+				expFound = true
 			},
-			[]types.CodeHash{},
-			true,
+			nil,
 		},
 		{
-			"failure: code hash is missing",
+			"success: many code hashes",
+			func() {
+				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
+
+				expFound = true
+				expCodeHashes = []types.CodeHash{}
+
+				for i := 0; i < 20; i++ {
+					codeHash := sha256.Sum256([]byte{byte(i)})
+					err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash[:])
+					suite.Require().NoError(err)
+
+					expCodeHashes = append(expCodeHashes, codeHash[:])
+				}
+			},
+			nil,
+		},
+		{
+			"success: code hash is missing",
 			func() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, []byte{1})
+
+				expCodeHashes = []types.CodeHash{codeHash[:]}
+				expFound = false
 			},
-			[]types.CodeHash{codeHash[:]},
-			false,
+			nil,
+		},
+		{
+			"failure: unauthorized signer",
+			func() {
+				msg = types.NewMsgRemoveCodeHash(suite.chainA.SenderAccount.GetAddress().String(), codeHash[:])
+			},
+			ibcerrors.ErrUnauthorized,
 		},
 	}
 
@@ -143,16 +176,24 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			res, err := GetSimApp(suite.chainA).WasmClientKeeper.RemoveCodeHash(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
 
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
-			suite.Require().Equal(tc.expFound, res.Found)
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expFound, res.Found)
 
-			codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
-			suite.Require().NoError(err)
-			suite.Require().Equal(tc.expCodeHashes, codeHashes)
+				codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
+				suite.Require().NoError(err)
 
-			// Verify events
-			suite.Require().Len(events, 0)
+				// Check equality of code hashes up to order
+				suite.Require().Subset(expCodeHashes, codeHashes)
+				suite.Require().Subset(codeHashes, expCodeHashes)
+
+				// Verify events
+				suite.Require().Len(events, 0)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Nil(res)
+			}
 		})
 	}
 }
