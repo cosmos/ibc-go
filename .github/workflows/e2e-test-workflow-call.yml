@@ -72,11 +72,6 @@ on:
         required: false
         type: boolean
         default: false
-      slack-notify:
-        description: 'Specify flag to indicate that slack should be notified on failure'
-        required: false
-        type: boolean
-        default: false
 
 env:
   REGISTRY: ghcr.io
@@ -198,9 +193,3 @@ jobs:
           name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
           path: e2e/diagnostics
           retention-days: 5
-
-  slack-notify:
-    needs: e2e-tests
-    uses: ./.github/workflows/slack-notify.yaml
-    secrets: inherit
-    if: ${{ always() && needs.e2e-tests.result == 'failure' && inputs.slack-notify }}

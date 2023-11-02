@@ -25,7 +25,6 @@ jobs:
       test: "TestIBCChainUpgrade"
       upload-logs: true
       relayer-type: hermes
-      slack-notify: true
 
   upgrade-v7-hermes:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -40,7 +39,6 @@ jobs:
       test: "TestV6ToV7ChainUpgrade"
       upload-logs: true
       relayer-type: hermes
-      slack-notify: true
 
   upgrade-v7_1-hermes:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -55,7 +53,6 @@ jobs:
       test: "TestV7ToV7_1ChainUpgrade"
       upload-logs: true
       relayer-type: hermes
-      slack-notify: true
 
   upgrade-v8-hermes:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -70,7 +67,6 @@ jobs:
       test: "TestV7ToV8ChainUpgrade"
       upload-logs: true
       relayer-type: hermes
-      slack-notify: true
 
   upgrade-v5-rly:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -87,7 +83,6 @@ jobs:
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer
       relayer-tag: latest
-      slack-notify: true
 
   upgrade-v7-rly:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -104,7 +99,6 @@ jobs:
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer
       relayer-tag: latest
-      slack-notify: true
 
   upgrade-v7_1-rly:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -121,7 +115,6 @@ jobs:
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer
       relayer-tag: latest
-      slack-notify: true
 
   upgrade-v8-rly:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
@@ -138,4 +131,10 @@ jobs:
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer
       relayer-tag: latest
-      slack-notify: true
+
+  slack-notify:
+    needs: [upgrade-v5-hermes, upgrade-v7-hermes, upgrade-v7_1-hermes, upgrade-v8-hermes, upgrade-v5-rly, upgrade-v7-rly, upgrade-v7_1-rly, upgrade-v8-rly]
+    uses: ./.github/workflows/slack-notify.yaml
+    secrets: inherit
+    # Only send a slack notification if any of the tests failed, run only on cron jobs
+    if: ${{ always() && contains(needs.*.result, 'failure') && github.event_name == 'schedule' }}
