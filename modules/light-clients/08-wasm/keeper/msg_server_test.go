@@ -109,7 +109,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 		name          string
 		malleate      func()
 		expCodeHashes []types.CodeHash
-		expError      error
+		expFound      bool
 	}{
 		{
 			"success",
@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
 			},
 			[]types.CodeHash{},
-			nil,
+			true,
 		},
 		{
 			"failure: code hash is missing",
@@ -125,7 +125,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, []byte{1})
 			},
 			[]types.CodeHash{codeHash[:]},
-			nil,
+			false,
 		},
 	}
 
@@ -143,20 +143,16 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			res, err := GetSimApp(suite.chainA).WasmClientKeeper.RemoveCodeHash(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
 
-			if tc.expError == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
+			suite.Require().Equal(tc.expFound, res.Found)
 
-				codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
-				suite.Require().NoError(err)
-				suite.Require().Equal(tc.expCodeHashes, codeHashes)
+			codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.expCodeHashes, codeHashes)
 
-				// Verify events
-				suite.Require().Len(events, 0)
-			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-				suite.Require().Nil(res)
-			}
+			// Verify events
+			suite.Require().Len(events, 0)
 		})
 	}
 }
