@@ -31,17 +31,10 @@ require (
 	cosmossdk.io/core v0.11.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/log v1.2.1 // indirect
-<<<<<<< HEAD
-	cosmossdk.io/store v1.0.0-rc.0 // indirect
-	cosmossdk.io/x/circuit v0.0.0-20230818115413-c402c51a1508 // indirect
-	cosmossdk.io/x/evidence v0.0.0-20230818115413-c402c51a1508 // indirect
-	cosmossdk.io/x/feegrant v0.0.0-20230818115413-c402c51a1508 // indirect
-=======
 	cosmossdk.io/store v1.0.0 // indirect
 	cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158 // indirect
 	cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158 // indirect
 	cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158 // indirect
->>>>>>> 0d55fe1f (build(deps): Bump cosmossdk.io/store from 1.0.0-rc.0 to 1.0.0 (#5009))
 	cosmossdk.io/x/tx v0.11.0 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -166,28 +159,16 @@ require (
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/petermattis/goid v0.0.0-20230518223814-80aa455d8761 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-<<<<<<< HEAD
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.16.0 // indirect
-	github.com/prometheus/client_model v0.4.0 // indirect
-=======
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
 	github.com/prometheus/client_model v0.4.1-0.20230718164431-9a2bf3000d16 // indirect
->>>>>>> 0d55fe1f (build(deps): Bump cosmossdk.io/store from 1.0.0-rc.0 to 1.0.0 (#5009))
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.11.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
-<<<<<<< HEAD
-	github.com/rs/zerolog v1.30.0 // indirect
-=======
 	github.com/rs/zerolog v1.31.0 // indirect
-	github.com/sagikazarmark/locafero v0.3.0 // indirect
-	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
->>>>>>> 0d55fe1f (build(deps): Bump cosmossdk.io/store from 1.0.0-rc.0 to 1.0.0 (#5009))
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
@@ -206,7 +187,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 // indirect
+	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.11.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
