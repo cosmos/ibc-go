@@ -88,8 +88,12 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 				// Verify events
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(
-						"store_wasm_code",
+						types.EventTypeStoreWasmCode,
 						sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(res.Checksum)),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 					),
 				}
 
@@ -217,7 +221,9 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 
 			tc.malleate()
 
-			res, err := GetSimApp(suite.chainA).WasmClientKeeper.MigrateContract(suite.chainA.GetContext(), msg)
+			ctx := suite.chainA.GetContext()
+			res, err := GetSimApp(suite.chainA).WasmClientKeeper.MigrateContract(ctx, msg)
+			events := ctx.EventManager().Events()
 
 			// updated client state
 			clientState, ok := endpoint.GetClientState().(*types.ClientState)
@@ -230,6 +236,24 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 				suite.Require().NotNil(res)
 
 				suite.Require().Equal(expClientState, clientState)
+
+				// Verify events
+				expectedEvents := sdk.Events{
+					sdk.NewEvent(
+						types.EventTypeMigrateContract,
+						sdk.NewAttribute(types.AttributeKeyClientID, defaultWasmClientID),
+						sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(oldCodeHash[:])),
+						sdk.NewAttribute(types.AttributeKeyNewCodeHash, hex.EncodeToString(newCodeHash)),
+					),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+					),
+				}
+
+				for _, evt := range expectedEvents {
+					suite.Require().Contains(events, evt)
+				}
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Nil(res)
