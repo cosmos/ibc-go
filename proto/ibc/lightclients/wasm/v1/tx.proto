@@ -39,7 +39,7 @@ message MsgMigrateContract {
   // the client id of the contract
   string client_id = 2;
   // the code hash of the new wasm byte code for the contract
-  bytes code_hash = 3;
+  bytes new_code_hash = 3;
   // the migrate msg to be passed to the contract
   bytes msg = 4;
 }
