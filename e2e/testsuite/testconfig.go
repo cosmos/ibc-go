@@ -58,7 +58,7 @@ const (
 	// TODO: https://github.com/cosmos/ibc-go/issues/4965
 	defaultHyperspaceTag = "local"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "bef2f53"
+	defaultHermesTag = "v1.7.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure

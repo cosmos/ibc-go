@@ -167,7 +167,8 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.ChannelId, 1)
 
 		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, msgChanOpenTryRes.ChannelId)
-		actualBalance, err := chainA.GetBalance(ctx, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainA, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
+
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount

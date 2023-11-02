@@ -5,9 +5,9 @@ go 1.21
 require (
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/math v1.1.3-rc.1
-	cosmossdk.io/x/upgrade v0.0.0-20231006102024-9af83f4b9295
+	cosmossdk.io/x/upgrade v0.0.0-20231026141021-0469fc17e158
 	github.com/cometbft/cometbft v0.38.0
-	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20231025125555-301ceca874dc
+	github.com/cosmos/cosmos-sdk v0.50.0-rc.1.0.20231026141021-0469fc17e158
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0-00010101000000-000000000000
 	github.com/cosmos/ibc-go/v8 v8.0.0
@@ -27,15 +27,15 @@ require (
 	cloud.google.com/go/iam v1.1.2 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	cosmossdk.io/api v0.7.2 // indirect
-	cosmossdk.io/client/v2 v2.0.0-20231025092924-0c4c24bb3b14 // indirect
+	cosmossdk.io/client/v2 v2.0.0-20231026141021-0469fc17e158 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.11.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/log v1.2.1 // indirect
-	cosmossdk.io/store v1.0.0-rc.0 // indirect
-	cosmossdk.io/x/circuit v0.0.0-20231006102024-9af83f4b9295 // indirect
-	cosmossdk.io/x/evidence v0.0.0-20231006102024-9af83f4b9295 // indirect
-	cosmossdk.io/x/feegrant v0.0.0-20231006102024-9af83f4b9295 // indirect
+	cosmossdk.io/store v1.0.0 // indirect
+	cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158 // indirect
+	cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158 // indirect
+	cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158 // indirect
 	cosmossdk.io/x/tx v0.11.0 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -73,7 +73,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
-	github.com/cosmos/iavl v1.0.0-rc.1 // indirect
+	github.com/cosmos/iavl v1.0.0 // indirect
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc6 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.2 // indirect
@@ -131,7 +131,7 @@ require (
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-metrics v0.5.1 // indirect
-	github.com/hashicorp/go-plugin v1.4.10 // indirect
+	github.com/hashicorp/go-plugin v1.5.2 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
@@ -159,7 +159,7 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/manifoldco/promptui v0.9.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mimoo/StrobeGo v0.0.0-20220103164710-9a04d6ca976b // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
@@ -209,7 +209,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
-	github.com/tidwall/btree v1.6.0 // indirect
+	github.com/tidwall/btree v1.7.0 // indirect
 	github.com/tyler-smith/go-bip32 v1.0.0 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
