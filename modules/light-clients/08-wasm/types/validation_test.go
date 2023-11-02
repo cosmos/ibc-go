@@ -112,7 +112,7 @@ func TestValidateWasmCodeHash(t *testing.T) {
 		if tc.expError == nil {
 			require.NoError(t, err, tc.name)
 		} else {
-			require.ErrorIs(t, err, tc.expError, tc.name)
+			require.ErrorContains(t, err, tc.expError.Error(), tc.name)
 		}
 	}
 }
@@ -142,6 +142,7 @@ func TestValidateClientID(t *testing.T) {
 		{
 			"failure: clientID is not a wasm client identifier",
 			func() {
+				clientID = ibctesting.FirstClientID
 			},
 			errorsmod.Wrapf(host.ErrInvalidID, "client identifier %s does not contain %s prefix", ibctesting.FirstClientID, exported.Wasm),
 		},
@@ -155,7 +156,7 @@ func TestValidateClientID(t *testing.T) {
 		if tc.expError == nil {
 			require.NoError(t, err, tc.name)
 		} else {
-			require.ErrorIs(t, err, tc.expError, tc.name)
+			require.ErrorContains(t, err, tc.expError.Error(), tc.name)
 		}
 	}
 }
