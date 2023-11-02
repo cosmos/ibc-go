@@ -98,7 +98,7 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 					return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockContract
 				}
 			},
-			wasmtesting.ErrMockContract,
+			types.ErrWasmContractCallFailed,
 		},
 	}
 

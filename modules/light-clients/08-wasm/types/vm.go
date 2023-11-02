@@ -148,7 +148,7 @@ func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 func wasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
 	_, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
 	if err != nil {
-		return errorsmod.Wrapf(err, "migration of wasm contract failed")
+		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
 	}
 
 	return nil

@@ -200,7 +200,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 					return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockContract
 				}
 			},
-			wasmtesting.ErrMockContract,
+			types.ErrWasmContractCallFailed,
 		},
 	}
 
