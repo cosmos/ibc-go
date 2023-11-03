@@ -130,12 +130,13 @@ func (m *MsgStoreCodeResponse) GetChecksum() []byte {
 
 // MsgMigrateContract defines the request type for the MigrateContract rpc.
 type MsgMigrateContract struct {
+	// signer address
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	// the client id of the contract
 	ClientId string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// the code hash of the new wasm byte code for the contract
 	NewCodeHash []byte `protobuf:"bytes,3,opt,name=new_code_hash,json=newCodeHash,proto3" json:"new_code_hash,omitempty"`
-	// the migrate msg to be passed to the contract
+	// the json encoded message to be passed to the contract on migration
 	Msg []byte `protobuf:"bytes,4,opt,name=msg,proto3" json:"msg,omitempty"`
 }
 
