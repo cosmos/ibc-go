@@ -31,7 +31,6 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 		{
 			"success: new and old code hash are different",
 			func() {
-				newHash = sha256.Sum256([]byte{1, 2, 3})
 				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), newHash[:])
 				suite.Require().NoError(err)
 
@@ -54,10 +53,6 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 		{
 			"success: update client state",
 			func() {
-				newHash = sha256.Sum256([]byte{1, 2, 3})
-				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), newHash[:])
-				suite.Require().NoError(err)
-
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					expClientState = types.NewClientState([]byte{1}, newHash[:], clienttypes.NewHeight(2000, 2))
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), expClientState))
@@ -73,6 +68,7 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 		{
 			"failure: new and old code hash are the same",
 			func() {
+				newHash = oldHash
 				// this should not be called
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					panic("unreachable")
@@ -83,14 +79,14 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 		{
 			"failure: code hash not found",
 			func() {
-				newHash = sha256.Sum256([]byte{1, 2, 3})
+				err := ibcwasm.CodeHashes.Remove(suite.chainA.GetContext(), newHash[:])
+				suite.Require().NoError(err)
 			},
 			types.ErrWasmCodeHashNotFound,
 		},
 		{
 			"failure: contract returns error",
 			func() {
-				newHash = sha256.Sum256([]byte{1, 2, 3})
 				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), newHash[:])
 				suite.Require().NoError(err)
 
@@ -108,10 +104,13 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 			suite.SetupWasmWithMockVM()
 
 			oldHash = sha256.Sum256(wasmtesting.Code)
-			newHash = oldHash
+			newHash = sha256.Sum256([]byte{1, 2, 3})
+
+			err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), newHash[:])
+			suite.Require().NoError(err)
 
 			endpointA := wasmtesting.NewWasmEndpoint(suite.chainA)
-			err := endpointA.CreateClient()
+			err = endpointA.CreateClient()
 			suite.Require().NoError(err)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpointA.ClientID)
