@@ -56,6 +56,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
+* (apps/transfer, apps/27-interchain-accounts, app/29-fee) [\#4992](https://github.com/cosmos/ibc-go/pull/4992) Set validation for length of string fields.
+
 ### Improvements
 
 * [\#3304](https://github.com/cosmos/ibc-go/pull/3304) Remove unnecessary defer func statements.
