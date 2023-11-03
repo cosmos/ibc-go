@@ -35,12 +35,13 @@ message MsgStoreCodeResponse {
 message MsgMigrateContract {
   option (cosmos.msg.v1.signer) = "signer";
 
+  // signer address
   string signer = 1;
   // the client id of the contract
   string client_id = 2;
   // the code hash of the new wasm byte code for the contract
   bytes new_code_hash = 3;
-  // the migrate msg to be passed to the contract
+  // the json encoded message to be passed to the contract on migration
   bytes msg = 4;
 }
 
