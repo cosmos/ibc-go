@@ -20,6 +20,7 @@ service Msg {
 message MsgStoreCode {
   option (cosmos.msg.v1.signer) = "signer";
 
+  // signer address
   string signer = 1;
   // wasm byte code of light client contract. It can be raw or gzip compressed
   bytes wasm_byte_code = 2;
