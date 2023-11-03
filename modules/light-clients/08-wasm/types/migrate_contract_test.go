@@ -29,7 +29,7 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 		expErr   error
 	}{
 		{
-			"success: new and old code hash are different",
+			"success: no update to client state",
 			func() {
 				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), newHash[:])
 				suite.Require().NoError(err)

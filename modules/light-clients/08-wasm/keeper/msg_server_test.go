@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		expError error
 	}{
 		{
-			"success",
+			"success: no update to client state",
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newCodeHash, []byte("{}"))
 
@@ -143,7 +143,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			nil,
 		},
 		{
-			"success: update state",
+			"success: update client state",
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newCodeHash, []byte("{}"))
 
@@ -233,10 +233,8 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			oldClientState, ok := endpoint.GetClientState().(*types.ClientState)
-			suite.Require().True(ok)
-
-			expClientState = oldClientState
+			// this is the old client state
+			expClientState = endpoint.GetClientState().(*types.ClientState)
 
 			tc.malleate()
 
