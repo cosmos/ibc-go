@@ -16,8 +16,6 @@ var (
 )
 
 // MsgStoreCode creates a new MsgStoreCode instance
-//
-//nolint:interfacer
 func NewMsgStoreCode(signer string, code []byte) *MsgStoreCode {
 	return &MsgStoreCode{
 		Signer:       signer,
@@ -40,8 +38,6 @@ func (m MsgStoreCode) ValidateBasic() error {
 }
 
 // MsgMigrateContract creates a new MsgMigrateContract instance
-//
-//nolint:interfacer
 func NewMsgMigrateContract(signer, clientID string, newCodeHash, migrateMsg []byte) *MsgMigrateContract {
 	return &MsgMigrateContract{
 		Signer:      signer,
