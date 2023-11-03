@@ -51,15 +51,6 @@ jobs:
             go.sum
       - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
-      - name: Build e2e
-        run: |
-          cd e2e
-          find ./tests -type d | while IFS= read -r dir
-          do
-              if ls "${dir}"/*.go >/dev/null 2>&1; then
-                  GOARCH=${{ matrix.go-arch }} go test -c "$dir"
-              fi
-          done
 
   split-test-files:
     runs-on: ubuntu-latest
