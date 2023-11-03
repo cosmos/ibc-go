@@ -19,7 +19,6 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -90,7 +89,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 				// Verify events
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(
-						types.EventTypeStoreWasmCode,
+						"store_wasm_code",
 						sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(res.Checksum)),
 					),
 					sdk.NewEvent(
@@ -260,7 +259,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 				// Verify events
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(
-						types.EventTypeMigrateContract,
+						"migrate_contract",
 						sdk.NewAttribute(types.AttributeKeyClientID, defaultWasmClientID),
 						sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(oldCodeHash[:])),
 						sdk.NewAttribute(types.AttributeKeyNewCodeHash, hex.EncodeToString(newCodeHash)),
