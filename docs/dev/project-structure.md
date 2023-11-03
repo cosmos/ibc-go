@@ -43,4 +43,4 @@ This package contains the implementation of the testing package used in unit and
 
 ## `e2e`
 
-This folder contains all the e2e tests of ibc-go. Please read the [module's documentation](../../e2e/README.md) for more information.
+This folder contains all the e2e tests of ibc-go. Please read the [module's documentation](https://github.com/cosmos/ibc-go/blob/fec07ec55ca3e35f49a62bc6b1243c27cdf7799d/e2e/README.md) for more information.
