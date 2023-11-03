@@ -19,6 +19,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
 func (suite *KeeperTestSuite) TestMsgStoreCode() {
@@ -202,6 +203,24 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			},
 			types.ErrWasmContractCallFailed,
 		},
+		{
+			"failure: incorrect state update",
+			func() {
+				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newCodeHash, []byte("{}"))
+
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					// the code hash written in here will be overwritten
+					newClientState := localhost.NewClientState(clienttypes.NewHeight(1, 1))
+					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), newClientState))
+
+					data, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			clienttypes.ErrInvalidClient,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -225,15 +244,15 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			res, err := GetSimApp(suite.chainA).WasmClientKeeper.MigrateContract(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
 
-			// updated client state
-			clientState, ok := endpoint.GetClientState().(*types.ClientState)
-			suite.Require().True(ok)
-
 			if tc.expError == nil {
 				expClientState.CodeHash = newCodeHash
 
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
+
+				// updated client state
+				clientState, ok := endpoint.GetClientState().(*types.ClientState)
+				suite.Require().True(ok)
 
 				suite.Require().Equal(expClientState, clientState)
 
