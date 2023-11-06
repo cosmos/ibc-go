@@ -2,6 +2,7 @@ package testing
 
 import (
 	"crypto/sha256"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
