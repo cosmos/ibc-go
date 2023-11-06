@@ -129,7 +129,7 @@ func (c *ClientState) CheckProposedHeaderAndUpdateState(context sdk.Context, mar
     return nil, nil, sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
   }
   if !output.Result.IsValid {
-    return nil, nil, fmt.Errorf("%s error ocurred while updating client state", output.Result.ErrorMsg)
+    return nil, nil, fmt.Errorf("%s error occurred while updating client state", output.Result.ErrorMsg)
   }
   output.resetImmutables(c)
   return output.NewClientState, output.NewConsensusState, nil
