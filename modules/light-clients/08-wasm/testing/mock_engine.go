@@ -1,7 +1,10 @@
 package testing
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -34,8 +37,9 @@ type (
 
 func NewMockWasmEngine() *MockWasmEngine {
 	m := &MockWasmEngine{
-		queryCallbacks: map[string]queryFn{},
-		sudoCallbacks:  map[string]sudoFn{},
+		queryCallbacks:  map[string]queryFn{},
+		sudoCallbacks:   map[string]sudoFn{},
+		storedContracts: map[uint32][]byte{},
 	}
 
 	for _, msgType := range queryTypes {
@@ -50,6 +54,27 @@ func NewMockWasmEngine() *MockWasmEngine {
 		m.sudoCallbacks[typeName] = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 			panic(fmt.Errorf("no callback specified for type %s", typeName))
 		}
+	}
+
+	// Set up default behavior for Store/Pin/Get
+	m.StoreCodeFn = func(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
+		hash := sha256.Sum256(code)
+		checkSum := wasmvm.Checksum(hash[:])
+
+		m.storedContracts[binary.LittleEndian.Uint32(checkSum)] = code
+		return checkSum, nil
+	}
+
+	m.PinFn = func(codeID wasmvm.Checksum) error {
+		return nil
+	}
+
+	m.GetCodeFn = func(codeID wasmvm.Checksum) (wasmvm.WasmCode, error) {
+		code, ok := m.storedContracts[binary.LittleEndian.Uint32(codeID)]
+		if !ok {
+			return nil, errors.New("code not found")
+		}
+		return code, nil
 	}
 
 	return m
@@ -85,6 +110,9 @@ type MockWasmEngine struct {
 	// queryCallbacks contains a mapping of queryMsg field type name to callback function.
 	queryCallbacks map[string]queryFn
 	sudoCallbacks  map[string]sudoFn
+
+	// contracts contains a mapping of code hash to code.
+	storedContracts map[uint32][]byte
 }
 
 // StoreCode implements the WasmEngine interface.

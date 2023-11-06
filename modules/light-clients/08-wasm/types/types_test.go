@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"os"
@@ -96,15 +95,6 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	suite.mockVM = wasmtesting.NewMockWasmEngine()
-	// TODO: move default functionality required for wasm client testing to the mock VM
-	suite.mockVM.StoreCodeFn = func(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
-		hash := sha256.Sum256(code)
-		return wasmvm.Checksum(hash[:]), nil
-	}
-
-	suite.mockVM.PinFn = func(codeID wasmvm.Checksum) error {
-		return nil
-	}
 
 	suite.mockVM.InstantiateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 		var payload types.InstantiateMessage

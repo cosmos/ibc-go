@@ -2,6 +2,8 @@ package testing
 
 import (
 	"crypto/sha256"
+	"errors"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -14,6 +16,20 @@ import (
 type WasmEndpoint struct {
 	*ibctesting.Endpoint
 }
+
+var (
+	// Represents the code of the wasm contract used in the tests with a mock vm.
+	Code                              = []byte("01234567012345670123456701234567")
+	contractClientState               = []byte{1}
+	contractConsensusState            = []byte{2}
+	ErrMockContract                   = errors.New("mock contract error")
+	MockClientStateBz                 = []byte("client-state-data")
+	MockConsensusStateBz              = []byte("consensus-state-data")
+	MockValidProofBz                  = []byte("valid proof")
+	MockInvalidProofBz                = []byte("invalid proof")
+	MockUpgradedClientStateProofBz    = []byte("upgraded client state proof")
+	MockUpgradedConsensusStateProofBz = []byte("upgraded consensus state proof")
+)
 
 // NewWasmEndpoint returns a wasm endpoint with the default ibctesting pkg
 // Endpoint embedded.
