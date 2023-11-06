@@ -91,11 +91,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (testing) [\#4630](https://github.com/cosmos/ibc-go/pull/4630) Update `testconfig` to use revision formatted chain IDs.
 * (core/04-channel) [\#4706](https://github.com/cosmos/ibc-go/pull/4706) Retrieve correct next send sequence for packets in unordered channels.
 * (core/02-client) [\#4746](https://github.com/cosmos/ibc-go/pull/4746) Register implementations against `govtypes.Content` interface.
-<<<<<<< HEAD
 * (apps/27-interchain-accounts) [\#4944](https://github.com/cosmos/ibc-go/pull/4944) Add missing proto interface registration.
-=======
 * (core/02-client) [\#5020](https://github.com/cosmos/ibc-go/pull/5020) Fix expect pointer error when unmarshalling misbehaviour file.
->>>>>>> 6c628f6f (fix expect pointer error when unmarshalling misbehaviour file (#5020))
 
 ### Documentation
 
