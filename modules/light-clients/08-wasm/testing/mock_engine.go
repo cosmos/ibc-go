@@ -29,10 +29,10 @@ var (
 
 type (
 	// queryFn is a callback function that is invoked when a specific query message type is received.
-	queryFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error)
+	queryFn func(codeHash wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error)
 
 	// sudoFn is a callback function that is invoked when a specific sudo message type is received.
-	sudoFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+	sudoFn func(codeHash wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
 )
 
 func NewMockWasmEngine() *MockWasmEngine {
@@ -44,14 +44,14 @@ func NewMockWasmEngine() *MockWasmEngine {
 
 	for _, msgType := range queryTypes {
 		typeName := reflect.TypeOf(msgType).Name()
-		m.queryCallbacks[typeName] = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+		m.queryCallbacks[typeName] = func(codeHash wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 			panic(fmt.Errorf("no callback specified for type %s", typeName))
 		}
 	}
 
 	for _, msgType := range sudoTypes {
 		typeName := reflect.TypeOf(msgType).Name()
-		m.sudoCallbacks[typeName] = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+		m.sudoCallbacks[typeName] = func(codeHash wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 			panic(fmt.Errorf("no callback specified for type %s", typeName))
 		}
 	}
@@ -65,12 +65,12 @@ func NewMockWasmEngine() *MockWasmEngine {
 		return checkSum, nil
 	}
 
-	m.PinFn = func(codeID wasmvm.Checksum) error {
+	m.PinFn = func(codeHash wasmvm.Checksum) error {
 		return nil
 	}
 
-	m.GetCodeFn = func(codeID wasmvm.Checksum) (wasmvm.WasmCode, error) {
-		code, ok := m.storedContracts[binary.LittleEndian.Uint32(codeID)]
+	m.GetCodeFn = func(codeHash wasmvm.Checksum) (wasmvm.WasmCode, error) {
+		code, ok := m.storedContracts[binary.LittleEndian.Uint32(codeHash)]
 		if !ok {
 			return nil, errors.New("code not found")
 		}
@@ -102,11 +102,11 @@ func (m *MockWasmEngine) RegisterSudoCallback(sudoMessage any, fn sudoFn) {
 // Without a stub function a panic is thrown.
 // ref: https://github.com/CosmWasm/wasmd/blob/v0.42.0/x/wasm/keeper/wasmtesting/mock_engine.go#L19
 type MockWasmEngine struct {
-	StoreCodeFn   func(codeID wasmvm.WasmCode) (wasmvm.Checksum, error)
-	InstantiateFn func(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
-	MigrateFn     func(codeID wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
-	GetCodeFn     func(codeID wasmvm.Checksum) (wasmvm.WasmCode, error)
-	PinFn         func(checksum wasmvm.Checksum) error
+	StoreCodeFn   func(codeHash wasmvm.WasmCode) (wasmvm.Checksum, error)
+	InstantiateFn func(codeHash wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+	MigrateFn     func(codeHash wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+	GetCodeFn     func(codeHash wasmvm.Checksum) (wasmvm.WasmCode, error)
+	PinFn         func(codeHash wasmvm.Checksum) error
 
 	// queryCallbacks contains a mapping of queryMsg field type name to callback function.
 	queryCallbacks map[string]queryFn
@@ -117,23 +117,23 @@ type MockWasmEngine struct {
 }
 
 // StoreCode implements the WasmEngine interface.
-func (m *MockWasmEngine) StoreCode(codeID wasmvm.WasmCode) (wasmvm.Checksum, error) {
+func (m *MockWasmEngine) StoreCode(codeHash wasmvm.WasmCode) (wasmvm.Checksum, error) {
 	if m.StoreCodeFn == nil {
 		panic("mock engine is not properly initialized")
 	}
-	return m.StoreCodeFn(codeID)
+	return m.StoreCodeFn(codeHash)
 }
 
 // Instantiate implements the WasmEngine interface.
-func (m *MockWasmEngine) Instantiate(codeID wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+func (m *MockWasmEngine) Instantiate(codeHash wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 	if m.InstantiateFn == nil {
 		panic("mock engine is not properly initialized")
 	}
-	return m.InstantiateFn(codeID, env, info, initMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
+	return m.InstantiateFn(codeHash, env, info, initMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
 // Query implements the WasmEngine interface.
-func (m *MockWasmEngine) Query(codeID wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+func (m *MockWasmEngine) Query(codeHash wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 	msgTypeName := getQueryMsgPayloadTypeName(queryMsg)
 
 	callbackFn, ok := m.queryCallbacks[msgTypeName]
@@ -141,19 +141,19 @@ func (m *MockWasmEngine) Query(codeID wasmvm.Checksum, env wasmvmtypes.Env, quer
 		panic(fmt.Errorf("no callback specified for %s", msgTypeName))
 	}
 
-	return callbackFn(codeID, env, queryMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
+	return callbackFn(codeHash, env, queryMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
 // Migrate implements the WasmEngine interface.
-func (m *MockWasmEngine) Migrate(codeID wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+func (m *MockWasmEngine) Migrate(codeHash wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 	if m.MigrateFn == nil {
 		panic("mock engine is not properly initialized")
 	}
-	return m.MigrateFn(codeID, env, migrateMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
+	return m.MigrateFn(codeHash, env, migrateMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
 // Sudo implements the WasmEngine interface.
-func (m *MockWasmEngine) Sudo(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+func (m *MockWasmEngine) Sudo(codeHash wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 	msgTypeName := getSudoMsgPayloadTypeName(sudoMsg)
 
 	sudoFn, ok := m.sudoCallbacks[msgTypeName]
@@ -161,15 +161,15 @@ func (m *MockWasmEngine) Sudo(codeID wasmvm.Checksum, env wasmvmtypes.Env, sudoM
 		panic(fmt.Errorf("no callback specified for %s", msgTypeName))
 	}
 
-	return sudoFn(codeID, env, sudoMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
+	return sudoFn(codeHash, env, sudoMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
 
 // GetCode implements the WasmEngine interface.
-func (m *MockWasmEngine) GetCode(codeID wasmvm.Checksum) (wasmvm.WasmCode, error) {
+func (m *MockWasmEngine) GetCode(codeHash wasmvm.Checksum) (wasmvm.WasmCode, error) {
 	if m.GetCodeFn == nil {
 		panic("mock engine is not properly initialized")
 	}
-	return m.GetCodeFn(codeID)
+	return m.GetCodeFn(codeHash)
 }
 
 // Pin implements the WasmEngine interface.
