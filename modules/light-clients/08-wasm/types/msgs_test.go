@@ -1,14 +1,18 @@
 package types_test
 
 import (
+	"crypto/sha256"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -50,7 +54,7 @@ func TestMsgStoreCodeValidateBasic(t *testing.T) {
 		if expPass {
 			require.NoError(t, err)
 		} else {
-			require.Error(t, err)
+			require.ErrorIs(t, err, tc.expErr)
 		}
 	}
 }
@@ -81,5 +85,75 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 				suite.Require().Error(err)
 			}
 		})
+	}
+}
+
+func TestMsgMigrateContractValidateBasic(t *testing.T) {
+	signer := sdk.AccAddress(ibctesting.TestAccAddress).String()
+	validCodeHash := sha256.Sum256(wasmtesting.Code)
+	validMigrateMsg := []byte("{}")
+
+	testCases := []struct {
+		name   string
+		msg    *types.MsgMigrateContract
+		expErr error
+	}{
+		{
+			"success: valid signer address, valid code hash, valid migrate msg",
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, validCodeHash[:], validMigrateMsg),
+			nil,
+		},
+		{
+			"failure: invalid signer address",
+			types.NewMsgMigrateContract(ibctesting.InvalidID, defaultWasmClientID, validCodeHash[:], validMigrateMsg),
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: clientID is not a valid client identifier",
+			types.NewMsgMigrateContract(signer, ibctesting.InvalidID, validCodeHash[:], validMigrateMsg),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: clientID is not a wasm client identifier",
+			types.NewMsgMigrateContract(signer, ibctesting.FirstClientID, validCodeHash[:], validMigrateMsg),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: code hash is nil",
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, nil, validMigrateMsg),
+			errorsmod.Wrap(types.ErrInvalidCodeHash, "code hash cannot be empty"),
+		},
+		{
+			"failure: code hash is empty",
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, []byte{}, validMigrateMsg),
+			errorsmod.Wrap(types.ErrInvalidCodeHash, "code hash cannot be empty"),
+		},
+		{
+			"failure: code hash is not 32 bytes",
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, []byte{1}, validMigrateMsg),
+			errorsmod.Wrapf(types.ErrInvalidCodeHash, "expected length of 32 bytes, got %d", 1),
+		},
+		{
+			"failure: migrateMsg is nil",
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, validCodeHash[:], nil),
+			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "migrate message cannot be empty"),
+		},
+		{
+			"failure: migrateMsg is empty",
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, validCodeHash[:], []byte("")),
+			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "migrate message cannot be empty"),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		err := tc.msg.ValidateBasic()
+		expPass := tc.expErr == nil
+		if expPass {
+			require.NoError(t, err)
+		} else {
+			require.ErrorIs(t, err, tc.expErr)
+		}
 	}
 }

@@ -31,3 +31,21 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
 		Checksum: codeHash,
 	}, nil
 }
+
+// MigrateContract defines a rpc handler method for MsgMigrateContract
+func (k Keeper) MigrateContract(goCtx context.Context, msg *types.MsgMigrateContract) (*types.MsgMigrateContractResponse, error) {
+	if k.GetAuthority() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := k.migrateContractCode(ctx, msg.ClientId, msg.CodeHash, msg.Msg)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to migrate contract")
+	}
+
+	// event emission is handled in migrateContractCode
+
+	return &types.MsgMigrateContractResponse{}, nil
+}
