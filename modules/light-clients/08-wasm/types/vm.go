@@ -67,7 +67,7 @@ func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KV
 
 	env := getEnv(ctx, clientID)
 
-	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: migrate")
+	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(true, len(msg)), "Loading CosmWasm module: migrate")
 	resp, gasUsed, err := ibcwasm.GetVM().Migrate(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
