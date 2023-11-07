@@ -23,6 +23,7 @@ var (
 	MockUpgradedConsensusStateProofBz = []byte("upgraded consensus state proof")
 )
 
+// CreateMockClientStateBz returns valid client state bytes for use in tests.
 func CreateMockClientStateBz(cdc codec.BinaryCodec, codeHash []byte) []byte {
 	mockClientSate := types.NewClientState([]byte{1}, codeHash, clienttypes.NewHeight(2000, 2))
 	return clienttypes.MustMarshalClientState(cdc, mockClientSate)

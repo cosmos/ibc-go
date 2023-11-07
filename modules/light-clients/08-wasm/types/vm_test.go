@@ -87,9 +87,13 @@ func (suite *TypesTestSuite) TestWasmMigrate() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
+
 			tc.malleate()
 
-			err := types.WasmMigrate(suite.ctx, suite.store, &types.ClientState{}, defaultWasmClientID, []byte("{}"), suite.chainA.Codec)
+			err = types.WasmMigrate(suite.ctx, suite.store, &types.ClientState{}, defaultWasmClientID, []byte("{}"), suite.chainA.Codec)
 
 			expPass := tc.expError == nil
 			if expPass {
