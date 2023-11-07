@@ -292,6 +292,23 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 			},
 			types.ErrWasmInvalidContractModification,
 		},
+		{
+			"failure: change codehash",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+
+					clientState := suite.chainA.GetClientState(defaultWasmClientID)
+					clientState.(*types.ClientState).CodeHash = []byte("new code hash")
+					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState))
+
+					resp, err := json.Marshal(types.UpdateStateResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.Response{Data: resp}, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			types.ErrWasmInvalidContractModification,
+		},
 	}
 
 	for _, tc := range testCases {
