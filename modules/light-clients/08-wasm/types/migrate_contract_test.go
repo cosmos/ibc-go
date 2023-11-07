@@ -37,8 +37,8 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 				payload = []byte{1}
 				expChecksum := wasmvmtypes.ForceNewChecksum(hex.EncodeToString(newHash[:]))
 
-				suite.mockVM.MigrateFn = func(codeID wasmvm.Checksum, env wasmvmtypes.Env, msg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					suite.Require().Equal(expChecksum, codeID)
+				suite.mockVM.MigrateFn = func(checksum wasmvm.Checksum, env wasmvmtypes.Env, msg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					suite.Require().Equal(expChecksum, checksum)
 					suite.Require().Equal(defaultWasmClientID, env.Contract.Address)
 					suite.Require().Equal(payload, msg)
 
