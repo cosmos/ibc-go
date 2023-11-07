@@ -28,7 +28,7 @@ require (
 	cosmossdk.io/api v0.7.3-0.20231029200940-6af7f30bfd54 // indirect
 	cosmossdk.io/client/v2 v2.0.0-20231026141021-0469fc17e158 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/core v0.12.0 // indirect
+	cosmossdk.io/core v0.11.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/log v1.2.1 // indirect
 	cosmossdk.io/store v1.0.0 // indirect
