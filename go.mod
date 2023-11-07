@@ -8,7 +8,7 @@ require (
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.1
-	cosmossdk.io/math v1.1.3-rc.1
+	cosmossdk.io/math v1.2.0
 	cosmossdk.io/store v1.0.0
 	cosmossdk.io/tools/confix v0.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158
