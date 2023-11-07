@@ -11,8 +11,10 @@ import (
 var (
 	_ sdk.Msg              = (*MsgStoreCode)(nil)
 	_ sdk.Msg              = (*MsgMigrateContract)(nil)
+	_ sdk.Msg              = (*MsgRemoveCodeHash)(nil)
 	_ sdk.HasValidateBasic = (*MsgStoreCode)(nil)
 	_ sdk.HasValidateBasic = (*MsgMigrateContract)(nil)
+	_ sdk.HasValidateBasic = (*MsgRemoveCodeHash)(nil)
 )
 
 // MsgStoreCode creates a new MsgStoreCode instance
