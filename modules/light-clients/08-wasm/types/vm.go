@@ -146,7 +146,7 @@ func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 	}
 
 	oldCodeHash := cs.CodeHash
-	newClientState, err := validatePostContractExecutionClientState(clientStore, cdc)
+	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
 	if err != nil {
 		return result, err
 	}
@@ -159,12 +159,12 @@ func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 	return result, nil
 }
 
-// validatePostContractExecutionClientState validates that the contract has not many any invalid modifications
+// validatePostExecutionClientState validates that the contract has not many any invalid modifications
 // to the client state during execution. It ensures that
 // - the client state is still present
 // - the client state can be unmarshaled successfully.
 // - the client state is of type *ClientState
-func validatePostContractExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
+func validatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
 	key := host.ClientStateKey()
 	_, ok := clientStore.(migrateClientWrappedStore)
 	if ok {
@@ -208,12 +208,8 @@ func wasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientStat
 		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
 	}
 
-	_, err = validatePostContractExecutionClientState(clientStore, cdc)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err = validatePostExecutionClientState(clientStore, cdc)
+	return err
 }
 
 // wasmQuery queries the contract with the given payload and returns the result.
