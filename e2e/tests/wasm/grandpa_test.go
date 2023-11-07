@@ -261,7 +261,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	ctx := context.Background()
 
 	// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
-	var badTrustingPeriod = time.Second * 10
+	var badTrustingPeriod = time.Second * 200
 
 	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
 		// configure chain A (polkadot)
@@ -329,7 +329,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	var err error
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
+	file, err := os.Open("../data/ics10_grandpa_cw_expiry.wasm.gz")
 	s.Require().NoError(err)
 
 	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
@@ -363,7 +363,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	// TODO(damian): The hyperspace relayer makes no use of create client opts
 	// https://github.com/strangelove-ventures/interchaintest/blob/main/relayer/hyperspace/hyperspace_commander.go#L83
 	s.SetupClients(ctx, r, ibc.CreateClientOptions{
-		TrustingPeriod: badTrustingPeriod.String(),
+		TrustingPeriod: badTrustingPeriod.String(), // NOTE: this is hardcoded within the cw contract: ics10_grapnda_cw_expiry.wasm
 	})
 
 	// wait for block
