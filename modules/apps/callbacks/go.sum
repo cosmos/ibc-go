@@ -213,10 +213,10 @@ cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158 h1:vXroToZDOIqOxsLxkm
 cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158/go.mod h1:N//0zHq1MoGysusHeZC/LmH0Lw3u55QR/mUr5UMzCSw=
 cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158 h1:/Vvseql0IDcoBquKcRopFt4wKEVFC8EQUOGG79BS+Zo=
 cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158/go.mod h1:vmiW+2cIfGZULh6ReN03sawbhn8UUGrttNMxiIiduKI=
-cosmossdk.io/x/tx v0.11.0 h1:Ak2LIC06bXqPbpMIEorkQbwVddRvRys1sL3Cjm+KPfs=
-cosmossdk.io/x/tx v0.11.0/go.mod h1:tzuC7JlfGivYuIO32JbvvY3Ft9s6FK1+r0/nGHiHwtM=
-cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d h1:LH8NPa2+yoMFdCTxCFyQUX5zVDip4YDgtg7e0EecDqo=
-cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d/go.mod h1:+5jCm6Lk/CrQhQvtJFy/tmuLfhQKNMn/U0vwrRz/dxQ=
+cosmossdk.io/x/tx v0.12.0 h1:Ry2btjQdrfrje9qZ3iZeZSmDArjgxUJMMcLMrX4wj5U=
+cosmossdk.io/x/tx v0.12.0/go.mod h1:qTth2coAGkwCwOCjqQ8EAQg+9udXNRzcnSbMgGKGEI0=
+cosmossdk.io/x/upgrade v0.0.0-20231026141021-0469fc17e158 h1:pxrCcE+kVVhfEwrajiM127XXBsDmqvSO61FwGt68KPY=
+cosmossdk.io/x/upgrade v0.0.0-20231026141021-0469fc17e158/go.mod h1:OGcabvCst54+IOZQodvOAbAxEhhlhk6mvGQV8zRh7wI=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 filippo.io/edwards25519 v1.0.0 h1:0wAIcmJUqRdI8IJ/3eGi5/HwXZWPujYXXlkrQogz0Ek=
 filippo.io/edwards25519 v1.0.0/go.mod h1:N1IkdkCkiLB6tki+MYJoSx2JTY9NUlxZE7eHn5EwJns=

@@ -14,8 +14,8 @@ require (
 	cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158
-	cosmossdk.io/x/tx v0.11.0
-	cosmossdk.io/x/upgrade v0.0.0-20230915171831-2196edacb99d
+	cosmossdk.io/x/tx v0.12.0
+	cosmossdk.io/x/upgrade v0.0.0-20231026141021-0469fc17e158
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
