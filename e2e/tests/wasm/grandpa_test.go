@@ -82,7 +82,10 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	t.Run("send successful IBC transfer from Cosmos to Polkadot parachain", func(t *testing.T) {
 		// Send 1.77 stake from cosmosUser to parachainUser
 		transferAmount := testvalues.TransferAmount(amountToSend, cosmosChain.Config().Denom)
-		transferTxResp := s.Transfer(ctx, cosmosChain, cosmosUser, channelA.PortID, channelA.ChannelID, transferAmount, cosmosUser.FormattedAddress(), polkadotUser.FormattedAddress(), s.GetTimeoutHeight(ctx, polkadotChain), 0, "")
+		// set timeout height on other side
+		timeoutHeight := s.GetTimeoutHeight(ctx, polkadotChain)
+		timeoutHeight.RevisionHeight += 100
+		transferTxResp := s.Transfer(ctx, cosmosChain, cosmosUser, channelA.PortID, channelA.ChannelID, transferAmount, cosmosUser.FormattedAddress(), polkadotUser.FormattedAddress(), timeoutHeight, 0, "")
 		s.AssertTxSuccess(transferTxResp)
 		// verify token balance for cosmos user has decreased
 		balance, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
