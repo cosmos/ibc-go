@@ -88,7 +88,7 @@ type WasmEngine interface {
 	) (*wasmvmtypes.Response, uint64, error)
 
 	// GetCode will load the original wasm code for the given checksum.
-	// This will only succeed if that code hash was previously returned from
+	// This will only succeed if that checksum was previously returned from
 	// a call to Create.
 	//
 	// This can be used so that the (short) checksum is stored in the iavl tree
