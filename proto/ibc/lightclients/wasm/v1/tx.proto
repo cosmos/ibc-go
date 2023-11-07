@@ -14,12 +14,16 @@ service Msg {
 
   // RemoveCodeHash defines a rpc handler method for MsgRemoveCodeHash.
   rpc RemoveCodeHash(MsgRemoveCodeHash) returns (MsgRemoveCodeHashResponse);
+
+  // MigrateContract defines a rpc handler method for MsgMigrateContract.
+  rpc MigrateContract(MsgMigrateContract) returns (MsgMigrateContractResponse);
 }
 
 // MsgStoreCode defines the request type for the StoreCode rpc.
 message MsgStoreCode {
   option (cosmos.msg.v1.signer) = "signer";
 
+  // signer address
   string signer = 1;
   // wasm byte code of light client contract. It can be raw or gzip compressed
   bytes wasm_byte_code = 2;
@@ -35,6 +39,7 @@ message MsgStoreCodeResponse {
 message MsgRemoveCodeHash {
   option (cosmos.msg.v1.signer) = "signer";
 
+  // signer address
   string signer = 1;
   // code hash to be removed from the store
   bytes code_hash = 2;
@@ -45,3 +50,20 @@ message MsgRemoveCodeHashResponse {
   // true if the code hash was found in the store
   bool found = 1;
 }
+
+// MsgMigrateContract defines the request type for the MigrateContract rpc.
+message MsgMigrateContract {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  // signer address
+  string signer = 1;
+  // the client id of the contract
+  string client_id = 2;
+  // the code hash of the new wasm byte code for the contract
+  bytes code_hash = 3;
+  // the json encoded message to be passed to the contract on migration
+  bytes msg = 4;
+}
+
+// MsgMigrateContractResponse defines the response type for the MigrateContract rpc
+message MsgMigrateContractResponse {}

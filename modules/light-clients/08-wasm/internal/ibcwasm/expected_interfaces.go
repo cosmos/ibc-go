@@ -51,6 +51,24 @@ type WasmEngine interface {
 		deserCost wasmvmtypes.UFraction,
 	) ([]byte, uint64, error)
 
+	// Migrate migrates an existing contract to a new code binary.
+	// This takes storage of the data from the original contract and the code hash of the new contract that should
+	// replace it. This allows it to run a migration step if needed, or return an error if unable to migrate
+	// the given data.
+	//
+	// MigrateMsg has some data on how to perform the migration.
+	Migrate(
+		checksum wasmvm.Checksum,
+		env wasmvmtypes.Env,
+		migrateMsg []byte,
+		store wasmvm.KVStore,
+		goapi wasmvm.GoAPI,
+		querier wasmvm.Querier,
+		gasMeter wasmvm.GasMeter,
+		gasLimit uint64,
+		deserCost wasmvmtypes.UFraction,
+	) (*wasmvmtypes.Response, uint64, error)
+
 	// Sudo allows native Go modules to make priviledged (sudo) calls on the contract.
 	// The contract can expose entry points that cannot be triggered by any transaction, but only via
 	// native Go modules, and delegate the access control to the system.

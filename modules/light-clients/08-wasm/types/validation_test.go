@@ -11,6 +11,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestValidateWasmCode(t *testing.T) {
@@ -109,7 +112,51 @@ func TestValidateWasmCodeHash(t *testing.T) {
 		if tc.expError == nil {
 			require.NoError(t, err, tc.name)
 		} else {
-			require.ErrorIs(t, err, tc.expError, tc.name)
+			require.ErrorContains(t, err, tc.expError.Error(), tc.name)
+		}
+	}
+}
+
+func TestValidateClientID(t *testing.T) {
+	var clientID string
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: valid wasm client identifier",
+			func() {
+				clientID = defaultWasmClientID
+			},
+			nil,
+		},
+		{
+			"failure: empty clientID",
+			func() {
+				clientID = ""
+			},
+			errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s", clientID),
+		},
+		{
+			"failure: clientID is not a wasm client identifier",
+			func() {
+				clientID = ibctesting.FirstClientID
+			},
+			errorsmod.Wrapf(host.ErrInvalidID, "client identifier %s does not contain %s prefix", ibctesting.FirstClientID, exported.Wasm),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc.malleate()
+
+		err := types.ValidateClientID(clientID)
+
+		if tc.expError == nil {
+			require.NoError(t, err, tc.name)
+		} else {
+			require.ErrorContains(t, err, tc.expError.Error(), tc.name)
 		}
 	}
 }

@@ -117,7 +117,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 
 			expPass := tc.expErr == nil
 			if expPass {
-				suite.Require().NoError(tc.expErr)
+				suite.Require().NoError(err)
 
 				clientStateBz := subjectClientStore.Get(host.ClientStateKey())
 				suite.Require().Equal(wasmtesting.MockClientStateBz, clientStateBz)

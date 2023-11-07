@@ -50,7 +50,51 @@ func (suite *TypesTestSuite) TestWasmInit() {
 			if expPass {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestWasmMigrate() {
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					return nil, 0, nil
+				}
+			},
+			nil,
+		},
+		{
+			"failure: contract returns error",
+			func() {
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					return nil, 0, wasmtesting.ErrMockContract
+				}
+			},
+			types.ErrWasmContractCallFailed,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			tc.malleate()
+
+			err := types.WasmMigrate(suite.ctx, suite.store, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
@@ -121,14 +165,13 @@ func (suite *TypesTestSuite) TestWasmQuery() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 			} else {
-				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestWasmCall() {
+func (suite *TypesTestSuite) TestWasmSudo() {
 	var payload types.SudoMsg
 
 	testCases := []struct {
@@ -226,7 +269,6 @@ func (suite *TypesTestSuite) TestWasmCall() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 			} else {
-				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
