@@ -165,7 +165,13 @@ func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 // - the client state can be unmarshaled successfully.
 // - the client state is of type *ClientState
 func validatePostContractExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
-	bz := clientStore.Get(host.ClientStateKey())
+	key := host.ClientStateKey()
+	_, ok := clientStore.(migrateClientWrappedStore)
+	if ok {
+		key = append(subjectPrefix, key...)
+	}
+	bz := clientStore.Get(key)
+
 	if len(bz) == 0 {
 		return nil, errorsmod.Wrap(ErrWasmInvalidContractModification, types.ErrClientNotFound.Error())
 	}
@@ -204,7 +210,7 @@ func wasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientStat
 
 	_, err = validatePostContractExecutionClientState(clientStore, cdc)
 	if err != nil {
-		return errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
+		return err
 	}
 
 	return nil

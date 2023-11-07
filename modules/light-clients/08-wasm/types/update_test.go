@@ -23,16 +23,16 @@ func (suite *TypesTestSuite) TestUpdateState() {
 	mockHeight := clienttypes.NewHeight(1, 1)
 
 	var (
-		clientMsg   exported.ClientMessage
-		clientStore storetypes.KVStore
+		clientMsg             exported.ClientMessage
+		clientStore           storetypes.KVStore
+		expectedClientStateBz []byte
 	)
 
 	testCases := []struct {
-		name           string
-		malleate       func()
-		expPanic       error
-		expHeights     []exported.Height
-		expClientState []byte
+		name       string
+		malleate   func()
+		expPanic   error
+		expHeights []exported.Height
 	}{
 		{
 			"success: no update",
@@ -44,7 +44,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					suite.Require().NotNil(msg.UpdateState)
 					suite.Require().NotNil(msg.UpdateState.ClientMessage)
-					suite.Require().Equal(msg.UpdateState.ClientMessage.Data, wasmtesting.MockClientStateBz)
+					suite.Require().Equal(msg.UpdateState.ClientMessage.Data, wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash))
 					suite.Require().Nil(msg.VerifyMembership)
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
@@ -68,7 +68,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			},
 			nil,
 			[]exported.Height{},
-			nil,
 		},
 		{
 			"success: update client",
@@ -78,7 +77,9 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					err := json.Unmarshal(sudoMsg, &msg)
 					suite.Require().NoError(err)
 
-					store.Set(host.ClientStateKey(), msg.UpdateState.ClientMessage.Data)
+					expectedClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash)
+					store.Set(host.ClientStateKey(), expectedClientStateBz)
+
 					updateStateResp := types.UpdateStateResult{
 						Heights: []clienttypes.Height{mockHeight},
 					}
@@ -95,7 +96,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			},
 			nil,
 			[]exported.Height{mockHeight},
-			wasmtesting.MockClientStateBz,
 		},
 		{
 			"failure: clientStore prefix does not include clientID",
@@ -103,7 +103,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
 			},
 			errorsmod.Wrap(types.ErrWasmContractCallFailed, errorsmod.Wrap(errorsmod.Wrapf(types.ErrRetrieveClientID, "prefix does not contain a valid clientID: %s", errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s", ibctesting.InvalidID)), "failed to retrieve clientID for wasm contract call").Error()),
-			nil,
 			nil,
 		},
 		{
@@ -113,7 +112,6 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				clientMsg = &tmtypes.Misbehaviour{}
 			},
 			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*tmtypes.Misbehaviour)(nil)),
-			nil,
 			nil,
 		},
 		{
@@ -125,16 +123,16 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			},
 			errorsmod.Wrap(types.ErrWasmContractCallFailed, wasmtesting.ErrMockContract.Error()),
 			nil,
-			nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM() // reset
+			expectedClientStateBz = nil
 
 			clientMsg = &types.ClientMessage{
-				Data: wasmtesting.MockClientStateBz,
+				Data: wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash),
 			}
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -155,9 +153,9 @@ func (suite *TypesTestSuite) TestUpdateState() {
 				updateState()
 				suite.Require().Equal(tc.expHeights, heights)
 
-				if tc.expClientState != nil {
+				if expectedClientStateBz != nil {
 					clientStateBz := clientStore.Get(host.ClientStateKey())
-					suite.Require().Equal(tc.expClientState, clientStateBz)
+					suite.Require().Equal(expectedClientStateBz, clientStateBz)
 				}
 			} else {
 				suite.Require().PanicsWithError(tc.expPanic.Error(), updateState)
@@ -168,6 +166,8 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 	var clientMsg exported.ClientMessage
+
+	var updatedClientStateBz []byte
 
 	testCases := []struct {
 		name               string
@@ -214,7 +214,8 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 					suite.Require().NoError(err)
 
 					// set new client state in store
-					store.Set(host.ClientStateKey(), msg.UpdateStateOnMisbehaviour.ClientMessage.Data)
+					updatedClientStateBz = msg.UpdateStateOnMisbehaviour.ClientMessage.Data
+					store.Set(host.ClientStateKey(), updatedClientStateBz)
 					resp, err := json.Marshal(types.EmptyResult{})
 					if err != nil {
 						return nil, 0, err
@@ -251,6 +252,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 		suite.Run(tc.name, func() {
 			// reset suite to create fresh application state
 			suite.SetupWasmWithMockVM()
+			updatedClientStateBz = nil
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -258,7 +260,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientMsg = &types.ClientMessage{
-				Data: wasmtesting.MockClientStateBz,
+				Data: wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash),
 			}
 			clientState := endpoint.GetClientState()
 
@@ -266,8 +268,8 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			if tc.panicErr == nil {
 				clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), store, clientMsg)
-				if tc.updatedClientState != nil {
-					suite.Require().Equal(tc.updatedClientState, store.Get(host.ClientStateKey()))
+				if updatedClientStateBz != nil {
+					suite.Require().Equal(updatedClientStateBz, store.Get(host.ClientStateKey()))
 				}
 			} else {
 				suite.Require().PanicsWithError(tc.panicErr.Error(), func() {
