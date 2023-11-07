@@ -3,6 +3,7 @@ package types
 import (
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -46,8 +47,8 @@ func WasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore
 }
 
 // WasmSudo wraps wasmCall and is used solely for testing.
-func WasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
-	return wasmSudo[T](ctx, clientStore, cs, payload)
+func WasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg, cdc codec.BinaryCodec) (T, error) {
+	return wasmSudo[T](ctx, clientStore, cs, payload, cdc)
 }
 
 // WasmInstantiate wraps wasmInit and is used solely for testing.
@@ -56,6 +57,6 @@ func WasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *Client
 }
 
 // WasmMigrate wraps wasmMigrate and is used solely for testing.
-func WasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
-	return wasmMigrate(ctx, clientStore, cs, clientID, payload)
+func WasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte, cdc codec.BinaryCodec) error {
+	return wasmMigrate(ctx, clientStore, cs, clientID, payload, cdc)
 }

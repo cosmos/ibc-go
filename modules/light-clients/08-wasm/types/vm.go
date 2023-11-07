@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -11,9 +12,13 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var VMGasRegister = NewDefaultWasmGasRegister()
@@ -112,7 +117,7 @@ func wasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *Client
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
+func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg, cdc codec.BinaryCodec) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -139,16 +144,67 @@ func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 	if err := json.Unmarshal(resp.Data, &result); err != nil {
 		return result, errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
 	}
+
+	oldCodeHash := cs.CodeHash
+	newClientState, err := validatePostContractExecutionClientState(clientStore, cdc)
+	if err != nil {
+		return result, err
+	}
+
+	// code has should only be able to be modified during migration.
+	if !bytes.Equal(oldCodeHash, newClientState.CodeHash) {
+		return result, errorsmod.Wrapf(ErrWasmInvalidContractModification, "code hash changed from %s to %s", hex.EncodeToString(oldCodeHash), hex.EncodeToString(newClientState.CodeHash))
+	}
+
 	return result, nil
+}
+
+// validatePostContractExecutionClientState validates that the contract has not many any invalid modifications
+// to the client state during execution. It ensures that
+// - the client state is still present
+// - the client state can be unmarshaled successfully.
+// - the client state is of type *ClientState
+func validatePostContractExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
+	bz := clientStore.Get(host.ClientStateKey())
+	if len(bz) == 0 {
+		return nil, errorsmod.Wrap(ErrWasmInvalidContractModification, types.ErrClientNotFound.Error())
+	}
+
+	clientState, err := unmarshalClientState(cdc, bz)
+	if err != nil {
+		return nil, errorsmod.Wrap(ErrWasmInvalidContractModification, err.Error())
+	}
+
+	cs, ok := clientState.(*ClientState)
+	if !ok {
+		return nil, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected client state type %T, got %T", (*ClientState)(nil), clientState)
+	}
+
+	return cs, nil
+}
+
+// unmarshalClientState unmarshals the client state from the given bytes.
+func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientState, error) {
+	var clientState exported.ClientState
+	if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
+		return nil, err
+	}
+
+	return clientState, nil
 }
 
 // wasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
 // wasmMigrate returns an error if:
 // - the contract migration returns an error
-func wasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
+func wasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte, cdc codec.BinaryCodec) error {
 	_, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
 	if err != nil {
 		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
+	}
+
+	_, err = validatePostContractExecutionClientState(clientStore, cdc)
+	if err != nil {
+		return errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
 	}
 
 	return nil

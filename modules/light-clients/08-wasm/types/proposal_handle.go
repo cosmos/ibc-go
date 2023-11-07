@@ -16,7 +16,7 @@ import (
 
 // CheckSubstituteAndUpdateState will verify that a substitute client state is valid and update the subject client state.
 // Note that this method is used only for recovery and will not allow changes to the code hash.
-func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, _ codec.BinaryCodec, subjectClientStore, substituteClientStore storetypes.KVStore, substituteClient exported.ClientState) error {
+func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore storetypes.KVStore, substituteClient exported.ClientState) error {
 	substituteClientState, ok := substituteClient.(*ClientState)
 	if !ok {
 		return errorsmod.Wrapf(
@@ -37,6 +37,6 @@ func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, _ codec.Bin
 		MigrateClientStore: &MigrateClientStoreMsg{},
 	}
 
-	_, err := wasmSudo[EmptyResult](ctx, store, &cs, payload)
+	_, err := wasmSudo[EmptyResult](ctx, store, &cs, payload, cdc)
 	return err
 }

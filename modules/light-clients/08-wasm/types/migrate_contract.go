@@ -32,7 +32,7 @@ func (cs ClientState) MigrateContract(
 	// persisted to the client store.
 	cs.CodeHash = newCodeHash
 
-	err := wasmMigrate(ctx, clientStore, &cs, clientID, migrateMsg)
+	err := wasmMigrate(ctx, clientStore, &cs, clientID, migrateMsg, cdc)
 	if err != nil {
 		return err
 	}

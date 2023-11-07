@@ -89,7 +89,7 @@ func (suite *TypesTestSuite) TestWasmMigrate() {
 
 			tc.malleate()
 
-			err := types.WasmMigrate(suite.ctx, suite.store, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
+			err := types.WasmMigrate(suite.ctx, suite.store, &types.ClientState{}, defaultWasmClientID, []byte("{}"), suite.chainA.Codec)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -262,7 +262,7 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 
 			tc.malleate()
 
-			res, err := types.WasmSudo[types.UpdateStateResult](suite.ctx, suite.store, wasmClientState, payload)
+			res, err := types.WasmSudo[types.UpdateStateResult](suite.ctx, suite.store, wasmClientState, payload, suite.chainA.Codec)
 
 			expPass := tc.expError == nil
 			if expPass {
