@@ -5,13 +5,13 @@ go 1.21
 require (
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/math v1.2.0
-	cosmossdk.io/x/upgrade v0.0.0-20231026141021-0469fc17e158
+	cosmossdk.io/x/upgrade v0.1.0
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-sdk v0.50.1
 	github.com/cosmos/gogoproto v1.4.11
 	github.com/cosmos/ibc-go/v8 v8.0.0-20230906115913-46ee5f92e1af
 	github.com/docker/docker v24.0.6+incompatible
-	github.com/strangelove-ventures/interchaintest/v8 v8.0.0-20230913202406-3e11bf474a3b
+	github.com/strangelove-ventures/interchaintest/v8 v8.0.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.26.0
 	golang.org/x/mod v0.14.0
@@ -32,9 +32,9 @@ require (
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/log v1.2.1 // indirect
 	cosmossdk.io/store v1.0.0 // indirect
-	cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158 // indirect
-	cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158 // indirect
-	cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158 // indirect
+	cosmossdk.io/x/circuit v0.1.0 // indirect
+	cosmossdk.io/x/evidence v0.1.0 // indirect
+	cosmossdk.io/x/feegrant v0.1.0 // indirect
 	cosmossdk.io/x/tx v0.12.0 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -66,7 +66,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.0.0 // indirect
-	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc6 // indirect
+	github.com/cosmos/ibc-go/modules/capability v1.0.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
