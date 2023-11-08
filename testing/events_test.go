@@ -65,7 +65,7 @@ func TestParsePacketsFromEvents(t *testing.T) {
 					},
 				},
 			},
-			expectedError: "ibctesting.ParsePacketsFromEvents: expected height string format: {revision}-{height}. Got: x: invalid height [/home/tom/src/ibc-go/modules/core/02-client/types/height.go:140]",
+			expectedError: "ibctesting.ParsePacketsFromEvents: expected height string format: {revision}-{height}. Got: x: invalid height",
 		},
 		{
 			name: "fail: event packet with invalid AttributeKeyTimeoutTimestamp",
@@ -204,7 +204,7 @@ func TestParsePacketsFromEvents(t *testing.T) {
 			allPackets, err := ibctesting.ParsePacketsFromEvents(tt.events)
 
 			if tt.expectedError != "" {
-				assert.EqualError(err, tt.expectedError)
+				assert.ErrorContains(err, tt.expectedError)
 			} else {
 				require.NoError(err)
 				assert.Equal(tt.expectedPackets, allPackets)
@@ -213,7 +213,7 @@ func TestParsePacketsFromEvents(t *testing.T) {
 			firstPacket, err := ibctesting.ParsePacketFromEvents(tt.events)
 
 			if tt.expectedError != "" {
-				assert.EqualError(err, tt.expectedError)
+				assert.ErrorContains(err, tt.expectedError)
 			} else {
 				require.NoError(err)
 				assert.Equal(tt.expectedPackets[0], firstPacket)
