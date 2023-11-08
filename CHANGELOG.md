@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#4763](https://github.com/cosmos/ibc-go/pull/4763) Bump SDK v0.50-rc.1.
+* [\#5038](https://github.com/cosmos/ibc-go/pull/5038) Bump SDK v0.50.1 and cometBFT v0.38.
 * [\#4398](https://github.com/cosmos/ibc-go/pull/4398) Update all modules to go 1.21.
 
 ### API Breaking
