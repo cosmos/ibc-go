@@ -27,6 +27,14 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgStoreCode{},
 	)
+	registry.RegisterImplementations(
+		(*sdk.Msg)(nil),
+		&MsgMigrateContract{},
+	)
+	registry.RegisterImplementations(
+		(*sdk.Msg)(nil),
+		&MsgRemoveCodeHash{},
+	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
