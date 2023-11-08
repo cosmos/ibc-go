@@ -5,7 +5,7 @@ go 1.21
 require (
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/math v1.2.0
-	cosmossdk.io/x/upgrade v0.0.0-20231026141021-0469fc17e158
+	cosmossdk.io/x/upgrade v0.1.0
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-sdk v0.50.1
 	github.com/cosmos/gogoproto v1.4.11
