@@ -117,7 +117,7 @@ func wasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *Client
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg, cdc codec.BinaryCodec) (T, error) {
+func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload SudoMsg, clientStore storetypes.KVStore, cs *ClientState) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -145,15 +145,15 @@ func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 		return result, errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
 	}
 
-	oldCodeHash := cs.CodeHash
+	codeHash := cs.CodeHash
 	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
 	if err != nil {
 		return result, err
 	}
 
 	// code has should only be able to be modified during migration.
-	if !bytes.Equal(oldCodeHash, newClientState.CodeHash) {
-		return result, errorsmod.Wrapf(ErrWasmInvalidContractModification, "code hash changed from %s to %s", hex.EncodeToString(oldCodeHash), hex.EncodeToString(newClientState.CodeHash))
+	if !bytes.Equal(codeHash, newClientState.CodeHash) {
+		return result, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected code hash %s, got %s", hex.EncodeToString(codeHash), hex.EncodeToString(newClientState.CodeHash))
 	}
 
 	return result, nil

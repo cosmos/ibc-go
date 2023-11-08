@@ -165,7 +165,7 @@ func (cs ClientState) VerifyMembership(
 			Value:            value,
 		},
 	}
-	_, err := wasmSudo[EmptyResult](ctx, clientStore, &cs, payload, cdc)
+	_, err := wasmSudo[EmptyResult](ctx, cdc, payload, clientStore, &cs)
 	return err
 }
 
@@ -208,6 +208,6 @@ func (cs ClientState) VerifyNonMembership(
 			Path:             merklePath,
 		},
 	}
-	_, err := wasmSudo[EmptyResult](ctx, clientStore, &cs, payload, cdc)
+	_, err := wasmSudo[EmptyResult](ctx, cdc, payload, clientStore, &cs)
 	return err
 }

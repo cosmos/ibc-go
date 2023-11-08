@@ -37,6 +37,6 @@ func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.B
 		MigrateClientStore: &MigrateClientStoreMsg{},
 	}
 
-	_, err := wasmSudo[EmptyResult](ctx, store, &cs, payload, cdc)
+	_, err := wasmSudo[EmptyResult](ctx, cdc, payload, store, &cs)
 	return err
 }

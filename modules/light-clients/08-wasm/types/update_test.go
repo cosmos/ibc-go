@@ -77,7 +77,11 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					err := json.Unmarshal(sudoMsg, &msg)
 					suite.Require().NoError(err)
 
-					expectedClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash)
+					bz := store.Get(host.ClientStateKey())
+					suite.Require().NotEmpty(bz)
+					clientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, bz).(*types.ClientState)
+					clientState.Data = msg.UpdateState.ClientMessage.Data
+					expectedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), expectedClientStateBz)
 
 					updateStateResp := types.UpdateStateResult{
@@ -167,7 +171,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 	var clientMsg exported.ClientMessage
 
-	var updatedClientStateBz []byte
+	var expectedClientStateBz []byte
 
 	testCases := []struct {
 		name               string
@@ -214,8 +218,8 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 					suite.Require().NoError(err)
 
 					// set new client state in store
-					updatedClientStateBz = msg.UpdateStateOnMisbehaviour.ClientMessage.Data
-					store.Set(host.ClientStateKey(), updatedClientStateBz)
+					expectedClientStateBz = msg.UpdateStateOnMisbehaviour.ClientMessage.Data
+					store.Set(host.ClientStateKey(), expectedClientStateBz)
 					resp, err := json.Marshal(types.EmptyResult{})
 					if err != nil {
 						return nil, 0, err
@@ -252,7 +256,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 		suite.Run(tc.name, func() {
 			// reset suite to create fresh application state
 			suite.SetupWasmWithMockVM()
-			updatedClientStateBz = nil
+			expectedClientStateBz = nil
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -268,8 +272,8 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			if tc.panicErr == nil {
 				clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), store, clientMsg)
-				if updatedClientStateBz != nil {
-					suite.Require().Equal(updatedClientStateBz, store.Get(host.ClientStateKey()))
+				if expectedClientStateBz != nil {
+					suite.Require().Equal(expectedClientStateBz, store.Get(host.ClientStateKey()))
 				}
 			} else {
 				suite.Require().PanicsWithError(tc.panicErr.Error(), func() {
