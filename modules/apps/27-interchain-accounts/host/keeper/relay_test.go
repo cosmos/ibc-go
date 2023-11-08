@@ -176,11 +176,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				msg := &govtypes.MsgSubmitProposal{
 					Content:        protoAny,
-<<<<<<< HEAD
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(5000))),
-=======
 					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
->>>>>>> 27b8afab (deps: bump SDK v0.50.1 (#5038))
 					Proposer:       interchainAccountAddr,
 				}
 
@@ -448,9 +444,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-<<<<<<< HEAD
-			false,
-=======
 			ibcerrors.ErrUnauthorized,
 		},
 	}
@@ -803,7 +796,6 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			icatypes.ErrUnknownDataType,
->>>>>>> 27b8afab (deps: bump SDK v0.50.1 (#5038))
 		},
 	}
 
