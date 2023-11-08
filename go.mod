@@ -3,7 +3,7 @@ go 1.21
 module github.com/cosmos/ibc-go/v8
 
 require (
-	cosmossdk.io/api v0.7.3-0.20231029200940-6af7f30bfd54
+	cosmossdk.io/api v0.7.2
 	cosmossdk.io/client/v2 v2.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
