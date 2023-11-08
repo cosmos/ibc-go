@@ -288,7 +288,6 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 	var (
 		msg           *types.MsgRemoveCodeHash
 		expCodeHashes []types.CodeHash
-		expFound      bool
 	)
 
 	testCases := []struct {
@@ -302,7 +301,6 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
 
 				expCodeHashes = []types.CodeHash{}
-				expFound = true
 			},
 			nil,
 		},
@@ -311,7 +309,6 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			func() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
 
-				expFound = true
 				expCodeHashes = []types.CodeHash{}
 
 				for i := 0; i < 20; i++ {
@@ -325,14 +322,11 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			nil,
 		},
 		{
-			"success: code hash is missing",
+			"failure: code hash is missing",
 			func() {
 				msg = types.NewMsgRemoveCodeHash(govAcc, []byte{1})
-
-				expCodeHashes = []types.CodeHash{codeHash[:]}
-				expFound = false
 			},
-			nil,
+			types.ErrWasmCodeHashNotFound,
 		},
 		{
 			"failure: unauthorized signer",
@@ -360,7 +354,6 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(expFound, res.Found)
 
 				codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
 				suite.Require().NoError(err)

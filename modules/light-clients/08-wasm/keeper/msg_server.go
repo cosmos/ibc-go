@@ -39,14 +39,16 @@ func (k Keeper) RemoveCodeHash(goCtx context.Context, msg *types.MsgRemoveCodeHa
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	found := types.HasCodeHash(goCtx, msg.CodeHash)
+	if !types.HasCodeHash(goCtx, msg.CodeHash) {
+		return nil, types.ErrWasmCodeHashNotFound
+	}
 
 	err := ibcwasm.CodeHashes.Remove(goCtx, msg.CodeHash)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to remove code hash")
 	}
 
-	return &types.MsgRemoveCodeHashResponse{Found: found}, nil
+	return &types.MsgRemoveCodeHashResponse{}, nil
 }
 
 // MigrateContract defines a rpc handler method for MsgMigrateContract
