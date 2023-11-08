@@ -209,8 +209,8 @@ cosmossdk.io/tools/confix v0.0.0-20231026141021-0469fc17e158 h1:JUU+qAuoT7koMP3A
 cosmossdk.io/tools/confix v0.0.0-20231026141021-0469fc17e158/go.mod h1:Dq174Qyh5wJaJtsyoQOKeDWFBF7i95b7fRAYokzMYmo=
 cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158 h1:w1WHpy0McqngZXmpYamLfwFytT5lY/EfnDrJIgLeG8w=
 cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158/go.mod h1:xqLjv08l2XgIZLOuNUQpdxSeggQXopbq1PV6ZfHOyOE=
-cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158 h1:vXroToZDOIqOxsLxkmFjuPaKr2HlDmhD9Md2eT9abp0=
-cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158/go.mod h1:N//0zHq1MoGysusHeZC/LmH0Lw3u55QR/mUr5UMzCSw=
+cosmossdk.io/x/evidence v0.1.0 h1:J6OEyDl1rbykksdGynzPKG5R/zm6TacwW2fbLTW4nCk=
+cosmossdk.io/x/evidence v0.1.0/go.mod h1:hTaiiXsoiJ3InMz1uptgF0BnGqROllAN8mwisOMMsfw=
 cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158 h1:/Vvseql0IDcoBquKcRopFt4wKEVFC8EQUOGG79BS+Zo=
 cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158/go.mod h1:vmiW+2cIfGZULh6ReN03sawbhn8UUGrttNMxiIiduKI=
 cosmossdk.io/x/tx v0.12.0 h1:Ry2btjQdrfrje9qZ3iZeZSmDArjgxUJMMcLMrX4wj5U=
