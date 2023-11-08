@@ -141,7 +141,7 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.
 }
 
 // ExecuteGovV1Proposal submits a v1 governance proposal using the provided user and message and uses all validators
-// to vote yes on the proposal. It ensures the proposal successfully passes.
+// to vote yes on the proposal.
 func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, chain ibc.Chain, user ibc.Wallet) error {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
