@@ -121,10 +121,10 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 
 	// Create a new channel & get channels from each chain
-	// err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
-	// s.Require().NoError(err)
-	// err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
-	// s.Require().NoError(err)
+	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
+	s.Require().NoError(err)
 
 	// Start relayer
 	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
