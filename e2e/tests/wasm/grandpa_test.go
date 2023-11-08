@@ -67,58 +67,7 @@ type GrandpaTestSuite struct {
 func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	ctx := context.Background()
 
-	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
-		// configure chain A (polkadot)
-		options.ChainASpec.ChainName = composable
-		options.ChainASpec.Type = "polkadot"
-		options.ChainASpec.ChainID = "rococo-local"
-		options.ChainASpec.Name = "composable"
-		options.ChainASpec.Images = []ibc.DockerImage{
-			// TODO: https://github.com/cosmos/ibc-go/issues/4965
-			{
-				Repository: "ghcr.io/misko9/polkadot-node",
-				Version:    "local",
-				UidGid:     "1000:1000",
-			},
-			{
-				Repository: "ghcr.io/misko9/parachain-node",
-				Version:    "latest",
-				UidGid:     "1000:1000",
-			},
-		}
-		options.ChainASpec.Bin = "polkadot"
-		options.ChainASpec.Bech32Prefix = composable
-		options.ChainASpec.Denom = "uDOT"
-		options.ChainASpec.GasPrices = ""
-		options.ChainASpec.GasAdjustment = 0
-		options.ChainASpec.TrustingPeriod = ""
-		options.ChainASpec.CoinType = "354"
-
-		// these values are set by default for our cosmos chains, we need to explicitly remove them here.
-		options.ChainASpec.ModifyGenesis = nil
-		options.ChainASpec.ConfigFileOverrides = nil
-		options.ChainASpec.EncodingConfig = nil
-
-		// configure chain B (cosmos)
-		options.ChainBSpec.ChainName = simd // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
-		options.ChainBSpec.Type = "cosmos"
-		options.ChainBSpec.Name = "simd"
-		options.ChainBSpec.ChainID = simd
-		options.ChainBSpec.Bin = simd
-		options.ChainBSpec.Bech32Prefix = "cosmos"
-
-		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here right now.
-		// https://github.com/cosmos/ibc-go/issues/4964
-		options.ChainBSpec.Denom = "stake"
-		options.ChainBSpec.GasPrices = "0.00stake"
-		options.ChainBSpec.GasAdjustment = 1
-		options.ChainBSpec.TrustingPeriod = "504h"
-		options.ChainBSpec.CoinType = "118"
-
-		options.ChainBSpec.ChainConfig.NoHostMount = false
-		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
-		options.ChainBSpec.EncodingConfig = testsuite.SDKEncodingConfig()
-	})
+	chainA, chainB := s.GetGrandpaTestChains()
 
 	polkadotChain := chainA.(*polkadot.PolkadotChain)
 	cosmosChain := chainB.(*cosmos.CosmosChain)
@@ -255,6 +204,182 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	s.Require().True(parachainUserStake.Amount.Equal(math.NewInt(amountToSend-amountToReflect)), "parachain user's final stake amount not expected")
 }
 
+func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
+	ctx := context.Background()
+
+	chainA, chainB := s.GetGrandpaTestChains()
+
+	polkadotChain := chainA.(*polkadot.PolkadotChain)
+	cosmosChain := chainB.(*cosmos.CosmosChain)
+
+	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
+	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
+		options.SkipPathCreation = true
+	})
+
+	s.InitGRPCClients(cosmosChain)
+
+	var err error
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
+	s.Require().NoError(err)
+
+	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
+
+	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
+
+	eRep := s.GetRelayerExecReporter()
+
+	// Set client contract hash in cosmos chain config
+	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
+	s.Require().NoError(err)
+
+	// Ensure parachain has started (starts 1 session/epoch after relay chain)
+	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
+	s.Require().NoError(err, "polkadot chain failed to make blocks")
+
+	pathName := s.GetPathName(0)
+
+	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
+	s.Require().NoError(err)
+
+	// Create new clients
+	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain) // these 1 block waits seem to be needed to reduce flakiness
+	s.Require().NoError(err)
+
+	// Create a new connection
+	err = r.CreateConnections(ctx, eRep, pathName)
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
+	s.Require().NoError(err)
+
+	// Create a new channel & get channels from each chain
+	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
+	s.Require().NoError(err)
+
+	// Do not start relayer
+
+	// This contract is a dummy contract that will always succeed migration.
+	// Other entry points are unimplemented.
+	migrateFile, err := os.Open("../data/migrate_success.wasm.gz")
+	s.Require().NoError(err)
+
+	// First Store the code
+	newCodeHashHex := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, migrateFile)
+	s.Require().NotEmpty(newCodeHashHex, "codehash was empty but should not have been")
+
+	newCodeHashBz, err := hex.DecodeString(newCodeHashHex)
+	s.Require().NoError(err)
+
+	// Attempt to migrate the contract
+	message := wasmtypes.MsgMigrateContract{
+		Signer:   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ClientId: "08-wasm-0",
+		CodeHash: newCodeHashBz,
+		Msg:      []byte("{}"),
+	}
+
+	s.ExecuteAndPassGovV1Proposal(ctx, &message, cosmosChain, cosmosWallet)
+
+	clientState, err := s.QueryClientState(ctx, cosmosChain, "08-wasm-0")
+	s.Require().NoError(err)
+
+	wasmClientState, ok := clientState.(*wasmtypes.ClientState)
+	s.Require().True(ok)
+
+	s.Require().Equal(newCodeHashBz, wasmClientState.CodeHash)
+}
+
+func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract() {
+	ctx := context.Background()
+
+	chainA, chainB := s.GetGrandpaTestChains()
+
+	polkadotChain := chainA.(*polkadot.PolkadotChain)
+	cosmosChain := chainB.(*cosmos.CosmosChain)
+
+	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
+	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
+		options.SkipPathCreation = true
+	})
+
+	s.InitGRPCClients(cosmosChain)
+
+	var err error
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
+	s.Require().NoError(err)
+
+	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
+
+	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
+
+	eRep := s.GetRelayerExecReporter()
+
+	// Set client contract hash in cosmos chain config
+	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
+	s.Require().NoError(err)
+
+	// Ensure parachain has started (starts 1 session/epoch after relay chain)
+	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
+	s.Require().NoError(err, "polkadot chain failed to make blocks")
+
+	pathName := s.GetPathName(0)
+
+	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
+	s.Require().NoError(err)
+
+	// Create new clients
+	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain) // these 1 block waits seem to be needed to reduce flakiness
+	s.Require().NoError(err)
+
+	// Create a new connection
+	err = r.CreateConnections(ctx, eRep, pathName)
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
+	s.Require().NoError(err)
+
+	// Create a new channel & get channels from each chain
+	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
+	s.Require().NoError(err)
+
+	// Start relayer
+	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
+
+	// This contract is a dummy contract that will always fail migration.
+	// Other entry points are unimplemented.
+	migrateFile, err := os.Open("../data/migrate_error.wasm.gz")
+	s.Require().NoError(err)
+
+	// First Store the code
+	newCodeHashHex := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, migrateFile)
+	s.Require().NotEmpty(newCodeHashHex, "codehash was empty but should not have been")
+
+	newCodeHashBz, err := hex.DecodeString(newCodeHashHex)
+	s.Require().NoError(err)
+
+	// Attempt to migrate the contract
+	message := wasmtypes.MsgMigrateContract{
+		Signer:   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ClientId: "08-wasm-0",
+		CodeHash: newCodeHashBz,
+		Msg:      []byte("{}"),
+	}
+
+	err = s.ExecuteGovV1Proposal(ctx, &message, cosmosChain, cosmosWallet)
+	s.Require().Error(err)
+}
+
 // extractCodeHashFromGzippedContent takes a gzipped wasm contract and returns the codehash.
 func (s *GrandpaTestSuite) extractCodeHashFromGzippedContent(zippedContent []byte) string {
 	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmByteSize())
@@ -312,10 +437,33 @@ func (s *GrandpaTestSuite) fundUsers(ctx context.Context, fundAmount int64, polk
 	return polkadotUser, cosmosUser
 }
 
-func (s *GrandpaTestSuite) TestMsgMigrateContract_FailedMigration_GrandpaContract() {
-	ctx := context.Background()
+// validateTestConfig ensures that the given test config is valid for this test suite.
+func validateTestConfig() {
+	tc := testsuite.LoadConfig()
+	if tc.ActiveRelayer != "hyperspace" {
+		panic(fmt.Errorf("hyperspace relayer must be specified"))
+	}
+}
 
-	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
+// getConfigOverrides returns configuration overrides that will be applied to the simapp.
+func getConfigOverrides() map[string]any {
+	consensusOverrides := make(testutil.Toml)
+	blockTime := 5
+	blockT := (time.Duration(blockTime) * time.Second).String()
+	consensusOverrides["timeout_commit"] = blockT
+	consensusOverrides["timeout_propose"] = blockT
+
+	configTomlOverrides := make(testutil.Toml)
+	configTomlOverrides["consensus"] = consensusOverrides
+	configTomlOverrides["log_level"] = "info"
+
+	configFileOverrides := make(map[string]any)
+	configFileOverrides["config/config.toml"] = configTomlOverrides
+	return configFileOverrides
+}
+
+func (s *GrandpaTestSuite) GetGrandpaTestChains() (ibc.Chain, ibc.Chain) {
+	return s.GetChains(func(options *testsuite.ChainOptions) {
 		// configure chain A (polkadot)
 		options.ChainASpec.ChainName = composable
 		options.ChainASpec.Type = "polkadot"
@@ -367,111 +515,4 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_FailedMigration_GrandpaContrac
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
 		options.ChainBSpec.EncodingConfig = testsuite.SDKEncodingConfig()
 	})
-
-	polkadotChain := chainA.(*polkadot.PolkadotChain)
-	cosmosChain := chainB.(*cosmos.CosmosChain)
-
-	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
-	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
-		options.SkipPathCreation = true
-	})
-
-	s.InitGRPCClients(cosmosChain)
-
-	var err error
-	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-
-	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
-	s.Require().NoError(err)
-
-	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
-
-	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
-
-	eRep := s.GetRelayerExecReporter()
-
-	// Set client contract hash in cosmos chain config
-	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
-	s.Require().NoError(err)
-
-	// Ensure parachain has started (starts 1 session/epoch after relay chain)
-	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
-	s.Require().NoError(err, "polkadot chain failed to make blocks")
-
-	// Fund users on both cosmos and parachain, mints Asset 1 for Alice
-	// fundAmount := int64(12_333_000_000_000)
-	// polkadotUser, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
-
-	pathName := s.GetPathName(0)
-
-	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
-	s.Require().NoError(err)
-
-	// Create new clients
-	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain) // these 1 block waits seem to be needed to reduce flakiness
-	s.Require().NoError(err)
-
-	// Create a new connection
-	err = r.CreateConnections(ctx, eRep, pathName)
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
-	s.Require().NoError(err)
-
-	// Create a new channel & get channels from each chain
-	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
-	s.Require().NoError(err)
-
-	// Start relayer
-	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
-
-	// Setup complete, now we can test migration
-	migrateFile, err := os.Open("../data/migrate_error.wasm.gz")
-	s.Require().NoError(err)
-
-	// First Store the code
-	newCodeHashHex := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, migrateFile)
-	s.Require().NotEmpty(newCodeHashHex, "codehash was empty but should not have been")
-
-	newCodeHashBz, err := hex.DecodeString(newCodeHashHex)
-	s.Require().NoError(err)
-
-	// Attempt to migrate the contract
-	message := wasmtypes.MsgMigrateContract{
-		Signer:   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		ClientId: "08-wasm-0",
-		CodeHash: newCodeHashBz,
-		Msg:      []byte("{}"),
-	}
-
-	err = s.ExecuteGovV1Proposal(ctx, &message, cosmosChain, cosmosWallet)
-	s.Require().Error(err)
-}
-
-// validateTestConfig ensures that the given test config is valid for this test suite.
-func validateTestConfig() {
-	tc := testsuite.LoadConfig()
-	if tc.ActiveRelayer != "hyperspace" {
-		panic(fmt.Errorf("hyperspace relayer must be specified"))
-	}
-}
-
-// getConfigOverrides returns configuration overrides that will be applied to the simapp.
-func getConfigOverrides() map[string]any {
-	consensusOverrides := make(testutil.Toml)
-	blockTime := 5
-	blockT := (time.Duration(blockTime) * time.Second).String()
-	consensusOverrides["timeout_commit"] = blockT
-	consensusOverrides["timeout_propose"] = blockT
-
-	configTomlOverrides := make(testutil.Toml)
-	configTomlOverrides["consensus"] = consensusOverrides
-	configTomlOverrides["log_level"] = "info"
-
-	configFileOverrides := make(map[string]any)
-	configFileOverrides["config/config.toml"] = configTomlOverrides
-	return configFileOverrides
 }
