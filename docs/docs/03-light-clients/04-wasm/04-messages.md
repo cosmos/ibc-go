@@ -60,10 +60,10 @@ Removing a code hash from the allow list is achieved by means of `MsgRemoveCodeH
 
 ```go
 type MsgRemoveCodeHash struct {
-	// signer address
-	Signer string
-	// code hash to be removed from the store
-	CodeHash []byte
+  // signer address
+  Signer string
+  // code hash to be removed from the store
+  CodeHash []byte
 }
 ```
 

@@ -90,7 +90,7 @@ func NewSimApp(
   ...
 
 	// initialize BaseApp
-	app.SetInitChainer(app.InitChainer)
+  app.SetInitChainer(app.InitChainer)
   ...
 
   // must be before Loading version

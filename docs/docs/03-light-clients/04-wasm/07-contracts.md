@@ -19,8 +19,8 @@ This is the message sent to the contract's `instantiate` entry point. It contain
 
 ```go
 type InstantiateMessage struct {
-	ClientState    *ClientState    `json:"client_state"`
-	ConsensusState *ConsensusState `json:"consensus_state"`
+  ClientState    *ClientState    `json:"client_state"`
+  ConsensusState *ConsensusState `json:"consensus_state"`
 }
 ```
 
@@ -32,22 +32,22 @@ The Wasm light client contract is expected to store the client and consensus sta
 
 ```go
 type QueryMsg struct {
-	Status               *StatusMsg               `json:"status,omitempty"`
-	ExportMetadata       *ExportMetadataMsg       `json:"export_metadata,omitempty"`
-	TimestampAtHeight    *TimestampAtHeightMsg    `json:"timestamp_at_height,omitempty"`
-	VerifyClientMessage  *VerifyClientMessageMsg  `json:"verify_client_message,omitempty"`
-	CheckForMisbehaviour *CheckForMisbehaviourMsg `json:"check_for_misbehaviour,omitempty"`
+  Status               *StatusMsg               `json:"status,omitempty"`
+  ExportMetadata       *ExportMetadataMsg       `json:"export_metadata,omitempty"`
+  TimestampAtHeight    *TimestampAtHeightMsg    `json:"timestamp_at_height,omitempty"`
+  VerifyClientMessage  *VerifyClientMessageMsg  `json:"verify_client_message,omitempty"`
+  CheckForMisbehaviour *CheckForMisbehaviourMsg `json:"check_for_misbehaviour,omitempty"`
 }
 ```
 
 ```rust
 #[cw_serde]
 pub enum QueryMsg {
-	Status(StatusMsg),
-	ExportMetadata(ExportMetadataMsg),
-	TimestampAtHeight(TimestampAtHeightMsg),
-	VerifyClientMessage(VerifyClientMessageRaw),
-	CheckForMisbehaviour(CheckForMisbehaviourMsgRaw),
+  Status(StatusMsg),
+  ExportMetadata(ExportMetadataMsg),
+  TimestampAtHeight(TimestampAtHeightMsg),
+  VerifyClientMessage(VerifyClientMessageRaw),
+  CheckForMisbehaviour(CheckForMisbehaviourMsgRaw),
 }
 ```
 
@@ -67,24 +67,24 @@ The `sudo` entry point is able to perform state-changing writes in the client-pr
 
 ```go
 type SudoMsg struct {
-	UpdateState                 *UpdateStateMsg                 `json:"update_state,omitempty"`
-	UpdateStateOnMisbehaviour   *UpdateStateOnMisbehaviourMsg   `json:"update_state_on_misbehaviour,omitempty"`
-	VerifyUpgradeAndUpdateState *VerifyUpgradeAndUpdateStateMsg `json:"verify_upgrade_and_update_state,omitempty"`
-	VerifyMembership            *VerifyMembershipMsg            `json:"verify_membership,omitempty"`
-	VerifyNonMembership         *VerifyNonMembershipMsg         `json:"verify_non_membership,omitempty"`
-	MigrateClientStore          *MigrateClientStoreMsg          `json:"migrate_client_store,omitempty"`
+  UpdateState                 *UpdateStateMsg                 `json:"update_state,omitempty"`
+  UpdateStateOnMisbehaviour   *UpdateStateOnMisbehaviourMsg   `json:"update_state_on_misbehaviour,omitempty"`
+  VerifyUpgradeAndUpdateState *VerifyUpgradeAndUpdateStateMsg `json:"verify_upgrade_and_update_state,omitempty"`
+  VerifyMembership            *VerifyMembershipMsg            `json:"verify_membership,omitempty"`
+  VerifyNonMembership         *VerifyNonMembershipMsg         `json:"verify_non_membership,omitempty"`
+  MigrateClientStore          *MigrateClientStoreMsg          `json:"migrate_client_store,omitempty"`
 }
 ```
 
 ```rust
 #[cw_serde]
 pub enum SudoMsg {
-	UpdateState(UpdateStateMsgRaw),
-	UpdateStateOnMisbehaviour(UpdateStateOnMisbehaviourMsgRaw),
-	VerifyUpgradeAndUpdateState(VerifyUpgradeAndUpdateStateMsgRaw),
-	VerifyMembership(VerifyMembershipMsgRaw),
-	VerifyNonMembership(VerifyNonMembershipMsgRaw),
-	MigrateClientStore(MigrateClientStoreMsgRaw),
+  UpdateState(UpdateStateMsgRaw),
+  UpdateStateOnMisbehaviour(UpdateStateOnMisbehaviourMsgRaw),
+  VerifyUpgradeAndUpdateState(VerifyUpgradeAndUpdateStateMsgRaw),
+  VerifyMembership(VerifyMembershipMsgRaw),
+  VerifyNonMembership(VerifyNonMembershipMsgRaw),
+  MigrateClientStore(MigrateClientStoreMsgRaw),
 }
 ```
 
