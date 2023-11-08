@@ -38,7 +38,7 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
 
 ## Storing new Wasm light client byte code
 
- If governance is the allowed authority, the governance v1 proposal that needs to be submitted to upload a new light client contract should contain the message [`MsgStoreCode`](https://github.com/cosmos/ibc-go/blob/f822b4fa7932a657420aba219c563e06c4465221/proto/ibc/lightclients/wasm/v1/tx.proto#L16-L23) with the base64-encoded bytecode of the Wasm contract. Use the following CLI command and JSON as an example:
+ If governance is the allowed authority, the governance v1 proposal that needs to be submitted to upload a new light client contract should contain the message [`MsgStoreCode`](https://github.com/cosmos/ibc-go/blob/f822b4fa7932a657420aba219c563e06c4465221/proto/ibc/lightclients/wasm/v1/tx.proto#L16-L23) with the base64-encoded byte code of the Wasm contract. Use the following CLI command and JSON as an example:
 
 ```shell
 %s tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
