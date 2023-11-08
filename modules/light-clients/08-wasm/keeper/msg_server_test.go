@@ -359,8 +359,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 				suite.Require().NoError(err)
 
 				// Check equality of code hashes up to order
-				suite.Require().Subset(expCodeHashes, codeHashes)
-				suite.Require().Subset(codeHashes, expCodeHashes)
+				suite.Require().ElementsMatch(expCodeHashes, codeHashes)
 
 				// Verify events
 				suite.Require().Len(events, 0)
