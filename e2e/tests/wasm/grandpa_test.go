@@ -261,7 +261,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	ctx := context.Background()
 
 	// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
-	var badTrustingPeriod = time.Second * 200
+	var badTrustingPeriod = time.Second * 500
 
 	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
 		// configure chain A (polkadot)
