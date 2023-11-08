@@ -33,7 +33,7 @@ require (
 	cosmossdk.io/log v1.2.1 // indirect
 	cosmossdk.io/store v1.0.0 // indirect
 	cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158 // indirect
-	cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158 // indirect
+	cosmossdk.io/x/evidence v0.1.0 // indirect
 	cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158 // indirect
 	cosmossdk.io/x/tx v0.12.0 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
