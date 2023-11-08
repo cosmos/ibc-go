@@ -49,11 +49,7 @@ func NewAppModuleBasic(cdc codec.Codec) AppModuleBasic {
 }
 
 // Name returns the capability module's name.
-<<<<<<< HEAD
 func (AppModuleBasic) Name() string {
-=======
-func (am AppModuleBasic) Name() string {
->>>>>>> 27b8afab (deps: bump SDK v0.50.1 (#5038))
 	return types.ModuleName
 }
 
@@ -114,14 +110,11 @@ func (AppModule) IsOnePerModuleType() {}
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
 
-<<<<<<< HEAD
 // Name returns the capability module's name.
 func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
 }
 
-=======
->>>>>>> 27b8afab (deps: bump SDK v0.50.1 (#5038))
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
