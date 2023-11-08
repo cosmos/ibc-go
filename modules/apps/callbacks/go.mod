@@ -16,7 +16,7 @@ require (
 	cosmossdk.io/log v1.2.1
 	cosmossdk.io/math v1.2.0
 	cosmossdk.io/store v1.0.0
-	cosmossdk.io/tools/confix v0.0.0-20231026141021-0469fc17e158
+	cosmossdk.io/tools/confix v0.1.0
 	cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158
