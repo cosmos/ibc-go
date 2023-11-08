@@ -33,6 +33,14 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 			"",
 			false,
 		},
+		{
+			"owner address is too long",
+			func() {
+				owner = ibctesting.GenerateString(types.MaximumOwnerLength + 100)
+			},
+			"",
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -44,6 +52,9 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 			suite.coordinator.Setup(path)
 
 			tc.malleate() // malleate mutates test data
+
+			// print owner
+			fmt.Println("OWNER: ", owner)
 
 			portID, err := types.NewControllerPortID(owner)
 

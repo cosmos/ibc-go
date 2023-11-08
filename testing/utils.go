@@ -3,6 +3,8 @@ package ibctesting
 import (
 	"testing"
 
+	"math/rand"
+
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -20,4 +22,13 @@ func ApplyValSetChanges(t *testing.T, valSet *tmtypes.ValidatorSet, valUpdates [
 	require.NoError(t, err)
 
 	return newVals
+}
+
+// generateString generates a random string of the given length in bytes
+func GenerateString(length uint) string {
+	bytes := make([]byte, length)
+	for i := range bytes {
+		bytes[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(bytes)
 }
