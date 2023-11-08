@@ -46,10 +46,7 @@ message MsgRemoveCodeHash {
 }
 
 // MsgStoreCodeResponse defines the response type for the StoreCode rpc
-message MsgRemoveCodeHashResponse {
-  // true if the code hash was found in the store
-  bool found = 1;
-}
+message MsgRemoveCodeHashResponse {}
 
 // MsgMigrateContract defines the request type for the MigrateContract rpc.
 message MsgMigrateContract {
