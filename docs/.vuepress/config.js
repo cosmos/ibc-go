@@ -519,12 +519,17 @@ module.exports = {
                 {
                   title: "Deployment",
                   directory: false,
-                  path: "/ibc/light-clients/wasm/deployment.html",
+                  path: "/ibc/light-clients/wasm/governance.html",
                 },
                 {
                   title: "Events",
                   directory: false,
                   path: "/ibc/light-clients/wasm/events.html",
+                },
+                {
+                  title: "Contracts",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/contracts.html",
                 },
                 {
                   title: "Client",

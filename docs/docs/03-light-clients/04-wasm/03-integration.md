@@ -223,7 +223,7 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 
 Check out also the [`WasmConfig` type definition](https://github.com/cosmos/ibc-go/blob/c95c22f45cb217d27aca2665af9ac60b0d2f3a0c/modules/light-clients/08-wasm/types/config.go#L7-L20) for more information on each of the configurable parameters. Some parameters allow node-level configurations. There is additionally the function [`DefaultWasmConfig`](https://github.com/cosmos/ibc-go/blob/6d8cee53a72524b7cf396d65f6c19fed45803321/modules/light-clients/08-wasm/types/config.go#L30) available that returns a configuration with the default values.
 
-### Updating `AllowedClients`
+## Updating `AllowedClients`
 
 In order to use the `08-wasm` module chains must update the [`AllowedClients` parameter in the 02-client submodule](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/client/v1/client.proto#L103) of core IBC. This can be configured directly in the application upgrade handler with the sample code below:
 
@@ -235,7 +235,6 @@ clientKeeper.SetParams(ctx, params)
 
 Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients`](../01-developer-guide/09-setup.md#creating-clients) for an example of how to do this).
 
-### Adding Snapshot support
+## Adding snapshot support
 
-In order to use the `08-wasm` module chains are required to register the `WasmSnapshotter` extension in the snapshot manager. This snapshotter takes care
-of persisting the external state, in the form of contract code, of the Wasm VM instance to disk when the chain is snapshotted.
+In order to use the `08-wasm` module chains are required to register the `WasmSnapshotter` extension in the snapshot manager. This snapshotter takes care of persisting the external state, in the form of contract code, of the Wasm VM instance to disk when the chain is snapshotted.
