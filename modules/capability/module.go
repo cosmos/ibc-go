@@ -49,7 +49,7 @@ func NewAppModuleBasic(cdc codec.Codec) AppModuleBasic {
 }
 
 // Name returns the capability module's name.
-func (am AppModuleBasic) Name() string {
+func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
