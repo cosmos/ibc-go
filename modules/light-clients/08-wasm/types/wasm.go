@@ -30,7 +30,7 @@ func GetAllCodeHashes(ctx context.Context) ([]CodeHash, error) {
 	return codeHashes, nil
 }
 
-// HasCodeHash returns true if the given code hash exists in the store and
+// HasCodeHash returns true if the given checksum exists in the store and
 // false otherwise.
 func HasCodeHash(ctx context.Context, codeHash CodeHash) bool {
 	found, err := ibcwasm.CodeHashes.Has(ctx, codeHash)
