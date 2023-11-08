@@ -250,18 +250,6 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain) // these 1 block waits seem to be needed to reduce flakiness
 	s.Require().NoError(err)
 
-	// Create a new connection
-	err = r.CreateConnections(ctx, eRep, pathName)
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
-	s.Require().NoError(err)
-
-	// Create a new channel & get channels from each chain
-	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
-	s.Require().NoError(err)
-
 	// Do not start relayer
 
 	// This contract is a dummy contract that will always succeed migration.
@@ -341,20 +329,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain) // these 1 block waits seem to be needed to reduce flakiness
 	s.Require().NoError(err)
 
-	// Create a new connection
-	err = r.CreateConnections(ctx, eRep, pathName)
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
-	s.Require().NoError(err)
-
-	// Create a new channel & get channels from each chain
-	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
-	s.Require().NoError(err)
-	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
-	s.Require().NoError(err)
-
-	// Start relayer
-	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
+	// Do not start the relayer
 
 	// This contract is a dummy contract that will always fail migration.
 	// Other entry points are unimplemented.
