@@ -429,21 +429,22 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_FailedMigration_GrandpaContrac
 	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
 
 	// Setup complete, now we can test migration
-	migrate_file, err := os.Open("../data/migrate_error.wasm.gz")
+	migrateFile, err := os.Open("../data/migrate_error.wasm.gz")
 	s.Require().NoError(err)
 
 	// First Store the code
-	newCodeHashHex := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, migrate_file)
+	newCodeHashHex := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, migrateFile)
 	s.Require().NotEmpty(newCodeHashHex, "codehash was empty but should not have been")
 
 	newCodeHashBz, err := hex.DecodeString(newCodeHashHex)
+	s.Require().NoError(err)
 
 	// Attempt to migrate the contract
 	message := wasmtypes.MsgMigrateContract{
-		Signer:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Signer:   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		ClientId: "08-wasm-0",
 		CodeHash: newCodeHashBz,
-		Msg: []byte("{}"),
+		Msg:      []byte("{}"),
 	}
 
 	err = s.ExecuteGovV1Proposal(ctx, &message, cosmosChain, cosmosWallet)
