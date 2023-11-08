@@ -153,7 +153,52 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 		if expPass {
 			require.NoError(t, err)
 		} else {
-			require.ErrorIs(t, err, tc.expErr)
+			require.ErrorIs(t, err, tc.expErr, tc.name)
+		}
+	}
+}
+
+func TestMsgRemoveCodeHashValidateBasic(t *testing.T) {
+	signer := sdk.AccAddress(ibctesting.TestAccAddress).String()
+
+	codeHash := sha256.Sum256(wasmtesting.Code)
+
+	testCases := []struct {
+		name   string
+		msg    *types.MsgRemoveCodeHash
+		expErr error
+	}{
+		{
+			"success: valid signer address, valid length code hash",
+			types.NewMsgRemoveCodeHash(signer, codeHash[:]),
+			nil,
+		},
+		{
+			"failure: code hash is empty",
+			types.NewMsgRemoveCodeHash(signer, []byte("")),
+			types.ErrInvalidCodeHash,
+		},
+		{
+			"failure: code hash is nil",
+			types.NewMsgRemoveCodeHash(signer, nil),
+			types.ErrInvalidCodeHash,
+		},
+		{
+			"failure: signer is invalid",
+			types.NewMsgRemoveCodeHash(ibctesting.InvalidID, codeHash[:]),
+			ibcerrors.ErrInvalidAddress,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		err := tc.msg.ValidateBasic()
+
+		if tc.expErr == nil {
+			require.NoError(t, err, tc.name)
+		} else {
+			require.ErrorIs(t, err, tc.expErr, tc.name)
 		}
 	}
 }
