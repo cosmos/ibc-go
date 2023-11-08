@@ -21,3 +21,19 @@ func emitStoreWasmCodeEvent(ctx sdk.Context, codeHash []byte) {
 		),
 	})
 }
+
+// emitMigrateContractEvent emits a migrate contract event
+func emitMigrateContractEvent(ctx sdk.Context, clientID string, codeHash, newCodeHash []byte) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeMigrateContract,
+			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
+			sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(codeHash)),
+			sdk.NewAttribute(types.AttributeKeyNewCodeHash, hex.EncodeToString(newCodeHash)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
