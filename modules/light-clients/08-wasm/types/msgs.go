@@ -25,7 +25,7 @@ func NewMsgStoreCode(signer string, code []byte) *MsgStoreCode {
 	}
 }
 
-// ValidateBasic implements sdk.Msg
+// ValidateBasic implements sdk.HasValidateBasic
 func (m MsgStoreCode) ValidateBasic() error {
 	if err := ValidateWasmCode(m.WasmByteCode); err != nil {
 		return err
@@ -40,8 +40,6 @@ func (m MsgStoreCode) ValidateBasic() error {
 }
 
 // NewMsgRemoveCodeHash creates a new MsgRemoveCodeHash instance
-//
-//nolint:interfacer
 func NewMsgRemoveCodeHash(signer string, codeHash []byte) *MsgRemoveCodeHash {
 	return &MsgRemoveCodeHash{
 		Signer:   signer,
@@ -49,7 +47,7 @@ func NewMsgRemoveCodeHash(signer string, codeHash []byte) *MsgRemoveCodeHash {
 	}
 }
 
-// ValidateBasic implements sdk.Msg
+// ValidateBasic implements sdk.HasValidateBasic
 func (m MsgRemoveCodeHash) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
@@ -73,7 +71,7 @@ func NewMsgMigrateContract(signer, clientID string, codeHash, migrateMsg []byte)
 	}
 }
 
-// ValidateBasic implements sdk.Msg
+// ValidateBasic implements sdk.HasValidateBasic
 func (m MsgMigrateContract) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {

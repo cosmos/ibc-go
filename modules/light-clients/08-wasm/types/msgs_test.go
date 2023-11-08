@@ -52,7 +52,7 @@ func TestMsgStoreCodeValidateBasic(t *testing.T) {
 		err := tc.msg.ValidateBasic()
 		expPass := tc.expErr == nil
 		if expPass {
-			require.NoError(t, err, tc.name)
+			require.NoError(t, err)
 		} else {
 			require.ErrorIs(t, err, tc.expErr)
 		}
@@ -194,8 +194,8 @@ func TestMsgRemoveCodeHashValidateBasic(t *testing.T) {
 		tc := tc
 
 		err := tc.msg.ValidateBasic()
-		expPass := tc.expErr == nil
-		if expPass {
+
+		if tc.expErr == nil {
 			require.NoError(t, err, tc.name)
 		} else {
 			require.ErrorIs(t, err, tc.expErr, tc.name)
