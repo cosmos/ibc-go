@@ -35,14 +35,14 @@ Migrating a contract to a new Wasm byte code is achieved by means of `MsgMigrate
 
 ```go
 type MsgMigrateContract struct {
- 	// signer address
+  // signer address
   Signer string
- 	// the client id of the contract
- 	ClientId string
- 	// the code hash of the new wasm byte code for the contract
- 	CodeHash []byte
- 	// the json-encoded migrate msg to be passed to the contract on migration
- 	Msg []byte
+  // the client id of the contract
+  ClientId string
+  // the code hash of the new wasm byte code for the contract
+  CodeHash []byte
+  // the json-encoded migrate msg to be passed to the contract on migration
+  Msg []byte
 }
 ```
 
@@ -60,10 +60,10 @@ Removing a code hash from the allow list is achieved by means of `MsgRemoveCodeH
 
 ```go
 type MsgRemoveCodeHash struct {
- 	// signer address
- 	Signer string
- 	// code hash to be removed from the store
- 	CodeHash []byte
+	// signer address
+	Signer string
+	// code hash to be removed from the store
+	CodeHash []byte
 }
 ```
 

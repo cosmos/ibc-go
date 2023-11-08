@@ -93,15 +93,15 @@ func NewSimApp(
 	app.SetInitChainer(app.InitChainer)
   ...
 
-	// must be before Loading version
-	if manager := app.SnapshotManager(); manager != nil {
-		err := manager.RegisterExtensions(
-			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmClientKeeper),
-		)
-		if err != nil {
-			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
-		}
-	}
+  // must be before Loading version
+  if manager := app.SnapshotManager(); manager != nil {
+    err := manager.RegisterExtensions(
+      wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmClientKeeper),
+    )
+    if err != nil {
+      panic(fmt.Errorf("failed to register snapshot extension: %s", err))
+    }
+  }
   ...
 }
 ```
