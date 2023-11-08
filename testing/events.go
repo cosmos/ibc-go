@@ -64,10 +64,26 @@ func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 
 // ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns
 // the first packet found.
+// Returns an error if no packet is found.
 func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
+	packets, err := ParsePacketsFromEvents(events)
+	if err != nil {
+		return channeltypes.Packet{}, err
+	}
+	return packets[0], nil
+}
+
+// ParsePacketsFromEvents parses events emitted from a MsgRecvPacket and returns
+// all the packets found.
+// Returns an error if no packet is found.
+func ParsePacketsFromEvents(events []abci.Event) ([]channeltypes.Packet, error) {
+	ferr := func(err error) ([]channeltypes.Packet, error) {
+		return nil, fmt.Errorf("ibctesting.ParsePacketsFromEvents: %w", err)
+	}
+	var packets []channeltypes.Packet
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeSendPacket {
-			packet := channeltypes.Packet{}
+			var packet channeltypes.Packet
 			for _, attr := range ev.Attributes {
 				switch attr.Key {
 				case channeltypes.AttributeKeyData: //nolint:staticcheck // DEPRECATED
@@ -76,7 +92,7 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 				case channeltypes.AttributeKeySequence:
 					seq, err := strconv.ParseUint(attr.Value, 10, 64)
 					if err != nil {
-						return channeltypes.Packet{}, err
+						return ferr(err)
 					}
 
 					packet.Sequence = seq
@@ -96,7 +112,7 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 				case channeltypes.AttributeKeyTimeoutHeight:
 					height, err := clienttypes.ParseHeight(attr.Value)
 					if err != nil {
-						return channeltypes.Packet{}, err
+						return ferr(err)
 					}
 
 					packet.TimeoutHeight = height
@@ -104,7 +120,7 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 				case channeltypes.AttributeKeyTimeoutTimestamp:
 					timestamp, err := strconv.ParseUint(attr.Value, 10, 64)
 					if err != nil {
-						return channeltypes.Packet{}, err
+						return ferr(err)
 					}
 
 					packet.TimeoutTimestamp = timestamp
@@ -114,27 +130,11 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 				}
 			}
 
-			return packet, nil
-		}
-	}
-	return channeltypes.Packet{}, fmt.Errorf("acknowledgement event attribute not found")
-}
-
-// ParsePacketsFromEvents parses events emitted from a MsgRecvPacket and returns
-// all the packets found.
-func ParsePacketsFromEvents(events []abci.Event) ([]channeltypes.Packet, error) {
-	var packets []channeltypes.Packet
-	for i, ev := range events {
-		if ev.Type == channeltypes.EventTypeSendPacket {
-			packet, err := ParsePacketFromEvents(events[i:])
-			if err != nil {
-				return nil, err
-			}
 			packets = append(packets, packet)
 		}
 	}
 	if len(packets) == 0 {
-		return nil, fmt.Errorf("acknowledgement event attribute not found")
+		return ferr(fmt.Errorf("acknowledgement event attribute not found"))
 	}
 	return packets, nil
 }

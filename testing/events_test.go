@@ -21,12 +21,12 @@ func TestParsePacketsFromEvents(t *testing.T) {
 		expectedError   string
 	}{
 		{
-			name:          "no events",
+			name:          "fail: no events",
 			events:        []abci.Event{},
-			expectedError: "acknowledgement event attribute not found",
+			expectedError: "ibctesting.ParsePacketsFromEvents: acknowledgement event attribute not found",
 		},
 		{
-			name: "events without packet",
+			name: "fail: events without packet",
 			events: []abci.Event{
 				{
 					Type: "xxx",
@@ -35,10 +35,55 @@ func TestParsePacketsFromEvents(t *testing.T) {
 					Type: "yyy",
 				},
 			},
-			expectedError: "acknowledgement event attribute not found",
+			expectedError: "ibctesting.ParsePacketsFromEvents: acknowledgement event attribute not found",
 		},
 		{
-			name: "events with packets",
+			name: "fail: event packet with invalid AttributeKeySequence",
+			events: []abci.Event{
+				{
+					Type: channeltypes.EventTypeSendPacket,
+					Attributes: []abci.EventAttribute{
+						{
+							Key:   channeltypes.AttributeKeySequence,
+							Value: "x",
+						},
+					},
+				},
+			},
+			expectedError: "ibctesting.ParsePacketsFromEvents: strconv.ParseUint: parsing \"x\": invalid syntax",
+		},
+		{
+			name: "fail: event packet with invalid AttributeKeyTimeoutHeight",
+			events: []abci.Event{
+				{
+					Type: channeltypes.EventTypeSendPacket,
+					Attributes: []abci.EventAttribute{
+						{
+							Key:   channeltypes.AttributeKeyTimeoutHeight,
+							Value: "x",
+						},
+					},
+				},
+			},
+			expectedError: "ibctesting.ParsePacketsFromEvents: expected height string format: {revision}-{height}. Got: x: invalid height [/home/tom/src/ibc-go/modules/core/02-client/types/height.go:140]",
+		},
+		{
+			name: "fail: event packet with invalid AttributeKeyTimeoutTimestamp",
+			events: []abci.Event{
+				{
+					Type: channeltypes.EventTypeSendPacket,
+					Attributes: []abci.EventAttribute{
+						{
+							Key:   channeltypes.AttributeKeyTimeoutTimestamp,
+							Value: "x",
+						},
+					},
+				},
+			},
+			expectedError: "ibctesting.ParsePacketsFromEvents: strconv.ParseUint: parsing \"x\": invalid syntax",
+		},
+		{
+			name: "ok: events with packets",
 			events: []abci.Event{
 				{
 					Type: "xxx",
