@@ -3,10 +3,11 @@ package types
 import "path/filepath"
 
 const (
-	// contractMemoryLimit is the memory limit of each contract execution (in MiB)
+	// ContractMemoryLimit is the memory limit of each contract execution (in MiB)
 	// constant value so all nodes run with the same limit.
 	ContractMemoryLimit = 32
-	// The wasm vm cache size is set to 0 to reduce unnecessary memory usage. See: https://github.com/CosmWasm/cosmwasm/pull/1925
+	// MemoryCacheSize is the size of the wasm vm cache (in MiB), it is set to 0 to reduce unnecessary memory usage.
+	// See: https://github.com/CosmWasm/cosmwasm/pull/1925
 	MemoryCacheSize = 0
 
 	defaultDataDir               string = "ibc_08-wasm_client_data"
