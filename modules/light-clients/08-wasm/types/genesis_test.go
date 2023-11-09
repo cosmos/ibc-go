@@ -22,7 +22,9 @@ func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
 	suite.Require().NoError(err)
 
 	clientState := types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 4))
-	gm := clientState.ExportMetadata(suite.store)
+	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
+
+	gm := clientState.ExportMetadata(clientStore)
 	suite.Require().NotNil(gm, "client returned nil")
 	suite.Require().Len(gm, 0, "exported metadata has unexpected length")
 }
