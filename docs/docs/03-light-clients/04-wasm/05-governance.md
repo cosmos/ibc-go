@@ -98,7 +98,7 @@ To learn more about the `submit-proposal` CLI command, please check out [the rel
 
 ## Removing an existing code hash
 
-If governance is the allowed authority, the governance v1 proposal that needs to be submitted to remove a specific code hash from the allow list should contain the message [`MsgRemoveCodeHash`](https://github.com/cosmos/ibc-go/blob/729cb090951b1e996427b2258cf72c49787b885a/proto/ibc/lightclients/wasm/v1/tx.proto#L38-L46) with the code hash (of a corresponding Wasm byte code). Use the following CLI command and JSON as an example:
+If governance is the allowed authority, the governance v1 proposal that needs to be submitted to remove a specific code hash from the -list of allowed code hashes should contain the message [`MsgRemoveCodeHash`](https://github.com/cosmos/ibc-go/blob/729cb090951b1e996427b2258cf72c49787b885a/proto/ibc/lightclients/wasm/v1/tx.proto#L38-L46) with the code hash (of a corresponding Wasm byte code). Use the following CLI command and JSON as an example:
 
 ```shell
 %s tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
@@ -114,7 +114,7 @@ where `proposal.json` contains:
     {
       "@type": "/ibc.lightclients.wasm.v1.MsgRemoveCodeHash",
       "signer": "cosmos1...", // the authority address (e.g. the gov module account address)
-      "code_hash": "a8ad...4dc0", // SHA-256 hash of the Wasm byte code that should be removed from the allow list
+      "code_hash": "a8ad...4dc0", // SHA-256 hash of the Wasm byte code that should be removed from the list of allowed code hashes
     }
   ],
   "metadata": "AQ==",

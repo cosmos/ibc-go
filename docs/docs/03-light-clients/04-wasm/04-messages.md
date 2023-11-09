@@ -39,7 +39,7 @@ type MsgMigrateContract struct {
   Signer string
   // the client id of the contract
   ClientId string
-  // the code hash of the new wasm byte code for the contract
+  // the SHA-256 hash of the new wasm byte code for the contract
   CodeHash []byte
   // the json-encoded migrate msg to be passed to the contract on migration
   Msg []byte
@@ -56,7 +56,7 @@ When a Wasm light client contract is migrated to a new Wasm byte code the code h
 
 ## `MsgRemoveCodeHash`
 
-Removing a code hash from the allow list is achieved by means of `MsgRemoveCodeHash`:
+Removing a code hash from the list of allowed code hashes is achieved by means of `MsgRemoveCodeHash`:
 
 ```go
 type MsgRemoveCodeHash struct {
@@ -72,5 +72,5 @@ This message is expected to fail if:
 - `Signer` is an invalid Bech32 address, or it does not match the designated authority address.
 - `CodeHash` is not exactly 32 bytes long or it is not found in the list of allowed code hashes (a new code hash is added to the list when executing `MsgStoreCode`).
 
-When a code hash is removed from the allow list, then the corresponding Wasm byte code will not be available for instantiation in [08-wasm's implementation of `Initialize` function](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/core/02-client/keeper/client.go#L34).
+When a code hash is removed from the list of allowed code hashes, then the corresponding Wasm byte code will not be available for instantiation in [08-wasm's implementation of `Initialize` function](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/core/02-client/keeper/client.go#L34).
 

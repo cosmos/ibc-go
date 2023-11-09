@@ -39,7 +39,7 @@ simd query ibc-wasm --help
 
 #### `code-hashes`
 
-The `code-hashes` command allows users to query the list of code hashes of Wasm light client contracts stored in the Wasm VM via the `MsgStoreCode`.
+The `code-hashes` command allows users to query the list of code hashes of Wasm light client contracts stored in the Wasm VM via the `MsgStoreCode`. The code hashes are hex-encoded.
 
 ```shell
 simd query ibc-wasm code-hashes [flags]
