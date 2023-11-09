@@ -136,6 +136,13 @@ If this is a compatibility test, ensure that the fields are being sanitized in t
 // ExecuteAndPassGovV1Proposal submits a v1 governance proposal using the provided user and message and uses all validators
 // to vote yes on the proposal. It ensures the proposal successfully passes.
 func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.Msg, chain ibc.Chain, user ibc.Wallet) {
+	err := s.ExecuteGovV1Proposal(ctx, msg, chain, user)
+	s.Require().NoError(err)
+}
+
+// ExecuteGovV1Proposal submits a v1 governance proposal using the provided user and message and uses all validators
+// to vote yes on the proposal.
+func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, chain ibc.Chain, user ibc.Wallet) error {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
 		panic("ExecuteAndPassGovV1Proposal must be passed a cosmos.CosmosChain")
@@ -167,9 +174,7 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.
 
 	s.Require().NoError(cosmosChain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
-	err = s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
-
-	s.Require().NoError(err)
+	return s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
 }
 
 // waitForGovV1ProposalToPass polls for the entire voting period to see if the proposal has passed.
