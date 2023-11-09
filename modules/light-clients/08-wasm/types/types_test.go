@@ -15,7 +15,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -42,8 +41,6 @@ type TypesTestSuite struct {
 	chainA      *ibctesting.TestChain
 	mockVM      *wasmtesting.MockWasmEngine
 
-	ctx      sdk.Context
-	store    storetypes.KVStore
 	codeHash []byte
 	testData map[string]string
 }
@@ -86,10 +83,6 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-
-	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
-	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
-
 	suite.codeHash = storeWasmCode(suite, wasmtesting.Code)
 }
 
@@ -132,9 +125,6 @@ func (suite *TypesTestSuite) SetupWasmGrandpa() {
 	suite.Require().NoError(err)
 	err = json.Unmarshal(testData, &suite.testData)
 	suite.Require().NoError(err)
-
-	suite.ctx = suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
-	suite.store = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, defaultWasmClientID)
 
 	wasmContract, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
 	suite.Require().NoError(err)
@@ -179,11 +169,13 @@ func (suite *TypesTestSuite) SetupWasmGrandpaWithChannel() {
 	// in 08-wasm directory so this should not affect what test app we use.
 	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
 	suite.SetupWasmGrandpa()
-	exportedClientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
+
+	exportedClientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), defaultWasmClientID)
 	suite.Require().True(ok)
+
 	clientState := exportedClientState.(*types.ClientState)
 	clientState.CodeHash = suite.codeHash
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.ctx, defaultWasmClientID, clientState)
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), defaultWasmClientID, clientState)
 }
 
 // storeWasmCode stores the wasm code on chain and returns the code hash.

@@ -57,7 +57,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 		{
 			"failure: clientStore prefix does not include clientID",
 			func() {
-				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
+				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), ibctesting.InvalidID)
 			},
 			types.ErrWasmContractCallFailed,
 		},
@@ -95,7 +95,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
 
-			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, endpoint.ClientID)
+			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState := endpoint.GetClientState()
 
 			clientMsg = &types.ClientMessage{
@@ -184,7 +184,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 				Data: []byte{1},
 			}
 
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, endpoint.ClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 
 			tc.malleate()
 
