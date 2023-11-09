@@ -22,7 +22,7 @@ If you wish to consume and execute custom logic in the packet callbacks, then pl
 ## Redirection to a smart contract
 
 It may be desirable to allow smart contracts to control an interchain account.
-To faciliate such an action, the controller submodule may be provided an underlying application which redirects to smart contract callers.
+To facilitate such an action, the controller submodule may be provided an underlying application which redirects to smart contract callers.
 An improved design has been suggested in [ADR 008](https://github.com/cosmos/ibc-go/pull/1976) which performs this action via middleware.
 
 Implementors of this use case are recommended to follow the ADR 008 approach.
