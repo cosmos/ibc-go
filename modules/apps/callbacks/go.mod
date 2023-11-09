@@ -10,18 +10,18 @@ replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.2021
 
 require (
 	cosmossdk.io/api v0.7.2
-	cosmossdk.io/client/v2 v2.0.0-20231026141021-0469fc17e158
+	cosmossdk.io/client/v2 v2.0.0-beta.1
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.1
 	cosmossdk.io/math v1.2.0
 	cosmossdk.io/store v1.0.0
-	cosmossdk.io/tools/confix v0.0.0-20231026141021-0469fc17e158
-	cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158
-	cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158
-	cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158
+	cosmossdk.io/tools/confix v0.1.0
+	cosmossdk.io/x/circuit v0.1.0
+	cosmossdk.io/x/evidence v0.1.0
+	cosmossdk.io/x/feegrant v0.1.0
 	cosmossdk.io/x/tx v0.12.0
-	cosmossdk.io/x/upgrade v0.0.0-20231026141021-0469fc17e158
+	cosmossdk.io/x/upgrade v0.1.0
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-sdk v0.50.1
