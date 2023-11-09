@@ -17,7 +17,7 @@ The `08-wasm` module is not a regular light client in the same sense as, for exa
 
 The `08-wasm`'s `ClientState` data structure contains three fields:
 
-- `Data` contains the bytes of the Protobuf-encoded client state of the underlying light client implemented as a Wasm contract. For example, if the light client Wasm contract implements the Tendermint light client algorithm, then `Data` will contain the bytes for a [Tendermint client state](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/light-clients/07-tendermint/tendermint.pb.go#L36-L66).
+- `Data` contains the bytes of the Protobuf-encoded client state of the underlying light client implemented as a Wasm contract. For example, if the Wasm light client contract implements the GRANDPA light client algorithm, then `Data` will contain the bytes for a [GRANDPA client state](https://github.com/ComposableFi/composable-ibc/blob/02ce69e2843e7986febdcf795f69a757ce569272/light-clients/ics10-grandpa/src/proto/grandpa.proto#L35-L60).
 - `CodeHash` is the sha256 hash of the Wasm contract's byte code. This hash is used as an identifier to call the right contract.
 - `LatestHeight` is the latest height of the counterparty state machine (i.e. the height of the blockchain), whose consensus state the light client tracks.
 
@@ -39,7 +39,7 @@ See section [`ClientState` of the light client module developer guide](../01-dev
 
 The `08-wasm`'s `ConsensusState` data structure maintains one field:
 
-- `Data` contains the bytes of the Protobuf-encoded consensus state of the underlying light client implemented as a Wasm contract. For example, if the light client Wasm contract implements the Tendermint light client algorithm, then `Data` will contain the bytes for a [Tendermint consensus state](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/light-clients/07-tendermint/tendermint.pb.go#L101-L109).
+- `Data` contains the bytes of the Protobuf-encoded consensus state of the underlying light client implemented as a Wasm contract. For example, if the Wasm light client contract implements the GRANDPA light client algorithm, then `Data` will contain the bytes for a [GRANDPA consensus state](https://github.com/ComposableFi/composable-ibc/blob/02ce69e2843e7986febdcf795f69a757ce569272/light-clients/ics10-grandpa/src/proto/grandpa.proto#L87-L94).
 
 ```go
 type ConsensusState struct {
@@ -55,7 +55,7 @@ See section [`ConsensusState` of the light client module developer guide](../01-
 
 `ClientMessage` is used for performing updates to a `ClientState` stored on chain. The `08-wasm`'s `ClientMessage` data structure maintains one field:
 
-- `Data` contains the bytes of the Protobuf-encoded header(s) or misbehaviour for the underlying light client implemented as a Wasm contract. For example, if the light client Wasm contract implements the Tendermint light client algorithm, then `Data` will contain the bytes of either [header](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/light-clients/07-tendermint/tendermint.pb.go#L186-L203) or [misbehaviour](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/light-clients/07-tendermint/tendermint.pb.go#L144-L151) for a Tendermint light client.
+- `Data` contains the bytes of the Protobuf-encoded header(s) or misbehaviour for the underlying light client implemented as a Wasm contract. For example, if the Wasm light client  contract implements the GRANDPA light client algorithm, then `Data` will contain the bytes of either [header](https://github.com/ComposableFi/composable-ibc/blob/02ce69e2843e7986febdcf795f69a757ce569272/light-clients/ics10-grandpa/src/proto/grandpa.proto#L96-L104) or [misbehaviour](https://github.com/ComposableFi/composable-ibc/blob/02ce69e2843e7986febdcf795f69a757ce569272/light-clients/ics10-grandpa/src/proto/grandpa.proto#L106-L112) for a GRANDPA light client.
 
 ```go
 type ClientMessage struct {
@@ -71,4 +71,4 @@ See section [`ClientMessage` of the light client module developer guide](../01-d
 
 The actual light client can be implemented in any language that compiles to Wasm and implements the interfaces of a [CosmWasm](https://docs.cosmwasm.com/docs/) contract. Even though in theory other languages could be used, in practice (at least for the time being) the most suitable language to use would be Rust, since there is already good support for it for developing CosmWasm smart contracts.
 
-At the moment of writing there are two contracts available: one for [Tendermint](https://github.com/ComposableFi/centauri/tree/master/light-clients/ics07-tendermint-cw) and one [Grandpa](https://github.com/ComposableFi/centauri/tree/master/light-clients/ics10-grandpa-cw) (which is being used in production in Composable Finance's Centauri bridge). And there are others in development (e.g. for Near).
+At the moment of writing there are two contracts available: one for [Tendermint](https://github.com/ComposableFi/composable-ibc/tree/master/light-clients/ics07-tendermint-cw) and one [GRANDPA](https://github.com/ComposableFi/composable-ibc/tree/master/light-clients/ics10-grandpa-cw) (which is being used in production in [Composable Finance's Centauri bridge](https://github.com/ComposableFi/composable-ibc)). And there are others in development (e.g. for Near).

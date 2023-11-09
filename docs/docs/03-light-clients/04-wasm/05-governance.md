@@ -41,7 +41,7 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
  If governance is the allowed authority, the governance v1 proposal that needs to be submitted to upload a new light client contract should contain the message [`MsgStoreCode`](https://github.com/cosmos/ibc-go/blob/f822b4fa7932a657420aba219c563e06c4465221/proto/ibc/lightclients/wasm/v1/tx.proto#L16-L23) with the base64-encoded byte code of the Wasm contract. Use the following CLI command and JSON as an example:
 
 ```shell
-%s tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
+simd tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
 ```
 
 where `proposal.json` contains:
@@ -71,7 +71,7 @@ Alternatively, the process of submitting the proposal may be simpler if you use 
 If governance is the allowed authority, the governance v1 proposal that needs to be submitted to migrate an existing new Wasm light client contract should contain the message [`MsgMigrateContract`](https://github.com/cosmos/ibc-go/blob/729cb090951b1e996427b2258cf72c49787b885a/proto/ibc/lightclients/wasm/v1/tx.proto#L51-L63) with the code hash of the Wasm byte code to migrate to. Use the following CLI command and JSON as an example:
 
 ```shell
-%s tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
+simd tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
 ```
 
 where `proposal.json` contains:
@@ -101,7 +101,7 @@ To learn more about the `submit-proposal` CLI command, please check out [the rel
 If governance is the allowed authority, the governance v1 proposal that needs to be submitted to remove a specific code hash from the -list of allowed code hashes should contain the message [`MsgRemoveCodeHash`](https://github.com/cosmos/ibc-go/blob/729cb090951b1e996427b2258cf72c49787b885a/proto/ibc/lightclients/wasm/v1/tx.proto#L38-L46) with the code hash (of a corresponding Wasm byte code). Use the following CLI command and JSON as an example:
 
 ```shell
-%s tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
+simd tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
 ```
 
 where `proposal.json` contains:
