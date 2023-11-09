@@ -313,14 +313,6 @@ func (s *GrandpaTestSuite) SetupChainsRelayerAndChannel(ctx context.Context) (*c
 		options.ChainBSpec.ChainID = simd
 		options.ChainBSpec.Bin = simd
 		options.ChainBSpec.Bech32Prefix = "cosmos"
-		options.ChainBSpec.Images = []ibc.DockerImage{
-			{
-				// TODO: https://github.com/cosmos/ibc-go/issues/4965
-				Repository: "chatton/ibc-go-simd-wasm",
-				Version:    "sdk50",
-				UidGid:     "1000:1000",
-			},
-		}
 
 		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here right now.
 		// https://github.com/cosmos/ibc-go/issues/4964
@@ -354,6 +346,7 @@ func (s *GrandpaTestSuite) SetupChainsRelayerAndChannel(ctx context.Context) (*c
 	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
 
 	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
+	fmt.Printf("!codehash!: %s\n", codeHash)
 
 	eRep := s.GetRelayerExecReporter()
 
