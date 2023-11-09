@@ -174,9 +174,7 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 
 	s.Require().NoError(cosmosChain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
-	err = s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
-
-	return err
+	return s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
 }
 
 // waitForGovV1ProposalToPass polls for the entire voting period to see if the proposal has passed.
