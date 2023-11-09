@@ -4,7 +4,7 @@ module github.com/cosmos/ibc-go/v8
 
 require (
 	cosmossdk.io/api v0.7.2
-	cosmossdk.io/client/v2 v2.0.0-20230818115413-c402c51a1508
+	cosmossdk.io/client/v2 v2.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.1
@@ -114,7 +114,6 @@ require (
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-plugin v1.5.2 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
-	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
