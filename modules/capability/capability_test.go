@@ -39,7 +39,7 @@ type CapabilityTestSuite struct {
 }
 
 func (suite *CapabilityTestSuite) SetupTest() {
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModule{})
 	suite.cdc = encodingCfg.Codec
 
 	suite.storeKey = storetypes.NewKVStoreKey(types.StoreKey)
