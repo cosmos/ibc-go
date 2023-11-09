@@ -97,6 +97,10 @@ To learn what it is expected from the Wasm light client contract when processing
 - For `VerifyNonMembershipMsg`, see the section [`VerifyNonMembership` method](../01-developer-guide/02-client-state.md#verifynonmembership-method).
 - For `MigrateClientStoreMsg`, see the section [Implementing `CheckSubstituteAndUpdateState`](../01-developer-guide/07-proposals.md#implementing-checksubstituteandupdatestate).
 
+### Migration
+
+The `08-wasm` proxy light client exposes the `MigrateContract` RPC endpoint that can be used to migrate a given Wasm light client contract (specified by the client identifier) to a new Wasm byte code (specified by the hash of the byte code). The expected use case for this RPC endpoint is to enable contracts to migrate to new byte code in case the current byte code is found to have a bug or vulnerability. The Wasm byte code that contracts are migrated have to be uploaded beforehand using `MsgStoreCode` and must implement the `migrate` entry point. See section[`MsgMigrateContract`](./04-messages.md#msgmigratecontract) for information about the request messsage for this RPC endpoint. 
+
 ## Expected behaviour
 
 The `08-wasm` proxy light client modules expects the following behaviour from the Wasm light client contracts when executing messages that perform state-changing writes:
