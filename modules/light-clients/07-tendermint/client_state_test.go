@@ -71,6 +71,71 @@ func (suite *TendermintTestSuite) TestStatus() {
 	}
 }
 
+func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
+	var (
+		path   *ibctesting.Path
+		height exported.Height
+	)
+	expectedTimestamp := time.Unix(1, 0)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: consensus state not found for height",
+			func() {
+				clientState := path.EndpointA.GetClientState()
+				height = clientState.GetLatestHeight().Increment()
+			},
+			clienttypes.ErrConsensusStateNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			clientState := path.EndpointA.GetClientState()
+			height = clientState.GetLatestHeight()
+
+			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+
+			// grab consensusState from store and update with a predefined timestamp
+			consensusState := path.EndpointA.GetConsensusState(height)
+			tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
+			suite.Require().True(ok)
+
+			tmConsensusState.Timestamp = expectedTimestamp
+			path.EndpointA.SetConsensusState(tmConsensusState, height)
+
+			tc.malleate()
+
+			timestamp, err := clientState.GetTimestampAtHeight(suite.chainA.GetContext(), store, suite.chainA.Codec, height)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				expectedTimestamp := uint64(expectedTimestamp.UnixNano())
+				suite.Require().Equal(expectedTimestamp, timestamp)
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
+
 func (suite *TendermintTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string

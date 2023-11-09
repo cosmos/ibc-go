@@ -9,23 +9,23 @@ slug: /ibc/overview
 # Overview
 
 :::note Synopsis
-Learn about IBC, its components, and IBC use cases.
+Learn about IBC, its components, and its use cases.
 :::
 
-## What is the Interblockchain Communication Protocol (IBC)?
+## What is the Inter-Blockchain Communication Protocol (IBC)?
 
 This document serves as a guide for developers who want to write their own Inter-Blockchain
-Communication protocol (IBC) applications for custom use cases.
+Communication Protocol (IBC) applications for custom use cases.
 
 > IBC applications must be written as self-contained modules.
 
-Due to the modular design of the IBC protocol, IBC
+Due to the modular design of the IBC Protocol, IBC
 application developers do not need to be concerned with the low-level details of clients,
 connections, and proof verification.
 
 This brief explanation of the lower levels of the
 stack gives application developers a broad understanding of the IBC
-protocol. Abstraction layer details for channels and ports are most relevant for application developers and describe how to define custom packets and `IBCModule` callbacks.
+Protocol. Abstraction layer details for channels and ports are most relevant for application developers and describe how to define custom packets and `IBCModule` callbacks.
 
 The requirements to have your module interact over IBC are:
 

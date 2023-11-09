@@ -88,7 +88,7 @@ If the `sdk.TxMsgData.Data` field is not empty then the format for v0.45 was use
 
 #### Decision
 
-Replicate the transaction response format as provided by the current SDK verison.
+Replicate the transaction response format as provided by the current SDK version.
 When the SDK version changes, adjust the transaction response format to use the updated transaction response format.
 Include the transaction response bytes in the result channel acknowledgement.
 

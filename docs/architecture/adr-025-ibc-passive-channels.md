@@ -138,4 +138,4 @@ More IBC events are exposed.
 
 ## References
 
-- The Agoric VM's IBC handler currently [accomodates `attemptChanOpenTry`](https://github.com/Agoric/agoric-sdk/blob/904b3a0423222a1b32893453e44bbde598473960/packages/cosmic-swingset/lib/ag-solo/vats/ibc.js#L546)
+- The Agoric VM's IBC handler currently [accommodates `attemptChanOpenTry`](https://github.com/Agoric/agoric-sdk/blob/904b3a0423222a1b32893453e44bbde598473960/packages/cosmic-swingset/lib/ag-solo/vats/ibc.js#L546)
