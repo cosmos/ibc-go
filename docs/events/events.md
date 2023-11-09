@@ -5,7 +5,7 @@ This document is unmaintained and may be out of date!
 :::
 
 The IBC module emits the following events. It can be expected that the type `message`,
-with an attirbute key of `action` will represent the first event for each message
+with an attribute key of `action` will represent the first event for each message
 being processed as emitted by the SDK's baseapp. Each IBC TAO message will
 also emit its module name in the format 'ibc_sub-modulename'.
 

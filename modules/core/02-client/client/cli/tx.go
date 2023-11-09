@@ -161,7 +161,7 @@ func newSubmitMisbehaviourCmd() *cobra.Command {
 					return fmt.Errorf("neither JSON input nor path to .json file for misbehaviour were provided: %w", err)
 				}
 
-				if err := cdc.UnmarshalInterfaceJSON(contents, misbehaviour); err != nil {
+				if err := cdc.UnmarshalInterfaceJSON(contents, &misbehaviour); err != nil {
 					return fmt.Errorf("error unmarshalling misbehaviour file: %w", err)
 				}
 			}

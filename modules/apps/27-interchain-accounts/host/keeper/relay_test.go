@@ -20,6 +20,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -33,7 +34,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
 		msg      string
 		malleate func(encoding string)
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"interchain account successfully executes an arbitrary message type using the * (allow all message types) param",
@@ -77,7 +78,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{"*"})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes banktypes.MsgSend",
@@ -104,7 +105,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes stakingtypes.MsgDelegate",
@@ -132,7 +133,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes stakingtypes.MsgDelegate and stakingtypes.MsgUndelegate sequentially",
@@ -166,7 +167,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate), sdk.MsgTypeURL(msgUndelegate)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes govtypes.MsgSubmitProposal",
@@ -184,7 +185,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				msg := &govtypes.MsgSubmitProposal{
 					Content:        protoAny,
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000))),
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
 					Proposer:       interchainAccountAddr,
 				}
 
@@ -201,7 +202,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes govtypes.MsgVote",
@@ -245,7 +246,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes disttypes.MsgFundCommunityPool",
@@ -271,7 +272,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes disttypes.MsgSetWithdrawAddress",
@@ -297,7 +298,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes transfertypes.MsgTransfer",
@@ -332,7 +333,41 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
+		},
+		{
+			"Msg fails its ValidateBasic: MsgTransfer has an empty receiver",
+			func(encoding string) {
+				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+				suite.coordinator.Setup(transferPath)
+
+				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				suite.Require().True(found)
+
+				msg := &transfertypes.MsgTransfer{
+					SourcePort:       transferPath.EndpointA.ChannelConfig.PortID,
+					SourceChannel:    transferPath.EndpointA.ChannelID,
+					Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
+					Sender:           interchainAccountAddr,
+					Receiver:         "",
+					TimeoutHeight:    suite.chainB.GetTimeoutHeight(),
+					TimeoutTimestamp: uint64(0),
+				}
+
+				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				suite.Require().NoError(err)
+
+				icaPacketData := icatypes.InterchainAccountPacketData{
+					Type: icatypes.EXECUTE_TX,
+					Data: data,
+				}
+
+				packetData = icaPacketData.GetBytes()
+
+				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+			},
+			ibcerrors.ErrInvalidAddress,
 		},
 		{
 			"unregistered sdk.Msg",
@@ -352,14 +387,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{"/" + proto.MessageName(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			false,
+			icatypes.ErrUnknownDataType,
 		},
 		{
 			"cannot unmarshal interchain account packet data",
 			func(encoding string) {
 				packetData = []byte{}
 			},
-			false,
+			icatypes.ErrUnknownDataType,
 		},
 		{
 			"cannot deserialize interchain account packet data messages",
@@ -373,7 +408,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				packetData = icaPacketData.GetBytes()
 			},
-			false,
+			icatypes.ErrUnknownDataType,
 		},
 		{
 			"invalid packet type - UNSPECIFIED",
@@ -388,7 +423,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				packetData = icaPacketData.GetBytes()
 			},
-			false,
+			icatypes.ErrUnknownDataType,
 		},
 		{
 			"unauthorised: interchain account not found for controller port ID",
@@ -405,7 +440,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				packetData = icaPacketData.GetBytes()
 			},
-			false,
+			icatypes.ErrInterchainAccountNotFound,
 		},
 		{
 			"unauthorised: message type not allowed", // NOTE: do not update params to explicitly force the error
@@ -426,7 +461,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				packetData = icaPacketData.GetBytes()
 			},
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"unauthorised: signer address is not the interchain account associated with the controller portID",
@@ -450,7 +485,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 	}
 
@@ -481,7 +516,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
 				suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
 
-				suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(10000))))
+				suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000000))))
 
 				tc.malleate(encoding) // malleate mutates test data
 
@@ -498,11 +533,12 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
 
-				if tc.expPass {
+				expPass := tc.expErr == nil
+				if expPass {
 					suite.Require().NoError(err)
 					suite.Require().NotNil(txResponse)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 					suite.Require().Nil(txResponse)
 				}
 			})
@@ -520,7 +556,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 	testCases := []struct {
 		msg      string
 		malleate func(icaAddress string)
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"interchain account successfully executes an arbitrary message type using the * (allow all message types) param",
@@ -564,7 +600,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{"*"})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes banktypes.MsgSend",
@@ -589,7 +625,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*banktypes.MsgSend)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes govtypes.MsgSubmitProposal",
@@ -603,7 +639,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 								"title": "IBC Gov Proposal",
 								"description": "tokens for all!"
 							},
-							"initial_deposit": [{ "denom": "stake", "amount": "5000" }],
+							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
 						}
 					]
@@ -618,7 +654,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes govtypes.MsgVote",
@@ -660,7 +696,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes govtypes.MsgSubmitProposal, govtypes.MsgDeposit, and then govtypes.MsgVote sequentially",
@@ -674,7 +710,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 								"title": "IBC Gov Proposal",
 								"description": "tokens for all!"
 							},
-							"initial_deposit": [{ "denom": "stake", "amount": "5000" }],
+							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
 						},
 						{
@@ -701,7 +737,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govtypes.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"interchain account successfully executes transfertypes.MsgTransfer",
@@ -734,7 +770,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*transfertypes.MsgTransfer)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			true,
+			nil,
 		},
 		{
 			"unregistered sdk.Msg",
@@ -750,7 +786,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{"*"})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			false,
+			icatypes.ErrUnknownDataType,
 		},
 		{
 			"message type not allowed banktypes.MsgSend",
@@ -775,7 +811,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*transfertypes.MsgTransfer)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"unauthorised: signer address is not the interchain account associated with the controller portID",
@@ -784,7 +820,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"messages": [
 						{
 							"@type": "/cosmos.bank.v1beta1.MsgSend",
-							"from_address": "` + ibctesting.InvalidID + `",
+							"from_address": "` + suite.chainB.SenderAccount.GetAddress().String() + `", // unexpected signer
 							"to_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
 							"amount": [{ "denom": "stake", "amount": "100" }]
 						}
@@ -800,7 +836,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*banktypes.MsgSend)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
-			false,
+			icatypes.ErrUnknownDataType,
 		},
 	}
 
@@ -840,11 +876,12 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 			txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
 
-			if tc.expPass {
+			expPass := tc.expErr == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(txResponse)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 				suite.Require().Nil(txResponse)
 			}
 		})
