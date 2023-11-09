@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-func (suite *TypesTestSuite) TestWasmInit() {
+func (suite *TypesTestSuite) TestWasmInstantiate() {
 	testCases := []struct {
 		name     string
 		malleate func()
