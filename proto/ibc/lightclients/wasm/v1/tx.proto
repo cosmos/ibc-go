@@ -12,6 +12,9 @@ service Msg {
   // StoreCode defines a rpc handler method for MsgStoreCode.
   rpc StoreCode(MsgStoreCode) returns (MsgStoreCodeResponse);
 
+  // RemoveCodeHash defines a rpc handler method for MsgRemoveCodeHash.
+  rpc RemoveCodeHash(MsgRemoveCodeHash) returns (MsgRemoveCodeHashResponse);
+
   // MigrateContract defines a rpc handler method for MsgMigrateContract.
   rpc MigrateContract(MsgMigrateContract) returns (MsgMigrateContractResponse);
 }
@@ -31,6 +34,19 @@ message MsgStoreCodeResponse {
   // the sha256 hash of the stored code
   bytes checksum = 1;
 }
+
+// MsgRemoveCodeHash defines the request type for the MsgRemoveCodeHash rpc.
+message MsgRemoveCodeHash {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  // signer address
+  string signer = 1;
+  // code hash to be removed from the store
+  bytes code_hash = 2;
+}
+
+// MsgStoreCodeResponse defines the response type for the StoreCode rpc
+message MsgRemoveCodeHashResponse {}
 
 // MsgMigrateContract defines the request type for the MigrateContract rpc.
 message MsgMigrateContract {
