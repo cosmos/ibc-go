@@ -12,6 +12,8 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
+const MaximumOwnerLength = 2048 // maximum length of the owner in bytes (value chosen arbitrarily)
+
 var (
 	_ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
 	_ sdk.Msg = (*MsgSendTx)(nil)
@@ -39,6 +41,10 @@ func (msg MsgRegisterInterchainAccount) ValidateBasic() error {
 
 	if strings.TrimSpace(msg.Owner) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "owner address cannot be empty")
+	}
+
+	if len(msg.Owner) > MaximumOwnerLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner address must not exceed %d bytes", MaximumOwnerLength)
 	}
 
 	return nil
@@ -72,6 +78,10 @@ func (msg MsgSendTx) ValidateBasic() error {
 
 	if strings.TrimSpace(msg.Owner) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "owner address cannot be empty")
+	}
+
+	if len(msg.Owner) > MaximumOwnerLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner address must not exceed %d bytes", MaximumOwnerLength)
 	}
 
 	if err := msg.PacketData.ValidateBasic(); err != nil {
