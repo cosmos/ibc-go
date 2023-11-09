@@ -28,6 +28,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 const (
@@ -83,9 +84,8 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		// Send 1.77 stake from cosmosUser to parachainUser
 		transferAmount := testvalues.TransferAmount(amountToSend, cosmosChain.Config().Denom)
 		// set timeout height on other side
-		timeoutHeight := s.GetTimeoutHeight(ctx, polkadotChain)
-		timeoutHeight.RevisionHeight += 100
-		transferTxResp := s.Transfer(ctx, cosmosChain, cosmosUser, channelA.PortID, channelA.ChannelID, transferAmount, cosmosUser.FormattedAddress(), polkadotUser.FormattedAddress(), timeoutHeight, 0, "")
+		timeoutTimestamp := time.Now().Add(time.Hour * 1)
+		transferTxResp := s.Transfer(ctx, cosmosChain, cosmosUser, channelA.PortID, channelA.ChannelID, transferAmount, cosmosUser.FormattedAddress(), polkadotUser.FormattedAddress(), types.ZeroHeight(), uint64(timeoutTimestamp.Unix()), "")
 		s.AssertTxSuccess(transferTxResp)
 		// verify token balance for cosmos user has decreased
 		balance, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
