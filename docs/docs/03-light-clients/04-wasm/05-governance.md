@@ -64,7 +64,7 @@ where `proposal.json` contains:
 
 To learn more about the `submit-proposal` CLI command, please check out [the relevant section in Cosmos SDK documentation](https://docs.cosmos.network/main/modules/gov#submit-proposal).
 
-Alternatively, the process of submitting the proposal may be simpler if you use the CLI command `store-code`. This CLI command accepts as argument the file of the Wasm light client contract and takes care of constructing the proposal message with `MsgStoreCode` and broadcasting it. See section [`store-code`](./07-client.md#store-code) for more information.
+Alternatively, the process of submitting the proposal may be simpler if you use the CLI command `store-code`. This CLI command accepts as argument the file of the Wasm light client contract and takes care of constructing the proposal message with `MsgStoreCode` and broadcasting it. See section [`store-code`](./08-client.md#store-code) for more information.
 
 ## Migrating an existing Wasm light client contract
 
