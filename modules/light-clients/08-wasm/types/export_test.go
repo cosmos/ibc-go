@@ -50,7 +50,7 @@ func WasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 	return wasmSudo[T](ctx, clientStore, cs, payload)
 }
 
-// WasmInstantiate wraps wasmInit and is used solely for testing.
+// WasmInstantiate wraps wasmInstantiate and is used solely for testing.
 func WasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	return wasmInstantiate(ctx, clientStore, cs, payload)
 }
