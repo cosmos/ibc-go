@@ -81,7 +81,8 @@ func NewKeeperWithConfig(
 	authority string,
 	wasmConfig types.WasmConfig,
 ) Keeper {
-	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedFeatures, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
+	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
+
 	if err != nil {
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
