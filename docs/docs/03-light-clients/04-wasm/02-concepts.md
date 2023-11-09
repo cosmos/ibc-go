@@ -11,11 +11,11 @@ Learn about the differences between a proxy light client and a Wasm light client
 
 ## Proxy light client
 
-The `08-wasm` module is not a regular light client in the same sense as, for example, the 07-tendermint light client. `08-wasm` is instead a *proxy* light client module, and this means that the module acts a proxy to the actual implementations of light clients. The module will interface with the actual light clients uploaded as Wasm byte code and will delegate all operations to them (i.e. `08-wasm` just passes through the requests to the Wasm light clients). Still, the `08-wasm` module implements all the required interfaces necessary to integrate with core IBC, so that 02-client can call into it as it would for any other light client module. These interfaces are `ClientState`, `ConsensusState` and `ClientMessage`, and we will describe them in the context of `08-wasm` in the following sections. For more information about this set of interfaces, please read section [Overview of the light client module developer guide](../01-developer-guide/01-overview.md#overview).
+The `08-wasm` module is not a regular light client in the same sense as, for example, the 07-tendermint light client. `08-wasm` is instead a *proxy* light client module, and this means that the module acts a proxy to the actual implementations of light clients. The module will act as a wrapper for the actual light clients uploaded as Wasm byte code and will delegate all operations to them (i.e. `08-wasm` just passes through the requests to the Wasm light clients). Still, the `08-wasm` module implements all the required interfaces necessary to integrate with core IBC, so that 02-client can call into it as it would for any other light client module. These interfaces are `ClientState`, `ConsensusState` and `ClientMessage`, and we will describe them in the context of `08-wasm` in the following sections. For more information about this set of interfaces, please read section [Overview of the light client module developer guide](../01-developer-guide/01-overview.md#overview).
 
 ### `ClientState`
 
-The `08-wasm`'s `ClientState` data structure maintains three fields:
+The `08-wasm`'s `ClientState` data structure contains three fields:
 
 - `Data` contains the bytes of the Protobuf-encoded client state of the underlying light client implemented as a Wasm contract. For example, if the light client Wasm contract implements the Tendermint light client algorithm, then `Data` will contain the bytes for a [Tendermint client state](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/light-clients/07-tendermint/tendermint.pb.go#L36-L66).
 - `CodeHash` is the sha256 hash of the Wasm contract's byte code. This hash is used as an identifier to call the right contract.

@@ -119,7 +119,7 @@ If the chain where the module is integrated uses `x/wasm` then we recommend that
 
 In order to share the Wasm VM instance please follow the guideline below. Please note that this requires `x/wasm`v0.41 or above.
 
-- Instantiate the Wasm VM in `app.go`` with the parameters of your choice.
+- Instantiate the Wasm VM in `app.go` with the parameters of your choice.
 - [Create an `Option` with this Wasm VM instance](https://github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/options.go#L21-L25).
 - Add the option created in the previous step to a slice and [pass it to the `x/wasm NewKeeper` constructor function](https://github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/keeper_cgo.go#L36).
 - Pass the pointer to the Wasm VM instance to `08-wasm` [NewKeeperWithVM constructor function](https://github.com/cosmos/ibc-go/blob/c95c22f45cb217d27aca2665af9ac60b0d2f3a0c/modules/light-clients/08-wasm/keeper/keeper.go#L33-L38).
