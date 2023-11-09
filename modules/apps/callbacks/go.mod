@@ -14,22 +14,13 @@ require (
 	cosmossdk.io/core v0.11.0
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/log v1.2.1
-<<<<<<< HEAD
 	cosmossdk.io/math v1.2.0
 	cosmossdk.io/store v1.0.0
-=======
-	cosmossdk.io/math v1.1.3-rc.1
-	cosmossdk.io/store v1.0.0-rc.0
->>>>>>> 016443d7 (refactor(simapp): re-wire autocli with latest client/v2 changes (#4843))
 	cosmossdk.io/tools/confix v0.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/x/circuit v0.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/x/evidence v0.0.0-20231026141021-0469fc17e158
 	cosmossdk.io/x/feegrant v0.0.0-20231026141021-0469fc17e158
-<<<<<<< HEAD
 	cosmossdk.io/x/tx v0.12.0
-=======
-	cosmossdk.io/x/tx v0.11.0
->>>>>>> 016443d7 (refactor(simapp): re-wire autocli with latest client/v2 changes (#4843))
 	cosmossdk.io/x/upgrade v0.0.0-20231026141021-0469fc17e158
 	github.com/cometbft/cometbft v0.38.0
 	github.com/cosmos/cosmos-db v1.0.0
@@ -156,11 +147,7 @@ require (
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
-<<<<<<< HEAD
 	github.com/petermattis/goid v0.0.0-20230904192822-1876fd5063bc // indirect
-=======
-	github.com/petermattis/goid v0.0.0-20230808133559-b036b712a89b // indirect
->>>>>>> 016443d7 (refactor(simapp): re-wire autocli with latest client/v2 changes (#4843))
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
