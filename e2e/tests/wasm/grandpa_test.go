@@ -455,6 +455,7 @@ func getConfigOverrides() map[string]any {
 	return configFileOverrides
 }
 
+// GetGrandpaTestChains returns the configured chains for the grandpa test suite.
 func (s *GrandpaTestSuite) GetGrandpaTestChains() (ibc.Chain, ibc.Chain) {
 	return s.GetChains(func(options *testsuite.ChainOptions) {
 		// configure chain A (polkadot)
