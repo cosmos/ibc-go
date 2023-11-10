@@ -1,0 +1,47 @@
+"core":
+  - modules/core/**/*
+"02-client":
+  - modules/core/02-client/**/*
+  - proto/ibc/core/client/**/*
+"03-connection":
+  - modules/core/03-connection/**/*
+  - proto/ibc/core/connection/**/*
+"04-channel":
+  - modules/core/04-channel/**/*
+  - proto/ibc/core/channel/**/*
+"06-solomachine":
+  - modules/light-clients/06-solomachine/**/*
+  - proto/ibc/lightclients/solomachine/**/*
+"07-tendermint":
+  - modules/light-clients/07-tendermint/**/*
+  - proto/ibc/lightclients/tendermint/**/*
+"08-wasm":
+  - modules/light-clients/08-wasm/**/*
+  - proto/ibc/lightclients/wasm/**/*
+"09-localhost":
+  - modules/light-clients/09-localhost/**/*
+  - proto/ibc/lightclients/localhost/**/*
+"capability":
+  - modules/capability/**/*
+  - proto/capability/**/*
+"20-transfer":
+  - modules/apps/transfer/**/*
+"27-interchain-accounts":
+  - modules/apps/27-interchain-accounts/**/*
+"29-fee":
+  - modules/apps/29-fee/**/*
+"callbacks middleware":
+  - modules/apps/callbacks/**/*
+"docs":
+  - docs/**/*
+"testing":
+  - testing/**/*
+"e2e":
+  - e2e/**/*
+"protobuf":
+  - proto/**/*
+"gRPC":
+  - '**/msg_server.go'
+  - '**/grpc_query.go'
+"CLI":
+  - '**/client/cli/*'
