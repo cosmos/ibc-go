@@ -170,8 +170,8 @@ func validatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.
 	if ok {
 		key = append(subjectPrefix, key...)
 	}
-	bz := clientStore.Get(key)
 
+	bz := clientStore.Get(key)
 	if len(bz) == 0 {
 		return nil, errorsmod.Wrap(ErrWasmInvalidContractModification, types.ErrClientNotFound.Error())
 	}
@@ -202,7 +202,7 @@ func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientStat
 // wasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
 // wasmMigrate returns an error if:
 // - the contract migration returns an error
-func wasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte, cdc codec.BinaryCodec) error {
+func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
 	_, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
 	if err != nil {
 		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())

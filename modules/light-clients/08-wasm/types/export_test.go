@@ -47,7 +47,7 @@ func WasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore
 }
 
 // WasmSudo wraps wasmCall and is used solely for testing.
-func WasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg, cdc codec.BinaryCodec) (T, error) {
+func WasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
 	return wasmSudo[T](ctx, cdc, payload, clientStore, cs)
 }
 
@@ -57,6 +57,6 @@ func WasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *Client
 }
 
 // WasmMigrate wraps wasmMigrate and is used solely for testing.
-func WasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte, cdc codec.BinaryCodec) error {
-	return wasmMigrate(ctx, clientStore, cs, clientID, payload, cdc)
+func WasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
+	return wasmMigrate(ctx, cdc, clientStore, cs, clientID, payload)
 }

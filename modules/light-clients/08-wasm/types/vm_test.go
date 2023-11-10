@@ -136,7 +136,7 @@ func (suite *TypesTestSuite) TestWasmMigrate() {
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
-			err = types.WasmMigrate(suite.chainA.GetContext(), clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"), suite.chainA.App.AppCodec())
+			err = types.WasmMigrate(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -370,7 +370,7 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 
 			tc.malleate()
 
-			res, err := types.WasmSudo[types.UpdateStateResult](suite.chainA.GetContext(), clientStore, wasmClientState, payload, suite.chainA.App.AppCodec())
+			res, err := types.WasmSudo[types.UpdateStateResult](suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
