@@ -59,19 +59,19 @@ const config = {
               banner: "none",
             },
             "v7.3.x": {
-              path: "v7.3.x",
+              path: "v7",
               banner: "none",
             },
             "v6.2.x": {
-              path: "v6.2.x",
+              path: "v6",
               banner: "none",
             },
             "v5.3.x": {
-              path: "v5.3.x",
+              path: "v5",
               banner: "none",
             },
             "v4.5.x": {
-              path: "v4.5.x",
+              path: "v4",
               banner: "none",
             },
           },
