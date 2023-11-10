@@ -48,3 +48,5 @@
   - '**/grpc_query.go'
 "CLI":
   - '**/client/cli/*'
+"github_actions":
+  - .github/**/*

@@ -16,3 +16,4 @@ jobs:
         with:
           configuration-path: .github/pr_labeler.yml
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          dot: true
