@@ -123,4 +123,3 @@ where `proposal.json` contains:
 ```
 
 To learn more about the `submit-proposal` CLI command, please check out [the relevant section in Cosmos SDK documentation](https://docs.cosmos.network/main/modules/gov#submit-proposal).
-
