@@ -50,3 +50,5 @@
   - '**/client/cli/*'
 "github_actions":
   - .github/**/*
+"dependencies":
+  - '**/go.mod'
