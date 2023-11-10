@@ -90,7 +90,7 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: "img/ibc-go-image.png",
+      image: "img/ibc-go-docs-social-card.png",
       navbar: {
         logo: {
           alt: "IBC Logo",
