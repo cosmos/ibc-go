@@ -73,4 +73,3 @@ This message is expected to fail if:
 - `CodeHash` is not exactly 32 bytes long or it is not found in the list of allowed code hashes (a new code hash is added to the list when executing `MsgStoreCode`).
 
 When a code hash is removed from the list of allowed code hashes, then the corresponding Wasm byte code will not be available for instantiation in [08-wasm's implementation of `Initialize` function](https://github.com/cosmos/ibc-go/blob/v7.2.0/modules/core/02-client/keeper/client.go#L34).
-
