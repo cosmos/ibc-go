@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math"
 	"os"
 	"path/filepath"
 
@@ -464,7 +463,6 @@ func NewSimApp(
 	wasmConfig := wasmtypes.WasmConfig{
 		DataDir:               "ibc_08-wasm_client_data",
 		SupportedCapabilities: "iterator",
-		MemoryCacheSize:       uint32(math.Pow(2, 8)),
 		ContractDebugMode:     false,
 	}
 	if mockVM != nil {
