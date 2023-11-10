@@ -260,7 +260,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 		{
 			"failure: clientStore prefix does not include clientID",
 			func() {
-				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, ibctesting.InvalidID)
+				clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), ibctesting.InvalidID)
 			},
 			types.ErrWasmContractCallFailed,
 		},
@@ -298,8 +298,8 @@ func (suite *TypesTestSuite) TestInitialize() {
 			clientState = types.NewClientState([]byte{1}, codeHash[:], clienttypes.NewHeight(0, 1))
 			consensusState = types.NewConsensusState([]byte{2}, 0)
 
-			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.ctx, clientState.ClientType())
-			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.ctx, clientID)
+			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
+			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
 			tc.malleate()
 
@@ -339,7 +339,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 		{
 			"success",
 			func() {
-				expClientStateBz = suite.store.Get(host.ClientStateKey())
+				expClientStateBz = GetSimApp(suite.chainA).GetIBCKeeper().ClientKeeper.MustMarshalClientState(clientState)
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.Response, uint64, error) {
@@ -445,10 +445,10 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			proofHeight = clienttypes.NewHeight(0, 1)
 			value = []byte("value")
 
-			tc.malleate()
-
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState = endpoint.GetClientState()
+
+			tc.malleate()
 
 			err = clientState.VerifyMembership(suite.chainA.GetContext(), clientStore, suite.chainA.Codec, proofHeight, 0, 0, proof, path, value)
 
@@ -630,7 +630,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmGrandpaWithChannel() // reset
-			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.ctx, defaultWasmClientID)
+			clientState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), defaultWasmClientID)
 			suite.Require().True(ok)
 
 			delayTimePeriod = 1000000000 // Hyperspace requires a non-zero delay in seconds. The test data was generated using a 1-second delay
@@ -647,8 +647,9 @@ func (suite *TypesTestSuite) TestVerifyNonMembershipGrandpa() {
 
 			tc.malleate()
 
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
 			err = clientState.VerifyNonMembership(
-				suite.ctx, suite.store, suite.chainA.Codec,
+				suite.chainA.GetContext(), clientStore, suite.chainA.Codec,
 				height, delayTimePeriod, delayBlockPeriod,
 				proof, path,
 			)
@@ -679,7 +680,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 		{
 			"success",
 			func() {
-				expClientStateBz = suite.store.Get(host.ClientStateKey())
+				expClientStateBz = GetSimApp(suite.chainA).GetIBCKeeper().ClientKeeper.MustMarshalClientState(clientState)
 				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.Response, uint64, error) {
@@ -782,10 +783,10 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 			proof = wasmtesting.MockInvalidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 
-			tc.malleate()
-
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState = endpoint.GetClientState()
+
+			tc.malleate()
 
 			err = clientState.VerifyNonMembership(suite.chainA.GetContext(), clientStore, suite.chainA.Codec, proofHeight, 0, 0, proof, path)
 

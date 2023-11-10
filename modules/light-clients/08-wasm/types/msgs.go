@@ -11,8 +11,10 @@ import (
 var (
 	_ sdk.Msg              = (*MsgStoreCode)(nil)
 	_ sdk.Msg              = (*MsgMigrateContract)(nil)
+	_ sdk.Msg              = (*MsgRemoveCodeHash)(nil)
 	_ sdk.HasValidateBasic = (*MsgStoreCode)(nil)
 	_ sdk.HasValidateBasic = (*MsgMigrateContract)(nil)
+	_ sdk.HasValidateBasic = (*MsgRemoveCodeHash)(nil)
 )
 
 // MsgStoreCode creates a new MsgStoreCode instance
@@ -23,7 +25,7 @@ func NewMsgStoreCode(signer string, code []byte) *MsgStoreCode {
 	}
 }
 
-// ValidateBasic implements sdk.Msg
+// ValidateBasic implements sdk.HasValidateBasic
 func (m MsgStoreCode) ValidateBasic() error {
 	if err := ValidateWasmCode(m.WasmByteCode); err != nil {
 		return err
@@ -32,6 +34,28 @@ func (m MsgStoreCode) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return nil
+}
+
+// NewMsgRemoveCodeHash creates a new MsgRemoveCodeHash instance
+func NewMsgRemoveCodeHash(signer string, codeHash []byte) *MsgRemoveCodeHash {
+	return &MsgRemoveCodeHash{
+		Signer:   signer,
+		CodeHash: codeHash,
+	}
+}
+
+// ValidateBasic implements sdk.HasValidateBasic
+func (m MsgRemoveCodeHash) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	if err := ValidateWasmCodeHash(m.CodeHash); err != nil {
+		return err
 	}
 
 	return nil
@@ -47,7 +71,7 @@ func NewMsgMigrateContract(signer, clientID string, codeHash, migrateMsg []byte)
 	}
 }
 
-// ValidateBasic implements sdk.Msg
+// ValidateBasic implements sdk.HasValidateBasic
 func (m MsgMigrateContract) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {

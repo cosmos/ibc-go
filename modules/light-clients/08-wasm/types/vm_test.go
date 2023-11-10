@@ -14,7 +14,7 @@ import (
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
-func (suite *TypesTestSuite) TestWasmInit() {
+func (suite *TypesTestSuite) TestWasmInstantiate() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -47,7 +47,8 @@ func (suite *TypesTestSuite) TestWasmInit() {
 
 			tc.malleate()
 
-			err := types.WasmInstantiate(suite.ctx, suite.store, &types.ClientState{}, types.InstantiateMessage{})
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
+			err := types.WasmInstantiate(suite.chainA.GetContext(), clientStore, &types.ClientState{}, types.InstantiateMessage{})
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -134,7 +135,8 @@ func (suite *TypesTestSuite) TestWasmMigrate() {
 
 			tc.malleate()
 
-			err = types.WasmMigrate(suite.ctx, suite.store, &types.ClientState{}, defaultWasmClientID, []byte("{}"), suite.chainA.Codec)
+      clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
+			err := types.WasmMigrate(suite.chainA.GetContext(), clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -195,6 +197,7 @@ func (suite *TypesTestSuite) TestWasmQuery() {
 			suite.Require().NoError(err)
 
 			clientState := endpoint.GetClientState()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 
 			wasmClientState, ok := clientState.(*types.ClientState)
 			suite.Require().True(ok)
@@ -203,7 +206,7 @@ func (suite *TypesTestSuite) TestWasmQuery() {
 
 			tc.malleate()
 
-			res, err := types.WasmQuery[types.StatusResult](suite.ctx, suite.store, wasmClientState, payload)
+			res, err := types.WasmQuery[types.StatusResult](suite.chainA.GetContext(), clientStore, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -358,6 +361,7 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 			suite.Require().NoError(err)
 
 			clientState := endpoint.GetClientState()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 
 			wasmClientState, ok := clientState.(*types.ClientState)
 			suite.Require().True(ok)
@@ -366,7 +370,7 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 
 			tc.malleate()
 
-			res, err := types.WasmSudo[types.UpdateStateResult](suite.ctx, suite.store, wasmClientState, payload, suite.chainA.Codec)
+			res, err := types.WasmSudo[types.UpdateStateResult](suite.chainA.GetContext(), clientStore, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {

@@ -23,8 +23,8 @@ import (
 
 var VMGasRegister = NewDefaultWasmGasRegister()
 
-// initContract calls vm.Init with appropriate arguments.
-func initContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
+// instantiateContract calls vm.Instantiate with appropriate arguments.
+func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -96,13 +96,13 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []b
 	return resp, err
 }
 
-// wasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls initContract.
+// wasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls instantiateContract.
 func wasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to marshal payload for wasm contract instantiation")
 	}
-	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
+	_, err = instantiateContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}

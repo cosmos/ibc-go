@@ -39,6 +39,16 @@ func TestCodecTypeRegistration(t *testing.T) {
 			true,
 		},
 		{
+			"success: MsgMigrateContract",
+			sdk.MsgTypeURL(&types.MsgMigrateContract{}),
+			true,
+		},
+		{
+			"success: MsgRemoveCodeHash",
+			sdk.MsgTypeURL(&types.MsgRemoveCodeHash{}),
+			true,
+		},
+		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
 			false,
