@@ -121,7 +121,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 		ConsensusState: consensusState,
 	}
 
-	return wasmInstantiate(ctx, clientStore, &cs, payload)
+	return wasmInstantiate(ctx, cdc, clientStore, &cs, payload)
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.

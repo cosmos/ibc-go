@@ -97,15 +97,28 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []b
 }
 
 // wasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls instantiateContract.
-func wasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
+func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to marshal payload for wasm contract instantiation")
 	}
+
+	codeHash := cs.CodeHash
 	_, err = instantiateContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
+
+	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
+	if err != nil {
+		return err
+	}
+
+	// codehash should only be able to be modified during migration.
+	if !bytes.Equal(codeHash, newClientState.CodeHash) {
+		return errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected code hash %s, got %s", hex.EncodeToString(codeHash), hex.EncodeToString(newClientState.CodeHash))
+	}
+
 	return nil
 }
 
@@ -151,7 +164,7 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload 
 		return result, err
 	}
 
-	// code has should only be able to be modified during migration.
+	// codehash should only be able to be modified during migration.
 	if !bytes.Equal(codeHash, newClientState.CodeHash) {
 		return result, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected code hash %s, got %s", hex.EncodeToString(codeHash), hex.EncodeToString(newClientState.CodeHash))
 	}
