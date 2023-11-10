@@ -26,10 +26,13 @@
   - proto/capability/**/*
 "20-transfer":
   - modules/apps/transfer/**/*
+  - proto/ibc/applications/transfer/**/*
 "27-interchain-accounts":
   - modules/apps/27-interchain-accounts/**/*
+  - proto/ibc/applications/interchain_accounts/**/*
 "29-fee":
   - modules/apps/29-fee/**/*
+  - proto/ibc/applications/fee/**/*
 "callbacks middleware":
   - modules/apps/callbacks/**/*
 "docs":
