@@ -77,6 +77,7 @@ var MemoFeatureReleases = semverutil.FeatureReleases{
 
 // TotalEscrowFeatureReleases represents the releases the total escrow state entry was released in.
 var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 	MinorVersions: []string{
 		"v7.1",
 	},
@@ -84,17 +85,13 @@ var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
 
 // IbcErrorsFeatureReleases represents the releases the IBC module level errors was released in.
 var IbcErrorsFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v8.0",
+	MajorVersion: "v8",
 }
 
 // LocalhostClientFeatureReleases represents the releases the localhost client was released in.
 var LocalhostClientFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 	MinorVersions: []string{
 		"v7.1",
 	},
-}
-
-// DenomMetadataFeatureReleases represents the releases the human readable denom feature was released in.
-var DenomMetadataFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v8",
 }

@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
+	"cosmossdk.io/errors"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -790,6 +792,32 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		channelCap *capabilitytypes.Capability
 	)
 
+	assertErr := func(errType *errors.Error) func(commitment []byte, err error) {
+		return func(commitment []byte, err error) {
+			suite.Require().Error(err)
+			suite.Require().ErrorIs(err, errType)
+			suite.Require().NotNil(commitment)
+		}
+	}
+
+	assertNoOp := func(commitment []byte, err error) {
+		suite.Require().Error(err)
+		suite.Require().ErrorIs(err, types.ErrNoOpMsg)
+		suite.Require().Nil(commitment)
+	}
+
+	assertSuccess := func(seq func() uint64, msg string) func(commitment []byte, err error) {
+		return func(commitment []byte, err error) {
+			suite.Require().NoError(err)
+			suite.Require().Nil(commitment)
+
+			nextSequenceAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
+
+			suite.Require().True(found)
+			suite.Require().Equal(seq(), nextSequenceAck, msg)
+		}
+	}
+
 	testCases := []struct {
 		name      string
 		malleate  func()
@@ -812,14 +840,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().NoError(err)
-				suite.Require().Nil(commitment)
-
-				nextSequenceAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
-				suite.Require().True(found)
-				suite.Require().Equal(packet.GetSequence()+1, nextSequenceAck, "sequence not incremented in ordered channel")
-			},
+			expResult: assertSuccess(func() uint64 { return packet.GetSequence() + 1 }, "sequence not incremented in ordered channel"),
 		},
 		{
 			name: "success on unordered channel",
@@ -838,14 +859,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().NoError(err)
-				suite.Require().Nil(commitment)
-
-				nextSequenceAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
-				suite.Require().True(found)
-				suite.Require().Equal(uint64(1), nextSequenceAck, "sequence incremented for UNORDERED channel")
-			},
+			expResult: assertSuccess(func() uint64 { return uint64(1) }, "sequence incremented for UNORDERED channel"),
 		},
 		{
 			name: "success on channel in flushing state",
@@ -998,11 +1012,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				err = path.EndpointA.AcknowledgePacket(packet, ack.Acknowledgement())
 				suite.Require().NoError(err)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrNoOpMsg)
-				suite.Require().Nil(commitment)
-			},
+			expResult: assertNoOp,
 		},
 		{
 			name: "packet already acknowledged unordered channel (no-op)",
@@ -1024,11 +1034,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				err = path.EndpointA.AcknowledgePacket(packet, ack.Acknowledgement())
 				suite.Require().NoError(err)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrNoOpMsg)
-				suite.Require().Nil(commitment)
-			},
+			expResult: assertNoOp,
 		},
 		{
 			name: "channel not found",
@@ -1042,11 +1048,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, ibctesting.InvalidID, ibctesting.InvalidID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrChannelNotFound)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(types.ErrChannelNotFound),
 		},
 		{
 			name: "channel not open",
@@ -1063,11 +1065,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.Require().NoError(err)
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrInvalidChannelState)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(types.ErrInvalidChannelState),
 		},
 		{
 			name: "channel in flush complete state",
@@ -1104,11 +1102,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				channelCap = capabilitytypes.NewCapability(3)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrInvalidChannelCapability)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(types.ErrInvalidChannelCapability),
 		},
 		{
 			name: "packet destination port ≠ channel counterparty port",
@@ -1123,11 +1117,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ibctesting.InvalidID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrInvalidPacket)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(types.ErrInvalidPacket),
 		},
 		{
 			name: "packet destination channel ID ≠ channel counterparty channel ID",
@@ -1142,11 +1132,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, ibctesting.InvalidID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrInvalidPacket)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(types.ErrInvalidPacket),
 		},
 		{
 			name: "connection not found",
@@ -1169,11 +1155,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, connectiontypes.ErrConnectionNotFound)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(connectiontypes.ErrConnectionNotFound),
 		},
 		{
 			name: "connection not OPEN",
@@ -1199,11 +1181,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, connectiontypes.ErrInvalidConnectionState)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(connectiontypes.ErrInvalidConnectionState),
 		},
 		{
 			name: "packet hasn't been sent",
@@ -1213,11 +1191,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrNoOpMsg) // NOTE: ibc core does not distinguish between unsent and already relayed packets.
-				suite.Require().Nil(commitment)
-			},
+			expResult: assertNoOp, // NOTE: ibc core does not distinguish between unsent and already relayed packets.
 		},
 		{
 			name: "packet ack verification failed",
@@ -1233,11 +1207,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, commitmenttypes.ErrInvalidProof)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(commitmenttypes.ErrInvalidProof),
 		},
 		{
 			name: "packet commitment bytes do not match",
@@ -1258,11 +1228,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				packet.Data = []byte("invalid packet commitment")
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrInvalidPacket)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(types.ErrInvalidPacket),
 		},
 		{
 			name: "next ack sequence not found",
@@ -1286,11 +1252,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrSequenceAckNotFound)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(types.ErrSequenceAckNotFound),
 		},
 		{
 			name: "next ack sequence mismatch ORDERED",
@@ -1311,11 +1273,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetNextSequenceAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 10)
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},
-			expResult: func(commitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrPacketSequenceOutOfOrder)
-				suite.Require().NotNil(commitment)
-			},
+			expResult: assertErr(types.ErrPacketSequenceOutOfOrder),
 		},
 	}
 

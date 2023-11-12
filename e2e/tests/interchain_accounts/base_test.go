@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package interchainaccounts
 
 import (
@@ -123,10 +125,10 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
-			_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
+			_, err = s.QueryBalance(ctx, chainB, hostAccount, chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
@@ -177,7 +179,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 	t.Run("fail to execute bank transfer over ICA", func(t *testing.T) {
 		t.Run("verify empty host wallet", func(t *testing.T) {
-			hostAccountBalance, err := chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
+			hostAccountBalance, err := s.QueryBalance(ctx, chainB, hostAccount, chainB.Config().Denom)
+
 			s.Require().NoError(err)
 			s.Require().Zero(hostAccountBalance.Int64())
 		})
@@ -215,7 +218,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		})
 
 		t.Run("verify balance is the same", func(t *testing.T) {
-			balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+			balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount
@@ -334,10 +337,10 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 
 	t.Run("verify tokens not transferred", func(t *testing.T) {
-		balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+		balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
-		_, err = chainB.GetBalance(ctx, hostAccount, chainB.Config().Denom)
+		_, err = s.QueryBalance(ctx, chainB, hostAccount, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount
@@ -397,7 +400,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		balance, err := chainB.GetBalance(ctx, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+		balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount

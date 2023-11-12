@@ -2,7 +2,7 @@
   <h1>ibc-go</h1>
 </div>
 
-![banner](docs/static/img/ibc-go-image.png)
+![banner](docs/static/img/IBC-go-cover.svg)
 
 <div align="center">
   <a href="https://github.com/cosmos/ibc-go/releases/latest">
@@ -51,7 +51,7 @@ For the latest information on the progress of the work or the decisions made tha
 
 ## Releases
 
-The release lines currently supported are v4, v5, v6 and v7.
+The release lines currently supported are v6 and v7.
 
 Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
 
