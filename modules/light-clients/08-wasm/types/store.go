@@ -138,7 +138,7 @@ func (ws migrateClientWrappedStore) getStore(prefix []byte) storetypes.KVStore {
 		return ws.substituteStore
 	}
 
-	panic(errors.New("key must be prefixed with either subject/ or substitute/"))
+	panic(fmt.Errorf("key must be prefixed with either \"%s\" or \"%s\"", subjectPrefix, substitutePrefix))
 }
 
 // splitPrefix splits the key into the prefix and the key itself, if the key is prefixed with either "subject/" or "substitute/".
