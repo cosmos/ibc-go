@@ -43,7 +43,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		UpdateState: &UpdateStateMsg{ClientMessage: clientMessage},
 	}
 
-	result, err := wasmSudo[UpdateStateResult](ctx, clientStore, &cs, payload)
+	result, err := wasmSudo[UpdateStateResult](ctx, cdc, payload, clientStore, &cs)
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +58,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
 // Client state is updated in the store by contract.
-func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) {
+func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) {
 	clientMessage, ok := clientMsg.(*ClientMessage)
 	if !ok {
 		panic(fmt.Errorf("expected type %T, got %T", &ClientMessage{}, clientMsg))
@@ -68,7 +68,7 @@ func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, _ codec.BinaryC
 		UpdateStateOnMisbehaviour: &UpdateStateOnMisbehaviourMsg{ClientMessage: clientMessage},
 	}
 
-	_, err := wasmSudo[EmptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmSudo[EmptyResult](ctx, cdc, payload, clientStore, &cs)
 	if err != nil {
 		panic(err)
 	}
