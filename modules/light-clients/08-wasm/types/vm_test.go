@@ -8,7 +8,10 @@ import (
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 )
 
 func (suite *TypesTestSuite) TestWasmInstantiate() {
@@ -19,11 +22,7 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 	}{
 		{
 			"success",
-			func() {
-				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					return nil, 0, nil
-				}
-			},
+			func() {},
 			nil,
 		},
 		{
@@ -35,6 +34,67 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 			},
 			types.ErrWasmContractCallFailed,
 		},
+		{
+			"failure: change clientstate type",
+			func() {
+				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					newClientState := localhost.NewClientState(clienttypes.NewHeight(1, 1))
+					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), newClientState))
+
+					data, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			types.ErrWasmInvalidContractModification,
+		},
+
+		{
+			"failure: delete clientstate",
+			func() {
+				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					store.Delete(host.ClientStateKey())
+					data, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			types.ErrWasmInvalidContractModification,
+		},
+
+		{
+			"failure: unmarshallable clientstate",
+			func() {
+				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					store.Set(host.ClientStateKey(), []byte("invalid json"))
+					data, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			types.ErrWasmInvalidContractModification,
+		},
+		{
+			"failure: change codehash",
+			func() {
+				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					var payload types.InstantiateMessage
+					err := json.Unmarshal(initMsg, &payload)
+					suite.Require().NoError(err)
+
+					// Change the code hash to something else.
+					clientState := payload.ClientState
+					clientState.CodeHash = []byte("new code hash")
+					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState))
+
+					resp, err := json.Marshal(types.UpdateStateResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.Response{Data: resp}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			types.ErrWasmInvalidContractModification,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -44,8 +104,13 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 
 			tc.malleate()
 
+			initMsg := types.InstantiateMessage{
+				ClientState:    &types.ClientState{},
+				ConsensusState: &types.ConsensusState{},
+			}
+
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
-			err := types.WasmInstantiate(suite.chainA.GetContext(), clientStore, &types.ClientState{}, types.InstantiateMessage{})
+			err := types.WasmInstantiate(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, &types.ClientState{}, initMsg)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -81,6 +146,44 @@ func (suite *TypesTestSuite) TestWasmMigrate() {
 			},
 			types.ErrWasmContractCallFailed,
 		},
+		{
+			"failure: change clientstate type",
+			func() {
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					newClientState := localhost.NewClientState(clienttypes.NewHeight(1, 1))
+					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), newClientState))
+
+					data, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			types.ErrWasmInvalidContractModification,
+		},
+		{
+			"failure: delete clientstate",
+			func() {
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					store.Delete(host.ClientStateKey())
+					data, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			types.ErrWasmInvalidContractModification,
+		},
+		{
+			"failure: unmarshallable clientstate",
+			func() {
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					store.Set(host.ClientStateKey(), []byte("invalid json"))
+					data, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			types.ErrWasmInvalidContractModification,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -88,10 +191,14 @@ func (suite *TypesTestSuite) TestWasmMigrate() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
+			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err := endpoint.CreateClient()
+			suite.Require().NoError(err)
+
 			tc.malleate()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
-			err := types.WasmMigrate(suite.chainA.GetContext(), clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
+			err = types.WasmMigrate(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -245,6 +352,65 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 			},
 			types.ErrWasmInvalidResponseData,
 		},
+		{
+			"failure: invalid clientstate type",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					newClientState := localhost.NewClientState(clienttypes.NewHeight(1, 1))
+					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), newClientState))
+
+					resp, err := json.Marshal(types.UpdateStateResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.Response{Data: resp}, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			types.ErrWasmInvalidContractModification,
+		},
+		{
+			"failure: unmarshallable clientstate bytes",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					store.Set(host.ClientStateKey(), []byte("invalid json"))
+
+					resp, err := json.Marshal(types.UpdateStateResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.Response{Data: resp}, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			types.ErrWasmInvalidContractModification,
+		},
+		{
+			"failure: delete clientstate",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					store.Delete(host.ClientStateKey())
+
+					resp, err := json.Marshal(types.UpdateStateResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.Response{Data: resp}, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			types.ErrWasmInvalidContractModification,
+		},
+		{
+			"failure: change codehash",
+			func() {
+				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					clientState := suite.chainA.GetClientState(defaultWasmClientID)
+					clientState.(*types.ClientState).CodeHash = []byte("new code hash")
+					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState))
+
+					resp, err := json.Marshal(types.UpdateStateResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.Response{Data: resp}, wasmtesting.DefaultGasUsed, nil
+				})
+			},
+			types.ErrWasmInvalidContractModification,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -266,7 +432,7 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 
 			tc.malleate()
 
-			res, err := types.WasmSudo[types.UpdateStateResult](suite.chainA.GetContext(), clientStore, wasmClientState, payload)
+			res, err := types.WasmSudo[types.UpdateStateResult](suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {

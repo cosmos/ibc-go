@@ -20,6 +20,7 @@ import (
 
 func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 	var substituteClientState exported.ClientState
+	var expectedClientStateBz []byte
 
 	testCases := []struct {
 		name     string
@@ -48,7 +49,8 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 
 						prefixedKey := types.SubjectPrefix
 						prefixedKey = append(prefixedKey, host.ClientStateKey()...)
-						store.Set(prefixedKey, wasmtesting.MockClientStateBz)
+						expectedClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash)
+						store.Set(prefixedKey, expectedClientStateBz)
 
 						return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
 					},
@@ -90,6 +92,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
+			expectedClientStateBz = nil
 
 			endpointA := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpointA.CreateClient()
@@ -120,7 +123,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.Require().NoError(err)
 
 				clientStateBz := subjectClientStore.Get(host.ClientStateKey())
-				suite.Require().Equal(wasmtesting.MockClientStateBz, clientStateBz)
+				suite.Require().Equal(expectedClientStateBz, clientStateBz)
 			} else {
 				suite.Require().ErrorIs(err, tc.expErr)
 			}
