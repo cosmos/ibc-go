@@ -21,6 +21,13 @@ func NewClientProposalHandler(k keeper.Keeper) govtypes.Handler { //nolint:stati
 		case *types.ClientUpdateProposal:
 			// NOTE: RecoverClient is called in favour of the deprecated ClientUpdateProposal function.
 			return k.RecoverClient(ctx, c.SubjectClientId, c.SubstituteClientId)
+		case *types.UpgradeProposal:
+			upgradedClientState, err := types.UnpackClientState(c.UpgradedClientState)
+			if err != nil {
+				return errorsmod.Wrapf(ibcerrors.ErrUnpackAny, "unpack err: %v", err)
+			}
+			// NOTE: ScheduleIBCSoftwareUpgrade is called in favour of the deprecated HandleUpgradeProposal function.
+			return k.ScheduleIBCSoftwareUpgrade(ctx, c.Plan, upgradedClientState)
 		default:
 			return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "unrecognized ibc proposal content type: %T", c)
 		}
