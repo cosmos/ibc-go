@@ -12,8 +12,8 @@ service Msg {
   // StoreCode defines a rpc handler method for MsgStoreCode.
   rpc StoreCode(MsgStoreCode) returns (MsgStoreCodeResponse);
 
-  // RemoveCodeHash defines a rpc handler method for MsgRemoveCodeHash.
-  rpc RemoveCodeHash(MsgRemoveCodeHash) returns (MsgRemoveCodeHashResponse);
+  // RemoveChecksum defines a rpc handler method for MsgRemoveChecksum.
+  rpc RemoveChecksum(MsgRemoveChecksum) returns (MsgRemoveChecksumResponse);
 
   // MigrateContract defines a rpc handler method for MsgMigrateContract.
   rpc MigrateContract(MsgMigrateContract) returns (MsgMigrateContractResponse);
@@ -35,18 +35,18 @@ message MsgStoreCodeResponse {
   bytes checksum = 1;
 }
 
-// MsgRemoveCodeHash defines the request type for the MsgRemoveCodeHash rpc.
-message MsgRemoveCodeHash {
+// MsgRemoveChecksum defines the request type for the MsgRemoveChecksum rpc.
+message MsgRemoveChecksum {
   option (cosmos.msg.v1.signer) = "signer";
 
   // signer address
   string signer = 1;
-  // code hash to be removed from the store
-  bytes code_hash = 2;
+  // checksum to be removed from the store
+  bytes checksum = 2;
 }
 
-// MsgStoreCodeResponse defines the response type for the StoreCode rpc
-message MsgRemoveCodeHashResponse {}
+// MsgStoreChecksumResponse defines the response type for the StoreCode rpc
+message MsgRemoveChecksumResponse {}
 
 // MsgMigrateContract defines the request type for the MigrateContract rpc.
 message MsgMigrateContract {
@@ -56,8 +56,8 @@ message MsgMigrateContract {
   string signer = 1;
   // the client id of the contract
   string client_id = 2;
-  // the code hash of the new wasm byte code for the contract
-  bytes code_hash = 3;
+  // the checksum of the new wasm byte code for the contract
+  bytes checksum = 3;
   // the json encoded message to be passed to the contract on migration
   bytes msg = 4;
 }

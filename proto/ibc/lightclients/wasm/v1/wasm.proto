@@ -13,7 +13,7 @@ message ClientState {
   // bytes encoding the client state of the underlying light client
   // implemented as a Wasm contract.
   bytes                     data          = 1;
-  bytes                     code_hash     = 2;
+  bytes                     checksum      = 2;
   ibc.core.client.v1.Height latest_height = 3 [(gogoproto.nullable) = false];
 }
 

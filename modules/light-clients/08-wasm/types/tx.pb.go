@@ -129,26 +129,26 @@ func (m *MsgStoreCodeResponse) GetChecksum() []byte {
 	return nil
 }
 
-// MsgRemoveCodeHash defines the request type for the MsgRemoveCodeHash rpc.
-type MsgRemoveCodeHash struct {
+// MsgRemoveChecksum defines the request type for the MsgRemoveChecksum rpc.
+type MsgRemoveChecksum struct {
 	// signer address
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
-	// code hash to be removed from the store
-	CodeHash []byte `protobuf:"bytes,2,opt,name=code_hash,json=codeHash,proto3" json:"code_hash,omitempty"`
+	// checksum to be removed from the store
+	Checksum []byte `protobuf:"bytes,2,opt,name=checksum,proto3" json:"checksum,omitempty"`
 }
 
-func (m *MsgRemoveCodeHash) Reset()         { *m = MsgRemoveCodeHash{} }
-func (m *MsgRemoveCodeHash) String() string { return proto.CompactTextString(m) }
-func (*MsgRemoveCodeHash) ProtoMessage()    {}
-func (*MsgRemoveCodeHash) Descriptor() ([]byte, []int) {
+func (m *MsgRemoveChecksum) Reset()         { *m = MsgRemoveChecksum{} }
+func (m *MsgRemoveChecksum) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveChecksum) ProtoMessage()    {}
+func (*MsgRemoveChecksum) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1d9737363bf1e38d, []int{2}
 }
-func (m *MsgRemoveCodeHash) XXX_Unmarshal(b []byte) error {
+func (m *MsgRemoveChecksum) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRemoveCodeHash) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRemoveChecksum) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRemoveCodeHash.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRemoveChecksum.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -158,48 +158,48 @@ func (m *MsgRemoveCodeHash) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *MsgRemoveCodeHash) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRemoveCodeHash.Merge(m, src)
+func (m *MsgRemoveChecksum) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveChecksum.Merge(m, src)
 }
-func (m *MsgRemoveCodeHash) XXX_Size() int {
+func (m *MsgRemoveChecksum) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRemoveCodeHash) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRemoveCodeHash.DiscardUnknown(m)
+func (m *MsgRemoveChecksum) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveChecksum.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRemoveCodeHash proto.InternalMessageInfo
+var xxx_messageInfo_MsgRemoveChecksum proto.InternalMessageInfo
 
-func (m *MsgRemoveCodeHash) GetSigner() string {
+func (m *MsgRemoveChecksum) GetSigner() string {
 	if m != nil {
 		return m.Signer
 	}
 	return ""
 }
 
-func (m *MsgRemoveCodeHash) GetCodeHash() []byte {
+func (m *MsgRemoveChecksum) GetChecksum() []byte {
 	if m != nil {
-		return m.CodeHash
+		return m.Checksum
 	}
 	return nil
 }
 
-// MsgStoreCodeResponse defines the response type for the StoreCode rpc
-type MsgRemoveCodeHashResponse struct {
+// MsgStoreChecksumResponse defines the response type for the StoreCode rpc
+type MsgRemoveChecksumResponse struct {
 }
 
-func (m *MsgRemoveCodeHashResponse) Reset()         { *m = MsgRemoveCodeHashResponse{} }
-func (m *MsgRemoveCodeHashResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRemoveCodeHashResponse) ProtoMessage()    {}
-func (*MsgRemoveCodeHashResponse) Descriptor() ([]byte, []int) {
+func (m *MsgRemoveChecksumResponse) Reset()         { *m = MsgRemoveChecksumResponse{} }
+func (m *MsgRemoveChecksumResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveChecksumResponse) ProtoMessage()    {}
+func (*MsgRemoveChecksumResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1d9737363bf1e38d, []int{3}
 }
-func (m *MsgRemoveCodeHashResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgRemoveChecksumResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRemoveCodeHashResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRemoveChecksumResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRemoveCodeHashResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRemoveChecksumResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -209,17 +209,17 @@ func (m *MsgRemoveCodeHashResponse) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (m *MsgRemoveCodeHashResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRemoveCodeHashResponse.Merge(m, src)
+func (m *MsgRemoveChecksumResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveChecksumResponse.Merge(m, src)
 }
-func (m *MsgRemoveCodeHashResponse) XXX_Size() int {
+func (m *MsgRemoveChecksumResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRemoveCodeHashResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRemoveCodeHashResponse.DiscardUnknown(m)
+func (m *MsgRemoveChecksumResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveChecksumResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRemoveCodeHashResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgRemoveChecksumResponse proto.InternalMessageInfo
 
 // MsgMigrateContract defines the request type for the MigrateContract rpc.
 type MsgMigrateContract struct {
@@ -227,8 +227,8 @@ type MsgMigrateContract struct {
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	// the client id of the contract
 	ClientId string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
-	// the code hash of the new wasm byte code for the contract
-	CodeHash []byte `protobuf:"bytes,3,opt,name=code_hash,json=codeHash,proto3" json:"code_hash,omitempty"`
+	// the checksum of the new wasm byte code for the contract
+	Checksum []byte `protobuf:"bytes,3,opt,name=checksum,proto3" json:"checksum,omitempty"`
 	// the json encoded message to be passed to the contract on migration
 	Msg []byte `protobuf:"bytes,4,opt,name=msg,proto3" json:"msg,omitempty"`
 }
@@ -280,9 +280,9 @@ func (m *MsgMigrateContract) GetClientId() string {
 	return ""
 }
 
-func (m *MsgMigrateContract) GetCodeHash() []byte {
+func (m *MsgMigrateContract) GetChecksum() []byte {
 	if m != nil {
-		return m.CodeHash
+		return m.Checksum
 	}
 	return nil
 }
@@ -334,8 +334,8 @@ var xxx_messageInfo_MsgMigrateContractResponse proto.InternalMessageInfo
 func init() {
 	proto.RegisterType((*MsgStoreCode)(nil), "ibc.lightclients.wasm.v1.MsgStoreCode")
 	proto.RegisterType((*MsgStoreCodeResponse)(nil), "ibc.lightclients.wasm.v1.MsgStoreCodeResponse")
-	proto.RegisterType((*MsgRemoveCodeHash)(nil), "ibc.lightclients.wasm.v1.MsgRemoveCodeHash")
-	proto.RegisterType((*MsgRemoveCodeHashResponse)(nil), "ibc.lightclients.wasm.v1.MsgRemoveCodeHashResponse")
+	proto.RegisterType((*MsgRemoveChecksum)(nil), "ibc.lightclients.wasm.v1.MsgRemoveChecksum")
+	proto.RegisterType((*MsgRemoveChecksumResponse)(nil), "ibc.lightclients.wasm.v1.MsgRemoveChecksumResponse")
 	proto.RegisterType((*MsgMigrateContract)(nil), "ibc.lightclients.wasm.v1.MsgMigrateContract")
 	proto.RegisterType((*MsgMigrateContractResponse)(nil), "ibc.lightclients.wasm.v1.MsgMigrateContractResponse")
 }
@@ -343,36 +343,35 @@ func init() {
 func init() { proto.RegisterFile("ibc/lightclients/wasm/v1/tx.proto", fileDescriptor_1d9737363bf1e38d) }
 
 var fileDescriptor_1d9737363bf1e38d = []byte{
-	// 454 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x93, 0xb1, 0x6f, 0xd3, 0x40,
-	0x14, 0xc6, 0x73, 0x0d, 0x54, 0xc9, 0x23, 0x2a, 0x60, 0x21, 0x08, 0x2e, 0xb2, 0x4a, 0x84, 0x50,
-	0x55, 0xc8, 0x99, 0xb6, 0x0c, 0x08, 0x31, 0x95, 0x05, 0x06, 0x2f, 0x46, 0x20, 0xc1, 0x12, 0xd9,
-	0xe7, 0xd3, 0xf9, 0x44, 0x2e, 0x17, 0xf9, 0x5d, 0x02, 0xd9, 0x10, 0x12, 0x3b, 0x7f, 0x4a, 0xff,
-	0x0c, 0xc6, 0x8e, 0x0c, 0x0c, 0x28, 0x19, 0xfa, 0x6f, 0x20, 0x5f, 0xec, 0x10, 0xa7, 0x6a, 0xd4,
-	0x6c, 0xbe, 0xd3, 0xf7, 0xbd, 0xf7, 0xf3, 0x7d, 0xfa, 0xe0, 0xa1, 0x8c, 0x99, 0xdf, 0x97, 0x22,
-	0x35, 0xac, 0x2f, 0xf9, 0xc0, 0xa0, 0xff, 0x25, 0x42, 0xe5, 0x8f, 0x0f, 0x7d, 0xf3, 0x95, 0x0e,
-	0x33, 0x6d, 0xb4, 0xd3, 0x96, 0x31, 0xa3, 0xcb, 0x12, 0x9a, 0x4b, 0xe8, 0xf8, 0xd0, 0xbd, 0xc7,
-	0x34, 0x2a, 0x8d, 0xbe, 0x42, 0x91, 0x3b, 0x14, 0x8a, 0xb9, 0xa5, 0xf3, 0x11, 0x5a, 0x01, 0x8a,
-	0x77, 0x46, 0x67, 0xfc, 0xb5, 0x4e, 0xb8, 0x73, 0x17, 0xb6, 0x51, 0x8a, 0x01, 0xcf, 0xda, 0x64,
-	0x8f, 0xec, 0x37, 0xc3, 0xe2, 0xe4, 0x3c, 0x82, 0x9d, 0x7c, 0x56, 0x2f, 0x9e, 0x18, 0xde, 0x63,
-	0x3a, 0xe1, 0xed, 0xad, 0x3d, 0xb2, 0xdf, 0x0a, 0x5b, 0xf9, 0xed, 0xc9, 0xc4, 0x58, 0xf7, 0xcb,
-	0x1b, 0xdf, 0xcf, 0x4f, 0x0f, 0x0a, 0x4b, 0xe7, 0x08, 0xee, 0x2c, 0x8f, 0x0e, 0x39, 0x0e, 0xf5,
-	0x00, 0xb9, 0xe3, 0x42, 0x83, 0xa5, 0x9c, 0x7d, 0xc6, 0x91, 0xb2, 0x4b, 0x5a, 0xe1, 0xe2, 0xdc,
-	0x79, 0x0f, 0xb7, 0x03, 0x14, 0x21, 0x57, 0x7a, 0x6c, 0x4d, 0x6f, 0x22, 0x4c, 0x2f, 0x65, 0xda,
-	0x85, 0x66, 0x4e, 0xd2, 0x4b, 0x23, 0x4c, 0x0b, 0x9c, 0x06, 0x2b, 0x4c, 0x55, 0x94, 0x5d, 0xb8,
-	0x7f, 0x61, 0x6c, 0xc9, 0xd3, 0xf9, 0x41, 0xc0, 0x09, 0x50, 0x04, 0x52, 0x64, 0x51, 0xfe, 0x1f,
-	0x03, 0x93, 0x45, 0xcc, 0xac, 0xdd, 0x6a, 0x5f, 0xb7, 0x27, 0x13, 0xbb, 0xb5, 0x19, 0x36, 0xe6,
-	0x17, 0x6f, 0x93, 0x2a, 0x52, 0xbd, 0x8a, 0xe4, 0xdc, 0x82, 0xba, 0x42, 0xd1, 0xbe, 0x66, 0xaf,
-	0xf3, 0xcf, 0x2a, 0xe4, 0x03, 0x70, 0x2f, 0x62, 0x94, 0x94, 0x47, 0x7f, 0xb6, 0xa0, 0x1e, 0xa0,
-	0x70, 0x18, 0x34, 0xff, 0xa7, 0xf5, 0x98, 0x5e, 0x96, 0x38, 0x5d, 0x7e, 0x7a, 0x97, 0x5e, 0x4d,
-	0xb7, 0x88, 0x28, 0x83, 0x9d, 0x95, 0x0c, 0x9e, 0xac, 0x9d, 0x50, 0x15, 0xbb, 0xc7, 0x1b, 0x88,
-	0x17, 0x3b, 0x47, 0x70, 0x73, 0x35, 0x82, 0xa7, 0x6b, 0xe7, 0xac, 0xa8, 0xdd, 0xe7, 0x9b, 0xa8,
-	0xcb, 0xb5, 0xee, 0xf5, 0x6f, 0xe7, 0xa7, 0x07, 0xe4, 0xe4, 0xc3, 0xaf, 0xa9, 0x47, 0xce, 0xa6,
-	0x1e, 0xf9, 0x3b, 0xf5, 0xc8, 0xcf, 0x99, 0x57, 0x3b, 0x9b, 0x79, 0xb5, 0xdf, 0x33, 0xaf, 0xf6,
-	0xe9, 0x95, 0x90, 0x26, 0x1d, 0xc5, 0x94, 0x69, 0xe5, 0x17, 0x2d, 0x92, 0x31, 0xeb, 0x0a, 0xed,
-	0x2b, 0x9d, 0x8c, 0xfa, 0x1c, 0xe7, 0xa5, 0xec, 0x96, 0xad, 0x7c, 0xf6, 0xa2, 0x6b, 0x8b, 0x69,
-	0x26, 0x43, 0x8e, 0xf1, 0xb6, 0xad, 0xd9, 0xf1, 0xbf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x8f, 0x38,
-	0x88, 0x5a, 0xbe, 0x03, 0x00, 0x00,
+	// 445 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x4d, 0x6f, 0xd3, 0x40,
+	0x14, 0xcc, 0x26, 0x50, 0x35, 0x8f, 0xa8, 0x80, 0x85, 0x20, 0xb8, 0xc8, 0x2a, 0x11, 0x42, 0x55,
+	0x21, 0x6b, 0xda, 0x72, 0x40, 0x88, 0x53, 0x7b, 0xe2, 0xe0, 0x8b, 0x41, 0x48, 0x70, 0x89, 0xe2,
+	0xf5, 0x6a, 0xb3, 0x22, 0xeb, 0x8d, 0xfc, 0xd6, 0x81, 0xdc, 0x10, 0xe2, 0x07, 0xf0, 0x53, 0xfa,
+	0x33, 0x38, 0xf6, 0xc8, 0x81, 0x03, 0x4a, 0x0e, 0xfd, 0x1b, 0xc8, 0x5f, 0xc1, 0x4e, 0x95, 0xaa,
+	0xb9, 0x79, 0x9f, 0xe6, 0xcd, 0x8c, 0xdf, 0x68, 0xe0, 0xb1, 0x0c, 0x98, 0x3b, 0x96, 0x62, 0x64,
+	0xd8, 0x58, 0xf2, 0xc8, 0xa0, 0xfb, 0x65, 0x88, 0xca, 0x9d, 0x1e, 0xba, 0xe6, 0x2b, 0x9d, 0xc4,
+	0xda, 0x68, 0xab, 0x2b, 0x03, 0x46, 0xab, 0x10, 0x9a, 0x42, 0xe8, 0xf4, 0xd0, 0x7e, 0xc0, 0x34,
+	0x2a, 0x8d, 0xae, 0x42, 0x91, 0x6e, 0x28, 0x14, 0xf9, 0x4a, 0xef, 0x23, 0x74, 0x3c, 0x14, 0xef,
+	0x8c, 0x8e, 0xf9, 0xa9, 0x0e, 0xb9, 0x75, 0x1f, 0xb6, 0x50, 0x8a, 0x88, 0xc7, 0x5d, 0xb2, 0x47,
+	0xf6, 0xdb, 0x7e, 0xf1, 0xb2, 0x9e, 0xc0, 0x4e, 0xca, 0x35, 0x08, 0x66, 0x86, 0x0f, 0x98, 0x0e,
+	0x79, 0xb7, 0xb9, 0x47, 0xf6, 0x3b, 0x7e, 0x27, 0x9d, 0x9e, 0xcc, 0x4c, 0xb6, 0xfd, 0xfa, 0xd6,
+	0xf7, 0x8b, 0xb3, 0x83, 0x62, 0xa5, 0x77, 0x04, 0xf7, 0xaa, 0xd4, 0x3e, 0xc7, 0x89, 0x8e, 0x90,
+	0x5b, 0x36, 0x6c, 0xb3, 0x11, 0x67, 0x9f, 0x31, 0x51, 0x99, 0x48, 0xc7, 0x5f, 0xbe, 0x7b, 0xef,
+	0xe1, 0xae, 0x87, 0xc2, 0xe7, 0x4a, 0x4f, 0xf9, 0x69, 0x31, 0x5c, 0xeb, 0xa9, 0x4a, 0xd4, 0xac,
+	0x13, 0xd5, 0x9d, 0xec, 0xc2, 0xc3, 0x4b, 0xac, 0xa5, 0x9d, 0xde, 0x0f, 0x02, 0x96, 0x87, 0xc2,
+	0x93, 0x22, 0x1e, 0xa6, 0xbf, 0x11, 0x99, 0x78, 0xc8, 0xcc, 0x5a, 0xd1, 0x5d, 0x68, 0xe7, 0xc7,
+	0x1d, 0xc8, 0x30, 0x53, 0x6d, 0xfb, 0xdb, 0xf9, 0xe0, 0x6d, 0x58, 0x73, 0xd4, 0xaa, 0x3b, 0xb2,
+	0xee, 0x40, 0x4b, 0xa1, 0xe8, 0xde, 0xc8, 0xc6, 0xe9, 0x67, 0xdd, 0xe3, 0x23, 0xb0, 0x2f, 0xbb,
+	0x28, 0x4d, 0x1e, 0xfd, 0x69, 0x42, 0xcb, 0x43, 0x61, 0x31, 0x68, 0xff, 0xcf, 0xea, 0x29, 0x5d,
+	0x97, 0x37, 0xad, 0x1e, 0xde, 0xa6, 0xd7, 0xc3, 0x2d, 0x03, 0x8a, 0x61, 0x67, 0x25, 0x81, 0x67,
+	0x57, 0x32, 0xd4, 0xc1, 0xf6, 0xf1, 0x06, 0xe0, 0xa5, 0x66, 0x02, 0xb7, 0x57, 0x13, 0x78, 0x7e,
+	0x25, 0xcf, 0x0a, 0xda, 0x7e, 0xb9, 0x09, 0xba, 0x94, 0xb5, 0x6f, 0x7e, 0xbb, 0x38, 0x3b, 0x20,
+	0x27, 0x1f, 0x7e, 0xcd, 0x1d, 0x72, 0x3e, 0x77, 0xc8, 0xdf, 0xb9, 0x43, 0x7e, 0x2e, 0x9c, 0xc6,
+	0xf9, 0xc2, 0x69, 0xfc, 0x5e, 0x38, 0x8d, 0x4f, 0x6f, 0x84, 0x34, 0xa3, 0x24, 0xa0, 0x4c, 0x2b,
+	0xb7, 0xe8, 0x90, 0x0c, 0x58, 0x5f, 0x68, 0x57, 0xe9, 0x30, 0x19, 0x73, 0xcc, 0x2b, 0xd9, 0x2f,
+	0x3b, 0xf9, 0xe2, 0x55, 0x3f, 0xab, 0xa5, 0x99, 0x4d, 0x38, 0x06, 0x5b, 0x59, 0xc9, 0x8e, 0xff,
+	0x05, 0x00, 0x00, 0xff, 0xff, 0x5f, 0xb7, 0xbc, 0xcb, 0xbc, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -389,8 +388,8 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// StoreCode defines a rpc handler method for MsgStoreCode.
 	StoreCode(ctx context.Context, in *MsgStoreCode, opts ...grpc.CallOption) (*MsgStoreCodeResponse, error)
-	// RemoveCodeHash defines a rpc handler method for MsgRemoveCodeHash.
-	RemoveCodeHash(ctx context.Context, in *MsgRemoveCodeHash, opts ...grpc.CallOption) (*MsgRemoveCodeHashResponse, error)
+	// RemoveChecksum defines a rpc handler method for MsgRemoveChecksum.
+	RemoveChecksum(ctx context.Context, in *MsgRemoveChecksum, opts ...grpc.CallOption) (*MsgRemoveChecksumResponse, error)
 	// MigrateContract defines a rpc handler method for MsgMigrateContract.
 	MigrateContract(ctx context.Context, in *MsgMigrateContract, opts ...grpc.CallOption) (*MsgMigrateContractResponse, error)
 }
@@ -412,9 +411,9 @@ func (c *msgClient) StoreCode(ctx context.Context, in *MsgStoreCode, opts ...grp
 	return out, nil
 }
 
-func (c *msgClient) RemoveCodeHash(ctx context.Context, in *MsgRemoveCodeHash, opts ...grpc.CallOption) (*MsgRemoveCodeHashResponse, error) {
-	out := new(MsgRemoveCodeHashResponse)
-	err := c.cc.Invoke(ctx, "/ibc.lightclients.wasm.v1.Msg/RemoveCodeHash", in, out, opts...)
+func (c *msgClient) RemoveChecksum(ctx context.Context, in *MsgRemoveChecksum, opts ...grpc.CallOption) (*MsgRemoveChecksumResponse, error) {
+	out := new(MsgRemoveChecksumResponse)
+	err := c.cc.Invoke(ctx, "/ibc.lightclients.wasm.v1.Msg/RemoveChecksum", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -434,8 +433,8 @@ func (c *msgClient) MigrateContract(ctx context.Context, in *MsgMigrateContract,
 type MsgServer interface {
 	// StoreCode defines a rpc handler method for MsgStoreCode.
 	StoreCode(context.Context, *MsgStoreCode) (*MsgStoreCodeResponse, error)
-	// RemoveCodeHash defines a rpc handler method for MsgRemoveCodeHash.
-	RemoveCodeHash(context.Context, *MsgRemoveCodeHash) (*MsgRemoveCodeHashResponse, error)
+	// RemoveChecksum defines a rpc handler method for MsgRemoveChecksum.
+	RemoveChecksum(context.Context, *MsgRemoveChecksum) (*MsgRemoveChecksumResponse, error)
 	// MigrateContract defines a rpc handler method for MsgMigrateContract.
 	MigrateContract(context.Context, *MsgMigrateContract) (*MsgMigrateContractResponse, error)
 }
@@ -447,8 +446,8 @@ type UnimplementedMsgServer struct {
 func (*UnimplementedMsgServer) StoreCode(ctx context.Context, req *MsgStoreCode) (*MsgStoreCodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StoreCode not implemented")
 }
-func (*UnimplementedMsgServer) RemoveCodeHash(ctx context.Context, req *MsgRemoveCodeHash) (*MsgRemoveCodeHashResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveCodeHash not implemented")
+func (*UnimplementedMsgServer) RemoveChecksum(ctx context.Context, req *MsgRemoveChecksum) (*MsgRemoveChecksumResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveChecksum not implemented")
 }
 func (*UnimplementedMsgServer) MigrateContract(ctx context.Context, req *MsgMigrateContract) (*MsgMigrateContractResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MigrateContract not implemented")
@@ -476,20 +475,20 @@ func _Msg_StoreCode_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_RemoveCodeHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRemoveCodeHash)
+func _Msg_RemoveChecksum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveChecksum)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).RemoveCodeHash(ctx, in)
+		return srv.(MsgServer).RemoveChecksum(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ibc.lightclients.wasm.v1.Msg/RemoveCodeHash",
+		FullMethod: "/ibc.lightclients.wasm.v1.Msg/RemoveChecksum",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RemoveCodeHash(ctx, req.(*MsgRemoveCodeHash))
+		return srv.(MsgServer).RemoveChecksum(ctx, req.(*MsgRemoveChecksum))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -521,8 +520,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_StoreCode_Handler,
 		},
 		{
-			MethodName: "RemoveCodeHash",
-			Handler:    _Msg_RemoveCodeHash_Handler,
+			MethodName: "RemoveChecksum",
+			Handler:    _Msg_RemoveChecksum_Handler,
 		},
 		{
 			MethodName: "MigrateContract",
@@ -600,7 +599,7 @@ func (m *MsgStoreCodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRemoveCodeHash) Marshal() (dAtA []byte, err error) {
+func (m *MsgRemoveChecksum) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -610,20 +609,20 @@ func (m *MsgRemoveCodeHash) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRemoveCodeHash) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRemoveChecksum) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRemoveCodeHash) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRemoveChecksum) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.CodeHash) > 0 {
-		i -= len(m.CodeHash)
-		copy(dAtA[i:], m.CodeHash)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.CodeHash)))
+	if len(m.Checksum) > 0 {
+		i -= len(m.Checksum)
+		copy(dAtA[i:], m.Checksum)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Checksum)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -637,7 +636,7 @@ func (m *MsgRemoveCodeHash) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRemoveCodeHashResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgRemoveChecksumResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -647,12 +646,12 @@ func (m *MsgRemoveCodeHashResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRemoveCodeHashResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRemoveChecksumResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRemoveCodeHashResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRemoveChecksumResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -687,10 +686,10 @@ func (m *MsgMigrateContract) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x22
 	}
-	if len(m.CodeHash) > 0 {
-		i -= len(m.CodeHash)
-		copy(dAtA[i:], m.CodeHash)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.CodeHash)))
+	if len(m.Checksum) > 0 {
+		i -= len(m.Checksum)
+		copy(dAtA[i:], m.Checksum)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Checksum)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -775,7 +774,7 @@ func (m *MsgStoreCodeResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgRemoveCodeHash) Size() (n int) {
+func (m *MsgRemoveChecksum) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -785,14 +784,14 @@ func (m *MsgRemoveCodeHash) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.CodeHash)
+	l = len(m.Checksum)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	return n
 }
 
-func (m *MsgRemoveCodeHashResponse) Size() (n int) {
+func (m *MsgRemoveChecksumResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -815,7 +814,7 @@ func (m *MsgMigrateContract) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.CodeHash)
+	l = len(m.Checksum)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -1041,7 +1040,7 @@ func (m *MsgStoreCodeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRemoveCodeHash) Unmarshal(dAtA []byte) error {
+func (m *MsgRemoveChecksum) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1064,10 +1063,10 @@ func (m *MsgRemoveCodeHash) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRemoveCodeHash: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRemoveChecksum: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRemoveCodeHash: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRemoveChecksum: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1104,7 +1103,7 @@ func (m *MsgRemoveCodeHash) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CodeHash", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Checksum", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -1131,9 +1130,9 @@ func (m *MsgRemoveCodeHash) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CodeHash = append(m.CodeHash[:0], dAtA[iNdEx:postIndex]...)
-			if m.CodeHash == nil {
-				m.CodeHash = []byte{}
+			m.Checksum = append(m.Checksum[:0], dAtA[iNdEx:postIndex]...)
+			if m.Checksum == nil {
+				m.Checksum = []byte{}
 			}
 			iNdEx = postIndex
 		default:
@@ -1157,7 +1156,7 @@ func (m *MsgRemoveCodeHash) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRemoveCodeHashResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgRemoveChecksumResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1180,10 +1179,10 @@ func (m *MsgRemoveCodeHashResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRemoveCodeHashResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRemoveChecksumResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRemoveCodeHashResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRemoveChecksumResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -1302,7 +1301,7 @@ func (m *MsgMigrateContract) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CodeHash", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Checksum", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -1329,9 +1328,9 @@ func (m *MsgMigrateContract) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CodeHash = append(m.CodeHash[:0], dAtA[iNdEx:postIndex]...)
-			if m.CodeHash == nil {
-				m.CodeHash = []byte{}
+			m.Checksum = append(m.Checksum[:0], dAtA[iNdEx:postIndex]...)
+			if m.Checksum == nil {
+				m.Checksum = []byte{}
 			}
 			iNdEx = postIndex
 		case 4:

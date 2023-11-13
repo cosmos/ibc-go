@@ -8,26 +8,26 @@ option go_package = "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/type
 
 // Query service for wasm module
 service Query {
-  // Get all Wasm code hashes
-  rpc CodeHashes(QueryCodeHashesRequest) returns (QueryCodeHashesResponse) {
-    option (google.api.http).get = "/ibc/lightclients/wasm/v1/code_hashes";
+  // Get all Wasm checksums
+  rpc Checksums(QueryChecksumsRequest) returns (QueryChecksumsResponse) {
+    option (google.api.http).get = "/ibc/lightclients/wasm/v1/checksums";
   }
 
   // Get Wasm code for given code hash
   rpc Code(QueryCodeRequest) returns (QueryCodeResponse) {
-    option (google.api.http).get = "/ibc/lightclients/wasm/v1/code_hashes/{code_hash}/code";
+    option (google.api.http).get = "/ibc/lightclients/wasm/v1/checksums/{checksum}/code";
   }
 }
 
-// QueryCodeHashesRequest is the request type for the Query/CodeHashes RPC method.
-message QueryCodeHashesRequest {
+// QueryChecksumsRequest is the request type for the Query/Checksums RPC method.
+message QueryChecksumsRequest {
   // pagination defines an optional pagination for the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
-// QueryCodeHashesResponse is the response type for the Query/CodeHashes RPC method.
-message QueryCodeHashesResponse {
-  repeated string code_hashes = 1;
+// QueryChecksumsResponse is the response type for the Query/Checksums RPC method.
+message QueryChecksumsResponse {
+  repeated string checksums = 1;
 
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -35,7 +35,7 @@ message QueryCodeHashesResponse {
 
 // QueryCodeRequest is the request type for the Query/Code RPC method.
 message QueryCodeRequest {
-  string code_hash = 1;
+  string checksum = 1;
 }
 
 // QueryCodeResponse is the response type for the Query/Code RPC method.
