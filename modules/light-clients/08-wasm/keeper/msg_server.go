@@ -34,27 +34,27 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
 	}, nil
 }
 
-// RemoveCodeHash defines a rpc handler method for MsgRemoveCodeHash
-func (k Keeper) RemoveCodeHash(goCtx context.Context, msg *types.MsgRemoveCodeHash) (*types.MsgRemoveCodeHashResponse, error) {
+// RemoveChecksum defines a rpc handler method for MsgRemoveChecksum
+func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecksum) (*types.MsgRemoveChecksumResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	if !types.HasCodeHash(goCtx, msg.CodeHash) {
+	if !types.HasCodeHash(goCtx, msg.Checksum) {
 		return nil, types.ErrWasmCodeHashNotFound
 	}
 
-	err := ibcwasm.CodeHashes.Remove(goCtx, msg.CodeHash)
+	err := ibcwasm.CodeHashes.Remove(goCtx, msg.Checksum)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to remove code hash")
 	}
 
 	// unpin the code from the vm in-memory cache
-	if err := k.wasmVM.Unpin(msg.CodeHash); err != nil {
-		return nil, errorsmod.Wrapf(err, "failed to unpin contract with code hash (%s) from vm cache", hex.EncodeToString(msg.CodeHash))
+	if err := k.wasmVM.Unpin(msg.Checksum); err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to unpin contract with code hash (%s) from vm cache", hex.EncodeToString(msg.Checksum))
 	}
 
-	return &types.MsgRemoveCodeHashResponse{}, nil
+	return &types.MsgRemoveChecksumResponse{}, nil
 }
 
 // MigrateContract defines a rpc handler method for MsgMigrateContract
@@ -65,7 +65,7 @@ func (k Keeper) MigrateContract(goCtx context.Context, msg *types.MsgMigrateCont
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := k.migrateContractCode(ctx, msg.ClientId, msg.CodeHash, msg.Msg)
+	err := k.migrateContractCode(ctx, msg.ClientId, msg.Checksum, msg.Msg)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to migrate contract")
 	}

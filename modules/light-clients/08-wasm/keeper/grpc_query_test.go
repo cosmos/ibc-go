@@ -29,7 +29,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 				res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
-				req = &types.QueryCodeRequest{CodeHash: hex.EncodeToString(res.Checksum)}
+				req = &types.QueryCodeRequest{Checksum: hex.EncodeToString(res.Checksum)}
 			},
 			true,
 		},
@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 		{
 			"fails with non-existent code hash",
 			func() {
-				req = &types.QueryCodeRequest{CodeHash: "test"}
+				req = &types.QueryCodeRequest{Checksum: "test"}
 			},
 			false,
 		},
@@ -106,14 +106,14 @@ func (suite *KeeperTestSuite) TestQueryCodeHashes() {
 
 			tc.malleate()
 
-			req := &types.QueryCodeHashesRequest{}
-			res, err := GetSimApp(suite.chainA).WasmClientKeeper.CodeHashes(suite.chainA.GetContext(), req)
+			req := &types.QueryChecksumsRequest{}
+			res, err := GetSimApp(suite.chainA).WasmClientKeeper.Checksums(suite.chainA.GetContext(), req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(len(expCodeHashes), len(res.CodeHashes))
-				suite.Require().ElementsMatch(expCodeHashes, res.CodeHashes)
+				suite.Require().Equal(len(expCodeHashes), len(res.Checksums))
+				suite.Require().ElementsMatch(expCodeHashes, res.Checksums)
 			} else {
 				suite.Require().Error(err)
 			}

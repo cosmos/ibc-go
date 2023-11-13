@@ -80,9 +80,9 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 				Time:    time.Now(),
 			})
 
-			resp, err := destWasmClientApp.WasmClientKeeper.CodeHashes(destCtx, &types.QueryCodeHashesRequest{})
+			resp, err := destWasmClientApp.WasmClientKeeper.Checksums(destCtx, &types.QueryChecksumsRequest{})
 			suite.Require().NoError(err)
-			suite.Require().Empty(resp.CodeHashes)
+			suite.Require().Empty(resp.Checksums)
 
 			suite.Require().NoError(destWasmClientApp.SnapshotManager().Restore(*snapshot))
 
@@ -107,7 +107,7 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 			})
 
 			for _, codeHash := range codeHashes {
-				resp, err := destWasmClientApp.WasmClientKeeper.Code(ctx, &types.QueryCodeRequest{CodeHash: hex.EncodeToString(codeHash)})
+				resp, err := destWasmClientApp.WasmClientKeeper.Code(ctx, &types.QueryCodeRequest{Checksum: hex.EncodeToString(codeHash)})
 				suite.Require().NoError(err)
 
 				allDestAppCodeHashInWasmVMStore = append(allDestAppCodeHashInWasmVMStore, keeper.GenerateWasmCodeHash(resp.Data)...)

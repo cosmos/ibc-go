@@ -69,7 +69,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			"failure: code hashes do not match",
 			func() {
 				substituteClientState = &types.ClientState{
-					CodeHash: []byte("invalid"),
+					Checksum: []byte("invalid"),
 				}
 			},
 			clienttypes.ErrInvalidClient,

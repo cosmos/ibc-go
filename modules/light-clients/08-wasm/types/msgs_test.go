@@ -196,27 +196,27 @@ func TestMsgRemoveCodeHashValidateBasic(t *testing.T) {
 
 	testCases := []struct {
 		name   string
-		msg    *types.MsgRemoveCodeHash
+		msg    *types.MsgRemoveChecksum
 		expErr error
 	}{
 		{
 			"success: valid signer address, valid length code hash",
-			types.NewMsgRemoveCodeHash(signer, codeHash[:]),
+			types.NewMsgRemoveChecksum(signer, codeHash[:]),
 			nil,
 		},
 		{
 			"failure: code hash is empty",
-			types.NewMsgRemoveCodeHash(signer, []byte("")),
+			types.NewMsgRemoveChecksum(signer, []byte("")),
 			types.ErrInvalidCodeHash,
 		},
 		{
 			"failure: code hash is nil",
-			types.NewMsgRemoveCodeHash(signer, nil),
+			types.NewMsgRemoveChecksum(signer, nil),
 			types.ErrInvalidCodeHash,
 		},
 		{
 			"failure: signer is invalid",
-			types.NewMsgRemoveCodeHash(ibctesting.InvalidID, codeHash[:]),
+			types.NewMsgRemoveChecksum(ibctesting.InvalidID, codeHash[:]),
 			ibcerrors.ErrInvalidAddress,
 		},
 	}
@@ -252,7 +252,7 @@ func (suite *TypesTestSuite) TestMsgRemoveCodeHashGetSigners() {
 			suite.SetupWasmWithMockVM()
 
 			address := tc.address
-			msg := types.NewMsgRemoveCodeHash(address.String(), codeHash[:])
+			msg := types.NewMsgRemoveChecksum(address.String(), codeHash[:])
 
 			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
 			if tc.expPass {

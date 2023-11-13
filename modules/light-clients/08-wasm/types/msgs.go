@@ -11,10 +11,10 @@ import (
 var (
 	_ sdk.Msg              = (*MsgStoreCode)(nil)
 	_ sdk.Msg              = (*MsgMigrateContract)(nil)
-	_ sdk.Msg              = (*MsgRemoveCodeHash)(nil)
+	_ sdk.Msg              = (*MsgRemoveChecksum)(nil)
 	_ sdk.HasValidateBasic = (*MsgStoreCode)(nil)
 	_ sdk.HasValidateBasic = (*MsgMigrateContract)(nil)
-	_ sdk.HasValidateBasic = (*MsgRemoveCodeHash)(nil)
+	_ sdk.HasValidateBasic = (*MsgRemoveChecksum)(nil)
 )
 
 // MsgStoreCode creates a new MsgStoreCode instance
@@ -39,22 +39,22 @@ func (m MsgStoreCode) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgRemoveCodeHash creates a new MsgRemoveCodeHash instance
-func NewMsgRemoveCodeHash(signer string, codeHash []byte) *MsgRemoveCodeHash {
-	return &MsgRemoveCodeHash{
+// NewMsgRemoveChecksum creates a new MsgRemoveCodeHash instance
+func NewMsgRemoveChecksum(signer string, codeHash []byte) *MsgRemoveChecksum {
+	return &MsgRemoveChecksum{
 		Signer:   signer,
-		CodeHash: codeHash,
+		Checksum: codeHash,
 	}
 }
 
 // ValidateBasic implements sdk.HasValidateBasic
-func (m MsgRemoveCodeHash) ValidateBasic() error {
+func (m MsgRemoveChecksum) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := ValidateWasmCodeHash(m.CodeHash); err != nil {
+	if err := ValidateWasmCodeHash(m.Checksum); err != nil {
 		return err
 	}
 
@@ -66,7 +66,7 @@ func NewMsgMigrateContract(signer, clientID string, codeHash, migrateMsg []byte)
 	return &MsgMigrateContract{
 		Signer:   signer,
 		ClientId: clientID,
-		CodeHash: codeHash,
+		Checksum: codeHash,
 		Msg:      migrateMsg,
 	}
 }
@@ -78,7 +78,7 @@ func (m MsgMigrateContract) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := ValidateWasmCodeHash(m.CodeHash); err != nil {
+	if err := ValidateWasmCodeHash(m.Checksum); err != nil {
 		return err
 	}
 

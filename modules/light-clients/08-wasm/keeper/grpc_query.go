@@ -25,19 +25,19 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	codeHash, err := hex.DecodeString(req.CodeHash)
+	checksum, err := hex.DecodeString(req.Checksum)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid code hash")
 	}
 
 	// Only return code hashes we previously stored, not arbitrary code hashes that might be stored via e.g Wasmd.
-	if !types.HasCodeHash(sdk.UnwrapSDKContext(goCtx), codeHash) {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.CodeHash).Error())
+	if !types.HasCodeHash(sdk.UnwrapSDKContext(goCtx), checksum) {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.Checksum).Error())
 	}
 
-	code, err := k.wasmVM.GetCode(codeHash)
+	code, err := k.wasmVM.GetCode(checksum)
 	if err != nil {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.CodeHash).Error())
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmCodeHashNotFound, req.Checksum).Error())
 	}
 
 	return &types.QueryCodeResponse{
@@ -45,9 +45,9 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 	}, nil
 }
 
-// CodeHashes implements the Query/CodeHashes gRPC method. It returns a list of hex encoded code hashes stored.
-func (Keeper) CodeHashes(goCtx context.Context, req *types.QueryCodeHashesRequest) (*types.QueryCodeHashesResponse, error) {
-	codeHashes, pageRes, err := sdkquery.CollectionPaginate(
+// Checksums implements the Query/Checksums gRPC method. It returns a list of hex encoded checksums stored.
+func (Keeper) Checksums(goCtx context.Context, req *types.QueryChecksumsRequest) (*types.QueryChecksumsResponse, error) {
+	checksums, pageRes, err := sdkquery.CollectionPaginate(
 		goCtx,
 		ibcwasm.CodeHashes,
 		req.Pagination,
@@ -58,8 +58,8 @@ func (Keeper) CodeHashes(goCtx context.Context, req *types.QueryCodeHashesReques
 		return nil, err
 	}
 
-	return &types.QueryCodeHashesResponse{
-		CodeHashes: codeHashes,
+	return &types.QueryChecksumsResponse{
+		Checksums:  checksums,
 		Pagination: pageRes,
 	}, nil
 }

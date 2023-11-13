@@ -29,9 +29,9 @@ func getCmdCode() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			codeHash := args[0]
+			checksum := args[0]
 			req := types.QueryCodeRequest{
-				CodeHash: codeHash,
+				Checksum: checksum,
 			}
 
 			res, err := queryClient.Code(context.Background(), &req)
@@ -62,9 +62,9 @@ func getCmdCodeHashes() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
-			req := types.QueryCodeHashesRequest{}
+			req := types.QueryChecksumsRequest{}
 
-			res, err := queryClient.CodeHashes(context.Background(), &req)
+			res, err := queryClient.Checksums(context.Background(), &req)
 			if err != nil {
 				return err
 			}

@@ -77,6 +77,7 @@ func (m *QueryChecksumsRequest) GetPagination() *query.PageRequest {
 
 // QueryChecksumsResponse is the response type for the Query/Checksums RPC method.
 type QueryChecksumsResponse struct {
+	// checksums is a list of the hex encoded checksums of all wasm codes stored.
 	Checksums []string `protobuf:"bytes,1,rep,name=checksums,proto3" json:"checksums,omitempty"`
 	// pagination defines the pagination in the response.
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -131,6 +132,7 @@ func (m *QueryChecksumsResponse) GetPagination() *query.PageResponse {
 
 // QueryCodeRequest is the request type for the Query/Code RPC method.
 type QueryCodeRequest struct {
+	// checksum is a hex encoded string of the code stored.
 	Checksum string `protobuf:"bytes,1,opt,name=checksum,proto3" json:"checksum,omitempty"`
 }
 

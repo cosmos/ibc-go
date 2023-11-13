@@ -146,16 +146,16 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	return codeHash, nil
 }
 
-func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newCodeHash, migrateMsg []byte) error {
+func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksum, migrateMsg []byte) error {
 	wasmClientState, err := k.GetWasmClientState(ctx, clientID)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to retrieve wasm client state")
 	}
-	oldCodeHash := wasmClientState.CodeHash
+	oldChecksum := wasmClientState.Checksum
 
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 
-	err = wasmClientState.MigrateContract(ctx, k.cdc, clientStore, clientID, newCodeHash, migrateMsg)
+	err = wasmClientState.MigrateContract(ctx, k.cdc, clientStore, clientID, newChecksum, migrateMsg)
 	if err != nil {
 		return errorsmod.Wrap(err, "contract migration failed")
 	}
@@ -169,11 +169,11 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newCodeHas
 	}
 
 	// update the client state code hash before persisting it
-	wasmClientState.CodeHash = newCodeHash
+	wasmClientState.Checksum = newChecksum
 
 	k.clientKeeper.SetClientState(ctx, clientID, wasmClientState)
 
-	emitMigrateContractEvent(ctx, clientID, oldCodeHash, newCodeHash)
+	emitMigrateContractEvent(ctx, clientID, oldChecksum, newChecksum)
 
 	return nil
 }

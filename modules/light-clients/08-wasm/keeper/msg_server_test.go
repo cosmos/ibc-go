@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			events := ctx.EventManager().Events().ToABCIEvents()
 
 			if tc.expError == nil {
-				expClientState.CodeHash = newCodeHash
+				expClientState.Checksum = newCodeHash
 
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
@@ -298,7 +298,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	var (
-		msg           *types.MsgRemoveCodeHash
+		msg           *types.MsgRemoveChecksum
 		expCodeHashes []types.CodeHash
 	)
 
@@ -310,7 +310,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 		{
 			"success",
 			func() {
-				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, codeHash[:])
 
 				expCodeHashes = []types.CodeHash{}
 			},
@@ -319,7 +319,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 		{
 			"success: many code hashes",
 			func() {
-				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, codeHash[:])
 
 				expCodeHashes = []types.CodeHash{}
 
@@ -336,21 +336,21 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 		{
 			"failure: code hash is missing",
 			func() {
-				msg = types.NewMsgRemoveCodeHash(govAcc, []byte{1})
+				msg = types.NewMsgRemoveChecksum(govAcc, []byte{1})
 			},
 			types.ErrWasmCodeHashNotFound,
 		},
 		{
 			"failure: unauthorized signer",
 			func() {
-				msg = types.NewMsgRemoveCodeHash(suite.chainA.SenderAccount.GetAddress().String(), codeHash[:])
+				msg = types.NewMsgRemoveChecksum(suite.chainA.SenderAccount.GetAddress().String(), codeHash[:])
 			},
 			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: code has could not be unpinned",
 			func() {
-				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, codeHash[:])
 
 				suite.mockVM.UnpinFn = func(_ wasmvm.Checksum) error {
 					return wasmtesting.ErrMockVM
@@ -371,7 +371,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
-			res, err := GetSimApp(suite.chainA).WasmClientKeeper.RemoveCodeHash(ctx, msg)
+			res, err := GetSimApp(suite.chainA).WasmClientKeeper.RemoveChecksum(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
 
 			if tc.expError == nil {

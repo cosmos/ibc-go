@@ -27,8 +27,8 @@ func (cs ClientState) CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.B
 
 	// check that code hashes of subject client state and substitute client state match
 	// changing the code hash is only allowed through the migrate contract RPC endpoint
-	if !bytes.Equal(cs.CodeHash, substituteClientState.CodeHash) {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected code hashes to be equal: expected %s, got %s", hex.EncodeToString(cs.CodeHash), hex.EncodeToString(substituteClientState.CodeHash))
+	if !bytes.Equal(cs.Checksum, substituteClientState.Checksum) {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected code hashes to be equal: expected %s, got %s", hex.EncodeToString(cs.Checksum), hex.EncodeToString(substituteClientState.Checksum))
 	}
 
 	store := newMigrateClientWrappedStore(subjectClientStore, substituteClientStore)

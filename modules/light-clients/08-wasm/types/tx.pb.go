@@ -85,7 +85,7 @@ func (m *MsgStoreCode) GetWasmByteCode() []byte {
 
 // MsgStoreCodeResponse defines the response type for the StoreCode rpc
 type MsgStoreCodeResponse struct {
-	// the sha256 hash of the stored code
+	// checksum is the sha256 hash of the stored code
 	Checksum []byte `protobuf:"bytes,1,opt,name=checksum,proto3" json:"checksum,omitempty"`
 }
 
@@ -133,7 +133,7 @@ func (m *MsgStoreCodeResponse) GetChecksum() []byte {
 type MsgRemoveChecksum struct {
 	// signer address
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
-	// checksum to be removed from the store
+	// checksum is the sha256 hash to be removed from the store
 	Checksum []byte `protobuf:"bytes,2,opt,name=checksum,proto3" json:"checksum,omitempty"`
 }
 
@@ -227,7 +227,7 @@ type MsgMigrateContract struct {
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	// the client id of the contract
 	ClientId string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
-	// the checksum of the new wasm byte code for the contract
+	// checksum is the sha256 hash of the new wasm byte code for the contract
 	Checksum []byte `protobuf:"bytes,3,opt,name=checksum,proto3" json:"checksum,omitempty"`
 	// the json encoded message to be passed to the contract on migration
 	Msg []byte `protobuf:"bytes,4,opt,name=msg,proto3" json:"msg,omitempty"`
