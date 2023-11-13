@@ -132,8 +132,7 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s], but got %s", types.OPEN, types.FLUSHING, channel.State)
 	}
 
-	// in the case of the channel being in FLUSHING we need to ensure that the the counterparty last sequence send
-	// is less than or equal to the packet sequence.
+	// in the case of the channel being in FLUSHING we need to ensure that the counterPartyUpgrade exist
 	if channel.State == types.FLUSHING {
 		_, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
 		if !found {
