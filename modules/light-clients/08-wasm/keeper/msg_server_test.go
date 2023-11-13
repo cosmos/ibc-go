@@ -336,6 +336,17 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			},
 			ibcerrors.ErrUnauthorized,
 		},
+		{
+			"failure: code has could not be unpinned",
+			func() {
+				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
+
+				suite.mockVM.UnpinFn = func(_ wasmvm.Checksum) error {
+					return wasmtesting.ErrMockVM
+				}
+			},
+			wasmtesting.ErrMockVM,
+		},
 	}
 
 	for _, tc := range testCases {
