@@ -381,58 +381,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
 	var badTrustingPeriod = (1600 * time.Second) / 3
 
-	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
-		// configure chain A (polkadot)
-		options.ChainASpec.ChainName = composable
-		options.ChainASpec.Type = "polkadot"
-		options.ChainASpec.ChainID = "rococo-local"
-		options.ChainASpec.Name = "composable"
-		options.ChainASpec.Images = []ibc.DockerImage{
-			// TODO: https://github.com/cosmos/ibc-go/issues/4965
-			{
-				Repository: "ghcr.io/misko9/polkadot-node",
-				Version:    "local",
-				UidGid:     "1000:1000",
-			},
-			{
-				Repository: "ghcr.io/misko9/parachain-node",
-				Version:    "latest",
-				UidGid:     "1000:1000",
-			},
-		}
-		options.ChainASpec.Bin = "polkadot"
-		options.ChainASpec.Bech32Prefix = composable
-		options.ChainASpec.Denom = "uDOT"
-		options.ChainASpec.GasPrices = ""
-		options.ChainASpec.GasAdjustment = 0
-		options.ChainASpec.TrustingPeriod = ""
-		options.ChainASpec.CoinType = "354"
-
-		// these values are set by default for our cosmos chains, we need to explicitly remove them here.
-		options.ChainASpec.ModifyGenesis = nil
-		options.ChainASpec.ConfigFileOverrides = nil
-		options.ChainASpec.EncodingConfig = nil
-
-		// configure chain B (cosmos)
-		options.ChainBSpec.ChainName = simd // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
-		options.ChainBSpec.Type = "cosmos"
-		options.ChainBSpec.Name = "simd"
-		options.ChainBSpec.ChainID = simd
-		options.ChainBSpec.Bin = simd
-		options.ChainBSpec.Bech32Prefix = "cosmos"
-
-		// TODO: hyperspace relayer assumes a denom of "stake", hard code this here right now.
-		// https://github.com/cosmos/ibc-go/issues/4964
-		options.ChainBSpec.Denom = "stake"
-		options.ChainBSpec.GasPrices = "0.00stake"
-		options.ChainBSpec.GasAdjustment = 1
-		options.ChainBSpec.TrustingPeriod = "504h"
-		options.ChainBSpec.CoinType = "118"
-
-		options.ChainBSpec.ChainConfig.NoHostMount = false
-		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
-		options.ChainBSpec.EncodingConfig = testsuite.SDKEncodingConfig()
-	})
+	chainA, chainB := s.GetGrandpaTestChains()
 
 	polkadotChain := chainA.(*polkadot.PolkadotChain)
 	cosmosChain := chainB.(*cosmos.CosmosChain)
@@ -527,18 +476,6 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	status, err = s.clientStatus(ctx, cosmosChain, substituteClientID)
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Active.String(), status)
-}
-
-func (s *GrandpaTestSuite) clientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
-	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
-	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
-		ClientId: clientID,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return res.Status, nil
 }
 
 // extractCodeHashFromGzippedContent takes a gzipped wasm contract and returns the codehash.
