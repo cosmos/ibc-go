@@ -15,4 +15,5 @@ var (
 	ErrReceiveDisabled         = errorsmod.Register(ModuleName, 8, "fungible token transfers to this chain are disabled")
 	ErrMaxTransferChannels     = errorsmod.Register(ModuleName, 9, "max transfer channels")
 	ErrInvalidAuthorization    = errorsmod.Register(ModuleName, 10, "invalid transfer authorization")
+	ErrInvalidMemo             = errorsmod.Register(ModuleName, 11, "invalid memo")
 )

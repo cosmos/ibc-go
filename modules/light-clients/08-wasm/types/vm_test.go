@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-func (suite *TypesTestSuite) TestWasmInit() {
+func (suite *TypesTestSuite) TestWasmInstantiate() {
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -44,13 +44,59 @@ func (suite *TypesTestSuite) TestWasmInit() {
 
 			tc.malleate()
 
-			err := types.WasmInstantiate(suite.ctx, suite.store, &types.ClientState{}, types.InstantiateMessage{})
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
+			err := types.WasmInstantiate(suite.chainA.GetContext(), clientStore, &types.ClientState{}, types.InstantiateMessage{})
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestWasmMigrate() {
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					return nil, 0, nil
+				}
+			},
+			nil,
+		},
+		{
+			"failure: contract returns error",
+			func() {
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+					return nil, 0, wasmtesting.ErrMockContract
+				}
+			},
+			types.ErrWasmContractCallFailed,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			tc.malleate()
+
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
+			err := types.WasmMigrate(suite.chainA.GetContext(), clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
@@ -106,6 +152,7 @@ func (suite *TypesTestSuite) TestWasmQuery() {
 			suite.Require().NoError(err)
 
 			clientState := endpoint.GetClientState()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 
 			wasmClientState, ok := clientState.(*types.ClientState)
 			suite.Require().True(ok)
@@ -114,21 +161,20 @@ func (suite *TypesTestSuite) TestWasmQuery() {
 
 			tc.malleate()
 
-			res, err := types.WasmQuery[types.StatusResult](suite.ctx, suite.store, wasmClientState, payload)
+			res, err := types.WasmQuery[types.StatusResult](suite.chainA.GetContext(), clientStore, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 			} else {
-				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestWasmCall() {
+func (suite *TypesTestSuite) TestWasmSudo() {
 	var payload types.SudoMsg
 
 	testCases := []struct {
@@ -211,6 +257,7 @@ func (suite *TypesTestSuite) TestWasmCall() {
 			suite.Require().NoError(err)
 
 			clientState := endpoint.GetClientState()
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 
 			wasmClientState, ok := clientState.(*types.ClientState)
 			suite.Require().True(ok)
@@ -219,14 +266,13 @@ func (suite *TypesTestSuite) TestWasmCall() {
 
 			tc.malleate()
 
-			res, err := types.WasmSudo[types.UpdateStateResult](suite.ctx, suite.store, wasmClientState, payload)
+			res, err := types.WasmSudo[types.UpdateStateResult](suite.chainA.GetContext(), clientStore, wasmClientState, payload)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 			} else {
-				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})

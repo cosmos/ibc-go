@@ -18,6 +18,7 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 // Keeper defines the 08-wasm keeper
@@ -25,8 +26,11 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc       codec.BinaryCodec
-	wasmVM    ibcwasm.WasmEngine
+	cdc    codec.BinaryCodec
+	wasmVM ibcwasm.WasmEngine
+
+	clientKeeper types.ClientKeeper
+
 	authority string
 }
 
@@ -36,9 +40,14 @@ type Keeper struct {
 func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
 	storeService storetypes.KVStoreService,
+	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
 ) Keeper {
+	if clientKeeper == nil {
+		panic(errors.New("client keeper must be not nil"))
+	}
+
 	if vm == nil {
 		panic(errors.New("wasm VM must be not nil"))
 	}
@@ -55,9 +64,10 @@ func NewKeeperWithVM(
 	ibcwasm.SetupWasmStoreService(storeService)
 
 	return Keeper{
-		cdc:       cdc,
-		wasmVM:    vm,
-		authority: authority,
+		cdc:          cdc,
+		wasmVM:       vm,
+		clientKeeper: clientKeeper,
+		authority:    authority,
 	}
 }
 
@@ -67,15 +77,16 @@ func NewKeeperWithVM(
 func NewKeeperWithConfig(
 	cdc codec.BinaryCodec,
 	storeService storetypes.KVStoreService,
+	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
 ) Keeper {
-	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedFeatures, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, wasmConfig.MemoryCacheSize)
+	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
 	if err != nil {
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(cdc, storeService, authority, vm)
+	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
@@ -133,4 +144,51 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	}
 
 	return codeHash, nil
+}
+
+func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newCodeHash, migrateMsg []byte) error {
+	wasmClientState, err := k.GetWasmClientState(ctx, clientID)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to retrieve wasm client state")
+	}
+	oldCodeHash := wasmClientState.CodeHash
+
+	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
+
+	err = wasmClientState.MigrateContract(ctx, k.cdc, clientStore, clientID, newCodeHash, migrateMsg)
+	if err != nil {
+		return errorsmod.Wrap(err, "contract migration failed")
+	}
+
+	// client state may be updated by the contract migration
+	wasmClientState, err = k.GetWasmClientState(ctx, clientID)
+	if err != nil {
+		// note that this also ensures that the updated client state is
+		// still a wasm client state
+		return errorsmod.Wrap(err, "failed to retrieve the updated wasm client state")
+	}
+
+	// update the client state code hash before persisting it
+	wasmClientState.CodeHash = newCodeHash
+
+	k.clientKeeper.SetClientState(ctx, clientID, wasmClientState)
+
+	emitMigrateContractEvent(ctx, clientID, oldCodeHash, newCodeHash)
+
+	return nil
+}
+
+// GetWasmClientState returns the 08-wasm client state for the given client identifier.
+func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.ClientState, error) {
+	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
+	if !found {
+		return nil, errorsmod.Wrapf(clienttypes.ErrClientTypeNotFound, "clientID %s", clientID)
+	}
+
+	wasmClientState, ok := clientState.(*types.ClientState)
+	if !ok {
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected type %T, got %T", (*types.ClientState)(nil), wasmClientState)
+	}
+
+	return wasmClientState, nil
 }
