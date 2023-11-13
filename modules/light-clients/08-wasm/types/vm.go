@@ -104,9 +104,13 @@ func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storety
 	}
 
 	codeHash := cs.CodeHash
-	_, err = instantiateContract(ctx, clientStore, codeHash, encodedData)
+	resp, err := instantiateContract(ctx, clientStore, codeHash, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
+	}
+
+	if err = checkResponse(resp); err != nil {
+		return errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
 	}
 
 	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
@@ -144,15 +148,8 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload 
 		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
 
-	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
-	if len(resp.Messages) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmSubMessagesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-	}
-	if len(resp.Events) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmEventsNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-	}
-	if len(resp.Attributes) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmAttributesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+	if err = checkResponse(resp); err != nil {
+		return result, errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
 	}
 
 	if err := json.Unmarshal(resp.Data, &result); err != nil {
@@ -216,9 +213,13 @@ func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientStat
 // wasmMigrate returns an error if:
 // - the contract migration returns an error
 func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
-	_, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
+	resp, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
 	if err != nil {
 		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
+	}
+
+	if err = checkResponse(resp); err != nil {
+		return errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
 	}
 
 	_, err = validatePostExecutionClientState(clientStore, cdc)
@@ -276,4 +277,21 @@ func getEnv(ctx sdk.Context, contractAddr string) wasmvmtypes.Env {
 	}
 
 	return env
+}
+
+// checkResponse returns an error is the response from a sudo, instantiate or migrate call
+// to the Wasm VM contains messages, events or attributes.
+func checkResponse(response *wasmvmtypes.Response) error {
+	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
+	if len(response.Messages) > 0 {
+		return ErrWasmSubMessagesNotAllowed
+	}
+	if len(response.Events) > 0 {
+		return ErrWasmEventsNotAllowed
+	}
+	if len(response.Attributes) > 0 {
+		return ErrWasmAttributesNotAllowed
+	}
+
+	return nil
 }
