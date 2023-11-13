@@ -873,8 +873,7 @@ func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
 			ConnectionHops: []string{endpoint.ConnectionID},
 			Version:        endpoint.ChannelConfig.Version,
 		},
-		Timeout:            channeltypes.NewTimeout(endpoint.Counterparty.Chain.GetTimeoutHeight(), 0),
-		LatestSequenceSend: 0,
+		Timeout: channeltypes.NewTimeout(endpoint.Counterparty.Chain.GetTimeoutHeight(), 0),
 	}
 
 	override := endpoint.ChannelConfig.ProposedUpgrade
