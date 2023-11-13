@@ -23,6 +23,10 @@
 /modules/light-clients/ @colin-axner @AdityaSripal @damiannolan
 /proto/ibc/lightclients/ @colin-axner @AdityaSripal @damiannolan
 
+# CODEOWNERS for 08-wasm light client module
+
+/modules/apps/callbacks/ @colin-axner @AdityaSripal @damiannolan @charleenfei @chatton @DimitrisJim @srdtrk
+
 # CODEOWNERS for ICS 20
 
 /modules/apps/transfer/ @colin-axner @AdityaSripal @damiannolan
@@ -38,9 +42,11 @@
 /modules/apps/29-fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan 
 /proto/ibc/applications/fee/ @AdityaSripal @charleenfei @colin-axner @damiannolan
 
-# CODEOWNERS for docs
-/docs/ @colin-axner @AdityaSripal @crodriguezvega @charleenfei @damiannolan @chatton @DimitrisJim @srdtrk
-
 # CODEOWNERS for callbacks middleware
 
 /modules/apps/callbacks/ @colin-axner @AdityaSripal @damiannolan @srdtrk
+
+# CODEOWNERS for docs
+
+/docs/ @colin-axner @AdityaSripal @crodriguezvega @charleenfei @damiannolan @chatton @DimitrisJim @srdtrk
+
