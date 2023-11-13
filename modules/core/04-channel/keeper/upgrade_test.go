@@ -1215,6 +1215,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		errorReceiptProof []byte
 		proofHeight       clienttypes.Height
 		sender            string
+		authority         string
 	)
 
 	tests := []struct {
@@ -1233,6 +1234,23 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				channel := path.EndpointA.GetChannel()
 				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
+			},
+			expError: nil,
+		},
+		{
+			name: "sender is authority, channel in flushing, upgrade can be cancelled even with invalid error receipt",
+			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.FLUSHING
+				path.EndpointA.SetChannel(channel)
+
+				var ok bool
+				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(ok)
+
+				errorReceipt.Message = "different message"
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+				suite.coordinator.CommitBlock(suite.chainB)
 			},
 			expError: nil,
 		},
@@ -1280,7 +1298,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: connectiontypes.ErrConnectionNotFound,
 		},
 		{
-			name: "error verification failed",
+			name: "sender is authority, channel is in flush complete, error verification failed",
 			malleate: func() {
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -1294,14 +1312,21 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
-		// TODO: add test case for invalid sender once it is implemented.
-		// {
-		//	name:     "invalid sender",
-		//	malleate: func() {
-		//
-		// },
-		//	expError: nil,
-		// },
+		{
+			name: "sender is not authority, error verification failed",
+			malleate: func() {
+				authority = ibctesting.TestAccAddress
+
+				var ok bool
+				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(ok)
+
+				errorReceipt.Message = "different message"
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+				suite.coordinator.CommitBlock(suite.chainB)
+			},
+			expError: commitmenttypes.ErrInvalidProof,
+		},
 	}
 
 	for _, tc := range tests {
@@ -1347,9 +1372,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			channel.State = types.FLUSHCOMPLETE
 			path.EndpointA.SetChannel(channel)
 
+			authority = sender
+
 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight, sender)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight, sender, authority)
 
 			expPass := tc.expError == nil
 			if expPass {
