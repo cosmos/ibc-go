@@ -375,11 +375,24 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 	s.Require().ErrorContains(err, "migration not supported")
 }
 
+// TestRecoverClient_Succeeds_GrandpaContract features:
+// * setup cosmos and polkadot substrates nodes
+// * funds test user wallets on both chains
+// * stores a wasm client contract on the cosmos chain
+// * creates a subject client using the hyperspace relayer
+// * waits the expiry period and asserts the subject client status has expired
+// * creates a substitute client using the hyperspace relayer
+// * executes a gov proposal to recover the expired client
+// * asserts the status of the subject client has been restored to active
+// NOTE: The testcase features a modified grandpa client contract compiled as:
+// - ics10_grandpa_cw_expiry.wasm.gz
+// This contract modifies the unbonding period to 1600s with the trusting period being calculated as (unbonding period / 3).
 func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	ctx := context.Background()
 
 	// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
-	var badTrustingPeriod = (1600 * time.Second) / 3
+	// the contract uses 1600s as the unbonding period with the trusting period evaluating to (unbonding period / 3)
+	var modifiedTrustingPeriod = (1600 * time.Second) / 3
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
@@ -393,14 +406,12 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 
 	s.InitGRPCClients(cosmosChain)
 
-	var err error
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	file, err := os.Open("../data/ics10_grandpa_cw_expiry.wasm.gz")
 	s.Require().NoError(err)
 
 	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
-
 	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
 
 	eRep := s.GetRelayerExecReporter()
@@ -415,22 +426,18 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 
 	// Fund users on both cosmos and parachain, mints Asset 1 for Alice
 	fundAmount := int64(12_333_000_000_000)
-	polkadotUser, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
-
-	_ = polkadotUser
-	_ = cosmosUser
+	_, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
 
 	pathName := s.GetPathName(0)
-
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
 
 	// create client pair with subject (bad trusting period)
 	subjectClientID := clienttypes.FormatClientIdentifier(ibcexported.Wasm, 0)
-	// TODO(damian): The hyperspace relayer makes no use of create client opts
+	// TODO: The hyperspace relayer makes no use of create client opts
 	// https://github.com/strangelove-ventures/interchaintest/blob/main/relayer/hyperspace/hyperspace_commander.go#L83
 	s.SetupClients(ctx, r, ibc.CreateClientOptions{
-		TrustingPeriod: badTrustingPeriod.String(), // NOTE: this is hardcoded within the cw contract: ics10_grapnda_cw_expiry.wasm
+		TrustingPeriod: modifiedTrustingPeriod.String(), // NOTE: this is hardcoded within the cw contract: ics10_grapnda_cw_expiry.wasm
 	})
 
 	// wait for block
@@ -438,7 +445,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 
 	// wait the bad trusting period
-	time.Sleep(badTrustingPeriod)
+	time.Sleep(modifiedTrustingPeriod)
 
 	// create client pair with substitue
 	substituteClientID := clienttypes.FormatClientIdentifier(ibcexported.Wasm, 1)
@@ -449,8 +456,6 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 
 	// ensure subject client is expired
-	// TODO(damian): The grandpa-cw contract does not seem to have a concept of trusting period.
-	// https://github.com/ComposableFi/composable-ibc/blob/master/light-clients/ics10-grandpa-cw/src/contract.rs#L343-L357
 	status, err := s.clientStatus(ctx, cosmosChain, subjectClientID)
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Expired.String(), status, "unexpected subject client status")
