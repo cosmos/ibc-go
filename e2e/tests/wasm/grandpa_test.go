@@ -70,7 +70,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	t := s.T()
 
 	// Setup chains, relayer, and channel
-	cosmosChain, polkadotChain, relayer := s.SetupChainsRelayerAndChannel(ctx)
+	cosmosChain, polkadotChain, relayer := s.setupChainsRelayerAndChannel(ctx)
 
 	// Fund users on both cosmos and parachain, mints Asset 1 for Alice
 	fundAmount := int64(12_333_000_000_000)
@@ -443,8 +443,9 @@ func getConfigOverrides() map[string]any {
 	return configFileOverrides
 }
 
-func (s *GrandpaTestSuite) SetupChainsRelayerAndChannel(ctx context.Context) (*cosmos.CosmosChain, *polkadot.PolkadotChain, ibc.Relayer) {
-	chainA, chainB := s.GetChains(func(options *testsuite.ChainOptions) {
+// GetGrandpaTestChains returns the configured chains for the grandpa test suite.
+func (s *GrandpaTestSuite) GetGrandpaTestChains() (ibc.Chain, ibc.Chain) {
+	return s.GetChains(func(options *testsuite.ChainOptions) {
 		// configure chain A (polkadot)
 		options.ChainASpec.ChainName = composable
 		options.ChainASpec.Type = "polkadot"
@@ -496,7 +497,10 @@ func (s *GrandpaTestSuite) SetupChainsRelayerAndChannel(ctx context.Context) (*c
 		options.ChainBSpec.ConfigFileOverrides = getConfigOverrides()
 		options.ChainBSpec.EncodingConfig = testsuite.SDKEncodingConfig()
 	})
+}
 
+func (s *GrandpaTestSuite) setupChainsRelayerAndChannel(ctx context.Context) (*cosmos.CosmosChain, *polkadot.PolkadotChain, ibc.Relayer) {
+	chainA, chainB := s.GetGrandpaTestChains()
 	polkadotChain := chainA.(*polkadot.PolkadotChain)
 	cosmosChain := chainB.(*cosmos.CosmosChain)
 
