@@ -85,7 +85,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
+	file, err := os.Open("contracts/ics10_grandpa_cw.wasm")
 	s.Require().NoError(err)
 
 	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
@@ -233,7 +233,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
+	file, err := os.Open("contracts/ics10_grandpa_cw.wasm")
 	s.Require().NoError(err)
 
 	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
@@ -265,7 +265,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 
 	// This contract is a dummy contract that will always succeed migration.
 	// Other entry points are unimplemented.
-	migrateFile, err := os.Open("../data/migrate_success.wasm.gz")
+	migrateFile, err := os.Open("contracts/migrate_success.wasm.gz")
 	s.Require().NoError(err)
 
 	// First Store the code
@@ -352,7 +352,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 
 	// This contract is a dummy contract that will always fail migration.
 	// Other entry points are unimplemented.
-	migrateFile, err := os.Open("../data/migrate_error.wasm.gz")
+	migrateFile, err := os.Open("contracts/migrate_error.wasm.gz")
 	s.Require().NoError(err)
 
 	// First Store the code
@@ -408,7 +408,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	file, err := os.Open("../data/ics10_grandpa_cw_expiry.wasm.gz")
+	file, err := os.Open("contracts/ics10_grandpa_cw_expiry.wasm.gz")
 	s.Require().NoError(err)
 
 	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
@@ -614,7 +614,7 @@ func (s *GrandpaTestSuite) GetGrandpaTestChains() (ibc.Chain, ibc.Chain) {
 		// configure chain B (cosmos)
 		options.ChainBSpec.ChainName = simd // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
 		options.ChainBSpec.Type = "cosmos"
-		options.ChainBSpec.Name = "simd"
+		options.ChainBSpec.Name = simd
 		options.ChainBSpec.ChainID = simd
 		options.ChainBSpec.Bin = simd
 		options.ChainBSpec.Bech32Prefix = "cosmos"
