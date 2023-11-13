@@ -25,7 +25,7 @@
 
 # CODEOWNERS for 08-wasm light client module
 
-/modules/apps/callbacks/ @colin-axner @AdityaSripal @damiannolan @charleenfei @chatton @DimitrisJim @srdtrk
+/modules/light-clients/08-wasm/ @colin-axner @AdityaSripal @damiannolan @charleenfei @chatton @DimitrisJim @srdtrk
 
 # CODEOWNERS for ICS 20
 
