@@ -1218,6 +1218,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		authority         string
 	)
 
+	const invalidMessage = "different message"
+
 	tests := []struct {
 		name     string
 		malleate func()
@@ -1248,7 +1250,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
 
-				errorReceipt.Message = "different message"
+				errorReceipt.Message = invalidMessage
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
 				suite.coordinator.CommitBlock(suite.chainB)
 			},
@@ -1304,7 +1306,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
 
-				errorReceipt.Message = "different message"
+				errorReceipt.Message = invalidMessage
 
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
 
@@ -1321,7 +1323,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
 
-				errorReceipt.Message = "different message"
+				errorReceipt.Message = invalidMessage
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
 				suite.coordinator.CommitBlock(suite.chainB)
 			},
