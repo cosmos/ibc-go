@@ -18,8 +18,8 @@ import (
 
 var VMGasRegister = NewDefaultWasmGasRegister()
 
-// initContract calls vm.Init with appropriate arguments.
-func initContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
+// instantiateContract calls vm.Instantiate with appropriate arguments.
+func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -35,7 +35,7 @@ func initContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []by
 		Funds:  nil,
 	}
 
-	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(len(msg)), "Loading CosmWasm module: instantiate")
+	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(true, len(msg)), "Loading CosmWasm module: instantiate")
 	response, gasUsed, err := ibcwasm.GetVM().Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return response, err
@@ -53,8 +53,22 @@ func callContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []by
 	}
 	env := getEnv(ctx, clientID)
 
-	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: sudo")
+	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(true, len(msg)), "Loading CosmWasm module: sudo")
 	resp, gasUsed, err := ibcwasm.GetVM().Sudo(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
+	return resp, err
+}
+
+// migrateContract calls vm.Migrate with internally constructed gas meter and environment.
+func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
+	sdkGasMeter := ctx.GasMeter()
+	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
+	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
+
+	env := getEnv(ctx, clientID)
+
+	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(true, len(msg)), "Loading CosmWasm module: migrate")
+	resp, gasUsed, err := ibcwasm.GetVM().Migrate(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -71,19 +85,19 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []b
 	}
 	env := getEnv(ctx, clientID)
 
-	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(len(msg)), "Loading CosmWasm module: query")
+	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(true, len(msg)), "Loading CosmWasm module: query")
 	resp, gasUsed, err := ibcwasm.GetVM().Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
 
-// wasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls initContract.
+// wasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls instantiateContract.
 func wasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to marshal payload for wasm contract instantiation")
 	}
-	_, err = initContract(ctx, clientStore, cs.CodeHash, encodedData)
+	_, err = instantiateContract(ctx, clientStore, cs.CodeHash, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
@@ -126,6 +140,18 @@ func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 		return result, errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
 	}
 	return result, nil
+}
+
+// wasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
+// wasmMigrate returns an error if:
+// - the contract migration returns an error
+func wasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
+	_, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
+	if err != nil {
+		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
+	}
+
+	return nil
 }
 
 // wasmQuery queries the contract with the given payload and returns the result.

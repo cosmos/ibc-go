@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math"
 	"os"
 	"path/filepath"
 
@@ -462,20 +461,19 @@ func NewSimApp(
 	//
 	// In the code below we use the second method because we are not using x/wasm in this app.go.
 	wasmConfig := wasmtypes.WasmConfig{
-		DataDir:           "ibc_08-wasm_client_data",
-		SupportedFeatures: "iterator",
-		MemoryCacheSize:   uint32(math.Pow(2, 8)),
-		ContractDebugMode: false,
+		DataDir:               "ibc_08-wasm_client_data",
+		SupportedCapabilities: "iterator",
+		ContractDebugMode:     false,
 	}
 	if mockVM != nil {
 		// NOTE: mockVM is used for testing purposes only!
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
-			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM,
 		)
 	} else {
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
-			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig,
 		)
 	}

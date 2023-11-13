@@ -1,0 +1,18 @@
+{
+  "chain-a": [
+    "release-v8.0.x"
+  ],
+  "chain-b": [
+    "release-v8.0.x"
+  ],
+  "entrypoint": [
+    "LocalhostInterchainAccountsTestSuite"
+  ],
+  "test": [
+    "TestInterchainAccounts_Localhost",
+    "TestInterchainAccounts_ReopenChannel_Localhost"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

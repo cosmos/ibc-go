@@ -7,7 +7,6 @@ import (
 	"time"
 
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
 
@@ -26,7 +25,6 @@ import (
 
 var (
 	_ module.AppModule           = (*AppModule)(nil)
-	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
 	_ module.HasName             = (*AppModule)(nil)
 	_ module.HasConsensusVersion = (*AppModule)(nil)
@@ -49,7 +47,7 @@ func NewAppModuleBasic(cdc codec.Codec) AppModuleBasic {
 }
 
 // Name returns the capability module's name.
-func (AppModuleBasic) Name() string {
+func (am AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
@@ -77,12 +75,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *gwruntime.ServeMux) {
 }
 
-// GetTxCmd returns the capability module's root tx command.
-func (AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
-
-// GetQueryCmd returns the capability module's root query command.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
-
 // ----------------------------------------------------------------------------
 // AppModule
 // ----------------------------------------------------------------------------
@@ -109,11 +101,6 @@ func (AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
-
-// Name returns the capability module's name.
-func (am AppModule) Name() string {
-	return am.AppModuleBasic.Name()
-}
 
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.
