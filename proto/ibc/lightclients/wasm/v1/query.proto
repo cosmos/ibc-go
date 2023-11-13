@@ -27,6 +27,7 @@ message QueryChecksumsRequest {
 
 // QueryChecksumsResponse is the response type for the Query/Checksums RPC method.
 message QueryChecksumsResponse {
+  // checksums is a list of the hex encoded checksums of all wasm codes stored.
   repeated string checksums = 1;
 
   // pagination defines the pagination in the response.
@@ -35,6 +36,7 @@ message QueryChecksumsResponse {
 
 // QueryCodeRequest is the request type for the Query/Code RPC method.
 message QueryCodeRequest {
+  // checksum is a hex encoded string of the code stored.
   string checksum = 1;
 }
 
