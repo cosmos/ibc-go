@@ -104,7 +104,7 @@ func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storety
 	}
 
 	codeHash := cs.CodeHash
-	_, err = instantiateContract(ctx, clientStore, cs.CodeHash, encodedData)
+	_, err = instantiateContract(ctx, clientStore, codeHash, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
@@ -138,7 +138,8 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload 
 		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm execution")
 	}
 
-	resp, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
+	codeHash := cs.CodeHash
+	resp, err := callContract(ctx, clientStore, codeHash, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
@@ -158,7 +159,6 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload 
 		return result, errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
 	}
 
-	codeHash := cs.CodeHash
 	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
 	if err != nil {
 		return result, err
