@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			ibcerrors.ErrUnauthorized,
 		},
 		{
-			"failure: code has could not be pinned",
+			"failure: code hash could not be pinned",
 			func() {
 				msg = types.NewMsgStoreCode(signer, data)
 
