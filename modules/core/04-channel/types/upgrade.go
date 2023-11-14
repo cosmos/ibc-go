@@ -12,9 +12,8 @@ import (
 // NewUpgrade creates a new Upgrade instance.
 func NewUpgrade(upgradeFields UpgradeFields, timeout Timeout, latestPacketSent uint64) Upgrade {
 	return Upgrade{
-		Fields:             upgradeFields,
-		Timeout:            timeout,
-		LatestSequenceSend: latestPacketSent,
+		Fields:  upgradeFields,
+		Timeout: timeout,
 	}
 }
 
