@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
@@ -158,7 +159,7 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
 		msgs,
-		sdk.NewCoins(sdk.NewCoin(cosmosChain.Config().Denom, govtypesv1.DefaultMinDepositTokens)),
+		sdk.NewCoins(sdk.NewCoin(cosmosChain.Config().Denom, sdkmath.NewInt(testvalues.DefaultGovV1ProposalTokenAmount))),
 		sender.String(),
 		"",
 		fmt.Sprintf("e2e gov proposal: %d", proposalID),
