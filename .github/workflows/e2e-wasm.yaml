@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'e2e/tests/wasm/grandpa_test.go' # the e2e test itself changes.
-      - 'e2e/tests/data/**' # modifications to any contracts are made.
+      - 'e2e/tests/wasm/**' # the e2e tests change.
+      - 'e2e/tests/wasm/contracts/**' # modifications to any contracts are made.
       - 'modules/light-clients/08-wasm/**' # modifications to the 08-wasm module.
       - 'modules/core/02-client/**' # modifications to the 02-client module.
       - '.github/workflows/e2e-wasm.yaml' # changes to this workflow.
