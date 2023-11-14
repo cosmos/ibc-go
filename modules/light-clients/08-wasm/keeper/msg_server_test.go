@@ -67,11 +67,22 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			},
 			ibcerrors.ErrUnauthorized,
 		},
+		{
+			"failure: code has could not be pinned",
+			func() {
+				msg = types.NewMsgStoreCode(signer, data)
+
+				suite.mockVM.PinFn = func(_ wasmvm.Checksum) error {
+					return wasmtesting.ErrMockVM
+				}
+			},
+			wasmtesting.ErrMockVM,
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupWasmWithMockVM()
 
 			signer = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 			data, _ = os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
