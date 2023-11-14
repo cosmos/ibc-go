@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -46,6 +47,11 @@ func (k Keeper) RemoveCodeHash(goCtx context.Context, msg *types.MsgRemoveCodeHa
 	err := ibcwasm.CodeHashes.Remove(goCtx, msg.CodeHash)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to remove code hash")
+	}
+
+	// unpin the code from the vm in-memory cache
+	if err := k.wasmVM.Unpin(msg.CodeHash); err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to unpin contract with code hash (%s) from vm cache", hex.EncodeToString(msg.CodeHash))
 	}
 
 	return &types.MsgRemoveCodeHashResponse{}, nil
