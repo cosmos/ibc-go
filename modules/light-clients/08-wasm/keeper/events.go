@@ -13,7 +13,7 @@ func emitStoreWasmCodeEvent(ctx sdk.Context, codeHash []byte) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeStoreWasmCode,
-			sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(codeHash)),
+			sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(codeHash)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -28,8 +28,8 @@ func emitMigrateContractEvent(ctx sdk.Context, clientID string, codeHash, newCod
 		sdk.NewEvent(
 			types.EventTypeMigrateContract,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(codeHash)),
-			sdk.NewAttribute(types.AttributeKeyNewCodeHash, hex.EncodeToString(newCodeHash)),
+			sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(codeHash)),
+			sdk.NewAttribute(types.AttributeKeyNewChecksum, hex.EncodeToString(newCodeHash)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

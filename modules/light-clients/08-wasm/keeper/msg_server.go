@@ -40,11 +40,11 @@ func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecks
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	if !types.HasCodeHash(goCtx, msg.Checksum) {
-		return nil, types.ErrWasmCodeHashNotFound
+	if !types.HasChecksum(goCtx, msg.Checksum) {
+		return nil, types.ErrWasmChecksumNotFound
 	}
 
-	err := ibcwasm.CodeHashes.Remove(goCtx, msg.Checksum)
+	err := ibcwasm.Checksums.Remove(goCtx, msg.Checksum)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to remove code hash")
 	}

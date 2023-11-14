@@ -11,8 +11,8 @@ var (
 	vm WasmEngine
 
 	// state management
-	Schema     collections.Schema
-	CodeHashes collections.KeySet[[]byte]
+	Schema    collections.Schema
+	Checksums collections.KeySet[[]byte]
 
 	// ChecksumsKey is the key under which all checksums are stored
 	ChecksumsKey = collections.NewPrefix(0)
@@ -36,7 +36,7 @@ func GetVM() WasmEngine {
 func SetupWasmStoreService(storeService storetypes.KVStoreService) {
 	sb := collections.NewSchemaBuilder(storeService)
 
-	CodeHashes = collections.NewKeySet(sb, ChecksumsKey, "checksums", collections.BytesKey)
+	Checksums = collections.NewKeySet(sb, ChecksumsKey, "checksums", collections.BytesKey)
 
 	schema, err := sb.Build()
 	if err != nil {

@@ -121,7 +121,7 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 			types.ErrWasmInvalidContractModification,
 		},
 		{
-			"failure: change codehash",
+			"failure: change checksum",
 			func() {
 				suite.mockVM.InstantiateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					var payload types.InstantiateMessage
@@ -491,7 +491,7 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 			types.ErrWasmInvalidContractModification,
 		},
 		{
-			"failure: change codehash",
+			"failure: change checksum",
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					clientState := suite.chainA.GetClientState(defaultWasmClientID)

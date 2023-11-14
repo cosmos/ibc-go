@@ -44,7 +44,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					suite.Require().NotNil(msg.UpdateState)
 					suite.Require().NotNil(msg.UpdateState.ClientMessage)
-					suite.Require().Equal(msg.UpdateState.ClientMessage.Data, wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash))
+					suite.Require().Equal(msg.UpdateState.ClientMessage.Data, wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum))
 					suite.Require().Nil(msg.VerifyMembership)
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
@@ -136,7 +136,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			expectedClientStateBz = nil
 
 			clientMsg = &types.ClientMessage{
-				Data: wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash),
+				Data: wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum),
 			}
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -264,7 +264,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientMsg = &types.ClientMessage{
-				Data: wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash),
+				Data: wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum),
 			}
 			clientState := endpoint.GetClientState()
 

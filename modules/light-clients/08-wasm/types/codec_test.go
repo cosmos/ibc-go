@@ -44,7 +44,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 			true,
 		},
 		{
-			"success: MsgRemoveCodeHash",
+			"success: MsgRemoveChecksum",
 			sdk.MsgTypeURL(&types.MsgRemoveChecksum{}),
 			true,
 		},

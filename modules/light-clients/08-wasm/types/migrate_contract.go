@@ -17,20 +17,20 @@ import (
 // This does not update the code hash in the client state.
 func (cs ClientState) MigrateContract(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
-	clientID string, newCodeHash, migrateMsg []byte,
+	clientID string, newChecksum, migrateMsg []byte,
 ) error {
-	if !HasCodeHash(ctx, newCodeHash) {
-		return ErrWasmCodeHashNotFound
+	if !HasChecksum(ctx, newChecksum) {
+		return ErrWasmChecksumNotFound
 	}
 
-	if bytes.Equal(cs.Checksum, newCodeHash) {
-		return errorsmod.Wrapf(ErrWasmCodeExists, "new code hash (%s) is the same as current code hash (%s)", hex.EncodeToString(newCodeHash), hex.EncodeToString(cs.Checksum))
+	if bytes.Equal(cs.Checksum, newChecksum) {
+		return errorsmod.Wrapf(ErrWasmCodeExists, "new code hash (%s) is the same as current code hash (%s)", hex.EncodeToString(newChecksum), hex.EncodeToString(cs.Checksum))
 	}
 
 	// update the code hash, this needs to be done before the contract migration
 	// so that wasmMigrate can call the right code. Note that this is not
 	// persisted to the client store.
-	cs.Checksum = newCodeHash
+	cs.Checksum = newChecksum
 
 	err := wasmMigrate(ctx, cdc, clientStore, &cs, clientID, migrateMsg)
 	if err != nil {

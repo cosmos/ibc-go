@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(
 						"store_wasm_code",
-						sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(res.Checksum)),
+						sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(res.Checksum)),
 					),
 					sdk.NewEvent(
 						sdk.EventTypeMessage,
@@ -123,14 +123,14 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 }
 
 func (suite *KeeperTestSuite) TestMsgMigrateContract() {
-	oldCodeHash := sha256.Sum256(wasmtesting.Code)
+	oldChecksum := sha256.Sum256(wasmtesting.Code)
 
 	newByteCode := []byte("MockByteCode-TestMsgMigrateContract")
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	var (
-		newCodeHash    []byte
+		newChecksum    []byte
 		msg            *types.MsgMigrateContract
 		expClientState *types.ClientState
 	)
@@ -143,7 +143,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		{
 			"success: no update to client state",
 			func() {
-				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newCodeHash, []byte("{}"))
+				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					data, err := json.Marshal(types.EmptyResult{})
@@ -157,7 +157,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		{
 			"success: update client state",
 			func() {
-				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newCodeHash, []byte("{}"))
+				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					// the code hash written in the client state will later be overwritten by the message server.
@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		{
 			"failure: same code hash",
 			func() {
-				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, oldCodeHash[:], []byte("{}"))
+				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, oldChecksum[:], []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					panic("unreachable")
@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		{
 			"failure: unauthorized signer",
 			func() {
-				msg = types.NewMsgMigrateContract(suite.chainA.SenderAccount.GetAddress().String(), defaultWasmClientID, newCodeHash, []byte("{}"))
+				msg = types.NewMsgMigrateContract(suite.chainA.SenderAccount.GetAddress().String(), defaultWasmClientID, newChecksum, []byte("{}"))
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -195,19 +195,19 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, []byte(ibctesting.InvalidID), []byte("{}"))
 			},
-			types.ErrWasmCodeHashNotFound,
+			types.ErrWasmChecksumNotFound,
 		},
 		{
 			"failure: invalid client id",
 			func() {
-				msg = types.NewMsgMigrateContract(govAcc, ibctesting.InvalidID, newCodeHash, []byte("{}"))
+				msg = types.NewMsgMigrateContract(govAcc, ibctesting.InvalidID, newChecksum, []byte("{}"))
 			},
 			clienttypes.ErrClientTypeNotFound,
 		},
 		{
 			"failure: contract returns error",
 			func() {
-				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newCodeHash, []byte("{}"))
+				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockContract
@@ -218,7 +218,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		{
 			"failure: incorrect state update",
 			func() {
-				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newCodeHash, []byte("{}"))
+				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					// the code hash written in here will be overwritten
@@ -240,7 +240,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			newCodeHash = storeWasmCode(suite, newByteCode)
+			newChecksum = storeWasmCode(suite, newByteCode)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			events := ctx.EventManager().Events().ToABCIEvents()
 
 			if tc.expError == nil {
-				expClientState.Checksum = newCodeHash
+				expClientState.Checksum = newChecksum
 
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
@@ -272,8 +272,8 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 					sdk.NewEvent(
 						"migrate_contract",
 						sdk.NewAttribute(types.AttributeKeyClientID, defaultWasmClientID),
-						sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(oldCodeHash[:])),
-						sdk.NewAttribute(types.AttributeKeyNewCodeHash, hex.EncodeToString(newCodeHash)),
+						sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(oldChecksum[:])),
+						sdk.NewAttribute(types.AttributeKeyNewChecksum, hex.EncodeToString(newChecksum)),
 					),
 					sdk.NewEvent(
 						sdk.EventTypeMessage,
@@ -292,14 +292,14 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
-	codeHash := sha256.Sum256(wasmtesting.Code)
+func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
+	checksum := sha256.Sum256(wasmtesting.Code)
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	var (
-		msg           *types.MsgRemoveChecksum
-		expCodeHashes []types.CodeHash
+		msg          *types.MsgRemoveChecksum
+		expChecksums []types.Checksum
 	)
 
 	testCases := []struct {
@@ -310,25 +310,25 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 		{
 			"success",
 			func() {
-				msg = types.NewMsgRemoveChecksum(govAcc, codeHash[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
 
-				expCodeHashes = []types.CodeHash{}
+				expChecksums = []types.Checksum{}
 			},
 			nil,
 		},
 		{
 			"success: many code hashes",
 			func() {
-				msg = types.NewMsgRemoveChecksum(govAcc, codeHash[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
 
-				expCodeHashes = []types.CodeHash{}
+				expChecksums = []types.Checksum{}
 
 				for i := 0; i < 20; i++ {
-					codeHash := sha256.Sum256([]byte{byte(i)})
-					err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash[:])
+					checksum := sha256.Sum256([]byte{byte(i)})
+					err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum[:])
 					suite.Require().NoError(err)
 
-					expCodeHashes = append(expCodeHashes, codeHash[:])
+					expChecksums = append(expChecksums, checksum[:])
 				}
 			},
 			nil,
@@ -338,19 +338,19 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 			func() {
 				msg = types.NewMsgRemoveChecksum(govAcc, []byte{1})
 			},
-			types.ErrWasmCodeHashNotFound,
+			types.ErrWasmChecksumNotFound,
 		},
 		{
 			"failure: unauthorized signer",
 			func() {
-				msg = types.NewMsgRemoveChecksum(suite.chainA.SenderAccount.GetAddress().String(), codeHash[:])
+				msg = types.NewMsgRemoveChecksum(suite.chainA.SenderAccount.GetAddress().String(), checksum[:])
 			},
 			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: code has could not be unpinned",
 			func() {
-				msg = types.NewMsgRemoveChecksum(govAcc, codeHash[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
 
 				suite.mockVM.UnpinFn = func(_ wasmvm.Checksum) error {
 					return wasmtesting.ErrMockVM
@@ -378,11 +378,11 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
-				codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
+				checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
 				suite.Require().NoError(err)
 
 				// Check equality of code hashes up to order
-				suite.Require().ElementsMatch(expCodeHashes, codeHashes)
+				suite.Require().ElementsMatch(expChecksums, checksums)
 
 				// Verify events
 				suite.Require().Len(events, 0)

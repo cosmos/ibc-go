@@ -39,11 +39,11 @@ func (m MsgStoreCode) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgRemoveChecksum creates a new MsgRemoveCodeHash instance
-func NewMsgRemoveChecksum(signer string, codeHash []byte) *MsgRemoveChecksum {
+// NewMsgRemoveChecksum creates a new MsgRemoveChecksum instance
+func NewMsgRemoveChecksum(signer string, checksum []byte) *MsgRemoveChecksum {
 	return &MsgRemoveChecksum{
 		Signer:   signer,
-		Checksum: codeHash,
+		Checksum: checksum,
 	}
 }
 
@@ -54,7 +54,7 @@ func (m MsgRemoveChecksum) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := ValidateWasmCodeHash(m.Checksum); err != nil {
+	if err := ValidateWasmChecksum(m.Checksum); err != nil {
 		return err
 	}
 
@@ -62,11 +62,11 @@ func (m MsgRemoveChecksum) ValidateBasic() error {
 }
 
 // MsgMigrateContract creates a new MsgMigrateContract instance
-func NewMsgMigrateContract(signer, clientID string, codeHash, migrateMsg []byte) *MsgMigrateContract {
+func NewMsgMigrateContract(signer, clientID string, checksum, migrateMsg []byte) *MsgMigrateContract {
 	return &MsgMigrateContract{
 		Signer:   signer,
 		ClientId: clientID,
-		Checksum: codeHash,
+		Checksum: checksum,
 		Msg:      migrateMsg,
 	}
 }
@@ -78,7 +78,7 @@ func (m MsgMigrateContract) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := ValidateWasmCodeHash(m.Checksum); err != nil {
+	if err := ValidateWasmChecksum(m.Checksum); err != nil {
 		return err
 	}
 
