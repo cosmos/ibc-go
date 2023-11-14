@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -33,11 +32,6 @@ func emitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 
 // emitUpdateClientEvent emits an update client event
 func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
-	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
-	// This prevents the event value from containing invalid UTF-8 characters
-	// which may cause data to be lost when JSON encoding/decoding.
-	clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(cdc, clientMsg))
-
 	var consensusHeightAttr string
 	if len(consensusHeights) != 0 {
 		consensusHeightAttr = consensusHeights[0].String()
@@ -57,7 +51,6 @@ func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 			// Please use AttributeKeyConsensusHeights instead.
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
-			sdk.NewAttribute(types.AttributeKeyHeader, clientMsgStr),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
