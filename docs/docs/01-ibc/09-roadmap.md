@@ -7,21 +7,11 @@ slug: /ibc/roadmap
 
 # Roadmap ibc-go
 
-*Lastest update: September 12th, 2023*
+*Lastest update: November 12th, 2023*
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
 This roadmap should be read as a high-level guide, rather than a commitment to schedules and deliverables. The degree of specificity is inversely proportional to the timeline. We will update this document periodically to reflect the status and plans. For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
-
-## v8.0.0
-
-Follow the progress with the [milestone](https://github.com/cosmos/ibc-go/milestone/38).
-
-This release main additions are:
-
-- Upgrade to Cosmos SDK v0.50.
-- [Migration of gov proposals from v1beta1 to v1](https://github.com/cosmos/ibc-go/issues/1282).
-- [Migration of params to be self managed](https://github.com/cosmos/ibc-go/issues/2010).
 
 ## 08-wasm/v0.1.0
 
