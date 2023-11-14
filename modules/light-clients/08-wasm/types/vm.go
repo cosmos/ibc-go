@@ -21,7 +21,15 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-var VMGasRegister = NewDefaultWasmGasRegister()
+var (
+	VMGasRegister = NewDefaultWasmGasRegister()
+	// wasmvmAPI is a wasmvm.GoAPI implementation that is passed to the wasmvm, it
+	// doesn't implement any functionality, directly returning an error.
+	wasmvmAPI = wasmvm.GoAPI{
+		HumanAddress:     humanAddress,
+		CanonicalAddress: canonicalAddress,
+	}
+)
 
 // instantiateContract calls vm.Instantiate with appropriate arguments.
 func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
@@ -41,7 +49,7 @@ func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHa
 	}
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(true, len(msg)), "Loading CosmWasm module: instantiate")
-	response, gasUsed, err := ibcwasm.GetVM().Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvm.GoAPI{}, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	response, gasUsed, err := ibcwasm.GetVM().Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return response, err
 }
@@ -284,11 +292,4 @@ func humanAddress(canon []byte) (string, uint64, error) {
 
 func canonicalAddress(human string) ([]byte, uint64, error) {
 	return nil, 0, errors.New("canonicalAddress not implemented")
-}
-
-// wasmvmAPI is a wasmvm.GoAPI implementation that is passed to the wasmvm, it
-// doesn't implement any functionality, directly returning an error.
-var wasmvmAPI = wasmvm.GoAPI{
-	HumanAddress:     humanAddress,
-	CanonicalAddress: canonicalAddress,
 }
