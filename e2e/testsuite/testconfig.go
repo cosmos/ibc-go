@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
@@ -636,8 +635,8 @@ func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte,
 	}
 
 	govGenesisState.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
-	maxDep := time.Second * 10
-	govGenesisState.Params.MaxDepositPeriod = &maxDep
+	//maxDep := time.Second * 10
+	//govGenesisState.Params.MaxDepositPeriod = &maxDep
 	vp := testvalues.VotingPeriod
 	govGenesisState.Params.VotingPeriod = &vp
 

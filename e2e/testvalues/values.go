@@ -15,11 +15,10 @@ import (
 )
 
 const (
-	StartingTokenAmount        int64         = 500_000_000_000
-	IBCTransferAmount          int64         = 10_000
-	InvalidAddress             string        = "<invalid-address>"
-	VotingPeriod               time.Duration = time.Minute * 5
-	DefaultProposalTokenAmount               = 500000000
+	StartingTokenAmount int64         = 100_000_000
+	IBCTransferAmount   int64         = 10_000
+	InvalidAddress      string        = "<invalid-address>"
+	VotingPeriod        time.Duration = time.Second * 30
 )
 
 // ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immediately.
