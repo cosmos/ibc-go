@@ -8,13 +8,12 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -160,7 +159,7 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
 		msgs,
-		sdk.NewCoins(sdk.NewCoin(cosmosChain.Config().Denom, sdkmath.NewInt(testvalues.DefaultProposalTokenAmount))),
+		sdk.NewCoins(sdk.NewCoin(cosmosChain.Config().Denom, sdkmath.NewInt(testvalues.DefaultGovV1ProposalTokenAmount))),
 		sender.String(),
 		"",
 		fmt.Sprintf("e2e gov proposal: %d", proposalID),
@@ -230,11 +229,21 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
-	time.Sleep(testvalues.VotingPeriod) // pass proposal
-
-	proposal, err = s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
+	err = s.waitForGovV1Beta1ProposalToPass(ctx, cosmosChain, proposalID)
 	s.Require().NoError(err)
-	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
+}
+
+// waitForGovV1Beta1ProposalToPass polls for the entire voting period to see if the proposal has passed.
+// if the proposal has not passed within the duration of the voting period, an error is returned.
+func (s *E2ETestSuite) waitForGovV1Beta1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
+	// poll for the query for the entire voting period to see if the proposal has passed.
+	return test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
+		proposal, err := s.QueryProposalV1Beta1(ctx, chain, proposalID)
+		if err != nil {
+			return false, err
+		}
+		return proposal.Status == govtypesv1beta1.StatusPassed, nil
+	})
 }
 
 // ExecuteGovV1Beta1Proposal submits a v1beta1 governance proposal using the provided content.

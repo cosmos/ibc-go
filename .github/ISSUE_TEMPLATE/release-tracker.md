@@ -27,7 +27,7 @@ versions of ibc-go to guarantee that no regression is introduced -->
 
 - [ ] [Compatibility tests](https://github.com/cosmos/ibc-go/actions/workflows/e2e-compatibility.yaml) pass for the release branch.
 - [ ] [Upgrade tests](https://github.com/cosmos/ibc-go/actions/workflows/e2e-upgrade.yaml) pass.
-- [ ] [Interchain Accounts inter-tx tests](https://github.com/cosmos/interchain-accounts-demo/actions/workflows/e2e-compatibility.yaml) pass.
+- [ ] Manual test with ledger signing.
 
 ### Other testing
 
@@ -65,7 +65,6 @@ versions of ibc-go to guarantee that no regression is introduced -->
       - [ ] In `docs/versions.json`.
       - [ ] Rename `docs/versioned_sidebars/version-vx.y.z-sidebars.json`
       - [ ] Rename `docs/versioned_docs/version-vx.y.z`
-- [ ] Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
 - [ ] Update the [compatibility test matrices](https://github.com/cosmos/ibc-go/tree/main/.github/compatibility-test-matrices):
   - Add the new release.
   - Remove any tags that might not be recommended anymore.

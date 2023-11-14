@@ -59,8 +59,12 @@ func (cs ClientState) Validate() error {
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
 func (cs ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
-	payload := QueryMsg{Status: &StatusMsg{}}
+	// Return unauthorized if the code hash hasn't been previously stored via storeWasmCode.
+	if !HasCodeHash(ctx, cs.CodeHash) {
+		return exported.Unauthorized
+	}
 
+	payload := QueryMsg{Status: &StatusMsg{}}
 	result, err := wasmQuery[StatusResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		return exported.Unknown
