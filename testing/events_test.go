@@ -3,7 +3,6 @@ package ibctesting_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -14,76 +13,14 @@ import (
 )
 
 func TestParsePacketsFromEvents(t *testing.T) {
-	tests := []struct {
+	testCases := []struct {
 		name            string
 		events          []abci.Event
 		expectedPackets []channeltypes.Packet
 		expectedError   string
 	}{
 		{
-			name:          "fail: no events",
-			events:        []abci.Event{},
-			expectedError: "ibctesting.ParsePacketsFromEvents: acknowledgement event attribute not found",
-		},
-		{
-			name: "fail: events without packet",
-			events: []abci.Event{
-				{
-					Type: "xxx",
-				},
-				{
-					Type: "yyy",
-				},
-			},
-			expectedError: "ibctesting.ParsePacketsFromEvents: acknowledgement event attribute not found",
-		},
-		{
-			name: "fail: event packet with invalid AttributeKeySequence",
-			events: []abci.Event{
-				{
-					Type: channeltypes.EventTypeSendPacket,
-					Attributes: []abci.EventAttribute{
-						{
-							Key:   channeltypes.AttributeKeySequence,
-							Value: "x",
-						},
-					},
-				},
-			},
-			expectedError: "ibctesting.ParsePacketsFromEvents: strconv.ParseUint: parsing \"x\": invalid syntax",
-		},
-		{
-			name: "fail: event packet with invalid AttributeKeyTimeoutHeight",
-			events: []abci.Event{
-				{
-					Type: channeltypes.EventTypeSendPacket,
-					Attributes: []abci.EventAttribute{
-						{
-							Key:   channeltypes.AttributeKeyTimeoutHeight,
-							Value: "x",
-						},
-					},
-				},
-			},
-			expectedError: "ibctesting.ParsePacketsFromEvents: expected height string format: {revision}-{height}. Got: x: invalid height",
-		},
-		{
-			name: "fail: event packet with invalid AttributeKeyTimeoutTimestamp",
-			events: []abci.Event{
-				{
-					Type: channeltypes.EventTypeSendPacket,
-					Attributes: []abci.EventAttribute{
-						{
-							Key:   channeltypes.AttributeKeyTimeoutTimestamp,
-							Value: "x",
-						},
-					},
-				},
-			},
-			expectedError: "ibctesting.ParsePacketsFromEvents: strconv.ParseUint: parsing \"x\": invalid syntax",
-		},
-		{
-			name: "ok: events with packets",
+			name: "success",
 			events: []abci.Event{
 				{
 					Type: "xxx",
@@ -195,28 +132,88 @@ func TestParsePacketsFromEvents(t *testing.T) {
 				},
 			},
 		},
+
+		{
+			name:          "fail: no events",
+			events:        []abci.Event{},
+			expectedError: "acknowledgement event attribute not found",
+		},
+		{
+			name: "fail: events without packet",
+			events: []abci.Event{
+				{
+					Type: "xxx",
+				},
+				{
+					Type: "yyy",
+				},
+			},
+			expectedError: "acknowledgement event attribute not found",
+		},
+		{
+			name: "fail: event packet with invalid AttributeKeySequence",
+			events: []abci.Event{
+				{
+					Type: channeltypes.EventTypeSendPacket,
+					Attributes: []abci.EventAttribute{
+						{
+							Key:   channeltypes.AttributeKeySequence,
+							Value: "x",
+						},
+					},
+				},
+			},
+			expectedError: "strconv.ParseUint: parsing \"x\": invalid syntax",
+		},
+		{
+			name: "fail: event packet with invalid AttributeKeyTimeoutHeight",
+			events: []abci.Event{
+				{
+					Type: channeltypes.EventTypeSendPacket,
+					Attributes: []abci.EventAttribute{
+						{
+							Key:   channeltypes.AttributeKeyTimeoutHeight,
+							Value: "x",
+						},
+					},
+				},
+			},
+			expectedError: "expected height string format: {revision}-{height}. Got: x: invalid height",
+		},
+		{
+			name: "fail: event packet with invalid AttributeKeyTimeoutTimestamp",
+			events: []abci.Event{
+				{
+					Type: channeltypes.EventTypeSendPacket,
+					Attributes: []abci.EventAttribute{
+						{
+							Key:   channeltypes.AttributeKeyTimeoutTimestamp,
+							Value: "x",
+						},
+					},
+				},
+			},
+			expectedError: "strconv.ParseUint: parsing \"x\": invalid syntax",
+		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			require := require.New(t)
-			assert := assert.New(t)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			allPackets, err := ibctesting.ParsePacketsFromEvents(tc.events)
 
-			allPackets, err := ibctesting.ParsePacketsFromEvents(tt.events)
-
-			if tt.expectedError != "" {
-				assert.ErrorContains(err, tt.expectedError)
+			if tc.expectedError == "" {
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedPackets, allPackets)
 			} else {
-				require.NoError(err)
-				assert.Equal(tt.expectedPackets, allPackets)
+				require.ErrorContains(t, err, tc.expectedError)
 			}
 
-			firstPacket, err := ibctesting.ParsePacketFromEvents(tt.events)
+			firstPacket, err := ibctesting.ParsePacketFromEvents(tc.events)
 
-			if tt.expectedError != "" {
-				assert.ErrorContains(err, tt.expectedError)
+			if tc.expectedError == "" {
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedPackets[0], firstPacket)
 			} else {
-				require.NoError(err)
-				assert.Equal(tt.expectedPackets[0], firstPacket)
+				require.ErrorContains(t, err, tc.expectedError)
 			}
 		})
 	}
