@@ -4,5 +4,6 @@ use (
 	./
 	./modules/capability
 	./modules/apps/callbacks
+	./modules/light-clients/08-wasm
 	./e2e
 )

@@ -69,6 +69,10 @@ func NewMockWasmEngine() *MockWasmEngine {
 		return nil
 	}
 
+	m.UnpinFn = func(checksum wasmvm.Checksum) error {
+		return nil
+	}
+
 	m.GetCodeFn = func(checksum wasmvm.Checksum) (wasmvm.WasmCode, error) {
 		code, ok := m.storedContracts[binary.LittleEndian.Uint32(checksum)]
 		if !ok {
@@ -107,6 +111,7 @@ type MockWasmEngine struct {
 	MigrateFn     func(checksum wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
 	GetCodeFn     func(checksum wasmvm.Checksum) (wasmvm.WasmCode, error)
 	PinFn         func(checksum wasmvm.Checksum) error
+	UnpinFn       func(checksum wasmvm.Checksum) error
 
 	// queryCallbacks contains a mapping of queryMsg field type name to callback function.
 	queryCallbacks map[string]queryFn
@@ -178,6 +183,14 @@ func (m *MockWasmEngine) Pin(checksum wasmvm.Checksum) error {
 		panic("mock engine is not properly initialized")
 	}
 	return m.PinFn(checksum)
+}
+
+// Unpin implements the WasmEngine interface.
+func (m *MockWasmEngine) Unpin(checksum wasmvm.Checksum) error {
+	if m.UnpinFn == nil {
+		panic("mock engine is not properly initialized")
+	}
+	return m.UnpinFn(checksum)
 }
 
 // getQueryMsgPayloadTypeName extracts the name of the struct that is populated.
