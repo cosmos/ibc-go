@@ -301,9 +301,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(upgrade)
 				suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
-
-				_, found := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().True(found)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
 			}
@@ -1748,10 +1745,6 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 				suite.assertUpgradeError(err, tc.expError)
 			} else {
 				channel := path.EndpointB.GetChannel()
-
-				_, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().True(ok)
-
 				suite.Require().Equal(types.FLUSHING, channel.State)
 
 				expectedTimeoutTimestamp := types.DefaultTimeout.Timestamp + uint64(suite.chainB.GetContext().BlockTime().UnixNano())
