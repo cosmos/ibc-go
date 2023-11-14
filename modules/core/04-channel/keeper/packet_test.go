@@ -320,22 +320,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			nil,
 		},
 		{
-			"success with channel in flushing state",
-			func() {
-				suite.coordinator.Setup(path)
-				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-
-				channel := path.EndpointB.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointB.SetChannel(channel)
-
-			},
-			nil,
-		},
-		{
 			"success with out of order packet: UNORDERED channel",
 			func() {
 				// setup uses an UNORDERED channel
@@ -348,6 +332,21 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				// attempts to receive packet 2 without receiving packet 1
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			},
+			nil,
+		},
+		{
+			"success with channel in flushing state",
+			func() {
+				suite.coordinator.Setup(path)
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				channel := path.EndpointB.GetChannel()
+				channel.State = types.FLUSHING
+				path.EndpointB.SetChannel(channel)
 			},
 			nil,
 		},
