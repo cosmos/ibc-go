@@ -100,4 +100,10 @@ type WasmEngine interface {
 	// always loaded quickly when executed.
 	// Pin is idempotent.
 	Pin(checksum wasmvm.Checksum) error
+
+	// Unpin removes the guarantee of a contract to be pinned (see Pin).
+	// After calling this, the code may or may not remain in memory depending on
+	// the implementor's choice.
+	// Unpin is idempotent.
+	Unpin(checksum wasmvm.Checksum) error
 }
