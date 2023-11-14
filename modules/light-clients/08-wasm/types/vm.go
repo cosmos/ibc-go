@@ -279,7 +279,7 @@ func getEnv(ctx sdk.Context, contractAddr string) wasmvmtypes.Env {
 	return env
 }
 
-// checkResponse returns an error is the response from a sudo, instantiate or migrate call
+// checkResponse returns an error if the response from a sudo, instantiate or migrate call
 // to the Wasm VM contains messages, events or attributes.
 func checkResponse(response *wasmvmtypes.Response) error {
 	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.

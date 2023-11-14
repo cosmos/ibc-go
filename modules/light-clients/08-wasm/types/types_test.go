@@ -99,6 +99,7 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 
 		resp, err := json.Marshal(types.EmptyResult{})
 		suite.Require().NoError(err)
+
 		return &wasmvmtypes.Response{Data: resp}, 0, nil
 	}
 
