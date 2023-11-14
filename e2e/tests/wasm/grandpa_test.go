@@ -51,6 +51,9 @@ func TestGrandpaTestSuite(t *testing.T) {
 		t.Setenv(testsuite.ChainImageEnv, wasmSimdImage)
 	}
 
+	// wasm tests require a longer voting period to account for the time it takes to upload a contract.
+	testvalues.VotingPeriod = time.Minute * 5
+
 	validateTestConfig()
 	testifysuite.Run(t, new(GrandpaTestSuite))
 }
