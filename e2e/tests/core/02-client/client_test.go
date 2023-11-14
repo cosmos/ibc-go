@@ -133,7 +133,6 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	})
 
 	t.Run("ensure legacy proposal does not succeed", func(t *testing.T) {
-
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
