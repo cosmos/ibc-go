@@ -224,6 +224,11 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 	err = cosmosChain.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", proposalID), cosmos.ProposalVoteYes)
 	s.Require().NoError(err)
 
+	// ensure voting period has not passed before validators finished voting
+	proposal, err = s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
+	s.Require().NoError(err)
+	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
+
 	err = s.waitForGovV1Beta1ProposalToPass(ctx, cosmosChain, proposalID)
 	s.Require().NoError(err)
 }
