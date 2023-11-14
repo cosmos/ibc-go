@@ -32,7 +32,7 @@ var (
 )
 
 // instantiateContract calls vm.Instantiate with appropriate arguments.
-func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, Checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -49,13 +49,13 @@ func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, Checks
 	}
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(true, len(msg)), "Loading CosmWasm module: instantiate")
-	response, gasUsed, err := ibcwasm.GetVM().Instantiate(Checksum, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	response, gasUsed, err := ibcwasm.GetVM().Instantiate(checksum, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return response, err
 }
 
 // callContract calls vm.Sudo with internally constructed gas meter and environment.
-func callContract(ctx sdk.Context, clientStore storetypes.KVStore, Checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func callContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -67,13 +67,13 @@ func callContract(ctx sdk.Context, clientStore storetypes.KVStore, Checksum []by
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(true, len(msg)), "Loading CosmWasm module: sudo")
-	resp, gasUsed, err := ibcwasm.GetVM().Sudo(Checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Sudo(checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
 
 // migrateContract calls vm.Migrate with internally constructed gas meter and environment.
-func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, Checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -81,13 +81,13 @@ func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KV
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(true, len(msg)), "Loading CosmWasm module: migrate")
-	resp, gasUsed, err := ibcwasm.GetVM().Migrate(Checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Migrate(checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
 
 // queryContract calls vm.Query.
-func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, Checksum []byte, msg []byte) ([]byte, error) {
+func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum []byte, msg []byte) ([]byte, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -99,7 +99,7 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, Checksum []b
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(true, len(msg)), "Loading CosmWasm module: query")
-	resp, gasUsed, err := ibcwasm.GetVM().Query(Checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Query(checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
