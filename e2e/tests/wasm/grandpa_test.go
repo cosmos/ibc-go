@@ -113,7 +113,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		// ensure that receiver on parachain did not receive any tokens
 		receiverBalance, err := polkadotChain.GetIbcBalance(ctx, polkadotUser.FormattedAddress(), 2)
 		s.Require().NoError(err)
-		s.Require().Equal(fundAmount, receiverBalance.Amount.Int64())
+		s.Require().Equal(0, receiverBalance.Amount.Int64())
 	})
 
 	// t.Run("send successful IBC transfer from Cosmos to Polkadot parachain", func(t *testing.T) {
