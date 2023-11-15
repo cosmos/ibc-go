@@ -1,0 +1,247 @@
+on:
+  workflow_call:
+    inputs:
+      test-entry-point:
+        description: 'Test entry point'
+        required: false
+        type: string
+        default: '' # empty string means run all tests
+      test:
+        description: 'test name to run as standalone'
+        required: false
+        type: string
+        default: ''
+      test-exclusions:
+        description: 'Comma separated list of tests to skip'
+        required: false
+        type: string
+        default: '' # empty string means don't skip any test.
+      chain-image:
+        description: 'The image to use for chains'
+        required: true
+        type: string
+        default: 'ghcr.io/cosmos/ibc-go-simd'
+      chain-a-tag:
+        description: 'The tag to use for chain A'
+        required: true
+        type: string
+        default: main
+      chain-b-tag:
+        default: main
+        description: 'The tag to use for chain B'
+        required: true
+        type: string
+      chain-binary:
+        default: 'simd'
+        description: 'The chain binary'
+        required: false
+        type: string
+      chain-upgrade-tag:
+        default: ''
+        description: 'The image tag that the chain will be upgraded to'
+        required: false
+        type: string
+      # upgrade-plan-name is only required during upgrade tests, and is otherwise ignored.
+      upgrade-plan-name:
+        default: ''
+        description: 'The upgrade plan name'
+        required: false
+        type: string
+      relayer-image:
+        description: 'The image to use for the relayer'
+        required: false
+        default: '' # the tests themselves will choose a sensible default when unset.
+        type: string
+      relayer-type:
+        description: 'The type of relayer to use'
+        required: false
+        default: 'hermes'
+        type: string
+      relayer-tag:
+        description: 'The tag to use for the relayer'
+        required: false
+        default: '' # the tests themselves will choose a sensible default when unset.
+        type: string
+      build-and-push-docker-image:
+        description: 'Flag to specify if the docker image should be built and pushed beforehand'
+        required: false
+        type: boolean
+        default: false
+      upload-logs:
+        description: 'Specify flag to indicate that logs should be uploaded on failure'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ibc-go-simd
+  IMAGE_NAME_WASM: ibc-go-wasm-simd
+
+jobs:
+  # test-details exists to provide an easy way to see the inputs for the e2e test.
+  test-details:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display Inputs
+        run: |
+          echo "Chain Image:       ${{ inputs.chain-image }}"
+          echo "Chain A Tag:       ${{ inputs.chain-a-tag }}"
+          echo "Chain B Tag:       ${{ inputs.chain-b-tag }}"
+          echo "Chain Upgrade Tag: ${{ inputs.chain-upgrade-tag }}"
+          echo "Upgrade Plan Name: ${{ inputs.upgrade-plan-name }}"
+          echo "Relayer Image:"    ${{ inputs.relayer-image }}
+          echo "Relayer Type:      ${{ inputs.relayer-type }}"
+          echo "Relayer Tag:       ${{ inputs.relayer-tag }}"
+          echo "Test Entry Point:  ${{ inputs.test-entry-point }}"
+          echo "Test:              ${{ inputs.test }}"
+          echo "Github Ref Name:   ${{ github.ref_name }}"
+
+  # we skip individual steps rather than the full job as e2e-tests will not run if this task
+  # is skipped. But will run if every individual task is skipped. There is no current way of conditionally needing
+  # a job.
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        if: ${{ inputs.build-and-push-docker-image }}
+      - name: Log in to the Container registry
+        if: ${{ inputs.build-and-push-docker-image }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        if: ${{ inputs.build-and-push-docker-image }}
+        id: meta
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934
+        with:
+          images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        if: ${{ inputs.build-and-push-docker-image }}
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            IBC_GO_VERSION=${{ github.ref_name }}
+
+  docker-build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        if: ${{ inputs.build-and-push-docker-image }}
+
+      - uses: actions/setup-python@v4
+        if: ${{ inputs.build-and-push-docker-image }}
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        if: ${{ inputs.build-and-push-docker-image }}
+        run: make python-install-deps
+
+      - name: Determine Build arguments
+        if: ${{ inputs.build-and-push-docker-image }}
+        id: build-args
+        run: |
+          echo "version=$(scripts/get-libwasm-version.py --get-version)" >> $GITHUB_OUTPUT
+          echo "checksum=$(scripts/get-libwasm-version.py --get-checksum)" >> $GITHUB_OUTPUT
+
+      - name: Log in to the Container registry
+        if: ${{ inputs.build-and-push-docker-image }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        if: ${{ inputs.build-and-push-docker-image }}
+        id: meta
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934
+        with:
+          images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME_WASM }}
+
+      - name: Build and push Docker image
+        if: ${{ inputs.build-and-push-docker-image }}
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          file: modules/light-clients/08-wasm/Dockerfile
+          build-args: |
+            LIBWASM_VERSION=${{ steps.build-args.outputs.version }}
+            LIBWASM_CHECKSUM=${{ steps.build-args.outputs.checksum }}
+
+
+  # dynamically build a matrix of test/test suite pairs to run.
+  # this job runs a go tool located at cmd/build_test_matrix/main.go.
+  # it walks the e2e/test directory in order to locate all test suite / test name
+  # pairs. The output of this job can be fed in as input to a workflow matrix and
+  # will expand to jobs which will run all tests present.
+  build-test-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: cosmos/ibc-go
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - id: set-matrix
+        run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
+        env:
+          TEST_ENTRYPOINT: '${{ inputs.test-entry-point }}'
+          TEST_EXCLUSIONS: '${{ inputs.test-exclusions }}'
+          TEST_NAME: '${{ inputs.test }}'
+
+  # e2e-tests runs the actual go test command to trigger the test.
+  # the tests themselves are configured via environment variables to specify
+  # things like chain and relayer images and tags.
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs:
+      - build-test-matrix
+      - docker-build
+      - docker-build-wasm
+    env:
+      CHAIN_IMAGE: '${{ inputs.chain-image }}'
+      CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
+      CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
+      RELAYER_IMAGE: '${{ inputs.relayer-image }}'
+      RELAYER_TAG: '${{ inputs.relayer-tag }}'
+      RELAYER_ID: '${{ inputs.relayer-type }}'
+      CHAIN_BINARY: '${{ inputs.chain-binary }}'
+      CHAIN_UPGRADE_TAG: '${{ inputs.chain-upgrade-tag }}'
+      CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: cosmos/ibc-go
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - name: Run e2e Test
+        id: e2e_test
+        run: |
+          cd e2e
+          make e2e-test test=${{ matrix.test }}
+      - name: Upload Diagnostics
+        uses: actions/upload-artifact@v3
+        if: ${{ failure() && inputs.upload-logs }}
+        continue-on-error: true
+        with:
+          name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
+          path: e2e/diagnostics
+          retention-days: 5
