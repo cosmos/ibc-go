@@ -17,10 +17,10 @@ import (
 // getCmdCode defines the command to query wasm code for given checksum.
 func getCmdCode() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "code [code-hash]",
+		Use:     "code [checksum]",
 		Short:   "Query wasm code",
 		Long:    "Query wasm code for a light client wasm contract with a given checksum",
-		Example: fmt.Sprintf("%s query %s wasm code [code-hash]", version.AppName, ibcexported.ModuleName),
+		Example: fmt.Sprintf("%s query %s wasm code [checksum]", version.AppName, ibcexported.ModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -51,10 +51,10 @@ func getCmdCode() *cobra.Command {
 // getCmdChecksums defines the command to query all wasm checksums.
 func getCmdChecksums() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "code-hashes",
+		Use:     "checksums",
 		Short:   "Query all checksums",
 		Long:    "Query all checksums for all deployed light client wasm contracts",
-		Example: fmt.Sprintf("%s query %s wasm code-hashes", version.AppName, ibcexported.ModuleName),
+		Example: fmt.Sprintf("%s query %s wasm checksums", version.AppName, ibcexported.ModuleName),
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)

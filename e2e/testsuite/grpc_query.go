@@ -414,10 +414,10 @@ func (s *E2ETestSuite) QueryDenomMetadata(ctx context.Context, chain ibc.Chain, 
 }
 
 // QueryWasmCode queries the code for a wasm contract.
-func (s *E2ETestSuite) QueryWasmCode(ctx context.Context, chain ibc.Chain, codehash string) ([]byte, error) {
+func (s *E2ETestSuite) QueryWasmCode(ctx context.Context, chain ibc.Chain, checksum string) ([]byte, error) {
 	queryClient := s.GetChainGRCPClients(chain).WasmQueryClient
 	queryRequest := &wasmtypes.QueryCodeRequest{
-		Checksum: codehash,
+		Checksum: checksum,
 	}
 	res, err := queryClient.Code(ctx, queryRequest)
 	if err != nil {
