@@ -68,8 +68,8 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryCodeHashes() {
-	var expCodeHashes []string
+func (suite *KeeperTestSuite) TestQueryChecksums() {
+	var expChecksums []string
 
 	testCases := []struct {
 		name     string
@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) TestQueryCodeHashes() {
 		{
 			"success with no checksums",
 			func() {
-				expCodeHashes = []string{}
+				expChecksums = []string{}
 			},
 			true,
 		},
@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) TestQueryCodeHashes() {
 				res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
-				expCodeHashes = append(expCodeHashes, hex.EncodeToString(res.Checksum))
+				expChecksums = append(expChecksums, hex.EncodeToString(res.Checksum))
 			},
 			true,
 		},
@@ -112,8 +112,8 @@ func (suite *KeeperTestSuite) TestQueryCodeHashes() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(len(expCodeHashes), len(res.Checksums))
-				suite.Require().ElementsMatch(expCodeHashes, res.Checksums)
+				suite.Require().Equal(len(expChecksums), len(res.Checksums))
+				suite.Require().ElementsMatch(expChecksums, res.Checksums)
 			} else {
 				suite.Require().Error(err)
 			}

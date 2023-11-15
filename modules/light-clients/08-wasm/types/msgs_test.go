@@ -159,7 +159,7 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
-	codeHash := sha256.Sum256(wasmtesting.Code)
+	checksum := sha256.Sum256(wasmtesting.Code)
 
 	testCases := []struct {
 		name    string
@@ -176,7 +176,7 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 			suite.SetupWasmWithMockVM()
 
 			address := tc.address
-			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, codeHash[:], []byte("{}"))
+			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, checksum[:], []byte("{}"))
 
 			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
 			if tc.expPass {
@@ -233,8 +233,8 @@ func TestMsgRemoveChecksumValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgRemoveCodeHashGetSigners() {
-	codeHash := sha256.Sum256(wasmtesting.Code)
+func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
+	checksum := sha256.Sum256(wasmtesting.Code)
 
 	testCases := []struct {
 		name    string
@@ -251,7 +251,7 @@ func (suite *TypesTestSuite) TestMsgRemoveCodeHashGetSigners() {
 			suite.SetupWasmWithMockVM()
 
 			address := tc.address
-			msg := types.NewMsgRemoveChecksum(address.String(), codeHash[:])
+			msg := types.NewMsgRemoveChecksum(address.String(), checksum[:])
 
 			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
 			if tc.expPass {

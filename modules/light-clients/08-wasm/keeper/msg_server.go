@@ -22,15 +22,15 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	codeHash, err := k.storeWasmCode(ctx, msg.WasmByteCode)
+	checksum, err := k.storeWasmCode(ctx, msg.WasmByteCode)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store wasm bytecode")
 	}
 
-	emitStoreWasmCodeEvent(ctx, codeHash)
+	emitStoreWasmCodeEvent(ctx, checksum)
 
 	return &types.MsgStoreCodeResponse{
-		Checksum: codeHash,
+		Checksum: checksum,
 	}, nil
 }
 

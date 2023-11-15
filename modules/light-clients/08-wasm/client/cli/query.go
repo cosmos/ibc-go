@@ -48,8 +48,8 @@ func getCmdCode() *cobra.Command {
 	return cmd
 }
 
-// getCmdCodeHashes defines the command to query all wasm checksums.
-func getCmdCodeHashes() *cobra.Command {
+// getCmdChecksums defines the command to query all wasm checksums.
+func getCmdChecksums() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "code-hashes",
 		Short:   "Query all checksums",
