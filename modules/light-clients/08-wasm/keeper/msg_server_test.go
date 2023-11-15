@@ -67,11 +67,22 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			},
 			ibcerrors.ErrUnauthorized,
 		},
+		{
+			"failure: code hash could not be pinned",
+			func() {
+				msg = types.NewMsgStoreCode(signer, data)
+
+				suite.mockVM.PinFn = func(_ wasmvm.Checksum) error {
+					return wasmtesting.ErrMockVM
+				}
+			},
+			wasmtesting.ErrMockVM,
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupWasmWithMockVM()
 
 			signer = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 			data, _ = os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
@@ -212,6 +223,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					// the code hash written in here will be overwritten
 					newClientState := localhost.NewClientState(clienttypes.NewHeight(1, 1))
+
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), newClientState))
 
 					data, err := json.Marshal(types.EmptyResult{})
@@ -220,7 +232,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
 				}
 			},
-			clienttypes.ErrInvalidClient,
+			types.ErrWasmInvalidContractModification,
 		},
 	}
 
@@ -334,6 +346,17 @@ func (suite *KeeperTestSuite) TestMsgRemoveCodeHash() {
 				msg = types.NewMsgRemoveCodeHash(suite.chainA.SenderAccount.GetAddress().String(), codeHash[:])
 			},
 			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: code has could not be unpinned",
+			func() {
+				msg = types.NewMsgRemoveCodeHash(govAcc, codeHash[:])
+
+				suite.mockVM.UnpinFn = func(_ wasmvm.Checksum) error {
+					return wasmtesting.ErrMockVM
+				}
+			},
+			wasmtesting.ErrMockVM,
 		},
 	}
 

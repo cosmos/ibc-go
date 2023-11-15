@@ -59,8 +59,12 @@ func (cs ClientState) Validate() error {
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
 func (cs ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
-	payload := QueryMsg{Status: &StatusMsg{}}
+	// Return unauthorized if the code hash hasn't been previously stored via storeWasmCode.
+	if !HasCodeHash(ctx, cs.CodeHash) {
+		return exported.Unauthorized
+	}
 
+	payload := QueryMsg{Status: &StatusMsg{}}
 	result, err := wasmQuery[StatusResult](ctx, clientStore, &cs, payload)
 	if err != nil {
 		return exported.Unknown
@@ -121,7 +125,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 		ConsensusState: consensusState,
 	}
 
-	return wasmInstantiate(ctx, clientStore, &cs, payload)
+	return wasmInstantiate(ctx, cdc, clientStore, &cs, payload)
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
@@ -165,7 +169,7 @@ func (cs ClientState) VerifyMembership(
 			Value:            value,
 		},
 	}
-	_, err := wasmSudo[EmptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmSudo[EmptyResult](ctx, cdc, payload, clientStore, &cs)
 	return err
 }
 
@@ -208,6 +212,6 @@ func (cs ClientState) VerifyNonMembership(
 			Path:             merklePath,
 		},
 	}
-	_, err := wasmSudo[EmptyResult](ctx, clientStore, &cs, payload)
+	_, err := wasmSudo[EmptyResult](ctx, cdc, payload, clientStore, &cs)
 	return err
 }

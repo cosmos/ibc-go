@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -11,9 +12,13 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var VMGasRegister = NewDefaultWasmGasRegister()
@@ -92,15 +97,32 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []b
 }
 
 // wasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls instantiateContract.
-func wasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
+func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to marshal payload for wasm contract instantiation")
 	}
-	_, err = instantiateContract(ctx, clientStore, cs.CodeHash, encodedData)
+
+	codeHash := cs.CodeHash
+	resp, err := instantiateContract(ctx, clientStore, codeHash, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
+
+	if err = checkResponse(resp); err != nil {
+		return errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+	}
+
+	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
+	if err != nil {
+		return err
+	}
+
+	// codehash should only be able to be modified during migration.
+	if !bytes.Equal(codeHash, newClientState.CodeHash) {
+		return errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected code hash %s, got %s", hex.EncodeToString(codeHash), hex.EncodeToString(newClientState.CodeHash))
+	}
+
 	return nil
 }
 
@@ -112,7 +134,7 @@ func wasmInstantiate(ctx sdk.Context, clientStore storetypes.KVStore, cs *Client
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
+func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload SudoMsg, clientStore storetypes.KVStore, cs *ClientState) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -120,38 +142,88 @@ func wasmSudo[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore,
 		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm execution")
 	}
 
-	resp, err := callContract(ctx, clientStore, cs.CodeHash, encodedData)
+	codeHash := cs.CodeHash
+	resp, err := callContract(ctx, clientStore, codeHash, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
 
-	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
-	if len(resp.Messages) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmSubMessagesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-	}
-	if len(resp.Events) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmEventsNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
-	}
-	if len(resp.Attributes) > 0 {
-		return result, errorsmod.Wrapf(ErrWasmAttributesNotAllowed, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+	if err = checkResponse(resp); err != nil {
+		return result, errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
 	}
 
 	if err := json.Unmarshal(resp.Data, &result); err != nil {
 		return result, errorsmod.Wrap(ErrWasmInvalidResponseData, err.Error())
 	}
+
+	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
+	if err != nil {
+		return result, err
+	}
+
+	// codehash should only be able to be modified during migration.
+	if !bytes.Equal(codeHash, newClientState.CodeHash) {
+		return result, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected code hash %s, got %s", hex.EncodeToString(codeHash), hex.EncodeToString(newClientState.CodeHash))
+	}
+
 	return result, nil
+}
+
+// validatePostExecutionClientState validates that the contract has not many any invalid modifications
+// to the client state during execution. It ensures that
+// - the client state is still present
+// - the client state can be unmarshaled successfully.
+// - the client state is of type *ClientState
+func validatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
+	key := host.ClientStateKey()
+	_, ok := clientStore.(migrateClientWrappedStore)
+	if ok {
+		key = append(subjectPrefix, key...)
+	}
+
+	bz := clientStore.Get(key)
+	if len(bz) == 0 {
+		return nil, errorsmod.Wrap(ErrWasmInvalidContractModification, types.ErrClientNotFound.Error())
+	}
+
+	clientState, err := unmarshalClientState(cdc, bz)
+	if err != nil {
+		return nil, errorsmod.Wrap(ErrWasmInvalidContractModification, err.Error())
+	}
+
+	cs, ok := clientState.(*ClientState)
+	if !ok {
+		return nil, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected client state type %T, got %T", (*ClientState)(nil), clientState)
+	}
+
+	return cs, nil
+}
+
+// unmarshalClientState unmarshals the client state from the given bytes.
+func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientState, error) {
+	var clientState exported.ClientState
+	if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
+		return nil, err
+	}
+
+	return clientState, nil
 }
 
 // wasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
 // wasmMigrate returns an error if:
 // - the contract migration returns an error
-func wasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
-	_, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
+func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
+	resp, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
 	if err != nil {
 		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
 	}
 
-	return nil
+	if err = checkResponse(resp); err != nil {
+		return errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+	}
+
+	_, err = validatePostExecutionClientState(clientStore, cdc)
+	return err
 }
 
 // wasmQuery queries the contract with the given payload and returns the result.
@@ -205,4 +277,21 @@ func getEnv(ctx sdk.Context, contractAddr string) wasmvmtypes.Env {
 	}
 
 	return env
+}
+
+// checkResponse returns an error if the response from a sudo, instantiate or migrate call
+// to the Wasm VM contains messages, events or attributes.
+func checkResponse(response *wasmvmtypes.Response) error {
+	// Only allow Data to flow back to us. SubMessages, Events and Attributes are not allowed.
+	if len(response.Messages) > 0 {
+		return ErrWasmSubMessagesNotAllowed
+	}
+	if len(response.Events) > 0 {
+		return ErrWasmEventsNotAllowed
+	}
+	if len(response.Attributes) > 0 {
+		return ErrWasmAttributesNotAllowed
+	}
+
+	return nil
 }

@@ -41,13 +41,13 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 			"failure: invalid prefix",
 			invalidPrefix,
 			nil,
-			errors.New("key must be prefixed with either subject/ or substitute/"),
+			fmt.Errorf("key must be prefixed with either \"%s\" or \"%s\"", types.SubjectPrefix, types.SubstitutePrefix),
 		},
 		{
 			"failure: invalid prefix contains both subject/ and substitute/",
 			append(types.SubjectPrefix, types.SubstitutePrefix...),
 			nil,
-			errors.New("key must be prefixed with either subject/ or substitute/"),
+			fmt.Errorf("key must be prefixed with either \"%s\" or \"%s\"", types.SubjectPrefix, types.SubstitutePrefix),
 		},
 	}
 
@@ -138,7 +138,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 			invalidPrefix,
 			host.ClientStateKey(),
 			nil,
-			errors.New("key must be prefixed with either subject/ or substitute/"),
+			fmt.Errorf("key must be prefixed with either \"%s\" or \"%s\"", types.SubjectPrefix, types.SubstitutePrefix),
 		},
 	}
 
@@ -292,7 +292,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 			invalidPrefix,
 			[]byte("start"),
 			[]byte("end"),
-			errors.New("key must be prefixed with either subject/ or substitute/"),
+			fmt.Errorf("key must be prefixed with either \"%s\" or \"%s\"", types.SubjectPrefix, types.SubstitutePrefix),
 		},
 		{
 			"failure: start and end keys not prefixed with same prefix",
