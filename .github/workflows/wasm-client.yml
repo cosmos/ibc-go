@@ -1,0 +1,58 @@
+name: Wasm Light-Client
+# This workflow runs when a PR is opened that targets code that is part of the wasm light-client.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/wasm-client.yml'
+      - 'modules/light-clients/08-wasm/**'
+      - 'proto/ibc/lightclients/wasm/**'
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - uses: actions/checkout@v3
+      - uses: golangci/golangci-lint-action@v3.6.0
+        with:
+          version: v1.54.2
+          args: --timeout 10m
+          working-directory: modules/light-clients/08-wasm
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-arch: ['amd64', 'arm64']
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      # Install cross compiler for ARM64. Export CC env variable.
+      - name: Install compiler for arm64.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+        if: matrix.go-arch == 'arm64'
+      - name: Build wasm-client
+        run: |
+          cd modules/light-clients/08-wasm
+          GOARCH=${{ matrix.go-arch }} CGO_ENABLED=1 go build ./...
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - name: Go Test
+        run: |
+          cd modules/light-clients/08-wasm
+          go test -v -mod=readonly ./...
