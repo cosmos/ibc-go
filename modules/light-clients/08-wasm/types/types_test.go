@@ -38,7 +38,6 @@ type TypesTestSuite struct {
 	mockVM      *wasmtesting.MockWasmEngine
 
 	codeHash []byte
-	testData map[string]string
 }
 
 func TestWasmTestSuite(t *testing.T) {
