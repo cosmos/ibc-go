@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"encoding/base64"
 	"encoding/json"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -15,18 +14,37 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
-	suite.SetupWasmGrandpa()
+func (suite *TypesTestSuite) TestValidateGenesis() {
+	testCases := []struct {
+		name     string
+		genState *types.GenesisState
+		expPass  bool
+	}{
+		{
+			"valid genesis",
+			&types.GenesisState{
+				Contracts: []types.Contract{{CodeBytes: []byte{1}}},
+			},
+			true,
+		},
+		{
+			"invalid genesis",
+			&types.GenesisState{
+				Contracts: []types.Contract{{CodeBytes: []byte{}}},
+			},
+			false,
+		},
+	}
 
-	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
-	suite.Require().NoError(err)
-
-	clientState := types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 4))
-	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
-
-	gm := clientState.ExportMetadata(clientStore)
-	suite.Require().NotNil(gm, "client returned nil")
-	suite.Require().Len(gm, 0, "exported metadata has unexpected length")
+	for _, tc := range testCases {
+		tc := tc
+		err := tc.genState.Validate()
+		if tc.expPass {
+			suite.Require().NoError(err)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
 }
 
 func (suite *TypesTestSuite) TestExportMetatada() {

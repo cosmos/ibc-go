@@ -21,10 +21,8 @@ const (
 	DefaultGovV1ProposalTokenAmount        = 500_000_000
 )
 
-var (
-	// VotingPeriod may differ per test.
-	VotingPeriod = time.Second * 30
-)
+// VotingPeriod may differ per test.
+var VotingPeriod = time.Second * 30
 
 // ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immediately.
 func ImmediatelyTimeout() *ibc.IBCTimeout {

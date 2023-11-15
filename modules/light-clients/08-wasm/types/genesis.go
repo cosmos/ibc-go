@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,6 +16,18 @@ import (
 // NewGenesisState creates an 08-wasm GenesisState instance.
 func NewGenesisState(contracts []Contract) *GenesisState {
 	return &GenesisState{Contracts: contracts}
+}
+
+// Validate performs basic genesis state validation returning an error upon any
+// failure.
+func (gs GenesisState) Validate() error {
+	for _, contract := range gs.Contracts {
+		if err := ValidateWasmCode(contract.CodeBytes); err != nil {
+			return errorsmod.Wrap(err, "wasm bytecode validation failed")
+		}
+	}
+
+	return nil
 }
 
 // ExportMetadata exports all the consensus metadata in the client store so they
