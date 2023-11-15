@@ -158,6 +158,37 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
+	codeHash := sha256.Sum256(wasmtesting.Code)
+
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			address := tc.address
+			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, codeHash[:], []byte("{}"))
+
+			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(address.Bytes(), signers[0])
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 func TestMsgRemoveCodeHashValidateBasic(t *testing.T) {
 	signer := sdk.AccAddress(ibctesting.TestAccAddress).String()
 
@@ -200,5 +231,36 @@ func TestMsgRemoveCodeHashValidateBasic(t *testing.T) {
 		} else {
 			require.ErrorIs(t, err, tc.expErr, tc.name)
 		}
+	}
+}
+
+func (suite *TypesTestSuite) TestMsgRemoveCodeHashGetSigners() {
+	codeHash := sha256.Sum256(wasmtesting.Code)
+
+	testCases := []struct {
+		name    string
+		address sdk.AccAddress
+		expPass bool
+	}{
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
+		{"failure: nil address", nil, false},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			address := tc.address
+			msg := types.NewMsgRemoveCodeHash(address.String(), codeHash[:])
+
+			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(address.Bytes(), signers[0])
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }

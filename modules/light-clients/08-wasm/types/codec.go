@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// RegisterInterfaces registers the tendermint concrete client-related
+// RegisterInterfaces registers the Wasm concrete client-related
 // implementations and interfaces.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
