@@ -117,7 +117,7 @@ type MockWasmEngine struct {
 	queryCallbacks map[string]queryFn
 	sudoCallbacks  map[string]sudoFn
 
-	// contracts contains a mapping of code hash to code.
+	// contracts contains a mapping of checksum to code.
 	storedContracts map[uint32][]byte
 }
 

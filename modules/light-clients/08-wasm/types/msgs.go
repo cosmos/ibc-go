@@ -11,10 +11,10 @@ import (
 var (
 	_ sdk.Msg              = (*MsgStoreCode)(nil)
 	_ sdk.Msg              = (*MsgMigrateContract)(nil)
-	_ sdk.Msg              = (*MsgRemoveCodeHash)(nil)
+	_ sdk.Msg              = (*MsgRemoveChecksum)(nil)
 	_ sdk.HasValidateBasic = (*MsgStoreCode)(nil)
 	_ sdk.HasValidateBasic = (*MsgMigrateContract)(nil)
-	_ sdk.HasValidateBasic = (*MsgRemoveCodeHash)(nil)
+	_ sdk.HasValidateBasic = (*MsgRemoveChecksum)(nil)
 )
 
 // MsgStoreCode creates a new MsgStoreCode instance
@@ -39,22 +39,22 @@ func (m MsgStoreCode) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgRemoveCodeHash creates a new MsgRemoveCodeHash instance
-func NewMsgRemoveCodeHash(signer string, codeHash []byte) *MsgRemoveCodeHash {
-	return &MsgRemoveCodeHash{
+// NewMsgRemoveChecksum creates a new MsgRemoveChecksum instance
+func NewMsgRemoveChecksum(signer string, checksum []byte) *MsgRemoveChecksum {
+	return &MsgRemoveChecksum{
 		Signer:   signer,
-		CodeHash: codeHash,
+		Checksum: checksum,
 	}
 }
 
 // ValidateBasic implements sdk.HasValidateBasic
-func (m MsgRemoveCodeHash) ValidateBasic() error {
+func (m MsgRemoveChecksum) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := ValidateWasmCodeHash(m.CodeHash); err != nil {
+	if err := ValidateWasmChecksum(m.Checksum); err != nil {
 		return err
 	}
 
@@ -62,11 +62,11 @@ func (m MsgRemoveCodeHash) ValidateBasic() error {
 }
 
 // MsgMigrateContract creates a new MsgMigrateContract instance
-func NewMsgMigrateContract(signer, clientID string, codeHash, migrateMsg []byte) *MsgMigrateContract {
+func NewMsgMigrateContract(signer, clientID string, checksum, migrateMsg []byte) *MsgMigrateContract {
 	return &MsgMigrateContract{
 		Signer:   signer,
 		ClientId: clientID,
-		CodeHash: codeHash,
+		Checksum: checksum,
 		Msg:      migrateMsg,
 	}
 }
@@ -78,7 +78,7 @@ func (m MsgMigrateContract) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := ValidateWasmCodeHash(m.CodeHash); err != nil {
+	if err := ValidateWasmChecksum(m.Checksum); err != nil {
 		return err
 	}
 

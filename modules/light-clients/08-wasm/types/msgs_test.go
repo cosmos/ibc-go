@@ -90,7 +90,7 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 
 func TestMsgMigrateContractValidateBasic(t *testing.T) {
 	signer := sdk.AccAddress(ibctesting.TestAccAddress).String()
-	validCodeHash := sha256.Sum256(wasmtesting.Code)
+	validChecksum := sha256.Sum256(wasmtesting.Code)
 	validMigrateMsg := []byte("{}")
 
 	testCases := []struct {
@@ -99,48 +99,48 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 		expErr error
 	}{
 		{
-			"success: valid signer address, valid code hash, valid migrate msg",
-			types.NewMsgMigrateContract(signer, defaultWasmClientID, validCodeHash[:], validMigrateMsg),
+			"success: valid signer address, valid checksum, valid migrate msg",
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, validChecksum[:], validMigrateMsg),
 			nil,
 		},
 		{
 			"failure: invalid signer address",
-			types.NewMsgMigrateContract(ibctesting.InvalidID, defaultWasmClientID, validCodeHash[:], validMigrateMsg),
+			types.NewMsgMigrateContract(ibctesting.InvalidID, defaultWasmClientID, validChecksum[:], validMigrateMsg),
 			ibcerrors.ErrInvalidAddress,
 		},
 		{
 			"failure: clientID is not a valid client identifier",
-			types.NewMsgMigrateContract(signer, ibctesting.InvalidID, validCodeHash[:], validMigrateMsg),
+			types.NewMsgMigrateContract(signer, ibctesting.InvalidID, validChecksum[:], validMigrateMsg),
 			host.ErrInvalidID,
 		},
 		{
 			"failure: clientID is not a wasm client identifier",
-			types.NewMsgMigrateContract(signer, ibctesting.FirstClientID, validCodeHash[:], validMigrateMsg),
+			types.NewMsgMigrateContract(signer, ibctesting.FirstClientID, validChecksum[:], validMigrateMsg),
 			host.ErrInvalidID,
 		},
 		{
-			"failure: code hash is nil",
+			"failure: checksum is nil",
 			types.NewMsgMigrateContract(signer, defaultWasmClientID, nil, validMigrateMsg),
-			errorsmod.Wrap(types.ErrInvalidCodeHash, "code hash cannot be empty"),
+			errorsmod.Wrap(types.ErrInvalidChecksum, "checksum cannot be empty"),
 		},
 		{
-			"failure: code hash is empty",
+			"failure: checksum is empty",
 			types.NewMsgMigrateContract(signer, defaultWasmClientID, []byte{}, validMigrateMsg),
-			errorsmod.Wrap(types.ErrInvalidCodeHash, "code hash cannot be empty"),
+			errorsmod.Wrap(types.ErrInvalidChecksum, "checksum cannot be empty"),
 		},
 		{
-			"failure: code hash is not 32 bytes",
+			"failure: checksum is not 32 bytes",
 			types.NewMsgMigrateContract(signer, defaultWasmClientID, []byte{1}, validMigrateMsg),
-			errorsmod.Wrapf(types.ErrInvalidCodeHash, "expected length of 32 bytes, got %d", 1),
+			errorsmod.Wrapf(types.ErrInvalidChecksum, "expected length of 32 bytes, got %d", 1),
 		},
 		{
 			"failure: migrateMsg is nil",
-			types.NewMsgMigrateContract(signer, defaultWasmClientID, validCodeHash[:], nil),
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, validChecksum[:], nil),
 			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "migrate message cannot be empty"),
 		},
 		{
 			"failure: migrateMsg is empty",
-			types.NewMsgMigrateContract(signer, defaultWasmClientID, validCodeHash[:], []byte("")),
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, validChecksum[:], []byte("")),
 			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "migrate message cannot be empty"),
 		},
 	}
@@ -159,7 +159,7 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
-	codeHash := sha256.Sum256(wasmtesting.Code)
+	checksum := sha256.Sum256(wasmtesting.Code)
 
 	testCases := []struct {
 		name    string
@@ -176,7 +176,7 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 			suite.SetupWasmWithMockVM()
 
 			address := tc.address
-			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, codeHash[:], []byte("{}"))
+			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, checksum[:], []byte("{}"))
 
 			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
 			if tc.expPass {
@@ -189,34 +189,33 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 	}
 }
 
-func TestMsgRemoveCodeHashValidateBasic(t *testing.T) {
+func TestMsgRemoveChecksumValidateBasic(t *testing.T) {
 	signer := sdk.AccAddress(ibctesting.TestAccAddress).String()
-
-	codeHash := sha256.Sum256(wasmtesting.Code)
+	checksum := sha256.Sum256(wasmtesting.Code)
 
 	testCases := []struct {
 		name   string
-		msg    *types.MsgRemoveCodeHash
+		msg    *types.MsgRemoveChecksum
 		expErr error
 	}{
 		{
-			"success: valid signer address, valid length code hash",
-			types.NewMsgRemoveCodeHash(signer, codeHash[:]),
+			"success: valid signer address, valid length checksum",
+			types.NewMsgRemoveChecksum(signer, checksum[:]),
 			nil,
 		},
 		{
-			"failure: code hash is empty",
-			types.NewMsgRemoveCodeHash(signer, []byte("")),
-			types.ErrInvalidCodeHash,
+			"failure: checksum is empty",
+			types.NewMsgRemoveChecksum(signer, []byte("")),
+			types.ErrInvalidChecksum,
 		},
 		{
-			"failure: code hash is nil",
-			types.NewMsgRemoveCodeHash(signer, nil),
-			types.ErrInvalidCodeHash,
+			"failure: checksum is nil",
+			types.NewMsgRemoveChecksum(signer, nil),
+			types.ErrInvalidChecksum,
 		},
 		{
 			"failure: signer is invalid",
-			types.NewMsgRemoveCodeHash(ibctesting.InvalidID, codeHash[:]),
+			types.NewMsgRemoveChecksum(ibctesting.InvalidID, checksum[:]),
 			ibcerrors.ErrInvalidAddress,
 		},
 	}
@@ -234,8 +233,8 @@ func TestMsgRemoveCodeHashValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgRemoveCodeHashGetSigners() {
-	codeHash := sha256.Sum256(wasmtesting.Code)
+func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
+	checksum := sha256.Sum256(wasmtesting.Code)
 
 	testCases := []struct {
 		name    string
@@ -252,7 +251,7 @@ func (suite *TypesTestSuite) TestMsgRemoveCodeHashGetSigners() {
 			suite.SetupWasmWithMockVM()
 
 			address := tc.address
-			msg := types.NewMsgRemoveCodeHash(address.String(), codeHash[:])
+			msg := types.NewMsgRemoveChecksum(address.String(), checksum[:])
 
 			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
 			if tc.expPass {

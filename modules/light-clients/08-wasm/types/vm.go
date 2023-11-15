@@ -32,7 +32,7 @@ var (
 )
 
 // instantiateContract calls vm.Instantiate with appropriate arguments.
-func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -49,13 +49,13 @@ func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHa
 	}
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.NewContractInstanceCosts(true, len(msg)), "Loading CosmWasm module: instantiate")
-	response, gasUsed, err := ibcwasm.GetVM().Instantiate(codeHash, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	response, gasUsed, err := ibcwasm.GetVM().Instantiate(checksum, env, msgInfo, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return response, err
 }
 
 // callContract calls vm.Sudo with internally constructed gas meter and environment.
-func callContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func callContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -67,13 +67,13 @@ func callContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []by
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(true, len(msg)), "Loading CosmWasm module: sudo")
-	resp, gasUsed, err := ibcwasm.GetVM().Sudo(codeHash, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Sudo(checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
 
 // migrateContract calls vm.Migrate with internally constructed gas meter and environment.
-func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, codeHash []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -81,13 +81,13 @@ func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KV
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(true, len(msg)), "Loading CosmWasm module: migrate")
-	resp, gasUsed, err := ibcwasm.GetVM().Migrate(codeHash, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Migrate(checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
 
 // queryContract calls vm.Query.
-func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []byte, msg []byte) ([]byte, error) {
+func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum []byte, msg []byte) ([]byte, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -99,7 +99,7 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, codeHash []b
 	env := getEnv(ctx, clientID)
 
 	ctx.GasMeter().ConsumeGas(VMGasRegister.InstantiateContractCosts(true, len(msg)), "Loading CosmWasm module: query")
-	resp, gasUsed, err := ibcwasm.GetVM().Query(codeHash, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
+	resp, gasUsed, err := ibcwasm.GetVM().Query(checksum, env, msg, newStoreAdapter(clientStore), wasmvmAPI, nil, multipliedGasMeter, gasLimit, costJSONDeserialization)
 	VMGasRegister.consumeRuntimeGas(ctx, gasUsed)
 	return resp, err
 }
@@ -111,14 +111,14 @@ func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storety
 		return errorsmod.Wrap(err, "failed to marshal payload for wasm contract instantiation")
 	}
 
-	codeHash := cs.CodeHash
-	resp, err := instantiateContract(ctx, clientStore, codeHash, encodedData)
+	checksum := cs.Checksum
+	resp, err := instantiateContract(ctx, clientStore, checksum, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
 
 	if err = checkResponse(resp); err != nil {
-		return errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
 	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
@@ -126,9 +126,9 @@ func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storety
 		return err
 	}
 
-	// codehash should only be able to be modified during migration.
-	if !bytes.Equal(codeHash, newClientState.CodeHash) {
-		return errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected code hash %s, got %s", hex.EncodeToString(codeHash), hex.EncodeToString(newClientState.CodeHash))
+	// Checksum should only be able to be modified during migration.
+	if !bytes.Equal(checksum, newClientState.Checksum) {
+		return errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected checksum %s, got %s", hex.EncodeToString(checksum), hex.EncodeToString(newClientState.Checksum))
 	}
 
 	return nil
@@ -150,14 +150,14 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload 
 		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm execution")
 	}
 
-	codeHash := cs.CodeHash
-	resp, err := callContract(ctx, clientStore, codeHash, encodedData)
+	checksum := cs.Checksum
+	resp, err := callContract(ctx, clientStore, checksum, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}
 
 	if err = checkResponse(resp); err != nil {
-		return result, errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+		return result, errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
 	if err := json.Unmarshal(resp.Data, &result); err != nil {
@@ -169,9 +169,9 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload 
 		return result, err
 	}
 
-	// codehash should only be able to be modified during migration.
-	if !bytes.Equal(codeHash, newClientState.CodeHash) {
-		return result, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected code hash %s, got %s", hex.EncodeToString(codeHash), hex.EncodeToString(newClientState.CodeHash))
+	// Checksum should only be able to be modified during migration.
+	if !bytes.Equal(checksum, newClientState.Checksum) {
+		return result, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected checksum %s, got %s", hex.EncodeToString(checksum), hex.EncodeToString(newClientState.Checksum))
 	}
 
 	return result, nil
@@ -221,13 +221,13 @@ func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientStat
 // wasmMigrate returns an error if:
 // - the contract migration returns an error
 func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
-	resp, err := migrateContract(ctx, clientID, clientStore, cs.CodeHash, payload)
+	resp, err := migrateContract(ctx, clientID, clientStore, cs.Checksum, payload)
 	if err != nil {
 		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
 	}
 
 	if err = checkResponse(resp); err != nil {
-		return errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.CodeHash))
+		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
 	_, err = validatePostExecutionClientState(clientStore, cdc)
@@ -247,7 +247,7 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore
 		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm query")
 	}
 
-	resp, err := queryContract(ctx, clientStore, cs.CodeHash, encodedData)
+	resp, err := queryContract(ctx, clientStore, cs.Checksum, encodedData)
 	if err != nil {
 		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
 	}

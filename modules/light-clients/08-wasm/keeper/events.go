@@ -9,11 +9,11 @@ import (
 )
 
 // emitStoreWasmCodeEvent emits a store wasm code event
-func emitStoreWasmCodeEvent(ctx sdk.Context, codeHash []byte) {
+func emitStoreWasmCodeEvent(ctx sdk.Context, checksum []byte) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeStoreWasmCode,
-			sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(codeHash)),
+			sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(checksum)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -23,13 +23,13 @@ func emitStoreWasmCodeEvent(ctx sdk.Context, codeHash []byte) {
 }
 
 // emitMigrateContractEvent emits a migrate contract event
-func emitMigrateContractEvent(ctx sdk.Context, clientID string, codeHash, newCodeHash []byte) {
+func emitMigrateContractEvent(ctx sdk.Context, clientID string, checksum, newChecksum []byte) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeMigrateContract,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyWasmCodeHash, hex.EncodeToString(codeHash)),
-			sdk.NewAttribute(types.AttributeKeyNewCodeHash, hex.EncodeToString(newCodeHash)),
+			sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(checksum)),
+			sdk.NewAttribute(types.AttributeKeyNewChecksum, hex.EncodeToString(newChecksum)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

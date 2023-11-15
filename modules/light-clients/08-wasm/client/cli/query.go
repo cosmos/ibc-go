@@ -14,13 +14,13 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// getCmdCode defines the command to query wasm code for given code hash.
+// getCmdCode defines the command to query wasm code for given checksum.
 func getCmdCode() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "code [code-hash]",
+		Use:     "code [checksum]",
 		Short:   "Query wasm code",
-		Long:    "Query wasm code for a light client wasm contract with a given code hash",
-		Example: fmt.Sprintf("%s query %s wasm code [code-hash]", version.AppName, ibcexported.ModuleName),
+		Long:    "Query wasm code for a light client wasm contract with a given checksum",
+		Example: fmt.Sprintf("%s query %s wasm code [checksum]", version.AppName, ibcexported.ModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -29,9 +29,9 @@ func getCmdCode() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			codeHash := args[0]
+			checksum := args[0]
 			req := types.QueryCodeRequest{
-				CodeHash: codeHash,
+				Checksum: checksum,
 			}
 
 			res, err := queryClient.Code(context.Background(), &req)
@@ -48,13 +48,13 @@ func getCmdCode() *cobra.Command {
 	return cmd
 }
 
-// getCmdCodeHashes defines the command to query all wasm code hashes.
-func getCmdCodeHashes() *cobra.Command {
+// getCmdChecksums defines the command to query all wasm checksums.
+func getCmdChecksums() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "code-hashes",
-		Short:   "Query all code hashes",
-		Long:    "Query all code hashes for all deployed light client wasm contracts",
-		Example: fmt.Sprintf("%s query %s wasm code-hashes", version.AppName, ibcexported.ModuleName),
+		Use:     "checksums",
+		Short:   "Query all checksums",
+		Long:    "Query all checksums for all deployed light client wasm contracts",
+		Example: fmt.Sprintf("%s query %s wasm checksums", version.AppName, ibcexported.ModuleName),
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -62,9 +62,9 @@ func getCmdCodeHashes() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
-			req := types.QueryCodeHashesRequest{}
+			req := types.QueryChecksumsRequest{}
 
-			res, err := queryClient.CodeHashes(context.Background(), &req)
+			res, err := queryClient.Checksums(context.Background(), &req)
 			if err != nil {
 				return err
 			}
