@@ -36,7 +36,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+<<<<<<< HEAD
         go-arch: ["amd64", "arm", "arm64"]
+=======
+        go-arch: ['amd64', 'arm64']
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -51,6 +55,7 @@ jobs:
             go.sum
       - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
+<<<<<<< HEAD
 
   docker-build:
     runs-on: ubuntu-latest
@@ -58,6 +63,23 @@ jobs:
       - uses: actions/checkout@v3
       - name: Docker Build
         run: docker build . --no-cache --build-arg IBC_GO_VERSION=v7.0.0
+=======
+      - name: Install compiler for arm64.
+        if: matrix.go-arch == 'arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+      - name: Build e2e
+        run: |
+          cd e2e
+          find ./tests -type d | while IFS= read -r dir
+          do
+              if ls "${dir}"/*.go >/dev/null 2>&1; then
+                  CGO_ENABLED=1 GOARCH=${{ matrix.go-arch }} go test -c "$dir"
+              fi
+          done
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
 
   split-test-files:
     runs-on: ubuntu-latest

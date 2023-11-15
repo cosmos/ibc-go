@@ -12,3 +12,32 @@ updates:
     open-pull-requests-limit: 10
     labels:
       - dependencies
+<<<<<<< HEAD
+=======
+
+  - package-ecosystem: gomod
+    directory: "/e2e"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+
+  - package-ecosystem: gomod
+    directory: "/modules/apps/callbacks"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+
+  - package-ecosystem: gomod
+    directory: "/modules/light-clients/08-wasm"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+
+
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))

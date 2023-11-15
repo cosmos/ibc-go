@@ -141,6 +141,17 @@ module.exports = {
         key: "v4.2.0",
       },
       {
+<<<<<<< HEAD
+=======
+        label: "v4.3.0",
+        key: "v4.3.0",
+      },
+      {
+        label: "v4.4.0",
+        key: "v4.4.0",
+      },
+      {
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
         label: "v5.0.0",
         key: "v5.0.0",
       },
@@ -153,9 +164,35 @@ module.exports = {
         key: "v5.2.0",
       },
       {
+<<<<<<< HEAD
         label: "v6.1.0",
         key: "v6.1.0",
       },
+=======
+        label: "v5.3.0",
+        key: "v5.3.0",
+      },
+      {
+        label: "v6.1.0",
+        key: "v6.1.0",
+      },
+      {
+        label: "v6.2.0",
+        key: "v6.2.0",
+      },
+      {
+        label: "v7.0.0",
+        key: "v7.0.0",
+      },
+      {
+        label: "v7.1.0",
+        key: "v7.1.0",
+      },
+      {
+        label: "v7.2.0",
+        key: "v7.2.0",
+      },
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
     ],
     topbar: {
       banner: true,
@@ -463,6 +500,56 @@ module.exports = {
                 },
               ],
             },
+<<<<<<< HEAD
+=======
+            {
+              title: "Wasm",
+              directory: true,
+              path: "/ibc/light-clients/wasm",
+              children: [
+                {
+                  title: "Overview",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/overview.html",
+                },
+                {
+                  title: "Concepts",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/concepts.html",
+                },
+                {
+                  title: "Integration",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/integration.html",
+                },
+                {
+                  title: "Messages",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/messages.html",
+                },
+                {
+                  title: "Deployment",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/governance.html",
+                },
+                {
+                  title: "Events",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/events.html",
+                },
+                {
+                  title: "Contracts",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/contracts.html",
+                },
+                {
+                  title: "Client",
+                  directory: false,
+                  path: "/ibc/light-clients/wasm/client.html",
+                },
+              ],
+            },
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
           ],
         },
         {
@@ -505,6 +592,7 @@ module.exports = {
                 },
               ],
             },
+<<<<<<< HEAD
             {
               title: "Callbacks Middleware",
               directory: true,
@@ -542,6 +630,8 @@ module.exports = {
                 },
               ],
             },
+=======
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
           ],
         },
         {
@@ -593,11 +683,14 @@ module.exports = {
               directory: false,
               path: "/migrations/v7-to-v7_1.html",
             },
+<<<<<<< HEAD
             {
               title: "IBC-Go v7.2 to v7.3",
               directory: false,
               path: "/migrations/v7_2-to-v7_3.html",
             },
+=======
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
           ],
         },
         {
@@ -627,7 +720,11 @@ module.exports = {
     },
     footer: {
       question: {
+<<<<<<< HEAD
         text: "Chat with IBC developers in <a href='https://discord.gg/W8trcGV' target='_blank'>Discord</a>.",
+=======
+        text: "Chat with IBC developers in <a href='https://discord.gg/cosmosnetwork' target='_blank'>Discord</a>.",
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
       },
       textLink: {
         text: "ibcprotocol.dev",
@@ -656,11 +753,19 @@ module.exports = {
         },
         {
           service: "youtube",
+<<<<<<< HEAD
           url: "https://www.youtube.com/c/CosmosProject",
         },
       ],
       smallprint:
         "The development of IBC-Go is led primarily by [Interchain GmbH](https://interchain.berlin/). Funding for this development comes primarily from the Interchain Foundation, a Swiss non-profit.",
+=======
+          url: "https://www.youtube.com/@interchain_io/featured",
+        },
+      ],
+      smallprint:
+        "The development of IBC-Go is led primarily by Interchain GmbH. Funding for this development comes primarily from the [Interchain Foundation](https://interchain.io/), a Swiss non-profit.",
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
       links: [
         {
           title: "Documentation",
@@ -674,7 +779,15 @@ module.exports = {
               url: "https://hub.cosmos.network",
             },
             {
+<<<<<<< HEAD
               title: "Tendermint Core",
+=======
+              title: "CometBFT",
+              url: "https://docs.cometbft.com/",
+            },
+            {
+              title: "Tendermint Core (archived)",
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
               url: "https://docs.tendermint.com",
             },
           ],
@@ -692,7 +805,11 @@ module.exports = {
             },
             {
               title: "Chat",
+<<<<<<< HEAD
               url: "https://discord.gg/W8trcGV",
+=======
+              url: "https://discord.gg/cosmosnetwork",
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
             },
           ],
         },

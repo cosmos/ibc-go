@@ -76,7 +76,12 @@ The client is attached to the expected Akash `chain-id`. Note that although the 
 
 ### Step 2
 
+<<<<<<< HEAD:docs/ibc/proposals.md
 If the chain has been updated to ibc-go >= v1.1.0, anyone can submit the governance proposal to recover the client by executing this via CLI.
+=======
+Anyone can submit the governance proposal to recover the client by executing the following via CLI.
+If the chain is on an ibc-go version older than v8, please see the [relevant documentation](https://ibc.cosmos.network/v7/ibc/proposals).
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079)):docs/docs/01-ibc/06-proposals.md
 
 > Note that the Cosmos SDK has updated how governance proposals are submitted in SDK v0.46, now requiring to pass a .json proposal file
 

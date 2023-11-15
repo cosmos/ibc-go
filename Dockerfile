@@ -24,7 +24,11 @@ COPY Makefile .
 
 RUN make build
 
+<<<<<<< HEAD
 FROM ubuntu:22.04
+=======
+RUN make build
+>>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
 
 ARG IBC_GO_VERSION
 
