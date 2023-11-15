@@ -28,6 +28,9 @@ All tests should go under the [e2e](https://github.com/cosmos/ibc-go/tree/main/e
 to an existing test suite ***in the same file***, or create a new test suite in a new file and add test functions there.
 New test files should follow the convention of `module_name_test.go`.
 
+After creating a new test file, be sure to add a build constraint that ensures this file will **not** be included in the package to be built when
+running tests locally via `make test`. For an example of this, see any of the existing test files.
+
 New test suites should be composed of `testsuite.E2ETestSuite`. This type has lots of useful helper functionality that will
 be quite common in most tests.
 
@@ -52,7 +55,7 @@ options specified in your config file.
 | CHAIN_B_TAG          | The tag used for chain A                  | latest        |
 | CHAIN_BINARY         | The binary used in the container          | simd          |
 | RELAYER_TAG          | The tag used for the relayer              | main          |
-| RELAYER_ID            | The type of relayer to use (rly/hermes)   | hermes           |
+| RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes        |
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
@@ -375,7 +378,7 @@ json matrix files under .github/compatibility-test-matrices and is equivalent to
 
 ## Importable Workflow
 
-This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/bc963bcfd115a0e06b8196b114496db5ea011247/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
+This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/185a220244663457372185992cfc85ed9e458bf1/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
 can be used to test both non-IBC chains, and also IBC-enabled chains.
 
 ### Prerequisites

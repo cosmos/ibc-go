@@ -12,7 +12,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
@@ -28,7 +27,7 @@ import (
 type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.Codec
-	legacySubspace paramtypes.Subspace
+	legacySubspace icatypes.ParamSubspace
 	ics4Wrapper    porttypes.ICS4Wrapper
 	channelKeeper  icatypes.ChannelKeeper
 	portKeeper     icatypes.PortKeeper
@@ -44,15 +43,10 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
-	cdc codec.Codec, key storetypes.StoreKey, legacySubspace paramtypes.Subspace,
+	cdc codec.Codec, key storetypes.StoreKey, legacySubspace icatypes.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter, authority string,
 ) Keeper {
-	// set KeyTable if it has not already been set
-	if !legacySubspace.HasKeyTable() {
-		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}

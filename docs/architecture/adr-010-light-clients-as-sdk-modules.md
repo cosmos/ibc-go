@@ -93,7 +93,7 @@ Once it is possible to route to SDK modules, a `ClientState` type could expose t
 ### Positive
 
 - use a single approach for interacting with callbacks
-- greater flexibilty and control for IBC light clients
+- greater flexibility and control for IBC light clients
 - does not require developing another routing system
 
 ### Negative

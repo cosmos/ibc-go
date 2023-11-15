@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package interchainaccounts
 
 import (
@@ -196,14 +198,14 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+		balance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainB.Config().Denom)
 
-		balance, err := chainB.GetBalance(ctx, chainBAddress, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance.Int64())
 
-		balance, err = chainB.GetBalance(ctx, interchainAccAddr, chainB.Config().Denom)
+		balance, err = s.QueryBalance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected = testvalues.StartingTokenAmount - testvalues.IBCTransferAmount

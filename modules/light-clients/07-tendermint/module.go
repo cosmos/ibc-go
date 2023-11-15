@@ -6,13 +6,18 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/core/appmodule"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-var _ module.AppModuleBasic = (*AppModuleBasic)(nil)
+var (
+	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
+	_ appmodule.AppModule   = (*AppModule)(nil)
+)
 
 // AppModuleBasic defines the basic application module used by the tendermint light client.
 // Only the RegisterInterfaces function needs to be implemented. All other function perform
@@ -23,6 +28,12 @@ type AppModuleBasic struct{}
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec performs a no-op. The Tendermint client does not support amino.
 func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
@@ -54,4 +65,14 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 // GetQueryCmd performs a no-op. Please see the 02-client cli commands.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return nil
+}
+
+// AppModule is the application module for the Tendermint client module
+type AppModule struct {
+	AppModuleBasic
+}
+
+// NewAppModule creates a new Tendermint client module
+func NewAppModule() AppModule {
+	return AppModule{}
 }

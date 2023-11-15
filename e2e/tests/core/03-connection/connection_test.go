@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package connection
 
 import (
@@ -126,7 +128,8 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 		t.Run("packets are relayed", func(t *testing.T) {
 			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
-			actualBalance, err := chainA.GetBalance(ctx, chainAAddress, chainAIBCToken.IBCDenom())
+			actualBalance, err := s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
