@@ -45,7 +45,7 @@ pull_request_rules:
   - name: backport patches to v0.1.x wasm ibc-go v7.3.x & wasmvm 1.4.x branch
     conditions:
       - base=main
-      - label=backport-wasm-to-v0.1.x+ibc-go-v7.3.x-wasmvm-v1.4.x
+      - label=backport-wasm-v0.1.x+ibc-go-v7.3.x-wasmvm-v1.4.x
     actions:
       backport:
         branches:
@@ -53,7 +53,7 @@ pull_request_rules:
   - name: backport patches to v0.1.x wasm ibc-go v8.0.x & wasmvm 1.4.x branch
     conditions:
       - base=main
-      - label=backport-wasm-to-v0.1.x+ibc-go-v8.0.x-wasmvm-v1.4.x
+      - label=backport-wasm-v0.1.x+ibc-go-v8.0.x-wasmvm-v1.4.x
     actions:
       backport:
         branches:
