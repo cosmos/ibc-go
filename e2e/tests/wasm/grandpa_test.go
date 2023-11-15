@@ -108,15 +108,15 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		err = testutil.WaitForBlocks(ctx, 5, polkadotChain, cosmosChain)
 		s.Require().NoError(err)
 
+		// ensure that receiver on parachain did not receive any tokens
+		receiverBalance, err := polkadotChain.GetIbcBalance(ctx, polkadotUser.FormattedAddress(), 2)
+		s.Require().NoError(err)
+		s.Require().Equal(int64(0), receiverBalance.Amount.Int64())
+
 		// check that tokens have been refunded to sender address
 		senderBalance, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
 		s.Require().NoError(err)
 		s.Require().Equal(fundAmount, senderBalance.Int64())
-
-		// ensure that receiver on parachain did not receive any tokens
-		receiverBalance, err := polkadotChain.GetIbcBalance(ctx, polkadotUser.FormattedAddress(), 2)
-		s.Require().NoError(err)
-		s.Require().Equal(0, receiverBalance.Amount.Int64())
 	})
 
 	// t.Run("send successful IBC transfer from Cosmos to Polkadot parachain", func(t *testing.T) {
@@ -517,7 +517,7 @@ func (s *GrandpaTestSuite) setupChainsRelayerAndChannel(ctx context.Context) (*c
 	var err error
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	file, err := os.Open("../data/ics10_grandpa_cw.wasm")
+	file, err := os.Open("../data/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
 
 	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
