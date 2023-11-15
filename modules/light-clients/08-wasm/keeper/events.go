@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
-// emitCreateClientEvent emits a create client event
+// emitStoreWasmCodeEvent emits a store wasm code event
 func emitStoreWasmCodeEvent(ctx sdk.Context, codeHash []byte) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
