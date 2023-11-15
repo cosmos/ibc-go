@@ -118,7 +118,7 @@ func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storety
 	}
 
 	if err = checkResponse(resp); err != nil {
-		return errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.Checksum))
+		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
 	newClientState, err := validatePostExecutionClientState(clientStore, cdc)
@@ -128,7 +128,7 @@ func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storety
 
 	// Checksum should only be able to be modified during migration.
 	if !bytes.Equal(checksum, newClientState.Checksum) {
-		return errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected code hash %s, got %s", hex.EncodeToString(checksum), hex.EncodeToString(newClientState.Checksum))
+		return errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected checksum %s, got %s", hex.EncodeToString(checksum), hex.EncodeToString(newClientState.Checksum))
 	}
 
 	return nil
@@ -171,7 +171,7 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload 
 
 	// Checksum should only be able to be modified during migration.
 	if !bytes.Equal(checksum, newClientState.Checksum) {
-		return result, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected code hash %s, got %s", hex.EncodeToString(checksum), hex.EncodeToString(newClientState.Checksum))
+		return result, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected checksum %s, got %s", hex.EncodeToString(checksum), hex.EncodeToString(newClientState.Checksum))
 	}
 
 	return result, nil
@@ -227,7 +227,7 @@ func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.
 	}
 
 	if err = checkResponse(resp); err != nil {
-		return errorsmod.Wrapf(err, "code hash (%s)", hex.EncodeToString(cs.Checksum))
+		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
 	}
 
 	_, err = validatePostExecutionClientState(clientStore, cdc)

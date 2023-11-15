@@ -66,7 +66,7 @@ func (suite *TypesTestSuite) TestStatus() {
 			exported.Unknown,
 		},
 		{
-			"client status is unauthorized: code hash is not stored",
+			"client status is unauthorized: checksum is not stored",
 			func() {
 				err := ibcwasm.Checksums.Remove(suite.chainA.GetContext(), suite.checksum)
 				suite.Require().NoError(err)
@@ -194,17 +194,17 @@ func (suite *TypesTestSuite) TestValidate() {
 			expPass:     false,
 		},
 		{
-			name:        "nil code hash",
+			name:        "nil checksum",
 			clientState: types.NewClientState([]byte{0}, nil, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
-			name:        "empty code hash",
+			name:        "empty checksum",
 			clientState: types.NewClientState([]byte{0}, []byte{}, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
-			name: "longer than 32 bytes code hash",
+			name: "longer than 32 bytes checksum",
 			clientState: types.NewClientState(
 				[]byte{0},
 				[]byte{
@@ -285,7 +285,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 			clienttypes.ErrInvalidConsensus,
 		},
 		{
-			"failure: code hash has not been stored.",
+			"failure: checksum has not been stored.",
 			func() {
 				clientState = types.NewClientState([]byte{1}, []byte("unknown"), clienttypes.NewHeight(0, 1))
 			},

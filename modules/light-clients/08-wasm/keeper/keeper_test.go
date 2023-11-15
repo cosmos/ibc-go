@@ -114,7 +114,7 @@ func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[
 	return app, app.DefaultGenesis()
 }
 
-// storeWasmCode stores the wasm code on chain and returns the code hash.
+// storeWasmCode stores the wasm code on chain and returns the checksum.
 func storeWasmCode(suite *KeeperTestSuite, wasmCode []byte) []byte {
 	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 

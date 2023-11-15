@@ -128,9 +128,9 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 					err := json.Unmarshal(initMsg, &payload)
 					suite.Require().NoError(err)
 
-					// Change the code hash to something else.
+					// Change the checksum to something else.
 					clientState := payload.ClientState
-					clientState.Checksum = []byte("new code hash")
+					clientState.Checksum = []byte("new checksum")
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState))
 
 					resp, err := json.Marshal(types.UpdateStateResult{})
@@ -495,7 +495,7 @@ func (suite *TypesTestSuite) TestWasmSudo() {
 			func() {
 				suite.mockVM.RegisterSudoCallback(types.UpdateStateMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					clientState := suite.chainA.GetClientState(defaultWasmClientID)
-					clientState.(*types.ClientState).Checksum = []byte("new code hash")
+					clientState.(*types.ClientState).Checksum = []byte("new checksum")
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState))
 
 					resp, err := json.Marshal(types.UpdateStateResult{})

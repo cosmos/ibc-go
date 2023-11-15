@@ -33,7 +33,7 @@ func (suite *TypesTestSuite) TestGetChecksums() {
 			},
 		},
 		{
-			"success: non-empty code hashes",
+			"success: non-empty checksums",
 			func() {
 				suite.SetupWasmWithMockVM()
 
@@ -74,7 +74,7 @@ func (suite *TypesTestSuite) TestAddChecksum() {
 	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum2)
 	suite.Require().NoError(err)
 
-	// Test adding the same code hash twice
+	// Test adding the same checksum twice
 	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum1)
 	suite.Require().NoError(err)
 

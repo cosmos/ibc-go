@@ -66,7 +66,7 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 			nil,
 		},
 		{
-			"failure: new and old code hash are the same",
+			"failure: new and old checksum are the same",
 			func() {
 				newHash = oldHash
 				// this should not be called
@@ -77,7 +77,7 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 			types.ErrWasmCodeExists,
 		},
 		{
-			"failure: code hash not found",
+			"failure: checksum not found",
 			func() {
 				err := ibcwasm.Checksums.Remove(suite.chainA.GetContext(), newHash[:])
 				suite.Require().NoError(err)

@@ -119,7 +119,7 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 	}
 
 	if err := k.wasmVM.Pin(codeHash); err != nil {
-		return errorsmod.Wrapf(err, "failed to pin code hash: %s to in-memory cache", hex.EncodeToString(codeHash))
+		return errorsmod.Wrapf(err, "failed to pin checksum: %s to in-memory cache", hex.EncodeToString(codeHash))
 	}
 
 	return nil

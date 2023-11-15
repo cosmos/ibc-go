@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			ibcerrors.ErrUnauthorized,
 		},
 		{
-			"failure: code hash could not be pinned",
+			"failure: checksum could not be pinned",
 			func() {
 				msg = types.NewMsgStoreCode(signer, data)
 
@@ -160,8 +160,8 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					// the code hash written in the client state will later be overwritten by the message server.
-					expClientState = types.NewClientState([]byte{1}, []byte("invalid code hash"), clienttypes.NewHeight(2000, 2))
+					// the checksum written in the client state will later be overwritten by the message server.
+					expClientState = types.NewClientState([]byte{1}, []byte("invalid checksum"), clienttypes.NewHeight(2000, 2))
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), expClientState))
 
 					data, err := json.Marshal(types.EmptyResult{})
@@ -173,7 +173,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			nil,
 		},
 		{
-			"failure: same code hash",
+			"failure: same checksum",
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, oldChecksum[:], []byte("{}"))
 
@@ -191,7 +191,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			ibcerrors.ErrUnauthorized,
 		},
 		{
-			"failure: invalid wasm code hash",
+			"failure: invalid wasm checksum",
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, []byte(ibctesting.InvalidID), []byte("{}"))
 			},
@@ -221,7 +221,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					// the code hash written in here will be overwritten
+					// the checksum written in here will be overwritten
 					newClientState := localhost.NewClientState(clienttypes.NewHeight(1, 1))
 
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), newClientState))
@@ -317,7 +317,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 			nil,
 		},
 		{
-			"success: many code hashes",
+			"success: many checksums",
 			func() {
 				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
 
@@ -334,7 +334,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 			nil,
 		},
 		{
-			"failure: code hash is missing",
+			"failure: checksum is missing",
 			func() {
 				msg = types.NewMsgRemoveChecksum(govAcc, []byte{1})
 			},
@@ -381,7 +381,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 				checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
 				suite.Require().NoError(err)
 
-				// Check equality of code hashes up to order
+				// Check equality of checksums up to order
 				suite.Require().ElementsMatch(expChecksums, checksums)
 
 				// Verify events

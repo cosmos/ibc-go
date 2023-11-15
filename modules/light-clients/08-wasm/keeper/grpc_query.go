@@ -27,10 +27,10 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 
 	checksum, err := hex.DecodeString(req.Checksum)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid code hash")
+		return nil, status.Error(codes.InvalidArgument, "invalid checksum")
 	}
 
-	// Only return code hashes we previously stored, not arbitrary code hashes that might be stored via e.g Wasmd.
+	// Only return checksums we previously stored, not arbitrary checksums that might be stored via e.g Wasmd.
 	if !types.HasChecksum(sdk.UnwrapSDKContext(goCtx), checksum) {
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmChecksumNotFound, req.Checksum).Error())
 	}

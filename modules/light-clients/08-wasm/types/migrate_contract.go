@@ -12,9 +12,9 @@ import (
 )
 
 // MigrateContract calls the migrate entry point on the contract with the given
-// migrateMsg. The contract must exist and the code hash must be found in the
-// store. If the code hash is the same as the current code hash, an error is returned.
-// This does not update the code hash in the client state.
+// migrateMsg. The contract must exist and the checksum must be found in the
+// store. If the checksum is the same as the current checksum, an error is returned.
+// This does not update the checksum in the client state.
 func (cs ClientState) MigrateContract(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
 	clientID string, newChecksum, migrateMsg []byte,
@@ -24,10 +24,10 @@ func (cs ClientState) MigrateContract(
 	}
 
 	if bytes.Equal(cs.Checksum, newChecksum) {
-		return errorsmod.Wrapf(ErrWasmCodeExists, "new code hash (%s) is the same as current code hash (%s)", hex.EncodeToString(newChecksum), hex.EncodeToString(cs.Checksum))
+		return errorsmod.Wrapf(ErrWasmCodeExists, "new checksum (%s) is the same as current checksum (%s)", hex.EncodeToString(newChecksum), hex.EncodeToString(cs.Checksum))
 	}
 
-	// update the code hash, this needs to be done before the contract migration
+	// update the checksum, this needs to be done before the contract migration
 	// so that wasmMigrate can call the right code. Note that this is not
 	// persisted to the client store.
 	cs.Checksum = newChecksum

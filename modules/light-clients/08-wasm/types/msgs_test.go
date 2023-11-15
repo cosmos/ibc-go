@@ -99,7 +99,7 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 		expErr error
 	}{
 		{
-			"success: valid signer address, valid code hash, valid migrate msg",
+			"success: valid signer address, valid checksum, valid migrate msg",
 			types.NewMsgMigrateContract(signer, defaultWasmClientID, validChecksum[:], validMigrateMsg),
 			nil,
 		},
@@ -119,17 +119,17 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 			host.ErrInvalidID,
 		},
 		{
-			"failure: code hash is nil",
+			"failure: checksum is nil",
 			types.NewMsgMigrateContract(signer, defaultWasmClientID, nil, validMigrateMsg),
-			errorsmod.Wrap(types.ErrInvalidChecksum, "code hash cannot be empty"),
+			errorsmod.Wrap(types.ErrInvalidChecksum, "checksum cannot be empty"),
 		},
 		{
-			"failure: code hash is empty",
+			"failure: checksum is empty",
 			types.NewMsgMigrateContract(signer, defaultWasmClientID, []byte{}, validMigrateMsg),
-			errorsmod.Wrap(types.ErrInvalidChecksum, "code hash cannot be empty"),
+			errorsmod.Wrap(types.ErrInvalidChecksum, "checksum cannot be empty"),
 		},
 		{
-			"failure: code hash is not 32 bytes",
+			"failure: checksum is not 32 bytes",
 			types.NewMsgMigrateContract(signer, defaultWasmClientID, []byte{1}, validMigrateMsg),
 			errorsmod.Wrapf(types.ErrInvalidChecksum, "expected length of 32 bytes, got %d", 1),
 		},
@@ -199,17 +199,17 @@ func TestMsgRemoveChecksumValidateBasic(t *testing.T) {
 		expErr error
 	}{
 		{
-			"success: valid signer address, valid length code hash",
+			"success: valid signer address, valid length checksum",
 			types.NewMsgRemoveChecksum(signer, checksum[:]),
 			nil,
 		},
 		{
-			"failure: code hash is empty",
+			"failure: checksum is empty",
 			types.NewMsgRemoveChecksum(signer, []byte("")),
 			types.ErrInvalidChecksum,
 		},
 		{
-			"failure: code hash is nil",
+			"failure: checksum is nil",
 			types.NewMsgRemoveChecksum(signer, nil),
 			types.ErrInvalidChecksum,
 		},

@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 			false,
 		},
 		{
-			"fails with non-existent code hash",
+			"fails with non-existent checksum",
 			func() {
 				req = &types.QueryCodeRequest{Checksum: "test"}
 			},
@@ -77,14 +77,14 @@ func (suite *KeeperTestSuite) TestQueryCodeHashes() {
 		expPass  bool
 	}{
 		{
-			"success with no code hashes",
+			"success with no checksums",
 			func() {
 				expCodeHashes = []string{}
 			},
 			true,
 		},
 		{
-			"success with one code hash",
+			"success with one checksum",
 			func() {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 				code, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")

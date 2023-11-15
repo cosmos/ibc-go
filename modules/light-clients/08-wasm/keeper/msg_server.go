@@ -46,12 +46,12 @@ func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecks
 
 	err := ibcwasm.Checksums.Remove(goCtx, msg.Checksum)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to remove code hash")
+		return nil, errorsmod.Wrap(err, "failed to remove checksum")
 	}
 
 	// unpin the code from the vm in-memory cache
 	if err := k.wasmVM.Unpin(msg.Checksum); err != nil {
-		return nil, errorsmod.Wrapf(err, "failed to unpin contract with code hash (%s) from vm cache", hex.EncodeToString(msg.Checksum))
+		return nil, errorsmod.Wrapf(err, "failed to unpin contract with checksum (%s) from vm cache", hex.EncodeToString(msg.Checksum))
 	}
 
 	return &types.MsgRemoveChecksumResponse{}, nil
