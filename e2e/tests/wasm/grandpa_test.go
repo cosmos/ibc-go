@@ -292,7 +292,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	wasmClientState, ok := clientState.(*wasmtypes.ClientState)
 	s.Require().True(ok)
 
-	s.Require().Equal(newCodeHashBz, wasmClientState.CodeHash)
+	s.Require().Equal(newCodeHashBz, wasmClientState.Checksum)
 }
 
 // TestMsgMigrateContract_ContractError_GrandpaContract features
