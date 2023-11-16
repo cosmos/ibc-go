@@ -57,8 +57,6 @@ dependency-graph.png
 
 *.history
 
-<<<<<<< HEAD
-=======
 tmp/
 *.wasm
 # Go
@@ -70,4 +68,3 @@ go.work.sum
 
 # Python
 venv
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))

@@ -9,10 +9,9 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
-<<<<<<< HEAD
 var (
 	// DefaultAllowedClients are the default clients for the AllowedClients parameter.
-	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Localhost}
+	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Wasm, exported.Localhost}
 
 	// KeyAllowedClients is store's key for AllowedClients Params
 	KeyAllowedClients = []byte("AllowedClients")
@@ -22,10 +21,6 @@ var (
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
-=======
-// DefaultAllowedClients are the default clients for the AllowedClients parameter.
-var DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Wasm, exported.Localhost}
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
 
 // NewParams creates a new parameter configuration for the ibc client module
 func NewParams(allowedClients ...string) Params {

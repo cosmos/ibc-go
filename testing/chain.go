@@ -513,26 +513,16 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		Commit: commit.ToProto(),
 	}
 
-<<<<<<< HEAD
 	if tmValSet != nil { //nolint:staticcheck
 		valSet, err = tmValSet.ToProto()
 		require.NoError(chain.T, err)
-=======
-	if cmtValSet != nil { //nolint:staticcheck
-		valSet, err = cmtValSet.ToProto()
-		require.NoError(chain.TB, err)
-		valSet.TotalVotingPower = cmtValSet.TotalVotingPower()
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
+		valSet.TotalVotingPower = tmValSet.TotalVotingPower()
 	}
 
 	if tmTrustedVals != nil {
 		trustedVals, err = tmTrustedVals.ToProto()
-<<<<<<< HEAD
 		require.NoError(chain.T, err)
-=======
-		require.NoError(chain.TB, err)
 		trustedVals.TotalVotingPower = tmTrustedVals.TotalVotingPower()
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
 	}
 
 	// The trusted fields may be nil. They may be filled before relaying messages to a client.
