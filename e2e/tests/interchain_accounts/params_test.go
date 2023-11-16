@@ -53,7 +53,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -108,7 +108,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	_, chainB := s.GetChains()
 	chainBVersion := chainB.Config().Images[0].Version
 
