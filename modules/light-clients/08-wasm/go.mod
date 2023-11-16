@@ -11,12 +11,29 @@ require (
 	cosmossdk.io/core v0.5.1
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/math v1.2.0
+<<<<<<< HEAD
 	github.com/CosmWasm/wasmvm v1.5.0
 	github.com/cometbft/cometbft v0.37.2
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/cosmos/cosmos-sdk v0.47.6
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/v7 v7.3.0
+=======
+	cosmossdk.io/store v1.0.0
+	cosmossdk.io/tools/confix v0.1.0
+	cosmossdk.io/x/circuit v0.1.0
+	cosmossdk.io/x/evidence v0.1.0
+	cosmossdk.io/x/feegrant v0.1.0
+	cosmossdk.io/x/tx v0.12.0
+	cosmossdk.io/x/upgrade v0.1.0
+	github.com/CosmWasm/wasmvm v1.5.0
+	github.com/cometbft/cometbft v0.38.0
+	github.com/cosmos/cosmos-db v1.0.0
+	github.com/cosmos/cosmos-sdk v0.50.1
+	github.com/cosmos/gogoproto v1.4.11
+	github.com/cosmos/ibc-go/modules/capability v1.0.0
+	github.com/cosmos/ibc-go/v8 v8.0.0
+>>>>>>> 93a1be45 (build(deps): Bump github.com/CosmWasm/wasmvm from 1.4.1 to 1.5.0 in /modules/light-clients/08-wasm (#5117))
 	github.com/golang/protobuf v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.5.1
