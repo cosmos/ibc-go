@@ -158,7 +158,7 @@ jobs:
           echo "checksum=$(scripts/get-libwasm-version.py --get-checksum)" >> $GITHUB_OUTPUT
 
       - name: Log in to the Container registry
-        if: ${{ inputs.build-and-push-docker-image-wasm }}
+        if: ${{ inputs.build-and-push-docker-image }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
         with:
           registry: ${{ env.REGISTRY }}
