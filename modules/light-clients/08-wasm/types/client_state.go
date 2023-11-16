@@ -18,10 +18,10 @@ import (
 var _ exported.ClientState = (*ClientState)(nil)
 
 // NewClientState creates a new ClientState instance.
-func NewClientState(data []byte, codeHash []byte, height clienttypes.Height) *ClientState {
+func NewClientState(data []byte, checksum []byte, height clienttypes.Height) *ClientState {
 	return &ClientState{
 		Data:         data,
-		CodeHash:     codeHash,
+		Checksum:     checksum,
 		LatestHeight: height,
 	}
 }
@@ -42,7 +42,7 @@ func (cs ClientState) Validate() error {
 		return errorsmod.Wrap(ErrInvalidData, "data cannot be empty")
 	}
 
-	if err := ValidateWasmCodeHash(cs.CodeHash); err != nil {
+	if err := ValidateWasmChecksum(cs.Checksum); err != nil {
 		return err
 	}
 
@@ -59,8 +59,8 @@ func (cs ClientState) Validate() error {
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
 func (cs ClientState) Status(ctx sdk.Context, clientStore storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
-	// Return unauthorized if the code hash hasn't been previously stored via storeWasmCode.
-	if !HasCodeHash(ctx, cs.CodeHash) {
+	// Return unauthorized if the checksum hasn't been previously stored via storeWasmCode.
+	if !HasChecksum(ctx, cs.Checksum) {
 		return exported.Unauthorized
 	}
 
@@ -115,9 +115,9 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 			&ConsensusState{}, state)
 	}
 
-	// Do not allow initialization of a client with a code hash that hasn't been previously stored via storeWasmCode.
-	if !HasCodeHash(ctx, cs.CodeHash) {
-		return errorsmod.Wrapf(ErrInvalidCodeHash, "code hash (%s) has not been previously stored", hex.EncodeToString(cs.CodeHash))
+	// Do not allow initialization of a client with a checksum that hasn't been previously stored via storeWasmCode.
+	if !HasChecksum(ctx, cs.Checksum) {
+		return errorsmod.Wrapf(ErrInvalidChecksum, "checksum (%s) has not been previously stored", hex.EncodeToString(cs.Checksum))
 	}
 
 	payload := InstantiateMessage{

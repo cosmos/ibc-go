@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 			})
 
 			var srcChecksumCodes []byte
-			var codeHashes [][]byte
+			var checksums [][]byte
 			// store contract on chain
 			for _, contract := range tc.contracts {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 				res, err := wasmClientApp.WasmClientKeeper.StoreCode(ctx, msg)
 				suite.Require().NoError(err)
 
-				codeHashes = append(codeHashes, res.Checksum)
+				checksums = append(checksums, res.Checksum)
 				srcChecksumCodes = append(srcChecksumCodes, res.Checksum...)
 
 				suite.Require().NoError(err)
@@ -80,9 +80,9 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 				Time:    time.Now(),
 			})
 
-			resp, err := destWasmClientApp.WasmClientKeeper.CodeHashes(destCtx, &types.QueryCodeHashesRequest{})
+			resp, err := destWasmClientApp.WasmClientKeeper.Checksums(destCtx, &types.QueryChecksumsRequest{})
 			suite.Require().NoError(err)
-			suite.Require().Empty(resp.CodeHashes)
+			suite.Require().Empty(resp.Checksums)
 
 			suite.Require().NoError(destWasmClientApp.SnapshotManager().Restore(*snapshot))
 
@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 				}
 			}
 
-			var allDestAppCodeHashInWasmVMStore []byte
+			var allDestAppChecksumsInWasmVMStore []byte
 			// check wasm contracts are imported
 			ctx = destWasmClientApp.NewUncachedContext(false, tmproto.Header{
 				ChainID: "foo",
@@ -106,14 +106,14 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 				Time:    time.Now(),
 			})
 
-			for _, codeHash := range codeHashes {
-				resp, err := destWasmClientApp.WasmClientKeeper.Code(ctx, &types.QueryCodeRequest{CodeHash: hex.EncodeToString(codeHash)})
+			for _, checksum := range checksums {
+				resp, err := destWasmClientApp.WasmClientKeeper.Code(ctx, &types.QueryCodeRequest{Checksum: hex.EncodeToString(checksum)})
 				suite.Require().NoError(err)
 
-				allDestAppCodeHashInWasmVMStore = append(allDestAppCodeHashInWasmVMStore, keeper.GenerateWasmCodeHash(resp.Data)...)
+				allDestAppChecksumsInWasmVMStore = append(allDestAppChecksumsInWasmVMStore, keeper.GenerateWasmChecksum(resp.Data)...)
 			}
 
-			suite.Require().Equal(srcChecksumCodes, allDestAppCodeHashInWasmVMStore)
+			suite.Require().Equal(srcChecksumCodes, allDestAppChecksumsInWasmVMStore)
 		})
 	}
 }

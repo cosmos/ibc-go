@@ -202,7 +202,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 			clientState := endpoint.GetClientState().(*types.ClientState)
 
-			upgradedClient = types.NewClientState(wasmtesting.MockClientStateBz, clientState.CodeHash, clienttypes.NewHeight(0, clientState.GetLatestHeight().GetRevisionHeight()+1))
+			upgradedClient = types.NewClientState(wasmtesting.MockClientStateBz, clientState.Checksum, clienttypes.NewHeight(0, clientState.GetLatestHeight().GetRevisionHeight()+1))
 			upgradedConsState = &types.ConsensusState{wasmtesting.MockConsensusStateBz}
 
 			tc.malleate()

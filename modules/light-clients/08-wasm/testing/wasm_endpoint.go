@@ -28,8 +28,8 @@ func NewWasmEndpoint(chain *ibctesting.TestChain) *WasmEndpoint {
 // The client and consensus states are represented by byte slices
 // and the starting height is 1.
 func (endpoint *WasmEndpoint) CreateClient() error {
-	codeHash := sha256.Sum256(Code)
-	clientState := types.NewClientState(contractClientState, codeHash[:], clienttypes.NewHeight(0, 1))
+	checksum := sha256.Sum256(Code)
+	clientState := types.NewClientState(contractClientState, checksum[:], clienttypes.NewHeight(0, 1))
 	consensusState := types.NewConsensusState(contractConsensusState, 0)
 
 	msg, err := clienttypes.NewMsgCreateClient(

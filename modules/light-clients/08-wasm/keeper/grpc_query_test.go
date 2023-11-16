@@ -29,7 +29,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 				res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
-				req = &types.QueryCodeRequest{CodeHash: hex.EncodeToString(res.Checksum)}
+				req = &types.QueryCodeRequest{Checksum: hex.EncodeToString(res.Checksum)}
 			},
 			true,
 		},
@@ -41,9 +41,9 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 			false,
 		},
 		{
-			"fails with non-existent code hash",
+			"fails with non-existent checksum",
 			func() {
-				req = &types.QueryCodeRequest{CodeHash: "test"}
+				req = &types.QueryCodeRequest{Checksum: "test"}
 			},
 			false,
 		},
@@ -68,8 +68,8 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryCodeHashes() {
-	var expCodeHashes []string
+func (suite *KeeperTestSuite) TestQueryChecksums() {
+	var expChecksums []string
 
 	testCases := []struct {
 		name     string
@@ -77,14 +77,14 @@ func (suite *KeeperTestSuite) TestQueryCodeHashes() {
 		expPass  bool
 	}{
 		{
-			"success with no code hashes",
+			"success with no checksums",
 			func() {
-				expCodeHashes = []string{}
+				expChecksums = []string{}
 			},
 			true,
 		},
 		{
-			"success with one code hash",
+			"success with one checksum",
 			func() {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 				code, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) TestQueryCodeHashes() {
 				res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 
-				expCodeHashes = append(expCodeHashes, hex.EncodeToString(res.Checksum))
+				expChecksums = append(expChecksums, hex.EncodeToString(res.Checksum))
 			},
 			true,
 		},
@@ -106,14 +106,14 @@ func (suite *KeeperTestSuite) TestQueryCodeHashes() {
 
 			tc.malleate()
 
-			req := &types.QueryCodeHashesRequest{}
-			res, err := GetSimApp(suite.chainA).WasmClientKeeper.CodeHashes(suite.chainA.GetContext(), req)
+			req := &types.QueryChecksumsRequest{}
+			res, err := GetSimApp(suite.chainA).WasmClientKeeper.Checksums(suite.chainA.GetContext(), req)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(len(expCodeHashes), len(res.CodeHashes))
-				suite.Require().ElementsMatch(expCodeHashes, res.CodeHashes)
+				suite.Require().Equal(len(expChecksums), len(res.Checksums))
+				suite.Require().ElementsMatch(expChecksums, res.Checksums)
 			} else {
 				suite.Require().Error(err)
 			}

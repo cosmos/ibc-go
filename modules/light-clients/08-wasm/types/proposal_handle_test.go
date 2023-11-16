@@ -49,7 +49,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 
 						prefixedKey := types.SubjectPrefix
 						prefixedKey = append(prefixedKey, host.ClientStateKey()...)
-						expectedClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash)
+						expectedClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum)
 						store.Set(prefixedKey, expectedClientStateBz)
 
 						return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
@@ -66,10 +66,10 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 			clienttypes.ErrInvalidClient,
 		},
 		{
-			"failure: code hashes do not match",
+			"failure: checksums do not match",
 			func() {
 				substituteClientState = &types.ClientState{
-					CodeHash: []byte("invalid"),
+					Checksum: []byte("invalid"),
 				}
 			},
 			clienttypes.ErrInvalidClient,

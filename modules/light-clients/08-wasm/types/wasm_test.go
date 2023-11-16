@@ -8,17 +8,17 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
-func (suite *TypesTestSuite) TestGetCodeHashes() {
+func (suite *TypesTestSuite) TestGetChecksums() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expResult func(codeHashes []types.CodeHash)
+		expResult func(checksums []types.Checksum)
 	}{
 		{
 			"success: no contract stored.",
 			func() {},
-			func(codeHashes []types.CodeHash) {
-				suite.Require().Len(codeHashes, 0)
+			func(checksums []types.Checksum) {
+				suite.Require().Len(checksums, 0)
 			},
 		},
 		{
@@ -26,23 +26,23 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 			func() {
 				suite.SetupWasmWithMockVM()
 			},
-			func(codeHashes []types.CodeHash) {
-				suite.Require().Len(codeHashes, 1)
-				expectedCodeHash := sha256.Sum256(wasmtesting.Code)
-				suite.Require().Equal(types.CodeHash(expectedCodeHash[:]), codeHashes[0])
+			func(checksums []types.Checksum) {
+				suite.Require().Len(checksums, 1)
+				expectedChecksum := sha256.Sum256(wasmtesting.Code)
+				suite.Require().Equal(types.Checksum(expectedChecksum[:]), checksums[0])
 			},
 		},
 		{
-			"success: non-empty code hashes",
+			"success: non-empty checksums",
 			func() {
 				suite.SetupWasmWithMockVM()
 
-				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), types.CodeHash("codehash"))
+				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), types.Checksum("checksum"))
 				suite.Require().NoError(err)
 			},
-			func(codeHashes []types.CodeHash) {
-				suite.Require().Len(codeHashes, 2)
-				suite.Require().Contains(codeHashes, types.CodeHash("codehash"))
+			func(checksums []types.Checksum) {
+				suite.Require().Len(checksums, 2)
+				suite.Require().Contains(checksums, types.Checksum("checksum"))
 			},
 		},
 	}
@@ -52,41 +52,41 @@ func (suite *TypesTestSuite) TestGetCodeHashes() {
 		suite.Run(tc.name, func() {
 			tc.malleate()
 
-			codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
+			checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
 			suite.Require().NoError(err)
-			tc.expResult(codeHashes)
+			tc.expResult(checksums)
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestAddCodeHash() {
+func (suite *TypesTestSuite) TestAddChecksum() {
 	suite.SetupWasmWithMockVM()
 
-	codeHashes, err := types.GetAllCodeHashes(suite.chainA.GetContext())
+	checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
 	suite.Require().NoError(err)
 	// default mock vm contract is stored
-	suite.Require().Len(codeHashes, 1)
+	suite.Require().Len(checksums, 1)
 
-	codeHash1 := types.CodeHash("codehash1")
-	codeHash2 := types.CodeHash("codehash2")
-	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash1)
+	checksum1 := types.Checksum("checksum1")
+	checksum2 := types.Checksum("checksum2")
+	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum1)
 	suite.Require().NoError(err)
-	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash2)
-	suite.Require().NoError(err)
-
-	// Test adding the same code hash twice
-	err = ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash1)
+	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum2)
 	suite.Require().NoError(err)
 
-	codeHashes, err = types.GetAllCodeHashes(suite.chainA.GetContext())
+	// Test adding the same checksum twice
+	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum1)
 	suite.Require().NoError(err)
-	suite.Require().Len(codeHashes, 3)
-	suite.Require().Contains(codeHashes, codeHash1)
-	suite.Require().Contains(codeHashes, codeHash2)
+
+	checksums, err = types.GetAllChecksums(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	suite.Require().Len(checksums, 3)
+	suite.Require().Contains(checksums, checksum1)
+	suite.Require().Contains(checksums, checksum2)
 }
 
-func (suite *TypesTestSuite) TestHasCodeHash() {
-	var codeHash types.CodeHash
+func (suite *TypesTestSuite) TestHasChecksum() {
+	var checksum types.Checksum
 
 	testCases := []struct {
 		name       string
@@ -94,18 +94,18 @@ func (suite *TypesTestSuite) TestHasCodeHash() {
 		exprResult bool
 	}{
 		{
-			"success: code hash exists",
+			"success: checksum exists",
 			func() {
-				codeHash = types.CodeHash("codehash")
-				err := ibcwasm.CodeHashes.Set(suite.chainA.GetContext(), codeHash)
+				checksum = types.Checksum("checksum")
+				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum)
 				suite.Require().NoError(err)
 			},
 			true,
 		},
 		{
-			"success: code hash does not exist",
+			"success: checksum does not exist",
 			func() {
-				codeHash = types.CodeHash("non-existent-codehash")
+				checksum = types.Checksum("non-existent-checksum")
 			},
 			false,
 		},
@@ -118,7 +118,7 @@ func (suite *TypesTestSuite) TestHasCodeHash() {
 
 			tc.malleate()
 
-			result := types.HasCodeHash(suite.chainA.GetContext(), codeHash)
+			result := types.HasChecksum(suite.chainA.GetContext(), checksum)
 			suite.Require().Equal(tc.exprResult, result)
 		})
 	}
