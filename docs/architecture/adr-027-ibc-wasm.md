@@ -148,13 +148,8 @@ func (cs ClientState) VerifyClientMessage(
   inner := verifyClientMessageInnerPayload{
     ClientMessage: clientMsgConcrete,
   }
-<<<<<<< HEAD
-  if !output.Result.IsValid {
-    return nil, nil, fmt.Errorf("%s error ocurred while updating client state", output.Result.ErrorMsg)
-=======
   payload := verifyClientMessagePayload{
     VerifyClientMessage: inner,
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
   }
   _, err := call[contractResult](ctx, clientStore, &cs, payload)
   return err
