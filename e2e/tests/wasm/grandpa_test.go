@@ -105,7 +105,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 		// start relayer
 		s.Require().NoError(relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPathName(0)))
-		err = testutil.WaitForBlocks(ctx, 5, polkadotChain, cosmosChain)
+		err = testutil.WaitForBlocks(ctx, 15, polkadotChain, cosmosChain)
 		s.Require().NoError(err)
 
 		// ensure that receiver on parachain did not receive any tokens
