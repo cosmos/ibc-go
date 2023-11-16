@@ -139,8 +139,8 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 
 func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 	oldChecksum := sha256.Sum256(wasmtesting.Code)
-
-	newByteCode := append(wasmtesting.WasmMagicNumber, []byte("MockByteCode-TestMsgMigrateContract")...)
+	newByteCode := wasmtesting.WasmMagicNumber
+	newByteCode = append(newByteCode, []byte("MockByteCode-TestMsgMigrateContract")...)
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
