@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
 	"github.com/stretchr/testify/require"
 
 	errorsmod "cosmossdk.io/errors"
@@ -66,7 +65,7 @@ func TestValidateWasmCode(t *testing.T) {
 }
 
 func TestValidateWasmChecksum(t *testing.T) {
-	var checksum wasmvm.Checksum
+	var checksum types.Checksum
 
 	testCases := []struct {
 		name     string

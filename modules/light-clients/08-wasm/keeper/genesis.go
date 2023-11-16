@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -29,7 +30,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	// Grab code from wasmVM and add to genesis state.
 	var genesisState types.GenesisState
 	for _, checksum := range checksums {
-		code, err := k.wasmVM.GetCode(checksum)
+		code, err := k.wasmVM.GetCode(wasmvmtypes.Checksum(checksum))
 		if err != nil {
 			panic(err)
 		}

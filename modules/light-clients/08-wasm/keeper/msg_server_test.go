@@ -5,10 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 
-	errorsmod "cosmossdk.io/errors"
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
@@ -60,14 +58,14 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{})
 			},
-			fmt.Errorf("Wasm bytes nil or empty"),
+			errors.New("Wasm bytes nil or empty"),
 		},
 		{
 			"fails with checksum",
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
 			},
-			errorsmod.Wrap(errorsmod.Wrap(errors.New("Wasm bytes do not not start with Wasm magic number"), "wasm bytecode checksum failed"), "failed to store wasm bytecode"),
+			errors.New("Wasm bytes do not not start with Wasm magic number"),
 		},
 		{
 			"fails with wasm code too large",
@@ -131,7 +129,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 					suite.Require().Contains(events, evt)
 				}
 			} else {
-				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 				suite.Require().Nil(res)
 				suite.Require().Empty(events)
 			}
@@ -316,7 +314,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 
 	var (
 		msg          *types.MsgRemoveChecksum
-		expChecksums []wasmvm.Checksum
+		expChecksums []types.Checksum
 	)
 
 	testCases := []struct {
@@ -329,7 +327,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 			func() {
 				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
 
-				expChecksums = []wasmvm.Checksum{}
+				expChecksums = []types.Checksum{}
 			},
 			nil,
 		},
@@ -338,7 +336,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 			func() {
 				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
 
-				expChecksums = []wasmvm.Checksum{}
+				expChecksums = []types.Checksum{}
 
 				for i := 0; i < 20; i++ {
 					checksum := sha256.Sum256([]byte{byte(i)})

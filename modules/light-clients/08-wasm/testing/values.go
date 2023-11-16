@@ -3,8 +3,6 @@ package testing
 import (
 	"errors"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -29,7 +27,7 @@ var (
 )
 
 // CreateMockClientStateBz returns valid client state bytes for use in tests.
-func CreateMockClientStateBz(cdc codec.BinaryCodec, checksum wasmvm.Checksum) []byte {
+func CreateMockClientStateBz(cdc codec.BinaryCodec, checksum types.Checksum) []byte {
 	mockClientSate := types.NewClientState([]byte{1}, checksum, clienttypes.NewHeight(2000, 2))
 	return clienttypes.MustMarshalClientState(cdc, mockClientSate)
 }

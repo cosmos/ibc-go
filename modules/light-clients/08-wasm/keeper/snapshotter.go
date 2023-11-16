@@ -8,6 +8,7 @@ import (
 	snapshot "cosmossdk.io/store/snapshots/types"
 	storetypes "cosmossdk.io/store/types"
 
+	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -72,7 +73,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 	}
 
 	for _, checksum := range checksums {
-		wasmCode, err := ws.keeper.wasmVM.GetCode(checksum)
+		wasmCode, err := ws.keeper.wasmVM.GetCode(wasmvmtypes.Checksum(checksum))
 		if err != nil {
 			return err
 		}

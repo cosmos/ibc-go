@@ -114,7 +114,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "wasm bytecode checksum failed")
 	}
-	if types.HasChecksum(ctx, checksum) {
+	if types.HasChecksum(ctx, types.Checksum(checksum)) {
 		return nil, types.ErrWasmCodeExists
 	}
 

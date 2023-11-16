@@ -3,8 +3,6 @@ package types_test
 import (
 	"crypto/sha256"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -14,12 +12,12 @@ func (suite *TypesTestSuite) TestGetChecksums() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expResult func(checksums []wasmvm.Checksum)
+		expResult func(checksums []types.Checksum)
 	}{
 		{
 			"success: no contract stored.",
 			func() {},
-			func(checksums []wasmvm.Checksum) {
+			func(checksums []types.Checksum) {
 				suite.Require().Len(checksums, 0)
 			},
 		},
@@ -28,10 +26,10 @@ func (suite *TypesTestSuite) TestGetChecksums() {
 			func() {
 				suite.SetupWasmWithMockVM()
 			},
-			func(checksums []wasmvm.Checksum) {
+			func(checksums []types.Checksum) {
 				suite.Require().Len(checksums, 1)
 				expectedChecksum := sha256.Sum256(wasmtesting.Code)
-				suite.Require().Equal(wasmvm.Checksum(expectedChecksum[:]), checksums[0])
+				suite.Require().Equal(types.Checksum(expectedChecksum[:]), checksums[0])
 			},
 		},
 		{
@@ -39,12 +37,12 @@ func (suite *TypesTestSuite) TestGetChecksums() {
 			func() {
 				suite.SetupWasmWithMockVM()
 
-				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), wasmvm.Checksum("checksum"))
+				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), types.Checksum("checksum"))
 				suite.Require().NoError(err)
 			},
-			func(checksums []wasmvm.Checksum) {
+			func(checksums []types.Checksum) {
 				suite.Require().Len(checksums, 2)
-				suite.Require().Contains(checksums, wasmvm.Checksum("checksum"))
+				suite.Require().Contains(checksums, types.Checksum("checksum"))
 			},
 		},
 	}
@@ -69,8 +67,8 @@ func (suite *TypesTestSuite) TestAddChecksum() {
 	// default mock vm contract is stored
 	suite.Require().Len(checksums, 1)
 
-	checksum1 := wasmvm.Checksum("checksum1")
-	checksum2 := wasmvm.Checksum("checksum2")
+	checksum1 := types.Checksum("checksum1")
+	checksum2 := types.Checksum("checksum2")
 	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum1)
 	suite.Require().NoError(err)
 	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum2)
@@ -88,7 +86,7 @@ func (suite *TypesTestSuite) TestAddChecksum() {
 }
 
 func (suite *TypesTestSuite) TestHasChecksum() {
-	var checksum wasmvm.Checksum
+	var checksum types.Checksum
 
 	testCases := []struct {
 		name       string
@@ -98,7 +96,7 @@ func (suite *TypesTestSuite) TestHasChecksum() {
 		{
 			"success: checksum exists",
 			func() {
-				checksum = wasmvm.Checksum("checksum")
+				checksum = types.Checksum("checksum")
 				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum)
 				suite.Require().NoError(err)
 			},
@@ -107,7 +105,7 @@ func (suite *TypesTestSuite) TestHasChecksum() {
 		{
 			"success: checksum does not exist",
 			func() {
-				checksum = wasmvm.Checksum("non-existent-checksum")
+				checksum = types.Checksum("non-existent-checksum")
 			},
 			false,
 		},
