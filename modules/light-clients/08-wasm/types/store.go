@@ -11,10 +11,10 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/store/cachekv"
-	storeprefix "cosmossdk.io/store/prefix"
-	"cosmossdk.io/store/tracekv"
-	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/store/cachekv"
+	storeprefix "github.com/cosmos/cosmos-sdk/store/prefix"
+	"github.com/cosmos/cosmos-sdk/store/tracekv"
+	storetypes "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (

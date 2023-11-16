@@ -7,8 +7,8 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	errorsmod "cosmossdk.io/errors"
-	snapshot "cosmossdk.io/store/snapshots/types"
-	storetypes "cosmossdk.io/store/types"
+	snapshot "github.com/cosmos/cosmos-sdk/snapshots/types"
+	storetypes "github.com/cosmos/cosmos-sdk/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

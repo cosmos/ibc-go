@@ -4,8 +4,8 @@ import (
 	"errors"
 	fmt "fmt"
 
-	prefixstore "cosmossdk.io/store/prefix"
-	storetypes "cosmossdk.io/store/types"
+	prefixstore "github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
