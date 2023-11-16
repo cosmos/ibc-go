@@ -16,7 +16,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestSnapshotter() {
-	gzippedContract, err := types.GzipIt([]byte("gzipped-contract"))
+	gzippedContract, err := types.GzipIt(append(wasmtesting.WasmMagicNumber, []byte("gzipped-contract")...))
 	suite.Require().NoError(err)
 
 	testCases := []struct {

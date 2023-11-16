@@ -4,8 +4,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 
+	errorsmod "cosmossdk.io/errors"
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
@@ -53,11 +56,25 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			types.ErrWasmCodeExists,
 		},
 		{
-			"fails with invalid wasm code",
+			"fails with zero-length wasm code",
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{})
 			},
-			types.ErrWasmEmptyCode,
+			fmt.Errorf("Wasm bytes nil or empty"),
+		},
+		{
+			"fails with checksum",
+			func() {
+				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
+			},
+			errorsmod.Wrap(errorsmod.Wrap(errors.New("Wasm bytes do not not start with Wasm magic number"), "wasm bytecode checksum failed"), "failed to store wasm bytecode"),
+		},
+		{
+			"fails with wasm code too large",
+			func() {
+				msg = types.NewMsgStoreCode(signer, append(wasmtesting.WasmMagicNumber, []byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))...))
+			},
+			types.ErrWasmCodeTooLarge,
 		},
 		{
 			"fails with unauthorized signer",
@@ -125,7 +142,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 	oldChecksum := sha256.Sum256(wasmtesting.Code)
 
-	newByteCode := []byte("MockByteCode-TestMsgMigrateContract")
+	newByteCode := append(wasmtesting.WasmMagicNumber, []byte("MockByteCode-TestMsgMigrateContract")...)
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -299,7 +316,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 
 	var (
 		msg          *types.MsgRemoveChecksum
-		expChecksums []types.Checksum
+		expChecksums []wasmvm.Checksum
 	)
 
 	testCases := []struct {
@@ -312,7 +329,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 			func() {
 				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
 
-				expChecksums = []types.Checksum{}
+				expChecksums = []wasmvm.Checksum{}
 			},
 			nil,
 		},
@@ -321,7 +338,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 			func() {
 				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
 
-				expChecksums = []types.Checksum{}
+				expChecksums = []wasmvm.Checksum{}
 
 				for i := 0; i < 20; i++ {
 					checksum := sha256.Sum256([]byte{byte(i)})

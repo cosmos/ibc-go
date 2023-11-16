@@ -3,13 +3,15 @@ package keeper
 import (
 	"encoding/hex"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 // emitStoreWasmCodeEvent emits a store wasm code event
-func emitStoreWasmCodeEvent(ctx sdk.Context, checksum []byte) {
+func emitStoreWasmCodeEvent(ctx sdk.Context, checksum wasmvm.Checksum) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeStoreWasmCode,
@@ -23,7 +25,7 @@ func emitStoreWasmCodeEvent(ctx sdk.Context, checksum []byte) {
 }
 
 // emitMigrateContractEvent emits a migrate contract event
-func emitMigrateContractEvent(ctx sdk.Context, clientID string, checksum, newChecksum []byte) {
+func emitMigrateContractEvent(ctx sdk.Context, clientID string, checksum, newChecksum wasmvm.Checksum) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeMigrateContract,

@@ -3,6 +3,8 @@ package types
 import (
 	"strings"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
+
 	errorsmod "cosmossdk.io/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -31,7 +33,7 @@ func MaxWasmByteSize() uint64 {
 }
 
 // ValidateWasmChecksum validates that the checksum is of the correct length
-func ValidateWasmChecksum(checksum []byte) error {
+func ValidateWasmChecksum(checksum wasmvm.Checksum) error {
 	lenChecksum := len(checksum)
 	if lenChecksum == 0 {
 		return errorsmod.Wrap(ErrInvalidChecksum, "checksum cannot be empty")
