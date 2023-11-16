@@ -1,10 +1,14 @@
-# The Tests / E2E workflow is used to run end-to-end tests on pull requests originating
-# from the ibc-go repository. The workflow is triggered on a PR opening, when new commits
-# are pushed to the PR, or when the PR is marked ready for review.
-name: Tests / E2E
+# The Tests / E2E Wasm workflow is used to run end-to-end tests on pull requests originating
+# from the ibc-go repository. The workflow specifically runs 08-wasm tests.
+name: Tests / E2E Wasm
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - 'e2e/tests/wasm/**' # the e2e tests or contracts change.
+      - 'modules/light-clients/08-wasm/**' # modifications to the 08-wasm module.
+      - 'modules/core/02-client/**' # modifications to the 02-client module.
+      - '.github/workflows/e2e-wasm.yaml' # changes to this workflow.
     types:
       # trigger workflow if PR is opened directly as R4R.
       - opened
@@ -12,10 +16,7 @@ on:
       - synchronize
       # trigger workflow if PR is marked ready for review.
       - ready_for_review
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - 'LICENSE'
+
 
 jobs:
   # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.
@@ -54,13 +55,13 @@ jobs:
     secrets: inherit
     with:
       # with each test, we build an image from the current code.
-      build-and-push-docker-image: true
+      build-and-push-docker-image-wasm: true
       # if the test fails, we upload logs so that we can download them from the UI.
       upload-logs: true
-      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-image: ghcr.io/cosmos/ibc-go-wasm-simd
       # with regular tests, both images are the same.
       chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-binary: 'simd'
-      # on regular PRs we won't run upgrade tests.
-      test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite'
+      # only run the grandpa test suite for wasm tests.
+      test-entry-point: 'TestGrandpaTestSuite'
