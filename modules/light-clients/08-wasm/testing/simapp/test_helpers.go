@@ -26,7 +26,7 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint, mockVM ibcwasm.WasmEngine) (*SimApp, GenesisState) {

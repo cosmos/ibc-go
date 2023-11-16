@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 var (

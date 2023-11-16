@@ -10,7 +10,7 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
 
 var _ types.MsgServer = (*Keeper)(nil)
