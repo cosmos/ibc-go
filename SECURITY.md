@@ -2,6 +2,7 @@
 
 If you believe you have found a security vulnerability in the Interchain Stack, you can report it to our primary vulnerability disclosure channel, the [Cosmos HackerOne Bug Bounty program](https://hackerone.com/cosmos?type=team).
 
+<!-- markdown-link-check-disable-next-line -->
 If you prefer to report an issue via email, you may send a bug report to [security@interchain.io](security@interchain.io) with the issue details, reproduction, impact, and other information. Please submit only one unique email thread per vulnerability. Any issues reported via email are ineligible for bounty rewards. 
 
 Artifacts from an email report are saved at the time the email is triaged. Please note: our team is not able to monitor dynamic content (e.g. a Google Docs link that is edited after receipt) throughout the lifecycle of a report. If you would like to share additional information or modify previous information, please include it in an additional reply as an additional attachment.
