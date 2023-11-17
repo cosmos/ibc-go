@@ -23,20 +23,3 @@ func GetQueryCmd() *cobra.Command {
 
 	return queryCmd
 }
-
-// NewTxCmd returns a CLI command handler for all x/ibc channel transaction commands.
-func NewTxCmd() *cobra.Command {
-	txCmd := &cobra.Command{
-		Use:                        "ibc-wasm",
-		Short:                      "IBC wasm manager module transaction subcommands",
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
-	}
-
-	txCmd.AddCommand(
-		newSubmitStoreCodeProposalCmd(),
-	)
-
-	return txCmd
-}
