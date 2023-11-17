@@ -9,7 +9,6 @@ import (
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -110,7 +109,10 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 				resp, err := destWasmClientApp.WasmClientKeeper.Code(ctx, &types.QueryCodeRequest{Checksum: hex.EncodeToString(checksum)})
 				suite.Require().NoError(err)
 
-				allDestAppChecksumsInWasmVMStore = append(allDestAppChecksumsInWasmVMStore, keeper.GenerateWasmChecksum(resp.Data)...)
+				checksum, err := types.CreateChecksum(resp.Data)
+				suite.Require().NoError(err)
+
+				allDestAppChecksumsInWasmVMStore = append(allDestAppChecksumsInWasmVMStore, checksum...)
 			}
 
 			suite.Require().Equal(srcChecksumCodes, allDestAppChecksumsInWasmVMStore)

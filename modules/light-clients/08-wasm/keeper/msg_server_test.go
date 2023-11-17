@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -138,7 +137,9 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 }
 
 func (suite *KeeperTestSuite) TestMsgMigrateContract() {
-	oldChecksum := sha256.Sum256(wasmtesting.Code)
+	oldChecksum, err := types.CreateChecksum(wasmtesting.Code)
+	suite.Require().NoError(err)
+
 	newByteCode := wasmtesting.WasmMagicNumber
 	newByteCode = append(newByteCode, []byte("MockByteCode-TestMsgMigrateContract")...)
 
@@ -190,7 +191,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		{
 			"failure: same checksum",
 			func() {
-				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, oldChecksum[:], []byte("{}"))
+				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, oldChecksum, []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					panic("unreachable")
@@ -287,7 +288,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 					sdk.NewEvent(
 						"migrate_contract",
 						sdk.NewAttribute(types.AttributeKeyClientID, defaultWasmClientID),
-						sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(oldChecksum[:])),
+						sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(oldChecksum)),
 						sdk.NewAttribute(types.AttributeKeyNewChecksum, hex.EncodeToString(newChecksum)),
 					),
 					sdk.NewEvent(
@@ -308,7 +309,8 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 }
 
 func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
-	checksum := sha256.Sum256(wasmtesting.Code)
+	checksum, err := types.CreateChecksum(wasmtesting.Code)
+	suite.Require().NoError(err)
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -325,7 +327,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 		{
 			"success",
 			func() {
-				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, checksum)
 
 				expChecksums = []types.Checksum{}
 			},
@@ -334,16 +336,20 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 		{
 			"success: many checksums",
 			func() {
-				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, checksum)
 
 				expChecksums = []types.Checksum{}
 
 				for i := 0; i < 20; i++ {
-					checksum := sha256.Sum256([]byte{byte(i)})
-					err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum[:])
+					mockCode := []byte{byte(i)}
+					mockCode = append(wasmtesting.WasmMagicNumber, mockCode...)
+					checksum, err := types.CreateChecksum(mockCode)
 					suite.Require().NoError(err)
 
-					expChecksums = append(expChecksums, checksum[:])
+					err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum)
+					suite.Require().NoError(err)
+
+					expChecksums = append(expChecksums, checksum)
 				}
 			},
 			nil,
@@ -358,14 +364,14 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 		{
 			"failure: unauthorized signer",
 			func() {
-				msg = types.NewMsgRemoveChecksum(suite.chainA.SenderAccount.GetAddress().String(), checksum[:])
+				msg = types.NewMsgRemoveChecksum(suite.chainA.SenderAccount.GetAddress().String(), checksum)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: code has could not be unpinned",
 			func() {
-				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, checksum)
 
 				suite.mockVM.UnpinFn = func(_ wasmvm.Checksum) error {
 					return wasmtesting.ErrMockVM

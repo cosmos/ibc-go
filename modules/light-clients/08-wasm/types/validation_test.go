@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"os"
 	"testing"
 
@@ -10,6 +9,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -75,9 +75,9 @@ func TestValidateWasmChecksum(t *testing.T) {
 		{
 			"success",
 			func() {
-				code, _ := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
-				hash := sha256.Sum256(code)
-				checksum = hash[:]
+				hash, err := types.CreateChecksum(wasmtesting.Code)
+				require.NoError(t, err, t.Name())
+				checksum = hash
 			},
 			nil,
 		},

@@ -3,13 +3,18 @@ package types
 import (
 	"context"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
 // Checksum is a type alias used for wasm byte code checksums.
-type Checksum wasmvmtypes.Checksum
+type Checksum = wasmvmtypes.Checksum
+
+func CreateChecksum(code []byte) (Checksum, error) {
+	return wasmvm.CreateChecksum(code)
+}
 
 // GetAllChecksums is a helper to get all checksums from the store.
 // It returns an empty slice if no checksums are found
