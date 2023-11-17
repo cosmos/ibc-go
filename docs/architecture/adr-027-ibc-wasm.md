@@ -19,17 +19,12 @@ existing IBC light clients as well as adding support for new IBC light clients w
 corresponding hard-fork event.
 
 ## Context
-<<<<<<< HEAD
-Currently in the SDK, light clients are defined as part of the codebase and are implemented as submodules under
-`ibc-go/core/modules/light-clients/`.
-=======
 
 Currently in ibc-go light clients are defined as part of the codebase and are implemented as modules under
 `modules/light-clients`. Adding support for new light clients or updating an existing light client in the event
 of a security issue or consensus update is a multi-step process which is both time consuming and error prone. 
 In order to enable new IBC light client implementations it is necessary to modify the codebase of ibc-go, 
 re-build chains' binaries, pass a governance proposal and validators upgrade their nodes.
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
 
 Another problem stemming from the above process is that if a chain wants to upgrade its own consensus, it will 
 need to convince every chain or hub connected to it to upgrade its light client in order to stay connected. Due 
@@ -53,21 +48,6 @@ uploaded as Wasm bytecode. To enable usage of the Wasm light client module, user
 by updating the `AllowedClients` parameter in the 02-client submodule of core IBC.
 
 ```go
-<<<<<<< HEAD
-// IsAllowedClient checks if the given client type is registered on the allowlist.
-func (p Params) IsAllowedClient(clientType string) bool {
-	if p.AreWASMClientsAllowed && isWASMClient(clientType) {
-		return true
-	}
-	
-	for _, allowedClient := range p.AllowedClients {
-		if allowedClient == clientType {
-			return true
-		}
-	}
-
-	return false
-=======
 params := clientKeeper.GetParams(ctx)
 params.AllowedClients = append(params.AllowedClients, exported.Wasm)
 clientKeeper.SetParams(ctx, params)
@@ -82,7 +62,6 @@ the Wasm contract's bytecode. The required message is `MsgStoreCode` and the byt
 message MsgStoreCode {
   string signer = 1;
   bytes  code   = 2;
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
 }
 ```
 
@@ -90,13 +69,6 @@ The RPC handler processing `MsgStoreCode` will make sure that the signer of the 
 submit this message (which is normally the address of the governance module).
 
 ```go
-<<<<<<< HEAD
-func (k Keeper) UploadLightClient (wasmCode: []byte, description: String) {
-    wasmRegistry = getWASMRegistry()
-    id := hex.EncodeToString(sha256.Sum256(wasmCode))
-    assert(!wasmRegistry.Exists(id))
-    assert(wasmRegistry.ValidateAndStoreCode(id, description, wasmCode, false))
-=======
 // StoreCode defines a rpc handler method for MsgStoreCode
 func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
   ctx := sdk.UnwrapSDKContext(goCtx)
@@ -124,7 +96,6 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
   return &types.MsgStoreCodeResponse{
     CodeHash: codeHash,
   }, nil
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
 }
 ```
 
@@ -142,41 +113,6 @@ packaged inside a payload object that is then JSON serialized and passed to `cal
 and returns the slice of bytes returned by the smart contract. This data is deserialized and passed as return argument.
 
 ```go
-<<<<<<< HEAD
-func (c *ClientState) CheckProposedHeaderAndUpdateState(context sdk.Context, marshaler codec.BinaryMarshaler, store sdk.KVStore, header exported.ClientMessage) (exported.ClientState, exported.ConsensusState, error) {
-	// get consensus state corresponding to client state to check if the client is expired
-	consensusState, err := GetConsensusState(store, marshaler, c.LatestHeight)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at height: %d", c.LatestHeight,
-		)
-	}
-	
-	payload := make(map[string]map[string]interface{})
-	payload[CheckProposedHeaderAndUpdateState] = make(map[string]interface{})
-	inner := payload[CheckProposedHeaderAndUpdateState]
-	inner["me"] = c
-	inner["header"] = header
-	inner["consensus_state"] = consensusState
-
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(ErrUnableToMarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	out, err := callContract(c.CodeId, context, store, encodedData)
-	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(ErrUnableToCall, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	output := clientStateCallResponse{}
-	if err := json.Unmarshal(out.Data, &output); err != nil {
-		return nil, nil, sdkerrors.Wrapf(ErrUnableToUnmarshalPayload, fmt.Sprintf("underlying error: %s", err.Error()))
-	}
-	if !output.Result.IsValid {
-		return nil, nil, fmt.Errorf("%s error ocurred while updating client state", output.Result.ErrorMsg)
-	}
-	output.resetImmutables(c)
-	return output.NewClientState, output.NewConsensusState, nil
-=======
 type (
   verifyClientMessageInnerPayload struct {
     ClientMessage clientMessage `json:"client_message"`
@@ -218,7 +154,6 @@ func (cs ClientState) VerifyClientMessage(
   }
   _, err := call[contractResult](ctx, clientStore, &cs, payload)
   return err
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
 }
 ```
 
@@ -234,13 +169,6 @@ the `ClientState` functions.
 ## Consequences
 
 ### Positive
-<<<<<<< HEAD
-- Adding support for new light client or upgrading existing light client is way easier than before and only requires single transaction.
-- Improves maintainability of Cosmos SDK, since no change in codebase is required to support new client or upgrade it.
-
-### Negative
-- Light clients need to be written in subset of rust which could compile in Wasm.
-=======
 
 - Adding support for new light client or upgrading existing light client is way easier than before and only requires single transaction instead of a hard-fork.
 - Improves maintainability of ibc-go, since no change in codebase is required to support new client or upgrade it.
@@ -249,5 +177,4 @@ the `ClientState` functions.
 ### Negative
 
 - Light clients written in Rust need to be written in a subset of Rust which could compile in Wasm.
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
 - Introspecting light client code is difficult as only compiled bytecode exists in the blockchain.

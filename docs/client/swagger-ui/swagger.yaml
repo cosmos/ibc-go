@@ -10853,8 +10853,6 @@ paths:
           type: string
       tags:
         - Query
-<<<<<<< HEAD
-=======
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/next_sequence_send:
     get:
       summary: NextSequenceSend returns the next send sequence for a given channel.
@@ -11112,7 +11110,6 @@ paths:
           type: string
       tags:
         - Query
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements:
     get:
       summary: >-
@@ -19345,8 +19342,6 @@ definitions:
       ready to send and receive packets.
        - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
       packets.
-<<<<<<< HEAD
-=======
   ibc.lightclients.wasm.v1.QueryCodeHashesResponse:
     type: object
     properties:
@@ -19383,4 +19378,3 @@ definitions:
         type: string
         format: byte
     description: QueryCodeResponse is the response type for the Query/Code RPC method.
->>>>>>> 08d36eb0 (feat: 08-wasm light client proxy module for wasm clients (#5079))
