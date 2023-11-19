@@ -72,17 +72,13 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
-
-			address := tc.address
-			msg := types.NewMsgStoreCode(address.String(), wasmtesting.Code)
-
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			msg := types.NewMsgStoreCode(tc.address.String(), wasmtesting.Code)
 			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(address.Bytes(), signers[0])
+				suite.Require().Equal([]sdk.AccAddress{tc.address}, msg.GetSigners())
 			} else {
-				suite.Require().Error(err)
+				suite.Require().Panics(func() {
+					msg.GetSigners()
+				})
 			}
 		})
 	}
@@ -173,17 +169,13 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
-
-			address := tc.address
-			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, checksum[:], []byte("{}"))
-
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			msg := types.NewMsgMigrateContract(tc.address.String(), defaultWasmClientID, checksum[:], []byte("{}"))
 			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(address.Bytes(), signers[0])
+				suite.Require().Equal([]sdk.AccAddress{tc.address}, msg.GetSigners())
 			} else {
-				suite.Require().Error(err)
+				suite.Require().Panics(func() {
+					msg.GetSigners()
+				})
 			}
 		})
 	}
@@ -248,17 +240,13 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
-
-			address := tc.address
-			msg := types.NewMsgRemoveChecksum(address.String(), checksum[:])
-
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			msg := types.NewMsgRemoveChecksum(tc.address.String(), checksum[:])
 			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(address.Bytes(), signers[0])
+				suite.Require().Equal([]sdk.AccAddress{tc.address}, msg.GetSigners())
 			} else {
-				suite.Require().Error(err)
+				suite.Require().Panics(func() {
+					msg.GetSigners()
+				})
 			}
 		})
 	}

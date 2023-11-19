@@ -9,12 +9,9 @@ import (
 )
 
 var (
-	_ sdk.Msg              = (*MsgStoreCode)(nil)
-	_ sdk.Msg              = (*MsgMigrateContract)(nil)
-	_ sdk.Msg              = (*MsgRemoveChecksum)(nil)
-	_ sdk.HasValidateBasic = (*MsgStoreCode)(nil)
-	_ sdk.HasValidateBasic = (*MsgMigrateContract)(nil)
-	_ sdk.HasValidateBasic = (*MsgRemoveChecksum)(nil)
+	_ sdk.Msg = (*MsgStoreCode)(nil)
+	_ sdk.Msg = (*MsgMigrateContract)(nil)
+	_ sdk.Msg = (*MsgRemoveChecksum)(nil)
 )
 
 // MsgStoreCode creates a new MsgStoreCode instance
@@ -39,6 +36,15 @@ func (m MsgStoreCode) ValidateBasic() error {
 	return nil
 }
 
+// GetSigners implements sdk.Msg
+func (m MsgStoreCode) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{signer}
+}
+
 // NewMsgRemoveChecksum creates a new MsgRemoveChecksum instance
 func NewMsgRemoveChecksum(signer string, checksum []byte) *MsgRemoveChecksum {
 	return &MsgRemoveChecksum{
@@ -59,6 +65,15 @@ func (m MsgRemoveChecksum) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (m MsgRemoveChecksum) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{signer}
 }
 
 // MsgMigrateContract creates a new MsgMigrateContract instance
@@ -91,4 +106,13 @@ func (m MsgMigrateContract) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+// GetSigners implements sdk.Msg
+func (m MsgMigrateContract) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{signer}
 }
