@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -94,11 +93,6 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-func generateWasmChecksum(code []byte) []byte {
-	hash := sha256.Sum256(code)
-	return hash[:]
-}
-
 func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
@@ -110,7 +104,11 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	}
 
 	// Check to see if store already has checksum.
-	checksum := generateWasmChecksum(code)
+	checksum, err := types.CreateChecksum(code)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "wasm bytecode checksum failed")
+	}
+
 	if types.HasChecksum(ctx, checksum) {
 		return nil, types.ErrWasmCodeExists
 	}
