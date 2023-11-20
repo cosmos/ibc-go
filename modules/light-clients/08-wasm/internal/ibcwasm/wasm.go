@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"cosmossdk.io/collections"
-	storetypes "cosmossdk.io/core/store"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 var (

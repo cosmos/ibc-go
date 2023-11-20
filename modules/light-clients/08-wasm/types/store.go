@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/cachekv"
 	storeprefix "github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/store/tracekv"
-	storetypes "github.com/cosmos/cosmos-sdk/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 var (
