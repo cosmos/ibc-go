@@ -10,8 +10,8 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
-	storetypes "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -39,7 +39,7 @@ type Keeper struct {
 // and the same Wasm VM instance should be shared with it.
 func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeKey storetypes.StoreKey,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
@@ -52,16 +52,12 @@ func NewKeeperWithVM(
 		panic(errors.New("wasm VM must be not nil"))
 	}
 
-	if storeService == nil {
-		panic(errors.New("store service must be not nil"))
-	}
-
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
 	ibcwasm.SetVM(vm)
-	ibcwasm.SetupWasmStoreService(storeService)
+	ibcwasm.SetWasmStoreKey(storeKey)
 
 	return Keeper{
 		cdc:          cdc,
@@ -76,7 +72,7 @@ func NewKeeperWithVM(
 // and a Wasm VM needs to be instantiated using the provided parameters.
 func NewKeeperWithConfig(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeKey storetypes.StoreKey,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
@@ -86,7 +82,7 @@ func NewKeeperWithConfig(
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm)
+	return NewKeeperWithVM(cdc, storeKey, clientKeeper, authority, vm)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
@@ -138,7 +134,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	}
 
 	// store the checksum
-	err = ibcwasm.Checksums.Set(ctx, checksum)
+	// err = ibcwasm.Checksums.Set(ctx, checksum) // TODO(jim): fix this
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store checksum")
 	}

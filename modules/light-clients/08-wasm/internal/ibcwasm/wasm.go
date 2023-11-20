@@ -3,19 +3,15 @@ package ibcwasm
 import (
 	"errors"
 
-	"cosmossdk.io/collections"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 var (
 	vm WasmEngine
 
-	// state management
-	Schema    collections.Schema
-	Checksums collections.KeySet[[]byte]
-
-	// ChecksumsKey is the key under which all checksums are stored
-	ChecksumsKey = collections.NewPrefix(0)
+	// storeKeyMap stores the storeKey for the 08-wasm module. Using a global storeKey is required since
+	// the client state interface functions do not have access to the keeper.
+	wasmStoreKey storetypes.StoreKey
 )
 
 // SetVM sets the wasm VM for the 08-wasm module.
@@ -32,16 +28,12 @@ func GetVM() WasmEngine {
 	return vm
 }
 
-// SetupWasmStoreService sets up the 08-wasm module's collections.
-func SetupWasmStoreService(storeService storetypes.KVStoreService) {
-	sb := collections.NewSchemaBuilder(storeService)
+// SetWasmStoreKey sets the store key for the 08-wasm module.
+func SetWasmStoreKey(storeKey storetypes.StoreKey) {
+	wasmStoreKey = storeKey
+}
 
-	Checksums = collections.NewKeySet(sb, ChecksumsKey, "checksums", collections.BytesKey)
-
-	schema, err := sb.Build()
-	if err != nil {
-		panic(err)
-	}
-
-	Schema = schema
+// GetWasmStoreKey returns the store key for the 08-wasm module.
+func GetWasmStoreKey() storetypes.StoreKey {
+	return wasmStoreKey
 }

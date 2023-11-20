@@ -8,7 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
@@ -44,10 +43,11 @@ func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecks
 		return nil, types.ErrWasmChecksumNotFound
 	}
 
-	err := ibcwasm.Checksums.Remove(goCtx, msg.Checksum)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to remove checksum")
-	}
+	// TODO(jim): Fix this
+	// err := ibcwasm.Checksums.Remove(goCtx, msg.Checksum)
+	// if err != nil {
+	// 	return nil, errorsmod.Wrap(err, "failed to remove checksum")
+	// }
 
 	// unpin the code from the vm in-memory cache
 	if err := k.wasmVM.Unpin(msg.Checksum); err != nil {

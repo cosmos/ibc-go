@@ -14,7 +14,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -147,7 +146,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
@@ -161,7 +160,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
 					ibcwasm.GetVM(),
@@ -175,7 +174,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
@@ -189,7 +188,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
@@ -197,20 +196,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			},
 			false,
 			errors.New("wasm VM must be not nil"),
-		},
-		{
-			"failure: nil store service",
-			func() {
-				keeper.NewKeeperWithVM(
-					GetSimApp(suite.chainA).AppCodec(),
-					nil,
-					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
-					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
-				)
-			},
-			false,
-			errors.New("store service must be not nil"),
 		},
 	}
 
