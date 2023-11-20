@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,7 +15,7 @@ import (
 // store. If the checksum is the same as the current checksum, an error is returned.
 // This does not update the checksum in the client state.
 func (cs ClientState) MigrateContract(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
 	clientID string, newChecksum, migrateMsg []byte,
 ) error {
 	if !HasChecksum(ctx, newChecksum) {

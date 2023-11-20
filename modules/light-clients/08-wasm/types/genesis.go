@@ -4,7 +4,6 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "github.com/cosmos/cosmos-sdk/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -32,7 +31,7 @@ func (gs GenesisState) Validate() error {
 
 // ExportMetadata exports all the consensus metadata in the client store so they
 // can be included in clients genesis and imported by a ClientKeeper
-func (cs ClientState) ExportMetadata(store storetypes.KVStore) []exported.GenesisMetadata {
+func (cs ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
 	payload := QueryMsg{
 		ExportMetadata: &ExportMetadataMsg{},
 	}

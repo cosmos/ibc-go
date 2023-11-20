@@ -8,7 +8,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	snapshot "github.com/cosmos/cosmos-sdk/snapshots/types"
-	storetypes "github.com/cosmos/cosmos-sdk/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -28,12 +27,12 @@ const SnapshotFormat = 1
 // NOTE: The following ExtensionSnapshotter has been adapted from CosmWasm's x/wasm:
 // https://github.com/CosmWasm/wasmd/blob/v0.43.0/x/wasm/keeper/snapshotter.go
 type WasmSnapshotter struct {
-	cms    storetypes.MultiStore
+	cms    sdk.MultiStore
 	keeper *Keeper
 }
 
 // NewWasmSnapshotter creates and returns a new snapshot.ExtensionSnapshotter implementation for the 08-wasm module.
-func NewWasmSnapshotter(cms storetypes.MultiStore, keeper *Keeper) snapshot.ExtensionSnapshotter {
+func NewWasmSnapshotter(cms sdk.MultiStore, keeper *Keeper) snapshot.ExtensionSnapshotter {
 	return &WasmSnapshotter{
 		cms:    cms,
 		keeper: keeper,
