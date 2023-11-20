@@ -18,7 +18,7 @@ The `08-wasm` module is not a regular light client in the same sense as, for exa
 The `08-wasm`'s `ClientState` data structure contains three fields:
 
 - `Data` contains the bytes of the Protobuf-encoded client state of the underlying light client implemented as a Wasm contract. For example, if the Wasm light client contract implements the GRANDPA light client algorithm, then `Data` will contain the bytes for a [GRANDPA client state](https://github.com/ComposableFi/composable-ibc/blob/02ce69e2843e7986febdcf795f69a757ce569272/light-clients/ics10-grandpa/src/proto/grandpa.proto#L35-L60).
-- `CodeHash` is the sha256 hash of the Wasm contract's byte code. This hash is used as an identifier to call the right contract.
+- `Checksum` is the sha256 hash of the Wasm contract's byte code. This hash is used as an identifier to call the right contract.
 - `LatestHeight` is the latest height of the counterparty state machine (i.e. the height of the blockchain), whose consensus state the light client tracks.
 
 ```go
@@ -27,7 +27,7 @@ type ClientState struct {
   // light client implemented as a Wasm contract
   Data         []byte
   // sha256 hash of Wasm contract byte code
-  CodeHash     []byte
+  Checksum     []byte
   // latest height of the counterparty ledger
   LatestHeight types.Height
 }

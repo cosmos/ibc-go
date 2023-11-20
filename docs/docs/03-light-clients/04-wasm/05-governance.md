@@ -68,7 +68,7 @@ Alternatively, the process of submitting the proposal may be simpler if you use 
 
 ## Migrating an existing Wasm light client contract
 
-If governance is the allowed authority, the governance v1 proposal that needs to be submitted to migrate an existing new Wasm light client contract should contain the message [`MsgMigrateContract`](https://github.com/cosmos/ibc-go/blob/729cb090951b1e996427b2258cf72c49787b885a/proto/ibc/lightclients/wasm/v1/tx.proto#L51-L63) with the code hash of the Wasm byte code to migrate to. Use the following CLI command and JSON as an example:
+If governance is the allowed authority, the governance v1 proposal that needs to be submitted to migrate an existing new Wasm light client contract should contain the message [`MsgMigrateContract`](https://github.com/cosmos/ibc-go/blob/729cb090951b1e996427b2258cf72c49787b885a/proto/ibc/lightclients/wasm/v1/tx.proto#L51-L63) with the checksum of the Wasm byte code to migrate to. Use the following CLI command and JSON as an example:
 
 ```shell
 simd tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
@@ -85,7 +85,7 @@ where `proposal.json` contains:
       "@type": "/ibc.lightclients.wasm.v1.MsgMigrateContract",
       "signer": "cosmos1...", // the authority address (e.g. the gov module account address)
       "client_id": "08-wasm-1", // client identifier of the Wasm light client contract that will be migrated
-      "new_code_hash": "a8ad...4dc0", // SHA-256 hash of the Wasm byte code to migrate to, previously stored with MsgStoreCode
+      "checksum": "a8ad...4dc0", // SHA-256 hash of the Wasm byte code to migrate to, previously stored with MsgStoreCode
       "msg": "{}" // JSON-encoded message to be passed to the contract on migration
     }
   ],
@@ -96,9 +96,9 @@ where `proposal.json` contains:
 
 To learn more about the `submit-proposal` CLI command, please check out [the relevant section in Cosmos SDK documentation](https://docs.cosmos.network/main/modules/gov#submit-proposal).
 
-## Removing an existing code hash
+## Removing an existing checksum
 
-If governance is the allowed authority, the governance v1 proposal that needs to be submitted to remove a specific code hash from the -list of allowed code hashes should contain the message [`MsgRemoveCodeHash`](https://github.com/cosmos/ibc-go/blob/729cb090951b1e996427b2258cf72c49787b885a/proto/ibc/lightclients/wasm/v1/tx.proto#L38-L46) with the code hash (of a corresponding Wasm byte code). Use the following CLI command and JSON as an example:
+If governance is the allowed authority, the governance v1 proposal that needs to be submitted to remove a specific checksum from the list of allowed checksums should contain the message [`MsgRemoveChecksum`](https://github.com/cosmos/ibc-go/blob/729cb090951b1e996427b2258cf72c49787b885a/proto/ibc/lightclients/wasm/v1/tx.proto#L38-L46) with the checksum (of a corresponding Wasm byte code). Use the following CLI command and JSON as an example:
 
 ```shell
 simd tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
@@ -108,13 +108,13 @@ where `proposal.json` contains:
 
 ```json
 {
-  "title": "Remove code hash of Wasm light client byte code",
-  "summary": "Remove code hash",
+  "title": "Remove checksum of Wasm light client byte code",
+  "summary": "Remove checksum",
   "messages": [
     {
-      "@type": "/ibc.lightclients.wasm.v1.MsgRemoveCodeHash",
+      "@type": "/ibc.lightclients.wasm.v1.MsgRemoveChecksum",
       "signer": "cosmos1...", // the authority address (e.g. the gov module account address)
-      "code_hash": "a8ad...4dc0", // SHA-256 hash of the Wasm byte code that should be removed from the list of allowed code hashes
+      "checksum": "a8ad...4dc0", // SHA-256 hash of the Wasm byte code that should be removed from the list of allowed checksums
     }
   ],
   "metadata": "AQ==",

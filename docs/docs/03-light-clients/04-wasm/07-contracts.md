@@ -107,6 +107,6 @@ The `08-wasm` proxy light client modules expects the following behaviour from th
 
 - The contract must not delete the client state from the store.
 - The contract must not change the client state to a client state of another type.
-- The contract must not change the code hash in the client state.
+- The contract must not change the checksum in the client state.
 
 Any violation of these rules will result in an error returned from `08-wasm` that will abort the transaction.
