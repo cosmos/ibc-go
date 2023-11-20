@@ -51,6 +51,6 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		},
 	}
 
-	_, err := wasmSudo[EmptyResult](ctx, cdc, payload, clientStore, &cs)
+	_, err := wasmSudo[EmptyResult](ctx, cdc, clientStore, &cs, payload)
 	return err
 }
