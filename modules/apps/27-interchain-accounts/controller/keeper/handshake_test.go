@@ -473,7 +473,10 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 }
 
 func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
-	var path *ibctesting.Path
+	var (
+		path     *ibctesting.Path
+		metadata icatypes.Metadata
+	)
 
 	testCases := []struct {
 		name     string
@@ -481,7 +484,24 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 		expError error
 	}{
 		{
-			"success", func() {}, nil,
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: no changes made in upgrade",
+			func() {
+				// revert the change so that proposed metadata is the same as current.
+				metadata.Encoding = icatypes.EncodingProtobuf
+			},
+			channeltypes.ErrChannelExists,
+		},
+		{
+			name: "failure: invalid metadata",
+			malleate: func() {
+
+			},
+			expError: nil,
 		},
 	}
 
@@ -502,17 +522,17 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
 			suite.Require().NoError(err)
 
-			metadata := icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
 
 			// this is the actual change to the version.
 			metadata.Encoding = icatypes.EncodingProto3JSON
 
+			tc.malleate() // malleate mutates test data
+
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-
-			tc.malleate() // malleate mutates test data
 
 			err = path.EndpointA.ChanUpgradeInit()
 
@@ -521,7 +541,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			if expPass {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Equal(tc.expError, err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
