@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -33,14 +32,6 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "upgraded consensus state must be wasm light consensus state. expected %T, got: %T",
 			&ConsensusState{}, wasmUpgradeConsState)
-	}
-
-	// last height of current counterparty chain must be client's latest height
-	lastHeight := cs.GetLatestHeight()
-
-	if !upgradedClient.GetLatestHeight().GT(lastHeight) {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be greater than current client height %s",
-			upgradedClient.GetLatestHeight(), lastHeight)
 	}
 
 	payload := SudoMsg{
