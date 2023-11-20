@@ -277,7 +277,7 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Get all Wasm checksums
 	Checksums(ctx context.Context, in *QueryChecksumsRequest, opts ...grpc.CallOption) (*QueryChecksumsResponse, error)
-	// Get Wasm code for given code hash
+	// Get Wasm code for given checksum
 	Code(ctx context.Context, in *QueryCodeRequest, opts ...grpc.CallOption) (*QueryCodeResponse, error)
 }
 
@@ -311,7 +311,7 @@ func (c *queryClient) Code(ctx context.Context, in *QueryCodeRequest, opts ...gr
 type QueryServer interface {
 	// Get all Wasm checksums
 	Checksums(context.Context, *QueryChecksumsRequest) (*QueryChecksumsResponse, error)
-	// Get Wasm code for given code hash
+	// Get Wasm code for given checksum
 	Code(context.Context, *QueryCodeRequest) (*QueryCodeResponse, error)
 }
 
