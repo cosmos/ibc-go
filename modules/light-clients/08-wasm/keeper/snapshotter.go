@@ -68,13 +68,13 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 
 	ctx := sdk.NewContext(cacheMS, tmproto.Header{}, false, nil)
 
-	codeHashes, err := types.GetAllCodeHashes(ctx)
+	checksums, err := types.GetAllChecksums(ctx)
 	if err != nil {
 		return err
 	}
 
-	for _, codeHash := range codeHashes {
-		wasmCode, err := ws.keeper.wasmVM.GetCode(wasmvmtypes.Checksum(codeHash))
+	for _, checksum := range checksums {
+		wasmCode, err := ws.keeper.wasmVM.GetCode(wasmvmtypes.Checksum(checksum))
 		if err != nil {
 			return err
 		}
@@ -113,13 +113,13 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(err, "failed to uncompress wasm code")
 	}
 
-	codeHash, err := k.wasmVM.StoreCode(wasmCode)
+	checksum, err := k.wasmVM.StoreCode(wasmCode)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to store wasm code")
 	}
 
-	if err := k.wasmVM.Pin(codeHash); err != nil {
-		return errorsmod.Wrapf(err, "failed to pin code hash: %s to in-memory cache", hex.EncodeToString(codeHash))
+	if err := k.wasmVM.Pin(checksum); err != nil {
+		return errorsmod.Wrapf(err, "failed to pin checksum: %s to in-memory cache", hex.EncodeToString(checksum))
 	}
 
 	return nil

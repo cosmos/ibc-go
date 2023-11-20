@@ -91,14 +91,14 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm")
 	s.Require().NoError(err)
 
-	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
+	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
 
-	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
+	s.Require().NotEmpty(checksum, "checksum was empty but should not have been")
 
 	eRep := s.GetRelayerExecReporter()
 
 	// Set client contract hash in cosmos chain config
-	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
+	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), checksum)
 	s.Require().NoError(err)
 
 	// Ensure parachain has started (starts 1 session/epoch after relay chain)
@@ -239,14 +239,14 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm")
 	s.Require().NoError(err)
 
-	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
+	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
 
-	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
+	s.Require().NotEmpty(checksum, "checksum was empty but should not have been")
 
 	eRep := s.GetRelayerExecReporter()
 
 	// Set client contract hash in cosmos chain config
-	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
+	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), checksum)
 	s.Require().NoError(err)
 
 	// Ensure parachain has started (starts 1 session/epoch after relay chain)
@@ -272,17 +272,17 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	s.Require().NoError(err)
 
 	// First Store the code
-	newCodeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, migrateFile)
-	s.Require().NotEmpty(newCodeHash, "codehash was empty but should not have been")
+	newChecksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, migrateFile)
+	s.Require().NotEmpty(newChecksum, "checksum was empty but should not have been")
 
-	newCodeHashBz, err := hex.DecodeString(newCodeHash)
+	newChecksumBz, err := hex.DecodeString(newChecksum)
 	s.Require().NoError(err)
 
 	// Attempt to migrate the contract
 	message := wasmtypes.NewMsgMigrateContract(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		defaultWasmClientID,
-		newCodeHashBz,
+		newChecksumBz,
 		[]byte("{}"),
 	)
 
@@ -294,7 +294,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	wasmClientState, ok := clientState.(*wasmtypes.ClientState)
 	s.Require().True(ok)
 
-	s.Require().Equal(newCodeHashBz, wasmClientState.CodeHash)
+	s.Require().Equal(newChecksumBz, wasmClientState.Checksum)
 }
 
 // TestMsgMigrateContract_ContractError_GrandpaContract features
@@ -325,15 +325,14 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm")
 	s.Require().NoError(err)
+	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
 
-	codeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
-
-	s.Require().NotEmpty(codeHash, "codehash was empty but should not have been")
+	s.Require().NotEmpty(checksum, "checksum was empty but should not have been")
 
 	eRep := s.GetRelayerExecReporter()
 
 	// Set client contract hash in cosmos chain config
-	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), codeHash)
+	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), checksum)
 	s.Require().NoError(err)
 
 	// Ensure parachain has started (starts 1 session/epoch after relay chain)
@@ -359,17 +358,17 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 	s.Require().NoError(err)
 
 	// First Store the code
-	newCodeHash := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, migrateFile)
-	s.Require().NotEmpty(newCodeHash, "codehash was empty but should not have been")
+	newChecksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, migrateFile)
+	s.Require().NotEmpty(newChecksum, "checksum was empty but should not have been")
 
-	newCodeHashBz, err := hex.DecodeString(newCodeHash)
+	newChecksumBz, err := hex.DecodeString(newChecksum)
 	s.Require().NoError(err)
 
 	// Attempt to migrate the contract
 	message := wasmtypes.NewMsgMigrateContract(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		defaultWasmClientID,
-		newCodeHashBz,
+		newChecksumBz,
 		[]byte("{}"),
 	)
 
@@ -486,13 +485,13 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	s.Require().Equal(ibcexported.Active.String(), status)
 }
 
-// extractCodeHashFromGzippedContent takes a gzipped wasm contract and returns the codehash.
-func (s *GrandpaTestSuite) extractCodeHashFromGzippedContent(zippedContent []byte) string {
+// extractChecksumFromGzippedContent takes a gzipped wasm contract and returns the checksum.
+func (s *GrandpaTestSuite) extractChecksumFromGzippedContent(zippedContent []byte) string {
 	content, err := wasmtypes.Uncompress(zippedContent, wasmtypes.MaxWasmByteSize())
 	s.Require().NoError(err)
 
-	codeHashByte32 := sha256.Sum256(content)
-	return hex.EncodeToString(codeHashByte32[:])
+	checksum32 := sha256.Sum256(content)
+	return hex.EncodeToString(checksum32[:])
 }
 
 // PushNewWasmClientProposal submits a new wasm client governance proposal to the chain.
@@ -500,7 +499,7 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 	zippedContent, err := io.ReadAll(proposalContentReader)
 	s.Require().NoError(err)
 
-	computedCodeHash := s.extractCodeHashFromGzippedContent(zippedContent)
+	computedChecksum := s.extractChecksumFromGzippedContent(zippedContent)
 
 	s.Require().NoError(err)
 	message := wasmtypes.MsgStoreCode{
@@ -510,14 +509,14 @@ func (s *GrandpaTestSuite) PushNewWasmClientProposal(ctx context.Context, chain 
 
 	s.ExecuteAndPassGovV1Proposal(ctx, &message, chain, wallet)
 
-	codeHashBz, err := s.QueryWasmCode(ctx, chain, computedCodeHash)
+	checksumBz, err := s.QueryWasmCode(ctx, chain, computedChecksum)
 	s.Require().NoError(err)
 
-	codeHashByte32 := sha256.Sum256(codeHashBz)
-	actualCodeHash := hex.EncodeToString(codeHashByte32[:])
-	s.Require().Equal(computedCodeHash, actualCodeHash, "code hash returned from query did not match the computed code hash")
+	checksum32 := sha256.Sum256(checksumBz)
+	actualChecksum := hex.EncodeToString(checksum32[:])
+	s.Require().Equal(computedChecksum, actualChecksum, "checksum returned from query did not match the computed checksum")
 
-	return actualCodeHash
+	return actualChecksum
 }
 
 func (s *GrandpaTestSuite) clientStatus(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
@@ -617,7 +616,7 @@ func (s *GrandpaTestSuite) GetGrandpaTestChains() (ibc.Chain, ibc.Chain) {
 		// configure chain B (cosmos)
 		options.ChainBSpec.ChainName = simd // Set chain name so that a suffix with a "dash" is not appended (required for hyperspace)
 		options.ChainBSpec.Type = "cosmos"
-		options.ChainBSpec.Name = simd
+		options.ChainBSpec.Name = "simd"
 		options.ChainBSpec.ChainID = simd
 		options.ChainBSpec.Bin = simd
 		options.ChainBSpec.Bech32Prefix = "cosmos"

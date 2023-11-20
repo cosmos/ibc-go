@@ -30,14 +30,14 @@ func MaxWasmByteSize() uint64 {
 	return maxWasmSize
 }
 
-// ValidateWasmCodeHash validates that the code hash is of the correct length
-func ValidateWasmCodeHash(codeHash []byte) error {
-	lenCodeHash := len(codeHash)
-	if lenCodeHash == 0 {
-		return errorsmod.Wrap(ErrInvalidCodeHash, "code hash cannot be empty")
+// ValidateWasmChecksum validates that the checksum is of the correct length
+func ValidateWasmChecksum(checksum []byte) error {
+	lenChecksum := len(checksum)
+	if lenChecksum == 0 {
+		return errorsmod.Wrap(ErrInvalidChecksum, "checksum cannot be empty")
 	}
-	if lenCodeHash != 32 { // sha256 output is 256 bits long
-		return errorsmod.Wrapf(ErrInvalidCodeHash, "expected length of 32 bytes, got %d", lenCodeHash)
+	if lenChecksum != 32 { // sha256 output is 256 bits long
+		return errorsmod.Wrapf(ErrInvalidChecksum, "expected length of 32 bytes, got %d", lenChecksum)
 	}
 
 	return nil

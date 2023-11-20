@@ -6,13 +6,13 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
-// CodeHash is a type alias used for wasm byte code checksums.
-type CodeHash []byte
+// Checksum is a type alias used for wasm byte code checksums.
+type Checksum []byte
 
-// GetAllCodeHashes is a helper to get all code hashes from the store.
-// It returns an empty slice if no code hashes are found
-func GetAllCodeHashes(ctx context.Context) ([]CodeHash, error) {
-	iterator, err := ibcwasm.CodeHashes.Iterate(ctx, nil)
+// GetAllChecksums is a helper to get all checksums from the store.
+// It returns an empty slice if no checksums are found
+func GetAllChecksums(ctx context.Context) ([]Checksum, error) {
+	iterator, err := ibcwasm.Checksums.Iterate(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -22,18 +22,18 @@ func GetAllCodeHashes(ctx context.Context) ([]CodeHash, error) {
 		return nil, err
 	}
 
-	codeHashes := []CodeHash{}
+	checksums := []Checksum{}
 	for _, key := range keys {
-		codeHashes = append(codeHashes, key)
+		checksums = append(checksums, key)
 	}
 
-	return codeHashes, nil
+	return checksums, nil
 }
 
-// HasCodeHash returns true if the given checksum exists in the store and
+// HasChecksum returns true if the given checksum exists in the store and
 // false otherwise.
-func HasCodeHash(ctx context.Context, codeHash CodeHash) bool {
-	found, err := ibcwasm.CodeHashes.Has(ctx, codeHash)
+func HasChecksum(ctx context.Context, checksum Checksum) bool {
+	found, err := ibcwasm.Checksums.Has(ctx, checksum)
 	if err != nil {
 		return false
 	}

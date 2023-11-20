@@ -64,8 +64,8 @@ func TestValidateWasmCode(t *testing.T) {
 	}
 }
 
-func TestValidateWasmCodeHash(t *testing.T) {
-	var codeHash []byte
+func TestValidateWasmChecksum(t *testing.T) {
+	var checksum []byte
 
 	testCases := []struct {
 		name     string
@@ -76,38 +76,38 @@ func TestValidateWasmCodeHash(t *testing.T) {
 			"success",
 			func() {
 				code, _ := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
-				checksum := sha256.Sum256(code)
-				codeHash = checksum[:]
+				hash := sha256.Sum256(code)
+				checksum = hash[:]
 			},
 			nil,
 		},
 		{
 			"failure: nil byte slice",
 			func() {
-				codeHash = nil
+				checksum = nil
 			},
-			errorsmod.Wrap(types.ErrInvalidCodeHash, "code hash cannot be empty"),
+			errorsmod.Wrap(types.ErrInvalidChecksum, "checksum cannot be empty"),
 		},
 		{
 			"failure: empty byte slice",
 			func() {
-				codeHash = []byte{}
+				checksum = []byte{}
 			},
-			errorsmod.Wrap(types.ErrInvalidCodeHash, "code hash cannot be empty"),
+			errorsmod.Wrap(types.ErrInvalidChecksum, "checksum cannot be empty"),
 		},
 		{
 			"failure: byte slice size is not 32",
 			func() {
-				codeHash = []byte{1}
+				checksum = []byte{1}
 			},
-			errorsmod.Wrapf(types.ErrInvalidCodeHash, "expected length of 32 bytes, got %d", 1),
+			errorsmod.Wrapf(types.ErrInvalidChecksum, "expected length of 32 bytes, got %d", 1),
 		},
 	}
 
 	for _, tc := range testCases {
 		tc.malleate()
 
-		err := types.ValidateWasmCodeHash(codeHash)
+		err := types.ValidateWasmChecksum(checksum)
 
 		if tc.expError == nil {
 			require.NoError(t, err, tc.name)

@@ -66,9 +66,9 @@ func (suite *TypesTestSuite) TestStatus() {
 			exported.Unknown,
 		},
 		{
-			"client status is unauthorized: code hash is not stored",
+			"client status is unauthorized: checksum is not stored",
 			func() {
-				err := ibcwasm.CodeHashes.Remove(suite.chainA.GetContext(), suite.codeHash)
+				err := ibcwasm.Checksums.Remove(suite.chainA.GetContext(), suite.checksum)
 				suite.Require().NoError(err)
 			},
 			exported.Unauthorized,
@@ -194,17 +194,17 @@ func (suite *TypesTestSuite) TestValidate() {
 			expPass:     false,
 		},
 		{
-			name:        "nil code hash",
+			name:        "nil checksum",
 			clientState: types.NewClientState([]byte{0}, nil, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
-			name:        "empty code hash",
+			name:        "empty checksum",
 			clientState: types.NewClientState([]byte{0}, []byte{}, clienttypes.ZeroHeight()),
 			expPass:     false,
 		},
 		{
-			name: "longer than 32 bytes code hash",
+			name: "longer than 32 bytes checksum",
 			clientState: types.NewClientState(
 				[]byte{0},
 				[]byte{
@@ -285,11 +285,11 @@ func (suite *TypesTestSuite) TestInitialize() {
 			clienttypes.ErrInvalidConsensus,
 		},
 		{
-			"failure: code hash has not been stored.",
+			"failure: checksum has not been stored.",
 			func() {
 				clientState = types.NewClientState([]byte{1}, []byte("unknown"), clienttypes.NewHeight(0, 1))
 			},
-			types.ErrInvalidCodeHash,
+			types.ErrInvalidChecksum,
 		},
 		{
 			"failure: InstantiateFn returns error",
@@ -306,8 +306,8 @@ func (suite *TypesTestSuite) TestInitialize() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			codeHash := sha256.Sum256(wasmtesting.Code)
-			clientState = types.NewClientState([]byte{1}, codeHash[:], clienttypes.NewHeight(0, 1))
+			checksum := sha256.Sum256(wasmtesting.Code)
+			clientState = types.NewClientState([]byte{1}, checksum[:], clienttypes.NewHeight(0, 1))
 			consensusState = types.NewConsensusState([]byte{2}, 0)
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
@@ -400,7 +400,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					expClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash)
+					expClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum)
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
@@ -541,7 +541,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
 
-					expClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.codeHash)
+					expClientStateBz = wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum)
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					return &wasmvmtypes.Response{Data: bz}, wasmtesting.DefaultGasUsed, nil
