@@ -437,6 +437,35 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			},
 			expPass: false,
 		},
+		{
+			name: "unsuccessful upgrade: upgraded height is not greater than current height",
+			setup: func() {
+				// last Height is at next block
+				lastHeight = clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()+1))
+
+				// zero custom fields and store in upgrade store
+				err := suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedClientBz)
+				suite.Require().NoError(err)
+				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedConsStateBz)
+				suite.Require().NoError(err)
+
+				// change upgradedClient height to be lower than current client state height
+				tmClient := upgradedClient.(*ibctm.ClientState)
+				tmClient.LatestHeight = clienttypes.NewHeight(0, 1)
+				upgradedClient = tmClient
+
+				suite.coordinator.CommitBlock(suite.chainB)
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().True(found)
+
+				proofUpgradedClient, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+				proofUpgradedConsState, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), cs.GetLatestHeight().GetRevisionHeight())
+			},
+			expPass: false,
+		},
 	}
 
 	for _, tc := range testCases {
