@@ -232,8 +232,53 @@ func (im IBCMiddleware) OnTimeoutPacket(
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
-	return icatypes.Version, nil
+func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+	if version == "" {
+		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "version cannot be empty")
+	}
+
+	metadata, err := icatypes.ParseMedataFromString(version)
+	if err != nil {
+		return "", err
+	}
+
+	channel, err := im.keeper.GetChannel(ctx, portID, channelID)
+	if err != nil {
+		return "", err
+	}
+
+	currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+	if err != nil {
+		return "", err
+	}
+
+	if err := icatypes.ValidateControllerMetadata(ctx, im.keeper.GetChannelKeeper(), connectionHops, metadata); err != nil {
+		return "", errorsmod.Wrap(err, "invalid metadata")
+	}
+
+	// the interchain account address on the host chain
+	// must remain the same after the upgrade.
+	if currentMetadata.Address != metadata.Address {
+		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "address cannot be changed")
+	}
+
+	// at the moment it is not supported to perform upgrades that
+	// change the connection ID of the controller or host chains.
+	// therefore these connection IDs much remain the same as before.
+	if currentMetadata.ControllerConnectionId != metadata.ControllerConnectionId {
+		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "controller connection ID cannot be changed")
+	}
+
+	if currentMetadata.HostConnectionId != metadata.HostConnectionId {
+		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "host connection ID cannot be changed")
+	}
+
+	if currentMetadata.ControllerConnectionId != connectionHops[0] {
+		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "proposed connection hop must not change")
+	}
+
+	metadataBz := icatypes.ModuleCdc.MustMarshalJSON(&metadata)
+	return string(metadataBz), nil
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
