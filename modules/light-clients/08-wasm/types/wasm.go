@@ -12,6 +12,11 @@ import (
 // Checksum is a type alias used for wasm byte code checksums.
 type Checksum = wasmvmtypes.Checksum
 
+// CreateChecksum creates a sha256 checksum from the given wasm code, it forwards the
+// call to the wasmvm package. The code is checked for the following conditions:
+// - code length is zero.
+// - code length is less than 4 bytes (magic number length).
+// - code does not start with the wasm magic number.
 func CreateChecksum(code []byte) (Checksum, error) {
 	return wasmvm.CreateChecksum(code)
 }
