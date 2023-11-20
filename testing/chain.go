@@ -475,6 +475,7 @@ func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterpa
 	if err != nil {
 		return nil, err
 	}
+	trustedVals.TotalVotingPower = tmTrustedVals.TotalVotingPower()
 	header.TrustedValidators = trustedVals
 
 	return header, nil
@@ -550,11 +551,13 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 	if cmtValSet != nil { //nolint:staticcheck
 		valSet, err = cmtValSet.ToProto()
 		require.NoError(chain.TB, err)
+		valSet.TotalVotingPower = cmtValSet.TotalVotingPower()
 	}
 
 	if tmTrustedVals != nil {
 		trustedVals, err = tmTrustedVals.ToProto()
 		require.NoError(chain.TB, err)
+		trustedVals.TotalVotingPower = tmTrustedVals.TotalVotingPower()
 	}
 
 	// The trusted fields may be nil. They may be filled before relaying messages to a client.

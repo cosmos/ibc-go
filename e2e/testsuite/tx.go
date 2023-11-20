@@ -13,6 +13,7 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -32,11 +33,16 @@ import (
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
-func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
-	broadcaster := cosmos.NewBroadcaster(s.T(), chain)
+func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
+	cosmosChain, ok := chain.(*cosmos.CosmosChain)
+	if !ok {
+		panic("BroadcastMessages expects a cosmos.CosmosChain")
+	}
+
+	broadcaster := cosmos.NewBroadcaster(s.T(), cosmosChain)
 
 	// strip out any fields that may not be supported for the given chain version.
-	msgs = sanitize.Messages(chain.Nodes()[0].Image.Version, msgs...)
+	msgs = sanitize.Messages(cosmosChain.Nodes()[0].Image.Version, msgs...)
 
 	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
 		// use a codec with all the types our tests care about registered.
@@ -129,19 +135,32 @@ If this is a compatibility test, ensure that the fields are being sanitized in t
 
 // ExecuteAndPassGovV1Proposal submits a v1 governance proposal using the provided user and message and uses all validators
 // to vote yes on the proposal. It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.Msg, chain *cosmos.CosmosChain, user ibc.Wallet) {
+func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.Msg, chain ibc.Chain, user ibc.Wallet) {
+	err := s.ExecuteGovV1Proposal(ctx, msg, chain, user)
+	s.Require().NoError(err)
+}
+
+// ExecuteGovV1Proposal submits a v1 governance proposal using the provided user and message and uses all validators
+// to vote yes on the proposal.
+func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, chain ibc.Chain, user ibc.Wallet) error {
+	cosmosChain, ok := chain.(*cosmos.CosmosChain)
+	if !ok {
+		panic("ExecuteAndPassGovV1Proposal must be passed a cosmos.CosmosChain")
+	}
+
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
-	proposalID := s.proposalIDs[chain.Config().ChainID]
+	proposalID := s.proposalIDs[cosmosChain.Config().ChainID]
 	defer func() {
-		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
+		s.proposalIDs[cosmosChain.Config().ChainID] = proposalID + 1
 	}()
 
 	msgs := []sdk.Msg{msg}
+
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
 		msgs,
-		sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1.DefaultMinDepositTokens)),
+		sdk.NewCoins(sdk.NewCoin(cosmosChain.Config().Denom, sdkmath.NewInt(testvalues.DefaultGovV1ProposalTokenAmount))),
 		sender.String(),
 		"",
 		fmt.Sprintf("e2e gov proposal: %d", proposalID),
@@ -150,53 +169,86 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.
 	)
 	s.Require().NoError(err)
 
-	resp := s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
+	resp := s.BroadcastMessages(ctx, cosmosChain, user, msgSubmitProposal)
 	s.AssertTxSuccess(resp)
 
-	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
+	s.Require().NoError(cosmosChain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
-	time.Sleep(testvalues.VotingPeriod)
+	return s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
+}
 
-	proposal, err := s.QueryProposalV1(ctx, chain, proposalID)
-	s.Require().NoError(err)
-	s.Require().Equal(govtypesv1.StatusPassed, proposal.Status)
+// waitForGovV1ProposalToPass polls for the entire voting period to see if the proposal has passed.
+// if the proposal has not passed within the duration of the voting period, an error is returned.
+func (s *E2ETestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
+	var govProposal govtypesv1.Proposal
+	// poll for the query for the entire voting period to see if the proposal has passed.
+	err := test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
+		proposal, err := s.QueryProposalV1(ctx, chain, proposalID)
+		if err != nil {
+			return false, err
+		}
+
+		govProposal = proposal
+		return govProposal.Status == govtypesv1.StatusPassed, nil
+	})
+
+	// in the case of a failed proposal, we wrap the polling error with additional information about why the proposal failed.
+	if err != nil && govProposal.FailedReason != "" {
+		err = errorsmod.Wrap(err, govProposal.FailedReason)
+	}
+	return err
 }
 
 // ExecuteAndPassGovV1Beta1Proposal submits the given v1beta1 governance proposal using the provided user and uses all validators to vote yes on the proposal.
 // It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) {
+func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, chain ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content) {
+	cosmosChain, ok := chain.(*cosmos.CosmosChain)
+	if !ok {
+		panic("ExecuteAndPassGovV1Beta1Proposal must be passed a cosmos.CosmosChain")
+	}
+
 	proposalID := s.proposalIDs[chain.Config().ChainID]
 	defer func() {
 		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
 	}()
 
-	txResp := s.ExecuteGovV1Beta1Proposal(ctx, chain, user, content)
+	txResp := s.ExecuteGovV1Beta1Proposal(ctx, cosmosChain, user, content)
 	s.AssertTxSuccess(txResp)
 
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// https://github.com/cosmos/ibc-go/issues/2122
 
-	proposal, err := s.QueryProposalV1Beta1(ctx, chain, proposalID)
+	proposal, err := s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
-	err = chain.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", proposalID), cosmos.ProposalVoteYes)
+	err = cosmosChain.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", proposalID), cosmos.ProposalVoteYes)
 	s.Require().NoError(err)
 
 	// ensure voting period has not passed before validators finished voting
-	proposal, err = s.QueryProposalV1Beta1(ctx, chain, proposalID)
+	proposal, err = s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
 
-	time.Sleep(testvalues.VotingPeriod) // pass proposal
-
-	proposal, err = s.QueryProposalV1Beta1(ctx, chain, proposalID)
+	err = s.waitForGovV1Beta1ProposalToPass(ctx, cosmosChain, proposalID)
 	s.Require().NoError(err)
-	s.Require().Equal(govtypesv1beta1.StatusPassed, proposal.Status)
+}
+
+// waitForGovV1Beta1ProposalToPass polls for the entire voting period to see if the proposal has passed.
+// if the proposal has not passed within the duration of the voting period, an error is returned.
+func (s *E2ETestSuite) waitForGovV1Beta1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) error {
+	// poll for the query for the entire voting period to see if the proposal has passed.
+	return test.WaitForCondition(testvalues.VotingPeriod, 10*time.Second, func() (bool, error) {
+		proposal, err := s.QueryProposalV1Beta1(ctx, chain, proposalID)
+		if err != nil {
+			return false, err
+		}
+		return proposal.Status == govtypesv1beta1.StatusPassed, nil
+	})
 }
 
 // ExecuteGovV1Beta1Proposal submits a v1beta1 governance proposal using the provided content.
-func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, content govtypesv1beta1.Content) sdk.TxResponse {
+func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content) sdk.TxResponse {
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
@@ -207,7 +259,7 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain *cos
 }
 
 // Transfer broadcasts a MsgTransfer message.
-func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet,
+func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) sdk.TxResponse {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
@@ -215,7 +267,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain *cosmos.CosmosChain, 
 }
 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
-func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cosmos.CosmosChain,
+func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain ibc.Chain,
 	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
 ) sdk.TxResponse {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
@@ -225,7 +277,7 @@ func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain *cos
 // PayPacketFeeAsync broadcasts a MsgPayPacketFeeAsync message.
 func (s *E2ETestSuite) PayPacketFeeAsync(
 	ctx context.Context,
-	chain *cosmos.CosmosChain,
+	chain ibc.Chain,
 	user ibc.Wallet,
 	packetID channeltypes.PacketId,
 	packetFee feetypes.PacketFee,
