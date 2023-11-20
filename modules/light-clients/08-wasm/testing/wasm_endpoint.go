@@ -35,15 +35,15 @@ func (endpoint *WasmEndpoint) CreateClient() error {
 	msg, err := clienttypes.NewMsgCreateClient(
 		clientState, consensusState, endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
-	require.NoError(endpoint.Chain.TB, err)
+	require.NoError(endpoint.Chain.T, err)
 
 	res, err := endpoint.Chain.SendMsgs(msg)
 	if err != nil {
 		return err
 	}
 
-	endpoint.ClientID, err = ibctesting.ParseClientIDFromEvents(res.Events)
-	require.NoError(endpoint.Chain.TB, err)
+	endpoint.ClientID, err = ibctesting.ParseClientIDFromEvents(res.GetEvents())
+	require.NoError(endpoint.Chain.T, err)
 
 	return nil
 }
