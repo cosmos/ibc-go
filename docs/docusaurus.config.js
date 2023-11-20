@@ -54,20 +54,24 @@ const config = {
               path: "main",
               banner: "unreleased",
             },
+            "v8.0.x": {
+              path: "v8",
+              banner: "none",
+            },
             "v7.3.x": {
-              path: "v7.3.x",
+              path: "v7",
               banner: "none",
             },
             "v6.2.x": {
-              path: "v6.2.x",
+              path: "v6",
               banner: "none",
             },
             "v5.3.x": {
-              path: "v5.3.x",
+              path: "v5",
               banner: "none",
             },
             "v4.5.x": {
-              path: "v4.5.x",
+              path: "v4",
               banner: "none",
             },
           },
@@ -86,7 +90,7 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: "img/ibc-go-image.png",
+      image: "img/ibc-go-docs-social-card.png",
       navbar: {
         logo: {
           alt: "IBC Logo",
