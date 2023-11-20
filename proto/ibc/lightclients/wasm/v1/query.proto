@@ -13,7 +13,7 @@ service Query {
     option (google.api.http).get = "/ibc/lightclients/wasm/v1/checksums";
   }
 
-  // Get Wasm code for given code hash
+  // Get Wasm code for given checksum
   rpc Code(QueryCodeRequest) returns (QueryCodeResponse) {
     option (google.api.http).get = "/ibc/lightclients/wasm/v1/checksums/{checksum}/code";
   }
