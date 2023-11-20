@@ -37,24 +37,24 @@ The `query` commands allow users to query `08-wasm` state.
 simd query ibc-wasm --help
 ```
 
-#### `code-hashes`
+#### `checksums`
 
-The `code-hashes` command allows users to query the list of code hashes of Wasm light client contracts stored in the Wasm VM via the `MsgStoreCode`. The code hashes are hex-encoded.
+The `checksums` command allows users to query the list of checksums of Wasm light client contracts stored in the Wasm VM via the `MsgStoreCode`. The checksums are hex-encoded.
 
 ```shell
-simd query ibc-wasm code-hashes [flags]
+simd query ibc-wasm checksums [flags]
 ```
 
 Example:
 
 ```shell
-simd query ibc-wasm code-hashes
+simd query ibc-wasm checksums
 ```
 
 Example Output:
 
 ```shell
-code_hashes:
+checksums:
 - c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64
 pagination:
   next_key: null
@@ -63,7 +63,7 @@ pagination:
 
 #### `code`
 
-The `code` command allows users to query the Wasm byte code of a light client contract given the provided input code hash.
+The `code` command allows users to query the Wasm byte code of a light client contract given the provided input checksum.
 
 ```shell
 ./simd q ibc-wasm code
@@ -85,12 +85,12 @@ code: AGFzb...AqBBE=
 
 A user can query the `08-wasm` module using gRPC endpoints.
 
-### `CodeHashes`
+### `Checksums`
 
-The `CodeHashes` endpoint allows users to query the list of code hashes of Wasm light client contracts stored in the Wasm VM via the `MsgStoreCode`.
+The `Checksums` endpoint allows users to query the list of checksums of Wasm light client contracts stored in the Wasm VM via the `MsgStoreCode`.
 
 ```shell
-ibc.lightclients.wasm.v1.Query/CodeHashes
+ibc.lightclients.wasm.v1.Query/Checksums
 ```
 
 Example:
@@ -99,14 +99,14 @@ Example:
 grpcurl -plaintext \
   -d '{}' \
   localhost:9090 \
-  ibc.lightclients.wasm.v1.Query/CodeHashes
+  ibc.lightclients.wasm.v1.Query/Checksums
 ```
 
 Example output:
 
 ```shell
 {
-  "codeIds": [
+  "checksums": [
     "c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"
   ],
   "pagination": {
@@ -117,7 +117,7 @@ Example output:
 
 ### `Code`
 
-The `Code` endpoint allows users to query the Wasm byte code of a light client contract given the provided input code hash.
+The `Code` endpoint allows users to query the Wasm byte code of a light client contract given the provided input checksum.
 
 ```shell
 ibc.lightclients.wasm.v1.Query/Code
@@ -127,7 +127,7 @@ Example:
 
 ```shell
 grpcurl -plaintext \
-  -d '{"code_hash":"c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"}' \
+  -d '{"checksum":"c64f75091a6195b036f472cd8c9f19a56780b9eac3c3de7ced0ec2e29e985b64"}' \
   localhost:9090 \
   ibc.lightclients.wasm.v1.Query/Code
 ```
