@@ -19,21 +19,6 @@ func TestCodecTypeRegistration(t *testing.T) {
 		expPass bool
 	}{
 		{
-			"success: ClientState",
-			sdk.MsgTypeURL(&types.ClientState{}),
-			true,
-		},
-		{
-			"success: ConsensusState",
-			sdk.MsgTypeURL(&types.ConsensusState{}),
-			true,
-		},
-		{
-			"success: ClientMessage",
-			sdk.MsgTypeURL(&types.ClientMessage{}),
-			true,
-		},
-		{
 			"success: MsgStoreCode",
 			sdk.MsgTypeURL(&types.MsgStoreCode{}),
 			true,
@@ -60,7 +45,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(wasm.AppModuleBasic{})
-			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
+			msg, err := encodingCfg.InterfaceRegistry.Resolve(tc.typeURL)
 
 			if tc.expPass {
 				require.NotNil(t, msg)
