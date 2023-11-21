@@ -9,6 +9,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+const (
+	differentConnectionID = "connection-100"
+)
+
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 	var (
 		channel  *channeltypes.Channel
@@ -507,14 +511,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 		{
 			name: "failure: change connection id",
 			malleate: func() {
-				metadata.ControllerConnectionId = "connection-100"
+				metadata.ControllerConnectionId = differentConnectionID
 			},
 			expError: connectiontypes.ErrInvalidConnection,
 		},
 		{
 			name: "failure: change host connection id",
 			malleate: func() {
-				metadata.HostConnectionId = "connection-100"
+				metadata.HostConnectionId = differentConnectionID
 			},
 			expError: connectiontypes.ErrInvalidConnection,
 		},
