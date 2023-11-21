@@ -2,11 +2,11 @@ package keeper_test
 
 import (
 	"encoding/hex"
-	"os"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -22,9 +22,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 			"success",
 			func() {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-				code, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
-				suite.Require().NoError(err)
-				msg := types.NewMsgStoreCode(signer, code)
+				msg := types.NewMsgStoreCode(signer, wasmtesting.Code)
 
 				res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
@@ -51,7 +49,7 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupWasmWithMockVM()
 
 			tc.malleate()
 
@@ -87,9 +85,7 @@ func (suite *KeeperTestSuite) TestQueryChecksums() {
 			"success with one checksum",
 			func() {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-				code, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
-				suite.Require().NoError(err)
-				msg := types.NewMsgStoreCode(signer, code)
+				msg := types.NewMsgStoreCode(signer, wasmtesting.Code)
 
 				res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
@@ -102,7 +98,7 @@ func (suite *KeeperTestSuite) TestQueryChecksums() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupWasmWithMockVM()
 
 			tc.malleate()
 
