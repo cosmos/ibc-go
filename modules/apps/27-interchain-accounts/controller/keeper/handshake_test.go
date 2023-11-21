@@ -494,14 +494,6 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			nil,
 		},
 		{
-			"failure: no changes made in upgrade",
-			func() {
-				// revert the change so that proposed metadata is the same as current.
-				metadata.Encoding = icatypes.EncodingProtobuf
-			},
-			channeltypes.ErrChannelExists,
-		},
-		{
 			name: "failure: invalid metadata",
 			malleate: func() {
 				metadata.Address = TestOwnerAddress
@@ -531,6 +523,13 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			},
 			expError: icatypes.ErrUnknownDataType,
 		},
+		{
+			name: "failure: invalid connection hops",
+			malleate: func() {
+				path.EndpointA.ConnectionID = differentConnectionID
+			},
+			expError: connectiontypes.ErrConnectionNotFound,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -559,18 +558,23 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 
 			tc.malleate() // malleate mutates test data
 
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+			version := string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
 
-			err = path.EndpointA.ChanUpgradeInit()
+			upgradeVersion, err := path.EndpointA.Chain.GetSimApp().ICAControllerKeeper.OnChanUpgradeInit(
+				path.EndpointA.Chain.GetContext(),
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				[]string{path.EndpointA.ConnectionID},
+				version,
+			)
 
 			expPass := tc.expError == nil
 
 			if expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(upgradeVersion, version)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
