@@ -2,11 +2,11 @@ package keeper_test
 
 import (
 	"encoding/hex"
-	"os"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -23,14 +23,12 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		{
 			"success",
 			func() {
-				checksum := "9b18dc4aa6a4dc6183f148bdcadbf7d3de2fdc7aac59394f1589b81e77de5e3c" //nolint:gosec // these are not hard-coded credentials
-				contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
-				suite.Require().NoError(err)
+				checksum := "b3a49b2914f5e6a673215e74325c1d153bb6776e079774e52c5b7e674d9ad3ab" //nolint:gosec // these are not hard-coded credentials
 
 				genesisState = *types.NewGenesisState(
 					[]types.Contract{
 						{
-							CodeBytes: contractCode,
+							CodeBytes: wasmtesting.Code,
 						},
 					},
 				)
@@ -49,7 +47,8 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.SetupWasmWithMockVM()
+
 			ctx := suite.chainA.GetContext()
 			tc.malleate()
 
@@ -71,16 +70,15 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 }
 
 func (suite *KeeperTestSuite) TestExportGenesis() {
-	suite.SetupTest()
+	suite.SetupWasmWithMockVM()
+
 	ctx := suite.chainA.GetContext()
 
-	expChecksum := "9b18dc4aa6a4dc6183f148bdcadbf7d3de2fdc7aac59394f1589b81e77de5e3c" //nolint:gosec // these are not hard-coded credentials
+	expChecksum := "b3a49b2914f5e6a673215e74325c1d153bb6776e079774e52c5b7e674d9ad3ab" //nolint:gosec // these are not hard-coded credentials
 
 	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-	contractCode, err := os.ReadFile("../test_data/ics07_tendermint_cw.wasm.gz")
-	suite.Require().NoError(err)
 
-	msg := types.NewMsgStoreCode(signer, contractCode)
+	msg := types.NewMsgStoreCode(signer, wasmtesting.Code)
 	res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
 	suite.Require().NoError(err)
 	suite.Require().Equal(expChecksum, hex.EncodeToString(res.Checksum))
