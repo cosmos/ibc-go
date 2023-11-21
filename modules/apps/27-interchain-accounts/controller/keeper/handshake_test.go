@@ -3,6 +3,7 @@ package keeper_test
 import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -499,9 +500,32 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 		{
 			name: "failure: invalid metadata",
 			malleate: func() {
-
+				metadata.Address = TestOwnerAddress
 			},
-			expError: nil,
+			expError: icatypes.ErrInvalidChannelFlow,
+		},
+		{
+			name: "failure: change connection id",
+			malleate: func() {
+				metadata.ControllerConnectionId = "connection-100"
+			},
+			expError: connectiontypes.ErrInvalidConnection,
+		},
+		{
+			name: "failure: change host connection id",
+			malleate: func() {
+				metadata.HostConnectionId = "connection-100"
+			},
+			expError: connectiontypes.ErrInvalidConnection,
+		},
+		{
+			name: "failure: invalid metadata string",
+			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.Version = "invalid-metadata-string"
+				path.EndpointA.SetChannel(channel)
+			},
+			expError: icatypes.ErrUnknownDataType,
 		},
 	}
 
@@ -541,6 +565,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			if expPass {
 				suite.Require().NoError(err)
 			} else {
+				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -233,7 +234,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
-	if version == "" {
+	if strings.TrimSpace(version) == "" {
 		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "version cannot be empty")
 	}
 
@@ -260,17 +261,6 @@ func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID str
 	// must remain the same after the upgrade.
 	if currentMetadata.Address != metadata.Address {
 		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "address cannot be changed")
-	}
-
-	// at the moment it is not supported to perform upgrades that
-	// change the connection ID of the controller or host chains.
-	// therefore these connection IDs much remain the same as before.
-	if currentMetadata.ControllerConnectionId != metadata.ControllerConnectionId {
-		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "controller connection ID cannot be changed")
-	}
-
-	if currentMetadata.HostConnectionId != metadata.HostConnectionId {
-		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "host connection ID cannot be changed")
 	}
 
 	if currentMetadata.ControllerConnectionId != connectionHops[0] {
