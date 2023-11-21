@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			suite.Require().NoError(err)
 
 			var storedHashes []string
-			checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
+			checksums, err := types.GetAllChecksums(suite.chainA.GetContext(), suite.chainA.App.AppCodec())
 			suite.Require().NoError(err)
 
 			for _, hash := range checksums {

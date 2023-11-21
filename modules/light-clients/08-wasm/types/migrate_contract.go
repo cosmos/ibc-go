@@ -18,7 +18,7 @@ func (cs ClientState) MigrateContract(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
 	clientID string, newChecksum, migrateMsg []byte,
 ) error {
-	if !HasChecksum(ctx, newChecksum) {
+	if !HasChecksum(ctx, cdc, newChecksum) {
 		return ErrWasmChecksumNotFound
 	}
 

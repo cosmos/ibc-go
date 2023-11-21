@@ -28,7 +28,7 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 	}
 
 	// Only return checksums we previously stored, not arbitrary checksums that might be stored via e.g Wasmd.
-	if !types.HasChecksum(sdk.UnwrapSDKContext(goCtx), checksum) {
+	if !types.HasChecksum(sdk.UnwrapSDKContext(goCtx), k.cdc, checksum) {
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrWasmChecksumNotFound, req.Checksum).Error())
 	}
 
@@ -43,24 +43,19 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 }
 
 // Checksums implements the Query/Checksums gRPC method. It returns a list of hex encoded checksums stored.
-func (Keeper) Checksums(goCtx context.Context, req *types.QueryChecksumsRequest) (*types.QueryChecksumsResponse, error) {
-	// TODO(jim): fix this
-	/*
-		checksums, pageRes, err := sdkquery.CollectionPaginate(
-			goCtx,
-			ibcwasm.Checksums,
-			req.Pagination,
-			func(key []byte, value collections.NoValue) (string, error) {
-				return hex.EncodeToString(key), nil
-			})
-		if err != nil {
-			return nil, err
-		}
+func (k Keeper) Checksums(goCtx context.Context, req *types.QueryChecksumsRequest) (*types.QueryChecksumsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
-		return &types.QueryChecksumsResponse{
-			Checksums:  checksums,
-			Pagination: pageRes,
-		}, nil
-	*/
-	return nil, nil
+	var checksums []string
+	storedChecksums, err := types.GetAllChecksums(ctx, k.cdc)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	for _, hash := range storedChecksums {
+		checksums = append(checksums, hex.EncodeToString(hash))
+	}
+
+	return &types.QueryChecksumsResponse{
+		Checksums: checksums,
+	}, nil
 }

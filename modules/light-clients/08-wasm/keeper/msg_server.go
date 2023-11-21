@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 )
@@ -39,15 +40,15 @@ func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecks
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	if !types.HasChecksum(goCtx, msg.Checksum) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if !types.HasChecksum(ctx, k.cdc, msg.Checksum) {
 		return nil, types.ErrWasmChecksumNotFound
 	}
 
-	// TODO(jim): Fix this
-	// err := ibcwasm.Checksums.Remove(goCtx, msg.Checksum)
-	// if err != nil {
-	// 	return nil, errorsmod.Wrap(err, "failed to remove checksum")
-	// }
+	err := types.RemoveChecksum(ctx, k.cdc, ibcwasm.GetWasmStoreKey(), msg.Checksum)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to remove checksum")
+	}
 
 	// unpin the code from the vm in-memory cache
 	if err := k.wasmVM.Unpin(msg.Checksum); err != nil {

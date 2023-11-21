@@ -3,6 +3,7 @@ package types_test
 import (
 	"crypto/sha256"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -36,9 +37,8 @@ func (suite *TypesTestSuite) TestGetChecksums() {
 			func() {
 				suite.SetupWasmWithMockVM()
 
-				// TODO(jim): Fix this
-				// err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), types.Checksum("checksum"))
-				// suite.Require().NoError(err)
+				err := types.AddChecksum(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), ibcwasm.GetWasmStoreKey(), types.Checksum("checksum"))
+				suite.Require().NoError(err)
 			},
 			func(checksums []types.Checksum) {
 				suite.Require().Len(checksums, 2)
@@ -52,7 +52,7 @@ func (suite *TypesTestSuite) TestGetChecksums() {
 		suite.Run(tc.name, func() {
 			tc.malleate()
 
-			checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
+			checksums, err := types.GetAllChecksums(suite.chainA.GetContext(), suite.chainA.App.AppCodec())
 			suite.Require().NoError(err)
 			tc.expResult(checksums)
 		})
@@ -62,25 +62,20 @@ func (suite *TypesTestSuite) TestGetChecksums() {
 func (suite *TypesTestSuite) TestAddChecksum() {
 	suite.SetupWasmWithMockVM()
 
-	checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
+	checksums, err := types.GetAllChecksums(suite.chainA.GetContext(), suite.chainA.App.AppCodec())
 	suite.Require().NoError(err)
 	// default mock vm contract is stored
 	suite.Require().Len(checksums, 1)
 
 	checksum1 := types.Checksum("checksum1")
 	checksum2 := types.Checksum("checksum2")
-	// TODO(jim): Fix this
-	// err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum1)
-	// suite.Require().NoError(err)
-	// err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum2)
-	// suite.Require().NoError(err)
 
-	// Test adding the same checksum twice
-	// TODO(jim): Fix this
-	// err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum1)
-	// suite.Require().NoError(err)
+	err = types.AddChecksum(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), ibcwasm.GetWasmStoreKey(), checksum1)
+	suite.Require().NoError(err)
+	err = types.AddChecksum(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), ibcwasm.GetWasmStoreKey(), checksum2)
+	suite.Require().NoError(err)
 
-	checksums, err = types.GetAllChecksums(suite.chainA.GetContext())
+	checksums, err = types.GetAllChecksums(suite.chainA.GetContext(), suite.chainA.App.AppCodec())
 	suite.Require().NoError(err)
 	suite.Require().Len(checksums, 3)
 	suite.Require().Contains(checksums, checksum1)
@@ -99,9 +94,8 @@ func (suite *TypesTestSuite) TestHasChecksum() {
 			"success: checksum exists",
 			func() {
 				checksum = types.Checksum("checksum")
-				// TODO(jim): fix this
-				// err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum)
-				// suite.Require().NoError(err)
+				err := types.AddChecksum(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), ibcwasm.GetWasmStoreKey(), checksum)
+				suite.Require().NoError(err)
 			},
 			true,
 		},
@@ -121,7 +115,7 @@ func (suite *TypesTestSuite) TestHasChecksum() {
 
 			tc.malleate()
 
-			result := types.HasChecksum(suite.chainA.GetContext(), checksum)
+			result := types.HasChecksum(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), checksum)
 			suite.Require().Equal(tc.exprResult, result)
 		})
 	}

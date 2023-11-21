@@ -10,6 +10,7 @@ import (
 
 	storetypes "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -67,9 +68,8 @@ func (suite *TypesTestSuite) TestStatus() {
 		{
 			"client status is unauthorized: checksum is not stored",
 			func() {
-				// TODO(jim): Fix this
-				// err := ibcwasm.Checksums.Remove(suite.chainA.GetContext(), suite.checksum)
-				// suite.Require().NoError(err)
+				err := types.RemoveChecksum(suite.chainA.GetContext(), suite.chainA.Codec, ibcwasm.GetWasmStoreKey(), suite.checksum)
+				suite.Require().NoError(err)
 			},
 			exported.Unauthorized,
 		},

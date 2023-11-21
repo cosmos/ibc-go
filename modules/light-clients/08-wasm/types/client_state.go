@@ -57,9 +57,9 @@ func (cs ClientState) Validate() error {
 //
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
-func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, _ codec.BinaryCodec) exported.Status {
+func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) exported.Status {
 	// Return unauthorized if the checksum hasn't been previously stored via storeWasmCode.
-	if !HasChecksum(ctx, cs.Checksum) {
+	if !HasChecksum(ctx, cdc, cs.Checksum) {
 		return exported.Unauthorized
 	}
 
@@ -115,7 +115,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	}
 
 	// Do not allow initialization of a client with a checksum that hasn't been previously stored via storeWasmCode.
-	if !HasChecksum(ctx, cs.Checksum) {
+	if !HasChecksum(ctx, cdc, cs.Checksum) {
 		return errorsmod.Wrapf(ErrInvalidChecksum, "checksum (%s) has not been previously stored", hex.EncodeToString(cs.Checksum))
 	}
 

@@ -107,7 +107,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// Check to see if store already has checksum.
 	checksum := generateWasmChecksum(code)
-	if types.HasChecksum(ctx, checksum) {
+	if types.HasChecksum(ctx, k.cdc, checksum) {
 		return nil, types.ErrWasmCodeExists
 	}
 
@@ -133,8 +133,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 		return nil, errorsmod.Wrapf(err, "failed to pin contract with checksum (%s) to vm cache", hex.EncodeToString(vmChecksum))
 	}
 
-	// store the checksum
-	// err = ibcwasm.Checksums.Set(ctx, checksum) // TODO(jim): fix this
+	err = types.AddChecksum(ctx, k.cdc, ibcwasm.GetWasmStoreKey(), checksum)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store checksum")
 	}
