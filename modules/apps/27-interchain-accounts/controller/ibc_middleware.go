@@ -233,6 +233,10 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+	if !im.keeper.GetParams(ctx).ControllerEnabled {
+		return "", types.ErrControllerSubModuleDisabled
+	}
+
 	return im.keeper.OnChanUpgradeInit(ctx, portID, channelID, connectionHops, version)
 }
 
