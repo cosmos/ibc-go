@@ -575,3 +575,67 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
+	var (
+		path     *ibctesting.Path
+		metadata icatypes.Metadata
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			channel := path.EndpointA.GetChannel()
+
+			currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+			suite.Require().NoError(err)
+
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			// use the same address as the previous metadata.
+			metadata.Address = currentMetadata.Address
+
+			// this is the actual change to the version.
+			metadata.Encoding = icatypes.EncodingProto3JSON
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+
+			err = path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			tc.malleate() // malleate mutates test data
+
+			err = path.EndpointB.ChanUpgradeTry()
+
+			expPass := tc.expError == nil
+
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
