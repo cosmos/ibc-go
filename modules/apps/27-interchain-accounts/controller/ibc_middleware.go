@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -235,41 +233,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
-	if strings.TrimSpace(version) == "" {
-		return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "version cannot be empty")
-	}
-
-	metadata, err := icatypes.ParseMedataFromString(version)
-	if err != nil {
-		return "", err
-	}
-
-	channel, err := im.keeper.GetChannel(ctx, portID, channelID)
-	if err != nil {
-		return "", err
-	}
-
-	currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
-	if err != nil {
-		return "", err
-	}
-
-	if err := icatypes.ValidateControllerMetadata(ctx, im.keeper.GetChannelKeeper(), connectionHops, metadata); err != nil {
-		return "", errorsmod.Wrap(err, "invalid metadata")
-	}
-
-	// the interchain account address on the host chain
-	// must remain the same after the upgrade.
-	if currentMetadata.Address != metadata.Address {
-		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "address cannot be changed")
-	}
-
-	if currentMetadata.ControllerConnectionId != connectionHops[0] {
-		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
-	}
-
-	metadataBz := icatypes.ModuleCdc.MustMarshalJSON(&metadata)
-	return string(metadataBz), nil
+	return im.keeper.OnChanUpgradeInit(ctx, portID, channelID, connectionHops, version)
 }
 
 // OnChanUpgradeTry implements the IBCModule interface

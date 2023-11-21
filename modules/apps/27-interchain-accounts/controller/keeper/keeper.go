@@ -85,11 +85,6 @@ func (k Keeper) GetConnectionID(ctx sdk.Context, portID, channelID string) (stri
 	return channel.ConnectionHops[0], nil
 }
 
-// GetChannelKeeper returns the ChannelKeeper
-func (k Keeper) GetChannelKeeper() icatypes.ChannelKeeper {
-	return k.channelKeeper
-}
-
 // GetAllPorts returns all ports to which the interchain accounts controller module is bound. Used in ExportGenesis
 func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
 	store := ctx.KVStore(k.storeKey)
@@ -159,15 +154,6 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 	}
 
 	return "", false
-}
-
-// GetChannel returns the channel associated with the provided portID and channelID.
-func (k Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, error) {
-	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	if !found {
-		return channeltypes.Channel{}, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
-	return channel, nil
 }
 
 // IsActiveChannelClosed retrieves the active channel from the store and returns true if the channel state is CLOSED, otherwise false
