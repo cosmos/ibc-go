@@ -134,7 +134,6 @@ func (Keeper) OnChanCloseConfirm(
 	return nil
 }
 
-
 // OnChanUpgradeTry performs the upgrade try step of the channel upgrade handshake.
 func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 	if portID != icatypes.HostPortID {
