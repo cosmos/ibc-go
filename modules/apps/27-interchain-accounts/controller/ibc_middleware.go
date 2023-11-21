@@ -246,8 +246,12 @@ func (IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string,
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	return nil
+func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+	if !im.keeper.GetParams(ctx).ControllerEnabled {
+		return types.ErrControllerSubModuleDisabled
+	}
+
+	return im.keeper.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
