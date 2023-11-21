@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -162,55 +163,8 @@ func (IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, or
 	return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel handshake must be initiated by controller chain")
 }
 
-/*
-// Called on Host Chain by Relayer
-function onChanUpgradeTry(
-  portIdentifier: Identifier,
-  channelIdentifier: Identifier,
-  order: ChannelOrder,
-  connectionHops: [Identifier],
-  upgradeSequence: uint64,
-  counterpartyPortIdentifier: Identifier,
-  counterpartyChannelIdentifier: Identifier,
-  counterpartyVersion: string
-): (version: string, err: Error) {
-  // validate port ID
-  abortTransactionUnless(portIdentifier === "icahost")
-
-  // upgrade version proposed by counterparty
-  abortTransactionUnless(counterpartyVersion !== "")
-
-  // retrieve the existing channel version.
-  // In ibc-go, for example, this is done using the GetAppVersion
-  // function of the ICS4Wrapper interface.
-  // See https://github.com/cosmos/ibc-go/blob/ac6300bd857cd2bd6915ae51e67c92848cbfb086/modules/core/05-port/types/module.go#L128-L132
-  channel = provableStore.get(channelPath(portIdentifier, channelIdentifier))
-  abortTransactionUnless(channel !== null)
-  currentMetadata = UnmarshalJSON(channel.version)
-
-  // validate metadata
-  abortTransactionUnless(metadata.Version === "ics27-1")
-  // all elements in encoding list and tx type list must be supported
-  abortTransactionUnless(IsSupportedEncoding(metadata.Encoding))
-  abortTransactionUnless(IsSupportedTxType(metadata.TxType))
-
-  // the interchain account address on the host chain
-  // must remain the same after the upgrade.
-  abortTransactionUnless(currentMetadata.Address === metadata.Address)
-
-  // at the moment it is not supported to perform upgrades that
-  // change the connection ID of the controller or host chains.
-  // therefore these connection IDs much remain the same as before.
-  abortTransactionUnless(currentMetadata.ControllerConnectionId === metadata.ControllerConnectionId)
-  abortTransactionUnless(currentMetadata.HostConnectionId === metadata.HostConnectionId)
-  // the proposed connection hop must not change
-  abortTransactionUnless(currentMetadata.HostConnectionId === connectionHops[0])
-
-  return counterpartyVersion, nil
-}
-*/
 // OnChanUpgradeTry implements the IBCModule interface
-func (IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 	if portID != icatypes.HostPortID {
 		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "port ID must be %s", icatypes.HostPortID)
 	}
@@ -220,7 +174,36 @@ func (IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, ord
 		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "counterparty version cannot be empty")
 	}
 
-	return icatypes.Version, nil
+	metadata, err := icatypes.ParseMedataFromString(counterpartyVersion)
+	if err != nil {
+		return "", err
+	}
+
+	channel, err := im.keeper.GetChannel(ctx, portID, channelID)
+	if err != nil {
+		return "", err
+	}
+
+	currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+	if err != nil {
+		return "", err
+	}
+
+	if err := icatypes.ValidateHostMetadata(ctx, im.keeper.GetChannelKeeper(), connectionHops, metadata); err != nil {
+		return "", errorsmod.Wrap(err, "invalid metadata")
+	}
+
+	// the interchain account address on the host chain
+	// must remain the same after the upgrade.
+	if currentMetadata.Address != metadata.Address {
+		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "address cannot be changed")
+	}
+
+	if currentMetadata.HostConnectionId != connectionHops[0] {
+		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
+	}
+
+	return counterpartyVersion, nil
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
