@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"encoding/json"
+	"time"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -11,11 +12,13 @@ import (
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	tendermint "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -140,9 +143,14 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					err := json.Unmarshal(sudoMsg, &payload)
 					suite.Require().NoError(err)
 
+					expectedUpgradedClient, ok := upgradedClient.(*types.ClientState)
+					suite.Require().True(ok)
+					expectedUpgradedConsensus, ok := upgradedConsState.(*types.ConsensusState)
+					suite.Require().True(ok)
+
 					// verify payload values
-					suite.Require().Equal(upgradedClient, &payload.VerifyUpgradeAndUpdateState.UpgradeClientState)
-					suite.Require().Equal(upgradedConsState, &payload.VerifyUpgradeAndUpdateState.UpgradeConsensusState)
+					suite.Require().Equal(expectedUpgradedClient.Data, payload.VerifyUpgradeAndUpdateState.UpgradeClientState)
+					suite.Require().Equal(expectedUpgradedConsensus.Data, payload.VerifyUpgradeAndUpdateState.UpgradeConsensusState)
 					suite.Require().Equal(proofUpgradedClient, payload.VerifyUpgradeAndUpdateState.ProofUpgradeClient)
 					suite.Require().Equal(proofUpgradedConsState, payload.VerifyUpgradeAndUpdateState.ProofUpgradeConsensusState)
 
@@ -156,8 +164,9 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					suite.Require().NoError(err)
 
 					// set new client state and consensus state
+					underlyingUpgradedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expectedUpgradedClient.Data)
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), upgradedClient))
-					store.Set(host.ConsensusStateKey(upgradedClient.GetLatestHeight()), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState))
+					store.Set(host.ConsensusStateKey(underlyingUpgradedClient.GetLatestHeight()), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState))
 
 					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
 				})
@@ -202,8 +211,14 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 			clientState := endpoint.GetClientState().(*types.ClientState)
 
-			upgradedClient = types.NewClientState(wasmtesting.MockClientStateBz, clientState.Checksum, clienttypes.NewHeight(0, clientState.GetLatestHeight().GetRevisionHeight()+1))
-			upgradedConsState = &types.ConsensusState{wasmtesting.MockConsensusStateBz}
+			newLatestHeight := clienttypes.NewHeight(2, 10)
+			underlyingUpgradedClient := tendermint.NewClientState("chain-id", tendermint.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, newLatestHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+			underlyingUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), underlyingUpgradedClient)
+			upgradedClient = types.NewClientState(underlyingUpgradedClientBz, clientState.Checksum, newLatestHeight)
+
+			underlyingUpgradedConsensus := tendermint.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("new-hash")), []byte("new-nextValsHash"))
+			underlyingUpgradedConsensusBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), underlyingUpgradedConsensus)
+			upgradedConsState = types.NewConsensusState(underlyingUpgradedConsensusBz)
 
 			tc.malleate()
 

@@ -26,7 +26,7 @@ func (cs ClientState) VerifyClientMessage(ctx sdk.Context, _ codec.BinaryCodec, 
 	}
 
 	payload := QueryMsg{
-		VerifyClientMessage: &VerifyClientMessageMsg{ClientMessage: clientMessage},
+		VerifyClientMessage: &VerifyClientMessageMsg{ClientMessage: clientMessage.Data},
 	}
 	_, err := wasmQuery[EmptyResult](ctx, clientStore, &cs, payload)
 	return err

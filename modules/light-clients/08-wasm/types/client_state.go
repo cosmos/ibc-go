@@ -121,8 +121,9 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	}
 
 	payload := InstantiateMessage{
-		ClientState:    &cs,
-		ConsensusState: consensusState,
+		ClientState:    cs.Data,
+		ConsensusState: consensusState.Data,
+		Checksum:       cs.Checksum,
 	}
 
 	return wasmInstantiate(ctx, cdc, clientStore, &cs, payload)

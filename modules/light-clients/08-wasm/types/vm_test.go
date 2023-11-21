@@ -32,8 +32,15 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 					err := json.Unmarshal(initMsg, &payload)
 					suite.Require().NoError(err)
 
-					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState))
-					store.Set(host.ConsensusStateKey(payload.ClientState.LatestHeight), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), payload.ConsensusState))
+					underlyingClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+
+					clientState := types.NewClientState(payload.ClientState, payload.Checksum, underlyingClientState.GetLatestHeight().(clienttypes.Height))
+					clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
+					store.Set(host.ClientStateKey(), clientStateBz)
+
+					consensusState := types.NewConsensusState(payload.ConsensusState)
+					consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), consensusState)
+					store.Set(host.ConsensusStateKey(clientState.GetLatestHeight()), consensusStateBz)
 
 					return &wasmvmtypes.Response{}, 0, nil
 				}
@@ -129,8 +136,8 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 					suite.Require().NoError(err)
 
 					// Change the checksum to something else.
-					clientState := payload.ClientState
-					clientState.Checksum = []byte("new checksum")
+					underlyingClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+					clientState := types.NewClientState(payload.ClientState, []byte("new checksum"), underlyingClientState.GetLatestHeight().(clienttypes.Height))
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState))
 
 					resp, err := json.Marshal(types.UpdateStateResult{})
@@ -151,12 +158,13 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 			tc.malleate()
 
 			initMsg := types.InstantiateMessage{
-				ClientState:    &types.ClientState{},
-				ConsensusState: &types.ConsensusState{},
+				ClientState:    clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockUnderlyingClientState),
+				ConsensusState: clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockUnderlyingConsensusState),
+				Checksum:       suite.checksum,
 			}
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
-			err := types.WasmInstantiate(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, &types.ClientState{}, initMsg)
+			err := types.WasmInstantiate(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, &types.ClientState{Checksum: suite.checksum}, initMsg)
 
 			expPass := tc.expError == nil
 			if expPass {

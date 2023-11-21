@@ -2,21 +2,25 @@ package testing
 
 import (
 	"errors"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	tendermint "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	testing "github.com/cosmos/ibc-go/v8/testing"
 )
 
 var (
 	// Represents the code of the wasm contract used in the tests with a mock vm.
 	WasmMagicNumber                   = []byte("\x00\x61\x73\x6D")
 	Code                              = append(WasmMagicNumber, []byte("0123456780123456780123456780")...)
-	contractClientState               = []byte{1}
-	contractConsensusState            = []byte{2}
 	MockClientStateBz                 = []byte("client-state-data")
 	MockConsensusStateBz              = []byte("consensus-state-data")
+	MockUnderlyingClientState         = tendermint.NewClientState("chain-id", tendermint.DefaultTrustLevel, testing.TrustingPeriod, testing.UnbondingPeriod, testing.MaxClockDrift, clienttypes.NewHeight(1, 10), commitmenttypes.GetSDKSpecs(), testing.UpgradePath)
+	MockUnderlyingConsensusState      = tendermint.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash")), []byte("nextValsHash"))
 	MockValidProofBz                  = []byte("valid proof")
 	MockInvalidProofBz                = []byte("invalid proof")
 	MockUpgradedClientStateProofBz    = []byte("upgraded client state proof")
