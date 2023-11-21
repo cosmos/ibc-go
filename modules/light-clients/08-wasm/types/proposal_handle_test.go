@@ -6,8 +6,6 @@ import (
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
-	storetypes "github.com/cosmos/cosmos-sdk/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
@@ -131,7 +129,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 	}
 }
 
-func GetProcessedHeight(clientStore storetypes.KVStore, height exported.Height) (uint64, bool) {
+func GetProcessedHeight(clientStore sdk.KVStore, height exported.Height) (uint64, bool) {
 	key := ibctm.ProcessedHeightKey(height)
 	bz := clientStore.Get(key)
 	if len(bz) == 0 {
