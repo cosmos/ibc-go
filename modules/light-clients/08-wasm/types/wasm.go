@@ -2,10 +2,17 @@ package types
 
 import (
 	"context"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 // Checksum is a type alias used for wasm byte code checksums.
 type Checksum []byte
+
+func AddChecksum(ctx context.Context, cdc codec.BinaryCodec, storeKey storetypes.StoreKey, checksum Checksum) error {
+	return nil
+}
 
 // GetAllChecksums is a helper to get all checksums from the store.
 // It returns an empty slice if no checksums are found
