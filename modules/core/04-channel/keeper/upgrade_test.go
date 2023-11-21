@@ -2152,9 +2152,7 @@ func (suite *KeeperTestSuite) TestSyncUpgradeSequence() {
 }
 
 func (suite *KeeperTestSuite) TestChanUpgradeCrossingHelloWithHistoricalProofs() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
