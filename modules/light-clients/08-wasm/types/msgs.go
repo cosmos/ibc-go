@@ -60,7 +60,7 @@ func (m MsgRemoveChecksum) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := ValidateWasmChecksum(m.Checksum); err != nil {
+	if err := ValidateWasmChecksum(m.Checksum); err != nil { //revive:disable:if-return
 		return err
 	}
 

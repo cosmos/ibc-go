@@ -286,11 +286,11 @@ func getEnv(ctx sdk.Context, contractAddr string) wasmvmtypes.Env {
 	return env
 }
 
-func humanAddress(canon []byte) (string, uint64, error) {
+func humanAddress(_ []byte) (string, uint64, error) {
 	return "", 0, errors.New("humanAddress not implemented")
 }
 
-func canonicalAddress(human string) ([]byte, uint64, error) {
+func canonicalAddress(_ string) ([]byte, uint64, error) {
 	return nil, 0, errors.New("canonicalAddress not implemented")
 }
 

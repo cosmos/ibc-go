@@ -30,7 +30,7 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 }
 
 // SimulateMsgStoreCode returns a random MsgStoreCode for the 08-wasm module
-func SimulateMsgStoreCode(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
+func SimulateMsgStoreCode(_ *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
 	var signer sdk.AccAddress = address.Module("gov")
 
 	return &types.MsgStoreCode{

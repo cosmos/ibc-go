@@ -118,7 +118,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // ProposalMsgs returns msgs used for governance proposals for simulations.
-func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+func (AppModule) ProposalMsgs(_ module.SimulationState) []simtypes.WeightedProposalMsg {
 	return simulation.ProposalMsgs()
 }
 

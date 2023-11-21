@@ -41,7 +41,7 @@ func (cs ClientState) Validate() error {
 		return errorsmod.Wrap(ErrInvalidData, "data cannot be empty")
 	}
 
-	if err := ValidateWasmChecksum(cs.Checksum); err != nil {
+	if err := ValidateWasmChecksum(cs.Checksum); err != nil { //revive:disable:if-return
 		return err
 	}
 
@@ -82,7 +82,7 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 func (cs ClientState) GetTimestampAtHeight(
 	ctx sdk.Context,
 	clientStore sdk.KVStore,
-	cdc codec.BinaryCodec,
+	_ codec.BinaryCodec,
 	height exported.Height,
 ) (uint64, error) {
 	timestampHeight, ok := height.(clienttypes.Height)
