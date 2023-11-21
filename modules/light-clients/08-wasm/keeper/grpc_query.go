@@ -44,6 +44,10 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 
 // Checksums implements the Query/Checksums gRPC method. It returns a list of hex encoded checksums stored.
 func (k Keeper) Checksums(goCtx context.Context, req *types.QueryChecksumsRequest) (*types.QueryChecksumsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var checksums []string

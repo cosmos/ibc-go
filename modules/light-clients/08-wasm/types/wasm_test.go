@@ -29,7 +29,7 @@ func (suite *TypesTestSuite) TestGetChecksums() {
 			func(checksums []types.Checksum) {
 				suite.Require().Len(checksums, 1)
 				expectedChecksum := sha256.Sum256(wasmtesting.Code)
-				suite.Require().Equal(types.Checksum(expectedChecksum[:]), checksums[0])
+				suite.Require().Equal(expectedChecksum[:], checksums[0])
 			},
 		},
 		{
