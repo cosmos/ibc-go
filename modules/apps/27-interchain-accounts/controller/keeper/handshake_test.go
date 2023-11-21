@@ -506,7 +506,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			malleate: func() {
 				metadata.Address = TestOwnerAddress
 			},
-			expError: icatypes.ErrInvalidChannelFlow,
+			expError: icatypes.ErrInvalidAccountAddress,
 		},
 		{
 			name: "failure: change connection id",
