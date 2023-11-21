@@ -27,10 +27,11 @@ import (
 
 const (
 	// valid constants used for testing
-	portid   = "testportid"
-	chanid   = "channel-0"
-	cpportid = "testcpport"
-	cpchanid = "testcpchannel"
+	portid                      = "testportid"
+	chanid                      = "channel-0"
+	cpportid                    = "testcpport"
+	cpchanid                    = "testcpchannel"
+	counterpartyUpgradeSequence = 0
 
 	version = "1.0"
 
@@ -350,14 +351,14 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		msg     *types.MsgChannelCloseConfirm
 		expPass bool
 	}{
-		{"", types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr), true},
-		{"too short port id", types.NewMsgChannelCloseConfirm(invalidShortPort, chanid, suite.proof, height, addr), false},
-		{"too long port id", types.NewMsgChannelCloseConfirm(invalidLongPort, chanid, suite.proof, height, addr), false},
-		{"port id contains non-alpha", types.NewMsgChannelCloseConfirm(invalidPort, chanid, suite.proof, height, addr), false},
-		{"too short channel id", types.NewMsgChannelCloseConfirm(portid, invalidShortChannel, suite.proof, height, addr), false},
-		{"too long channel id", types.NewMsgChannelCloseConfirm(portid, invalidLongChannel, suite.proof, height, addr), false},
-		{"channel id contains non-alpha", types.NewMsgChannelCloseConfirm(portid, invalidChannel, suite.proof, height, addr), false},
-		{"empty proof", types.NewMsgChannelCloseConfirm(portid, chanid, emptyProof, height, addr), false},
+		{"", types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr, 0), true},
+		{"too short port id", types.NewMsgChannelCloseConfirm(invalidShortPort, chanid, suite.proof, height, addr, 0), false},
+		{"too long port id", types.NewMsgChannelCloseConfirm(invalidLongPort, chanid, suite.proof, height, addr, 0), false},
+		{"port id contains non-alpha", types.NewMsgChannelCloseConfirm(invalidPort, chanid, suite.proof, height, addr, 0), false},
+		{"too short channel id", types.NewMsgChannelCloseConfirm(portid, invalidShortChannel, suite.proof, height, addr, 0), false},
+		{"too long channel id", types.NewMsgChannelCloseConfirm(portid, invalidLongChannel, suite.proof, height, addr, 0), false},
+		{"channel id contains non-alpha", types.NewMsgChannelCloseConfirm(portid, invalidChannel, suite.proof, height, addr, 0), false},
+		{"empty proof", types.NewMsgChannelCloseConfirm(portid, chanid, emptyProof, height, addr, 0), false},
 	}
 
 	for _, tc := range testCases {
@@ -378,7 +379,7 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 func (suite *TypesTestSuite) TestMsgChannelCloseConfirmGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
 	suite.Require().NoError(err)
-	msg := types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr)
+	msg := types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr, counterpartyUpgradeSequence)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
@@ -472,12 +473,12 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 		msg     *types.MsgTimeoutOnClose
 		expPass bool
 	}{
-		{"success", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr), true},
-		{"seq 0", types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr), false},
-		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr), false},
-		{"empty proof", types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr), false},
-		{"empty proof close", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr), false},
+		{"success", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr, 0), true},
+		{"seq 0", types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr, 0), false},
+		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr, 0), false},
+		{"empty proof", types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr, 0), false},
+		{"empty proof close", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr, 0), false},
+		{"invalid packet", types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr, 0), false},
 	}
 
 	for _, tc := range testCases {
@@ -498,7 +499,7 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 func (suite *TypesTestSuite) TestMsgTimeoutOnCloseGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
 	suite.Require().NoError(err)
-	msg := types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr)
+	msg := types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr, counterpartyUpgradeSequence)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)

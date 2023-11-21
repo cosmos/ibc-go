@@ -542,11 +542,12 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 // channel on chainB after the packet commitment has been created.
 func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 	var (
-		path        *ibctesting.Path
-		packet      types.Packet
-		chanCap     *capabilitytypes.Capability
-		nextSeqRecv uint64
-		ordered     bool
+		path                        *ibctesting.Path
+		packet                      types.Packet
+		chanCap                     *capabilitytypes.Capability
+		nextSeqRecv                 uint64
+		counterpartyUpgradeSequence uint64
+		ordered                     bool
 	)
 
 	testCases := []testCase{
@@ -718,8 +719,9 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			var proof []byte
 
-			suite.SetupTest() // reset
-			nextSeqRecv = 1   // must be explicitly changed
+			suite.SetupTest()               // reset
+			nextSeqRecv = 1                 // must be explicitly changed
+			counterpartyUpgradeSequence = 0 // must be explicitly changed
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -736,7 +738,16 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				proof, _ = suite.chainB.QueryProof(unorderedPacketKey)
 			}
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(suite.chainA.GetContext(), chanCap, packet, proof, proofClosed, proofHeight, nextSeqRecv)
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(
+				suite.chainA.GetContext(),
+				chanCap,
+				packet,
+				proof,
+				proofClosed,
+				proofHeight,
+				nextSeqRecv,
+				counterpartyUpgradeSequence,
+			)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

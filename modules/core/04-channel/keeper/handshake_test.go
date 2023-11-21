@@ -718,9 +718,10 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 // bypassed on chainA by setting the channel state in the ChannelKeeper.
 func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 	var (
-		path       *ibctesting.Path
-		channelCap *capabilitytypes.Capability
-		heightDiff uint64
+		path                        *ibctesting.Path
+		channelCap                  *capabilitytypes.Capability
+		heightDiff                  uint64
+		counterpartyUpgradeSequence uint64
 	)
 
 	testCases := []testCase{
@@ -799,8 +800,9 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-			heightDiff = 0    // must explicitly be changed
+			suite.SetupTest()               // reset
+			heightDiff = 0                  // must explicitly be changed
+			counterpartyUpgradeSequence = 0 // must explicitly be changed
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -810,7 +812,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
-				proof, malleateHeight(proofHeight, heightDiff),
+				proof, malleateHeight(proofHeight, heightDiff), counterpartyUpgradeSequence,
 			)
 
 			if tc.expPass {
