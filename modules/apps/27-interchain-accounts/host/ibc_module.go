@@ -2,7 +2,6 @@ package host
 
 import (
 	"fmt"
-	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -165,45 +163,7 @@ func (IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, or
 
 // OnChanUpgradeTry implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
-	if portID != icatypes.HostPortID {
-		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "port ID must be %s", icatypes.HostPortID)
-	}
-
-	counterpartyVersion = strings.TrimSpace(counterpartyVersion)
-	if counterpartyVersion == "" {
-		return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "counterparty version cannot be empty")
-	}
-
-	metadata, err := icatypes.ParseMedataFromString(counterpartyVersion)
-	if err != nil {
-		return "", err
-	}
-
-	channel, err := im.keeper.GetChannel(ctx, portID, channelID)
-	if err != nil {
-		return "", err
-	}
-
-	currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
-	if err != nil {
-		return "", err
-	}
-
-	if err := icatypes.ValidateHostMetadata(ctx, im.keeper.GetChannelKeeper(), connectionHops, metadata); err != nil {
-		return "", errorsmod.Wrap(err, "invalid metadata")
-	}
-
-	// the interchain account address on the host chain
-	// must remain the same after the upgrade.
-	if currentMetadata.Address != metadata.Address {
-		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "address cannot be changed")
-	}
-
-	if currentMetadata.HostConnectionId != connectionHops[0] {
-		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
-	}
-
-	return counterpartyVersion, nil
+	return im.keeper.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
 }
 
 // OnChanUpgradeAck implements the IBCModule interface

@@ -5,6 +5,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -592,6 +593,22 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			func() {},
 			nil,
 		},
+		{
+			name: "failure: invalid port ID",
+			malleate: func() {
+				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
+			},
+			expError: porttypes.ErrInvalidPort,
+		},
+		{
+			name: "failure: empty counterparty version",
+			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.Version = ""
+				path.EndpointA.SetChannel(channel)
+			},
+			expError: channeltypes.ErrInvalidChannelVersion,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -626,15 +643,21 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 
 			tc.malleate() // malleate mutates test data
 
-			err = path.EndpointB.ChanUpgradeTry()
+			version, err := suite.chainB.GetSimApp().ICAHostKeeper.OnChanUpgradeTry(
+				suite.chainB.GetContext(),
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				channeltypes.ORDERED,
+				[]string{path.EndpointB.ConnectionID},
+				path.EndpointA.GetChannel().Version,
+			)
 
 			expPass := tc.expError == nil
-
 			if expPass {
+				suite.Require().Equal(path.EndpointA.GetChannel().Version, version)
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
