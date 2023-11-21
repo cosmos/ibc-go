@@ -120,13 +120,15 @@ func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connecti
 		return errorsmod.Wrapf(ErrUnknownDataType, "unsupported transaction type %s", metadata.TxType)
 	}
 
-	connection, err := channelKeeper.GetConnection(ctx, connectionHops[0])
-	if err != nil {
-		return err
-	}
+	if len(connectionHops) > 0 {
+		connection, err := channelKeeper.GetConnection(ctx, connectionHops[0])
+		if err != nil {
+			return err
+		}
 
-	if err := validateConnectionParams(metadata, connection.GetCounterparty().GetConnectionID(), connectionHops[0]); err != nil {
-		return err
+		if err := validateConnectionParams(metadata, connection.GetCounterparty().GetConnectionID(), connectionHops[0]); err != nil {
+			return err
+		}
 	}
 
 	if metadata.Address != "" {

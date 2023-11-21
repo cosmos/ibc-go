@@ -176,46 +176,45 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, con
 	metadataBz := icatypes.ModuleCdc.MustMarshalJSON(&metadata)
 	return string(metadataBz), nil
 }
-/*
-// Called on Controller Chain by Relayer
-function onChanUpgradeAck(
-  portIdentifier: Identifier,
-  channelIdentifier: Identifier,
-  counterpartyVersion: string
-): Error {
-  // final upgrade version proposed by counterparty
-  abortTransactionUnless(counterpartyVersion !== "")
-  metadata = UnmarshalJSON(counterpartyVersion)
 
-  // retrieve the existing channel version.
-  // In ibc-go, for example, this is done using the GetAppVersion
-  // function of the ICS4Wrapper interface.
-  // See https://github.com/cosmos/ibc-go/blob/ac6300bd857cd2bd6915ae51e67c92848cbfb086/modules/core/05-port/types/module.go#L128-L132
-  channel = provableStore.get(channelPath(portIdentifier, channelIdentifier))
-  abortTransactionUnless(channel !== null)
-  currentMetadata = UnmarshalJSON(channel.version)
-
-  // validate metadata
-  abortTransactionUnless(metadata.Version === "ics27-1")
-  // all elements in encoding list and tx type list must be supported
-  abortTransactionUnless(IsSupportedEncoding(metadata.Encoding))
-  abortTransactionUnless(IsSupportedTxType(metadata.TxType))
-
-  // the interchain account address on the host chain
-  // must remain the same after the upgrade.
-  abortTransactionUnless(currentMetadata.Address === metadata.Address)
-
-  // at the moment it is not supported to perform upgrades that
-  // change the connection ID of the controller or host chains.
-  // therefore these connection IDs much remain the same as before.
-  abortTransactionUnless(currentMetadata.ControllerConnectionId === metadata.ControllerConnectionId)
-  abortTransactionUnless(currentMetadata.HostConnectionId === metadata.HostConnectionId)
-
-  return nil
-}
- */
 // OnChanUpgradeAck implements the ack setup of the channel upgrade handshake.
 func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+	if strings.TrimSpace(counterpartyVersion) == "" {
+		return errorsmod.Wrap(icatypes.ErrInvalidVersion, "counterparty version cannot be empty")
+	}
+
+	metadata, err := icatypes.ParseMedataFromString(counterpartyVersion)
+	if err != nil {
+		return err
+	}
+
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+	}
+
+	currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+	if err != nil {
+		return err
+	}
+
+	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, nil, metadata); err != nil {
+		return nil
+	}
+
+	// the interchain account address on the host chain
+	// must remain the same after the upgrade.
+	if currentMetadata.Address != metadata.Address {
+		return errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "address cannot be changed")
+	}
+
+	if currentMetadata.ControllerConnectionId != metadata.ControllerConnectionId {
+		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed controller connection ID must not change")
+	}
+
+	if currentMetadata.HostConnectionId != metadata.HostConnectionId {
+		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed host connection ID must not change")
+	}
+
 	return nil
 }
-

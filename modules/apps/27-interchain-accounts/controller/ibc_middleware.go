@@ -265,7 +265,20 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 		return types.ErrControllerSubModuleDisabled
 	}
 
-	return im.keeper.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
+	if err := im.keeper.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion); err != nil {
+		return err
+	}
+
+	connectionID, err := im.keeper.GetConnectionID(ctx, portID, channelID)
+	if err != nil {
+		return err
+	}
+
+	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
+		return im.app.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
+	}
+
+	return nil
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
