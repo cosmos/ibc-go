@@ -394,7 +394,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 
 	// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
 	// the contract uses 1600s as the unbonding period with the trusting period evaluating to (unbonding period / 3)
-	var modifiedTrustingPeriod = (1600 * time.Second) / 3
+	modifiedTrustingPeriod := (1600 * time.Second) / 3
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
@@ -449,7 +449,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	// wait the bad trusting period
 	time.Sleep(modifiedTrustingPeriod)
 
-	// create client pair with substitue
+	// create client pair with substitute
 	substituteClientID := clienttypes.FormatClientIdentifier(ibcexported.Wasm, 1)
 	s.SetupClients(ctx, r, ibc.DefaultClientOpts())
 
