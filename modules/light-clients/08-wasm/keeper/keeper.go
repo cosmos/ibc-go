@@ -188,3 +188,18 @@ func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.Cli
 
 	return wasmClientState, nil
 }
+
+// InitializePinnedCodes updates wasmvm to pin to cache all contracts marked as pinned
+func (k Keeper) InitializePinnedCodes(ctx sdk.Context) error {
+	checksums, err := types.GetAllChecksums(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, checksum := range checksums {
+		if err := ibcwasm.GetVM().Pin(checksum); err != nil {
+			return err
+		}
+	}
+	return nil
+}
