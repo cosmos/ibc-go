@@ -569,19 +569,14 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 }
 
 // QueryChannelUpgradeProof returns all the proofs necessary to execute UpgradeTry/UpgradeAck/UpgradeOpen.
-// It returns the proof for the channel on the counterparty chain, the proof for the upgrade attempt on the
-// counterparty chain, and the height at which the proof was queried.
+// It returns the proof for the channel on the endpoint's chain, the proof for the upgrade attempt on the
+// endpoint's chain, and the height at which the proof was queried.
 func (endpoint *Endpoint) QueryChannelUpgradeProof() ([]byte, []byte, clienttypes.Height) {
-	counterpartyChannelID := endpoint.Counterparty.ChannelID
-	counterpartyPortID := endpoint.Counterparty.ChannelConfig.PortID
+	channelKey := host.ChannelKey(endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	proofChannel, height := endpoint.QueryProof(channelKey)
 
-	// query proof for the channel on the counterparty
-	channelKey := host.ChannelKey(counterpartyPortID, counterpartyChannelID)
-	proofChannel, height := endpoint.Counterparty.QueryProof(channelKey)
-
-	// query proof for the upgrade attempt on the counterparty
-	upgradeKey := host.ChannelUpgradeKey(counterpartyPortID, counterpartyChannelID)
-	proofUpgrade, _ := endpoint.Counterparty.QueryProof(upgradeKey)
+	upgradeKey := host.ChannelUpgradeKey(endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	proofUpgrade, _ := endpoint.QueryProof(upgradeKey)
 
 	return proofChannel, proofUpgrade, height
 }
@@ -629,7 +624,7 @@ func (endpoint *Endpoint) ChanUpgradeTry() error {
 	require.NoError(endpoint.Chain.TB, err)
 
 	upgrade := endpoint.GetProposedUpgrade()
-	proofChannel, proofUpgrade, height := endpoint.QueryChannelUpgradeProof()
+	proofChannel, proofUpgrade, height := endpoint.Counterparty.QueryChannelUpgradeProof()
 
 	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
@@ -658,7 +653,7 @@ func (endpoint *Endpoint) ChanUpgradeAck() error {
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
-	proofChannel, proofUpgrade, height := endpoint.QueryChannelUpgradeProof()
+	proofChannel, proofUpgrade, height := endpoint.Counterparty.QueryChannelUpgradeProof()
 
 	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
@@ -681,7 +676,7 @@ func (endpoint *Endpoint) ChanUpgradeConfirm() error {
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
-	proofChannel, proofUpgrade, height := endpoint.QueryChannelUpgradeProof()
+	proofChannel, proofUpgrade, height := endpoint.Counterparty.QueryChannelUpgradeProof()
 
 	counterpartyUpgrade, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
