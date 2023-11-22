@@ -89,9 +89,9 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 		err := json.Unmarshal(initMsg, &payload)
 		suite.Require().NoError(err)
 
-		underlyingClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+		wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
 
-		clientState := types.NewClientState(payload.ClientState, payload.Checksum, underlyingClientState.GetLatestHeight().(clienttypes.Height))
+		clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.GetLatestHeight().(clienttypes.Height))
 		clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 		store.Set(host.ClientStateKey(), clientStateBz)
 

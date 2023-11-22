@@ -32,9 +32,9 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 					err := json.Unmarshal(initMsg, &payload)
 					suite.Require().NoError(err)
 
-					underlyingClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
 
-					clientState := types.NewClientState(payload.ClientState, payload.Checksum, underlyingClientState.GetLatestHeight().(clienttypes.Height))
+					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.GetLatestHeight().(clienttypes.Height))
 					clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), clientStateBz)
 
@@ -136,8 +136,8 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 					suite.Require().NoError(err)
 
 					// Change the checksum to something else.
-					underlyingClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
-					clientState := types.NewClientState(payload.ClientState, []byte("new checksum"), underlyingClientState.GetLatestHeight().(clienttypes.Height))
+					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+					clientState := types.NewClientState(payload.ClientState, []byte("new checksum"), wrappedClientState.GetLatestHeight().(clienttypes.Height))
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState))
 
 					resp, err := json.Marshal(types.UpdateStateResult{})
@@ -158,8 +158,8 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 			tc.malleate()
 
 			initMsg := types.InstantiateMessage{
-				ClientState:    clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockUnderlyingClientState),
-				ConsensusState: clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockUnderlyingConsensusState),
+				ClientState:    clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientState),
+				ConsensusState: clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientConsensusState),
 				Checksum:       suite.checksum,
 			}
 

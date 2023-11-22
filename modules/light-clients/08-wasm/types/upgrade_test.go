@@ -17,7 +17,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	tendermint "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -68,7 +68,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 		{
 			"failure: invalid client message",
 			func() {
-				clientMsg = &tendermint.Header{}
+				clientMsg = &ibctm.Header{}
 
 				suite.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					resp, err := json.Marshal(types.EmptyResult{})
@@ -103,7 +103,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			clientState := endpoint.GetClientState()
 
 			clientMsg = &types.ClientMessage{
-				Data: []byte{1},
+				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientHeader),
 			}
 
 			tc.malleate()
@@ -163,9 +163,9 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					suite.Require().NoError(err)
 
 					// set new client state and consensus state
-					underlyingUpgradedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expectedUpgradedClient.Data)
+					wrappedUpgradedClient := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expectedUpgradedClient.Data)
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), upgradedClient))
-					store.Set(host.ConsensusStateKey(underlyingUpgradedClient.GetLatestHeight()), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState))
+					store.Set(host.ConsensusStateKey(wrappedUpgradedClient.GetLatestHeight()), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState))
 
 					return &wasmvmtypes.Response{Data: data}, wasmtesting.DefaultGasUsed, nil
 				})
@@ -211,13 +211,13 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 			clientState := endpoint.GetClientState().(*types.ClientState)
 
 			newLatestHeight := clienttypes.NewHeight(2, 10)
-			underlyingUpgradedClient := tendermint.NewClientState("chain-id", tendermint.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, newLatestHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-			underlyingUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), underlyingUpgradedClient)
-			upgradedClient = types.NewClientState(underlyingUpgradedClientBz, clientState.Checksum, newLatestHeight)
+			wrappedUpgradedClient := wasmtesting.CreateMockWrappedClientState(newLatestHeight)
+			wrappedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wrappedUpgradedClient)
+			upgradedClient = types.NewClientState(wrappedUpgradedClientBz, clientState.Checksum, newLatestHeight)
 
-			underlyingUpgradedConsensus := tendermint.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("new-hash")), []byte("new-nextValsHash"))
-			underlyingUpgradedConsensusBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), underlyingUpgradedConsensus)
-			upgradedConsState = types.NewConsensusState(underlyingUpgradedConsensusBz)
+			wrappedUpgradedConsensus := ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("new-hash")), []byte("new-nextValsHash"))
+			wrappedUpgradedConsensusBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wrappedUpgradedConsensus)
+			upgradedConsState = types.NewConsensusState(wrappedUpgradedConsensusBz)
 
 			tc.malleate()
 

@@ -9,8 +9,9 @@ import (
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
@@ -61,7 +62,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 		},
 		{
 			"success: invalid client message", func() {
-				clientMessage = &ibctmtypes.Header{}
+				clientMessage = &ibctm.Header{}
 				// we will not register the callback here because this test case does not reach the VM
 			},
 			false,
@@ -78,7 +79,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 
 			clientState := endpoint.GetClientState()
 			clientMessage = &types.ClientMessage{
-				Data: []byte{1},
+				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientMisbehaviour),
 			}
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)

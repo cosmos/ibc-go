@@ -112,3 +112,14 @@ func UnmarshalClientMessage(cdc codec.BinaryCodec, bz []byte) (exported.ClientMe
 
 	return clientMessage, nil
 }
+
+// MustUnmarshalClientMessage attempts to decode and return an ClientMessage object from
+// raw encoded bytes. It panics on error.
+func MustUnmarshalClientMessage(cdc codec.BinaryCodec, bz []byte) exported.ClientMessage {
+	clientMessage, err := UnmarshalClientMessage(cdc, bz)
+	if err != nil {
+		panic(fmt.Errorf("failed to decode client message: %w", err))
+	}
+
+	return clientMessage
+}

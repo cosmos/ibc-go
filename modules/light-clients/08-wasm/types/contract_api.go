@@ -42,7 +42,7 @@ type VerifyClientMessageMsg struct {
 
 // CheckForMisbehaviourMsg is a queryMsg sent to the contract to check for misbehaviour.
 type CheckForMisbehaviourMsg struct {
-	ClientMessage *ClientMessage `json:"client_message"`
+	ClientMessage []byte `json:"client_message"`
 }
 
 // SudoMsg is used to encode messages that are sent to the contract's sudo entry point.
@@ -60,12 +60,12 @@ type SudoMsg struct {
 
 // UpdateStateMsg is a sudoMsg sent to the contract to update the client state.
 type UpdateStateMsg struct {
-	ClientMessage *ClientMessage `json:"client_message"`
+	ClientMessage []byte `json:"client_message"`
 }
 
 // UpdateStateOnMisbehaviourMsg is a sudoMsg sent to the contract to update its state on misbehaviour.
 type UpdateStateOnMisbehaviourMsg struct {
-	ClientMessage *ClientMessage `json:"client_message"`
+	ClientMessage []byte `json:"client_message"`
 }
 
 // VerifyMembershipMsg is a sudoMsg sent to the contract to verify a membership proof.

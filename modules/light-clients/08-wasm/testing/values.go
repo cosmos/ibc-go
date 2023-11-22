@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	tendermint "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	testing "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -19,8 +19,10 @@ var (
 	Code                              = append(WasmMagicNumber, []byte("0123456780123456780123456780")...)
 	MockClientStateBz                 = []byte("client-state-data")
 	MockConsensusStateBz              = []byte("consensus-state-data")
-	MockUnderlyingClientState         = tendermint.NewClientState("chain-id", tendermint.DefaultTrustLevel, testing.TrustingPeriod, testing.UnbondingPeriod, testing.MaxClockDrift, clienttypes.NewHeight(1, 10), commitmenttypes.GetSDKSpecs(), testing.UpgradePath)
-	MockUnderlyingConsensusState      = tendermint.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash")), []byte("nextValsHash"))
+	MockWrappedClientState            = CreateMockWrappedClientState(clienttypes.NewHeight(1, 10))
+	MockWrappedClientHeader           = &ibctm.Header{}
+	MockWrappedClientMisbehaviour     = ibctm.NewMisbehaviour("client-id", MockWrappedClientHeader, MockWrappedClientHeader)
+	MockWrappedClientConsensusState   = ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash")), []byte("nextValsHash"))
 	MockValidProofBz                  = []byte("valid proof")
 	MockInvalidProofBz                = []byte("invalid proof")
 	MockUpgradedClientStateProofBz    = []byte("upgraded client state proof")
@@ -30,8 +32,23 @@ var (
 	ErrMockVM       = errors.New("mock vm error")
 )
 
+// CreateMockWrappedClientState returns valid wrapped client state for use in tests.
+func CreateMockWrappedClientState(height clienttypes.Height) *ibctm.ClientState {
+	return ibctm.NewClientState(
+		"chain-id",
+		ibctm.DefaultTrustLevel,
+		testing.TrustingPeriod,
+		testing.UnbondingPeriod,
+		testing.MaxClockDrift,
+		height,
+		commitmenttypes.GetSDKSpecs(),
+		testing.UpgradePath,
+	)
+}
+
 // CreateMockClientStateBz returns valid client state bytes for use in tests.
 func CreateMockClientStateBz(cdc codec.BinaryCodec, checksum types.Checksum) []byte {
-	mockClientSate := types.NewClientState([]byte{1}, checksum, clienttypes.NewHeight(2000, 2))
+	wrappedClientStateBz := clienttypes.MustMarshalClientState(cdc, MockWrappedClientState)
+	mockClientSate := types.NewClientState(wrappedClientStateBz, checksum, MockWrappedClientState.GetLatestHeight().(clienttypes.Height))
 	return clienttypes.MustMarshalClientState(cdc, mockClientSate)
 }

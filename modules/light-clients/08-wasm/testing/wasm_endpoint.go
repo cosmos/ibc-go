@@ -29,11 +29,11 @@ func (endpoint *WasmEndpoint) CreateClient() error {
 	checksum, err := types.CreateChecksum(Code)
 	require.NoError(endpoint.Chain.TB, err)
 
-	underlyingClientStateBz := clienttypes.MustMarshalClientState(endpoint.Chain.App.AppCodec(), MockUnderlyingClientState)
-	underlyingConsensusStateBz := clienttypes.MustMarshalConsensusState(endpoint.Chain.App.AppCodec(), MockUnderlyingConsensusState)
+	wrappedClientStateBz := clienttypes.MustMarshalClientState(endpoint.Chain.App.AppCodec(), CreateMockWrappedClientState(clienttypes.NewHeight(1, 5)))
+	wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(endpoint.Chain.App.AppCodec(), MockWrappedClientConsensusState)
 
-	clientState := types.NewClientState(underlyingClientStateBz, checksum, clienttypes.NewHeight(0, 1))
-	consensusState := types.NewConsensusState(underlyingConsensusStateBz)
+	clientState := types.NewClientState(wrappedClientStateBz, checksum, clienttypes.NewHeight(0, 1))
+	consensusState := types.NewConsensusState(wrappedClientConsensusStateBz)
 
 	msg, err := clienttypes.NewMsgCreateClient(
 		clientState, consensusState, endpoint.Chain.SenderAccount.GetAddress().String(),

@@ -40,7 +40,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 	}
 
 	payload := SudoMsg{
-		UpdateState: &UpdateStateMsg{ClientMessage: clientMessage},
+		UpdateState: &UpdateStateMsg{ClientMessage: clientMessage.Data},
 	}
 
 	result, err := wasmSudo[UpdateStateResult](ctx, cdc, clientStore, &cs, payload)
@@ -65,7 +65,7 @@ func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.Binar
 	}
 
 	payload := SudoMsg{
-		UpdateStateOnMisbehaviour: &UpdateStateOnMisbehaviourMsg{ClientMessage: clientMessage},
+		UpdateStateOnMisbehaviour: &UpdateStateOnMisbehaviourMsg{ClientMessage: clientMessage.Data},
 	}
 
 	_, err := wasmSudo[EmptyResult](ctx, cdc, clientStore, &cs, payload)

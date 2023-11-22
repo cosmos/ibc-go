@@ -257,9 +257,9 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 					suite.Require().Equal(env.Contract.Address, defaultWasmClientID)
 
-					underlyingClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+					wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
 
-					clientState := types.NewClientState(payload.ClientState, payload.Checksum, underlyingClientState.GetLatestHeight().(clienttypes.Height))
+					clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.GetLatestHeight().(clienttypes.Height))
 					clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), clientStateBz)
 
@@ -312,10 +312,10 @@ func (suite *TypesTestSuite) TestInitialize() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			underlyingClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockUnderlyingClientState)
-			underlyingConsensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockUnderlyingConsensusState)
-			clientState = types.NewClientState(underlyingClientStateBz, suite.checksum, wasmtesting.MockUnderlyingClientState.GetLatestHeight().(clienttypes.Height))
-			consensusState = types.NewConsensusState(underlyingConsensusStateBz)
+			wrappedClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientState)
+			wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientConsensusState)
+			clientState = types.NewClientState(wrappedClientStateBz, suite.checksum, wasmtesting.MockWrappedClientState.GetLatestHeight().(clienttypes.Height))
+			consensusState = types.NewConsensusState(wrappedClientConsensusStateBz)
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
