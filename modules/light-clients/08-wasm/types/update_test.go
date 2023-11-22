@@ -15,7 +15,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	tmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	cmttypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -113,9 +113,9 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			"failure: invalid ClientMessage type",
 			func() {
 				// SudoCallback left nil because clientMsg is checked by 08-wasm before callbackFn is called.
-				clientMsg = &tmtypes.Misbehaviour{}
+				clientMsg = &cmttypes.Misbehaviour{}
 			},
-			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*tmtypes.Misbehaviour)(nil)),
+			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*cmttypes.Misbehaviour)(nil)),
 			nil,
 		},
 		{
@@ -234,10 +234,10 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 		{
 			"failure: invalid client message",
 			func() {
-				clientMsg = &tmtypes.Header{}
+				clientMsg = &cmttypes.Header{}
 				// we will not register the callback here because this test case does not reach the VM
 			},
-			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*tmtypes.Header)(nil)),
+			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*cmttypes.Header)(nil)),
 			nil,
 		},
 		{
