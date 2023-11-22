@@ -16,7 +16,11 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestSnapshotter() {
+<<<<<<< HEAD
 	gzippedContract, err := types.GzipIt([]byte("gzipped-contract"))
+=======
+	gzippedContract, err := types.GzipIt(wasmtesting.CreateMockContract([]byte("gzipped-contract")))
+>>>>>>> 2bd29c08 (Add a helper function to create a mock contract. (#5162))
 	suite.Require().NoError(err)
 
 	testCases := []struct {

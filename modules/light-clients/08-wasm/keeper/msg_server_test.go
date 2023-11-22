@@ -60,6 +60,23 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			types.ErrWasmEmptyCode,
 		},
 		{
+<<<<<<< HEAD
+=======
+			"fails with checksum",
+			func() {
+				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
+			},
+			errors.New("Wasm bytes do not not start with Wasm magic number"),
+		},
+		{
+			"fails with wasm code too large",
+			func() {
+				msg = types.NewMsgStoreCode(signer, wasmtesting.CreateMockContract([]byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))))
+			},
+			types.ErrWasmCodeTooLarge,
+		},
+		{
+>>>>>>> 2bd29c08 (Add a helper function to create a mock contract. (#5162))
 			"fails with unauthorized signer",
 			func() {
 				signer = suite.chainA.SenderAccount.GetAddress().String()
@@ -125,7 +142,11 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 	oldChecksum := sha256.Sum256(wasmtesting.Code)
 
+<<<<<<< HEAD
 	newByteCode := []byte("MockByteCode-TestMsgMigrateContract")
+=======
+	newByteCode := wasmtesting.CreateMockContract([]byte("MockByteCode-TestMsgMigrateContract"))
+>>>>>>> 2bd29c08 (Add a helper function to create a mock contract. (#5162))
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -324,9 +345,14 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 				expChecksums = []types.Checksum{}
 
 				for i := 0; i < 20; i++ {
+<<<<<<< HEAD
 					checksum := sha256.Sum256([]byte{byte(i)})
 
 					err := types.AddChecksum(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), ibcwasm.GetWasmStoreKey(), checksum[:])
+=======
+					mockCode := wasmtesting.CreateMockContract([]byte{byte(i)})
+					checksum, err := types.CreateChecksum(mockCode)
+>>>>>>> 2bd29c08 (Add a helper function to create a mock contract. (#5162))
 					suite.Require().NoError(err)
 
 					expChecksums = append(expChecksums, checksum[:])
