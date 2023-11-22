@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{})
 			},
-			errors.New("Wasm bytes nil or empty"),
+			types.ErrWasmEmptyCode,
 		},
 		{
 			"fails with checksum",

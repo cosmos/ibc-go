@@ -177,6 +177,7 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientSt
 	return result, nil
 }
 
+<<<<<<< HEAD
 // validatePostExecutionClientState validates that the contract has not many any invalid modifications
 // to the client state during execution. It ensures that
 // - the client state is still present
@@ -217,6 +218,8 @@ func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientStat
 	return clientState, nil
 }
 
+=======
+>>>>>>> 4bb8edd9 (Validate before calculating checksum, move private functions at end, add context to mockvm errors. (#5157))
 // wasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
 // wasmMigrate returns an error if:
 // - the contract migration returns an error
@@ -257,6 +260,46 @@ func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *C
 	}
 
 	return result, nil
+}
+
+// validatePostExecutionClientState validates that the contract has not many any invalid modifications
+// to the client state during execution. It ensures that
+// - the client state is still present
+// - the client state can be unmarshaled successfully.
+// - the client state is of type *ClientState
+func validatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
+	key := host.ClientStateKey()
+	_, ok := clientStore.(migrateClientWrappedStore)
+	if ok {
+		key = append(subjectPrefix, key...)
+	}
+
+	bz := clientStore.Get(key)
+	if len(bz) == 0 {
+		return nil, errorsmod.Wrap(ErrWasmInvalidContractModification, types.ErrClientNotFound.Error())
+	}
+
+	clientState, err := unmarshalClientState(cdc, bz)
+	if err != nil {
+		return nil, errorsmod.Wrap(ErrWasmInvalidContractModification, err.Error())
+	}
+
+	cs, ok := clientState.(*ClientState)
+	if !ok {
+		return nil, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected client state type %T, got %T", (*ClientState)(nil), clientState)
+	}
+
+	return cs, nil
+}
+
+// unmarshalClientState unmarshals the client state from the given bytes.
+func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientState, error) {
+	var clientState exported.ClientState
+	if err := cdc.UnmarshalInterface(bz, &clientState); err != nil {
+		return nil, err
+	}
+
+	return clientState, nil
 }
 
 // getEnv returns the state of the blockchain environment the contract is running on
