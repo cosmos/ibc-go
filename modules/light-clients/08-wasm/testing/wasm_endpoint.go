@@ -30,7 +30,7 @@ func (endpoint *WasmEndpoint) CreateClient() error {
 	require.NoError(endpoint.Chain.TB, err)
 
 	clientState := types.NewClientState(contractClientState, checksum, clienttypes.NewHeight(0, 1))
-	consensusState := types.NewConsensusState(contractConsensusState, 0)
+	consensusState := types.NewConsensusState(contractConsensusState)
 
 	msg, err := clienttypes.NewMsgCreateClient(
 		clientState, consensusState, endpoint.Chain.SenderAccount.GetAddress().String(),
