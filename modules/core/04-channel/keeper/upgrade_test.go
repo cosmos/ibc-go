@@ -1202,11 +1202,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		errorReceipt      types.ErrorReceipt
 		errorReceiptProof []byte
 		proofHeight       clienttypes.Height
-		sender            string
-		authority         string
+		isAuthority       bool
 	)
-
-	const invalidMessage = "different message"
 
 	tests := []struct {
 		name     string
@@ -1238,9 +1235,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
 
-				errorReceipt.Message = invalidMessage
+				errorReceipt.Message = ibctesting.InvalidID
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
 				suite.coordinator.CommitBlock(suite.chainB)
+
+				isAuthority = true
 			},
 			expError: nil,
 		},
@@ -1294,24 +1293,23 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
 
-				errorReceipt.Message = invalidMessage
+				errorReceipt.Message = ibctesting.InvalidID
 
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
-
 				suite.coordinator.CommitBlock(suite.chainB)
+
+				isAuthority = true
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
 		{
 			name: "sender is not authority, error verification failed",
 			malleate: func() {
-				authority = ibctesting.TestAccAddress
-
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
 
-				errorReceipt.Message = invalidMessage
+				errorReceipt.Message = ibctesting.InvalidID
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
 				suite.coordinator.CommitBlock(suite.chainB)
 			},
@@ -1362,11 +1360,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			channel.State = types.FLUSHCOMPLETE
 			path.EndpointA.SetChannel(channel)
 
-			authority = sender
-
 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight, sender, authority)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight, isAuthority)
 
 			expPass := tc.expError == nil
 			if expPass {
