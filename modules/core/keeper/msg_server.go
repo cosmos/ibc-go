@@ -1018,7 +1018,8 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	if err := k.ChannelKeeper.ChanUpgradeCancel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt, msg.ProofErrorReceipt, msg.ProofHeight, msg.Signer); err != nil {
+	isAuthority := k.GetAuthority() == msg.Signer
+	if err := k.ChannelKeeper.ChanUpgradeCancel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt, msg.ProofErrorReceipt, msg.ProofHeight, isAuthority); err != nil {
 		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "error", err.Error())
 		return nil, errorsmod.Wrap(err, "channel upgrade cancel failed")
 	}
