@@ -309,7 +309,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 			suite.Require().NoError(err)
 
 			clientState = types.NewClientState([]byte{1}, checksum, clienttypes.NewHeight(0, 1))
-			consensusState = types.NewConsensusState([]byte{2}, 0)
+			consensusState = types.NewConsensusState([]byte{2})
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
