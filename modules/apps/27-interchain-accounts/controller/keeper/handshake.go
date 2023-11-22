@@ -180,7 +180,7 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, con
 // OnChanUpgradeAck implements the ack setup of the channel upgrade handshake.
 func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 	if strings.TrimSpace(counterpartyVersion) == "" {
-		return errorsmod.Wrap(icatypes.ErrInvalidVersion, "counterparty version cannot be empty")
+		return errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
 	}
 
 	metadata, err := icatypes.ParseMedataFromString(counterpartyVersion)
@@ -199,7 +199,7 @@ func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpart
 	}
 
 	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, nil, metadata); err != nil {
-		return nil
+		return err
 	}
 
 	// the interchain account address on the host chain

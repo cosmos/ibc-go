@@ -666,3 +666,164 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
+	const (
+		invalidVersion = "invalid-version"
+	)
+
+	var (
+		path                *ibctesting.Path
+		metadata            icatypes.Metadata
+		counterpartyVersion string
+	)
+
+	// updateMetadata is a helper function which modifies the metadata stored in the channel version
+	// and marshals it into a string to passed to OnChanUpgradeAck as the counterpartyVersion string.
+	updateMetadata := func(modificationFn func(*icatypes.Metadata)) {
+		metadata, err := icatypes.ParseMedataFromString(path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version)
+		suite.Require().NoError(err)
+		modificationFn(&metadata)
+		counterpartyVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+	}
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			name: "failure: invalid port ID",
+			malleate: func() {
+				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
+			},
+			expError: channeltypes.ErrChannelNotFound,
+		},
+		{
+			name: "failure: empty counterparty version",
+			malleate: func() {
+				counterpartyVersion = ""
+			},
+			expError: channeltypes.ErrInvalidChannelVersion,
+		},
+		{
+			name: "failure: invalid counterparty version",
+			malleate: func() {
+				counterpartyVersion = invalidVersion
+			},
+			expError: icatypes.ErrUnknownDataType,
+		},
+		{
+			name: "failure: invalid encoding",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Encoding = "invalid-encoding"
+				})
+			},
+			expError: icatypes.ErrInvalidCodec,
+		},
+		{
+			name: "failure: invalid tx type",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.TxType = "invalid-tx-type"
+				})
+			},
+			expError: icatypes.ErrUnknownDataType,
+		},
+		{
+			name: "failure: invalid version",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Version = invalidVersion
+				})
+			},
+			expError: icatypes.ErrInvalidVersion,
+		},
+		{
+			name: "failure: change address",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Address = "different-address"
+				})
+			},
+			expError: icatypes.ErrInvalidAccountAddress,
+		},
+		{
+			name: "failure: change controller connection ID",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.ControllerConnectionId = differentConnectionID
+				})
+			},
+			expError: connectiontypes.ErrInvalidConnectionIdentifier,
+		},
+		{
+			name: "failure: change host connection ID",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.HostConnectionId = differentConnectionID
+				})
+			},
+			expError: connectiontypes.ErrInvalidConnectionIdentifier,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			channel := path.EndpointA.GetChannel()
+
+			currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+			suite.Require().NoError(err)
+
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			// use the same address as the previous metadata.
+			metadata.Address = currentMetadata.Address
+
+			// this is the actual change to the version.
+			metadata.Encoding = icatypes.EncodingProto3JSON
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+
+			err = path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			counterpartyVersion = path.EndpointB.GetChannel().Version
+
+			tc.malleate() // malleate mutates test data
+
+			err = suite.chainA.GetSimApp().ICAControllerKeeper.OnChanUpgradeAck(
+				suite.chainA.GetContext(),
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				counterpartyVersion,
+			)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
