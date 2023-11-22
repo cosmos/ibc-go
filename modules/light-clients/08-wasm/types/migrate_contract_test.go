@@ -103,8 +103,16 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
+<<<<<<< HEAD
 			oldHash = sha256.Sum256(wasmtesting.Code)
 			newHash = sha256.Sum256([]byte{1, 2, 3})
+=======
+			var err error
+			oldHash, err = types.CreateChecksum(wasmtesting.Code)
+			suite.Require().NoError(err)
+			newHash, err = types.CreateChecksum(wasmtesting.CreateMockContract([]byte{1, 2, 3}))
+			suite.Require().NoError(err)
+>>>>>>> 2bd29c08 (Add a helper function to create a mock contract. (#5162))
 
 			err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash[:])
 			suite.Require().NoError(err)
