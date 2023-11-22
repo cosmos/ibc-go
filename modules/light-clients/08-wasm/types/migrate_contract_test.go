@@ -105,7 +105,7 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 			var err error
 			oldHash, err = types.CreateChecksum(wasmtesting.Code)
 			suite.Require().NoError(err)
-			newHash, err = types.CreateChecksum(append(wasmtesting.WasmMagicNumber, []byte{1, 2, 3}...))
+			newHash, err = types.CreateChecksum(wasmtesting.CreateMockContract([]byte{1, 2, 3}))
 			suite.Require().NoError(err)
 
 			err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash)
