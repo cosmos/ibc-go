@@ -130,7 +130,7 @@ type MockWasmEngine struct {
 // StoreCode implements the WasmEngine interface.
 func (m *MockWasmEngine) StoreCode(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
 	if m.StoreCodeFn == nil {
-		panic("mock engine is not properly initialized")
+		panic(errors.New("mock engine is not properly initialized: StoreCodeFn is nil"))
 	}
 	return m.StoreCodeFn(code)
 }
@@ -146,7 +146,7 @@ func (m *MockWasmEngine) StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checks
 // Instantiate implements the WasmEngine interface.
 func (m *MockWasmEngine) Instantiate(checksum wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 	if m.InstantiateFn == nil {
-		panic("mock engine is not properly initialized")
+		panic(errors.New("mock engine is not properly initialized: InstantiateFn is nil"))
 	}
 	return m.InstantiateFn(checksum, env, info, initMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
@@ -157,7 +157,7 @@ func (m *MockWasmEngine) Query(checksum wasmvm.Checksum, env wasmvmtypes.Env, qu
 
 	callbackFn, ok := m.queryCallbacks[msgTypeName]
 	if !ok {
-		panic(fmt.Errorf("no callback specified for %s", msgTypeName))
+		panic(fmt.Errorf("mock engine is not properly initialized: no callback specified for %s", msgTypeName))
 	}
 
 	return callbackFn(checksum, env, queryMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
@@ -166,7 +166,7 @@ func (m *MockWasmEngine) Query(checksum wasmvm.Checksum, env wasmvmtypes.Env, qu
 // Migrate implements the WasmEngine interface.
 func (m *MockWasmEngine) Migrate(checksum wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 	if m.MigrateFn == nil {
-		panic("mock engine is not properly initialized")
+		panic(errors.New("mock engine is not properly initialized: MigrateFn is nil"))
 	}
 	return m.MigrateFn(checksum, env, migrateMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
 }
@@ -177,7 +177,7 @@ func (m *MockWasmEngine) Sudo(checksum wasmvm.Checksum, env wasmvmtypes.Env, sud
 
 	sudoFn, ok := m.sudoCallbacks[msgTypeName]
 	if !ok {
-		panic(fmt.Errorf("no callback specified for %s", msgTypeName))
+		panic(fmt.Errorf("mock engine is not properly initialized: no callback specified for %s", msgTypeName))
 	}
 
 	return sudoFn(checksum, env, sudoMsg, store, goapi, querier, gasMeter, gasLimit, deserCost)
@@ -186,7 +186,7 @@ func (m *MockWasmEngine) Sudo(checksum wasmvm.Checksum, env wasmvmtypes.Env, sud
 // GetCode implements the WasmEngine interface.
 func (m *MockWasmEngine) GetCode(checksum wasmvm.Checksum) (wasmvm.WasmCode, error) {
 	if m.GetCodeFn == nil {
-		panic("mock engine is not properly initialized")
+		panic(errors.New("mock engine is not properly initialized: GetCodeFn is nil"))
 	}
 	return m.GetCodeFn(checksum)
 }
@@ -194,7 +194,7 @@ func (m *MockWasmEngine) GetCode(checksum wasmvm.Checksum) (wasmvm.WasmCode, err
 // Pin implements the WasmEngine interface.
 func (m *MockWasmEngine) Pin(checksum wasmvm.Checksum) error {
 	if m.PinFn == nil {
-		panic("mock engine is not properly initialized")
+		panic(errors.New("mock engine is not properly initialized: PinFn is nil"))
 	}
 	return m.PinFn(checksum)
 }
@@ -202,7 +202,7 @@ func (m *MockWasmEngine) Pin(checksum wasmvm.Checksum) error {
 // Unpin implements the WasmEngine interface.
 func (m *MockWasmEngine) Unpin(checksum wasmvm.Checksum) error {
 	if m.UnpinFn == nil {
-		panic("mock engine is not properly initialized")
+		panic(errors.New("mock engine is not properly initialized: UnpinFn is nil"))
 	}
 	return m.UnpinFn(checksum)
 }
