@@ -103,7 +103,7 @@ See section [Definitions](https://github.com/cosmos/ibc/tree/main/spec/app/ics-0
 
 | ID  | Description | Verification | Status |
 | --- | ----------- | ------------ | ------ |
-| 5.01 | Fee distribution shall occurr on the source chain from which packets originate. | Either in [`OnAcknowledgementPacket`](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/ibc_middleware.go#L288) or in [`OnTimeoutPacket`](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/ibc_middleware.go#L330). | `Verified` |
+| 5.01 | Fee distribution shall occur on the source chain from which packets originate. | Either in [`OnAcknowledgementPacket`](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/ibc_middleware.go#L288) or in [`OnTimeoutPacket`](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/ibc_middleware.go#L330). | `Verified` |
 
 #### `OnAcknowledgementPacket`
 

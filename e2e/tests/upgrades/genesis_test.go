@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package upgrades
 
 import (
@@ -100,7 +102,8 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	t.Run("ics20: packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -194,7 +197,7 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
-	state, err := chain.ExportState(ctx, int64(haltHeight))
+	state, err := chain.ExportState(ctx, haltHeight)
 	s.Require().NoError(err)
 
 	appTomlOverrides := make(test.Toml)

@@ -273,7 +273,7 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc
 // StartRelayer starts the given ibcrelayer.
 func (s *E2ETestSuite) StartRelayer(ibcrelayer ibc.Relayer) {
 	if s.startRelayerFn == nil {
-		panic(errors.New("cannot start relayer before it is created!"))
+		panic(errors.New("cannot start relayer before it is created"))
 	}
 
 	s.startRelayerFn(ibcrelayer)
@@ -306,13 +306,22 @@ func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc
 // GetChainANativeBalance gets the balance of a given user on chain A.
 func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	chainA, _ := s.GetChains()
-	return GetNativeChainBalance(ctx, chainA, user)
+
+	balance, err := s.QueryBalance(ctx, chainA, user.FormattedAddress(), chainA.Config().Denom)
+	if err != nil {
+		return 0, err
+	}
+	return balance.Int64(), nil
 }
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
 func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
 	_, chainB := s.GetChains()
-	return GetNativeChainBalance(ctx, chainB, user)
+	balance, err := s.QueryBalance(ctx, chainB, user.FormattedAddress(), chainB.Config().Denom)
+	if err != nil {
+		return -1, err
+	}
+	return balance.Int64(), nil
 }
 
 // GetChainGRCPClients gets the GRPC clients associated with the given chain.
@@ -395,15 +404,6 @@ func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain *cosmos.Cosmo
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err)
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), height+1000)
-}
-
-// GetNativeChainBalance returns the balance of a specific user on a chain using the native denom.
-func GetNativeChainBalance(ctx context.Context, chain ibc.Chain, user ibc.Wallet) (int64, error) {
-	bal, err := chain.GetBalance(ctx, user.FormattedAddress(), chain.Config().Denom)
-	if err != nil {
-		return -1, err
-	}
-	return bal.Int64(), nil
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel

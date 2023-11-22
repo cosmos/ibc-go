@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
@@ -85,15 +86,15 @@ func (s *E2ETestSuite) InitGRPCClients(chain *cosmos.CosmosChain) {
 		FeeQueryClient:           feetypes.NewQueryClient(grpcConn),
 		ICAControllerQueryClient: controllertypes.NewQueryClient(grpcConn),
 		ICAHostQueryClient:       hosttypes.NewQueryClient(grpcConn),
-		BankQueryClient:        banktypes.NewQueryClient(grpcConn),
-		GovQueryClient:         govtypesv1beta1.NewQueryClient(grpcConn),
-		GovQueryClientV1:       govtypesv1.NewQueryClient(grpcConn),
-		GroupsQueryClient:      grouptypes.NewQueryClient(grpcConn),
-		ParamsQueryClient:      paramsproposaltypes.NewQueryClient(grpcConn),
-		AuthQueryClient:        authtypes.NewQueryClient(grpcConn),
-		AuthZQueryClient:       authz.NewQueryClient(grpcConn),
-		ConsensusServiceClient: cmtservice.NewServiceClient(grpcConn),
-		UpgradeQueryClient:     upgradetypes.NewQueryClient(grpcConn),
+		BankQueryClient:          banktypes.NewQueryClient(grpcConn),
+		GovQueryClient:           govtypesv1beta1.NewQueryClient(grpcConn),
+		GovQueryClientV1:         govtypesv1.NewQueryClient(grpcConn),
+		GroupsQueryClient:        grouptypes.NewQueryClient(grpcConn),
+		ParamsQueryClient:        paramsproposaltypes.NewQueryClient(grpcConn),
+		AuthQueryClient:          authtypes.NewQueryClient(grpcConn),
+		AuthZQueryClient:         authz.NewQueryClient(grpcConn),
+		ConsensusServiceClient:   cmtservice.NewServiceClient(grpcConn),
+		UpgradeQueryClient:       upgradetypes.NewQueryClient(grpcConn),
 	}
 }
 
@@ -260,6 +261,20 @@ func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Cha
 		return "", err
 	}
 	return res.CounterpartyPayee, nil
+}
+
+// QueryBalance returns the balance of a specific denomination for a given account by address.
+func (s *E2ETestSuite) QueryBalance(ctx context.Context, chain ibc.Chain, address string, denom string) (math.Int, error) {
+	queryClient := s.GetChainGRCPClients(chain).BankQueryClient
+	res, err := queryClient.Balance(ctx, &banktypes.QueryBalanceRequest{
+		Address: address,
+		Denom:   denom,
+	})
+	if err != nil {
+		return math.Int{}, err
+	}
+
+	return res.Balance.Amount, nil
 }
 
 // QueryProposalV1Beta1 queries the governance proposal on the given chain with the given proposal ID.
