@@ -229,3 +229,40 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestInitializePinnedCodes() {
+	suite.SetupWasmWithMockVM()
+	var capturedChecksums []wasmvm.Checksum
+
+	suite.mockVM.PinFn = func(checksum wasmvm.Checksum) error {
+		capturedChecksums = append(capturedChecksums, checksum)
+		return nil
+	}
+
+	gzippedContract, err := types.GzipIt(append(wasmtesting.WasmMagicNumber, []byte("gzipped-contract")...))
+	suite.Require().NoError(err)
+
+	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
+
+	contracts := [][]byte{wasmtesting.Code, gzippedContract}
+	checksumIDs := make([]types.Checksum, len(contracts))
+
+	wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+	// store contract on chain
+	for i, contract := range contracts {
+		signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+		msg := types.NewMsgStoreCode(signer, contract)
+
+		res, err := wasmClientKeeper.StoreCode(ctx, msg)
+		suite.Require().NoError(err)
+
+		checksumIDs[i] = res.Checksum
+	}
+
+	capturedChecksums = nil
+
+	gotErr := wasmClientKeeper.InitializePinnedCodes(ctx)
+	suite.NoError(gotErr)
+
+	suite.ElementsMatch(checksumIDs, capturedChecksums)
+}
