@@ -545,7 +545,7 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 }
 
 // ChanUpgradeCancel is called by a module to cancel a channel upgrade that is in progress.
-func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt, errorReceiptProof []byte, proofHeight clienttypes.Height, signer string) error {
+func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt, errorReceiptProof []byte, proofHeight clienttypes.Height, isAuthority bool) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -563,7 +563,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
 	// then we can restore immediately without any additional checks
 	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
-	if k.isAuthorizedUpgrader(signer) && channel.State != types.FLUSHCOMPLETE {
+	if isAuthority && channel.State != types.FLUSHCOMPLETE {
 		return nil
 	}
 
@@ -593,13 +593,6 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 	}
 
 	return nil
-}
-
-// isAuthorizedUpgrader checks if the sender is authorized to cancel the upgrade.
-func (Keeper) isAuthorizedUpgrader(signer string) bool {
-	// TODO: the authority is only available on the core ibc keeper at the moment.
-	// return k.GetAuthority() == signer
-	return true
 }
 
 // WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process.Auxiliary upgrade state is
