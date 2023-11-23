@@ -54,13 +54,14 @@ func NewSimApp(
     ...
     wasmtypes.StoreKey,
   ) 
-   // Instantiate 08-wasm's keeper
-   // This sample code uses a constructor function that
-   // accepts a pointer to an existing instance of Wasm VM.
-   // This is the recommended approach when the chain
-   // also uses `x/wasm`, and then the Wasm VM instance
-   // can be shared.
-   // See the section below for more information.
+
+  // Instantiate 08-wasm's keeper
+  // This sample code uses a constructor function that
+  // accepts a pointer to an existing instance of Wasm VM.
+  // This is the recommended approach when the chain
+  // also uses `x/wasm`, and then the Wasm VM instance
+  // can be shared.
+  // See the section below for more information.
   app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
     appCodec,
     runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
@@ -106,6 +107,17 @@ func NewSimApp(
     }
   }
   ...
+
+  if loadLatest {
+		...
+
+    ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
+
+		// Initialize pinned codes in wasmvm as they are not persisted there
+		if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
+			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
+		}
+	}
 }
 ```
 
@@ -245,4 +257,8 @@ Or alternatively the parameter can be updated via a governance proposal (see at 
 
 ## Adding snapshot support
 
-In order to use the `08-wasm` module chains are required to register the `WasmSnapshotter` extension in the snapshot manager. This snapshotter takes care of persisting the external state, in the form of contract code, of the Wasm VM instance to disk when the chain is snapshotted.
+In order to use the `08-wasm` module chains are required to register the `WasmSnapshotter` extension in the snapshot manager. This snapshotter takes care of persisting the external state, in the form of contract code, of the Wasm VM instance to disk when the chain is snapshotted. [This code](https://github.com/cosmos/ibc-go/blob/2bd29c08fd1fe50b461fc33a25735aa792dc896e/modules/light-clients/08-wasm/testing/simapp/app.go#L768-L776) should be placed in `NewSimApp` function in `app.go`:
+
+## Pin byte codes at start
+
+Wasm byte codes should be pinned to the WasmVM cache on every application start, therefore [this code](https://github.com/cosmos/ibc-go/blob/0ed221f687ffce75984bc57402fd678e07aa6cc5/modules/light-clients/08-wasm/testing/simapp/app.go#L821-L826) should be placed in `NewSimApp` function in `app.go`.
