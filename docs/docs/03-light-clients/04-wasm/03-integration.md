@@ -18,6 +18,8 @@ The sample code below shows the relevant integration points in `app.go` required
 import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
+  
+  tmos "github.com/cometbft/cometbft/libs/os"
 
   wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
   wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
