@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
@@ -24,11 +24,11 @@ func TestSignVote(t *testing.T) {
 	pv := mock.NewPV()
 	pk, _ := pv.GetPubKey()
 
-	vote := &tmproto.Vote{Height: 2}
+	vote := &cmtproto.Vote{Height: 2}
 	err := pv.SignVote(chainID, vote)
 	require.NoError(t, err)
 
-	msg := tmtypes.VoteSignBytes(chainID, vote)
+	msg := cmttypes.VoteSignBytes(chainID, vote)
 	ok := pk.VerifySignature(msg, vote.Signature)
 	require.True(t, ok)
 }
@@ -37,11 +37,11 @@ func TestSignProposal(t *testing.T) {
 	pv := mock.NewPV()
 	pk, _ := pv.GetPubKey()
 
-	proposal := &tmproto.Proposal{Round: 2}
+	proposal := &cmtproto.Proposal{Round: 2}
 	err := pv.SignProposal(chainID, proposal)
 	require.NoError(t, err)
 
-	msg := tmtypes.ProposalSignBytes(chainID, proposal)
+	msg := cmttypes.ProposalSignBytes(chainID, proposal)
 	ok := pk.VerifySignature(msg, proposal.Signature)
 	require.True(t, ok)
 }

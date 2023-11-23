@@ -7,7 +7,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
@@ -15,7 +15,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestSnapshotter() {
-	gzippedContract, err := types.GzipIt(append(wasmtesting.WasmMagicNumber, []byte("gzipped-contract")...))
+	gzippedContract, err := types.GzipIt(wasmtesting.CreateMockContract([]byte("gzipped-contract")))
 	suite.Require().NoError(err)
 
 	testCases := []struct {
@@ -39,7 +39,7 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 			t := suite.T()
 			wasmClientApp := suite.SetupSnapshotterWithMockVM()
 
-			ctx := wasmClientApp.NewUncachedContext(false, tmproto.Header{
+			ctx := wasmClientApp.NewUncachedContext(false, cmtproto.Header{
 				ChainID: "foo",
 				Height:  wasmClientApp.LastBlockHeight() + 1,
 				Time:    time.Now(),
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 
 			// setup dest app with snapshot imported
 			destWasmClientApp := simapp.SetupWithEmptyStore(t, suite.mockVM)
-			destCtx := destWasmClientApp.NewUncachedContext(false, tmproto.Header{
+			destCtx := destWasmClientApp.NewUncachedContext(false, cmtproto.Header{
 				ChainID: "bar",
 				Height:  destWasmClientApp.LastBlockHeight() + 1,
 				Time:    time.Now(),
@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 
 			var allDestAppChecksumsInWasmVMStore []byte
 			// check wasm contracts are imported
-			ctx = destWasmClientApp.NewUncachedContext(false, tmproto.Header{
+			ctx = destWasmClientApp.NewUncachedContext(false, cmtproto.Header{
 				ChainID: "foo",
 				Height:  destWasmClientApp.LastBlockHeight() + 1,
 				Time:    time.Now(),

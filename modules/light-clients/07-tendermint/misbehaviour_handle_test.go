@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -22,10 +22,10 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 	suite.Require().NoError(err)
 
 	// create modified heights to use for test-cases
-	altVal := tmtypes.NewValidator(altPubKey, 100)
+	altVal := cmttypes.NewValidator(altPubKey, 100)
 
 	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
+	altValSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{altVal})
 	altSigners := getAltSigners(altVal, altPrivVal)
 
 	var (
@@ -194,7 +194,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 				// Create bothValSet with both suite validator and altVal
-				bothValSet := tmtypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altValSet.Proposer))
+				bothValSet := cmttypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altValSet.Proposer))
 				bothSigners := suite.chainB.Signers
 				bothSigners[altValSet.Proposer.Address.String()] = altPrivVal
 
@@ -370,10 +370,10 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 	suite.Require().NoError(err)
 
 	// create modified heights to use for test-cases
-	altVal := tmtypes.NewValidator(altPubKey, 100)
+	altVal := cmttypes.NewValidator(altPubKey, 100)
 
 	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
+	altValSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{altVal})
 	altSigners := getAltSigners(altVal, altPrivVal)
 
 	var (
@@ -481,7 +481,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 				height := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 				// Create bothValSet with both suite validator and altVal
-				bothValSet := tmtypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altValSet.Proposer))
+				bothValSet := cmttypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altValSet.Proposer))
 				bothSigners := suite.chainB.Signers
 				bothSigners[altValSet.Proposer.Address.String()] = altPrivVal
 

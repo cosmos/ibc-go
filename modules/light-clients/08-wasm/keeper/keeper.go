@@ -101,6 +101,11 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 		}
 	}
 
+	// run the code through the wasm light client validation process
+	if err := types.ValidateWasmCode(code); err != nil {
+		return nil, errorsmod.Wrap(err, "wasm bytecode validation failed")
+	}
+
 	// Check to see if store already has checksum.
 	checksum, err := types.CreateChecksum(code)
 	if err != nil {
@@ -109,11 +114,6 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	if types.HasChecksum(ctx, checksum) {
 		return nil, types.ErrWasmCodeExists
-	}
-
-	// run the code through the wasm light client validation process
-	if err := types.ValidateWasmCode(code); err != nil {
-		return nil, errorsmod.Wrap(err, "wasm bytecode validation failed")
 	}
 
 	// create the code in the vm
