@@ -109,15 +109,15 @@ func NewSimApp(
   ...
 
   if loadLatest {
-		...
+    ...
 
     ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
 
-		// Initialize pinned codes in wasmvm as they are not persisted there
-		if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
-			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
-		}
-	}
+    // Initialize pinned codes in wasmvm as they are not persisted there
+    if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
+      tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
+    }
+  }
 }
 ```
 
