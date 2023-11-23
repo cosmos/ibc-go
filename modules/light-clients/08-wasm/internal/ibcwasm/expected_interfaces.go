@@ -15,6 +15,13 @@ type WasmEngine interface {
 	// It does the same as StoreCodeUnchecked plus the static checks.
 	StoreCode(code wasmvm.WasmCode) (wasmvm.Checksum, error)
 
+	// Create will compile the wasm code, and store the resulting pre-compile
+	// as well as the original code. Both can be referenced later via checksum
+	// This must be done one time for given code, after which it can be
+	// instatitated many times, and each instance called many times.
+	// It does the same as StoreCode but without the static checks.
+	StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checksum, error)
+
 	// Instantiate will create a new contract based on the given checksum.
 	// We can set the initMsg (contract "genesis") here, and it then receives
 	// an account and address and can be invoked (Execute) many times.
