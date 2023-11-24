@@ -220,6 +220,7 @@ Closing a channel occurs in 2 handshake steps as defined in [ICS 04](https://git
 Once a channel is closed, it cannot be reopened. The channel handshake steps are:
 
 **`ChanCloseInit`** closes a channel on the executing chain if
+
 - the channel exists and it is not already closed,
 - the connection it exists upon is OPEN,
 - the [IBC module callback `OnChanCloseInit`](./03-apps/02-ibcmodule.md#channel-closing-callbacks) returns `nil`.
@@ -230,6 +231,7 @@ A timeout on an `ORDERED` channel skips the `ChanCloseInit` step and immediately
 
 **`ChanCloseConfirm`** is a response to a counterparty channel executing `ChanCloseInit`. The channel
 on the executing chain closes if
+
 - the channel exists and is not already closed,
 - the connection the channel exists upon is OPEN,
 - the executing chain successfully verifies that the counterparty channel has been closed
