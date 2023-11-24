@@ -11,7 +11,7 @@ import (
 // state.
 func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 	for _, contract := range gs.Contracts {
-		_, err := k.storeWasmCode(ctx, contract.CodeBytes)
+		err := k.importWasmCode(ctx, contract.CodeBytes)
 		if err != nil {
 			return err
 		}
