@@ -13,6 +13,7 @@ const (
 	AttributeKeyClientType        = "client_type"
 	AttributeKeyConsensusHeight   = "consensus_height"
 	AttributeKeyConsensusHeights  = "consensus_heights"
+	AttributeKeyHeaderHash        = "header_hash"
 	AttributeKeyUpgradeStore      = "upgrade_store"
 	AttributeKeyUpgradePlanHeight = "upgrade_plan_height"
 	AttributeKeyUpgradePlanTitle  = "title"

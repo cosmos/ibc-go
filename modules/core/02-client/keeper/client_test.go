@@ -1,11 +1,14 @@
 package keeper_test
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -519,6 +522,18 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	// first event type is "message", followed by 3 "tx" events in ante
 	updateEvent := result.Events[4]
 	suite.Require().Equal(clienttypes.EventTypeUpdateClient, updateEvent.Type)
+	var hasHeaderHash bool
+	for _, attr := range updateEvent.Attributes {
+		if attr.Key == clienttypes.AttributeKeyHeaderHash {
+			hasHeaderHash = true
+			b := types.MustMarshalClientMessage(suite.chainA.App.AppCodec(), header)
+			hasher := sha1.New()
+			hasher.Write(b)
+			headerHash := hex.EncodeToString(hasher.Sum(nil))
+			suite.Require().Equal(headerHash, attr.Value)
+		}
+	}
+	suite.Require().True(hasHeaderHash)
 }
 
 func (suite *KeeperTestSuite) TestRecoverClient() {

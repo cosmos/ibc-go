@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -31,7 +33,11 @@ func emitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 }
 
 // emitUpdateClientEvent emits an update client event
-func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, _ codec.BinaryCodec, _ exported.ClientMessage) {
+func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
+	b := types.MustMarshalClientMessage(cdc, clientMsg)
+	hasher := sha1.New()
+	hasher.Write(b)
+	headerHash := hex.EncodeToString(hasher.Sum(nil))
 	var consensusHeightAttr string
 	if len(consensusHeights) != 0 {
 		consensusHeightAttr = consensusHeights[0].String()
@@ -51,6 +57,7 @@ func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 			// Please use AttributeKeyConsensusHeights instead.
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
+			sdk.NewAttribute(types.AttributeKeyHeaderHash, headerHash),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
