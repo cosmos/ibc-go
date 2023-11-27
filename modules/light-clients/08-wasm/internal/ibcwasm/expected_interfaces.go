@@ -8,7 +8,7 @@ import (
 var _ WasmEngine = (*wasmvm.VM)(nil)
 
 type WasmEngine interface {
-	// Create will compile the wasm code, and store the resulting pre-compile
+	// StoreCode will compile the wasm code, and store the resulting pre-compile
 	// as well as the original code. Both can be referenced later via checksum
 	// This must be done one time for given code, after which it can be
 	// instatitated many times, and each instance called many times.
