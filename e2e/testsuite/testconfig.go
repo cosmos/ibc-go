@@ -22,7 +22,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	tmjson "github.com/cometbft/cometbft/libs/json"
+	cmtjson "github.com/cometbft/cometbft/libs/json"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
@@ -560,7 +560,7 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 		// in older version < v8, tmjson marshal must be used.
 		// regular json marshalling must be used for v8 and above as the
 		// sdk is de-coupled from comet.
-		marshalIndentFn := tmjson.MarshalIndent
+		marshalIndentFn := cmtjson.MarshalIndent
 		if stdlibJSONMarshalling.IsSupported(version) {
 			marshalIndentFn = json.MarshalIndent
 		}

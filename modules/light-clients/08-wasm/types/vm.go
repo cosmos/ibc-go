@@ -32,7 +32,7 @@ var (
 )
 
 // instantiateContract calls vm.Instantiate with appropriate arguments.
-func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -55,7 +55,7 @@ func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, checks
 }
 
 // callContract calls vm.Sudo with internally constructed gas meter and environment.
-func callContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func callContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -73,7 +73,7 @@ func callContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum []by
 }
 
 // migrateContract calls vm.Migrate with internally constructed gas meter and environment.
-func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum []byte, msg []byte) (*wasmvmtypes.Response, error) {
+func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -87,7 +87,7 @@ func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KV
 }
 
 // queryContract calls vm.Query.
-func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum []byte, msg []byte) ([]byte, error) {
+func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) ([]byte, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -142,7 +142,7 @@ func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storety
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload SudoMsg, clientStore storetypes.KVStore, cs *ClientState) (T, error) {
+func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -172,6 +172,48 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload 
 	// Checksum should only be able to be modified during migration.
 	if !bytes.Equal(checksum, newClientState.Checksum) {
 		return result, errorsmod.Wrapf(ErrWasmInvalidContractModification, "expected checksum %s, got %s", hex.EncodeToString(checksum), hex.EncodeToString(newClientState.Checksum))
+	}
+
+	return result, nil
+}
+
+// wasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
+// wasmMigrate returns an error if:
+// - the contract migration returns an error
+func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
+	resp, err := migrateContract(ctx, clientID, clientStore, cs.Checksum, payload)
+	if err != nil {
+		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
+	}
+
+	if err = checkResponse(resp); err != nil {
+		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
+	}
+
+	_, err = validatePostExecutionClientState(clientStore, cdc)
+	return err
+}
+
+// wasmQuery queries the contract with the given payload and returns the result.
+// wasmQuery returns an error if:
+// - the payload cannot be marshaled to JSON
+// - the contract query returns an error
+// - the data bytes of the response cannot be unmarshal into the result type
+func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload QueryMsg) (T, error) {
+	var result T
+
+	encodedData, err := json.Marshal(payload)
+	if err != nil {
+		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm query")
+	}
+
+	resp, err := queryContract(ctx, clientStore, cs.Checksum, encodedData)
+	if err != nil {
+		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
+	}
+
+	if err := json.Unmarshal(resp, &result); err != nil {
+		return result, errorsmod.Wrapf(ErrWasmInvalidResponseData, "failed to unmarshal result of wasm query: %v", err)
 	}
 
 	return result, nil
@@ -215,48 +257,6 @@ func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientStat
 	}
 
 	return clientState, nil
-}
-
-// wasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
-// wasmMigrate returns an error if:
-// - the contract migration returns an error
-func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
-	resp, err := migrateContract(ctx, clientID, clientStore, cs.Checksum, payload)
-	if err != nil {
-		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
-	}
-
-	if err = checkResponse(resp); err != nil {
-		return errorsmod.Wrapf(err, "checksum (%s)", hex.EncodeToString(cs.Checksum))
-	}
-
-	_, err = validatePostExecutionClientState(clientStore, cdc)
-	return err
-}
-
-// wasmQuery queries the contract with the given payload and returns the result.
-// wasmQuery returns an error if:
-// - the payload cannot be marshaled to JSON
-// - the contract query returns an error
-// - the data bytes of the response cannot be unmarshal into the result type
-func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload QueryMsg) (T, error) {
-	var result T
-
-	encodedData, err := json.Marshal(payload)
-	if err != nil {
-		return result, errorsmod.Wrap(err, "failed to marshal payload for wasm query")
-	}
-
-	resp, err := queryContract(ctx, clientStore, cs.Checksum, encodedData)
-	if err != nil {
-		return result, errorsmod.Wrap(ErrWasmContractCallFailed, err.Error())
-	}
-
-	if err := json.Unmarshal(resp, &result); err != nil {
-		return result, errorsmod.Wrapf(ErrWasmInvalidResponseData, "failed to unmarshal result of wasm query: %v", err)
-	}
-
-	return result, nil
 }
 
 // getEnv returns the state of the blockchain environment the contract is running on
