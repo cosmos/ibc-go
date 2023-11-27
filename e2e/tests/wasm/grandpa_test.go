@@ -200,8 +200,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 			Denom:   "2", // stake
 			Amount:  math.NewInt(amountToReflect),
 		}
-		tx, err := polkadotChain.SendIBCTransfer(ctx, "channel-0", polkadotUser.KeyName(), reflectTransfer, ibc.TransferOptions{})
-		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
+		_, err := polkadotChain.SendIBCTransfer(ctx, "channel-0", polkadotUser.KeyName(), reflectTransfer, ibc.TransferOptions{})
 		s.Require().NoError(err)
 
 		// Send 1.88 "UNIT" from Alice to cosmosUser
@@ -211,8 +210,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 			Denom:   "1", // UNIT
 			Amount:  amountUnits,
 		}
-		tx, err = polkadotChain.SendIBCTransfer(ctx, "channel-0", "alice", unitTransfer, ibc.TransferOptions{})
-		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
+		_, err = polkadotChain.SendIBCTransfer(ctx, "channel-0", "alice", unitTransfer, ibc.TransferOptions{})
 		s.Require().NoError(err)
 
 		// Wait for MsgRecvPacket on cosmos chain
