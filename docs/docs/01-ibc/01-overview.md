@@ -217,15 +217,27 @@ handshake; either `OnChanOpenInit` on the initializing chain or `OnChanOpenTry` 
 #### Closing channels
 
 Closing a channel occurs in 2 handshake steps as defined in [ICS 04](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics).
+Once a channel is closed, it cannot be reopened. The channel handshake steps are:
 
-`ChanCloseInit` closes a channel on the executing chain if the channel exists, it is not
-already closed and the connection it exists upon is OPEN. Channels can only be closed by a
-calling module or in the case of a packet timeout on an ORDERED channel.
+**`ChanCloseInit`** closes a channel on the executing chain if
 
-`ChanCloseConfirm` is a response to a counterparty channel executing `ChanCloseInit`. The channel
-on the executing chain closes if the channel exists, the channel is not already closed,
-the connection the channel exists upon is OPEN and the executing chain successfully verifies
-that the counterparty channel has been closed.
+- the channel exists and it is not already closed,
+- the connection it exists upon is OPEN,
+- the [IBC module callback `OnChanCloseInit`](./03-apps/02-ibcmodule.md#channel-closing-callbacks) returns `nil`.
+
+`ChanCloseInit` can be initiated by any user by submitting a `MsgChannelCloseInit` transaction. 
+Note that channels are automatically closed when a packet times out on an `ORDERED` channel.
+A timeout on an `ORDERED` channel skips the `ChanCloseInit` step and immediately closes the channel.
+
+**`ChanCloseConfirm`** is a response to a counterparty channel executing `ChanCloseInit`. The channel
+on the executing chain closes if
+
+- the channel exists and is not already closed,
+- the connection the channel exists upon is OPEN,
+- the executing chain successfully verifies that the counterparty channel has been closed
+- the [IBC module callback `OnChanCloseConfirm`](./03-apps/02-ibcmodule.md#channel-closing-callbacks) returns `nil`.
+
+Currently, none of the IBC applications provided in ibc-go support `ChanCloseInit`.
 
 ### [Packets](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
 
