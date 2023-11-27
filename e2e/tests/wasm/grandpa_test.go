@@ -27,6 +27,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 const (
@@ -116,9 +117,35 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		Amount:  math.NewInt(amountToSend),
 	}
 
+	pathName := s.GetPathName(0)
+
+	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
+	s.Require().NoError(err)
+
+	// Create new clients
+	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain) // these 1 block waits seem to be needed to reduce flakiness
+	s.Require().NoError(err)
+
+	// Create a new connection
+	err = r.CreateConnections(ctx, eRep, pathName)
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
+	s.Require().NoError(err)
+
+	// Create a new channel & get channels from each chain
+	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
+	s.Require().NoError(err)
+
+	// Start relayer
+	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
+
 	t.Run("IBC transfer from Cosmos chain to Polkadot parachain times out", func(t *testing.T) {
 		// Stop relayer
-		s.Require().NoError(relayer.StopRelayer(ctx, s.GetRelayerExecReporter()))
+		s.Require().NoError(r.StopRelayer(ctx, s.GetRelayerExecReporter()))
 
 		tx, err := cosmosChain.SendIBCTransfer(ctx, "channel-0", cosmosUser.KeyName(), transfer, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
 		s.Require().NoError(err)
@@ -132,7 +159,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		s.Require().Equal(expected, actualBalance.Int64())
 
 		// start relayer
-		s.Require().NoError(relayer.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPathName(0)))
+		s.Require().NoError(r.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPathName(0)))
 		err = testutil.WaitForBlocks(ctx, 15, polkadotChain, cosmosChain)
 		s.Require().NoError(err)
 
