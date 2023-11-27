@@ -141,7 +141,11 @@ func (im IBCModule) OnChanOpenConfirm(
 }
 ```
 
+### Channel closing callbacks
+
 The channel closing handshake will also invoke module callbacks that can return errors to abort the closing handshake. Closing a channel is a 2-step handshake, the initiating chain calls `ChanCloseInit` and the finalizing chain calls `ChanCloseConfirm`.
+
+Currently, all IBC modules in this repository return an error for `OnChanCloseInit` to prevent the channels from closing. This is because any user can call `ChanCloseInit` by submitting a `MsgChannelCloseInit` transaction.
 
 ```go
 // Called by IBC Handler on MsgCloseInit
