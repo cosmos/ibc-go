@@ -99,7 +99,7 @@ At this point, you should be able to see the ICS-29 fee UI in the app. See the d
 
 ## 3. Add the ICS-29 Fee to the transaction
 
-Since we will perform a `MultiMsgTx` and follow the [immediate incentivization flow](https://ibc.cosmos.network/v7.3.x/middleware/ics29-fee/msgs#escrowing-fees), we must import the required msg constructors from the `ts-client`.
+Since we will perform a `MultiMsgTx` and follow the [immediate incentivization flow](https://ibc.cosmos.network/v7/middleware/ics29-fee/msgs#escrowing-fees), we must import the required msg constructors from the `ts-client`.
 
 ```ts title="src/components/IgntSend.tsx"
 export default function IgntSend(props: IgntSendProps) {

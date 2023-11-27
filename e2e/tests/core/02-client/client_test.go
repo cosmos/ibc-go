@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -24,12 +23,12 @@ import (
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
-	tmjson "github.com/cometbft/cometbft/libs/json"
+	cmtjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/privval"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
-	tmtypes "github.com/cometbft/cometbft/types"
-	tmversion "github.com/cometbft/cometbft/version"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
+	cmttypes "github.com/cometbft/cometbft/types"
+	cmtversion "github.com/cometbft/cometbft/version"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -80,11 +79,11 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx)
+	_, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	const planHeight = int64(75)
+	const planHeight = int64(300)
 	const legacyPlanHeight = planHeight * 2
 	var newChainID string
 
@@ -177,7 +176,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx)
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
@@ -260,7 +259,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		relayer, _ = s.SetupChainsRelayerAndChannel(ctx)
+		relayer, _ = s.SetupChainsRelayerAndChannel(ctx, nil)
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
@@ -340,13 +339,13 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		latestHeight    clienttypes.Height
 		clientState     ibcexported.ClientState
 		header          testsuite.Header
-		signers         []tmtypes.PrivValidator
-		validatorSet    []*tmtypes.Validator
+		signers         []cmttypes.PrivValidator
+		validatorSet    []*cmttypes.Validator
 		maliciousHeader *ibctm.Header
 		err             error
 	)
 
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
@@ -402,7 +401,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 				pubKey, err := pv.GetPubKey()
 				s.Require().NoError(err)
 
-				validator := tmtypes.NewValidator(pubKey, validators[i].VotingPower)
+				validator := cmttypes.NewValidator(pubKey, validators[i].VotingPower)
 
 				validatorSet = append(validatorSet, validator)
 				signers = append(signers, pv)
@@ -411,7 +410,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("create malicious header", func(t *testing.T) {
-		valSet := tmtypes.NewValidatorSet(validatorSet)
+		valSet := cmttypes.NewValidatorSet(validatorSet)
 		maliciousHeader, err = createMaliciousTMHeader(chainB.Config().ChainID, int64(latestHeight.GetRevisionHeight()), trustedHeight,
 			header.GetTime(), valSet, valSet, signers, header)
 		s.Require().NoError(err)
@@ -466,7 +465,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(allowedClient))
 			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
 		} else {
-			value, err := tmjson.Marshal([]string{allowedClient})
+			value, err := cmtjson.Marshal([]string{allowedClient})
 			s.Require().NoError(err)
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(clienttypes.KeyAllowedClients), string(value)),
@@ -489,14 +488,14 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	})
 }
 
-// extractChainPrivateKeys returns a slice of tmtypes.PrivValidator which hold the private keys for all validator
+// extractChainPrivateKeys returns a slice of cmttypes.PrivValidator which hold the private keys for all validator
 // nodes for a given chain.
-func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *cosmos.CosmosChain) []tmtypes.PrivValidator {
+func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc.Chain) []cmttypes.PrivValidator {
 	testContainers, err := dockerutil.GetTestContainers(ctx, s.T(), s.DockerClient)
 	s.Require().NoError(err)
 
 	var filePvs []privval.FilePVKey
-	var pvs []tmtypes.PrivValidator
+	var pvs []cmttypes.PrivValidator
 	for _, container := range testContainers {
 		isNodeForDifferentChain := !strings.Contains(container.Names[0], chain.Config().ChainID)
 		isFullNode := strings.Contains(container.Names[0], fmt.Sprintf("%s-fn", chain.Config().ChainID))
@@ -509,7 +508,7 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *co
 		s.Require().NoError(err)
 
 		var filePV privval.FilePVKey
-		err = tmjson.Unmarshal(privKeyFileContents, &filePV)
+		err = cmtjson.Unmarshal(privKeyFileContents, &filePV)
 		s.Require().NoError(err)
 		filePvs = append(filePvs, filePV)
 	}
@@ -530,9 +529,9 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain *co
 }
 
 // createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
-func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *tmtypes.ValidatorSet, signers []tmtypes.PrivValidator, oldHeader testsuite.Header) (*ibctm.Header, error) {
-	tmHeader := tmtypes.Header{
-		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
+func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *cmttypes.ValidatorSet, signers []cmttypes.PrivValidator, oldHeader testsuite.Header) (*ibctm.Header, error) {
+	tmHeader := cmttypes.Header{
+		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
 		Height:             blockHeight,
 		Time:               timestamp,
@@ -550,14 +549,14 @@ func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight cl
 
 	hhash := tmHeader.Hash()
 	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte(invalidHashValue)))
-	voteSet := tmtypes.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
+	voteSet := cmttypes.NewVoteSet(chainID, blockHeight, 1, cmtproto.PrecommitType, tmValSet)
 
-	extCommit, err := tmtypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signers, timestamp, false)
+	extCommit, err := cmttypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signers, timestamp, false)
 	if err != nil {
 		return nil, err
 	}
 
-	signedHeader := &tmproto.SignedHeader{
+	signedHeader := &cmtproto.SignedHeader{
 		Header: tmHeader.ToProto(),
 		Commit: extCommit.ToCommit().ToProto(),
 	}

@@ -185,7 +185,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				msg := &govtypes.MsgSubmitProposal{
 					Content:        protoAny,
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000))),
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
 					Proposer:       interchainAccountAddr,
 				}
 
@@ -516,7 +516,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
 				suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
 
-				suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(10000))))
+				suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000000))))
 
 				tc.malleate(encoding) // malleate mutates test data
 
@@ -639,7 +639,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 								"title": "IBC Gov Proposal",
 								"description": "tokens for all!"
 							},
-							"initial_deposit": [{ "denom": "stake", "amount": "5000" }],
+							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
 						}
 					]
@@ -710,7 +710,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 								"title": "IBC Gov Proposal",
 								"description": "tokens for all!"
 							},
-							"initial_deposit": [{ "denom": "stake", "amount": "5000" }],
+							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
 						},
 						{

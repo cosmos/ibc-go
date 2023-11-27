@@ -51,7 +51,7 @@ For the latest information on the progress of the work or the decisions made tha
 
 ## Releases
 
-The release lines currently supported are v6 and v7.
+The release lines currently supported are v6, v7 and v8.
 
 Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
 
