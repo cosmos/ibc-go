@@ -3,7 +3,6 @@ package types_test
 import (
 	"encoding/json"
 	"errors"
-	"os"
 	"testing"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -17,9 +16,6 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	tmjson "github.com/cometbft/cometbft/libs/json"
-	tmtypes "github.com/cometbft/cometbft/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
@@ -41,8 +37,7 @@ type TypesTestSuite struct {
 	chainA      *ibctesting.TestChain
 	mockVM      *wasmtesting.MockWasmEngine
 
-	codeHash []byte
-	testData map[string]string
+	checksum []byte
 }
 
 func TestWasmTestSuite(t *testing.T) {
@@ -83,7 +78,7 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.codeHash = storeWasmCode(suite, wasmtesting.Code)
+	suite.checksum = storeWasmCode(suite, wasmtesting.Code)
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
@@ -117,72 +112,7 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 	return app, app.DefaultGenesis()
 }
 
-// SetupWasmGrandpa sets up 1 chain and stores the grandpa light client wasm contract on chain.
-func (suite *TypesTestSuite) SetupWasmGrandpa() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-
-	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-
-	testData, err := os.ReadFile("../test_data/data.json")
-	suite.Require().NoError(err)
-	err = json.Unmarshal(testData, &suite.testData)
-	suite.Require().NoError(err)
-
-	wasmContract, err := os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
-	suite.Require().NoError(err)
-
-	suite.codeHash = storeWasmCode(suite, wasmContract)
-}
-
-func SetupTestingWithChannel() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	db := dbm.NewMemDB()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
-	genesisState := app.DefaultGenesis()
-
-	bytes, err := os.ReadFile("../test_data/genesis.json")
-	if err != nil {
-		panic(err)
-	}
-
-	var genesis tmtypes.GenesisDoc
-	// NOTE: Tendermint uses a custom JSON decoder for GenesisDoc
-	err = tmjson.Unmarshal(bytes, &genesis)
-	if err != nil {
-		panic(err)
-	}
-
-	var appState map[string]json.RawMessage
-	err = json.Unmarshal(genesis.AppState, &appState)
-	if err != nil {
-		panic(err)
-	}
-
-	if appState[exported.ModuleName] != nil {
-		genesisState[exported.ModuleName] = appState[exported.ModuleName]
-	}
-
-	// reset DefaultTestingAppInit to its original value
-	ibctesting.DefaultTestingAppInit = setupTestingApp
-	return app, genesisState
-}
-
-func (suite *TypesTestSuite) SetupWasmGrandpaWithChannel() {
-	// Setup is assigned in init  and will be overwritten by this. SetupTestingWithChannel does use the same simapp
-	// in 08-wasm directory so this should not affect what test app we use.
-	ibctesting.DefaultTestingAppInit = SetupTestingWithChannel
-	suite.SetupWasmGrandpa()
-
-	exportedClientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), defaultWasmClientID)
-	suite.Require().True(ok)
-
-	clientState := exportedClientState.(*types.ClientState)
-	clientState.CodeHash = suite.codeHash
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), defaultWasmClientID, clientState)
-}
-
-// storeWasmCode stores the wasm code on chain and returns the code hash.
+// storeWasmCode stores the wasm code on chain and returns the checksum.
 func storeWasmCode(suite *TypesTestSuite, wasmCode []byte) []byte {
 	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 

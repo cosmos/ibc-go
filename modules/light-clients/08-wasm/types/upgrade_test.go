@@ -118,101 +118,6 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 	}
 }
 
-// TestVerifyUpgrade currently only tests the interface into the contract.
-// Test code is used in the grandpa contract.
-// New client state, consensus state, and client metadata is expected to be set in the contract on success
-func (suite *TypesTestSuite) TestVerifyUpgradeGrandpa() {
-	var (
-		upgradedClient         exported.ClientState
-		upgradedConsState      exported.ConsensusState
-		proofUpgradedClient    []byte
-		proofUpgradedConsState []byte
-		err                    error
-	)
-
-	testCases := []struct {
-		name    string
-		setup   func()
-		expPass bool
-	}{
-		// TODO: fails with check upgradedClient.GetLatestHeight().GT(lastHeight) in VerifyUpgradeAndUpdateState
-		// {
-		// 	"successful upgrade",
-		// 	func() {},
-		// 	true,
-		// },
-		{
-			"unsuccessful upgrade: invalid new client state",
-			func() {
-				upgradedClient = &solomachine.ClientState{}
-			},
-			false,
-		},
-		{
-			"unsuccessful upgrade: invalid new consensus state",
-			func() {
-				upgradedConsState = &solomachine.ConsensusState{}
-			},
-			false,
-		},
-		{
-			"unsuccessful upgrade: invalid client state proof",
-			func() {
-				proofUpgradedClient = wasmtesting.MockInvalidProofBz
-			},
-			false,
-		},
-		{
-			"unsuccessful upgrade: invalid consensus state proof",
-			func() {
-				proofUpgradedConsState = wasmtesting.MockInvalidProofBz
-			},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			// reset suite
-			suite.SetupWasmGrandpaWithChannel()
-
-			clientState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), defaultWasmClientID)
-			suite.Require().True(ok)
-			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
-
-			upgradedClient = clientState
-			upgradedConsState, ok = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetLatestClientConsensusState(suite.chainA.GetContext(), defaultWasmClientID)
-			suite.Require().True(ok)
-
-			proofUpgradedClient = wasmtesting.MockUpgradedClientStateProofBz
-			proofUpgradedConsState = wasmtesting.MockUpgradedConsensusStateProofBz
-
-			tc.setup()
-
-			err = clientState.VerifyUpgradeAndUpdateState(
-				suite.chainA.GetContext(),
-				suite.chainA.Codec,
-				clientStore,
-				upgradedClient,
-				upgradedConsState,
-				proofUpgradedClient,
-				proofUpgradedConsState,
-			)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-				clientStateBz := clientStore.Get(host.ClientStateKey())
-				suite.Require().NotEmpty(clientStateBz)
-				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-				// Stubbed code will increment client state
-				suite.Require().Equal(clientState.GetLatestHeight().Increment(), newClientState.GetLatestHeight())
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
-
 func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 	var (
 		upgradedClient         exported.ClientState
@@ -297,7 +202,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 			clientState := endpoint.GetClientState().(*types.ClientState)
 
-			upgradedClient = types.NewClientState(wasmtesting.MockClientStateBz, clientState.CodeHash, clienttypes.NewHeight(0, clientState.GetLatestHeight().GetRevisionHeight()+1))
+			upgradedClient = types.NewClientState(wasmtesting.MockClientStateBz, clientState.Checksum, clienttypes.NewHeight(0, clientState.GetLatestHeight().GetRevisionHeight()+1))
 			upgradedConsState = &types.ConsensusState{wasmtesting.MockConsensusStateBz}
 
 			tc.malleate()

@@ -18,7 +18,7 @@ func GetQueryCmd() *cobra.Command {
 
 	queryCmd.AddCommand(
 		getCmdCode(),
-		getCmdCodeHashes(),
+		getCmdChecksums(),
 	)
 
 	return queryCmd

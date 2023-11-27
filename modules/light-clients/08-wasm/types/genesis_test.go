@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"encoding/base64"
 	"encoding/json"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -46,20 +45,6 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			suite.Require().Error(err)
 		}
 	}
-}
-
-func (suite *TypesTestSuite) TestExportGenesisGrandpa() {
-	suite.SetupWasmGrandpa()
-
-	clientStateData, err := base64.StdEncoding.DecodeString(suite.testData["client_state_data"])
-	suite.Require().NoError(err)
-
-	clientState := types.NewClientState(clientStateData, suite.codeHash, clienttypes.NewHeight(2000, 4))
-	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
-
-	gm := clientState.ExportMetadata(clientStore)
-	suite.Require().NotNil(gm, "client returned nil")
-	suite.Require().Len(gm, 0, "exported metadata has unexpected length")
 }
 
 func (suite *TypesTestSuite) TestExportMetatada() {

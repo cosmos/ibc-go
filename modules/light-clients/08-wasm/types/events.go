@@ -7,12 +7,12 @@ const (
 	// EventTypeMigrateContract defines the event type for a contract migration
 	EventTypeMigrateContract = "migrate_contract"
 
-	// AttributeKeyWasmCodeHash denotes the code hash of the wasm code that was stored or migrated
-	AttributeKeyWasmCodeHash = "wasm_code_hash"
+	// AttributeKeyWasmChecksum denotes the checksum of the wasm code that was stored or migrated
+	AttributeKeyWasmChecksum = "wasm_checksum"
 	// AttributeKeyClientID denotes the client identifier of the wasm client
 	AttributeKeyClientID = "client_id"
-	// AttributeKeyNewCodeHash denotes the code hash of the new wasm code.
-	AttributeKeyNewCodeHash = "new_code_hash"
+	// AttributeKeyNewChecksum denotes the checksum of the new wasm code.
+	AttributeKeyNewChecksum = "new_checksum"
 
 	AttributeValueCategory = ModuleName
 )
