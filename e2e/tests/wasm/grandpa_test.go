@@ -88,7 +88,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	file, err := os.Open("contracts/ics10_grandpa_cw.wasm")
+	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
 
 	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
@@ -236,7 +236,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	file, err := os.Open("contracts/ics10_grandpa_cw.wasm")
+	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
 
 	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
@@ -323,7 +323,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
-	file, err := os.Open("contracts/ics10_grandpa_cw.wasm")
+	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
 	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
 
