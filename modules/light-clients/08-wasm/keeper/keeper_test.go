@@ -232,25 +232,22 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 func (suite *KeeperTestSuite) TestInitializePinnedCodes() {
 	suite.SetupWasmWithMockVM()
-	var capturedChecksums []wasmvm.Checksum
 
+	var capturedChecksums []wasmvm.Checksum
 	suite.mockVM.PinFn = func(checksum wasmvm.Checksum) error {
 		capturedChecksums = append(capturedChecksums, checksum)
 		return nil
 	}
 
-	gzippedContract, err := types.GzipIt(append(wasmtesting.WasmMagicNumber, []byte("gzipped-contract")...))
-	suite.Require().NoError(err)
-
 	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
-
-	contracts := [][]byte{wasmtesting.Code, gzippedContract}
-	checksumIDs := make([]types.Checksum, len(contracts))
-
 	wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+
+	contracts := [][]byte{wasmtesting.Code, wasmtesting.CreateMockContract([]byte("gzipped-contract"))}
+	checksumIDs := make([]types.Checksum, len(contracts))
+	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
 	// store contract on chain
 	for i, contract := range contracts {
-		signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 		msg := types.NewMsgStoreCode(signer, contract)
 
 		res, err := wasmClientKeeper.StoreCode(ctx, msg)
@@ -261,7 +258,7 @@ func (suite *KeeperTestSuite) TestInitializePinnedCodes() {
 
 	capturedChecksums = nil
 
-	err = keeper.InitializePinnedCodes(ctx)
+	err := keeper.InitializePinnedCodes(ctx)
 	suite.Require().NoError(err)
 
 	suite.ElementsMatch(checksumIDs, capturedChecksums)
