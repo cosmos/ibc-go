@@ -2232,8 +2232,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCrossingHelloWithHistoricalProofs()
 			err = path.EndpointB.UpdateClient()
 			suite.Require().NoError(err)
 
-			// TODO: QueryChannelUpgradeProof queries the counterparty (EndpointA), this feels unintuitive
-			historicalChannelProof, historicalUpgradeProof, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+			historicalChannelProof, historicalUpgradeProof, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			err = path.EndpointA.ChanUpgradeTry()
 			suite.Require().NoError(err)
