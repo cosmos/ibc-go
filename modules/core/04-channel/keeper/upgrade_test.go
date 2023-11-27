@@ -2186,3 +2186,78 @@ func (suite *KeeperTestSuite) TestSyncUpgradeSequence() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestChanUpgradeCrossingHelloWithHistoricalProofs() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"counterparty (chain B) has already progressed to ACK step",
+			func() {
+				err := path.EndpointB.ChanUpgradeAck()
+				suite.Require().NoError(err)
+			},
+			types.ErrInvalidChannelState,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+
+			err = path.EndpointB.UpdateClient()
+			suite.Require().NoError(err)
+
+			historicalChannelProof, historicalUpgradeProof, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+
+			err = path.EndpointA.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			upgrade, err := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.ChanUpgradeTry(
+				suite.chainB.GetContext(),
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				path.EndpointB.GetChannelUpgrade().Fields.ConnectionHops,
+				path.EndpointA.GetChannelUpgrade().Fields,
+				1,
+				historicalChannelProof,
+				historicalUpgradeProof,
+				proofHeight,
+			)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(upgrade)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
