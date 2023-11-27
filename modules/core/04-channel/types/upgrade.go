@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 )
 
 // NewUpgrade creates a new Upgrade instance.
@@ -41,7 +43,7 @@ func (u Upgrade) ValidateBasic() error {
 
 // ValidateBasic performs a basic validation of the proposed upgrade fields
 func (uf UpgradeFields) ValidateBasic() error {
-	if !slices.Contains([]Order{ORDERED, UNORDERED}, uf.Ordering) {
+	if !slices.Contains(connectiontypes.SupportedOrderings, uf.Ordering.String()) {
 		return errorsmod.Wrap(ErrInvalidChannelOrdering, uf.Ordering.String())
 	}
 

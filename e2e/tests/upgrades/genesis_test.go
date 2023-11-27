@@ -44,14 +44,14 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	appTomlOverrides["halt-height"] = haltHeight
 	configFileOverrides["config/app.toml"] = appTomlOverrides
 	chainOpts := func(options *testsuite.ChainOptions) {
-		options.ChainAConfig.ConfigFileOverrides = configFileOverrides
+		options.ChainASpec.ConfigFileOverrides = configFileOverrides
 	}
 
 	// create chains with specified chain configuration options
 	chainA, chainB := s.GetChains(chainOpts)
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
@@ -124,7 +124,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
-		s.HaltChainAndExportGenesis(ctx, chainA, relayer, int64(haltHeight))
+		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), relayer, int64(haltHeight))
 	})
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {

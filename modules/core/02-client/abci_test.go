@@ -10,7 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	client "github.com/cosmos/ibc-go/v8/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -60,7 +60,7 @@ func (suite *ClientTestSuite) TestBeginBlockerConsensusState() {
 	store.Set(upgradetypes.PlanKey(), bz)
 
 	nextValsHash := []byte("nextValsHash")
-	newCtx := suite.chainA.GetContext().WithBlockHeader(tmproto.Header{
+	newCtx := suite.chainA.GetContext().WithBlockHeader(cmtproto.Header{
 		ChainID:            suite.chainA.ChainID,
 		Height:             suite.chainA.GetContext().BlockHeight(),
 		NextValidatorsHash: nextValsHash,
@@ -91,7 +91,7 @@ func (suite *ClientTestSuite) TestBeginBlockerUpgradeEvents() {
 	store.Set(upgradetypes.PlanKey(), bz)
 
 	nextValsHash := []byte("nextValsHash")
-	newCtx := suite.chainA.GetContext().WithBlockHeader(tmproto.Header{
+	newCtx := suite.chainA.GetContext().WithBlockHeader(cmtproto.Header{
 		Height:             suite.chainA.GetContext().BlockHeight(),
 		NextValidatorsHash: nextValsHash,
 	})

@@ -7,7 +7,9 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
+	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"gopkg.in/yaml.v2"
@@ -20,7 +22,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	tmjson "github.com/cometbft/cometbft/libs/json"
+	cmtjson "github.com/cometbft/cometbft/libs/json"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
@@ -52,6 +54,9 @@ const (
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
 	defaultRlyTag = "latest"
+
+	// TODO: https://github.com/cosmos/ibc-go/issues/4965
+	defaultHyperspaceTag = "local"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
 	defaultHermesTag = "v1.7.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
@@ -311,6 +316,7 @@ func fromEnv() TestConfig {
 		RelayerConfigs: []relayer.Config{
 			getDefaultRlyRelayerConfig(),
 			getDefaultHermesRelayerConfig(),
+			getDefaultHyperspaceRelayerConfig(),
 		},
 		CometBFTConfig: CometBFTConfig{LogLevel: "info"},
 	}
@@ -339,17 +345,24 @@ func getChainConfigsFromEnv() []ChainConfig {
 		chainAImage = specifiedChainImage
 	}
 
+	numValidators := 4
+	numFullNodes := 1
+
 	chainBImage := chainAImage
 	return []ChainConfig{
 		{
-			Image:  chainAImage,
-			Tag:    chainATag,
-			Binary: chainBinary,
+			Image:         chainAImage,
+			Tag:           chainATag,
+			Binary:        chainBinary,
+			NumValidators: numValidators,
+			NumFullNodes:  numFullNodes,
 		},
 		{
-			Image:  chainBImage,
-			Tag:    chainBTag,
-			Binary: chainBinary,
+			Image:         chainBImage,
+			Tag:           chainBTag,
+			Binary:        chainBinary,
+			NumValidators: numValidators,
+			NumFullNodes:  numFullNodes,
 		},
 	}
 }
@@ -384,6 +397,16 @@ func getDefaultRlyRelayerConfig() relayer.Config {
 		Tag:   defaultRlyTag,
 		ID:    relayer.Rly,
 		Image: relayer.RlyRelayerRepository,
+	}
+}
+
+// TODO: remove in https://github.com/cosmos/ibc-go/issues/4697
+// getDefaultHyperspaceRelayerConfig returns the default config for the hyperspace relayer.
+func getDefaultHyperspaceRelayerConfig() relayer.Config {
+	return relayer.Config{
+		Tag:   defaultHyperspaceTag,
+		ID:    relayer.Hyperspace,
+		Image: relayer.HyperspaceRelayerRepository,
 	}
 }
 
@@ -426,8 +449,9 @@ func IsCI() bool {
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
 type ChainOptions struct {
-	ChainAConfig *ibc.ChainConfig
-	ChainBConfig *ibc.ChainConfig
+	ChainASpec       *interchaintest.ChainSpec
+	ChainBSpec       *interchaintest.ChainSpec
+	SkipPathCreation bool
 }
 
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
@@ -440,9 +464,21 @@ func DefaultChainOptions() ChainOptions {
 
 	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.GetChainAID(), "atoma", tc.CometBFTConfig)
 	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+
+	chainAVal, chainAFn := getValidatorsAndFullNodes(0)
+	chainBVal, chainBFn := getValidatorsAndFullNodes(1)
+
 	return ChainOptions{
-		ChainAConfig: &chainACfg,
-		ChainBConfig: &chainBCfg,
+		ChainASpec: &interchaintest.ChainSpec{
+			ChainConfig:   chainACfg,
+			NumFullNodes:  &chainAFn,
+			NumValidators: &chainAVal,
+		},
+		ChainBSpec: &interchaintest.ChainSpec{
+			ChainConfig:   chainBCfg,
+			NumFullNodes:  &chainBFn,
+			NumValidators: &chainBVal,
+		},
 	}
 }
 
@@ -462,6 +498,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 			{
 				Repository: cc.Image,
 				Version:    cc.Tag,
+				UidGid:     "1000:1000",
 			},
 		},
 		Bin:                 cc.Binary,
@@ -508,7 +545,7 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
-		govGenBz, err := modifyGovAppState(chainConfig, appState[govtypes.ModuleName])
+		govGenBz, err := modifyGovV1AppState(chainConfig, appState[govtypes.ModuleName])
 		if err != nil {
 			return nil, err
 		}
@@ -523,7 +560,7 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 		// in older version < v8, tmjson marshal must be used.
 		// regular json marshalling must be used for v8 and above as the
 		// sdk is de-coupled from comet.
-		marshalIndentFn := tmjson.MarshalIndent
+		marshalIndentFn := cmtjson.MarshalIndent
 		if stdlibJSONMarshalling.IsSupported(version) {
 			marshalIndentFn = json.MarshalIndent
 		}
@@ -581,8 +618,8 @@ func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, err
 	}
 }
 
-// modifyGovAppState takes the existing gov app state and marshals it to a govv1 GenesisState.
-func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
+// modifyGovV1AppState takes the existing gov app state and marshals it to a govv1 GenesisState.
+func modifyGovV1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
 	cfg := testutil.MakeTestEncodingConfig()
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
@@ -599,6 +636,8 @@ func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte,
 	}
 
 	govGenesisState.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
+	maxDep := time.Second * 10
+	govGenesisState.Params.MaxDepositPeriod = &maxDep
 	vp := testvalues.VotingPeriod
 	govGenesisState.Params.VotingPeriod = &vp
 

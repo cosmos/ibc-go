@@ -1005,7 +1005,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			counterpartyUpgrade, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(found)
 
-			proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeTry{
 				PortId:                        path.EndpointB.ChannelConfig.PortID,
@@ -1174,7 +1174,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 
 			counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
 
-			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+			proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeAck{
 				PortId:              path.EndpointA.ChannelConfig.PortID,
@@ -1247,7 +1247,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				counterpartyChannelState := path.EndpointA.GetChannel().State
 				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
 
-				proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+				proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 				msg = &channeltypes.MsgChannelUpgradeConfirm{
 					PortId:                   path.EndpointB.ChannelConfig.PortID,
@@ -1336,7 +1336,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				err := path.EndpointB.UpdateClient()
 				suite.Require().NoError(err)
 
-				proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+				proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 				msg.CounterpartyUpgrade = upgrade
 				msg.ProofChannel = proofChannel
@@ -1383,7 +1383,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			counterpartyChannelState := path.EndpointA.GetChannel().State
 			counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
 
-			proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeConfirm{
 				PortId:                   path.EndpointB.ChannelConfig.PortID,
@@ -1484,7 +1484,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			suite.Require().NoError(err)
 
 			counterpartyChannel := path.EndpointB.GetChannel()
-			proofChannel, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			proofChannel, proofHeight := path.EndpointB.QueryProof(channelKey)
 
 			msg = &channeltypes.MsgChannelUpgradeOpen{
 				PortId:                   path.EndpointA.ChannelConfig.PortID,
@@ -1646,7 +1647,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
-				channelProof, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				channelProof, proofHeight := path.EndpointB.QueryProof(channelKey)
+
 				msg.ProofChannel = channelProof
 				msg.ProofHeight = proofHeight
 			},
@@ -1687,7 +1690,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
-				_, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+				_, _, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+
 				msg.ProofHeight = proofHeight
 				msg.ProofChannel = []byte("invalid proof")
 			},
@@ -1720,7 +1724,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
 			suite.Require().NoError(path.EndpointA.ChanUpgradeAck())
 
-			channelProof, _, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			channelProof, proofHeight := path.EndpointB.QueryProof(channelKey)
 
 			msg = &channeltypes.MsgChannelUpgradeTimeout{
 				PortId:              path.EndpointA.ChannelConfig.PortID,
