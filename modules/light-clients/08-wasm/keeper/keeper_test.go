@@ -261,8 +261,8 @@ func (suite *KeeperTestSuite) TestInitializePinnedCodes() {
 
 	capturedChecksums = nil
 
-	gotErr := keeper.InitializePinnedCodes(ctx)
-	suite.NoError(gotErr)
+	err = keeper.InitializePinnedCodes(ctx)
+	suite.Require().NoError(err)
 
 	suite.ElementsMatch(checksumIDs, capturedChecksums)
 }
