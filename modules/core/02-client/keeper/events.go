@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"strconv"
@@ -34,10 +34,10 @@ func emitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 
 // emitUpdateClientEvent emits an update client event
 func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
-	b := types.MustMarshalClientMessage(cdc, clientMsg)
-	hasher := sha1.New()
-	hasher.Write(b)
-	headerHash := hex.EncodeToString(hasher.Sum(nil))
+	bz := types.MustMarshalClientMessage(cdc, clientMsg)
+	hash := sha256.Sum256(bz)
+	headerHash := hex.EncodeToString(hash[:])
+
 	var consensusHeightAttr string
 	if len(consensusHeights) != 0 {
 		consensusHeightAttr = consensusHeights[0].String()
