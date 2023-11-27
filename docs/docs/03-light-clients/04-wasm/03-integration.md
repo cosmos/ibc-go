@@ -19,7 +19,7 @@ import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
   
-  tmos "github.com/cometbft/cometbft/libs/os"
+  cmtos "github.com/cometbft/cometbft/libs/os"
 
   wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
   wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
@@ -113,11 +113,11 @@ func NewSimApp(
   if loadLatest {
     ...
 
-    ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
+    ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
 
     // Initialize pinned codes in wasmvm as they are not persisted there
     if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
-      tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
+      cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
     }
   }
 }
