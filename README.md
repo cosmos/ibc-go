@@ -141,4 +141,4 @@ The following audits have been performed on the `ibc-go` source code:
 
 ---
 
-The development of ibc-go is led primarily by Interchain GmbH. Funding for this development comes primarily from the Interchain Foundation, a Swiss non-profit.
+The development of ibc-go is led primarily by Interchain GmbH. Funding for this development comes primarily from the [Interchain Foundation](https://interchain.io), a Swiss non-profit.
