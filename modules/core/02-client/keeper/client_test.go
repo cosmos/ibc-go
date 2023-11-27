@@ -522,13 +522,15 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	// first event type is "message", followed by 3 "tx" events in ante
 	updateEvent := result.Events[4]
 	suite.Require().Equal(clienttypes.EventTypeUpdateClient, updateEvent.Type)
+
+	// use a boolean to ensure the update event contains the header hash
 	var hasHeaderHash bool
 	for _, attr := range updateEvent.Attributes {
 		if attr.Key == clienttypes.AttributeKeyHeaderHash {
 			hasHeaderHash = true
-			b := types.MustMarshalClientMessage(suite.chainA.App.AppCodec(), header)
+			bz := types.MustMarshalClientMessage(suite.chainA.App.AppCodec(), header)
 			hasher := sha1.New()
-			hasher.Write(b)
+			hasher.Write(bz)
 			headerHash := hex.EncodeToString(hasher.Sum(nil))
 			suite.Require().Equal(headerHash, attr.Value)
 		}
