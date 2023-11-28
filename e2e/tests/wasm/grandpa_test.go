@@ -145,37 +145,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	// Start relayer
 	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
 
-	t.Run("IBC transfer from Cosmos chain to Polkadot parachain times out", func(t *testing.T) {
-		// Stop relayer
-		s.Require().NoError(r.StopRelayer(ctx, s.GetRelayerExecReporter()))
-
-		tx, err := cosmosChain.SendIBCTransfer(ctx, "channel-0", cosmosUser.KeyName(), transfer, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
-		s.Require().NoError(err)
-		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
-		time.Sleep(time.Nanosecond * 1) // want it to timeout immediately
-
-		// check that tokens are escrowed
-		actualBalance, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
-		s.Require().NoError(err)
-		expected := fundAmount - amountToSend
-		s.Require().Equal(expected, actualBalance.Int64())
-
-		// start relayer
-		s.Require().NoError(r.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPathName(0)))
-		err = testutil.WaitForBlocks(ctx, 15, polkadotChain, cosmosChain)
-		s.Require().NoError(err)
-
-		// ensure that receiver on parachain did not receive any tokens
-		receiverBalance, err := polkadotChain.GetIbcBalance(ctx, polkadotUser.FormattedAddress(), 2)
-		s.Require().NoError(err)
-		s.Require().Equal(int64(0), receiverBalance.Amount.Int64())
-
-		// check that tokens have been refunded to sender address
-		senderBalance, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
-		s.Require().NoError(err)
-		s.Require().Equal(fundAmount, senderBalance.Int64())
-	})
-
 	t.Run("send successful IBC transfer from Cosmos to Polkadot parachain", func(t *testing.T) {
 		// Send 1.77 stake from cosmosUser to parachainUser
 		tx, err := cosmosChain.SendIBCTransfer(ctx, "channel-0", cosmosUser.KeyName(), transfer, ibc.TransferOptions{})
@@ -248,6 +217,115 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		parachainUserStake, err := polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 2)
 		s.Require().NoError(err)
 		s.Require().True(parachainUserStake.Amount.Equal(math.NewInt(amountToSend-amountToReflect)), "parachain user's final stake amount not expected")
+	})
+}
+
+// TestMsgTransfer_TimesOut_GrandpaContract
+// sets up cosmos and polkadot chains, hyperspace relayer, and funds users on both chains
+// * sends transfer over ibc channel, this transfer should timeout
+func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
+	ctx := context.Background()
+	t := s.T()
+
+	chainA, chainB := s.GetGrandpaTestChains()
+
+	polkadotChain := chainA.(*polkadot.PolkadotChain)
+	cosmosChain := chainB.(*cosmos.CosmosChain)
+
+	// we explicitly skip path creation as the contract needs to be uploaded before we can create clients.
+	r := s.ConfigureRelayer(ctx, polkadotChain, cosmosChain, nil, func(options *interchaintest.InterchainBuildOptions) {
+		options.SkipPathCreation = true
+	})
+
+	s.InitGRPCClients(cosmosChain)
+
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	file, err := os.Open("contracts/ics10_grandpa_cw.wasm")
+	s.Require().NoError(err)
+
+	checksum := s.PushNewWasmClientProposal(ctx, cosmosChain, cosmosWallet, file)
+
+	s.Require().NotEmpty(checksum, "checksum was empty but should not have been")
+
+	eRep := s.GetRelayerExecReporter()
+
+	// Set client contract hash in cosmos chain config
+	err = r.SetClientContractHash(ctx, eRep, cosmosChain.Config(), checksum)
+	s.Require().NoError(err)
+
+	// Ensure parachain has started (starts 1 session/epoch after relay chain)
+	err = testutil.WaitForBlocks(ctx, 1, polkadotChain)
+	s.Require().NoError(err, "polkadot chain failed to make blocks")
+
+	// Fund users on both cosmos and parachain, mints Asset 1 for Alice
+	fundAmount := int64(12_333_000_000_000)
+	polkadotUser, cosmosUser := s.fundUsers(ctx, fundAmount, polkadotChain, cosmosChain)
+
+	// TODO: this can be refactored to broadcast a MsgTransfer instead of CLI.
+	// https://github.com/cosmos/ibc-go/issues/4963
+	amountToSend := int64(1_770_000)
+	transfer := ibc.WalletAmount{
+		Address: polkadotUser.FormattedAddress(),
+		Denom:   cosmosChain.Config().Denom,
+		Amount:  math.NewInt(amountToSend),
+	}
+
+	pathName := s.GetPathName(0)
+
+	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
+	s.Require().NoError(err)
+
+	// Create new clients
+	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain) // these 1 block waits seem to be needed to reduce flakiness
+	s.Require().NoError(err)
+
+	// Create a new connection
+	err = r.CreateConnections(ctx, eRep, pathName)
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
+	s.Require().NoError(err)
+
+	// Create a new channel & get channels from each chain
+	err = r.CreateChannel(ctx, eRep, pathName, ibc.DefaultChannelOpts())
+	s.Require().NoError(err)
+	err = testutil.WaitForBlocks(ctx, 1, cosmosChain, polkadotChain)
+	s.Require().NoError(err)
+
+	// Start relayer
+	s.Require().NoError(r.StartRelayer(ctx, eRep, pathName))
+
+	t.Run("IBC transfer from Cosmos chain to Polkadot parachain times out", func(t *testing.T) {
+		// Stop relayer
+		s.Require().NoError(r.StopRelayer(ctx, s.GetRelayerExecReporter()))
+
+		tx, err := cosmosChain.SendIBCTransfer(ctx, "channel-0", cosmosUser.KeyName(), transfer, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
+		s.Require().NoError(err)
+		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
+		time.Sleep(time.Nanosecond * 1) // want it to timeout immediately
+
+		// check that tokens are escrowed
+		actualBalance, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
+		s.Require().NoError(err)
+		expected := fundAmount - amountToSend
+		s.Require().Equal(expected, actualBalance.Int64())
+
+		// start relayer
+		s.Require().NoError(r.StartRelayer(ctx, s.GetRelayerExecReporter(), s.GetPathName(0)))
+		err = testutil.WaitForBlocks(ctx, 15, polkadotChain, cosmosChain)
+		s.Require().NoError(err)
+
+		// ensure that receiver on parachain did not receive any tokens
+		receiverBalance, err := polkadotChain.GetIbcBalance(ctx, polkadotUser.FormattedAddress(), 2)
+		s.Require().NoError(err)
+		s.Require().Equal(int64(0), receiverBalance.Amount.Int64())
+
+		// check that tokens have been refunded to sender address
+		senderBalance, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
+		s.Require().NoError(err)
+		s.Require().Equal(fundAmount, senderBalance.Int64())
 	})
 }
 
