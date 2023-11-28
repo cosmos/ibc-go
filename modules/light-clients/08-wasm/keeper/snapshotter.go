@@ -112,7 +112,11 @@ func restoreV1(_ sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(err, "failed to uncompress wasm code")
 	}
 
+<<<<<<< HEAD
 	checksum, err := k.wasmVM.StoreCode(wasmCode)
+=======
+	checksum, err := ibcwasm.GetVM().StoreCodeUnchecked(wasmCode)
+>>>>>>> 10bb80b7 (Change to StoreCodeUnchecked in Genesis and snapshotter (#5167))
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to store wasm code")
 	}
