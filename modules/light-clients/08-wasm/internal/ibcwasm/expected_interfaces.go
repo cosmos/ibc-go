@@ -20,7 +20,7 @@ type WasmEngine interface {
 	// This must be done one time for given code, after which it can be
 	// instantiated many times, and each instance called many times.
 	// It does the same as StoreCode but without the static checks.
-         // This allows restoring previous contract code in genesis and state-sync that may have been initially stored under different configuration constraints.
+	// This allows restoring previous contract code in genesis and state-sync that may have been initially stored under different configuration constraints.
 	StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checksum, error)
 
 	// Instantiate will create a new contract based on the given checksum.
