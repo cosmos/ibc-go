@@ -3,15 +3,17 @@ package simapp
 import (
 	"encoding/json"
 
-	cmttypes "github.com/cometbft/cometbft/types"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 // The genesis state of the blockchain is represented here as a map of raw json
@@ -27,7 +29,7 @@ type GenesisState map[string]json.RawMessage
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSetSnapshotter(app *SimApp, genesisState GenesisState, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) (error){
+func SetupWithGenesisValSetSnapshotter(app *SimApp, genesisState GenesisState, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) error {
 	genesisState, err := simtestutil.GenesisStateWithValSet(app.AppCodec(), genesisState, valSet, genAccs, balances...)
 	if err != nil {
 		return err
@@ -50,7 +52,7 @@ func SetupWithGenesisValSetSnapshotter(app *SimApp, genesisState GenesisState, v
 }
 
 // SetupWithSnapshotter initializes a new SimApp with a configured snapshot db. A Nop logger is set in SimApp.
-func SetupWithSnapshotter(app *SimApp, genesisState GenesisState) (error){
+func SetupWithSnapshotter(app *SimApp, genesisState GenesisState) error {
 	privVal := ibcmock.NewPV()
 	pubKey, err := privVal.GetPubKey()
 	if err != nil {
@@ -69,7 +71,7 @@ func SetupWithSnapshotter(app *SimApp, genesisState GenesisState) (error){
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000000000000))),
 	}
 
-	err = SetupWithGenesisValSetSnapshotter(app, genesisState , valSet, []authtypes.GenesisAccount{acc}, balance)
+	err = SetupWithGenesisValSetSnapshotter(app, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
 	if err != nil {
 		return err
 	}

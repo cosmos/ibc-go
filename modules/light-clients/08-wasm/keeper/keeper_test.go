@@ -3,22 +3,21 @@ package keeper_test
 import (
 	"encoding/json"
 	"errors"
-	"testing"
 	"path/filepath"
+	"path/filepath"
+	"testing"
+
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	dbm "github.com/cosmos/cosmos-db"
-	testifysuite "github.com/stretchr/testify/suite"
-	"cosmossdk.io/store/snapshots"
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-	snapshottypes "cosmossdk.io/store/snapshots/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/server"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/client/flags"
+
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
@@ -28,7 +27,6 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/cosmos-sdk/server"
 )
 
 const (
@@ -57,7 +55,7 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 }
 
 // Setup testing app for snapshot
-func (suite *KeeperTestSuite) SetupSnapshotTestingApp( chainID string, withGenesis bool, invCheckPeriod uint, mockVM ibcwasm.WasmEngine) (*simapp.SimApp, simapp.GenesisState) {
+func (suite *KeeperTestSuite) SetupSnapshotTestingApp(chainID string, withGenesis bool, invCheckPeriod uint, mockVM ibcwasm.WasmEngine) (*simapp.SimApp, simapp.GenesisState) {
 	suite.T().Helper()
 
 	db := dbm.NewMemDB()
