@@ -38,4 +38,12 @@ updates:
     labels:
       - dependencies
 
+  - package-ecosystem: gomod
+    directory: "/modules/capability"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+
 
