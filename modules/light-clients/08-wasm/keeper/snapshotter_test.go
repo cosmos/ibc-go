@@ -11,13 +11,13 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 func (suite *KeeperTestSuite) TestSnapshotter() {
 	gzippedContract, err := types.GzipIt([]byte("gzipped-contract"))
 	suite.Require().NoError(err)
+	suite.mockVM = wasmtesting.NewMockWasmEngine()
 
 	testCases := []struct {
 		name      string
@@ -37,8 +37,8 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			t := suite.T()
-			wasmClientApp := suite.SetupSnapshotterWithMockVM()
+			wasmClientApp, genesisState := suite.SetupSnapshotTestingApp("", true, 5, suite.mockVM)
+			suite.SetupSnapshotterWithMockVM(wasmClientApp, genesisState)
 
 			ctx := wasmClientApp.NewUncachedContext(false, tmproto.Header{
 				ChainID: "foo",
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 			suite.Require().NotNil(snapshot)
 
 			// setup dest app with snapshot imported
-			destWasmClientApp := simapp.SetupWithEmptyStore(t, suite.mockVM)
+			destWasmClientApp := suite.SetupWithEmptyStore(suite.mockVM)
 			destCtx := destWasmClientApp.NewUncachedContext(false, tmproto.Header{
 				ChainID: "bar",
 				Height:  destWasmClientApp.LastBlockHeight() + 1,

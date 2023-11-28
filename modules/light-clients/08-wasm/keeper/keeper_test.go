@@ -4,21 +4,21 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
-
+	"path/filepath"
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
-
+	"cosmossdk.io/store/snapshots"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-
+	snapshottypes "cosmossdk.io/store/snapshots/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
@@ -28,6 +28,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/cosmos-sdk/server"
 )
 
 const (
@@ -53,6 +54,40 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
 	return app, app.DefaultGenesis()
+}
+
+// Setup testing app for snapshot
+func (suite *KeeperTestSuite) SetupSnapshotTestingApp( chainID string, withGenesis bool, invCheckPeriod uint, mockVM ibcwasm.WasmEngine) (*simapp.SimApp, simapp.GenesisState) {
+	suite.T().Helper()
+
+	db := dbm.NewMemDB()
+	nodeHome := suite.T().TempDir()
+	snapshotDir := filepath.Join(nodeHome, "data", "snapshots")
+
+	snapshotDB, err := dbm.NewDB("metadata", dbm.GoLevelDBBackend, snapshotDir)
+	suite.Require().NoError(err)
+	suite.T().Cleanup(func() { snapshotDB.Close() })
+	snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
+	suite.Require().NoError(err)
+
+	appOptions := make(simtestutil.AppOptionsMap, 0)
+	appOptions[flags.FlagHome] = nodeHome // ensure unique folder
+	appOptions[server.FlagInvCheckPeriod] = invCheckPeriod
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, appOptions, mockVM, baseapp.SetChainID(chainID), baseapp.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}))
+
+	if withGenesis {
+		return app, app.DefaultGenesis()
+	}
+
+	return app, simapp.GenesisState{}
+}
+
+// SetupWithEmptyStore set up a simapp instance with empty DB
+func (suite *KeeperTestSuite) SetupWithEmptyStore(mockVM ibcwasm.WasmEngine) *simapp.SimApp {
+	suite.T().Helper()
+
+	app, _ := suite.SetupSnapshotTestingApp("", false, 0, mockVM)
+	return app
 }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
@@ -125,10 +160,11 @@ func storeWasmCode(suite *KeeperTestSuite, wasmCode []byte) []byte {
 	return response.Checksum
 }
 
-func (suite *KeeperTestSuite) SetupSnapshotterWithMockVM() *simapp.SimApp {
+func (suite *KeeperTestSuite) SetupSnapshotterWithMockVM(app *simapp.SimApp, genesisState simapp.GenesisState) {
 	suite.mockVM = wasmtesting.NewMockWasmEngine()
 
-	return simapp.SetupWithSnapshotter(suite.T(), suite.mockVM)
+	err := simapp.SetupWithSnapshotter(app, genesisState)
+	suite.Require().NoError(err)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
