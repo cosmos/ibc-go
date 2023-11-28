@@ -95,7 +95,12 @@ import (
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
+<<<<<<< HEAD
 	"github.com/cometbft/cometbft/libs/log"
+=======
+	cmtos "github.com/cometbft/cometbft/libs/os"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+>>>>>>> 2c9017f7 (chore(08-wasm): `Pin` code during app initialisation (#5161))
 
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -779,6 +784,13 @@ func NewSimApp(
 		if err := app.LoadLatestVersion(); err != nil {
 			logger.Error("error on loading last version", "err", err)
 			os.Exit(1)
+		}
+
+		ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
+
+		// Initialize pinned codes in wasmvm as they are not persisted there
+		if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
+			cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 	}
 

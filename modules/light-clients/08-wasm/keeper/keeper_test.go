@@ -216,3 +216,71 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestInitializedPinnedCodes() {
+	var capturedChecksums []wasmvm.Checksum
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				suite.mockVM.PinFn = func(checksum wasmvm.Checksum) error {
+					capturedChecksums = append(capturedChecksums, checksum)
+					return nil
+				}
+			},
+			nil,
+		},
+		{
+			"failure: pin error",
+			func() {
+				suite.mockVM.PinFn = func(checksum wasmvm.Checksum) error {
+					return wasmtesting.ErrMockVM
+				}
+			},
+			wasmtesting.ErrMockVM,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			ctx := suite.chainA.GetContext()
+			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+
+			contracts := [][]byte{wasmtesting.Code, wasmtesting.CreateMockContract([]byte("gzipped-contract"))}
+			checksumIDs := make([]types.Checksum, len(contracts))
+			signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
+			// store contract on chain
+			for i, contract := range contracts {
+				msg := types.NewMsgStoreCode(signer, contract)
+
+				res, err := wasmClientKeeper.StoreCode(ctx, msg)
+				suite.Require().NoError(err)
+
+				checksumIDs[i] = res.Checksum
+			}
+
+			// malleate after storing contracts
+			tc.malleate()
+
+			err := keeper.InitializePinnedCodes(ctx)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.ElementsMatch(checksumIDs, capturedChecksums)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
