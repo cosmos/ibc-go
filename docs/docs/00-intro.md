@@ -27,10 +27,10 @@ IBC provides a reliable, permissionless, and generic base layer (allowing for th
 
 - **IBC/TAO** comprises the Transport, Authentication, and Ordering of packets, i.e. the infrastructure layer.
 - **IBC/APP** consists of the application handlers for the data packets being passed over the transport layer. These include but are not limited to fungible token transfers (ICS-20), NFT transfers (ICS-721), and interchain accounts (ICS-27).
-- **Application module:** groups any application, middlewareor smart contract that may wrap downsteam application handlers to provide enhanced functionality.
+- **Application module:** groups any application, middleware or smart contract that may wrap downsteam application handlers to provide enhanced functionality.
 
 Note three crucial elements in the diagram:
 
 - The chains depend on relayers to communicate. Relayers are the "physical" connection layer of IBC: off-chain processes responsible for relaying data between two chains running the IBC protocol by scanning the state of each chain, constructing appropriate datagrams, and executing them on the opposite chain as is allowed by the protocol.
 - Many relayers can serve one or more channels to send messages between the chains.
-- Each side of the relay uses the light client of the other chain to quickly verify incoming messages.
+- Each side of the connection uses the light client of the other chain to quickly verify incoming messages.
