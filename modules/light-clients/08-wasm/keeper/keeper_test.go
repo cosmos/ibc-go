@@ -5,9 +5,6 @@ import (
 	"errors"
 	"path/filepath"
 	"testing"
-
-
-	snapshottypes "cosmossdk.io/store/snapshots/types"
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	dbm "github.com/cosmos/cosmos-db"
@@ -15,6 +12,7 @@ import (
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/store/snapshots"
+	snapshottypes "cosmossdk.io/store/snapshots/types"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
