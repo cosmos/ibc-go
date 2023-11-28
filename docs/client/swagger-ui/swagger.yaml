@@ -13663,22 +13663,25 @@ paths:
           type: boolean
       tags:
         - Query
-  /ibc/lightclients/wasm/v1/code_hashes:
+  /ibc/lightclients/wasm/v1/checksums:
     get:
-      summary: Get all Wasm code hashes
-      operationId: CodeHashes
+      summary: Get all Wasm checksums
+      operationId: Checksums
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              code_hashes:
+              checksums:
                 type: array
                 items:
                   type: string
+                description: >-
+                  checksums is a list of the hex encoded checksums of all wasm
+                  codes stored.
               pagination:
-                description: pagination defines an optional pagination for the request.
+                description: pagination defines the pagination in the response.
                 type: object
                 properties:
                   next_key:
@@ -13697,8 +13700,8 @@ paths:
 
                       was set, its value is undefined otherwise
             description: >-
-              QueryCodeHashesResponse is the response type for the
-              Query/CodeHashes RPC method.
+              QueryChecksumsResponse is the response type for the
+              Query/Checksums RPC method.
         default:
           description: An unexpected error response.
           schema:
@@ -13780,9 +13783,9 @@ paths:
           type: boolean
       tags:
         - Query
-  /ibc/lightclients/wasm/v1/code_hashes/{code_hash}/code:
+  /ibc/lightclients/wasm/v1/checksums/{checksum}/code:
     get:
-      summary: Get Wasm code for given code hash
+      summary: Get Wasm code for given checksum
       operationId: Code
       responses:
         '200':
@@ -13819,7 +13822,8 @@ paths:
                       type: string
                       format: byte
       parameters:
-        - name: code_hash
+        - name: checksum
+          description: checksum is a hex encoded string of the code stored.
           in: path
           required: true
           type: string
@@ -19498,15 +19502,18 @@ definitions:
       ready to send and receive packets.
        - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
       packets.
-  ibc.lightclients.wasm.v1.QueryCodeHashesResponse:
+  ibc.lightclients.wasm.v1.QueryChecksumsResponse:
     type: object
     properties:
-      code_hashes:
+      checksums:
         type: array
         items:
           type: string
+        description: >-
+          checksums is a list of the hex encoded checksums of all wasm codes
+          stored.
       pagination:
-        description: pagination defines an optional pagination for the request.
+        description: pagination defines the pagination in the response.
         type: object
         properties:
           next_key:
@@ -19525,7 +19532,7 @@ definitions:
 
               was set, its value is undefined otherwise
     description: >-
-      QueryCodeHashesResponse is the response type for the Query/CodeHashes RPC
+      QueryChecksumsResponse is the response type for the Query/Checksums RPC
       method.
   ibc.lightclients.wasm.v1.QueryCodeResponse:
     type: object
