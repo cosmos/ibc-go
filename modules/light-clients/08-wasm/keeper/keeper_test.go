@@ -4,12 +4,19 @@ import (
 	"encoding/json"
 	"errors"
 	"path/filepath"
-	"path/filepath"
 	"testing"
 
+
+	snapshottypes "cosmossdk.io/store/snapshots/types"
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	dbm "github.com/cosmos/cosmos-db"
+	testifysuite "github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/log"
+	"cosmossdk.io/store/snapshots"
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/runtime"

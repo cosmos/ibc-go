@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
-	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
