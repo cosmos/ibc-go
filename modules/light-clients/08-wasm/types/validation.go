@@ -31,7 +31,7 @@ func MaxWasmByteSize() uint64 {
 }
 
 // ValidateWasmChecksum validates that the checksum is of the correct length
-func ValidateWasmChecksum(checksum []byte) error {
+func ValidateWasmChecksum(checksum Checksum) error {
 	lenChecksum := len(checksum)
 	if lenChecksum == 0 {
 		return errorsmod.Wrap(ErrInvalidChecksum, "checksum cannot be empty")

@@ -102,7 +102,11 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 	}
 
 	// Check to see if store already has checksum.
-	checksum := generateWasmChecksum(code)
+	checksum, err := types.CreateChecksum(code)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "wasm bytecode checksum failed")
+	}
+
 	if types.HasChecksum(ctx, checksum) {
 		return nil, types.ErrWasmCodeExists
 	}
