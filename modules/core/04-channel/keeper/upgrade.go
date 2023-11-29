@@ -38,6 +38,8 @@ func (k Keeper) ChanUpgradeInit(
 		return types.Upgrade{}, err
 	}
 
+	// NOTE: the Upgrade returned here is intentionally not fully populated. The Timeout remains unset
+	// until the counterparty calls ChanUpgradeTry.
 	return types.Upgrade{Fields: upgradeFields}, nil
 }
 
@@ -821,7 +823,6 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, cou
 // validateSelfUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
-// - the proposed order is a subset of the existing order
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
@@ -829,7 +830,7 @@ func (k Keeper) validateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types
 	currentFields := extractUpgradeFields(currentChannel)
 
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
-		return errorsmod.Wrapf(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end: got %s", proposedUpgrade)
+		return errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got %s", proposedUpgrade)
 	}
 
 	connectionID := proposedUpgrade.ConnectionHops[0]
