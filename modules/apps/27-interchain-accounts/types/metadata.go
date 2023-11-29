@@ -54,8 +54,8 @@ func NewDefaultMetadataString(controllerConnectionID, hostConnectionID string) s
 	return string(ModuleCdc.MustMarshalJSON(&metadata))
 }
 
-// ParseMedataFromString parses Metadata from a json encoded version string.
-func ParseMedataFromString(versionString string) (Metadata, error) {
+// MedataFromVersion parses Metadata from a json encoded version string.
+func MedataFromVersion(versionString string) (Metadata, error) {
 	var metadata Metadata
 	if err := ModuleCdc.UnmarshalJSON([]byte(versionString), &metadata); err != nil {
 		return Metadata{}, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")

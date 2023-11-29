@@ -494,14 +494,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			nil,
 		},
 		{
-			name: "failure: invalid metadata",
+			name: "failure: change ICA address",
 			malleate: func() {
 				metadata.Address = TestOwnerAddress
 			},
 			expError: icatypes.ErrInvalidAccountAddress,
 		},
 		{
-			name: "failure: change connection id",
+			name: "failure: change controller connection id",
 			malleate: func() {
 				metadata.ControllerConnectionId = differentConnectionID
 			},
@@ -515,7 +515,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			expError: connectiontypes.ErrInvalidConnection,
 		},
 		{
-			name: "failure: invalid metadata string",
+			name: "failure: cannot decode version string",
 			malleate: func() {
 				channel := path.EndpointA.GetChannel()
 				channel.Version = "invalid-metadata-string"
@@ -544,9 +544,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
-			channel := path.EndpointA.GetChannel()
-
-			currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+			currentMetadata, err := suite.chainA.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().NoError(err)
 
 			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
