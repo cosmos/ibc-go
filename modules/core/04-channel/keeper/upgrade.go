@@ -38,6 +38,8 @@ func (k Keeper) ChanUpgradeInit(
 		return types.Upgrade{}, err
 	}
 
+	// NOTE: the Upgrade returned here is intentionally not fully populated. The Timeout remains unset
+	// until the counterparty calls ChanUpgradeTry.
 	return types.Upgrade{Fields: upgradeFields}, nil
 }
 
@@ -171,7 +173,7 @@ func (k Keeper) ChanUpgradeTry(
 		proofHeight, proofCounterpartyUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
-		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
+		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}),
 	); err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
