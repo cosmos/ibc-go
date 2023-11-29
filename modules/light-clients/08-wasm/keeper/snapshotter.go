@@ -12,6 +12,7 @@ import (
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -72,7 +73,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 	}
 
 	for _, checksum := range checksums {
-		wasmCode, err := ws.keeper.wasmVM.GetCode(checksum)
+		wasmCode, err := ibcwasm.GetVM().GetCode(checksum)
 		if err != nil {
 			return err
 		}
@@ -111,12 +112,12 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(err, "failed to uncompress wasm code")
 	}
 
-	checksum, err := k.wasmVM.StoreCode(wasmCode)
+	checksum, err := ibcwasm.GetVM().StoreCode(wasmCode)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to store wasm code")
 	}
 
-	if err := k.wasmVM.Pin(checksum); err != nil {
+	if err := ibcwasm.GetVM().Pin(checksum); err != nil {
 		return errorsmod.Wrapf(err, "failed to pin checksum: %s to in-memory cache", hex.EncodeToString(checksum))
 	}
 
