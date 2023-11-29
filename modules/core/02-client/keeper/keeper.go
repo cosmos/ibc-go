@@ -274,6 +274,7 @@ func (k Keeper) GetSelfConsensusState(ctx sdk.Context, height exported.Height) (
 		Root:               commitmenttypes.NewMerkleRoot(histInfo.Header.GetAppHash()),
 		NextValidatorsHash: histInfo.Header.NextValidatorsHash,
 	}
+
 	return consensusState, nil
 }
 
