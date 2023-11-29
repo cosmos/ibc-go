@@ -14,14 +14,6 @@ updates:
       - dependencies
 
   - package-ecosystem: gomod
-    directory: "/e2e"
-    schedule:
-      interval: daily
-    open-pull-requests-limit: 10
-    labels:
-      - dependencies
-
-  - package-ecosystem: gomod
     directory: "/modules/apps/callbacks"
     schedule:
       interval: daily
