@@ -76,7 +76,7 @@ jobs:
     env:
       CHAIN_A_TAG: latest
       CHAIN_B_TAG: latest
-      CHAIN_IMAGE: ibc-go-simd-wasm
+      CHAIN_IMAGE: ibc-go-wasm-simd
       RELAYER_ID: "hyperspace" # by default use hyperspace relayer for fork wasm tests.
       FORK: "true"
     if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
