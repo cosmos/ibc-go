@@ -213,9 +213,12 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 // and that its own upgrade is compatible with the selected counterparty version.
 // NOTE: the channel may be in either the OPEN or FLUSHING state.
 // The channel may be in OPEN if we are in the happy path.
-// 		A -> Init (OPEN), B -> Try (FLUSHING), A -> Ack (begins in OPEN)
+//
+//	A -> Init (OPEN), B -> Try (FLUSHING), A -> Ack (begins in OPEN)
+//
 // The channel may be in FLUSHING if we are in a crossing hellos situation.
-// 		A -> Init (OPEN), B -> Init (OPEN) -> A -> Try (FLUSHING), B -> Try (FLUSHING), A -> Ack (begins in FLUSHING)
+//
+//	A -> Init (OPEN), B -> Init (OPEN) -> A -> Try (FLUSHING), B -> Try (FLUSHING), A -> Ack (begins in FLUSHING)
 func (k Keeper) ChanUpgradeAck(
 	ctx sdk.Context,
 	portID,
