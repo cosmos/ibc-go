@@ -25,8 +25,7 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc    codec.BinaryCodec
-	wasmVM ibcwasm.WasmEngine
+	cdc codec.BinaryCodec
 
 	clientKeeper types.ClientKeeper
 
@@ -60,7 +59,6 @@ func NewKeeperWithVM(
 
 	return Keeper{
 		cdc:          cdc,
-		wasmVM:       vm,
 		clientKeeper: clientKeeper,
 		authority:    authority,
 	}
@@ -127,7 +125,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wa
 	}
 
 	// pin the code to the vm in-memory cache
-	if err := k.wasmVM.Pin(vmChecksum); err != nil {
+	if err := ibcwasm.GetVM().Pin(vmChecksum); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to pin contract with checksum (%s) to vm cache", hex.EncodeToString(vmChecksum))
 	}
 
