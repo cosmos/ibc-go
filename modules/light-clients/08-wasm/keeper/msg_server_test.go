@@ -148,8 +148,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 	oldChecksum, err := types.CreateChecksum(wasmtesting.Code)
 	suite.Require().NoError(err)
 
-	newByteCode := wasmtesting.WasmMagicNumber
-	newByteCode = append(newByteCode, []byte("MockByteCode-TestMsgMigrateContract")...)
+	newByteCode := wasmtesting.CreateMockContract([]byte("MockByteCode-TestMsgMigrateContract"))
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -349,8 +348,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 				expChecksums = []types.Checksum{}
 
 				for i := 0; i < 20; i++ {
-					mockCode := []byte{byte(i)}
-					mockCode = append(wasmtesting.WasmMagicNumber, mockCode...)
+					mockCode := wasmtesting.CreateMockContract([]byte{byte(i)})
 					checksum, err := types.CreateChecksum(mockCode)
 					suite.Require().NoError(err)
 
