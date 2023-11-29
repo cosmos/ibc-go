@@ -95,12 +95,9 @@ import (
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-<<<<<<< HEAD
 	"github.com/cometbft/cometbft/libs/log"
-=======
 	cmtos "github.com/cometbft/cometbft/libs/os"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
->>>>>>> 2c9017f7 (chore(08-wasm): `Pin` code during app initialisation (#5161))
 
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
