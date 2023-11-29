@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -90,16 +89,7 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-<<<<<<< HEAD
-func generateWasmChecksum(code []byte) []byte {
-	hash := sha256.Sum256(code)
-	return hash[:]
-}
-
-func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
-=======
-func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)) ([]byte, error) {
->>>>>>> 10bb80b7 (Change to StoreCodeUnchecked in Genesis and snapshotter (#5167))
+func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
@@ -110,7 +100,11 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 	}
 
 	// Check to see if store already has checksum.
-	checksum := generateWasmChecksum(code)
+	checksum, err := types.CreateChecksum(code)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "wasm bytecode checksum failed")
+	}
+
 	if types.HasChecksum(ctx, k.cdc, checksum) {
 		return nil, types.ErrWasmCodeExists
 	}
@@ -122,11 +116,7 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 
 	// create the code in the vm
 	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
-<<<<<<< HEAD
-	vmChecksum, err := k.wasmVM.StoreCode(code)
-=======
 	vmChecksum, err := storeFn(code)
->>>>>>> 10bb80b7 (Change to StoreCodeUnchecked in Genesis and snapshotter (#5167))
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}

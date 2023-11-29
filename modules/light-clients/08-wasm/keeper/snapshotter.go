@@ -4,8 +4,6 @@ import (
 	"encoding/hex"
 	"io"
 
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
-
 	errorsmod "cosmossdk.io/errors"
 	snapshot "github.com/cosmos/cosmos-sdk/snapshots/types"
 
@@ -73,7 +71,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 	}
 
 	for _, checksum := range checksums {
-		wasmCode, err := ws.keeper.wasmVM.GetCode(wasmvmtypes.Checksum(checksum))
+		wasmCode, err := ws.keeper.wasmVM.GetCode(checksum)
 		if err != nil {
 			return err
 		}
@@ -112,11 +110,7 @@ func restoreV1(_ sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(err, "failed to uncompress wasm code")
 	}
 
-<<<<<<< HEAD
-	checksum, err := k.wasmVM.StoreCode(wasmCode)
-=======
-	checksum, err := ibcwasm.GetVM().StoreCodeUnchecked(wasmCode)
->>>>>>> 10bb80b7 (Change to StoreCodeUnchecked in Genesis and snapshotter (#5167))
+	checksum, err := k.wasmVM.StoreCodeUnchecked(wasmCode)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to store wasm code")
 	}

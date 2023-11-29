@@ -1,7 +1,6 @@
 package testing
 
 import (
-	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -58,8 +57,7 @@ func NewMockWasmEngine() *MockWasmEngine {
 
 	// Set up default behavior for Store/Pin/Get
 	m.StoreCodeFn = func(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
-		hash := sha256.Sum256(code)
-		checkSum := wasmvm.Checksum(hash[:])
+		checkSum, _ := types.CreateChecksum(code)
 
 		m.storedContracts[binary.LittleEndian.Uint32(checkSum)] = code
 		return checkSum, nil
