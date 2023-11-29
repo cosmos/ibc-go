@@ -9,15 +9,15 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
-	storetypes "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 )
 
 // Keeper defines the 08-wasm keeper
@@ -38,7 +38,7 @@ type Keeper struct {
 // and the same Wasm VM instance should be shared with it.
 func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeKey storetypes.StoreKey,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
@@ -51,16 +51,12 @@ func NewKeeperWithVM(
 		panic(errors.New("wasm VM must be not nil"))
 	}
 
-	if storeService == nil {
-		panic(errors.New("store service must be not nil"))
-	}
-
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
 	ibcwasm.SetVM(vm)
-	ibcwasm.SetupWasmStoreService(storeService)
+	ibcwasm.SetWasmStoreKey(storeKey)
 
 	return Keeper{
 		cdc:          cdc,
@@ -75,7 +71,7 @@ func NewKeeperWithVM(
 // and a Wasm VM needs to be instantiated using the provided parameters.
 func NewKeeperWithConfig(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeKey storetypes.StoreKey,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
@@ -85,7 +81,7 @@ func NewKeeperWithConfig(
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm)
+	return NewKeeperWithVM(cdc, storeKey, clientKeeper, authority, vm)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
@@ -109,7 +105,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 		return nil, errorsmod.Wrap(err, "wasm bytecode checksum failed")
 	}
 
-	if types.HasChecksum(ctx, checksum) {
+	if types.HasChecksum(ctx, k.cdc, checksum) {
 		return nil, types.ErrWasmCodeExists
 	}
 
@@ -135,8 +131,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 		return nil, errorsmod.Wrapf(err, "failed to pin contract with checksum (%s) to vm cache", hex.EncodeToString(vmChecksum))
 	}
 
-	// store the checksum
-	err = ibcwasm.Checksums.Set(ctx, checksum)
+	err = types.AddChecksum(ctx, k.cdc, ibcwasm.GetWasmStoreKey(), checksum)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store checksum")
 	}

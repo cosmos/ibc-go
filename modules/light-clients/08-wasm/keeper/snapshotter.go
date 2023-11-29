@@ -5,8 +5,7 @@ import (
 	"io"
 
 	errorsmod "cosmossdk.io/errors"
-	snapshot "cosmossdk.io/store/snapshots/types"
-	storetypes "cosmossdk.io/store/types"
+	snapshot "github.com/cosmos/cosmos-sdk/snapshots/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -26,12 +25,12 @@ const SnapshotFormat = 1
 // NOTE: The following ExtensionSnapshotter has been adapted from CosmWasm's x/wasm:
 // https://github.com/CosmWasm/wasmd/blob/v0.43.0/x/wasm/keeper/snapshotter.go
 type WasmSnapshotter struct {
-	cms    storetypes.MultiStore
+	cms    sdk.MultiStore
 	keeper *Keeper
 }
 
 // NewWasmSnapshotter creates and returns a new snapshot.ExtensionSnapshotter implementation for the 08-wasm module.
-func NewWasmSnapshotter(cms storetypes.MultiStore, keeper *Keeper) snapshot.ExtensionSnapshotter {
+func NewWasmSnapshotter(cms sdk.MultiStore, keeper *Keeper) snapshot.ExtensionSnapshotter {
 	return &WasmSnapshotter{
 		cms:    cms,
 		keeper: keeper,
@@ -66,7 +65,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 
 	ctx := sdk.NewContext(cacheMS, tmproto.Header{}, false, nil)
 
-	checksums, err := types.GetAllChecksums(ctx)
+	checksums, err := types.GetAllChecksums(ctx, ws.keeper.cdc)
 	if err != nil {
 		return err
 	}
@@ -101,7 +100,7 @@ func (ws *WasmSnapshotter) RestoreExtension(height uint64, format uint32, payloa
 	return errorsmod.Wrapf(snapshot.ErrUnknownFormat, "expected %d, got %d", ws.SnapshotFormat(), format)
 }
 
-func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
+func restoreV1(_ sdk.Context, k *Keeper, compressedCode []byte) error {
 	if !types.IsGzip(compressedCode) {
 		return errorsmod.Wrap(types.ErrInvalidData, "expected wasm code is not gzip format")
 	}

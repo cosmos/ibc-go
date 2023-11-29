@@ -62,8 +62,7 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 			}
 
 			// create snapshot
-			res, err := wasmClientApp.Commit()
-			suite.Require().NoError(err)
+			res := wasmClientApp.Commit()
 			suite.Require().NotNil(res)
 
 			snapshotHeight := uint64(wasmClientApp.LastBlockHeight())

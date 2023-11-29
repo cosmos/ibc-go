@@ -10,15 +10,15 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
@@ -32,7 +32,7 @@ var (
 )
 
 // instantiateContract calls vm.Instantiate with appropriate arguments.
-func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
+func instantiateContract(ctx sdk.Context, clientStore sdk.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -55,7 +55,7 @@ func instantiateContract(ctx sdk.Context, clientStore storetypes.KVStore, checks
 }
 
 // callContract calls vm.Sudo with internally constructed gas meter and environment.
-func callContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
+func callContract(ctx sdk.Context, clientStore sdk.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -73,7 +73,7 @@ func callContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Chec
 }
 
 // migrateContract calls vm.Migrate with internally constructed gas meter and environment.
-func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
+func migrateContract(ctx sdk.Context, clientID string, clientStore sdk.KVStore, checksum Checksum, msg []byte) (*wasmvmtypes.Response, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -87,7 +87,7 @@ func migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KV
 }
 
 // queryContract calls vm.Query.
-func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Checksum, msg []byte) ([]byte, error) {
+func queryContract(ctx sdk.Context, clientStore sdk.KVStore, checksum Checksum, msg []byte) ([]byte, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.runtimeGasForContract(ctx)
@@ -105,7 +105,7 @@ func queryContract(ctx sdk.Context, clientStore storetypes.KVStore, checksum Che
 }
 
 // wasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls instantiateContract.
-func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload InstantiateMessage) error {
+func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, cs *ClientState, payload InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to marshal payload for wasm contract instantiation")
@@ -142,7 +142,7 @@ func wasmInstantiate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storety
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
+func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, payload SudoMsg, clientStore sdk.KVStore, cs *ClientState) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -182,7 +182,7 @@ func wasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientSt
 // - the client state is still present
 // - the client state can be unmarshaled successfully.
 // - the client state is of type *ClientState
-func validatePostExecutionClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
+func validatePostExecutionClientState(clientStore sdk.KVStore, cdc codec.BinaryCodec) (*ClientState, error) {
 	key := host.ClientStateKey()
 	_, ok := clientStore.(migrateClientWrappedStore)
 	if ok {
@@ -220,7 +220,7 @@ func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientStat
 // wasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
 // wasmMigrate returns an error if:
 // - the contract migration returns an error
-func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, cs *ClientState, clientID string, payload []byte) error {
+func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, cs *ClientState, clientID string, payload []byte) error {
 	resp, err := migrateContract(ctx, clientID, clientStore, cs.Checksum, payload)
 	if err != nil {
 		return errorsmod.Wrapf(ErrWasmContractCallFailed, err.Error())
@@ -239,7 +239,7 @@ func wasmMigrate(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.
 // - the payload cannot be marshaled to JSON
 // - the contract query returns an error
 // - the data bytes of the response cannot be unmarshal into the result type
-func wasmQuery[T ContractResult](ctx sdk.Context, clientStore storetypes.KVStore, cs *ClientState, payload QueryMsg) (T, error) {
+func wasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *ClientState, payload QueryMsg) (T, error) {
 	var result T
 
 	encodedData, err := json.Marshal(payload)
@@ -287,11 +287,11 @@ func getEnv(ctx sdk.Context, contractAddr string) wasmvmtypes.Env {
 	return env
 }
 
-func humanAddress(canon []byte) (string, uint64, error) {
+func humanAddress(_ []byte) (string, uint64, error) {
 	return "", 0, errors.New("humanAddress not implemented")
 }
 
-func canonicalAddress(human string) ([]byte, uint64, error) {
+func canonicalAddress(_ string) ([]byte, uint64, error) {
 	return nil, 0, errors.New("canonicalAddress not implemented")
 }
 

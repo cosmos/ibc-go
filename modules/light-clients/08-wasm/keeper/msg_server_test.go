@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -13,14 +14,15 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
+	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *KeeperTestSuite) TestMsgStoreCode() {
@@ -69,7 +71,13 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 		{
 			"fails with wasm code too large",
 			func() {
-				msg = types.NewMsgStoreCode(signer, append(wasmtesting.WasmMagicNumber, []byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))...))
+				var sb strings.Builder
+				for i := 0; i < int(types.MaxWasmByteSize()); i++ {
+					err := sb.WriteByte(byte(i))
+					suite.Require().NoError(err)
+				}
+
+				msg = types.NewMsgStoreCode(signer, append(wasmtesting.WasmMagicNumber, []byte(sb.String())...))
 			},
 			types.ErrWasmCodeTooLarge,
 		},
@@ -346,7 +354,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 					checksum, err := types.CreateChecksum(mockCode)
 					suite.Require().NoError(err)
 
-					err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum)
+					err = types.AddChecksum(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), ibcwasm.GetWasmStoreKey(), checksum)
 					suite.Require().NoError(err)
 
 					expChecksums = append(expChecksums, checksum)
@@ -399,7 +407,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
-				checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
+				checksums, err := types.GetAllChecksums(suite.chainA.GetContext(), suite.chainA.App.AppCodec())
 				suite.Require().NoError(err)
 
 				// Check equality of checksums up to order

@@ -7,11 +7,11 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
-	dbm "github.com/cosmos/cosmos-db"
+	dbm "github.com/cometbft/cometbft-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	"github.com/cometbft/cometbft/libs/log"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -20,10 +20,10 @@ import (
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	simapp "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 const (

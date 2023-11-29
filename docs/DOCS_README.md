@@ -30,7 +30,7 @@ of the README.
 
 ## Config.js
 
-The [config.js](./.vuepress/config.js) generates the sidebar and Table of Contents
+The config.js generates the sidebar and Table of Contents
 on the website docs. Note the use of relative links and the omission of
 file extensions. Additional features are available to improve the look
 of the sidebar.

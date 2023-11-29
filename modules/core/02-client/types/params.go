@@ -11,7 +11,7 @@ import (
 
 var (
 	// DefaultAllowedClients are the default clients for the AllowedClients parameter.
-	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Localhost}
+	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Wasm, exported.Localhost}
 
 	// KeyAllowedClients is store's key for AllowedClients Params
 	KeyAllowedClients = []byte("AllowedClients")
