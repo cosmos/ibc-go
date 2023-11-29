@@ -14,6 +14,7 @@ import (
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -113,11 +114,7 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(err, "failed to uncompress wasm code")
 	}
 
-<<<<<<< HEAD
-	checksum, err := k.wasmVM.StoreCode(wasmCode)
-=======
 	checksum, err := ibcwasm.GetVM().StoreCodeUnchecked(wasmCode)
->>>>>>> 10bb80b7 (Change to StoreCodeUnchecked in Genesis and snapshotter (#5167))
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to store wasm code")
 	}
