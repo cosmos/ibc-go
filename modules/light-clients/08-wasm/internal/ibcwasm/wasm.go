@@ -9,7 +9,7 @@ import (
 var (
 	vm WasmEngine
 
-	// storeKeyMap stores the storeKey for the 08-wasm module. Using a global storeKey is required since
+	// wasmStoreKey stores the storeKey for the 08-wasm module. Using a global storeKey is required since
 	// the client state interface functions do not have access to the keeper.
 	wasmStoreKey storetypes.StoreKey
 )

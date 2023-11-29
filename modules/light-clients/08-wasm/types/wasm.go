@@ -17,13 +17,13 @@ type Checksum = []byte
 // It returns an empty slice if no checksums are found
 func GetAllChecksums(ctx sdk.Context, cdc codec.BinaryCodec) ([]Checksum, error) {
 	wasmStoreKey := ibcwasm.GetWasmStoreKey()
-
 	store := ctx.KVStore(wasmStoreKey)
-	bz := store.Get([]byte(KeyChecksums))
 
+	bz := store.Get([]byte(KeyChecksums))
 	if len(bz) == 0 {
 		return []Checksum{}, nil
 	}
+
 	var hashes Checksums
 	err := cdc.Unmarshal(bz, &hashes)
 	if err != nil {
@@ -32,7 +32,9 @@ func GetAllChecksums(ctx sdk.Context, cdc codec.BinaryCodec) ([]Checksum, error)
 	return hashes.Checksums, nil
 }
 
+// AddChecksum adds a checksum to the list of stored checksums in state.
 func AddChecksum(ctx sdk.Context, cdc codec.BinaryCodec, storeKey storetypes.StoreKey, checksum Checksum) error {
+	store := ctx.KVStore(storeKey)
 	checksums, err := GetAllChecksums(ctx, cdc)
 	if err != nil {
 		return err
@@ -41,8 +43,11 @@ func AddChecksum(ctx sdk.Context, cdc codec.BinaryCodec, storeKey storetypes.Sto
 	checksums = append(checksums, checksum)
 	hashes := Checksums{Checksums: checksums}
 
-	store := ctx.KVStore(storeKey)
-	store.Set([]byte(KeyChecksums), cdc.MustMarshal(&hashes))
+	bz, err := cdc.Marshal(&hashes)
+	if err != nil {
+		return err
+	}
+	store.Set([]byte(KeyChecksums), bz)
 
 	return nil
 }
@@ -58,7 +63,9 @@ func HasChecksum(ctx sdk.Context, cdc codec.BinaryCodec, checksum Checksum) bool
 	return slices.ContainsFunc(checksums, func(h Checksum) bool { return bytes.Equal(checksum, h) })
 }
 
+// RemoveChecksum removes the given checksum from the list of stored checksums in state.
 func RemoveChecksum(ctx sdk.Context, cdc codec.BinaryCodec, storeKey storetypes.StoreKey, checksum Checksum) error {
+	store := ctx.KVStore(storeKey)
 	checksums, err := GetAllChecksums(ctx, cdc)
 	if err != nil {
 		return err
@@ -67,8 +74,11 @@ func RemoveChecksum(ctx sdk.Context, cdc codec.BinaryCodec, storeKey storetypes.
 	checksums = slices.DeleteFunc(checksums, func(h Checksum) bool { return bytes.Equal(checksum, h) })
 	hashes := Checksums{Checksums: checksums}
 
-	store := ctx.KVStore(storeKey)
-	store.Set([]byte(KeyChecksums), cdc.MustMarshal(&hashes))
+	bz, err := cdc.Marshal(&hashes)
+	if err != nil {
+		return err
+	}
+	store.Set([]byte(KeyChecksums), bz)
 
 	return nil
 }
