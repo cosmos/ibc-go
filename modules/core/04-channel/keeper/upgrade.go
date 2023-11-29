@@ -196,8 +196,8 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 	upgrade.Fields.Version = upgradeVersion
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
-	counterpartyUpgrade := types.Upgrade{Fields: counterpartyUpgradeFields}
-	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
+	//counterpartyUpgrade := types.Upgrade{Fields: counterpartyUpgradeFields}
+	//k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN, "new-state", channel.State)
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, upgrade)
@@ -556,15 +556,15 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if errorReceipt.Sequence < channel.UpgradeSequence {
-		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
-	}
-
 	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
 	// then we can restore immediately without any additional checks
 	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
 	if isAuthority && channel.State != types.FLUSHCOMPLETE {
 		return nil
+	}
+
+	if errorReceipt.Sequence < channel.UpgradeSequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
 	}
 
 	// get underlying connection for proof verification
@@ -823,7 +823,6 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, cou
 // validateSelfUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
-// - the proposed order is a subset of the existing order
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
