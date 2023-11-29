@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
@@ -32,11 +30,7 @@ func (Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	// Grab code from wasmVM and add to genesis state.
 	var genesisState types.GenesisState
 	for _, checksum := range checksums {
-<<<<<<< HEAD
-		code, err := k.wasmVM.GetCode(wasmvmtypes.Checksum(checksum))
-=======
 		code, err := ibcwasm.GetVM().GetCode(checksum)
->>>>>>> 595e1a93 (Use global wasm VM instead of keeping an additional reference in keeper. (#5146))
 		if err != nil {
 			panic(err)
 		}

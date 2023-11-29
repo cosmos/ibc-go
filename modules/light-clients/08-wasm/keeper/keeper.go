@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -92,16 +91,7 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-<<<<<<< HEAD
-func generateWasmChecksum(code []byte) []byte {
-	hash := sha256.Sum256(code)
-	return hash[:]
-}
-
-func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
-=======
 func (Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
->>>>>>> 595e1a93 (Use global wasm VM instead of keeping an additional reference in keeper. (#5146))
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
