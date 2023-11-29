@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.build-test-matrix-wasm.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
