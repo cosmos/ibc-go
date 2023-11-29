@@ -89,7 +89,7 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
+func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
@@ -116,7 +116,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// create the code in the vm
 	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
-	vmChecksum, err := k.wasmVM.StoreCode(code)
+	vmChecksum, err := storeFn(code)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}

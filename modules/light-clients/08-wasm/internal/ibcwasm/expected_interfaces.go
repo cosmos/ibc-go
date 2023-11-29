@@ -8,12 +8,20 @@ import (
 var _ WasmEngine = (*wasmvm.VM)(nil)
 
 type WasmEngine interface {
-	// Create will compile the wasm code, and store the resulting pre-compile
+	// StoreCode will compile the wasm code, and store the resulting pre-compile
 	// as well as the original code. Both can be referenced later via checksum
 	// This must be done one time for given code, after which it can be
-	// instatitated many times, and each instance called many times.
+	// instantiated many times, and each instance called many times.
 	// It does the same as StoreCodeUnchecked plus the static checks.
 	StoreCode(code wasmvm.WasmCode) (wasmvm.Checksum, error)
+
+	// StoreCodeUnchecked will compile the wasm code, and store the resulting pre-compile
+	// as well as the original code. Both can be referenced later via checksum
+	// This must be done one time for given code, after which it can be
+	// instantiated many times, and each instance called many times.
+	// It does the same as StoreCode but without the static checks.
+	// This allows restoring previous contract code in genesis and state-sync that may have been initially stored under different configuration constraints.
+	StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checksum, error)
 
 	// Instantiate will create a new contract based on the given checksum.
 	// We can set the initMsg (contract "genesis") here, and it then receives
