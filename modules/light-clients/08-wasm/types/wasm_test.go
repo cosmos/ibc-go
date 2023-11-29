@@ -1,8 +1,6 @@
 package types_test
 
 import (
-	"crypto/sha256"
-
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -28,8 +26,9 @@ func (suite *TypesTestSuite) TestGetChecksums() {
 			},
 			func(checksums []types.Checksum) {
 				suite.Require().Len(checksums, 1)
-				expectedChecksum := sha256.Sum256(wasmtesting.Code)
-				suite.Require().Equal(expectedChecksum[:], checksums[0])
+				expectedChecksum, err := types.CreateChecksum(wasmtesting.Code)
+				suite.Require().NoError(err)
+				suite.Require().Equal(expectedChecksum, checksums[0])
 			},
 		},
 		{

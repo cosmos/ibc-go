@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"time"
 
@@ -306,8 +305,10 @@ func (suite *TypesTestSuite) TestInitialize() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			checksum := sha256.Sum256(wasmtesting.Code)
-			clientState = types.NewClientState([]byte{1}, checksum[:], clienttypes.NewHeight(0, 1))
+			checksum, err := types.CreateChecksum(wasmtesting.Code)
+			suite.Require().NoError(err)
+
+			clientState = types.NewClientState([]byte{1}, checksum, clienttypes.NewHeight(0, 1))
 			consensusState = types.NewConsensusState([]byte{2}, 0)
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
@@ -315,7 +316,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 			tc.malleate()
 
-			err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, clientStore, consensusState)
+			err = clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, clientStore, consensusState)
 
 			expPass := tc.expError == nil
 			if expPass {
