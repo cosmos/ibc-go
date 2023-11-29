@@ -1317,12 +1317,31 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
+		{
+			name: "sender is not authority, error verification failed with empty proof",
+			malleate: func() {
+				errorReceiptProof = nil
+			},
+			expError: commitmenttypes.ErrInvalidProof,
+		},
+		{
+			name: "sender is authority, channel is flushing, cancel succeeds with empty proof",
+			malleate: func() {
+				isAuthority = true
+				errorReceiptProof = nil
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.FLUSHING
+				path.EndpointA.SetChannel(channel)
+			},
+			expError: nil,
+		},
 	}
 
 	for _, tc := range tests {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			isAuthority = false
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)

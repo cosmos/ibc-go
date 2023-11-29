@@ -847,10 +847,6 @@ func (msg MsgChannelUpgradeCancel) ValidateBasic() error {
 		return ErrInvalidChannelIdentifier
 	}
 
-	if len(msg.ProofErrorReceipt) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
-	}
-
 	if msg.ErrorReceipt.Sequence == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "upgrade sequence cannot be 0")
 	}
