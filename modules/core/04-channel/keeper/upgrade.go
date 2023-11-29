@@ -831,7 +831,7 @@ func (k Keeper) validateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types
 	currentFields := extractUpgradeFields(currentChannel)
 
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
-		return errorsmod.Wrapf(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end: got %s", proposedUpgrade)
+		return errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got %s", proposedUpgrade)
 	}
 
 	connectionID := proposedUpgrade.ConnectionHops[0]
