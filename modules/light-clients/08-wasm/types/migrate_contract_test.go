@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 
@@ -17,8 +16,8 @@ import (
 
 func (suite *TypesTestSuite) TestMigrateContract() {
 	var (
-		oldHash        [32]byte
-		newHash        [32]byte
+		oldHash        []byte
+		newHash        []byte
 		payload        []byte
 		expClientState *types.ClientState
 	)
@@ -31,11 +30,11 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 		{
 			"success: no update to client state",
 			func() {
-				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash[:])
+				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash)
 				suite.Require().NoError(err)
 
 				payload = []byte{1}
-				expChecksum := wasmvmtypes.ForceNewChecksum(hex.EncodeToString(newHash[:]))
+				expChecksum := wasmvmtypes.ForceNewChecksum(hex.EncodeToString(newHash))
 
 				suite.mockVM.MigrateFn = func(checksum wasmvm.Checksum, env wasmvmtypes.Env, msg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					suite.Require().Equal(expChecksum, checksum)
@@ -54,7 +53,7 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 			"success: update client state",
 			func() {
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
-					expClientState = types.NewClientState([]byte{1}, newHash[:], clienttypes.NewHeight(2000, 2))
+					expClientState = types.NewClientState([]byte{1}, newHash, clienttypes.NewHeight(2000, 2))
 					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), expClientState))
 
 					data, err := json.Marshal(types.EmptyResult{})
@@ -79,7 +78,7 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 		{
 			"failure: checksum not found",
 			func() {
-				err := ibcwasm.Checksums.Remove(suite.chainA.GetContext(), newHash[:])
+				err := ibcwasm.Checksums.Remove(suite.chainA.GetContext(), newHash)
 				suite.Require().NoError(err)
 			},
 			types.ErrWasmChecksumNotFound,
@@ -87,7 +86,7 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 		{
 			"failure: contract returns error",
 			func() {
-				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash[:])
+				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash)
 				suite.Require().NoError(err)
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
@@ -103,18 +102,13 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-<<<<<<< HEAD
-			oldHash = sha256.Sum256(wasmtesting.Code)
-			newHash = sha256.Sum256([]byte{1, 2, 3})
-=======
 			var err error
 			oldHash, err = types.CreateChecksum(wasmtesting.Code)
 			suite.Require().NoError(err)
 			newHash, err = types.CreateChecksum(wasmtesting.CreateMockContract([]byte{1, 2, 3}))
 			suite.Require().NoError(err)
->>>>>>> 2bd29c08 (Add a helper function to create a mock contract. (#5162))
 
-			err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash[:])
+			err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), newHash)
 			suite.Require().NoError(err)
 
 			endpointA := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -129,7 +123,7 @@ func (suite *TypesTestSuite) TestMigrateContract() {
 
 			tc.malleate()
 
-			err = clientState.MigrateContract(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, endpointA.ClientID, newHash[:], payload)
+			err = clientState.MigrateContract(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, endpointA.ClientID, newHash, payload)
 
 			// updated client state
 			clientState, ok = endpointA.GetClientState().(*types.ClientState)
