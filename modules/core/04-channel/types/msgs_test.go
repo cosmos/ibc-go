@@ -961,11 +961,11 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 			false,
 		},
 		{
-			"cannot submit an empty proof",
+			"can submit an empty proof",
 			func() {
 				msg.ProofErrorReceipt = emptyProof
 			},
-			false,
+			true,
 		},
 		{
 			"invalid error receipt sequence",
