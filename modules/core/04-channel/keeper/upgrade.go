@@ -825,7 +825,6 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, cou
 // validateSelfUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
-// - the proposed order is a subset of the existing order
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
