@@ -819,14 +819,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				channel := path.EndpointA.GetChannel()
 				channel.State = types.FLUSHING
-
 				path.EndpointA.SetChannel(channel)
-
-				counterpartyUpgrade := types.Upgrade{
-					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 0),
-				}
-
-				path.EndpointA.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 			},
 			expResult: func(commitment []byte, err error) {
 				suite.Require().NoError(err)

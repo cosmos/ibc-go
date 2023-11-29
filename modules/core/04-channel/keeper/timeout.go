@@ -153,13 +153,10 @@ func (k Keeper) TimeoutExecuted(
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING && channel.Ordering == types.UNORDERED {
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-		if !found {
-			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
-		}
-
-		timeout := counterpartyUpgrade.Timeout
-		// if the timeout is valid then use it, otherwise it has not been set in the upgrade handshake yet.
-		if timeout.IsValid() {
+		// the counterparty upgrade is set for the first time in the ChannelUpgradeAck handler.
+		if found {
+			timeout := counterpartyUpgrade.Timeout
+			// if the timeout is valid then use it, otherwise it has not been set in the upgrade handshake yet.
 			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
 				// packet flushing timeout has expired, abort the upgrade and return nil,
 				// committing an error receipt to state, restoring the channel and successfully timing out the packet.
@@ -169,10 +166,6 @@ func (k Keeper) TimeoutExecuted(
 				channel.State = types.FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
-			// upgrade fields have been set but the timeout has not. This can happen when the counterparty
-			// upgrade is partially written in WriteUpgradeTryChannel.
-		} else if counterpartyUpgrade.Fields.Version != "" {
-			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), types.ErrInvalidUpgrade)
 		}
 	}
 

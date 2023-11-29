@@ -345,7 +345,6 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				channel := path.EndpointA.GetChannel()
 				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
-				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{})
 			},
 			func(packetCommitment []byte, err error) {
 				suite.Require().NoError(err)
