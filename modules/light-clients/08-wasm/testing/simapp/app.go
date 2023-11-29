@@ -489,7 +489,6 @@ func NewSimApp(
 		SupportedCapabilities: "iterator",
 		ContractDebugMode:     false,
 	}
-	app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig)
 	if mockVM != nil {
 		// NOTE: mockVM is used for testing purposes only!
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
