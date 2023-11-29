@@ -101,7 +101,7 @@ func (ws *WasmSnapshotter) RestoreExtension(height uint64, format uint32, payloa
 	return errorsmod.Wrapf(snapshot.ErrUnknownFormat, "expected %d, got %d", ws.SnapshotFormat(), format)
 }
 
-func restoreV1(_ sdk.Context, k *Keeper, compressedCode []byte) error {
+func restoreV1(_ sdk.Context, _ *Keeper, compressedCode []byte) error {
 	if !types.IsGzip(compressedCode) {
 		return errorsmod.Wrap(types.ErrInvalidData, "expected wasm code is not gzip format")
 	}
