@@ -50,6 +50,7 @@ jobs:
       CHAIN_B_TAG: latest
       CHAIN_IMAGE: ibc-go-simd
       RELAYER_ID: "hermes" # by default use hermes for fork e2es.
+      FORK: "true"
     if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
     needs:
       - build-test-matrix
@@ -76,7 +77,8 @@ jobs:
       CHAIN_A_TAG: latest
       CHAIN_B_TAG: latest
       CHAIN_IMAGE: ibc-go-simd-wasm
-      RELAYER_ID: "hyperspace" # by default use hyperspace relayer for fork wasm tests..
+      RELAYER_ID: "hyperspace" # by default use hyperspace relayer for fork wasm tests.
+      FORK: "true"
     if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
     needs: build-test-matrix-wasm
     runs-on: ubuntu-latest

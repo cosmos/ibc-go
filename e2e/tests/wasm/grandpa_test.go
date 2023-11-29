@@ -33,9 +33,10 @@ import (
 )
 
 const (
-	composable    = "composable"
-	simd          = "simd"
-	wasmSimdImage = "ghcr.io/cosmos/ibc-go-wasm-simd"
+	composable        = "composable"
+	simd              = "simd"
+	wasmSimdImage     = "ghcr.io/cosmos/ibc-go-wasm-simd"
+	wasmSimdImageFork = "ibc-go-wasm-simd"
 
 	defaultWasmClientID = "08-wasm-0"
 )
@@ -48,7 +49,11 @@ func TestGrandpaTestSuite(t *testing.T) {
 	// TODO: this value should be passed in via the config file / CI, not hard coded in the test.
 	// This configuration can be handled in https://github.com/cosmos/ibc-go/issues/4697
 	if testsuite.IsCI() {
-		t.Setenv(testsuite.ChainImageEnv, wasmSimdImage)
+		chainImage := wasmSimdImage
+		if testsuite.IsFork() {
+			chainImage = wasmSimdImageFork
+		}
+		t.Setenv(testsuite.ChainImageEnv, chainImage)
 	}
 
 	// wasm tests require a longer voting period to account for the time it takes to upload a contract.
