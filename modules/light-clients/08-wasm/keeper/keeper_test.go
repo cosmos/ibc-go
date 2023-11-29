@@ -149,6 +149,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			true,
@@ -163,6 +164,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			false,
@@ -177,6 +179,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			false,
@@ -190,6 +193,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
+					nil,
 					nil,
 				)
 			},
@@ -205,6 +209,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			false,

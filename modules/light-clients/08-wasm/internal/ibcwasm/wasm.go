@@ -10,6 +10,8 @@ import (
 var (
 	vm WasmEngine
 
+	querier WasmQuerier
+
 	// state management
 	Schema    collections.Schema
 	Checksums collections.KeySet[[]byte]
@@ -30,6 +32,16 @@ func SetVM(wasmVM WasmEngine) {
 // GetVM returns the wasm VM for the 08-wasm module.
 func GetVM() WasmEngine {
 	return vm
+}
+
+// SetQuerier sets the custom wasm query handle for the 08-wasm module.
+func SetQuerier(wasmQuerier WasmQuerier) {
+	querier = wasmQuerier
+}
+
+// GetQuerier returns the custom wasm query handler for the 08-wasm module.
+func GetQuerier() WasmQuerier {
+	return querier
 }
 
 // SetupWasmStoreService sets up the 08-wasm module's collections.

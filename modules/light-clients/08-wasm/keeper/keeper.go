@@ -41,6 +41,7 @@ func NewKeeperWithVM(
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
+	querier ibcwasm.WasmQuerier,
 ) Keeper {
 	if clientKeeper == nil {
 		panic(errors.New("client keeper must be not nil"))
@@ -59,6 +60,7 @@ func NewKeeperWithVM(
 	}
 
 	ibcwasm.SetVM(vm)
+	ibcwasm.SetQuerier(querier)
 	ibcwasm.SetupWasmStoreService(storeService)
 
 	return Keeper{
@@ -77,13 +79,14 @@ func NewKeeperWithConfig(
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
+	querier ibcwasm.WasmQuerier,
 ) Keeper {
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
 	if err != nil {
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm)
+	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, querier)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
