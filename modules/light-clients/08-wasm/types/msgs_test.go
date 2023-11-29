@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"crypto/sha256"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -90,7 +89,8 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 
 func TestMsgMigrateContractValidateBasic(t *testing.T) {
 	signer := sdk.AccAddress(ibctesting.TestAccAddress).String()
-	validChecksum := sha256.Sum256(wasmtesting.Code)
+	validChecksum, err := types.CreateChecksum(wasmtesting.Code)
+	require.NoError(t, err, t.Name())
 	validMigrateMsg := []byte("{}")
 
 	testCases := []struct {
@@ -100,22 +100,22 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 	}{
 		{
 			"success: valid signer address, valid checksum, valid migrate msg",
-			types.NewMsgMigrateContract(signer, defaultWasmClientID, validChecksum[:], validMigrateMsg),
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, validChecksum, validMigrateMsg),
 			nil,
 		},
 		{
 			"failure: invalid signer address",
-			types.NewMsgMigrateContract(ibctesting.InvalidID, defaultWasmClientID, validChecksum[:], validMigrateMsg),
+			types.NewMsgMigrateContract(ibctesting.InvalidID, defaultWasmClientID, validChecksum, validMigrateMsg),
 			ibcerrors.ErrInvalidAddress,
 		},
 		{
 			"failure: clientID is not a valid client identifier",
-			types.NewMsgMigrateContract(signer, ibctesting.InvalidID, validChecksum[:], validMigrateMsg),
+			types.NewMsgMigrateContract(signer, ibctesting.InvalidID, validChecksum, validMigrateMsg),
 			host.ErrInvalidID,
 		},
 		{
 			"failure: clientID is not a wasm client identifier",
-			types.NewMsgMigrateContract(signer, ibctesting.FirstClientID, validChecksum[:], validMigrateMsg),
+			types.NewMsgMigrateContract(signer, ibctesting.FirstClientID, validChecksum, validMigrateMsg),
 			host.ErrInvalidID,
 		},
 		{
@@ -135,12 +135,12 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 		},
 		{
 			"failure: migrateMsg is nil",
-			types.NewMsgMigrateContract(signer, defaultWasmClientID, validChecksum[:], nil),
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, validChecksum, nil),
 			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "migrate message cannot be empty"),
 		},
 		{
 			"failure: migrateMsg is empty",
-			types.NewMsgMigrateContract(signer, defaultWasmClientID, validChecksum[:], []byte("")),
+			types.NewMsgMigrateContract(signer, defaultWasmClientID, validChecksum, []byte("")),
 			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "migrate message cannot be empty"),
 		},
 	}
@@ -159,7 +159,8 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
-	checksum := sha256.Sum256(wasmtesting.Code)
+	checksum, err := types.CreateChecksum(wasmtesting.Code)
+	suite.Require().NoError(err)
 
 	testCases := []struct {
 		name    string
@@ -176,7 +177,7 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 			suite.SetupWasmWithMockVM()
 
 			address := tc.address
-			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, checksum[:], []byte("{}"))
+			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, checksum, []byte("{}"))
 
 			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
 			if tc.expPass {
@@ -191,7 +192,8 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 
 func TestMsgRemoveChecksumValidateBasic(t *testing.T) {
 	signer := sdk.AccAddress(ibctesting.TestAccAddress).String()
-	checksum := sha256.Sum256(wasmtesting.Code)
+	checksum, err := types.CreateChecksum(wasmtesting.Code)
+	require.NoError(t, err, t.Name())
 
 	testCases := []struct {
 		name   string
@@ -200,7 +202,7 @@ func TestMsgRemoveChecksumValidateBasic(t *testing.T) {
 	}{
 		{
 			"success: valid signer address, valid length checksum",
-			types.NewMsgRemoveChecksum(signer, checksum[:]),
+			types.NewMsgRemoveChecksum(signer, checksum),
 			nil,
 		},
 		{
@@ -215,7 +217,7 @@ func TestMsgRemoveChecksumValidateBasic(t *testing.T) {
 		},
 		{
 			"failure: signer is invalid",
-			types.NewMsgRemoveChecksum(ibctesting.InvalidID, checksum[:]),
+			types.NewMsgRemoveChecksum(ibctesting.InvalidID, checksum),
 			ibcerrors.ErrInvalidAddress,
 		},
 	}
@@ -234,7 +236,8 @@ func TestMsgRemoveChecksumValidateBasic(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
-	checksum := sha256.Sum256(wasmtesting.Code)
+	checksum, err := types.CreateChecksum(wasmtesting.Code)
+	suite.Require().NoError(err)
 
 	testCases := []struct {
 		name    string
@@ -251,7 +254,7 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 			suite.SetupWasmWithMockVM()
 
 			address := tc.address
-			msg := types.NewMsgRemoveChecksum(address.String(), checksum[:])
+			msg := types.NewMsgRemoveChecksum(address.String(), checksum)
 
 			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
 			if tc.expPass {
