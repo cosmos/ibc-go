@@ -651,7 +651,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 			upgrade := types.NewUpgrade(
 				types.NewUpgradeFields(types.ORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
 				types.NewTimeout(clienttypes.NewHeight(1, 100), 0),
-				0,
 			)
 
 			msg = types.NewMsgChannelUpgradeAck(
@@ -742,7 +741,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 			counterpartyUpgrade := types.NewUpgrade(
 				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
 				types.NewTimeout(clienttypes.NewHeight(0, 10000), timeoutTimestamp),
-				1,
 			)
 
 			msg = types.NewMsgChannelUpgradeConfirm(
