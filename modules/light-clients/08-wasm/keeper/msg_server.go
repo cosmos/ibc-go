@@ -22,7 +22,7 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	checksum, err := k.storeWasmCode(ctx, msg.WasmByteCode)
+	checksum, err := k.storeWasmCode(ctx, msg.WasmByteCode, ibcwasm.GetVM().StoreCode)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store wasm bytecode")
 	}
@@ -51,7 +51,7 @@ func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecks
 	}
 
 	// unpin the code from the vm in-memory cache
-	if err := k.wasmVM.Unpin(msg.Checksum); err != nil {
+	if err := ibcwasm.GetVM().Unpin(msg.Checksum); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to unpin contract with checksum (%s) from vm cache", hex.EncodeToString(msg.Checksum))
 	}
 

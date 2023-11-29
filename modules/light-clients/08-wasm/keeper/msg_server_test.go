@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"os"
+	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -13,14 +14,15 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v7/modules/core/errors"
 	localhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 )
 
 func (suite *KeeperTestSuite) TestMsgStoreCode() {
@@ -53,11 +55,31 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			types.ErrWasmCodeExists,
 		},
 		{
-			"fails with invalid wasm code",
+			"fails with zero-length wasm code",
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{})
 			},
-			types.ErrWasmEmptyCode,
+			errors.New("Wasm bytes nil or empty"),
+		},
+		{
+			"fails with checksum",
+			func() {
+				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
+			},
+			errors.New("Wasm bytes do not not start with Wasm magic number"),
+		},
+		{
+			"fails with wasm code too large",
+			func() {
+				var sb strings.Builder
+				for i := 0; i < int(types.MaxWasmByteSize()); i++ {
+					err := sb.WriteByte(byte(i))
+					suite.Require().NoError(err)
+				}
+
+				msg = types.NewMsgStoreCode(signer, append(wasmtesting.WasmMagicNumber, []byte(sb.String())...))
+			},
+			types.ErrWasmCodeTooLarge,
 		},
 		{
 			"fails with unauthorized signer",
@@ -114,7 +136,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 					suite.Require().Contains(events, evt)
 				}
 			} else {
-				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
 				suite.Require().Nil(res)
 				suite.Require().Empty(events)
 			}
@@ -123,9 +145,10 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 }
 
 func (suite *KeeperTestSuite) TestMsgMigrateContract() {
-	oldChecksum := sha256.Sum256(wasmtesting.Code)
+	oldChecksum, err := types.CreateChecksum(wasmtesting.Code)
+	suite.Require().NoError(err)
 
-	newByteCode := []byte("MockByteCode-TestMsgMigrateContract")
+	newByteCode := wasmtesting.CreateMockContract([]byte("MockByteCode-TestMsgMigrateContract"))
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -175,7 +198,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		{
 			"failure: same checksum",
 			func() {
-				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, oldChecksum[:], []byte("{}"))
+				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, oldChecksum, []byte("{}"))
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					panic("unreachable")
@@ -272,7 +295,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 					sdk.NewEvent(
 						"migrate_contract",
 						sdk.NewAttribute(types.AttributeKeyClientID, defaultWasmClientID),
-						sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(oldChecksum[:])),
+						sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(oldChecksum)),
 						sdk.NewAttribute(types.AttributeKeyNewChecksum, hex.EncodeToString(newChecksum)),
 					),
 					sdk.NewEvent(
@@ -293,7 +316,8 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 }
 
 func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
-	checksum := sha256.Sum256(wasmtesting.Code)
+	checksum, err := types.CreateChecksum(wasmtesting.Code)
+	suite.Require().NoError(err)
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -310,7 +334,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 		{
 			"success",
 			func() {
-				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, checksum)
 
 				expChecksums = []types.Checksum{}
 			},
@@ -319,17 +343,19 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 		{
 			"success: many checksums",
 			func() {
-				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, checksum)
 
 				expChecksums = []types.Checksum{}
 
 				for i := 0; i < 20; i++ {
-					checksum := sha256.Sum256([]byte{byte(i)})
-
-					err := types.AddChecksum(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), ibcwasm.GetWasmStoreKey(), checksum[:])
+					mockCode := wasmtesting.CreateMockContract([]byte{byte(i)})
+					checksum, err := types.CreateChecksum(mockCode)
 					suite.Require().NoError(err)
 
-					expChecksums = append(expChecksums, checksum[:])
+					err = types.AddChecksum(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), ibcwasm.GetWasmStoreKey(), checksum)
+					suite.Require().NoError(err)
+
+					expChecksums = append(expChecksums, checksum)
 				}
 			},
 			nil,
@@ -344,14 +370,14 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 		{
 			"failure: unauthorized signer",
 			func() {
-				msg = types.NewMsgRemoveChecksum(suite.chainA.SenderAccount.GetAddress().String(), checksum[:])
+				msg = types.NewMsgRemoveChecksum(suite.chainA.SenderAccount.GetAddress().String(), checksum)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: code has could not be unpinned",
 			func() {
-				msg = types.NewMsgRemoveChecksum(govAcc, checksum[:])
+				msg = types.NewMsgRemoveChecksum(govAcc, checksum)
 
 				suite.mockVM.UnpinFn = func(_ wasmvm.Checksum) error {
 					return wasmtesting.ErrMockVM

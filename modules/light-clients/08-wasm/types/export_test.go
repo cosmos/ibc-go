@@ -46,7 +46,7 @@ func WasmQuery[T ContractResult](ctx sdk.Context, clientStore sdk.KVStore, cs *C
 
 // WasmSudo wraps wasmCall and is used solely for testing.
 func WasmSudo[T ContractResult](ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, cs *ClientState, payload SudoMsg) (T, error) {
-	return wasmSudo[T](ctx, cdc, payload, clientStore, cs)
+	return wasmSudo[T](ctx, cdc, clientStore, cs, payload)
 }
 
 // WasmInstantiate wraps wasmInstantiate and is used solely for testing.

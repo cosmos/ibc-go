@@ -4,8 +4,6 @@ import (
 	"encoding/hex"
 	"io"
 
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
-
 	errorsmod "cosmossdk.io/errors"
 	snapshot "github.com/cosmos/cosmos-sdk/snapshots/types"
 
@@ -13,6 +11,7 @@ import (
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -73,7 +72,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 	}
 
 	for _, checksum := range checksums {
-		wasmCode, err := ws.keeper.wasmVM.GetCode(wasmvmtypes.Checksum(checksum))
+		wasmCode, err := ibcwasm.GetVM().GetCode(checksum)
 		if err != nil {
 			return err
 		}
@@ -102,7 +101,7 @@ func (ws *WasmSnapshotter) RestoreExtension(height uint64, format uint32, payloa
 	return errorsmod.Wrapf(snapshot.ErrUnknownFormat, "expected %d, got %d", ws.SnapshotFormat(), format)
 }
 
-func restoreV1(_ sdk.Context, k *Keeper, compressedCode []byte) error {
+func restoreV1(_ sdk.Context, _ *Keeper, compressedCode []byte) error {
 	if !types.IsGzip(compressedCode) {
 		return errorsmod.Wrap(types.ErrInvalidData, "expected wasm code is not gzip format")
 	}
@@ -112,12 +111,12 @@ func restoreV1(_ sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(err, "failed to uncompress wasm code")
 	}
 
-	checksum, err := k.wasmVM.StoreCode(wasmCode)
+	checksum, err := ibcwasm.GetVM().StoreCodeUnchecked(wasmCode)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to store wasm code")
 	}
 
-	if err := k.wasmVM.Pin(checksum); err != nil {
+	if err := ibcwasm.GetVM().Pin(checksum); err != nil {
 		return errorsmod.Wrapf(err, "failed to pin checksum: %s to in-memory cache", hex.EncodeToString(checksum))
 	}
 

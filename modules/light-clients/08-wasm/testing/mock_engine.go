@@ -1,7 +1,6 @@
 package testing
 
 import (
-	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -58,8 +57,14 @@ func NewMockWasmEngine() *MockWasmEngine {
 
 	// Set up default behavior for Store/Pin/Get
 	m.StoreCodeFn = func(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
-		hash := sha256.Sum256(code)
-		checkSum := wasmvm.Checksum(hash[:])
+		checkSum, _ := types.CreateChecksum(code)
+
+		m.storedContracts[binary.LittleEndian.Uint32(checkSum)] = code
+		return checkSum, nil
+	}
+
+	m.StoreCodeUncheckedFn = func(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
+		checkSum, _ := types.CreateChecksum(code)
 
 		m.storedContracts[binary.LittleEndian.Uint32(checkSum)] = code
 		return checkSum, nil
@@ -106,12 +111,13 @@ func (m *MockWasmEngine) RegisterSudoCallback(sudoMessage any, fn sudoFn) {
 // Without a stub function a panic is thrown.
 // ref: https://github.com/CosmWasm/wasmd/blob/v0.42.0/x/wasm/keeper/wasmtesting/mock_engine.go#L19
 type MockWasmEngine struct {
-	StoreCodeFn   func(code wasmvm.WasmCode) (wasmvm.Checksum, error)
-	InstantiateFn func(checksum wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
-	MigrateFn     func(checksum wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
-	GetCodeFn     func(checksum wasmvm.Checksum) (wasmvm.WasmCode, error)
-	PinFn         func(checksum wasmvm.Checksum) error
-	UnpinFn       func(checksum wasmvm.Checksum) error
+	StoreCodeFn          func(code wasmvm.WasmCode) (wasmvm.Checksum, error)
+	StoreCodeUncheckedFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)
+	InstantiateFn        func(checksum wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+	MigrateFn            func(checksum wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+	GetCodeFn            func(checksum wasmvm.Checksum) (wasmvm.WasmCode, error)
+	PinFn                func(checksum wasmvm.Checksum) error
+	UnpinFn              func(checksum wasmvm.Checksum) error
 
 	// queryCallbacks contains a mapping of queryMsg field type name to callback function.
 	queryCallbacks map[string]queryFn
@@ -127,6 +133,14 @@ func (m *MockWasmEngine) StoreCode(code wasmvm.WasmCode) (wasmvm.Checksum, error
 		panic("mock engine is not properly initialized")
 	}
 	return m.StoreCodeFn(code)
+}
+
+// StoreCode implements the WasmEngine interface.
+func (m *MockWasmEngine) StoreCodeUnchecked(code wasmvm.WasmCode) (wasmvm.Checksum, error) {
+	if m.StoreCodeUncheckedFn == nil {
+		panic(errors.New("mock engine is not properly initialized: StoreCodeUncheckedFn is nil"))
+	}
+	return m.StoreCodeUncheckedFn(code)
 }
 
 // Instantiate implements the WasmEngine interface.
