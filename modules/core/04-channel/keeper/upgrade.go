@@ -38,6 +38,8 @@ func (k Keeper) ChanUpgradeInit(
 		return types.Upgrade{}, err
 	}
 
+	// NOTE: the Upgrade returned here is intentionally not fully populated. The Timeout remains unset
+	// until the counterparty calls ChanUpgradeTry.
 	return types.Upgrade{Fields: upgradeFields}, nil
 }
 
