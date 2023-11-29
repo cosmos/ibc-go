@@ -494,6 +494,7 @@ func (k Keeper) AcknowledgePacket(
 			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 				channel.State = types.FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+				emitChannelFlushCompleteEvents(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
 		}
 	}

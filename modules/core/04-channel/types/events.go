@@ -65,6 +65,7 @@ var (
 	EventTypeChannelUpgradeTimeout = "channel_upgrade_timeout"
 	EventTypeChannelUpgradeCancel  = "channel_upgrade_cancelled"
 	EventTypeChannelUpgradeError   = "channel_upgrade_error"
+	EventTypeChannelFlushComplete  = "channel_flush_complete"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )
