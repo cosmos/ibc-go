@@ -2261,3 +2261,74 @@ func (suite *KeeperTestSuite) TestChanUpgradeCrossingHelloWithHistoricalProofs()
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
+	var path *ibctesting.Path
+	var upgradeError *types.UpgradeError
+	var portID, channelID string
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"success: existing error receipt found at a lower sequence",
+			func() {
+				// write an error sequence with a lower sequence number
+				previousUpgradeError := types.NewUpgradeError(upgradeError.GetErrorReceipt().Sequence-1, types.ErrInvalidUpgrade)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), portID, channelID, previousUpgradeError.GetErrorReceipt())
+			},
+			nil,
+		},
+		{
+			"failure: existing error receipt found at a higher sequence",
+			func() {
+				// write an error sequence with a higher sequence number
+				previousUpgradeError := types.NewUpgradeError(upgradeError.GetErrorReceipt().Sequence+1, types.ErrInvalidUpgrade)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), portID, channelID, previousUpgradeError.GetErrorReceipt())
+			},
+			types.ErrInvalidUpgradeSequence,
+		},
+		{
+			"failure: channel not found",
+			func() {
+				suite.chainA.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			types.ErrChannelNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			channelKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
+
+			portID = path.EndpointA.ChannelConfig.PortID
+			channelID = path.EndpointA.ChannelID
+
+			upgradeError = types.NewUpgradeError(10, types.ErrInvalidUpgrade)
+
+			tc.malleate()
+
+			err := channelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), portID, channelID, upgradeError)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
