@@ -933,7 +933,14 @@ func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upg
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
+	errorReceiptToWrite := upgradeError.GetErrorReceipt()
+
+	existingErrorReceipt, found := k.GetUpgradeErrorReceipt(ctx, portID, channelID)
+	if found && existingErrorReceipt.Sequence >= errorReceiptToWrite.Sequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than existing error receipt sequence (%d)", errorReceiptToWrite.Sequence, existingErrorReceipt.Sequence)
+	}
+
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceiptToWrite)
 	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError)
 	return nil
 }
