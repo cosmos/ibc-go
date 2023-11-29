@@ -122,8 +122,6 @@ func (k Keeper) ChanUpgradeTry(
 
 		// if the counterparty sequence is greater than the current sequence, we fast-forward to the counterparty sequence.
 		if counterpartyUpgradeSequence > channel.UpgradeSequence {
-			// using -1 as WriteUpgradeInitChannel increments the sequence
-			channel.UpgradeSequence = counterpartyUpgradeSequence - 1
 			k.SetChannel(ctx, portID, channelID, channel)
 		}
 
