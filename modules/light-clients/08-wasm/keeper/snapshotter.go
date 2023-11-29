@@ -111,11 +111,7 @@ func restoreV1(_ sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(err, "failed to uncompress wasm code")
 	}
 
-<<<<<<< HEAD
-	checksum, err := k.wasmVM.StoreCodeUnchecked(wasmCode)
-=======
 	checksum, err := ibcwasm.GetVM().StoreCode(wasmCode)
->>>>>>> 595e1a93 (Use global wasm VM instead of keeping an additional reference in keeper. (#5146))
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to store wasm code")
 	}

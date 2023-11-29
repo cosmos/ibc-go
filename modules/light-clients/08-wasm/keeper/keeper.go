@@ -87,11 +87,7 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-<<<<<<< HEAD
 func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)) ([]byte, error) {
-=======
-func (Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
->>>>>>> 595e1a93 (Use global wasm VM instead of keeping an additional reference in keeper. (#5146))
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
@@ -118,11 +114,7 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// create the code in the vm
 	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
-<<<<<<< HEAD
 	vmChecksum, err := storeFn(code)
-=======
-	vmChecksum, err := ibcwasm.GetVM().StoreCode(code)
->>>>>>> 595e1a93 (Use global wasm VM instead of keeping an additional reference in keeper. (#5146))
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}

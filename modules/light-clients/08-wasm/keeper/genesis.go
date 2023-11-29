@@ -11,7 +11,7 @@ import (
 // state.
 func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 	for _, contract := range gs.Contracts {
-		_, err := k.storeWasmCode(ctx, contract.CodeBytes, k.wasmVM.StoreCodeUnchecked)
+		_, err := k.storeWasmCode(ctx, contract.CodeBytes, ibcwasm.GetVM().StoreCodeUnchecked)
 		if err != nil {
 			return err
 		}
@@ -21,13 +21,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 
 // ExportGenesis returns the 08-wasm module's exported genesis. This includes the code
 // for all contracts previously stored.
-<<<<<<< HEAD
 func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	checksums, err := types.GetAllChecksums(ctx, k.cdc)
-=======
-func (Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
-	checksums, err := types.GetAllChecksums(ctx)
->>>>>>> 595e1a93 (Use global wasm VM instead of keeping an additional reference in keeper. (#5146))
 	if err != nil {
 		panic(err)
 	}
