@@ -14,6 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -173,7 +174,7 @@ func (k Keeper) ChanUpgradeTry(
 		proofHeight, proofCounterpartyUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
-		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
+		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}),
 	); err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
@@ -568,6 +569,11 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 
 	if errorReceipt.Sequence < channel.UpgradeSequence {
 		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
+	}
+
+	// an error receipt proof must be provided if the sender is not authorized to cancel upgrades.
+	if !isAuthority && len(errorReceiptProof) == 0 {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades")
 	}
 
 	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
