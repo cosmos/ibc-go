@@ -14,7 +14,6 @@ on:
         options:
           - "08-wasm/release/v0.1.x+ibc-go-v7.3.x-wasmvm-v1.5.x"
           - "08-wasm/release/v0.1.x+ibc-go-v8.0.x-wasmvm-v1.5.x"
-          - "damian/backport-make-targets"
 
 env:
   REGISTRY: ghcr.io
