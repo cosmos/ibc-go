@@ -185,8 +185,8 @@ func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.Cli
 }
 
 // InitializePinnedCodes updates wasmvm to pin to cache all contracts marked as pinned
-func InitializePinnedCodes(ctx sdk.Context) error {
-	checksums, err := types.GetAllChecksums(ctx)
+func InitializePinnedCodes(ctx sdk.Context, cdc codec.BinaryCodec) error {
+	checksums, err := types.GetAllChecksums(ctx, cdc)
 	if err != nil {
 		return err
 	}

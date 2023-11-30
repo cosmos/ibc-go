@@ -270,7 +270,7 @@ func (suite *KeeperTestSuite) TestInitializedPinnedCodes() {
 			// malleate after storing contracts
 			tc.malleate()
 
-			err := keeper.InitializePinnedCodes(ctx)
+			err := keeper.InitializePinnedCodes(ctx, GetSimApp(suite.chainA).AppCodec())
 
 			expPass := tc.expError == nil
 			if expPass {
