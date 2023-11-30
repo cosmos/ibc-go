@@ -54,6 +54,15 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
 
+		isAllowedPacket, err := areAllowedPacketDataKeys(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowPacketDataList)
+		if err != nil {
+			return authz.AcceptResponse{}, err
+		}
+
+		if !isAllowedPacket {
+			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "not allowed packet data type for transfer")
+		}
+
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
 		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(UnboundedSpendLimit()) {
 			return authz.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
