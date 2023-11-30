@@ -209,6 +209,14 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 // This method should only be called by the IBC core msg server.
 // This method will verify that the counterparty has called the ChanUpgradeTry handler.
 // and that its own upgrade is compatible with the selected counterparty version.
+// NOTE: the channel may be in either the OPEN or FLUSHING state.
+// The channel may be in OPEN if we are in the happy path.
+//
+//	A -> Init (OPEN), B -> Try (FLUSHING), A -> Ack (begins in OPEN)
+//
+// The channel may be in FLUSHING if we are in a crossing hellos situation.
+//
+//	A -> Init (OPEN), B -> Init (OPEN) -> A -> Try (FLUSHING), B -> Try (FLUSHING), A -> Ack (begins in FLUSHING)
 func (k Keeper) ChanUpgradeAck(
 	ctx sdk.Context,
 	portID,
