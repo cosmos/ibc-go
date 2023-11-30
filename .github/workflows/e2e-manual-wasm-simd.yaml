@@ -3,7 +3,6 @@ on:
   # when https://github.com/community/community/discussions/11795 is resolved
   # we will be able to dynamically build up the list of valid inputs.
   # for now this needs to be manual.
-  push:
   workflow_dispatch:
     inputs:
       test-entry-point:
