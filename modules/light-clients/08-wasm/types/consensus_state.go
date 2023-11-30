@@ -9,7 +9,7 @@ import (
 var _ exported.ConsensusState = (*ConsensusState)(nil)
 
 // NewConsensusState creates a new ConsensusState instance.
-func NewConsensusState(data []byte, _ uint64) *ConsensusState {
+func NewConsensusState(data []byte) *ConsensusState {
 	return &ConsensusState{
 		Data: data,
 	}
