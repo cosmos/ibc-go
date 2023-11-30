@@ -4,8 +4,6 @@ import (
 	"encoding/hex"
 	"io"
 
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
-
 	errorsmod "cosmossdk.io/errors"
 	snapshot "cosmossdk.io/store/snapshots/types"
 	storetypes "cosmossdk.io/store/types"
@@ -75,7 +73,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 	}
 
 	for _, checksum := range checksums {
-		wasmCode, err := ws.keeper.wasmVM.GetCode(wasmvmtypes.Checksum(checksum))
+		wasmCode, err := ibcwasm.GetVM().GetCode(checksum)
 		if err != nil {
 			return err
 		}
@@ -119,7 +117,7 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(err, "failed to store wasm code")
 	}
 
-	if err := k.wasmVM.Pin(checksum); err != nil {
+	if err := ibcwasm.GetVM().Pin(checksum); err != nil {
 		return errorsmod.Wrapf(err, "failed to pin checksum: %s to in-memory cache", hex.EncodeToString(checksum))
 	}
 

@@ -37,7 +37,7 @@ type TypesTestSuite struct {
 	chainA      *ibctesting.TestChain
 	mockVM      *wasmtesting.MockWasmEngine
 
-	checksum []byte
+	checksum types.Checksum
 }
 
 func TestWasmTestSuite(t *testing.T) {
@@ -113,7 +113,7 @@ func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[s
 }
 
 // storeWasmCode stores the wasm code on chain and returns the checksum.
-func storeWasmCode(suite *TypesTestSuite, wasmCode []byte) []byte {
+func storeWasmCode(suite *TypesTestSuite, wasmCode []byte) types.Checksum {
 	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmCode)

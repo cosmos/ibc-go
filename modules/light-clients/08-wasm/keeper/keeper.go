@@ -25,8 +25,7 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc    codec.BinaryCodec
-	wasmVM ibcwasm.WasmEngine
+	cdc codec.BinaryCodec
 
 	clientKeeper types.ClientKeeper
 
@@ -64,7 +63,6 @@ func NewKeeperWithVM(
 
 	return Keeper{
 		cdc:          cdc,
-		wasmVM:       vm,
 		clientKeeper: clientKeeper,
 		authority:    authority,
 	}
@@ -104,7 +102,11 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 	}
 
 	// Check to see if store already has checksum.
-	checksum := generateWasmChecksum(code)
+	checksum, err := types.CreateChecksum(code)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "wasm bytecode checksum failed")
+	}
+
 	if types.HasChecksum(ctx, checksum) {
 		return nil, types.ErrWasmCodeExists
 	}
@@ -116,7 +118,7 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 
 	// create the code in the vm
 	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
-	vmChecksum, err := storeFn(code)
+	vmChecksum, err := ibcwasm.GetVM().StoreCode(code)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}
@@ -127,7 +129,7 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 	}
 
 	// pin the code to the vm in-memory cache
-	if err := k.wasmVM.Pin(vmChecksum); err != nil {
+	if err := ibcwasm.GetVM().Pin(vmChecksum); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to pin contract with checksum (%s) to vm cache", hex.EncodeToString(vmChecksum))
 	}
 
