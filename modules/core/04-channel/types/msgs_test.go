@@ -968,13 +968,6 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 			true,
 		},
 		{
-			"invalid error receipt sequence",
-			func() {
-				msg.ErrorReceipt.Sequence = 0
-			},
-			false,
-		},
-		{
 			"missing signer address",
 			func() {
 				msg.Signer = emptyAddr
