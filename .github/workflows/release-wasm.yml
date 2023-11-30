@@ -1,7 +1,6 @@
 name: Build Wasm Docker Simapp
 
 on:
-  push:
   workflow_dispatch:
     inputs:
       docker_tag:
