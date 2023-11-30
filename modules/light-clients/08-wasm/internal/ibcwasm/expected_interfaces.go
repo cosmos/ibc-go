@@ -5,10 +5,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 )
 
-var (
-	_ WasmEngine     = (*wasmvm.VM)(nil)
-	_ wasmvm.Querier = (WasmQuerier)(nil)
-)
+var _ WasmEngine = (*wasmvm.VM)(nil)
 
 type WasmEngine interface {
 	// StoreCode will compile the wasm code, and store the resulting pre-compile
@@ -117,22 +114,4 @@ type WasmEngine interface {
 	// the implementor's choice.
 	// Unpin is idempotent.
 	Unpin(checksum wasmvm.Checksum) error
-}
-
-type WasmQuerier interface {
-	// Query takes a query request, performs the query and returns the response.
-	// It takes a gas limit measured in [CosmWasm gas] (aka. wasmvm gas) to ensure
-	// the query does not consume more gas than the contract execution has left.
-	//
-	// [CosmWasm gas]: https://github.com/CosmWasm/cosmwasm/blob/v1.3.1/docs/GAS.md
-	Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error)
-	// GasConsumed returns the gas that was consumed by the querier during its entire
-	// lifetime or by the context in which it was executed in. The absolute gas values
-	// must not be used directly as it is undefined what is included in this value. Instead
-	// wasmvm will call GasConsumed before and after the query and use the difference
-	// as the query's gas usage.
-	// Like the gas limit above, this is measured in [CosmWasm gas] (aka. wasmvm gas).
-	//
-	// [CosmWasm gas]: https://github.com/CosmWasm/cosmwasm/blob/v1.3.1/docs/GAS.md
-	GasConsumed() uint64
 }

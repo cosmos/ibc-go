@@ -5,12 +5,13 @@ import (
 
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
+	wasmvm "github.com/CosmWasm/wasmvm"
 )
 
 var (
 	vm WasmEngine
 
-	querier WasmQuerier
+	querier wasmvm.Querier
 
 	// state management
 	Schema    collections.Schema
@@ -35,12 +36,12 @@ func GetVM() WasmEngine {
 }
 
 // SetQuerier sets the custom wasm query handle for the 08-wasm module.
-func SetQuerier(wasmQuerier WasmQuerier) {
+func SetQuerier(wasmQuerier wasmvm.Querier) {
 	querier = wasmQuerier
 }
 
 // GetQuerier returns the custom wasm query handler for the 08-wasm module.
-func GetQuerier() WasmQuerier {
+func GetQuerier() wasmvm.Querier {
 	return querier
 }
 
