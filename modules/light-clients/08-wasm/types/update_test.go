@@ -15,12 +15,12 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	cmttypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *TypesTestSuite) TestUpdateState() {
-	mockHeight := clienttypes.NewHeight(1, 1)
+	mockHeight := clienttypes.NewHeight(1, 50)
 
 	var (
 		clientMsg             exported.ClientMessage
@@ -44,7 +44,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					suite.Require().NotNil(msg.UpdateState)
 					suite.Require().NotNil(msg.UpdateState.ClientMessage)
-					suite.Require().Equal(msg.UpdateState.ClientMessage.Data, wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum))
+					suite.Require().Equal(msg.UpdateState.ClientMessage, clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader))
 					suite.Require().Nil(msg.VerifyMembership)
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
@@ -80,7 +80,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 					bz := store.Get(host.ClientStateKey())
 					suite.Require().NotEmpty(bz)
 					clientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, bz).(*types.ClientState)
-					clientState.Data = msg.UpdateState.ClientMessage.Data
+					clientState.LatestHeight = mockHeight
 					expectedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), expectedClientStateBz)
 
@@ -113,9 +113,9 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			"failure: invalid ClientMessage type",
 			func() {
 				// SudoCallback left nil because clientMsg is checked by 08-wasm before callbackFn is called.
-				clientMsg = &cmttypes.Misbehaviour{}
+				clientMsg = &ibctm.Misbehaviour{}
 			},
-			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*cmttypes.Misbehaviour)(nil)),
+			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*ibctm.Misbehaviour)(nil)),
 			nil,
 		},
 		{
@@ -136,7 +136,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			expectedClientStateBz = nil
 
 			clientMsg = &types.ClientMessage{
-				Data: wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum),
+				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader),
 			}
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -169,6 +169,8 @@ func (suite *TypesTestSuite) TestUpdateState() {
 }
 
 func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
+	mockHeight := clienttypes.NewHeight(1, 50)
+
 	var clientMsg exported.ClientMessage
 
 	var expectedClientStateBz []byte
@@ -218,8 +220,13 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 					suite.Require().NoError(err)
 
 					// set new client state in store
-					expectedClientStateBz = msg.UpdateStateOnMisbehaviour.ClientMessage.Data
+					bz := store.Get(host.ClientStateKey())
+					suite.Require().NotEmpty(bz)
+					clientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), bz).(*types.ClientState)
+					clientState.LatestHeight = mockHeight
+					expectedClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 					store.Set(host.ClientStateKey(), expectedClientStateBz)
+
 					resp, err := json.Marshal(types.EmptyResult{})
 					if err != nil {
 						return nil, 0, err
@@ -229,15 +236,15 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 				})
 			},
 			nil,
-			wasmtesting.MockClientStateBz,
+			clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.CreateMockTendermintClientState(mockHeight)),
 		},
 		{
 			"failure: invalid client message",
 			func() {
-				clientMsg = &cmttypes.Header{}
+				clientMsg = &ibctm.Header{}
 				// we will not register the callback here because this test case does not reach the VM
 			},
-			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*cmttypes.Header)(nil)),
+			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*ibctm.Header)(nil)),
 			nil,
 		},
 		{
@@ -264,7 +271,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientMsg = &types.ClientMessage{
-				Data: wasmtesting.CreateMockClientStateBz(suite.chainA.Codec, suite.checksum),
+				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientMisbehaviour),
 			}
 			clientState := endpoint.GetClientState()
 
