@@ -22,6 +22,8 @@ It takes:
 
 - an `AllowList` list that specifies the list of addresses that are allowed to receive funds. If this list is empty, then all addresses are allowed to receive funds from the `TransferAuthorization`.
 
+- an `AllowPacketDataList` list that specifies the list of memo that are allowed to send the packet. If this list is empty, then only allow empty memo packet (any other type of `memo` will be denied). If this list is `"*"`, then allow any type of `memo`
+
 Setting a `TransferAuthorization` is expected to fail if:
 
 - the spend limit is nil
@@ -29,6 +31,7 @@ Setting a `TransferAuthorization` is expected to fail if:
 - the source port ID is invalid
 - the source channel ID is invalid
 - there are duplicate entries in the `AllowList`
+- the packet `memo` not allowed by `AllowPacketDataList`
 
 Below is the `TransferAuthorization` message:
 
@@ -48,6 +51,9 @@ type Allocation struct {
   SpendLimit sdk.Coins  
   // allow list of receivers, an empty allow list permits any receiver address
   AllowList []string 
+  // allow list of packet data keys, an empty list.
+	// an empty list prohibits all packet data keys; a list only with "*" permits any packet data key
+	AllowPacketDataList []string 
 }
 
 ```
