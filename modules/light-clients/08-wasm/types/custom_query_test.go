@@ -58,6 +58,7 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 					}
 					echoJSON, err := json.Marshal(echo)
 					suite.Require().NoError(err)
+
 					resp, err := querier.Query(wasmvmtypes.QueryRequest{
 						Custom: json.RawMessage(echoJSON),
 					}, math.MaxUint64)
@@ -65,12 +66,12 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 
 					var respData string
 					err = json.Unmarshal(resp, &respData)
-
 					suite.Require().NoError(err)
 					suite.Require().Equal("hello world", respData)
 
 					resp, err = json.Marshal(types.StatusResult{Status: exported.Active.String()})
 					suite.Require().NoError(err)
+
 					return resp, wasmtesting.DefaultGasUsed, nil
 				})
 			},
@@ -92,7 +93,6 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 
 			ibcwasm.SetQuerier(&CustomQueryHandler{})
 			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
-			ibcwasm.SetQuerier(nil)
 		})
 	}
 }
