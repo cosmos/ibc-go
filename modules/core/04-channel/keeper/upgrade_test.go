@@ -936,6 +936,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeConfirm() {
 				_, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(ok, "counterparty upgrade should not be present when there are no in flight packets")
 			} else {
+				suite.Require().Equal(types.FLUSHING, channel.State)
 				counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(ok, "counterparty upgrade should be present when there are in flight packets")
 				suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
