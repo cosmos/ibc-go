@@ -9,11 +9,7 @@ import (
 var _ exported.ConsensusState = (*ConsensusState)(nil)
 
 // NewConsensusState creates a new ConsensusState instance.
-<<<<<<< HEAD
-func NewConsensusState(data []byte, _ uint64) *ConsensusState {
-=======
 func NewConsensusState(data []byte) *ConsensusState {
->>>>>>> 34f57985 (nit: removed unused param from 'NewConsensusState' (#5159))
 	return &ConsensusState{
 		Data: data,
 	}
