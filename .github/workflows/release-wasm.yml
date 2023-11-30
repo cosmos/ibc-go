@@ -19,6 +19,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ibc-go-wasm-simd
+  ORG: cosmos
   DOCKER_TAG: "${{ github.event.inputs.docker_tag }}"
 
 jobs:
