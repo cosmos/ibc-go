@@ -31,3 +31,8 @@ func CreateMockClientStateBz(cdc codec.BinaryCodec, checksum types.Checksum) []b
 	mockClientSate := types.NewClientState([]byte{1}, checksum, clienttypes.NewHeight(2000, 2))
 	return clienttypes.MustMarshalClientState(cdc, mockClientSate)
 }
+
+// CreateMockContract returns a well formed (magic number prefixed) wasm contract the given code.
+func CreateMockContract(code []byte) []byte {
+	return append(WasmMagicNumber, code...)
+}

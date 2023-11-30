@@ -13610,17 +13610,25 @@ paths:
           type: string
       tags:
         - Query
-  /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/upgrade_error:
+  /ibc/lightclients/wasm/v1/checksums:
     get:
-      summary: UpgradeError returns the error receipt if the upgrade handshake failed.
-      operationId: UpgradeError
+      summary: Get all Wasm checksums
+      operationId: Checksums
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              error_receipt:
+              checksums:
+                type: array
+                items:
+                  type: string
+                description: >-
+                  checksums is a list of the hex encoded checksums of all wasm
+                  codes stored.
+              pagination:
+                description: pagination defines the pagination in the response.
                 type: object
                 properties:
                   sequence:
@@ -13634,11 +13642,21 @@ paths:
                   ErrorReceipt defines a type which encapsulates the upgrade
                   sequence and error associated with the
 
-                  upgrade handshake failure. When a channel upgrade handshake is
-                  aborted both chains are expected to increment to the
-
-                  next sequence.
-              proof:
+                      was set, its value is undefined otherwise
+            description: >-
+              QueryChecksumsResponse is the response type for the
+              Query/Checksums RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
                 type: string
                 format: byte
                 title: merkle proof of existence
@@ -20372,157 +20390,6 @@ definitions:
       ready to send and receive packets.
        - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
       packets.
-       - STATE_FLUSHING: A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
-       - STATE_FLUSHCOMPLETE: A channel has just completed flushing any in-flight packets.
-  ibc.core.channel.v1.Timeout:
-    type: object
-    properties:
-      height:
-        title: block height after which the packet or upgrade times out
-        type: object
-        properties:
-          revision_number:
-            type: string
-            format: uint64
-            title: the revision that the client is currently on
-          revision_height:
-            type: string
-            format: uint64
-            title: the height within the given revision
-        description: >-
-          Normally the RevisionHeight is incremented at each height while
-          keeping
-
-          RevisionNumber the same. However some consensus algorithms may choose
-          to
-
-          reset the height in certain conditions e.g. hard forks, state-machine
-
-          breaking changes In these cases, the RevisionNumber is incremented so
-          that
-
-          height continues to be monitonically increasing even as the
-          RevisionHeight
-
-          gets reset
-      timestamp:
-        type: string
-        format: uint64
-        title: >-
-          block timestamp (in nanoseconds) after which the packet or upgrade
-          times out
-    description: >-
-      Timeout defines an execution deadline structure for 04-channel handlers.
-
-      This includes packet lifecycle handlers as well as the upgrade handshake
-      handlers.
-
-      A valid Timeout contains either one or both of a timestamp and block
-      height (sequence).
-  ibc.core.channel.v1.Upgrade:
-    type: object
-    properties:
-      fields:
-        type: object
-        properties:
-          ordering:
-            type: string
-            enum:
-              - ORDER_NONE_UNSPECIFIED
-              - ORDER_UNORDERED
-              - ORDER_ORDERED
-            default: ORDER_NONE_UNSPECIFIED
-            description: |-
-              - ORDER_NONE_UNSPECIFIED: zero-value for channel ordering
-               - ORDER_UNORDERED: packets can be delivered in any order, which may differ from the order in
-              which they were sent.
-               - ORDER_ORDERED: packets are delivered exactly in the order which they were sent
-            title: Order defines if a channel is ORDERED or UNORDERED
-          connection_hops:
-            type: array
-            items:
-              type: string
-          version:
-            type: string
-        description: |-
-          UpgradeFields are the fields in a channel end which may be changed
-          during a channel upgrade.
-      timeout:
-        type: object
-        properties:
-          height:
-            title: block height after which the packet or upgrade times out
-            type: object
-            properties:
-              revision_number:
-                type: string
-                format: uint64
-                title: the revision that the client is currently on
-              revision_height:
-                type: string
-                format: uint64
-                title: the height within the given revision
-            description: >-
-              Normally the RevisionHeight is incremented at each height while
-              keeping
-
-              RevisionNumber the same. However some consensus algorithms may
-              choose to
-
-              reset the height in certain conditions e.g. hard forks,
-              state-machine
-
-              breaking changes In these cases, the RevisionNumber is incremented
-              so that
-
-              height continues to be monitonically increasing even as the
-              RevisionHeight
-
-              gets reset
-          timestamp:
-            type: string
-            format: uint64
-            title: >-
-              block timestamp (in nanoseconds) after which the packet or upgrade
-              times out
-        description: >-
-          Timeout defines an execution deadline structure for 04-channel
-          handlers.
-
-          This includes packet lifecycle handlers as well as the upgrade
-          handshake handlers.
-
-          A valid Timeout contains either one or both of a timestamp and block
-          height (sequence).
-    description: |-
-      Upgrade is a verifiable type which contains the relevant information
-      for an attempted upgrade. It provides the proposed changes to the channel
-      end and the timeout for this upgrade attempt.
-  ibc.core.channel.v1.UpgradeFields:
-    type: object
-    properties:
-      ordering:
-        type: string
-        enum:
-          - ORDER_NONE_UNSPECIFIED
-          - ORDER_UNORDERED
-          - ORDER_ORDERED
-        default: ORDER_NONE_UNSPECIFIED
-        description: |-
-          - ORDER_NONE_UNSPECIFIED: zero-value for channel ordering
-           - ORDER_UNORDERED: packets can be delivered in any order, which may differ from the order in
-          which they were sent.
-           - ORDER_ORDERED: packets are delivered exactly in the order which they were sent
-        title: Order defines if a channel is ORDERED or UNORDERED
-      connection_hops:
-        type: array
-        items:
-          type: string
-      version:
-        type: string
-    description: |-
-      UpgradeFields are the fields in a channel end which may be changed
-      during a channel upgrade.
   ibc.lightclients.wasm.v1.QueryChecksumsResponse:
     type: object
     properties:
