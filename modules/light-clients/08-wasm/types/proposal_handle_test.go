@@ -6,8 +6,11 @@ import (
 	cosmwasm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
+<<<<<<< HEAD
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+=======
+>>>>>>> f2cc21ca (imp: use bytes in wasm contract api instead of wrapped types (#5154))
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -128,6 +131,7 @@ func (suite *TypesTestSuite) TestCheckSubstituteAndUpdateState() {
 		})
 	}
 }
+<<<<<<< HEAD
 
 func GetProcessedHeight(clientStore sdk.KVStore, height exported.Height) (uint64, bool) {
 	key := ibctm.ProcessedHeightKey(height)
@@ -138,3 +142,5 @@ func GetProcessedHeight(clientStore sdk.KVStore, height exported.Height) (uint64
 
 	return sdk.BigEndianToUint64(bz), true
 }
+=======
+>>>>>>> f2cc21ca (imp: use bytes in wasm contract api instead of wrapped types (#5154))

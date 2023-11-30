@@ -176,8 +176,9 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
 					// the checksum written in the client state will later be overwritten by the message server.
-					expClientState = types.NewClientState([]byte{1}, []byte("invalid checksum"), clienttypes.NewHeight(2000, 2))
-					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), expClientState))
+					expClientStateBz := wasmtesting.CreateMockClientStateBz(suite.chainA.App.AppCodec(), []byte("invalid checksum"))
+					expClientState = clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expClientStateBz).(*types.ClientState)
+					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					data, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
