@@ -6,6 +6,12 @@ on:
   push:
   workflow_dispatch:
     inputs:
+      test-entry-point:
+        description: 'Test entry point'
+        required: true
+        type: choice
+        options:
+          - TestGrandpaTestSuite
       chain-image:
         description: 'The image to use for chain A'
         required: true
@@ -28,5 +34,5 @@ jobs:
       chain-image: "${{ github.event.inputs.chain-image }}"
       chain-a-tag: "${{ github.event.inputs.chain-tag }}"
       chain-b-tag: "${{ github.event.inputs.chain-tag }}"
-      test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
+      test-entry-point:  "{{ github.event.inputs.test-entry-point }}"
       chain-binary: "${{ github.event.inputs.chain-binary }}"
