@@ -172,8 +172,6 @@ func (k Keeper) TimeoutExecuted(
 			}
 			// upgrade fields have been set but the timeout has not. This can happen when the counterparty
 			// upgrade is partially written in WriteUpgradeTryChannel.
-		} else if counterpartyUpgrade.Fields.Version != "" {
-			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), types.ErrInvalidUpgrade)
 		}
 	}
 
