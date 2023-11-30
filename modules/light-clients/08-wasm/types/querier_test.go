@@ -50,6 +50,8 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 		{
 			"success: custom query",
 			func() {
+				ibcwasm.SetQuerier(&CustomQueryHandler{})
+
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					echo := CustomQuery{
 						Echo: &QueryEcho{
@@ -76,6 +78,17 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 				})
 			},
 		},
+		{
+			"default query",
+			func() {
+				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+					_, err := querier.Query(wasmvmtypes.QueryRequest{}, math.MaxUint64)
+					suite.Require().Error(err)
+
+					return nil, wasmtesting.DefaultGasUsed, err
+				})
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -90,8 +103,6 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState := endpoint.GetClientState()
-
-			ibcwasm.SetQuerier(&CustomQueryHandler{})
 			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 		})
 	}

@@ -37,8 +37,13 @@ func GetVM() WasmEngine {
 }
 
 // SetQuerier sets the custom wasm query handle for the 08-wasm module.
+// If wasmQuerier is nil a default querier is used that return always an error for any query.
 func SetQuerier(wasmQuerier wasmvm.Querier) {
-	querier = wasmQuerier
+	if wasmQuerier == nil {
+		querier = &defaultQuerier{}
+	} else {
+		querier = wasmQuerier
+	}
 }
 
 // GetQuerier returns the custom wasm query handler for the 08-wasm module.
