@@ -102,6 +102,72 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
+			"success: empty allowedPacketDataList and empty memo",
+			func() {
+				allowedList := []string{}
+				transferAuthz.Allocations[0].AllowPacketDataList = allowedList
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"success: allowedPacketDataList allow any packet",
+			func() {
+				allowedList := []string{"*"}
+				transferAuthz.Allocations[0].AllowPacketDataList = allowedList
+				msgTransfer.Memo = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"success: transfer memo allowed",
+			func() {
+				allowedList := []string{"wasm", "forward"}
+				transferAuthz.Allocations[0].AllowPacketDataList = allowedList
+				msgTransfer.Memo = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().NoError(err)
+
+				suite.Require().True(res.Accept)
+				suite.Require().True(res.Delete)
+				suite.Require().Nil(res.Updated)
+			},
+		},
+		{
+			"error: empty allowedPacketDataList but not empty memo",
+			func() {
+				allowedList := []string{}
+				transferAuthz.Allocations[0].AllowPacketDataList = allowedList
+				msgTransfer.Memo = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+			},
+		},
+		{
+			"error: memo not allowed",
+			func() {
+				allowedList := []string{"forward"}
+				transferAuthz.Allocations[0].AllowPacketDataList = allowedList
+				msgTransfer.Memo = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
+			},
+			func(res authz.AcceptResponse, err error) {
+				suite.Require().Error(err)
+			},
+		},
+		{
 			"test multiple coins does not overspend",
 			func() {
 				transferAuthz.Allocations[0].SpendLimit = transferAuthz.Allocations[0].SpendLimit.Add(
