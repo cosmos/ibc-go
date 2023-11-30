@@ -255,6 +255,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
+			storeWasmCode(suite, wasmtesting.Code)
 			newChecksum = storeWasmCode(suite, newByteCode)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -382,6 +383,8 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
+
+			storeWasmCode(suite, wasmtesting.Code)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
