@@ -14,6 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -173,7 +174,7 @@ func (k Keeper) ChanUpgradeTry(
 		proofHeight, proofCounterpartyUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
-		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
+		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}),
 	); err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
@@ -279,7 +280,8 @@ func (k Keeper) ChanUpgradeAck(
 
 	// optimistically accept version that TRY chain proposes and pass this to callback for confirmation
 	// in the crossing hello case, we do not modify version that our TRY call returned and instead enforce
-	// that both TRY calls returned the same version
+	// that both TRY calls returned the same version. It is possible that this will fail in the OnChanUpgradeAck
+	// callback if the version is invalid.
 	if channel.IsOpen() {
 		upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 	}
@@ -560,6 +562,11 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 
 	if errorReceipt.Sequence < channel.UpgradeSequence {
 		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
+	}
+
+	// an error receipt proof must be provided if the sender is not authorized to cancel upgrades.
+	if !isAuthority && len(errorReceiptProof) == 0 {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades")
 	}
 
 	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
@@ -921,16 +928,16 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	// delete state associated with upgrade which is no longer required.
 	k.deleteUpgradeInfo(ctx, portID, channelID)
 
-	_ = k.WriteErrorReceipt(ctx, portID, channelID, err)
+	k.WriteErrorReceipt(ctx, portID, channelID, err)
 
 	return channel
 }
 
 // WriteErrorReceipt will write an error receipt from the provided UpgradeError.
-func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) error {
+func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		panic(errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID))
 	}
 
 	errorReceiptToWrite := upgradeError.GetErrorReceipt()
@@ -942,5 +949,4 @@ func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upg
 
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceiptToWrite)
 	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError)
-	return nil
 }
