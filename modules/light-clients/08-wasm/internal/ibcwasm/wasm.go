@@ -3,9 +3,10 @@ package ibcwasm
 import (
 	"errors"
 
+	wasmvm "github.com/CosmWasm/wasmvm"
+
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
-	wasmvm "github.com/CosmWasm/wasmvm"
 )
 
 var (
