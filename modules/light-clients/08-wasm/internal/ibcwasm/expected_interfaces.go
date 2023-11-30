@@ -5,8 +5,10 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 )
 
-var _ WasmEngine = (*wasmvm.VM)(nil)
-var _ wasmvm.Querier = (WasmQuerier)(nil)
+var (
+	_ WasmEngine     = (*wasmvm.VM)(nil)
+	_ wasmvm.Querier = (WasmQuerier)(nil)
+)
 
 type WasmEngine interface {
 	// StoreCode will compile the wasm code, and store the resulting pre-compile
