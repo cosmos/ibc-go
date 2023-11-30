@@ -4,8 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"os"
-	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
@@ -71,13 +69,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 		{
 			"fails with wasm code too large",
 			func() {
-				var sb strings.Builder
-				for i := 0; i < int(types.MaxWasmByteSize()); i++ {
-					err := sb.WriteByte(byte(i))
-					suite.Require().NoError(err)
-				}
-
-				msg = types.NewMsgStoreCode(signer, append(wasmtesting.WasmMagicNumber, []byte(sb.String())...))
+				msg = types.NewMsgStoreCode(signer, wasmtesting.CreateMockContract([]byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))))
 			},
 			types.ErrWasmCodeTooLarge,
 		},
@@ -107,7 +99,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			suite.SetupWasmWithMockVM()
 
 			signer = authtypes.NewModuleAddress(govtypes.ModuleName).String()
-			data, _ = os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
+			data = wasmtesting.Code
 
 			tc.malleate()
 
@@ -263,6 +255,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
+			storeWasmCode(suite, wasmtesting.Code)
 			newChecksum = storeWasmCode(suite, newByteCode)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -390,6 +383,8 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
+
+			storeWasmCode(suite, wasmtesting.Code)
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
