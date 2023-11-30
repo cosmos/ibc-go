@@ -629,14 +629,13 @@ type QueryEcho struct {
 
 type CustomQueryHandler struct{}
 
-func (h *CustomQueryHandler) GasConsumed() uint64 {
+func (*CustomQueryHandler) GasConsumed() uint64 {
 	return 0
 }
 
-func (h *CustomQueryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
+func (*CustomQueryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
 	var customQuery CustomQuery
 	err := json.Unmarshal([]byte(request.Custom), &customQuery)
-
 	if err != nil {
 		return nil, wasmtesting.ErrMockContract
 	}
