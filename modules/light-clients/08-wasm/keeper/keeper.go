@@ -118,7 +118,7 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 
 	// create the code in the vm
 	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
-	vmChecksum, err := ibcwasm.GetVM().StoreCode(code)
+	vmChecksum, err := storeFn(code)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}
