@@ -7,14 +7,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-<<<<<<< HEAD
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-=======
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	testing "github.com/cosmos/ibc-go/v8/testing"
->>>>>>> f2cc21ca (imp: use bytes in wasm contract api instead of wrapped types (#5154))
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	testing "github.com/cosmos/ibc-go/v7/testing"
 )
 
 var (

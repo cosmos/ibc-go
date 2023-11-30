@@ -12,19 +12,11 @@ import (
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-<<<<<<< HEAD
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	tmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-=======
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
->>>>>>> f2cc21ca (imp: use bytes in wasm contract api instead of wrapped types (#5154))
 )
 
 func (suite *TypesTestSuite) TestUpdateState() {
@@ -121,15 +113,9 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			"failure: invalid ClientMessage type",
 			func() {
 				// SudoCallback left nil because clientMsg is checked by 08-wasm before callbackFn is called.
-<<<<<<< HEAD
-				clientMsg = &tmtypes.Misbehaviour{}
-			},
-			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*tmtypes.Misbehaviour)(nil)),
-=======
 				clientMsg = &ibctm.Misbehaviour{}
 			},
 			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*ibctm.Misbehaviour)(nil)),
->>>>>>> f2cc21ca (imp: use bytes in wasm contract api instead of wrapped types (#5154))
 			nil,
 		},
 		{
@@ -255,17 +241,10 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 		{
 			"failure: invalid client message",
 			func() {
-<<<<<<< HEAD
-				clientMsg = &tmtypes.Header{}
-				// we will not register the callback here because this test case does not reach the VM
-			},
-			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*tmtypes.Header)(nil)),
-=======
 				clientMsg = &ibctm.Header{}
 				// we will not register the callback here because this test case does not reach the VM
 			},
 			fmt.Errorf("expected type %T, got %T", (*types.ClientMessage)(nil), (*ibctm.Header)(nil)),
->>>>>>> f2cc21ca (imp: use bytes in wasm contract api instead of wrapped types (#5154))
 			nil,
 		},
 		{

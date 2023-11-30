@@ -9,14 +9,9 @@ import (
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-<<<<<<< HEAD
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-=======
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
->>>>>>> f2cc21ca (imp: use bytes in wasm contract api instead of wrapped types (#5154))
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 func (suite *TypesTestSuite) TestCheckForMisbehaviour() {

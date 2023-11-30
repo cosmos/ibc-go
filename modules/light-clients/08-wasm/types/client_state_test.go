@@ -312,18 +312,10 @@ func (suite *TypesTestSuite) TestInitialize() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-<<<<<<< HEAD
-			checksum, err := types.CreateChecksum(wasmtesting.Code)
-			suite.Require().NoError(err)
-
-			clientState = types.NewClientState([]byte{1}, checksum, clienttypes.NewHeight(0, 1))
-			consensusState = types.NewConsensusState([]byte{2}, 0)
-=======
 			wrappedClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermitClientState)
 			wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientConsensusState)
 			clientState = types.NewClientState(wrappedClientStateBz, suite.checksum, wasmtesting.MockTendermitClientState.GetLatestHeight().(clienttypes.Height))
 			consensusState = types.NewConsensusState(wrappedClientConsensusStateBz)
->>>>>>> f2cc21ca (imp: use bytes in wasm contract api instead of wrapped types (#5154))
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
