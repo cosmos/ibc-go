@@ -33,5 +33,5 @@ jobs:
       chain-image: "${{ github.event.inputs.chain-image }}"
       chain-a-tag: "${{ github.event.inputs.chain-tag }}"
       chain-b-tag: "${{ github.event.inputs.chain-tag }}"
-      test-entry-point:  "{{ github.event.inputs.test-entry-point }}"
+      test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
       chain-binary: "${{ github.event.inputs.chain-binary }}"
