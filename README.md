@@ -41,7 +41,7 @@ This IBC implementation in Golang is built as a Cosmos SDK module. To understand
 
 ## Roadmap
 
-For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/docs/01-ibc/09-roadmap.md).
+For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/docs/01-ibc/10-roadmap.md).
 
 This roadmap is also available as a [project board](https://github.com/orgs/cosmos/projects/7/views/25).
 
