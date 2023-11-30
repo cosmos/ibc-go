@@ -14,6 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -38,6 +39,8 @@ func (k Keeper) ChanUpgradeInit(
 		return types.Upgrade{}, err
 	}
 
+	// NOTE: the Upgrade returned here is intentionally not fully populated. The Timeout remains unset
+	// until the counterparty calls ChanUpgradeTry.
 	return types.Upgrade{Fields: upgradeFields}, nil
 }
 
@@ -171,7 +174,7 @@ func (k Keeper) ChanUpgradeTry(
 		proofHeight, proofCounterpartyUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
-		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
+		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}),
 	); err != nil {
 		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
@@ -209,6 +212,14 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 // This method should only be called by the IBC core msg server.
 // This method will verify that the counterparty has called the ChanUpgradeTry handler.
 // and that its own upgrade is compatible with the selected counterparty version.
+// NOTE: the channel may be in either the OPEN or FLUSHING state.
+// The channel may be in OPEN if we are in the happy path.
+//
+//	A -> Init (OPEN), B -> Try (FLUSHING), A -> Ack (begins in OPEN)
+//
+// The channel may be in FLUSHING if we are in a crossing hellos situation.
+//
+//	A -> Init (OPEN), B -> Init (OPEN) -> A -> Try (FLUSHING), B -> Try (FLUSHING), A -> Ack (begins in FLUSHING)
 func (k Keeper) ChanUpgradeAck(
 	ctx sdk.Context,
 	portID,
@@ -277,7 +288,8 @@ func (k Keeper) ChanUpgradeAck(
 
 	// optimistically accept version that TRY chain proposes and pass this to callback for confirmation
 	// in the crossing hello case, we do not modify version that our TRY call returned and instead enforce
-	// that both TRY calls returned the same version
+	// that both TRY calls returned the same version. It is possible that this will fail in the OnChanUpgradeAck
+	// callback if the version is invalid.
 	if channel.IsOpen() {
 		upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 	}
@@ -560,6 +572,11 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
 	}
 
+	// an error receipt proof must be provided if the sender is not authorized to cancel upgrades.
+	if !isAuthority && len(errorReceiptProof) == 0 {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades")
+	}
+
 	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
 	// then we can restore immediately without any additional checks
 	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
@@ -823,7 +840,6 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, cou
 // validateSelfUpgradeFields validates the proposed upgrade fields against the existing channel.
 // It returns an error if the following constraints are not met:
 // - there exists at least one valid proposed change to the existing channel fields
-// - the proposed order is a subset of the existing order
 // - the proposed connection hops do not exist
 // - the proposed version is non-empty (checked in UpgradeFields.ValidateBasic())
 // - the proposed connection hops are not open
@@ -831,7 +847,7 @@ func (k Keeper) validateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types
 	currentFields := extractUpgradeFields(currentChannel)
 
 	if reflect.DeepEqual(proposedUpgrade, currentFields) {
-		return errorsmod.Wrapf(types.ErrChannelExists, "existing channel end is identical to proposed upgrade channel end: got %s", proposedUpgrade)
+		return errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got %s", proposedUpgrade)
 	}
 
 	connectionID := proposedUpgrade.ConnectionHops[0]
@@ -920,19 +936,18 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	// delete state associated with upgrade which is no longer required.
 	k.deleteUpgradeInfo(ctx, portID, channelID)
 
-	_ = k.WriteErrorReceipt(ctx, portID, channelID, err)
+	k.WriteErrorReceipt(ctx, portID, channelID, err)
 
 	return channel
 }
 
 // WriteErrorReceipt will write an error receipt from the provided UpgradeError.
-func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) error {
+func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		panic(errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID))
 	}
 
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
 	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError)
-	return nil
 }
