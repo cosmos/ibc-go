@@ -560,20 +560,23 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !isAuthority && errorReceipt.Sequence < channel.UpgradeSequence {
-		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
-	}
-
-	// an error receipt proof must be provided if the sender is not authorized to cancel upgrades.
-	if !isAuthority && len(errorReceiptProof) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades")
-	}
-
 	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
 	// then we can restore immediately without any additional checks
 	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
 	if isAuthority && channel.State != types.FLUSHCOMPLETE {
 		return nil
+	}
+
+	// an error receipt proof must be provided if the sender is not authorized to cancel upgrades.
+	// the error receipt should also have a sequence greater than or equal to the current upgrade sequence.
+	if !isAuthority {
+		if len(errorReceiptProof) == 0 {
+			return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades")
+		}
+
+		if errorReceipt.Sequence < channel.UpgradeSequence {
+			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
+		}
 	}
 
 	// get underlying connection for proof verification
