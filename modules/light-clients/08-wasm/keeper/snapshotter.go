@@ -112,7 +112,7 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 		return errorsmod.Wrap(err, "failed to uncompress wasm code")
 	}
 
-	checksum, err := ibcwasm.GetVM().StoreCode(wasmCode)
+	checksum, err := ibcwasm.GetVM().StoreCodeUnchecked(wasmCode)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to store wasm code")
 	}
