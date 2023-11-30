@@ -280,7 +280,8 @@ func (k Keeper) ChanUpgradeAck(
 
 	// optimistically accept version that TRY chain proposes and pass this to callback for confirmation
 	// in the crossing hello case, we do not modify version that our TRY call returned and instead enforce
-	// that both TRY calls returned the same version
+	// that both TRY calls returned the same version. It is possible that this will fail in the OnChanUpgradeAck
+	// callback if the version is invalid.
 	if channel.IsOpen() {
 		upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 	}
@@ -927,16 +928,16 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	// delete state associated with upgrade which is no longer required.
 	k.deleteUpgradeInfo(ctx, portID, channelID)
 
-	_ = k.WriteErrorReceipt(ctx, portID, channelID, err)
+	k.WriteErrorReceipt(ctx, portID, channelID, err)
 
 	return channel
 }
 
 // WriteErrorReceipt will write an error receipt from the provided UpgradeError.
-func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) error {
+func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		panic(errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID))
 	}
 
 	errorReceiptToWrite := upgradeError.GetErrorReceipt()
@@ -948,5 +949,4 @@ func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upg
 
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceiptToWrite)
 	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError)
-	return nil
 }
