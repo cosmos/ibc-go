@@ -312,9 +312,9 @@ func (suite *TypesTestSuite) TestInitialize() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			wrappedClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientState)
-			wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientConsensusState)
-			clientState = types.NewClientState(wrappedClientStateBz, suite.checksum, wasmtesting.MockWrappedClientState.GetLatestHeight().(clienttypes.Height))
+			wrappedClientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermitClientState)
+			wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientConsensusState)
+			clientState = types.NewClientState(wrappedClientStateBz, suite.checksum, wasmtesting.MockTendermitClientState.GetLatestHeight().(clienttypes.Height))
 			consensusState = types.NewConsensusState(wrappedClientConsensusStateBz)
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())

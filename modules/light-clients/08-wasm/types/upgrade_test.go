@@ -103,7 +103,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			clientState := endpoint.GetClientState()
 
 			clientMsg = &types.ClientMessage{
-				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientHeader),
+				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader),
 			}
 
 			tc.malleate()
@@ -211,7 +211,7 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 			clientState := endpoint.GetClientState().(*types.ClientState)
 
 			newLatestHeight := clienttypes.NewHeight(2, 10)
-			wrappedUpgradedClient := wasmtesting.CreateMockWrappedClientState(newLatestHeight)
+			wrappedUpgradedClient := wasmtesting.CreateMockTendermintClientState(newLatestHeight)
 			wrappedUpgradedClientBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wrappedUpgradedClient)
 			upgradedClient = types.NewClientState(wrappedUpgradedClientBz, clientState.Checksum, newLatestHeight)
 

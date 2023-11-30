@@ -158,8 +158,8 @@ func (suite *TypesTestSuite) TestWasmInstantiate() {
 			tc.malleate()
 
 			initMsg := types.InstantiateMessage{
-				ClientState:    clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientState),
-				ConsensusState: clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientConsensusState),
+				ClientState:    clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermitClientState),
+				ConsensusState: clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientConsensusState),
 				Checksum:       suite.checksum,
 			}
 

@@ -79,7 +79,7 @@ func (suite *TypesTestSuite) TestCheckForMisbehaviour() {
 
 			clientState := endpoint.GetClientState()
 			clientMessage = &types.ClientMessage{
-				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientMisbehaviour),
+				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientMisbehaviour),
 			}
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)

@@ -15,25 +15,25 @@ import (
 
 var (
 	// Represents the code of the wasm contract used in the tests with a mock vm.
-	WasmMagicNumber                   = []byte("\x00\x61\x73\x6D")
-	Code                              = append(WasmMagicNumber, []byte("0123456780123456780123456780")...)
-	MockClientStateBz                 = []byte("client-state-data")
-	MockConsensusStateBz              = []byte("consensus-state-data")
-	MockWrappedClientState            = CreateMockWrappedClientState(clienttypes.NewHeight(1, 10))
-	MockWrappedClientHeader           = &ibctm.Header{}
-	MockWrappedClientMisbehaviour     = ibctm.NewMisbehaviour("client-id", MockWrappedClientHeader, MockWrappedClientHeader)
-	MockWrappedClientConsensusState   = ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash")), []byte("nextValsHash"))
-	MockValidProofBz                  = []byte("valid proof")
-	MockInvalidProofBz                = []byte("invalid proof")
-	MockUpgradedClientStateProofBz    = []byte("upgraded client state proof")
-	MockUpgradedConsensusStateProofBz = []byte("upgraded consensus state proof")
+	WasmMagicNumber                    = []byte("\x00\x61\x73\x6D")
+	Code                               = append(WasmMagicNumber, []byte("0123456780123456780123456780")...)
+	MockClientStateBz                  = []byte("client-state-data")
+	MockConsensusStateBz               = []byte("consensus-state-data")
+	MockTendermitClientState           = CreateMockTendermintClientState(clienttypes.NewHeight(1, 10))
+	MockTendermintClientHeader         = &ibctm.Header{}
+	MockTendermintClientMisbehaviour   = ibctm.NewMisbehaviour("client-id", MockTendermintClientHeader, MockTendermintClientHeader)
+	MockTendermintClientConsensusState = ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("hash")), []byte("nextValsHash"))
+	MockValidProofBz                   = []byte("valid proof")
+	MockInvalidProofBz                 = []byte("invalid proof")
+	MockUpgradedClientStateProofBz     = []byte("upgraded client state proof")
+	MockUpgradedConsensusStateProofBz  = []byte("upgraded consensus state proof")
 
 	ErrMockContract = errors.New("mock contract error")
 	ErrMockVM       = errors.New("mock vm error")
 )
 
-// CreateMockWrappedClientState returns valid wrapped client state for use in tests.
-func CreateMockWrappedClientState(height clienttypes.Height) *ibctm.ClientState {
+// CreateMockTendermintClientState returns a valid Tendermint client state for use in tests.
+func CreateMockTendermintClientState(height clienttypes.Height) *ibctm.ClientState {
 	return ibctm.NewClientState(
 		"chain-id",
 		ibctm.DefaultTrustLevel,
@@ -48,8 +48,8 @@ func CreateMockWrappedClientState(height clienttypes.Height) *ibctm.ClientState 
 
 // CreateMockClientStateBz returns valid client state bytes for use in tests.
 func CreateMockClientStateBz(cdc codec.BinaryCodec, checksum types.Checksum) []byte {
-	wrappedClientStateBz := clienttypes.MustMarshalClientState(cdc, MockWrappedClientState)
-	mockClientSate := types.NewClientState(wrappedClientStateBz, checksum, MockWrappedClientState.GetLatestHeight().(clienttypes.Height))
+	wrappedClientStateBz := clienttypes.MustMarshalClientState(cdc, MockTendermitClientState)
+	mockClientSate := types.NewClientState(wrappedClientStateBz, checksum, MockTendermitClientState.GetLatestHeight().(clienttypes.Height))
 	return clienttypes.MustMarshalClientState(cdc, mockClientSate)
 }
 

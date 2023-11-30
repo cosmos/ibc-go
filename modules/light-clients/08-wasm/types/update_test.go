@@ -44,7 +44,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 					suite.Require().NotNil(msg.UpdateState)
 					suite.Require().NotNil(msg.UpdateState.ClientMessage)
-					suite.Require().Equal(msg.UpdateState.ClientMessage, clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientHeader))
+					suite.Require().Equal(msg.UpdateState.ClientMessage, clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader))
 					suite.Require().Nil(msg.VerifyMembership)
 					suite.Require().Nil(msg.VerifyNonMembership)
 					suite.Require().Nil(msg.UpdateStateOnMisbehaviour)
@@ -136,7 +136,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 			expectedClientStateBz = nil
 
 			clientMsg = &types.ClientMessage{
-				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientHeader),
+				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader),
 			}
 
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
@@ -236,7 +236,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 				})
 			},
 			nil,
-			clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.CreateMockWrappedClientState(mockHeight)),
+			clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), wasmtesting.CreateMockTendermintClientState(mockHeight)),
 		},
 		{
 			"failure: invalid client message",
@@ -271,7 +271,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientMsg = &types.ClientMessage{
-				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockWrappedClientMisbehaviour),
+				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientMisbehaviour),
 			}
 			clientState := endpoint.GetClientState()
 
