@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"crypto/rand"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -28,7 +27,7 @@ func TestValidateWasmCode(t *testing.T) {
 		{
 			"success",
 			func() {
-				code, _ = os.ReadFile("../test_data/ics10_grandpa_cw.wasm.gz")
+				code = wasmtesting.Code
 			},
 			nil,
 		},
