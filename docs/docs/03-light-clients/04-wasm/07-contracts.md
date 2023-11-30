@@ -15,7 +15,7 @@ The `08-wasm` light client proxy performs calls to the Wasm light client via the
 
 ## `InstantiateMessage`
 
-This is the message sent to the contract's `instantiate` entry point. It contains the bytes of the protobuf-encoded client and consensus states of the underlying light client, both provided in [`MsgCreateClient`](https://github.com/cosmos/ibc-go/blob/v7.2.0/proto/ibc/core/client/v1/tx.proto#L25-L37).
+This is the message sent to the contract's `instantiate` entry point. It contains the bytes of the protobuf-encoded client and consensus states of the underlying light client, both provided in [`MsgCreateClient`](https://github.com/cosmos/ibc-go/blob/v7.2.0/proto/ibc/core/client/v1/tx.proto#L25-L37). Please note that the bytes contained within the JSON message are represented as base64-encoded strings.
 
 ```go
 type InstantiateMessage struct {
