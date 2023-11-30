@@ -109,7 +109,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 			if tc.expPass {
 				ctx := suite.chainA.GetContext()
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade, upgrade.Fields.Version)
 				channel := path.EndpointA.GetChannel()
 
 				events := ctx.EventManager().Events().ToABCIEvents()
@@ -286,7 +286,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
-			upgrade, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
+			_, upgrade, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(),
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
@@ -2332,7 +2332,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCrossingHelloWithHistoricalProofs()
 
 			tc.malleate()
 
-			upgrade, err := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.ChanUpgradeTry(
+			_, upgrade, err := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(),
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,

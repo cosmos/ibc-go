@@ -805,8 +805,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel upgrade try failed"))
 		if channeltypes.IsUpgradeError(err) {
-			k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, err.(*channeltypes.UpgradeError))
-			keeper.EmitErrorReceiptEvent(ctx, msg.PortId, msg.ChannelId, channel, err.(*channeltypes.UpgradeError))
+			k.ChannelKeeper.SetUpgradeErrorReceipt(ctx, msg.PortId, msg.ChannelId, err.(*channeltypes.UpgradeError).GetErrorReceipt())
+			keeper.EmitErrorReceiptEvent(ctx, msg.PortId, msg.ChannelId, channel, err)
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
 			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
 			return &channeltypes.MsgChannelUpgradeTryResponse{Result: channeltypes.FAILURE}, nil
@@ -880,9 +880,9 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	writeFn()
 
 	channel, upgrade := k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade)
-	keeper.EmitChannelUpgradeAckEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 	ctx.Logger().Info("channel upgrade ack succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+	keeper.EmitChannelUpgradeAckEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 	return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.SUCCESS}, nil
 }
@@ -919,8 +919,9 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 		return nil, errorsmod.Wrap(err, "channel upgrade confirm failed")
 	}
 
-	k.ChannelKeeper.WriteUpgradeConfirmChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade)
+	channel := k.ChannelKeeper.WriteUpgradeConfirmChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade)
 	ctx.Logger().Info("channel upgrade confirm succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+	keeper.EmitChannelUpgradeConfirmEvent(ctx, msg.PortId, msg.ChannelId, channel)
 
 	// Move channel to OPEN state if both chains have finished flushing in-flight packets.
 	// Counterparty channel state has been verified in ChanUpgradeConfirm.
@@ -934,6 +935,7 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 		cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 
 		ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+		keeper.EmitChannelUpgradeOpenEvent(ctx, msg.PortId, msg.ChannelId, channel)
 	}
 
 	return &channeltypes.MsgChannelUpgradeConfirmResponse{Result: channeltypes.SUCCESS}, nil
@@ -967,9 +969,10 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 
 	cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 
-	k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
+	channel := k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
 
 	ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+	keeper.EmitChannelUpgradeOpenEvent(ctx, msg.PortId, msg.ChannelId, channel)
 
 	return &channeltypes.MsgChannelUpgradeOpenResponse{}, nil
 }
@@ -994,11 +997,12 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 		return nil, errorsmod.Wrapf(err, "could not timeout upgrade for channel: %s", msg.ChannelId)
 	}
 
-	k.ChannelKeeper.WriteUpgradeTimeoutChannel(ctx, msg.PortId, msg.ChannelId)
+	channel, upgrade := k.ChannelKeeper.WriteUpgradeTimeoutChannel(ctx, msg.PortId, msg.ChannelId)
 
 	cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 	ctx.Logger().Info("channel upgrade timeout callback succeeded: portID %s, channelID %s", msg.PortId, msg.ChannelId)
+	keeper.EmitChannelUpgradeTimeoutEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 	return &channeltypes.MsgChannelUpgradeTimeoutResponse{
 		Result: channeltypes.SUCCESS,
