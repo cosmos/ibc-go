@@ -1,0 +1,31 @@
+name: Manual WASM E2E (Simd)
+on:
+  # when https://github.com/community/community/discussions/11795 is resolved
+  # we will be able to dynamically build up the list of valid inputs.
+  # for now this needs to be manual.
+  workflow_dispatch:
+    inputs:
+      chain-image:
+        description: 'The image to use for chain A'
+        required: true
+        type: string
+        default: "ghcr.io/cosmos/ibc-go-wasm-simd"
+      chain-binary:
+        description: 'Specify the chain binary to be used'
+        required: true
+        type: string
+        default: "simd"
+      chain-tag:
+        description: 'Specify tag for the simapp'
+        required: true
+        type: string
+
+jobs:
+  e2e-manual-wasm:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: "${{ github.event.inputs.chain-image }}"
+      chain-a-tag: "${{ github.event.inputs.chain-tag }}"
+      chain-b-tag: "${{ github.event.inputs.chain-tag }}"
+      test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
+      chain-binary: "${{ github.event.inputs.chain-binary }}"
