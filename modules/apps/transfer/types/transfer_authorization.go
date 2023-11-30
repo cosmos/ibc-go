@@ -2,7 +2,11 @@ package types
 
 import (
 	"context"
+	"encoding/json"
+	fmt "fmt"
 	"math/big"
+	"slices"
+	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
 
@@ -143,6 +147,39 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 		}
 	}
 	return false
+}
+
+// areAllowedPacketDataKeys returns a boolean indicating if the memo is valid for transfer.
+func areAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataList []string) (bool, error) {
+	// if the allow list is empty, then the memo must be an empty string
+	if len(allowedPacketDataList) == 0 {
+		return len(strings.TrimSpace(memo)) == 0, nil
+	}
+
+	// if allowedPacketData have only 1 elements and it equal AllowAllPacketDataKeys
+	// then accept all the packet
+	if len(allowedPacketDataList) == 1 && allowedPacketDataList[0] == AllowAllPacketDataKeys {
+		return true, nil
+	}
+
+	// unmarshal memo
+	jsonObject := make(map[string]interface{})
+	err := json.Unmarshal([]byte(memo), &jsonObject)
+	if err != nil {
+		return false, err
+	}
+
+	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
+
+	for key := range jsonObject {
+		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
+
+		if !slices.Contains(allowedPacketDataList, key) {
+			return false, fmt.Errorf("not allowed packet data key: %s", key)
+		}
+	}
+
+	return true, nil
 }
 
 // UnboundedSpendLimit returns the sentinel value that can be used
