@@ -60,7 +60,7 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 		}
 
 		if !isAllowedPacket {
-			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "not allowed packet data type for transfer")
+			return authz.AcceptResponse{}, ErrInvalidMemo
 		}
 
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
