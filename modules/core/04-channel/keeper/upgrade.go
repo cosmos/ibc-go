@@ -321,7 +321,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	if !k.HasInflightPackets(ctx, portID, channelID) {
@@ -333,7 +333,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing upgrade when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing upgrade when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
