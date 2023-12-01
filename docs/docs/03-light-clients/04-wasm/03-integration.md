@@ -63,6 +63,10 @@ func NewSimApp(
   // This is the recommended approach when the chain
   // also uses `x/wasm`, and then the Wasm VM instance
   // can be shared.
+  // This sample code uses also an implementation of the 
+  // wasmvm.Querier interface (querier). If nil is passed
+  // instead, then a default querier will be used that
+  // returns an error for all query types.
   // See the section below for more information.
   app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
     appCodec,
@@ -70,6 +74,7 @@ func NewSimApp(
     app.IBCKeeper.ClientKeeper,
     authtypes.NewModuleAddress(govtypes.ModuleName).String(),
     wasmVM,
+    querier,
   )  
   app.ModuleManager = module.NewManager(
     // SDK app modules
@@ -125,7 +130,7 @@ func NewSimApp(
 
 ## Keeper instantiation
 
-When it comes to instantiating `08-wasm`'s keeper there are two recommended ways of doing it. Choosing one or the other will depend on whether the chain already integrates [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) or not.
+When it comes to instantiating `08-wasm`'s keeper there are two recommended ways of doing it. Choosing one or the other will depend on whether the chain already integrates [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) or not. Both available constructor functions accept a querier parameter that should implement the [`Querier` interface of `wasmvm`](https://github.com/CosmWasm/wasmvm/blob/v1.5.0/types/queries.go#L37). If `nil` is provided, then a default querier implementation is used that returns error for any query type.
 
 ### If `x/wasm` is present
 
@@ -194,12 +199,17 @@ app.WasmKeeper = wasmkeeper.NewKeeper(
   wasmOpts...,
 )
 
+// This sample code uses also an implementation of the 
+// wasmvm.Querier interface (querier). If nil is passed
+// instead, then a default querier will be used that
+// returns an error for all query types.
 app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
   appCodec,
   runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
   app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmer, // pass the Wasm VM instance to `08-wasm` keeper constructor
+  querier,
 )
 ...
 ```
@@ -240,6 +250,7 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
   app.IBCKeeper.ClientKeeper, 
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
+  querier
 )
 ```
 
