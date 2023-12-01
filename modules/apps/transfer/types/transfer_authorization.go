@@ -56,7 +56,7 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 
 		isAllowedPacket, err := areAllowedPacketDataKeys(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowPacketDataList)
 		if err != nil {
-			return authz.AcceptResponse{}, err
+			return authz.AcceptResponse{}, errorsmod.Wrapf(ErrInvalidMemo, "error: %v", err)
 		}
 
 		if !isAllowedPacket {
@@ -158,15 +158,15 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	return false
 }
 
-// areAllowedPacketDataKeys returns a boolean indicating if the memo is valid for transfer.
+// areAllowedPacketDataKeys returns a boolean indicating if the memo is valid for transfer. If it is not valid and non-nil error is also returned.
 func areAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataList []string) (bool, error) {
 	// if the allow list is empty, then the memo must be an empty string
 	if len(allowedPacketDataList) == 0 {
 		return len(strings.TrimSpace(memo)) == 0, nil
 	}
 
-	// if allowedPacketData have only 1 elements and it equal AllowAllPacketDataKeys
-	// then accept all the packet
+	// if allowedPacketDataList has only 1 element and it equals AllowAllPacketDataKeys
+	// then accept all the packet data keys
 	if len(allowedPacketDataList) == 1 && allowedPacketDataList[0] == AllowAllPacketDataKeys {
 		return true, nil
 	}
