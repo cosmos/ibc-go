@@ -8,12 +8,12 @@ import (
 )
 
 var (
-	vm WasmEngine
-
+	vm      WasmEngine
+	querier wasmvm.Querier
+	
 	// wasmStoreKey stores the storeKey for the 08-wasm module. Using a global storeKey is required since
 	// the client state interface functions do not have access to the keeper.
 	wasmStoreKey storetypes.StoreKey
-	querier      wasmvm.Querier
 )
 
 // SetVM sets the wasm VM for the 08-wasm module.
