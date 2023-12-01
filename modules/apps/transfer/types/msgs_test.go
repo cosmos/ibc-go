@@ -83,13 +83,13 @@ func TestMsgTransferValidation(t *testing.T) {
 }
 
 // TestMsgTransferGetSigners tests GetSigners for MsgTransfer
-func TestMsgTransferGetSigners(t *testing.T) {
+func (suite *TypesTestSuite) TestMsgTransferGetSigners() {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
 	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr.String(), receiver, timeoutHeight, 0, "")
-	res := msg.GetSigners()
-
-	require.Equal(t, []sdk.AccAddress{addr}, res)
+	signers, _, err  := suite.chainA.GetSimApp().AppCodec().GetMsgV1Signers(msg)
+	suite.Require().NoError(err)
+	suite.Require().Equal(addr.Bytes(), signers[0])
 }
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
@@ -117,7 +117,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 }
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
-func TestMsgUpdateParamsGetSigners(t *testing.T) {
+func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners() {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -129,17 +129,20 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 
 	for _, tc := range testCases {
 		tc := tc
-
-		msg := types.MsgUpdateParams{
-			Signer: tc.address.String(),
-			Params: types.DefaultParams(),
-		}
-		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
-		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
-		}
+		suite.Run(tc.name, func ()  {
+			address := tc.address
+			msg := types.MsgUpdateParams{
+				Signer: tc.address.String(),
+				Params: types.DefaultParams(),
+			}
+			signers, _, err := suite.chainA.GetSimApp().AppCodec().GetMsgV1Signers(&msg)
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(address.Bytes(), signers[0])
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+		
 	}
 }
