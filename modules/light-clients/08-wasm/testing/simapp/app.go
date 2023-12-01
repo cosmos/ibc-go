@@ -494,6 +494,7 @@ func NewSimApp(
 	if mockVM != nil {
 		// NOTE: mockVM is used for testing purposes only!
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
+<<<<<<< HEAD
 			appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM,
 		)
@@ -501,6 +502,15 @@ func NewSimApp(
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 			appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig,
+=======
+			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, nil,
+		)
+	} else {
+		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
+			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, nil,
+>>>>>>> 7016a94e (feat: add custom queries to wasm module (#5261))
 		)
 	}
 
