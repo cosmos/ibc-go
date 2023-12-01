@@ -6,6 +6,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -244,6 +246,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		msg       string
 		malleate  func()
 		expResult func(packetCommitment []byte, err error)
+		expEvents func(path *ibctesting.Path) map[string]map[string]string
 	}{
 		{
 			"success ORDERED",
@@ -268,6 +271,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channel.State, types.CLOSED)
 			},
+			nil,
 		},
 		{
 			"channel not found",
@@ -283,6 +287,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				// packet never sent.
 				suite.Require().Nil(packetCommitment)
 			},
+			nil,
 		},
 		{
 			"incorrect capability ORDERED",
@@ -306,6 +311,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				// packet sent, never deleted.
 				suite.Require().NotNil(packetCommitment)
 			},
+			nil,
 		},
 		{
 			"set to flush complete with no inflight packets",
@@ -326,6 +332,20 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State, "channel state should still be set to FLUSHCOMPLETE")
+			},
+			func(path *ibctesting.Path) map[string]map[string]string {
+				return ibctesting.EventsMap{
+					types.EventTypeChannelFlushComplete: {
+						types.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
+						types.AttributeKeyChannelID:          path.EndpointA.ChannelID,
+						types.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
+						types.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
+						types.AttributeKeyChannelState:       path.EndpointA.GetChannel().State.String(),
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: types.AttributeValueCategory,
+					},
+				}
 			},
 		},
 		{
@@ -353,6 +373,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(types.FLUSHING, channel.State, "channel state should still be FLUSHING")
 			},
+			nil,
 		},
 		{
 			"conterparty upgrade timed out (abort)",
@@ -397,6 +418,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				suite.Require().True(found, "error receipt should be present")
 				suite.Require().Equal(channel.UpgradeSequence, errorReceipt.Sequence, "error receipt sequence should be equal to channel upgrade sequence")
 			},
+			nil,
 		},
 		{
 			"conterparty upgrade has not timed out with in-flight packets",
@@ -443,6 +465,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found, "error receipt should not be written")
 			},
+			nil,
 		},
 		{
 			"ordered channel is closed and upgrade is aborted when timeout is executed",
@@ -488,6 +511,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				suite.Require().True(found, "error receipt should be present")
 				suite.Require().Equal(channel.UpgradeSequence, errorReceipt.Sequence, "error receipt sequence should be equal to channel upgrade sequence")
 			},
+			nil,
 		},
 	}
 
@@ -496,13 +520,21 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			ctx := suite.chainA.GetContext()
 
 			tc.malleate()
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(suite.chainA.GetContext(), chanCap, packet)
-			pc := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(ctx, chanCap, packet)
+			pc := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 			tc.expResult(pc, err)
+			if tc.expEvents != nil {
+				events := ctx.EventManager().ABCIEvents()
+
+				expEvents := tc.expEvents(path)
+
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+			}
 		})
 	}
 }

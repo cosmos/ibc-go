@@ -168,6 +168,7 @@ func (k Keeper) TimeoutExecuted(
 				// set the channel state to flush complete if all packets have been flushed.
 				channel.State = types.FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+				emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
 			// upgrade fields have been set but the timeout has not. This can happen when the counterparty
 			// upgrade is partially written in WriteUpgradeTryChannel.
