@@ -206,24 +206,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			false,
 			errors.New("wasm VM must be not nil"),
 		},
-<<<<<<< HEAD
-=======
-		{
-			"failure: nil store service",
-			func() {
-				keeper.NewKeeperWithVM(
-					GetSimApp(suite.chainA).AppCodec(),
-					nil,
-					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
-					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
-					nil,
-				)
-			},
-			false,
-			errors.New("store service must be not nil"),
-		},
->>>>>>> 7016a94e (feat: add custom queries to wasm module (#5261))
 	}
 
 	for _, tc := range testCases {

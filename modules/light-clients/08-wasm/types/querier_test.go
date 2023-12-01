@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 type CustomQuery struct {
@@ -27,7 +27,7 @@ func (*CustomQueryHandler) GasConsumed() uint64 {
 	return 0
 }
 
-func (*CustomQueryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
+func (*CustomQueryHandler) Query(request wasmvmtypes.QueryRequest, _ uint64) ([]byte, error) {
 	var customQuery CustomQuery
 	err := json.Unmarshal([]byte(request.Custom), &customQuery)
 	if err != nil {

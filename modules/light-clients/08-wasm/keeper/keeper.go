@@ -56,12 +56,8 @@ func NewKeeperWithVM(
 	}
 
 	ibcwasm.SetVM(vm)
-<<<<<<< HEAD
 	ibcwasm.SetWasmStoreKey(storeKey)
-=======
 	ibcwasm.SetQuerier(querier)
-	ibcwasm.SetupWasmStoreService(storeService)
->>>>>>> 7016a94e (feat: add custom queries to wasm module (#5261))
 
 	return Keeper{
 		cdc:          cdc,
@@ -86,11 +82,7 @@ func NewKeeperWithConfig(
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-<<<<<<< HEAD
-	return NewKeeperWithVM(cdc, storeKey, clientKeeper, authority, vm)
-=======
-	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, querier)
->>>>>>> 7016a94e (feat: add custom queries to wasm module (#5261))
+	return NewKeeperWithVM(cdc, storeKey, clientKeeper, authority, vm, querier)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
