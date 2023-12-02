@@ -5,6 +5,8 @@ import (
 
 	"cosmossdk.io/errors"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -761,6 +763,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		name      string
 		malleate  func()
 		expResult func(commitment []byte, err error)
+		expEvents func(path *ibctesting.Path) map[string]map[string]string
 	}{
 		{
 			name: "success on ordered channel",
@@ -871,6 +874,20 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				nextSequenceAck, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceAck(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), nextSequenceAck, "sequence incremented for UNORDERED channel")
+			},
+			expEvents: func(path *ibctesting.Path) map[string]map[string]string {
+				return ibctesting.EventsMap{
+					types.EventTypeChannelFlushComplete: {
+						types.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
+						types.AttributeKeyChannelID:          path.EndpointA.ChannelID,
+						types.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
+						types.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
+						types.AttributeKeyChannelState:       path.EndpointA.GetChannel().State.String(),
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: types.AttributeValueCategory,
+					},
+				}
 			},
 		},
 		{
@@ -1215,16 +1232,24 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			ctx := suite.chainA.GetContext()
 
 			tc.malleate()
 
 			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(suite.chainA.GetContext(), channelCap, packet, ack.Acknowledgement(), proof, proofHeight)
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(ctx, channelCap, packet, ack.Acknowledgement(), proof, proofHeight)
 
-			commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, packet.GetSequence())
+			commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, packet.GetSequence())
 			tc.expResult(commitment, err)
+			if tc.expEvents != nil {
+				events := ctx.EventManager().ABCIEvents()
+
+				expEvents := tc.expEvents(path)
+
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+			}
 		})
 	}
 }

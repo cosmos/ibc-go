@@ -165,6 +165,7 @@ func (k Keeper) TimeoutExecuted(
 				// set the channel state to flush complete if all packets have been flushed.
 				channel.State = types.FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+				emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
 		}
 	}
