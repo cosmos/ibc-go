@@ -77,7 +77,7 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
 }
 
-// ConnectionID returns the connection id for the given port and channelIDs.
+// GetConnectionID returns the connection id for the given port and channelIDs.
 func (k Keeper) GetConnectionID(ctx sdk.Context, portID, channelID string) (string, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
