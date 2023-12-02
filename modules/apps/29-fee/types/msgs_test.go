@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -14,6 +15,11 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+type TypesTestSuite struct {
+	testifysuite.Suite
+
+	chainA *ibctesting.TestChain
+}
 func TestMsgRegisterPayeeValidation(t *testing.T) {
 	var msg *types.MsgRegisterPayee
 
@@ -85,10 +91,12 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 	}
 }
 
-func TestRegisterPayeeGetSigners(t *testing.T) {
+func (suite *TypesTestSuite) TestRegisterPayeeGetSigners() {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
-	require.Equal(t, []sdk.AccAddress{accAddress}, msg.GetSigners())
+	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
+	suite.Require().NoError(err)
+	suite.Require().Equal(accAddress.Bytes(), signers[0])
 }
 
 func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
@@ -165,10 +173,12 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 	}
 }
 
-func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
+func (suite *TypesTestSuite) TestRegisterCountepartyAddressGetSigners() {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
-	require.Equal(t, []sdk.AccAddress{accAddress}, msg.GetSigners())
+	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
+	suite.Require().NoError(err)
+	suite.Require().Equal(accAddress.Bytes(), signers[0])
 }
 
 func TestMsgPayPacketFeeValidation(t *testing.T) {
@@ -239,12 +249,13 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 	}
 }
 
-func TestPayPacketFeeGetSigners(t *testing.T) {
+func (suite *TypesTestSuite) TestPayPacketFeeGetSigners() {
 	refundAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	msg := types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, refundAddr.String(), nil)
-
-	require.Equal(t, []sdk.AccAddress{refundAddr}, msg.GetSigners())
+	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
+	suite.Require().NoError(err)
+	suite.Require().Equal(refundAddr.Bytes(), signers[0])
 }
 
 func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
@@ -373,13 +384,14 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 	}
 }
 
-func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
+func (suite *TypesTestSuite) TestPayPacketFeeAsyncGetSigners() {
 	refundAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	packetFee := types.NewPacketFee(fee, refundAddr.String(), nil)
 
 	msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
-
-	require.Equal(t, []sdk.AccAddress{refundAddr}, msg.GetSigners())
+	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
+	suite.Require().NoError(err)
+	suite.Require().Equal(refundAddr.Bytes(), signers[0])
 }
