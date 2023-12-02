@@ -153,7 +153,8 @@ func (k Keeper) TimeoutExecuted(
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING && channel.Ordering == types.UNORDERED {
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-		// the counterparty upgrade is set for the first time in the ChannelUpgradeAck handler.
+		// once we have received the counterparty timeout in the channel UpgradeAck or UpgradeConfirm handshake steps
+		// then we can move to flushing complete if the timeout has not passed and there are no in-flight packets
 		if found {
 			timeout := counterpartyUpgrade.Timeout
 			// if the timeout is valid then use it, otherwise it has not been set in the upgrade handshake yet.
