@@ -79,6 +79,13 @@ func (suite *TypesTestSuite) SetupWasmWithMockVM() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.checksum = storeWasmCode(suite, wasmtesting.Code)
+
+	// add 08-wasm to the list of allowed clients
+	ctx := suite.chainA.GetContext()
+	clientKeeper := suite.chainA.App.GetIBCKeeper().ClientKeeper
+	params := clientKeeper.GetParams(suite.chainA.GetContext())
+	params.AllowedClients = append(params.AllowedClients, types.Wasm)
+	clientKeeper.SetParams(ctx, params)
 }
 
 func (suite *TypesTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
