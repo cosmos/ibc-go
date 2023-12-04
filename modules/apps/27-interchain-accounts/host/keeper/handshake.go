@@ -35,8 +35,9 @@ func (k Keeper) OnChanOpenTry(
 	}
 
 	var metadata icatypes.Metadata
-	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &metadata); err != nil {
-		return "", errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+	metadata, err1 := icatypes.MedataFromVersion(counterpartyVersion)
+	if err1 != nil {
+		return "", nil
 	}
 
 	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {

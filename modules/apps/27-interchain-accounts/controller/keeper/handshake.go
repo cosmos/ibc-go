@@ -42,6 +42,7 @@ func (k Keeper) OnChanOpenInit(
 	}
 
 	var metadata icatypes.Metadata
+	var err error
 	if strings.TrimSpace(version) == "" {
 		connection, err := k.channelKeeper.GetConnection(ctx, connectionHops[0])
 		if err != nil {
@@ -50,8 +51,9 @@ func (k Keeper) OnChanOpenInit(
 
 		metadata = icatypes.NewDefaultMetadata(connectionHops[0], connection.GetCounterparty().GetConnectionID())
 	} else {
-		if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &metadata); err != nil {
-			return "", errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+		metadata, err = icatypes.MedataFromVersion(version)
+		if err != nil {
+			return "", err
 		}
 	}
 
@@ -100,10 +102,10 @@ func (k Keeper) OnChanOpenAck(
 	}
 
 	var metadata icatypes.Metadata
-	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &metadata); err != nil {
-		return errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+	metadata, err := icatypes.MedataFromVersion(counterpartyVersion)
+	if err != nil {
+		return err
 	}
-
 	if activeChannelID, found := k.GetOpenActiveChannel(ctx, metadata.ControllerConnectionId, portID); found {
 		return errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s", activeChannelID, portID)
 	}
