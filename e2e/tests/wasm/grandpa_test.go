@@ -554,7 +554,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 
 	// create client pair with subject (bad trusting period)
-	subjectClientID := clienttypes.FormatClientIdentifier(ibcexported.Wasm, 0)
+	subjectClientID := clienttypes.FormatClientIdentifier(wasmtypes.Wasm, 0)
 	// TODO: The hyperspace relayer makes no use of create client opts
 	// https://github.com/strangelove-ventures/interchaintest/blob/main/relayer/hyperspace/hyperspace_commander.go#L83
 	s.SetupClients(ctx, r, ibc.CreateClientOptions{
@@ -569,7 +569,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	time.Sleep(modifiedTrustingPeriod)
 
 	// create client pair with substitute
-	substituteClientID := clienttypes.FormatClientIdentifier(ibcexported.Wasm, 1)
+	substituteClientID := clienttypes.FormatClientIdentifier(wasmtypes.Wasm, 1)
 	s.SetupClients(ctx, r, ibc.DefaultClientOpts())
 
 	// wait for block
