@@ -1,16 +1,8 @@
 package types_test
 
 import (
-<<<<<<< HEAD
-	"errors"
-	fmt "fmt"
-
 	prefixstore "github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/types"
-=======
-	prefixstore "cosmossdk.io/store/prefix"
-	storetypes "cosmossdk.io/store/types"
->>>>>>> b7d6a305 (Don't panic during any store operations. (#5294))
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
