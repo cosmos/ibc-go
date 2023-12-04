@@ -19,10 +19,13 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	cmtjson "github.com/cometbft/cometbft/libs/json"
+
 	"cosmossdk.io/math"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -30,6 +33,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 const (
@@ -87,7 +91,9 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	s.InitGRPCClients(cosmosChain)
 
+	cosmosChainVersion := cosmosChain.Config().Images[0].Version
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(cosmosChainVersion)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
@@ -123,6 +129,27 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
+
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
+	t.Run("add 08-wasm to list of allowed clients", func(t *testing.T) {
+		allowedClients := append([]string{wasmtypes.Wasm}, clienttypes.DefaultAllowedClients...)
+		if isSelfManagingParams {
+			msg := clienttypes.NewMsgUpdateParams(govModuleAddress.String(), clienttypes.NewParams(allowedClients...))
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, cosmosWallet)
+		} else {
+			value, err := cmtjson.Marshal(allowedClients)
+			s.Require().NoError(err)
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(clienttypes.KeyAllowedClients), string(value)),
+			}
+
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, cosmosWallet, proposal)
+		}
+	})
 
 	// Create new clients
 	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
@@ -239,7 +266,9 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 
 	s.InitGRPCClients(cosmosChain)
 
+	cosmosChainVersion := cosmosChain.Config().Images[0].Version
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(cosmosChainVersion)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
@@ -275,6 +304,27 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
+
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
+	t.Run("add 08-wasm to list of allowed clients", func(t *testing.T) {
+		allowedClients := append([]string{wasmtypes.Wasm}, clienttypes.DefaultAllowedClients...)
+		if isSelfManagingParams {
+			msg := clienttypes.NewMsgUpdateParams(govModuleAddress.String(), clienttypes.NewParams(allowedClients...))
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, cosmosWallet)
+		} else {
+			value, err := cmtjson.Marshal(allowedClients)
+			s.Require().NoError(err)
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(clienttypes.KeyAllowedClients), string(value)),
+			}
+
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, cosmosWallet, proposal)
+		}
+	})
 
 	// Create new clients
 	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
@@ -340,6 +390,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 // * Migrates the wasm client contract
 func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	ctx := context.Background()
+	t := s.T()
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
@@ -353,7 +404,9 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 
 	s.InitGRPCClients(cosmosChain)
 
+	cosmosChainVersion := cosmosChain.Config().Images[0].Version
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(cosmosChainVersion)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
@@ -376,6 +429,27 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
+
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
+	t.Run("add 08-wasm to list of allowed clients", func(t *testing.T) {
+		allowedClients := append([]string{wasmtypes.Wasm}, clienttypes.DefaultAllowedClients...)
+		if isSelfManagingParams {
+			msg := clienttypes.NewMsgUpdateParams(govModuleAddress.String(), clienttypes.NewParams(allowedClients...))
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, cosmosWallet)
+		} else {
+			value, err := cmtjson.Marshal(allowedClients)
+			s.Require().NoError(err)
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(clienttypes.KeyAllowedClients), string(value)),
+			}
+
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, cosmosWallet, proposal)
+		}
+	})
 
 	// Create new clients
 	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
@@ -427,6 +501,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 // * Migrates the wasm client contract with a contract that will always fail migration
 func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract() {
 	ctx := context.Background()
+	t := s.T()
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
@@ -440,7 +515,9 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 
 	s.InitGRPCClients(cosmosChain)
 
+	cosmosChainVersion := cosmosChain.Config().Images[0].Version
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(cosmosChainVersion)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
@@ -462,6 +539,27 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
+
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
+	t.Run("add 08-wasm to list of allowed clients", func(t *testing.T) {
+		allowedClients := append([]string{wasmtypes.Wasm}, clienttypes.DefaultAllowedClients...)
+		if isSelfManagingParams {
+			msg := clienttypes.NewMsgUpdateParams(govModuleAddress.String(), clienttypes.NewParams(allowedClients...))
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, cosmosWallet)
+		} else {
+			value, err := cmtjson.Marshal(allowedClients)
+			s.Require().NoError(err)
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(clienttypes.KeyAllowedClients), string(value)),
+			}
+
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, cosmosWallet, proposal)
+		}
+	})
 
 	// Create new clients
 	err = r.CreateClients(ctx, eRep, pathName, ibc.DefaultClientOpts())
@@ -510,6 +608,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 // This contract modifies the unbonding period to 1600s with the trusting period being calculated as (unbonding period / 3).
 func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	ctx := context.Background()
+	t := s.T()
 
 	// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
 	// the contract uses 1600s as the unbonding period with the trusting period evaluating to (unbonding period / 3)
@@ -527,7 +626,9 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 
 	s.InitGRPCClients(cosmosChain)
 
+	cosmosChainVersion := cosmosChain.Config().Images[0].Version
 	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(cosmosChainVersion)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw_expiry.wasm.gz")
 	s.Require().NoError(err)
@@ -552,6 +653,27 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	pathName := s.GetPathName(0)
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
+
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
+	t.Run("add 08-wasm to list of allowed clients", func(t *testing.T) {
+		allowedClients := append([]string{wasmtypes.Wasm}, clienttypes.DefaultAllowedClients...)
+		if isSelfManagingParams {
+			msg := clienttypes.NewMsgUpdateParams(govModuleAddress.String(), clienttypes.NewParams(allowedClients...))
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, cosmosWallet)
+		} else {
+			value, err := cmtjson.Marshal(allowedClients)
+			s.Require().NoError(err)
+			changes := []paramsproposaltypes.ParamChange{
+				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(clienttypes.KeyAllowedClients), string(value)),
+			}
+
+			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, cosmosWallet, proposal)
+		}
+	})
 
 	// create client pair with subject (bad trusting period)
 	subjectClientID := clienttypes.FormatClientIdentifier(wasmtypes.Wasm, 0)
