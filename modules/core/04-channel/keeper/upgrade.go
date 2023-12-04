@@ -51,7 +51,7 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeInit step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanUpgradeInit step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	channel.UpgradeSequence++
@@ -188,19 +188,16 @@ func (k Keeper) ChanUpgradeTry(
 
 // WriteUpgradeTryChannel writes the channel end and upgrade to state after successfully passing the UpgradeTry handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeVersion string, counterpartyUpgradeFields types.UpgradeFields) (types.Channel, types.Upgrade) {
+func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeVersion string) (types.Channel, types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-try")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeTry step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanUpgradeTry step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	upgrade.Fields.Version = upgradeVersion
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
-
-	counterpartyUpgrade := types.Upgrade{Fields: counterpartyUpgradeFields}
-	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN, "new-state", channel.State)
 	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, upgrade)
@@ -212,6 +209,14 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 // This method should only be called by the IBC core msg server.
 // This method will verify that the counterparty has called the ChanUpgradeTry handler.
 // and that its own upgrade is compatible with the selected counterparty version.
+// NOTE: the channel may be in either the OPEN or FLUSHING state.
+// The channel may be in OPEN if we are in the happy path.
+//
+//	A -> Init (OPEN), B -> Try (FLUSHING), A -> Ack (begins in OPEN)
+//
+// The channel may be in FLUSHING if we are in a crossing hellos situation.
+//
+//	A -> Init (OPEN), B -> Init (OPEN) -> A -> Try (FLUSHING), B -> Try (FLUSHING), A -> Ack (begins in FLUSHING)
 func (k Keeper) ChanUpgradeAck(
 	ctx sdk.Context,
 	portID,
@@ -313,19 +318,21 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	if !k.HasInflightPackets(ctx, portID, channelID) {
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
 	} else {
+		// the counterparty upgrade is only required if the channel is still in the FLUSHING state.
+		// this gets read when timing out and acknowledging packets.
 		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing upgrade when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing upgrade when updating channel state in successful ChanUpgradeAck step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
@@ -419,7 +426,7 @@ func (k Keeper) WriteUpgradeConfirmChannel(ctx sdk.Context, portID, channelID st
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeConfirm step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanUpgradeConfirm step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	if !k.HasInflightPackets(ctx, portID, channelID) {
@@ -429,6 +436,8 @@ func (k Keeper) WriteUpgradeConfirmChannel(ctx sdk.Context, portID, channelID st
 
 		k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
 	} else {
+		// the counterparty upgrade is only required if the channel is still in the FLUSHING state.
+		// this gets read when timing out and acknowledging packets.
 		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
 
@@ -524,12 +533,12 @@ func (k Keeper) ChanUpgradeOpen(
 func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	// Switch channel fields to upgrade fields and set channel state to OPEN
@@ -614,12 +623,12 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	previousState := channel.State
@@ -734,12 +743,12 @@ func (k Keeper) WriteUpgradeTimeoutChannel(
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing channel when updating channel state in successful ChanUpgradeTimeout step, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanUpgradeTimeout step, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Sprintf("could not find existing upgrade when cancelling channel upgrade, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find existing upgrade when cancelling channel upgrade, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	channel = k.restoreChannel(ctx, portID, channelID, channel.UpgradeSequence, channel, types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout))
