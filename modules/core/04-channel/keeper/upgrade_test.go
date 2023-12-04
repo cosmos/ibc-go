@@ -355,7 +355,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 				path.EndpointB.ChannelID,
 				proposedUpgrade,
 				proposedUpgrade.Fields.Version,
-				path.EndpointA.GetProposedUpgrade().Fields,
 			)
 
 			channel := path.EndpointB.GetChannel()
@@ -934,12 +933,12 @@ func (suite *KeeperTestSuite) TestWriteUpgradeConfirm() {
 			if !tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
 				// Counterparty was set in UPGRADETRY but without timeout, latest sequence send set.
-				counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(ok)
-				suite.Require().NotEqual(proposedUpgrade, counterpartyUpgrade)
+				_, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().False(ok, "counterparty upgrade should not be present when there are no in flight packets")
 			} else {
+				suite.Require().Equal(types.FLUSHING, channel.State)
 				counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(ok)
+				suite.Require().True(ok, "counterparty upgrade should be present when there are in flight packets")
 				suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 			}
 		})
@@ -1228,6 +1227,28 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: nil,
 		},
 		{
+			name: "sender is authority, upgrade can be cancelled even with invalid error receipt upgrade sequence",
+			malleate: func() {
+				var ok bool
+				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(ok)
+
+				errorReceipt.Sequence = path.EndpointA.GetChannel().UpgradeSequence - 1
+
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+
+				suite.coordinator.CommitBlock(suite.chainB)
+
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+
+				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+
+				isAuthority = true
+			},
+			expError: nil,
+		},
+		{
 			name: "sender is authority, channel in flushing, upgrade can be cancelled even with invalid error receipt",
 			malleate: func() {
 				channel := path.EndpointA.GetChannel()
@@ -1261,7 +1282,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: types.ErrUpgradeNotFound,
 		},
 		{
-			name: "error receipt sequence less than channel upgrade sequence",
+			name: "sender is not authority, error receipt sequence less than channel upgrade sequence",
 			malleate: func() {
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
