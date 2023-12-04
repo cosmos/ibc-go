@@ -30,7 +30,7 @@ relayers:
     tag: "latest"
   - id: hyperspace
     image: ghcr.io/misko9/hyperspace
-    tag: "local"
+    tag: "timeout"
 
 cometbft:
   logLevel: info

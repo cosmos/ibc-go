@@ -89,8 +89,15 @@ func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[
 		err := json.Unmarshal(initMsg, &payload)
 		suite.Require().NoError(err)
 
-		store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState))
-		store.Set(host.ConsensusStateKey(payload.ClientState.LatestHeight), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), payload.ConsensusState))
+		wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+
+		clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.GetLatestHeight().(clienttypes.Height))
+		clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
+		store.Set(host.ClientStateKey(), clientStateBz)
+
+		consensusState := types.NewConsensusState(payload.ConsensusState)
+		consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), consensusState)
+		store.Set(host.ConsensusStateKey(clientState.GetLatestHeight()), consensusStateBz)
 
 		resp, err := json.Marshal(types.EmptyResult{})
 		suite.Require().NoError(err)
@@ -149,6 +156,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			true,
@@ -163,6 +171,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			false,
@@ -177,6 +186,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			false,
@@ -190,6 +200,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
+					nil,
 					nil,
 				)
 			},
@@ -205,6 +216,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			false,
