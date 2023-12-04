@@ -803,7 +803,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try failed", "error", errorsmod.Wrap(err, "channel upgrade try failed"))
 		if channeltypes.IsUpgradeError(err) {
-			_ = k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, err.(*channeltypes.UpgradeError))
+			k.ChannelKeeper.WriteErrorReceipt(ctx, msg.PortId, msg.ChannelId, err.(*channeltypes.UpgradeError))
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
 			// This signals to the relayer to begin the cancel upgrade handshake subprotocol.
@@ -926,8 +926,8 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 			return nil, errorsmod.Wrapf(channeltypes.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
 		}
 
-		cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 		k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
+		cbs.OnChanUpgradeOpen(ctx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 
 		ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 	}

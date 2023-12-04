@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 	"math"
+	"testing"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -1317,12 +1318,31 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
+		{
+			name: "sender is not authority, error verification failed with empty proof",
+			malleate: func() {
+				errorReceiptProof = nil
+			},
+			expError: commitmenttypes.ErrInvalidProof,
+		},
+		{
+			name: "sender is authority, channel is flushing, cancel succeeds with empty proof",
+			malleate: func() {
+				isAuthority = true
+				errorReceiptProof = nil
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.FLUSHING
+				path.EndpointA.SetChannel(channel)
+			},
+			expError: nil,
+		},
 	}
 
 	for _, tc := range tests {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			isAuthority = false
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
@@ -1374,6 +1394,79 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			}
 		})
 	}
+}
+
+// TestChanUpgrade_UpgradeSucceeds_AfterCancel verifies that if upgrade sequences
+// become out of sync, the upgrade can still be performed successfully after the upgrade is cancelled.
+func (suite *KeeperTestSuite) TestChanUpgrade_UpgradeSucceeds_AfterCancel() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.Setup(path)
+
+	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+
+	suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+
+	// cause the upgrade to fail on chain b so an error receipt is written.
+	// if the counterparty (chain A) upgrade sequence is less than the current sequence, (chain B)
+	// an upgrade error will be returned by chain B during ChanUpgradeTry.
+	channel := path.EndpointA.GetChannel()
+	channel.UpgradeSequence = 1
+	path.EndpointA.SetChannel(channel)
+
+	channel = path.EndpointB.GetChannel()
+	channel.UpgradeSequence = 2
+	path.EndpointB.SetChannel(channel)
+
+	suite.Require().NoError(path.EndpointA.UpdateClient())
+	suite.Require().NoError(path.EndpointB.UpdateClient())
+
+	// error receipt is written to chain B here.
+	suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
+
+	suite.Require().NoError(path.EndpointA.UpdateClient())
+
+	var errorReceipt types.ErrorReceipt
+	suite.T().Run("error receipt written", func(t *testing.T) {
+		var ok bool
+		errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+		suite.Require().True(ok)
+	})
+
+	suite.T().Run("upgrade cancelled successfully", func(t *testing.T) {
+		upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+		errorReceiptProof, proofHeight := suite.chainB.QueryProof(upgradeErrorReceiptKey)
+
+		err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight, true)
+		suite.Require().NoError(err)
+
+		// need to explicitly call WriteUpgradeOpenChannel as this usually would happen in the msg server layer.
+		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
+
+		channel := path.EndpointA.GetChannel()
+		suite.Require().Equal(types.OPEN, channel.State)
+
+		suite.T().Run("verify upgrade sequences are synced", func(t *testing.T) {
+			suite.Require().Equal(uint64(2), channel.UpgradeSequence)
+		})
+	})
+
+	suite.T().Run("successfully completes upgrade", func(t *testing.T) {
+		suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+		suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
+		suite.Require().NoError(path.EndpointA.ChanUpgradeAck())
+		suite.Require().NoError(path.EndpointB.ChanUpgradeConfirm())
+		suite.Require().NoError(path.EndpointA.ChanUpgradeOpen())
+	})
+
+	suite.T().Run("channel in expected state", func(t *testing.T) {
+		channel := path.EndpointA.GetChannel()
+		suite.Require().Equal(types.OPEN, channel.State, "channel should be in OPEN state")
+		suite.Require().Equal(mock.UpgradeVersion, channel.Version, "version should be correctly upgraded")
+		suite.Require().Equal(mock.UpgradeVersion, path.EndpointB.GetChannel().Version, "version should be correctly upgraded")
+		suite.Require().Equal(uint64(3), channel.UpgradeSequence, "upgrade sequence should be incremented")
+		suite.Require().Equal(uint64(3), path.EndpointB.GetChannel().UpgradeSequence, "upgrade sequence should be incremented on counterparty")
+	})
 }
 
 func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
