@@ -52,7 +52,7 @@ func (k Keeper) OnChanOpenInit(
 
 		metadata = icatypes.NewDefaultMetadata(connectionHops[0], connection.GetCounterparty().GetConnectionID())
 	} else {
-		metadata, err = icatypes.MedataFromVersion(version)
+		metadata, err = icatypes.MetadataFromVersion(version)
 		if err != nil {
 			return "", err
 		}
@@ -102,8 +102,7 @@ func (k Keeper) OnChanOpenAck(
 		return errorsmod.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.ControllerPortPrefix, portID)
 	}
 
-	var metadata icatypes.Metadata
-	metadata, err := icatypes.MedataFromVersion(counterpartyVersion)
+	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
 		return err
 	}

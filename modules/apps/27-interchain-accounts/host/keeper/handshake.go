@@ -35,13 +35,12 @@ func (k Keeper) OnChanOpenTry(
 		return "", errorsmod.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
 
-	var metadata icatypes.Metadata
-	metadata, err1 := icatypes.MedataFromVersion(counterpartyVersion)
-	if err1 != nil {
-		return "", nil
+	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
+		return "", err
 	}
 
-	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
+	if err = icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", err
 	}
 
@@ -68,14 +67,11 @@ func (k Keeper) OnChanOpenTry(
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
 	// The capability being claimed in OpenInit is for a controller chain (the port is different)
-	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+	if err = k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", errorsmod.Wrapf(err, "failed to claim capability for channel %s on port %s", channelID, portID)
 	}
 
-	var (
-		accAddress sdk.AccAddress
-		err        error
-	)
+	var accAddress sdk.AccAddress
 
 	interchainAccAddr, found := k.GetInterchainAccountAddress(ctx, metadata.HostConnectionId, counterparty.PortId)
 	if found {
