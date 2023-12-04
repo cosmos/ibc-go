@@ -6,7 +6,6 @@ import (
 	"time"
 
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	log "cosmossdk.io/log"
@@ -282,7 +281,7 @@ func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
 }
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
-func TestMsgUpdateParamsGetSigners(t *testing.T) {
+func (suite *MsgTestSuite) TestMsgUpdateParamsGetSigners() {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -299,12 +298,13 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
 		}
+
+		signers, _, err := suite.chainA.Codec.GetMsgV1Signers(&msg)
 		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.address.Bytes(), signers[0])
 		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
+			suite.Require().Error(err)
 		}
 	}
 }
