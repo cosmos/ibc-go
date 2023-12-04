@@ -130,7 +130,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
 
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -138,7 +138,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		allowedClients := append([]string{wasmtypes.Wasm}, clienttypes.DefaultAllowedClients...)
 		if isSelfManagingParams {
 			msg := clienttypes.NewMsgUpdateParams(govModuleAddress.String(), clienttypes.NewParams(allowedClients...))
-			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, cosmosWallet)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, cosmosChain, cosmosWallet)
 		} else {
 			value, err := cmtjson.Marshal(allowedClients)
 			s.Require().NoError(err)
@@ -147,7 +147,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, cosmosWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, cosmosChain, cosmosWallet, proposal)
 		}
 	})
 
@@ -305,7 +305,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
 
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -313,7 +313,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 		allowedClients := append([]string{wasmtypes.Wasm}, clienttypes.DefaultAllowedClients...)
 		if isSelfManagingParams {
 			msg := clienttypes.NewMsgUpdateParams(govModuleAddress.String(), clienttypes.NewParams(allowedClients...))
-			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, cosmosWallet)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, cosmosChain, cosmosWallet)
 		} else {
 			value, err := cmtjson.Marshal(allowedClients)
 			s.Require().NoError(err)
@@ -322,7 +322,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, cosmosWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, cosmosChain, cosmosWallet, proposal)
 		}
 	})
 
@@ -430,7 +430,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
 
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -438,7 +438,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 		allowedClients := append([]string{wasmtypes.Wasm}, clienttypes.DefaultAllowedClients...)
 		if isSelfManagingParams {
 			msg := clienttypes.NewMsgUpdateParams(govModuleAddress.String(), clienttypes.NewParams(allowedClients...))
-			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, cosmosWallet)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, cosmosChain, cosmosWallet)
 		} else {
 			value, err := cmtjson.Marshal(allowedClients)
 			s.Require().NoError(err)
@@ -447,7 +447,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, cosmosWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, cosmosChain, cosmosWallet, proposal)
 		}
 	})
 
@@ -540,7 +540,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
 
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -548,7 +548,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 		allowedClients := append([]string{wasmtypes.Wasm}, clienttypes.DefaultAllowedClients...)
 		if isSelfManagingParams {
 			msg := clienttypes.NewMsgUpdateParams(govModuleAddress.String(), clienttypes.NewParams(allowedClients...))
-			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, cosmosWallet)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, cosmosChain, cosmosWallet)
 		} else {
 			value, err := cmtjson.Marshal(allowedClients)
 			s.Require().NoError(err)
@@ -557,7 +557,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, cosmosWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, cosmosChain, cosmosWallet, proposal)
 		}
 	})
 
@@ -654,7 +654,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	err = r.GeneratePath(ctx, eRep, cosmosChain.Config().ChainID, polkadotChain.Config().ChainID, pathName)
 	s.Require().NoError(err)
 
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
@@ -662,7 +662,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 		allowedClients := append([]string{wasmtypes.Wasm}, clienttypes.DefaultAllowedClients...)
 		if isSelfManagingParams {
 			msg := clienttypes.NewMsgUpdateParams(govModuleAddress.String(), clienttypes.NewParams(allowedClients...))
-			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, cosmosWallet)
+			s.ExecuteAndPassGovV1Proposal(ctx, msg, cosmosChain, cosmosWallet)
 		} else {
 			value, err := cmtjson.Marshal(allowedClients)
 			s.Require().NoError(err)
@@ -671,7 +671,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, cosmosWallet, proposal)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, cosmosChain, cosmosWallet, proposal)
 		}
 	})
 
