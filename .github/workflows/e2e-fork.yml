@@ -26,6 +26,23 @@ jobs:
         env:
           TEST_EXCLUSIONS: 'TestUpgradeTestSuite,TestGrandpaTestSuite'
 
+  # dynamically build a matrix of test/test suite pairs to run
+  build-test-matrix-wasm:
+    if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - id: set-matrix
+        run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
+        env:
+          TEST_ENTRYPOINT: 'TestGrandpaTestSuite'
+
+
   # e2e-fork runs the e2e tests directly by using a matrix strategy.
   e2e-fork:
     env:
@@ -33,6 +50,7 @@ jobs:
       CHAIN_B_TAG: latest
       CHAIN_IMAGE: ibc-go-simd
       RELAYER_ID: "hermes" # by default use hermes for fork e2es.
+      FORK: "true"
     if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
     needs:
       - build-test-matrix
@@ -44,6 +62,41 @@ jobs:
       - uses: actions/checkout@v4
       - name: Docker Build
         run: docker build . -t "${CHAIN_IMAGE}:${CHAIN_A_TAG}" --build-arg IBC_GO_VERSION=latest
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - name: Run e2e Test
+        run: |
+          cd e2e
+          make e2e-test test=${{ matrix.test }}
+
+  # this workflow runs only the wasm tests.
+  e2e-fork-wasm:
+    env:
+      CHAIN_A_TAG: latest
+      CHAIN_B_TAG: latest
+      CHAIN_IMAGE: ibc-go-wasm-simd
+      RELAYER_ID: "hyperspace" # by default use hyperspace relayer for fork wasm tests.
+      FORK: "true"
+    if: ${{ github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
+    needs: build-test-matrix-wasm
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build-test-matrix-wasm.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: make python-install-deps
+      - name: Docker Build Wasm
+        run: |
+          version="$(scripts/get-libwasm-version.py --get-version)"
+          checksum="$(scripts/get-libwasm-version.py --get-checksum)"
+          docker build . -t "${CHAIN_IMAGE}:${CHAIN_A_TAG}" -f modules/light-clients/08-wasm/Dockerfile --build-arg LIBWASM_VERSION=${version} --build-arg LIBWASM_CHECKSUM=${checksum}
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
