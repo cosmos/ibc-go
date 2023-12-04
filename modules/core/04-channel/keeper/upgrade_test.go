@@ -353,7 +353,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeTry() {
 				path.EndpointB.ChannelID,
 				proposedUpgrade,
 				proposedUpgrade.Fields.Version,
-				path.EndpointA.GetProposedUpgrade().Fields,
 			)
 
 			channel := path.EndpointB.GetChannel()
@@ -926,12 +925,12 @@ func (suite *KeeperTestSuite) TestWriteUpgradeConfirm() {
 			if !tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
 				// Counterparty was set in UPGRADETRY but without timeout, latest sequence send set.
-				counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(ok)
-				suite.Require().NotEqual(proposedUpgrade, counterpartyUpgrade)
+				_, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().False(ok, "counterparty upgrade should not be present when there are no in flight packets")
 			} else {
+				suite.Require().Equal(types.FLUSHING, channel.State)
 				counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(ok)
+				suite.Require().True(ok, "counterparty upgrade should be present when there are in flight packets")
 				suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 			}
 		})
