@@ -325,6 +325,55 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 	}
 }
 
+func (suite *TypesTestSuite) TestNewMigrateClientWrappedStore() {
+	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
+	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPanic bool
+	}{
+		{
+			"success",
+			func() {},
+			false,
+		},
+		{
+			"failure: subject store is nil",
+			func() {
+				subjectStore = nil
+			},
+			true,
+		},
+		{
+			"failure: substitute store is nil",
+			func() {
+				substituteStore = nil
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			tc.malleate()
+
+			expPass := !tc.expPanic
+			if expPass {
+				suite.Require().NotPanics(func() {
+					types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+				})
+			} else {
+				suite.Require().Panics(func() {
+					types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+				})
+			}
+		})
+	}
+}
+
 func (suite *TypesTestSuite) TestGetClientID() {
 	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
 
@@ -341,7 +390,8 @@ func (suite *TypesTestSuite) TestGetClientID() {
 		{
 			"success: clientID retrieved from migrateClientWrappedStore",
 			func() {
-				clientStore = types.NewMigrateProposalWrappedStore(clientStore, nil)
+				// substituteStore is ignored.
+				clientStore = types.NewMigrateProposalWrappedStore(clientStore, clientStore)
 			},
 			nil,
 		},

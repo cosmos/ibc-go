@@ -35,6 +35,13 @@ type migrateClientWrappedStore struct {
 }
 
 func newMigrateClientWrappedStore(subjectStore, substituteStore storetypes.KVStore) migrateClientWrappedStore {
+	if subjectStore == nil {
+		panic(errors.New("subjectStore must not be nil"))
+	}
+	if substituteStore == nil {
+		panic(errors.New("substituteStore must not be nil"))
+	}
+
 	return migrateClientWrappedStore{
 		subjectStore:    subjectStore,
 		substituteStore: substituteStore,
