@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto" //nolint:staticcheck
-	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -686,7 +685,7 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 }
 
 // TestMsgRecoverClientGetSigners tests GetSigners for MsgRecoverClient
-func TestMsgRecoverClientGetSigners(t *testing.T) {
+func (suite *TypesTestSuite) TestMsgRecoverClientGetSigners() {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -701,12 +700,12 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 		msg := types.MsgRecoverClient{
 			Signer: tc.address.String(),
 		}
+		signers, _, err := suite.chainA.Codec.GetMsgV1Signers(&msg)
 		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.address.Bytes(), signers[0])
 		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
+			suite.Require().Error(err)
 		}
 	}
 }
@@ -786,10 +785,12 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
 		)
 		suite.Require().NoError(err)
 
+		signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
 		if tc.expPass {
-			suite.Require().Equal([]sdk.AccAddress{tc.address}, msg.GetSigners())
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.address.Bytes(), signers[0])
 		} else {
-			suite.Require().Panics(func() { msg.GetSigners() })
+			suite.Require().Error(err)
 		}
 	}
 }
@@ -937,7 +938,7 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 }
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
-func TestMsgUpdateParamsGetSigners(t *testing.T) {
+func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners() {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -949,17 +950,18 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 
 	for _, tc := range testCases {
 		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
+		suite.T().Run(tc.name, func(t *testing.T) {
 			msg := types.MsgUpdateParams{
 				Signer: tc.address.String(),
 				Params: types.DefaultParams(),
 			}
+
+			signers, _, err := suite.chainA.Codec.GetMsgV1Signers(&msg)
 			if tc.expPass {
-				require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+				suite.Require().NoError(err)
+				suite.Require().Equal(tc.address.Bytes(), signers[0])
 			} else {
-				require.Panics(t, func() {
-					msg.GetSigners()
-				})
+				suite.Require().Error(err)
 			}
 		})
 	}
