@@ -48,7 +48,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 		suite.Run(tc.name, func() {
 			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
 
-			found, store := wrappedStore.GetStore(tc.prefix)
+			store, found := wrappedStore.GetStore(tc.prefix)
 
 			storeFound := tc.expStore != nil
 			if storeFound {
@@ -191,13 +191,13 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 			wrappedStore.Set(prefixedKey, wasmtesting.MockClientStateBz)
 
 			if tc.expSet {
-				found, store := wrappedStore.GetStore(tc.prefix)
+				store, found := wrappedStore.GetStore(tc.prefix)
 				suite.Require().True(found)
 				suite.Require().Equal(subjectStore, store)
 
-				expValue := store.Get(tc.key)
+				value := store.Get(tc.key)
 
-				suite.Require().Equal(wasmtesting.MockClientStateBz, expValue)
+				suite.Require().Equal(wasmtesting.MockClientStateBz, value)
 			} else {
 				// Assert that no writes happened to subject or substitute store
 				suite.Require().NotEqual(wasmtesting.MockClientStateBz, subjectStore.Get(tc.key))
@@ -242,7 +242,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
 			wrappedStore.Delete(prefixedKey)
 
 			if tc.expDelete {
-				found, store := wrappedStore.GetStore(tc.prefix)
+				store, found := wrappedStore.GetStore(tc.prefix)
 				suite.Require().True(found)
 				suite.Require().Equal(subjectStore, store)
 

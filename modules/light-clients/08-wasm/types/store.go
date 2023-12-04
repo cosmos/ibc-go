@@ -53,7 +53,8 @@ func newMigrateClientWrappedStore(subjectStore, substituteStore storetypes.KVSto
 // Get will return an empty byte slice if the key is not prefixed with either "subject/" or "substitute/".
 func (ws migrateClientWrappedStore) Get(key []byte) []byte {
 	prefix, key := splitPrefix(key)
-	found, store := ws.getStore(prefix)
+
+	store, found := ws.getStore(prefix)
 	if !found {
 		// return a nil byte slice as KVStore.Get() does by default
 		return []byte(nil)
@@ -67,7 +68,8 @@ func (ws migrateClientWrappedStore) Get(key []byte) []byte {
 // Note: contracts do not have access to the Has method, it is only implemented here to satisfy the storetypes.KVStore interface.
 func (ws migrateClientWrappedStore) Has(key []byte) bool {
 	prefix, key := splitPrefix(key)
-	found, store := ws.getStore(prefix)
+
+	store, found := ws.getStore(prefix)
 	if !found {
 		// return false as value when store is not found
 		return false
@@ -110,7 +112,8 @@ func (ws migrateClientWrappedStore) Iterator(start, end []byte) storetypes.Itera
 	if !bytes.Equal(prefixStart, prefixEnd) {
 		return ws.closedIterator()
 	}
-	found, store := ws.getStore(prefixStart)
+
+	store, found := ws.getStore(prefixStart)
 	if !found {
 		return ws.closedIterator()
 	}
@@ -129,7 +132,7 @@ func (ws migrateClientWrappedStore) ReverseIterator(start, end []byte) storetype
 		return ws.closedIterator()
 	}
 
-	found, store := ws.getStore(prefixStart)
+	store, found := ws.getStore(prefixStart)
 	if !found {
 		return ws.closedIterator()
 	}
@@ -157,14 +160,14 @@ func (ws migrateClientWrappedStore) CacheWrapWithTrace(w io.Writer, tc storetype
 // the substituteStore is returned.
 //
 // If the key is not prefixed with either "subject/" or "substitute/", a nil store is returned and the boolean flag is false.
-func (ws migrateClientWrappedStore) getStore(prefix []byte) (bool, storetypes.KVStore) {
+func (ws migrateClientWrappedStore) getStore(prefix []byte) (storetypes.KVStore, bool) {
 	if bytes.Equal(prefix, subjectPrefix) {
-		return true, ws.subjectStore
+		return ws.subjectStore, true
 	} else if bytes.Equal(prefix, substitutePrefix) {
-		return true, ws.substituteStore
+		return ws.substituteStore, true
 	}
 
-	return false, nil
+	return nil, false
 }
 
 // closedIterator returns an iterator that is always closed, used when Iterator() or ReverseIterator() is called
