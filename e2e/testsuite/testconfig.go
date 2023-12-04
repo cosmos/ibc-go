@@ -445,7 +445,7 @@ func IsCI() bool {
 	return strings.ToLower(os.Getenv("CI")) == "true"
 }
 
-// IsFork returns true if the tests are running in fork mode, false is returned
+// IsFork returns true if the tests are running in fork mode, false is returned otherwise.
 func IsFork() bool {
 	return strings.ToLower(os.Getenv("FORK")) == "true"
 }
