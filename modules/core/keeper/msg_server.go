@@ -772,7 +772,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrapf(err, "channel upgrade init callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
-	channel := k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, upgrade)
+	channel := k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, upgrade, upgradeVersion)
 
 	ctx.Logger().Info("channel upgrade init succeeded", "channel-id", msg.ChannelId, "version", upgradeVersion)
 

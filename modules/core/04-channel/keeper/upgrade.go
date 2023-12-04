@@ -43,7 +43,7 @@ func (k Keeper) ChanUpgradeInit(
 
 // WriteUpgradeInitChannel writes a channel which has successfully passed the UpgradeInit handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade) types.Channel {
+func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeVersion string) types.Channel {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -52,6 +52,7 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 	}
 
 	channel.UpgradeSequence++
+	upgrade.Fields.Version = upgradeVersion
 
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
@@ -127,7 +128,7 @@ func (k Keeper) ChanUpgradeTry(
 			return types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
 
-		channel = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade)
+		channel = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, counterpartyUpgradeFields.Version)
 	}
 
 	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgradeFields); err != nil {

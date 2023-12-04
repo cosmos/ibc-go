@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 
 			if tc.expPass {
 				ctx := suite.chainA.GetContext()
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade, mock.UpgradeVersion)
 				channel := path.EndpointA.GetChannel()
 
 				events := ctx.EventManager().Events().ToABCIEvents()
