@@ -6,7 +6,7 @@ on:
         required: true
         type: string
       test-suite:
-        description: "Test suite to run"
+        description: 'Test suite to run'
         required: true
         type: string
 
@@ -16,50 +16,54 @@ jobs:
       test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: andstor/file-existence-action@v2
         with:
-          files: ".github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json"
+          files: '.github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json'
       - run: |
-          # use jq -c to put the full json contents on a single line. This is required when using the json body
+          # use jq -c to compact the full json contents into a single line. This is required when using the json body
           # to create the matrix in the following job.
           test_matrix="$(cat .github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json | jq -c)"
-          echo $test_matrix
           echo "test-matrix=$test_matrix" >> $GITHUB_OUTPUT
         id: set-test-matrix
 
   e2e:
     runs-on: ubuntu-latest
     needs: load-test-matrix
+    # this job is skipped if the test-matrix generated is empty. i.e. if the file was not present.
+    # this allows us to not have to handle special case versions which may not have certain tests run against them.
     if: needs.load-test-matrix.outputs.test-matrix
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}
     steps:
       - name: Checkout the ibc-go repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: '1.21'
       - name: Run e2e Test
         run: |
           cd e2e
           make e2e-test test=${{ matrix.test }}
         env:
           # each test has its own set of variables to specify which images are used.
-          CHAIN_IMAGE: "${{ matrix.chain-image }}"
-          CHAIN_A_TAG: "${{ matrix.chain-a }}"
-          CHAIN_B_TAG: "${{ matrix.chain-b }}"
-          CHAIN_BINARY: "${{ matrix.chain-binary }}"
-          RELAYER_TYPE: "${{ matrix.relayer-type }}"
+          # Note: this is significant as the standard behaviour when running e2es on PRs
+          # is that there is a set of env vars that are the same for each run. e.g. the same docker image is used
+          # for every test. With compatibility tests, each test may be running different combinations of images.
+          CHAIN_IMAGE: 'ghcr.io/cosmos/ibc-go-simd'
+          CHAIN_A_TAG: '${{ matrix.chain-a }}'
+          CHAIN_B_TAG: '${{ matrix.chain-b }}'
+          CHAIN_BINARY: 'simd'
+          RELAYER_ID: '${{ matrix.relayer-type }}'
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v3
         # we only want to upload logs on test failures.
         if: ${{ failure() }}
         continue-on-error: true
         with:
-          name: "${{ matrix.entrypoint }}-${{ matrix.test }}"
+          name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
           path: e2e/diagnostics
           retention-days: 5

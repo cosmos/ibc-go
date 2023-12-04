@@ -4,15 +4,17 @@ import (
 	"math"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // VerifyClientState verifies a proof of a client state of the running machine
@@ -364,92 +366,12 @@ func (k Keeper) VerifyNextSequenceRecv(
 	return nil
 }
 
-// VerifyChannelUpgradeSequence verifies a proof of the upgrade sequence number to be
-// used during channel upgrades.
-func (k Keeper) VerifyChannelUpgradeSequence(
-	ctx sdk.Context,
-	connection exported.ConnectionI,
-	height exported.Height,
-	proof []byte,
-	portID,
-	channelID string,
-	upgradeSequence uint64,
-) error {
-	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeSequencePath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
-	if err != nil {
-		return err
-	}
-
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
-		0, 0, // skip delay period checks for non-packet processing verification
-		proof, merklePath, sdk.Uint64ToBigEndian(upgradeSequence),
-	); err != nil {
-		return errorsmod.Wrapf(err, "failed upgrade sequence verification for client (%s)", clientID)
-	}
-
-	return nil
-}
-
-// VerifyChannelUpgradeTimeout verifies the proof that a particular timeout has been stored in the upgrade timeout path.
-func (k Keeper) VerifyChannelUpgradeTimeout(
-	ctx sdk.Context,
-	connection exported.ConnectionI,
-	height exported.Height,
-	proof []byte,
-	portID,
-	channelID string,
-	upgradeTimeout channeltypes.UpgradeTimeout,
-) error {
-	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
-	if err != nil {
-		return err
-	}
-
-	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
-	}
-
-	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeTimeoutPath(portID, channelID))
-	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
-	if err != nil {
-		return err
-	}
-
-	bz, err := k.cdc.Marshal(&upgradeTimeout)
-	if err != nil {
-		return err
-	}
-
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
-		0, 0, // skip delay period checks for non-packet processing verification
-		proof, merklePath, bz,
-	); err != nil {
-		return errorsmod.Wrapf(err, "failed upgrade timeout verification for client (%s) on channel (%s)", clientID, channelID)
-	}
-
-	return nil
-}
-
 // VerifyChannelUpgradeError verifies a proof of the provided upgrade error receipt.
 func (k Keeper) VerifyChannelUpgradeError(
 	ctx sdk.Context,
 	connection exported.ConnectionI,
-	height exported.Height,
-	proof []byte,
+	proofHeight exported.Height,
+	proofErrorReceipt []byte,
 	portID,
 	channelID string,
 	errorReceipt channeltypes.ErrorReceipt,
@@ -476,9 +398,9 @@ func (k Keeper) VerifyChannelUpgradeError(
 	}
 
 	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+		ctx, clientStore, k.cdc, proofHeight,
 		0, 0, // skip delay period checks for non-packet processing verification
-		proof, merklePath, bz,
+		proofErrorReceipt, merklePath, bz,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed upgrade error receipt verification for client (%s)", clientID)
 	}
@@ -491,8 +413,8 @@ func (k Keeper) VerifyChannelUpgradeError(
 func (k Keeper) VerifyChannelUpgradeErrorAbsence(
 	ctx sdk.Context,
 	connection exported.ConnectionI,
-	height exported.Height,
-	proof []byte,
+	proofHeight exported.Height,
+	proofErrorReceiptAbsence []byte,
 	portID,
 	channelID string,
 ) error {
@@ -513,11 +435,53 @@ func (k Keeper) VerifyChannelUpgradeErrorAbsence(
 	}
 
 	if err := clientState.VerifyNonMembership(
-		ctx, clientStore, k.cdc, height,
+		ctx, clientStore, k.cdc, proofHeight,
 		0, 0,
-		proof, merklePath,
+		proofErrorReceiptAbsence, merklePath,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed upgrade error receipt absence verification for client (%s)", clientID)
+	}
+
+	return nil
+}
+
+// VerifyChannelUpgrade verifies the proof that a particular proposed upgrade has been stored in the upgrade path.
+func (k Keeper) VerifyChannelUpgrade(
+	ctx sdk.Context,
+	connection exported.ConnectionI,
+	proofHeight exported.Height,
+	proofUpgrade []byte,
+	portID,
+	channelID string,
+	upgrade channeltypes.Upgrade,
+) error {
+	clientID := connection.GetClientID()
+	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	if status := k.clientKeeper.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradePath(portID, channelID))
+	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
+	if err != nil {
+		return err
+	}
+
+	bz, err := k.cdc.Marshal(&upgrade)
+	if err != nil {
+		return err
+	}
+
+	if err := clientState.VerifyMembership(
+		ctx, clientStore, k.cdc, proofHeight,
+		0, 0, // skip delay period checks for non-packet processing verification
+		proofUpgrade, merklePath, bz,
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed upgrade verification for client (%s) on channel (%s)", clientID, channelID)
 	}
 
 	return nil
@@ -528,7 +492,7 @@ func (k Keeper) VerifyChannelUpgradeErrorAbsence(
 func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) uint64 {
 	// expectedTimePerBlock should never be zero, however if it is then return a 0 blcok delay for safety
 	// as the expectedTimePerBlock parameter was not set.
-	expectedTimePerBlock := k.GetMaxExpectedTimePerBlock(ctx)
+	expectedTimePerBlock := k.GetParams(ctx).MaxExpectedTimePerBlock
 	if expectedTimePerBlock == 0 {
 		return 0
 	}
@@ -540,7 +504,7 @@ func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) 
 
 // getClientStateAndVerificationStore returns the client state and associated KVStore for the provided client identifier.
 // If the client type is localhost then the core IBC KVStore is returned, otherwise the client prefixed store is returned.
-func (k Keeper) getClientStateAndVerificationStore(ctx sdk.Context, clientID string) (exported.ClientState, sdk.KVStore, error) {
+func (k Keeper) getClientStateAndVerificationStore(ctx sdk.Context, clientID string) (exported.ClientState, storetypes.KVStore, error) {
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
 		return nil, nil, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)

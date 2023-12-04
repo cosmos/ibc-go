@@ -3,13 +3,14 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"cosmossdk.io/log"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper
@@ -27,7 +28,7 @@ func NewKeeper(sck exported.ScopedKeeper) Keeper {
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -47,7 +48,7 @@ func (k *Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capab
 	}
 
 	if k.IsBound(ctx, portID) {
-		panic(fmt.Sprintf("port %s is already bound", portID))
+		panic(fmt.Errorf("port %s is already bound", portID))
 	}
 
 	key, err := k.scopedKeeper.NewCapability(ctx, host.PortPath(portID))

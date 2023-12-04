@@ -8,8 +8,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 const (
@@ -25,6 +25,9 @@ const (
 	// KeyNextClientSequence is the key used to store the next client sequence in
 	// the keeper.
 	KeyNextClientSequence = "nextClientSequence"
+
+	// ParamsKey is the store key for the IBC client parameters
+	ParamsKey = "clientParams"
 )
 
 // FormatClientIdentifier returns the client identifier with the sequence appended.

@@ -1,7 +1,18 @@
 {
-  "chain-a": ["release-v6.1.x"],
-  "chain-b": ["release-v6.1.x", "v6.1.0", "v5.2.0", "v4.3.0", "v4.2.0", "v4.1.1"],
-  "entrypoint": ["TestIncentivizedTransferTestSuite"],
+  "chain-a": [
+    "release-v6.1.x"
+  ],
+  "chain-b": [
+    "v8.0.0",
+    "v7.3.1",
+    "v7.2.2",
+    "v6.2.1",
+    "v6.1.2",
+    "release-v6.1.x"
+  ],
+  "entrypoint": [
+    "TestIncentivizedTransferTestSuite"
+  ],
   "test": [
     "TestMsgPayPacketFee_AsyncSingleSender_Succeeds",
     "TestMsgPayPacketFee_InvalidReceiverAccount",
@@ -10,7 +21,7 @@
     "TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress",
     "TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds"
   ],
-  "relayer-type": ["rly"],
-  "chain-binary": ["simd"],
-  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+  "relayer-type": [
+    "hermes"
+  ]
 }

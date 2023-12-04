@@ -1,24 +1,15 @@
 package types
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v7/internal/collections"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
 	_ exported.ChannelI             = (*Channel)(nil)
 	_ exported.CounterpartyChannelI = (*Counterparty)(nil)
-)
-
-const (
-	// restoreErrorString defines a string constant included in error receipts.
-	// NOTE: Changing this const is state machine breaking as it is written into state.
-	restoreErrorString = "restored channel to pre-upgrade state"
 )
 
 // NewChannel creates a new Channel instance
@@ -32,6 +23,8 @@ func NewChannel(
 		Counterparty:   counterparty,
 		ConnectionHops: hops,
 		Version:        version,
+		// UpgradeSequence is intentionally left empty as a new channel has not performed an upgrade.
+		UpgradeSequence: 0,
 	}
 }
 
@@ -58,6 +51,16 @@ func (ch Channel) GetConnectionHops() []string {
 // GetVersion implements Channel interface.
 func (ch Channel) GetVersion() string {
 	return ch.Version
+}
+
+// IsOpen returns true if the channel state is OPEN
+func (ch Channel) IsOpen() bool {
+	return ch.State == OPEN
+}
+
+// IsClosed returns true if the channel state is CLOSED
+func (ch Channel) IsClosed() bool {
+	return ch.State == CLOSED
 }
 
 // ValidateBasic performs a basic validation of the channel fields
@@ -134,29 +137,4 @@ func (ic IdentifiedChannel) ValidateBasic() error {
 	}
 	channel := NewChannel(ic.State, ic.Ordering, ic.Counterparty, ic.ConnectionHops, ic.Version)
 	return channel.ValidateBasic()
-}
-
-// orderSubsets defines a map of supported ordering subsets
-var orderSubsets = map[Order][]Order{
-	ORDERED:   {UNORDERED, ORDERED},
-	UNORDERED: {UNORDERED},
-}
-
-// SubsetOf returns true if the provided Order is a valid subset of Order.
-func (o Order) SubsetOf(order Order) bool {
-	if supported, ok := orderSubsets[o]; ok {
-		return collections.Contains(order, supported)
-	}
-
-	return false
-}
-
-// NewErrorReceipt returns an error receipt with the code from the provided error type stripped
-// out to ensure changes of the error message don't cause state machine breaking changes.
-func NewErrorReceipt(upgradeSequence uint64, err error) ErrorReceipt {
-	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
-	return ErrorReceipt{
-		Sequence: upgradeSequence,
-		Error:    fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),
-	}
 }

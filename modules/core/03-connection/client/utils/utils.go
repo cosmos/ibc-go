@@ -7,16 +7,17 @@ import (
 	"os"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	clientutils "github.com/cosmos/ibc-go/v7/modules/core/02-client/client/utils"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/client"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clientutils "github.com/cosmos/ibc-go/v8/modules/core/02-client/client/utils"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/client"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // QueryConnection returns a connection end.

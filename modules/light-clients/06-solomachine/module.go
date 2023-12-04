@@ -3,25 +3,43 @@ package solomachine
 import (
 	"encoding/json"
 
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
+	"cosmossdk.io/core/appmodule"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
 )
 
-var _ module.AppModuleBasic = AppModuleBasic{}
+var (
+	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
+	_ appmodule.AppModule   = (*AppModule)(nil)
+)
 
 // AppModuleBasic defines the basic application module used by the solo machine light client.
 // Only the RegisterInterfaces function needs to be implemented. All other function perform
 // a no-op.
 type AppModuleBasic struct{}
 
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModuleBasic) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModuleBasic) IsAppModule() {}
+
 // Name returns the solo machine module name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec performs a no-op. The solo machine client does not support amino.
 func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
@@ -53,4 +71,14 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 // GetQueryCmd performs a no-op. Please see the 02-client cli commands.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return nil
+}
+
+// AppModule is the application module for the Solomachine client module
+type AppModule struct {
+	AppModuleBasic
+}
+
+// NewAppModule creates a new Solomachine client module
+func NewAppModule() AppModule {
+	return AppModule{}
 }

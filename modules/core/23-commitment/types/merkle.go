@@ -3,14 +3,15 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"net/url"
 
-	errorsmod "cosmossdk.io/errors"
-	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/gogoproto/proto"
 	ics23 "github.com/cosmos/ics23/go"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	errorsmod "cosmossdk.io/errors"
+
+	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // var representing the proofspecs for a SDK chain
@@ -75,41 +76,12 @@ func NewMerklePath(keyPath ...string) MerklePath {
 	}
 }
 
-// String implements fmt.Stringer.
-// This represents the path in the same way the tendermint KeyPath will
-// represent a key path. The backslashes partition the key path into
-// the respective stores they belong to.
-func (mp MerklePath) String() string {
-	pathStr := ""
-	for _, k := range mp.KeyPath {
-		pathStr += "/" + url.PathEscape(k)
-	}
-	return pathStr
-}
-
-// Pretty returns the unescaped path of the URL string.
-// This function will unescape any backslash within a particular store key.
-// This makes the keypath more human-readable while removing information
-// about the exact partitions in the key path.
-func (mp MerklePath) Pretty() string {
-	path, err := url.PathUnescape(mp.String())
-	if err != nil {
-		panic(err)
-	}
-	return path
-}
-
 // GetKey will return a byte representation of the key
-// after URL escaping the key element
 func (mp MerklePath) GetKey(i uint64) ([]byte, error) {
 	if i >= uint64(len(mp.KeyPath)) {
 		return nil, fmt.Errorf("index out of range. %d (index) >= %d (len)", i, len(mp.KeyPath))
 	}
-	key, err := url.PathUnescape(mp.KeyPath[i])
-	if err != nil {
-		return nil, err
-	}
-	return []byte(key), nil
+	return []byte(mp.KeyPath[i]), nil
 }
 
 // Empty returns true if the path is empty
@@ -203,13 +175,13 @@ func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root expo
 
 // BatchVerifyMembership verifies a group of key value pairs against the given root
 // NOTE: Currently left unimplemented as it is unused
-func (proof MerkleProof) BatchVerifyMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, items map[string][]byte) error {
+func (MerkleProof) BatchVerifyMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, items map[string][]byte) error {
 	return errorsmod.Wrap(ErrInvalidProof, "batch proofs are currently unsupported")
 }
 
 // BatchVerifyNonMembership verifies absence of a group of keys against the given root
 // NOTE: Currently left unimplemented as it is unused
-func (proof MerkleProof) BatchVerifyNonMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, items [][]byte) error {
+func (MerkleProof) BatchVerifyNonMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, items [][]byte) error {
 	return errorsmod.Wrap(ErrInvalidProof, "batch proofs are currently unsupported")
 }
 
@@ -271,7 +243,7 @@ func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs 
 // and are declared as globals to avoid having to unnecessarily re-allocate on every comparison.
 var (
 	blankMerkleProof = &MerkleProof{}
-	blankProofOps    = &tmcrypto.ProofOps{}
+	blankProofOps    = &cmtcrypto.ProofOps{}
 )
 
 // Empty returns true if the root is empty

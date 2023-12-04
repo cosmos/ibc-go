@@ -1,14 +1,16 @@
 package client_test
 
 import (
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	client "github.com/cosmos/ibc-go/v7/modules/core/02-client"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	client "github.com/cosmos/ibc-go/v8/modules/core/02-client"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
@@ -64,7 +66,7 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 					Title:       ibctesting.Title,
 					Description: ibctesting.Description,
 					Recipient:   suite.chainA.SenderAccount.GetAddress().String(),
-					Amount:      sdk.NewCoins(sdk.NewCoin("communityfunds", sdk.NewInt(10))),
+					Amount:      sdk.NewCoins(sdk.NewCoin("communityfunds", sdkmath.NewInt(10))),
 				}
 			}, false,
 		},

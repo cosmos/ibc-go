@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -144,6 +145,10 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 			})
 		}
 	}
+	// Sort the test cases by name so that the order is consistent.
+	sort.SliceStable(gh.Include, func(i, j int) bool {
+		return gh.Include[i].Test < gh.Include[j].Test
+	})
 
 	if testName != "" && len(gh.Include) != 1 {
 		return GithubActionTestMatrix{}, fmt.Errorf("expected exactly 1 test in the output matrix but got %d", len(gh.Include))

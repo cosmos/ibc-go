@@ -1,7 +1,18 @@
 {
-  "chain-a": ["main"],
-  "chain-b": ["main", "v5.1.0", "v5.0.1", "v4.2.0", "v4.1.1"],
-  "entrypoint": ["TestTransferTestSuite"],
+  "chain-a": [
+    "main"
+  ],
+  "chain-b": [
+    "main",
+    "v8.0.0",
+    "v7.3.1",
+    "v7.2.2",
+    "v6.2.1",
+    "v6.1.2"
+  ],
+  "entrypoint": [
+    "TestTransferTestSuite"
+  ],
   "test": [
     "TestMsgTransfer_Succeeds_Nonincentivized",
     "TestMsgTransfer_Fails_InvalidAddress",
@@ -10,7 +21,7 @@
     "TestSendEnabledParam",
     "TestReceiveEnabledParam"
   ],
-  "relayer-type": ["rly"],
-  "chain-binary": ["simd"],
-  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+  "relayer-type": [
+    "hermes"
+  ]
 }

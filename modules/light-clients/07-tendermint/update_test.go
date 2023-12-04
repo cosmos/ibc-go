@@ -3,16 +3,17 @@ package tendermint_test
 import (
 	"time"
 
-	tmtypes "github.com/cometbft/cometbft/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "cosmossdk.io/store/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v7/testing/mock"
+	cmttypes "github.com/cometbft/cometbft/types"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibctestingmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *TendermintTestSuite) TestVerifyHeader() {
@@ -29,9 +30,9 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 	revisionHeight := int64(height.RevisionHeight)
 
 	// create modified heights to use for test-cases
-	altVal := tmtypes.NewValidator(altPubKey, 100)
+	altVal := cmttypes.NewValidator(altPubKey, 100)
 	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
+	altValSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{altVal})
 	altSigners := getAltSigners(altVal, altPrivVal)
 
 	testCases := []struct {
@@ -72,7 +73,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				suite.Require().True(found)
 
 				// Create bothValSet with both suite validator and altVal
-				bothValSet := tmtypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altVal))
+				bothValSet := cmttypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altVal))
 				bothSigners := suite.chainB.Signers
 				bothSigners[altVal.Address.String()] = altPrivVal
 
@@ -89,7 +90,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				suite.Require().True(found)
 
 				// Create bothValSet with both suite validator and altVal
-				bothValSet := tmtypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altVal))
+				bothValSet := cmttypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altVal))
 				bothSigners := suite.chainB.Signers
 				bothSigners[altVal.Address.String()] = altPrivVal
 
@@ -103,7 +104,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 				// Create bothValSet with both suite validator and altVal
-				bothValSet := tmtypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altVal))
+				bothValSet := cmttypes.NewValidatorSet(append(suite.chainB.Vals.Validators, altVal))
 				bothSigners := suite.chainB.Signers
 				bothSigners[altVal.Address.String()] = altPrivVal
 
@@ -276,30 +277,32 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.SetupTest()
-		path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-		err := path.EndpointA.CreateClient()
-		suite.Require().NoError(err)
+			err := path.EndpointA.CreateClient()
+			suite.Require().NoError(err)
 
-		// ensure counterparty state is committed
-		suite.coordinator.CommitBlock(suite.chainB)
-		header, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
-		suite.Require().NoError(err)
+			// ensure counterparty state is committed
+			suite.coordinator.CommitBlock(suite.chainB)
+			header, err = path.EndpointA.Chain.ConstructUpdateTMClientHeader(path.EndpointA.Counterparty.Chain, path.EndpointA.ClientID)
+			suite.Require().NoError(err)
 
-		tc.malleate()
+			tc.malleate()
 
-		clientState := path.EndpointA.GetClientState()
+			clientState := path.EndpointA.GetClientState()
 
-		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-		err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, header)
+			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, header)
 
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err)
-		}
+			if tc.expPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
 
@@ -307,7 +310,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 	var (
 		path               *ibctesting.Path
 		clientMessage      exported.ClientMessage
-		clientStore        sdk.KVStore
+		clientStore        storetypes.KVStore
 		consensusHeights   []exported.Height
 		pruneHeight        clienttypes.Height
 		prevClientState    exported.ClientState

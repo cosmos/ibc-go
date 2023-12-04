@@ -2,11 +2,11 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // IBCModule defines an interface that implements all the callbacks
@@ -112,23 +112,19 @@ type UpgradableModule interface {
 	// OnChanUpgradeInit initializes the channel upgrade handshake.
 	OnChanUpgradeInit(
 		ctx sdk.Context,
+		portID, channelID string,
 		order channeltypes.Order,
 		connectionHops []string,
-		portID, channelID string,
-		sequence uint64,
-		counterparty channeltypes.Counterparty,
-		version, previousVersion string,
+		version string,
 	) (string, error)
 
-	// OnChanUpgradeTry TODO
+	// OnChanUpgradeTry verifies the counterparty upgrade and sets the upgrade on TRY chain
 	OnChanUpgradeTry(
 		ctx sdk.Context,
+		portID, channelID string,
 		order channeltypes.Order,
 		connectionHops []string,
-		portID, channelID string,
-		sequence uint64,
-		counterparty channeltypes.Counterparty,
-		previousVersion, counterpartyVersion string,
+		counterpartyVersion string,
 	) (string, error)
 
 	// OnChanUpgradeAck TODO
@@ -136,23 +132,25 @@ type UpgradableModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID,
-		counterpartyChannelID,
 		counterpartyVersion string,
 	) error
 
-	// OnChanUpgradeConfirm TODO
-	OnChanUpgradeConfirm(
+	// OnChanUpgradeOpen TODO
+	OnChanUpgradeOpen(
 		ctx sdk.Context,
 		portID,
 		channelID string,
-	) error
+		order channeltypes.Order,
+		connectionHops []string,
+		version string,
+	)
 
 	// OnChanUpgradeRestore TODO
 	OnChanUpgradeRestore(
 		ctx sdk.Context,
 		portID,
 		channelID string,
-	) error
+	)
 }
 
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
@@ -186,4 +184,11 @@ type ICS4Wrapper interface {
 type Middleware interface {
 	IBCModule
 	ICS4Wrapper
+}
+
+// PacketDataUnmarshaler defines an optional interface which allows a middleware to
+// request the packet data to be unmarshaled by the base application.
+type PacketDataUnmarshaler interface {
+	// UnmarshalPacketData unmarshals the packet data into a concrete type
+	UnmarshalPacketData([]byte) (interface{}, error)
 }

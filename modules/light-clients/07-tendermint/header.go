@@ -5,14 +5,15 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	tmtypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	cmttypes "github.com/cometbft/cometbft/types"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-var _ exported.ClientMessage = &Header{}
+var _ exported.ClientMessage = (*Header)(nil)
 
 // ConsensusState returns the updated consensus state associated with the header
 func (h Header) ConsensusState() *ConsensusState {
@@ -24,7 +25,7 @@ func (h Header) ConsensusState() *ConsensusState {
 }
 
 // ClientType defines that the Header is a Tendermint consensus algorithm
-func (h Header) ClientType() string {
+func (Header) ClientType() string {
 	return exported.Tendermint
 }
 
@@ -54,7 +55,7 @@ func (h Header) ValidateBasic() error {
 	if h.Header == nil {
 		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "tendermint header cannot be nil")
 	}
-	tmSignedHeader, err := tmtypes.SignedHeaderFromProto(h.SignedHeader)
+	tmSignedHeader, err := cmttypes.SignedHeaderFromProto(h.SignedHeader)
 	if err != nil {
 		return errorsmod.Wrap(err, "header is not a tendermint header")
 	}
@@ -71,7 +72,7 @@ func (h Header) ValidateBasic() error {
 	if h.ValidatorSet == nil {
 		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "validator set is nil")
 	}
-	tmValset, err := tmtypes.ValidatorSetFromProto(h.ValidatorSet)
+	tmValset, err := cmttypes.ValidatorSetFromProto(h.ValidatorSet)
 	if err != nil {
 		return errorsmod.Wrap(err, "validator set is not tendermint validator set")
 	}

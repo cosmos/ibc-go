@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* January 28th, 2022: Initial Draft
+- January 28th, 2022: Initial Draft
 
 ## Status
 
@@ -88,7 +88,7 @@ If the `sdk.TxMsgData.Data` field is not empty then the format for v0.45 was use
 
 #### Decision
 
-Replicate the transaction response format as provided by the current SDK verison.
+Replicate the transaction response format as provided by the current SDK version.
 When the SDK version changes, adjust the transaction response format to use the updated transaction response format.
 Include the transaction response bytes in the result channel acknowledgement.
 
@@ -107,13 +107,13 @@ A test has been [written](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/a
 
 ### Positive
 
-* interchain account auth modules can act upon transaction results without requiring a query module
-* transaction results align with those returned by execution of a normal SDK message.
+- interchain account auth modules can act upon transaction results without requiring a query module
+- transaction results align with those returned by execution of a normal SDK message.
 
 ### Negative
 
-* the security assumptions of this decision rest on the inclusion of the ABCI error code and the Msg response in the ResponseDeliverTx hash created by Tendermint
-* events are non-determinstic and cannot be included in the packet acknowledgement
+- the security assumptions of this decision rest on the inclusion of the ABCI error code and the Msg response in the ResponseDeliverTx hash created by Tendermint
+- events are non-determinstic and cannot be included in the packet acknowledgement
 
 ### Neutral
 

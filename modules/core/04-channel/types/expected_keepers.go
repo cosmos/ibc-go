@@ -1,11 +1,13 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	storetypes "cosmossdk.io/store/types"
 
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // ClientKeeper expected account IBC client keeper
@@ -13,13 +15,12 @@ type ClientKeeper interface {
 	GetClientStatus(ctx sdk.Context, clientState exported.ClientState, clientID string) exported.Status
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
-	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
+	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
 }
 
 // ConnectionKeeper expected account IBC connection keeper
 type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
-	HasConnection(ctx sdk.Context, connectionID string) bool
 	GetTimestampAtHeight(
 		ctx sdk.Context,
 		connection connectiontypes.ConnectionEnd,
@@ -71,6 +72,32 @@ type ConnectionKeeper interface {
 		portID,
 		channelID string,
 		nextSequenceRecv uint64,
+	) error
+	VerifyChannelUpgrade(
+		ctx sdk.Context,
+		connection exported.ConnectionI,
+		height exported.Height,
+		proof []byte,
+		portID,
+		channelID string,
+		upgrade Upgrade,
+	) error
+	VerifyChannelUpgradeError(
+		ctx sdk.Context,
+		connection exported.ConnectionI,
+		proofHeight exported.Height,
+		proofErrorReceipt []byte,
+		portID,
+		channelID string,
+		errorReceipt ErrorReceipt,
+	) error
+	VerifyChannelUpgradeErrorAbsence(
+		ctx sdk.Context,
+		connection exported.ConnectionI,
+		proofHeight exported.Height,
+		proofErrorReceiptAbsence []byte,
+		portID,
+		channelID string,
 	) error
 }
 

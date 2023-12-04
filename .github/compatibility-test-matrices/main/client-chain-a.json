@@ -1,11 +1,21 @@
 {
-  "chain-a": ["main"],
-  "chain-b": ["main", "v5.1.0", "v5.0.1", "v4.2.0", "v4.1.1"],
-  "entrypoint": ["TestClientTestSuite"],
-  "test": [
-    "TestClientUpdateProposal_Succeeds"
+  "chain-a": [
+    "main"
   ],
-  "relayer-type": ["rly"],
-  "chain-binary": ["simd"],
-  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+  "chain-b": [
+    "main"
+  ],
+  "entrypoint": [
+    "TestClientTestSuite"
+  ],
+  "test": [
+    "TestClientUpdateProposal_Succeeds",
+    "TestRecoverClient_Succeeds",
+    "TestScheduleIBCUpgrade_Succeeds",
+    "TestClient_Update_Misbehaviour",
+    "TestAllowedClientsParam"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
 }

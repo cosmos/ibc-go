@@ -1,0 +1,19 @@
+{
+  "chain-a": [
+    "release-v7.3.x"
+  ],
+  "chain-b": [
+    "release-v7.3.x"
+  ],
+  "entrypoint": [
+    "TestClientTestSuite"
+  ],
+  "test": [
+    "TestClientUpdateProposal_Succeeds",
+    "TestClient_Update_Misbehaviour",
+    "TestAllowedClientsParam"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

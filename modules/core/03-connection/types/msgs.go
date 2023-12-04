@@ -2,30 +2,36 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
-	_ sdk.Msg = &MsgConnectionOpenInit{}
-	_ sdk.Msg = &MsgConnectionOpenConfirm{}
-	_ sdk.Msg = &MsgConnectionOpenAck{}
-	_ sdk.Msg = &MsgConnectionOpenTry{}
+	_ sdk.Msg = (*MsgConnectionOpenInit)(nil)
+	_ sdk.Msg = (*MsgConnectionOpenConfirm)(nil)
+	_ sdk.Msg = (*MsgConnectionOpenAck)(nil)
+	_ sdk.Msg = (*MsgConnectionOpenTry)(nil)
+	_ sdk.Msg = (*MsgUpdateParams)(nil)
 
-	_ codectypes.UnpackInterfacesMessage = MsgConnectionOpenTry{}
-	_ codectypes.UnpackInterfacesMessage = MsgConnectionOpenAck{}
+	_ sdk.HasValidateBasic = (*MsgConnectionOpenInit)(nil)
+	_ sdk.HasValidateBasic = (*MsgConnectionOpenConfirm)(nil)
+	_ sdk.HasValidateBasic = (*MsgConnectionOpenAck)(nil)
+	_ sdk.HasValidateBasic = (*MsgConnectionOpenTry)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
+
+	_ codectypes.UnpackInterfacesMessage = (*MsgConnectionOpenTry)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*MsgConnectionOpenAck)(nil)
 )
 
 // NewMsgConnectionOpenInit creates a new MsgConnectionOpenInit instance. It sets the
 // counterparty connection identifier to be empty.
-//
-//nolint:interfacer
 func NewMsgConnectionOpenInit(
 	clientID, counterpartyClientID string,
 	counterpartyPrefix commitmenttypes.MerklePrefix,
@@ -78,8 +84,6 @@ func (msg MsgConnectionOpenInit) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgConnectionOpenTry creates a new MsgConnectionOpenTry instance
-//
-//nolint:interfacer
 func NewMsgConnectionOpenTry(
 	clientID, counterpartyConnectionID, counterpartyClientID string,
 	counterpartyClient exported.ClientState,
@@ -173,8 +177,6 @@ func (msg MsgConnectionOpenTry) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgConnectionOpenAck creates a new MsgConnectionOpenAck instance
-//
-//nolint:interfacer
 func NewMsgConnectionOpenAck(
 	connectionID, counterpartyConnectionID string, counterpartyClient exported.ClientState,
 	proofTry, proofClient, proofConsensus []byte,
@@ -252,8 +254,6 @@ func (msg MsgConnectionOpenAck) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgConnectionOpenConfirm creates a new MsgConnectionOpenConfirm instance
-//
-//nolint:interfacer
 func NewMsgConnectionOpenConfirm(
 	connectionID string, proofAck []byte, proofHeight clienttypes.Height,
 	signer string,
@@ -288,4 +288,29 @@ func (msg MsgConnectionOpenConfirm) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{accAddr}
+}
+
+// NewMsgUpdateParams creates a new MsgUpdateParams instance
+func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Signer: signer,
+		Params: params,
+	}
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}
+}
+
+// ValidateBasic performs basic checks on a MsgUpdateParams.
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return msg.Params.Validate()
 }

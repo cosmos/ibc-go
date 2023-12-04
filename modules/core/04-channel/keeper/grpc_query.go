@@ -5,23 +5,25 @@ import (
 	"strconv"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/store/prefix"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
 
 // Channel implements the Query/Channel gRPC method
-func (q Keeper) Channel(c context.Context, req *types.QueryChannelRequest) (*types.QueryChannelResponse, error) {
+func (k Keeper) Channel(c context.Context, req *types.QueryChannelRequest) (*types.QueryChannelResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -31,7 +33,7 @@ func (q Keeper) Channel(c context.Context, req *types.QueryChannelRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	channel, found := q.GetChannel(ctx, req.PortId, req.ChannelId)
+	channel, found := k.GetChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -44,19 +46,19 @@ func (q Keeper) Channel(c context.Context, req *types.QueryChannelRequest) (*typ
 }
 
 // Channels implements the Query/Channels gRPC method
-func (q Keeper) Channels(c context.Context, req *types.QueryChannelsRequest) (*types.QueryChannelsResponse, error) {
+func (k Keeper) Channels(c context.Context, req *types.QueryChannelsRequest) (*types.QueryChannelsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	channels := []*types.IdentifiedChannel{}
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.KeyChannelEndPrefix))
+	var channels []*types.IdentifiedChannel
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.KeyChannelEndPrefix))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var result types.Channel
-		if err := q.cdc.Unmarshal(value, &result); err != nil {
+		if err := k.cdc.Unmarshal(value, &result); err != nil {
 			return err
 		}
 
@@ -82,7 +84,7 @@ func (q Keeper) Channels(c context.Context, req *types.QueryChannelsRequest) (*t
 }
 
 // ConnectionChannels implements the Query/ConnectionChannels gRPC method
-func (q Keeper) ConnectionChannels(c context.Context, req *types.QueryConnectionChannelsRequest) (*types.QueryConnectionChannelsResponse, error) {
+func (k Keeper) ConnectionChannels(c context.Context, req *types.QueryConnectionChannelsRequest) (*types.QueryConnectionChannelsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -93,13 +95,13 @@ func (q Keeper) ConnectionChannels(c context.Context, req *types.QueryConnection
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	channels := []*types.IdentifiedChannel{}
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.KeyChannelEndPrefix))
+	var channels []*types.IdentifiedChannel
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.KeyChannelEndPrefix))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under channel key
 		var result types.Channel
-		if err := q.cdc.Unmarshal(value, &result); err != nil {
+		if err := k.cdc.Unmarshal(value, &result); err != nil {
 			return false, err
 		}
 
@@ -131,7 +133,7 @@ func (q Keeper) ConnectionChannels(c context.Context, req *types.QueryConnection
 }
 
 // ChannelClientState implements the Query/ChannelClientState gRPC method
-func (q Keeper) ChannelClientState(c context.Context, req *types.QueryChannelClientStateRequest) (*types.QueryChannelClientStateResponse, error) {
+func (k Keeper) ChannelClientState(c context.Context, req *types.QueryChannelClientStateRequest) (*types.QueryChannelClientStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -142,7 +144,7 @@ func (q Keeper) ChannelClientState(c context.Context, req *types.QueryChannelCli
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	clientID, clientState, err := q.GetChannelClientState(ctx, req.PortId, req.ChannelId)
+	clientID, clientState, err := k.GetChannelClientState(ctx, req.PortId, req.ChannelId)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
@@ -154,7 +156,7 @@ func (q Keeper) ChannelClientState(c context.Context, req *types.QueryChannelCli
 }
 
 // ChannelConsensusState implements the Query/ChannelConsensusState gRPC method
-func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannelConsensusStateRequest) (*types.QueryChannelConsensusStateResponse, error) {
+func (k Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannelConsensusStateRequest) (*types.QueryChannelConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -165,7 +167,7 @@ func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	channel, found := q.GetChannel(ctx, req.PortId, req.ChannelId)
+	channel, found := k.GetChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -173,7 +175,7 @@ func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 		)
 	}
 
-	connection, found := q.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -182,7 +184,7 @@ func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 	}
 
 	consHeight := clienttypes.NewHeight(req.RevisionNumber, req.RevisionHeight)
-	consensusState, found := q.clientKeeper.GetClientConsensusState(ctx, connection.ClientId, consHeight)
+	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connection.ClientId, consHeight)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -200,7 +202,7 @@ func (q Keeper) ChannelConsensusState(c context.Context, req *types.QueryChannel
 }
 
 // PacketCommitment implements the Query/PacketCommitment gRPC method
-func (q Keeper) PacketCommitment(c context.Context, req *types.QueryPacketCommitmentRequest) (*types.QueryPacketCommitmentResponse, error) {
+func (k Keeper) PacketCommitment(c context.Context, req *types.QueryPacketCommitmentRequest) (*types.QueryPacketCommitmentResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -215,7 +217,7 @@ func (q Keeper) PacketCommitment(c context.Context, req *types.QueryPacketCommit
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	commitmentBz := q.GetPacketCommitment(ctx, req.PortId, req.ChannelId, req.Sequence)
+	commitmentBz := k.GetPacketCommitment(ctx, req.PortId, req.ChannelId, req.Sequence)
 	if len(commitmentBz) == 0 {
 		return nil, status.Error(codes.NotFound, "packet commitment hash not found")
 	}
@@ -225,7 +227,7 @@ func (q Keeper) PacketCommitment(c context.Context, req *types.QueryPacketCommit
 }
 
 // PacketCommitments implements the Query/PacketCommitments gRPC method
-func (q Keeper) PacketCommitments(c context.Context, req *types.QueryPacketCommitmentsRequest) (*types.QueryPacketCommitmentsResponse, error) {
+func (k Keeper) PacketCommitments(c context.Context, req *types.QueryPacketCommitmentsRequest) (*types.QueryPacketCommitmentsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -236,8 +238,8 @@ func (q Keeper) PacketCommitments(c context.Context, req *types.QueryPacketCommi
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	commitments := []*types.PacketState{}
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.PacketCommitmentPrefixPath(req.PortId, req.ChannelId)))
+	var commitments []*types.PacketState
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.PacketCommitmentPrefixPath(req.PortId, req.ChannelId)))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		keySplit := strings.Split(string(key), "/")
@@ -264,7 +266,7 @@ func (q Keeper) PacketCommitments(c context.Context, req *types.QueryPacketCommi
 }
 
 // PacketReceipt implements the Query/PacketReceipt gRPC method
-func (q Keeper) PacketReceipt(c context.Context, req *types.QueryPacketReceiptRequest) (*types.QueryPacketReceiptResponse, error) {
+func (k Keeper) PacketReceipt(c context.Context, req *types.QueryPacketReceiptRequest) (*types.QueryPacketReceiptResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -279,14 +281,14 @@ func (q Keeper) PacketReceipt(c context.Context, req *types.QueryPacketReceiptRe
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	_, recvd := q.GetPacketReceipt(ctx, req.PortId, req.ChannelId, req.Sequence)
+	_, recvd := k.GetPacketReceipt(ctx, req.PortId, req.ChannelId, req.Sequence)
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	return types.NewQueryPacketReceiptResponse(recvd, nil, selfHeight), nil
 }
 
 // PacketAcknowledgement implements the Query/PacketAcknowledgement gRPC method
-func (q Keeper) PacketAcknowledgement(c context.Context, req *types.QueryPacketAcknowledgementRequest) (*types.QueryPacketAcknowledgementResponse, error) {
+func (k Keeper) PacketAcknowledgement(c context.Context, req *types.QueryPacketAcknowledgementRequest) (*types.QueryPacketAcknowledgementResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -301,7 +303,7 @@ func (q Keeper) PacketAcknowledgement(c context.Context, req *types.QueryPacketA
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	acknowledgementBz, found := q.GetPacketAcknowledgement(ctx, req.PortId, req.ChannelId, req.Sequence)
+	acknowledgementBz, found := k.GetPacketAcknowledgement(ctx, req.PortId, req.ChannelId, req.Sequence)
 	if !found || len(acknowledgementBz) == 0 {
 		return nil, status.Error(codes.NotFound, "packet acknowledgement hash not found")
 	}
@@ -311,7 +313,7 @@ func (q Keeper) PacketAcknowledgement(c context.Context, req *types.QueryPacketA
 }
 
 // PacketAcknowledgements implements the Query/PacketAcknowledgements gRPC method
-func (q Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacketAcknowledgementsRequest) (*types.QueryPacketAcknowledgementsResponse, error) {
+func (k Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacketAcknowledgementsRequest) (*types.QueryPacketAcknowledgementsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -322,13 +324,13 @@ func (q Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	acks := []*types.PacketState{}
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), []byte(host.PacketAcknowledgementPrefixPath(req.PortId, req.ChannelId)))
+	var acks []*types.PacketState
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(host.PacketAcknowledgementPrefixPath(req.PortId, req.ChannelId)))
 
 	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
 	// otherwise, maintain previous behaviour and perform paginated query
 	for _, seq := range req.PacketCommitmentSequences {
-		acknowledgementBz, found := q.GetPacketAcknowledgement(ctx, req.PortId, req.ChannelId, seq)
+		acknowledgementBz, found := k.GetPacketAcknowledgement(ctx, req.PortId, req.ChannelId, seq)
 		if !found || len(acknowledgementBz) == 0 {
 			continue
 		}
@@ -387,7 +389,7 @@ func (q Keeper) PacketAcknowledgements(c context.Context, req *types.QueryPacket
 // commitments is correct and will not function properly if the list
 // is not up to date. Ideally the query height should equal the latest height
 // on the counterparty's client which represents this chain.
-func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedPacketsRequest) (*types.QueryUnreceivedPacketsResponse, error) {
+func (k Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedPacketsRequest) (*types.QueryUnreceivedPacketsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -398,18 +400,55 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	unreceivedSequences := []uint64{}
+	channel, found := k.GetChannel(ctx, req.PortId, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+		)
+	}
 
-	for i, seq := range req.PacketCommitmentSequences {
-		if seq == 0 {
-			return nil, status.Errorf(codes.InvalidArgument, "packet sequence %d cannot be 0", i)
+	var unreceivedSequences []uint64
+	switch channel.Ordering {
+	case types.UNORDERED:
+		for i, seq := range req.PacketCommitmentSequences {
+			// filter for invalid sequences to ensure they are not included in the response value.
+			if seq == 0 {
+				return nil, status.Errorf(codes.InvalidArgument, "packet sequence %d cannot be 0", i)
+			}
+
+			// if the packet receipt does not exist, then it is unreceived
+			if _, found := k.GetPacketReceipt(ctx, req.PortId, req.ChannelId, seq); !found {
+				unreceivedSequences = append(unreceivedSequences, seq)
+			}
+		}
+	case types.ORDERED:
+		nextSequenceRecv, found := k.GetNextSequenceRecv(ctx, req.PortId, req.ChannelId)
+		if !found {
+			return nil, status.Error(
+				codes.NotFound,
+				errorsmod.Wrapf(
+					types.ErrSequenceReceiveNotFound,
+					"destination port: %s, destination channel: %s", req.PortId, req.ChannelId,
+				).Error(),
+			)
 		}
 
-		// if packet receipt exists on the receiving chain, then packet has already been received
-		if _, found := q.GetPacketReceipt(ctx, req.PortId, req.ChannelId, seq); !found {
-			unreceivedSequences = append(unreceivedSequences, seq)
-		}
+		for i, seq := range req.PacketCommitmentSequences {
+			// filter for invalid sequences to ensure they are not included in the response value.
+			if seq == 0 {
+				return nil, status.Errorf(codes.InvalidArgument, "packet sequence %d cannot be 0", i)
+			}
 
+			// Any sequence greater than or equal to the next sequence to be received is not received.
+			if seq >= nextSequenceRecv {
+				unreceivedSequences = append(unreceivedSequences, seq)
+			}
+		}
+	default:
+		return nil, status.Error(
+			codes.InvalidArgument,
+			errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "channel order %s is not supported", channel.Ordering.String()).Error())
 	}
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
@@ -436,7 +475,7 @@ func (q Keeper) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedP
 // acknowledgements is correct and will not function properly if the list
 // is not up to date. Ideally the query height should equal the latest height
 // on the counterparty's client which represents this chain.
-func (q Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcksRequest) (*types.QueryUnreceivedAcksResponse, error) {
+func (k Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcksRequest) (*types.QueryUnreceivedAcksResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -447,7 +486,7 @@ func (q Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcks
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	unreceivedSequences := []uint64{}
+	var unreceivedSequences []uint64
 
 	for i, seq := range req.PacketAckSequences {
 		if seq == 0 {
@@ -456,7 +495,7 @@ func (q Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcks
 
 		// if packet commitment still exists on the original sending chain, then packet ack has not been received
 		// since processing the ack will delete the packet commitment
-		if commitment := q.GetPacketCommitment(ctx, req.PortId, req.ChannelId, seq); len(commitment) != 0 {
+		if commitment := k.GetPacketCommitment(ctx, req.PortId, req.ChannelId, seq); len(commitment) != 0 {
 			unreceivedSequences = append(unreceivedSequences, seq)
 		}
 
@@ -470,7 +509,7 @@ func (q Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcks
 }
 
 // NextSequenceReceive implements the Query/NextSequenceReceive gRPC method
-func (q Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSequenceReceiveRequest) (*types.QueryNextSequenceReceiveResponse, error) {
+func (k Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSequenceReceiveRequest) (*types.QueryNextSequenceReceiveResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -480,20 +519,32 @@ func (q Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSeque
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	sequence, found := q.GetNextSequenceRecv(ctx, req.PortId, req.ChannelId)
+	channel, found := k.GetChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrSequenceReceiveNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
 
+	// Return the next sequence received for ordered channels. Unordered channels
+	// do not make use of the next sequence receive.
+	var sequence uint64
+	if channel.Ordering != types.UNORDERED {
+		sequence, found = k.GetNextSequenceRecv(ctx, req.PortId, req.ChannelId)
+		if !found {
+			return nil, status.Error(
+				codes.NotFound,
+				errorsmod.Wrapf(types.ErrSequenceReceiveNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			)
+		}
+	}
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	return types.NewQueryNextSequenceReceiveResponse(sequence, nil, selfHeight), nil
 }
 
-// UpgradeSequence implements the Query/UpgradeSequence gRPC method
-func (q Keeper) UpgradeSequence(c context.Context, req *types.QueryUpgradeSequenceRequest) (*types.QueryUpgradeSequenceResponse, error) {
+// NextSequenceSend implements the Query/NextSequenceSend gRPC method
+func (k Keeper) NextSequenceSend(c context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -503,20 +554,20 @@ func (q Keeper) UpgradeSequence(c context.Context, req *types.QueryUpgradeSequen
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	sequence, found := q.GetUpgradeSequence(ctx, req.PortId, req.ChannelId)
+
+	sequence, found := k.GetNextSequenceSend(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrUpgradeSequenceNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
 		)
 	}
-
 	selfHeight := clienttypes.GetSelfHeight(ctx)
-
-	return types.NewQueryUpgradeSequenceResponse(sequence, nil, selfHeight), nil
+	return types.NewQueryNextSequenceSendResponse(sequence, nil, selfHeight), nil
 }
 
-func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
+// UpgradeErrorReceipt implements the Query/UpgradeErrorReceipt gRPC method
+func (k Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -526,7 +577,15 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	receipt, found := q.GetUpgradeErrorReceipt(ctx, req.PortId, req.ChannelId)
+	found := k.HasChannel(ctx, req.PortId, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+		)
+	}
+
+	receipt, found := k.GetUpgradeErrorReceipt(ctx, req.PortId, req.ChannelId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -536,6 +595,37 @@ func (q Keeper) UpgradeErrorReceipt(c context.Context, req *types.QueryUpgradeEr
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	return types.NewQueryUpgradeErrorResponse(receipt, nil, selfHeight), nil
+}
+
+// Upgrade implements the Query/UpgradeSequence gRPC method
+func (k Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*types.QueryUpgradeResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	found := k.HasChannel(ctx, req.PortId, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+		)
+	}
+
+	upgrade, found := k.GetUpgrade(ctx, req.PortId, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrUpgradeNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
+		)
+	}
+
+	selfHeight := clienttypes.GetSelfHeight(ctx)
+	return types.NewQueryUpgradeResponse(upgrade, nil, selfHeight), nil
 }
 
 func validategRPCRequest(portID, channelID string) error {

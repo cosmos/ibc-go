@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
@@ -10,10 +11,10 @@ import (
 // RegisterLegacyAminoCodec registers the necessary x/ibc 29-fee interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgPayPacketFee{}, "cosmos-sdk/MsgPayPacketFee", nil)
-	cdc.RegisterConcrete(&MsgPayPacketFeeAsync{}, "cosmos-sdk/MsgPayPacketFeeAsync", nil)
-	cdc.RegisterConcrete(&MsgRegisterPayee{}, "cosmos-sdk/MsgRegisterPayee", nil)
-	cdc.RegisterConcrete(&MsgRegisterCounterpartyPayee{}, "cosmos-sdk/MsgRegisterCounterpartyPayee", nil)
+	legacy.RegisterAminoMsg(cdc, &MsgPayPacketFee{}, "cosmos-sdk/MsgPayPacketFee")
+	legacy.RegisterAminoMsg(cdc, &MsgPayPacketFeeAsync{}, "cosmos-sdk/MsgPayPacketFeeAsync")
+	legacy.RegisterAminoMsg(cdc, &MsgRegisterPayee{}, "cosmos-sdk/MsgRegisterPayee")
+	legacy.RegisterAminoMsg(cdc, &MsgRegisterCounterpartyPayee{}, "cosmos-sdk/MsgRegisterCounterpartyPayee")
 }
 
 // RegisterInterfaces register the 29-fee module interfaces to protobuf
@@ -30,21 +31,9 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
-var (
-	amino = codec.NewLegacyAmino()
-
-	// ModuleCdc references the global x/ibc-transfer module codec. Note, the codec
-	// should ONLY be used in certain instances of tests and for JSON encoding.
-	//
-	// The actual codec used for serialization should be provided to x/ibc transfer and
-	// defined at the application level.
-	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-
-	// AminoCdc is a amino codec created to support amino json compatible msgs.
-	AminoCdc = codec.NewAminoCodec(amino)
-)
-
-func init() {
-	RegisterLegacyAminoCodec(amino)
-	amino.Seal()
-}
+// ModuleCdc references the global x/ibc 29-fee module codec. Note, the codec
+// should ONLY be used in certain instances of tests and for JSON encoding.
+//
+// The actual codec used for serialization should be provided to x/ibc 29-fee and
+// defined at the application level.
+var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())

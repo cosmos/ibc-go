@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 const (
@@ -67,6 +67,7 @@ func TestValidateGenesis(t *testing.T) {
 					types.NewPacketSequence(testPort2, testChannel2, 1),
 				},
 				2,
+				types.Params{UpgradeTimeout: types.DefaultTimeout},
 			),
 			expPass: true,
 		},
@@ -171,6 +172,7 @@ func TestValidateGenesis(t *testing.T) {
 					types.NewPacketSequence(testPort2, testChannel2, 1),
 				},
 				0,
+				types.Params{UpgradeTimeout: types.DefaultTimeout},
 			),
 			expPass: false,
 		},
@@ -208,6 +210,7 @@ func TestValidateGenesis(t *testing.T) {
 					types.NewPacketSequence(testPort2, testChannel2, 1),
 				},
 				0,
+				types.Params{UpgradeTimeout: types.DefaultTimeout},
 			),
 			expPass: false,
 		},
