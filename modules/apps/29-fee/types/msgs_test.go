@@ -20,6 +20,7 @@ type TypesTestSuite struct {
 
 	chainA *ibctesting.TestChain
 }
+
 func TestMsgRegisterPayeeValidation(t *testing.T) {
 	var msg *types.MsgRegisterPayee
 

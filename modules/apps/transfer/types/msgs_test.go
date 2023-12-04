@@ -87,7 +87,7 @@ func (suite *TypesTestSuite) TestMsgTransferGetSigners() {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
 	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr.String(), receiver, timeoutHeight, 0, "")
-	signers, _, err  := suite.chainA.GetSimApp().AppCodec().GetMsgV1Signers(msg)
+	signers, _, err := suite.chainA.GetSimApp().AppCodec().GetMsgV1Signers(msg)
 	suite.Require().NoError(err)
 	suite.Require().Equal(addr.Bytes(), signers[0])
 }
@@ -129,7 +129,7 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(tc.name, func ()  {
+		suite.Run(tc.name, func() {
 			address := tc.address
 			msg := types.MsgUpdateParams{
 				Signer: tc.address.String(),
@@ -143,6 +143,5 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners() {
 				suite.Require().Error(err)
 			}
 		})
-		
 	}
 }
