@@ -42,8 +42,10 @@ func (k Keeper) OnChanOpenInit(
 		return "", errorsmod.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, counterparty.PortId)
 	}
 
-	var metadata icatypes.Metadata
-	var err error
+	var (
+		err      error
+		metadata icatypes.Metadata
+	)
 	if strings.TrimSpace(version) == "" {
 		connection, err := k.channelKeeper.GetConnection(ctx, connectionHops[0])
 		if err != nil {
