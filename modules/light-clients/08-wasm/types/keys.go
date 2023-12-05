@@ -8,5 +8,5 @@ const (
 	StoreKey = ModuleName
 
 	// Wasm is the client type for IBC light clients created using 08-wasm
-	Wasm string = ModuleName
+	Wasm = ModuleName
 )
