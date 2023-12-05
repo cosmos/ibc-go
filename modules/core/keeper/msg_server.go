@@ -779,7 +779,6 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 	keeper.EmitChannelUpgradeInitEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 	return &channeltypes.MsgChannelUpgradeInitResponse{
-		ChannelId:       msg.ChannelId,
 		Upgrade:         upgrade,
 		UpgradeSequence: channel.UpgradeSequence,
 	}, nil
