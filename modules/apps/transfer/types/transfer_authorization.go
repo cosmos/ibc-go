@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
+	"golang.org/x/exp/maps"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -179,8 +180,9 @@ func areAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataLis
 	}
 
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
+	jsonObjectKeys := maps.Keys(jsonObject)
 
-	for key := range jsonObject {
+	for _, key := range jsonObjectKeys {
 		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 
 		if !slices.Contains(allowedPacketDataList, key) {
