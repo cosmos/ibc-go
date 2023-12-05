@@ -7,6 +7,6 @@ const (
 	// StoreKey is the store key string for 08-wasm
 	StoreKey = ModuleName
 
-	// Wasm is used to indicate that the light client is a on-chain wasm program
+	// Wasm is the client type for IBC light clients created using 08-wasm
 	Wasm string = ModuleName
 )
