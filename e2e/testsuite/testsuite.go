@@ -48,6 +48,11 @@ type E2ETestSuite struct {
 	pathNameIndex int64
 }
 
+var (
+	testName string
+	r        ibc.Relayer
+)
+
 // pathPair is a pairing of two chains which will be used in a test.
 type pathPair struct {
 	chainA, chainB ibc.Chain
@@ -63,8 +68,7 @@ func newPath(chainA, chainB ibc.Chain) pathPair {
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
 // on the two chains.
-func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainOpts ...ChainOptionConfiguration) (ibc.Wallet, ibc.Wallet) {
-	chainA, chainB := s.GetChains(chainOpts...)
+func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainA, chainB ibc.Chain) (ibc.Wallet, ibc.Wallet) {
 	chainAAccountBytes, err := chainA.GetAddress(ctx, ChainARelayerName)
 	s.Require().NoError(err)
 
@@ -95,6 +99,18 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	chainAChannels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 	s.Require().NoError(err)
 	return r, chainAChannels[len(chainAChannels)-1]
+}
+
+func (s *E2ETestSuite) SetupRelayer(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainA ibc.Chain, chainB ibc.Chain) ibc.Relayer {
+	if r == nil {
+		r = s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
+		s.InitGRPCClients(chainA)
+		s.InitGRPCClients(chainB)
+		return r
+	}
+	s.InitGRPCClients(chainA)
+	s.InitGRPCClients(chainB)
+	return r
 }
 
 func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.Chain, channelOpts func(*ibc.CreateChannelOptions), buildOptions ...func(options *interchaintest.InterchainBuildOptions)) ibc.Relayer {
@@ -217,36 +233,36 @@ func (s *E2ETestSuite) UpdateClients(ctx context.Context, ibcrelayer ibc.Relayer
 // is unique to the current test being run. Note: this function does not create containers.
 func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Chain, ibc.Chain) {
 	if s.paths == nil {
+		testName = s.T().Name()
 		s.paths = map[string]pathPair{}
-	}
+		path, ok := s.paths[s.T().Name()]
+		if ok {
+			return path.chainA, path.chainB
+		}
 
-	path, ok := s.paths[s.T().Name()]
-	if ok {
+		chainOptions := DefaultChainOptions()
+		for _, opt := range chainOpts {
+			opt(&chainOptions)
+		}
+
+		chainA, chainB := s.createChains(chainOptions)
+		path = newPath(chainA, chainB)
+		s.paths[s.T().Name()] = path
+
+		if s.proposalIDs == nil {
+			s.proposalIDs = map[string]uint64{}
+		}
+
+		s.proposalIDs[chainA.Config().ChainID] = 1
+		s.proposalIDs[chainB.Config().ChainID] = 1
+
 		return path.chainA, path.chainB
 	}
-
-	chainOptions := DefaultChainOptions()
-	for _, opt := range chainOpts {
-		opt(&chainOptions)
-	}
-
-	chainA, chainB := s.createChains(chainOptions)
-	path = newPath(chainA, chainB)
-	s.paths[s.T().Name()] = path
-
-	if s.proposalIDs == nil {
-		s.proposalIDs = map[string]uint64{}
-	}
-
-	s.proposalIDs[chainA.Config().ChainID] = 1
-	s.proposalIDs[chainB.Config().ChainID] = 1
-
-	return path.chainA, path.chainB
+	return s.paths[testName].chainA, s.paths[testName].chainB
 }
 
 // GetRelayerWallets returns the ibcrelayer wallets associated with the chains.
-func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer) (ibc.Wallet, ibc.Wallet, error) {
-	chainA, chainB := s.GetChains()
+func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer, chainA, chainB ibc.Chain) (ibc.Wallet, ibc.Wallet, error) {
 	chainARelayerWallet, ok := ibcrelayer.GetWallet(chainA.Config().ChainID)
 	if !ok {
 		return nil, nil, fmt.Errorf("unable to find chain A relayer wallet")
@@ -261,13 +277,11 @@ func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer) (ibc.Wallet, ib
 
 // RecoverRelayerWallets adds the corresponding ibcrelayer address to the keychain of the chain.
 // This is useful if commands executed on the chains expect the relayer information to present in the keychain.
-func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc.Relayer) error {
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(ibcrelayer)
+func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc.Relayer, chainA, chainB ibc.Chain) error {
+	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(ibcrelayer, chainA, chainB)
 	if err != nil {
 		return err
 	}
-
-	chainA, chainB := s.GetChains()
 
 	if err := chainA.RecoverKey(ctx, ChainARelayerName, chainARelayerWallet.Mnemonic()); err != nil {
 		return fmt.Errorf("could not recover relayer wallet on chain A: %s", err)
@@ -300,14 +314,12 @@ func (s *E2ETestSuite) RestartRelayer(ctx context.Context, ibcrelayer ibc.Relaye
 }
 
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
-func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc.Wallet {
-	chainA, _ := s.GetChains()
+func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64, chainA ibc.Chain) ibc.Wallet {
 	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
-func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
-	_, chainB := s.GetChains()
+func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64, chainB ibc.Chain) ibc.Wallet {
 	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
 }
 
@@ -323,8 +335,7 @@ func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wall
 }
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
-func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
-	_, chainB := s.GetChains()
+func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet, chainB ibc.Chain) (int64, error) {
 	balance, err := s.QueryBalance(ctx, chainB, user.FormattedAddress(), chainB.Config().Denom)
 	if err != nil {
 		return -1, err
