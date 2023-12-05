@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	fmt "fmt"
 	"math/big"
-	"slices"
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -180,12 +179,16 @@ func areAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataLis
 
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
 
-	for key := range jsonObject {
-		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
-
-		if !slices.Contains(allowedPacketDataList, key) {
-			return false, fmt.Errorf("not allowed packet data key: %s", key)
+	for _, key := range allowedPacketDataList {
+		_, ok := jsonObject[key]
+		if ok {
+			ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
+			delete(jsonObject, key)
 		}
+	}
+
+	if len(jsonObject) != 0 {
+		return false, fmt.Errorf("not allowed packet data key")
 	}
 
 	return true, nil
