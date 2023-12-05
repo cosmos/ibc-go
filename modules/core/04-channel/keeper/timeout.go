@@ -157,7 +157,6 @@ func (k Keeper) TimeoutExecuted(
 		// then we can move to flushing complete if the timeout has not passed and there are no in-flight packets
 		if found {
 			timeout := counterpartyUpgrade.Timeout
-			// if the timeout is valid then use it, otherwise it has not been set in the upgrade handshake yet.
 			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
 				// packet flushing timeout has expired, abort the upgrade and return nil,
 				// committing an error receipt to state, restoring the channel and successfully timing out the packet.
