@@ -127,44 +127,6 @@ func (im IBCMiddleware) OnChanOpenInit(
     ctx,
     order,
     connectionHops,
-        portID,
-        channelID,
-        channelCap,
-        counterparty,
-        metadata.AppVersion, // note we only pass app version here
-    )
-    if err != nil {
-    // Since it is valid for fee version to not be specified,
-    // the above middleware version may be for another middleware.
-    // Pass the entire version string onto the underlying application.
-    return im.app.OnChanOpenInit(
-      ctx,
-      order,
-      connectionHops,
-      portID,
-      channelID,
-      channelCap,
-      counterparty,
-      version,
-    )
-  }
-  else {
-    metadata = {
-      // set middleware version to default value
-      MiddlewareVersion: defaultMiddlewareVersion,
-      // allow application to return its default version
-      AppVersion: "",
-    }
-  }
-
-  doCustomLogic()
-
-  // if the version string is empty, OnChanOpenInit is expected to return
-  // a default version string representing the version(s) it supports
-  appVersion, err := im.app.OnChanOpenInit(
-    ctx,
-    order,
-    connectionHops,
     portID,
     channelID,
     channelCap,
