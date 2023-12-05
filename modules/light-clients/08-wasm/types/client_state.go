@@ -28,7 +28,7 @@ func NewClientState(data []byte, checksum []byte, height clienttypes.Height) *Cl
 
 // ClientType is Wasm light client.
 func (ClientState) ClientType() string {
-	return exported.Wasm
+	return Wasm
 }
 
 // GetLatestHeight returns latest block height.

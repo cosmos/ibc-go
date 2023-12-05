@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 func (suite *TypesTestSuite) TestClientMessageValidateBasic() {
@@ -38,7 +37,7 @@ func (suite *TypesTestSuite) TestClientMessageValidateBasic() {
 		suite.Run(tc.name, func() {
 			clientMessage := tc.clientMessage
 
-			suite.Require().Equal(exported.Wasm, clientMessage.ClientType())
+			suite.Require().Equal(types.Wasm, clientMessage.ClientType())
 			err := clientMessage.ValidateBasic()
 
 			if tc.expPass {
