@@ -288,7 +288,7 @@ func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icaty
 		return icatypes.Metadata{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
-	return icatypes.MedataFromVersion(appVersion)
+	return icatypes.MetadataFromVersion(appVersion)
 }
 
 // GetParams returns the current ica/controller submodule parameters.

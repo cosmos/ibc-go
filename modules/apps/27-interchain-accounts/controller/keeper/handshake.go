@@ -144,7 +144,7 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, con
 		return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "version cannot be empty")
 	}
 
-	metadata, err := icatypes.MedataFromVersion(version)
+	metadata, err := icatypes.MetadataFromVersion(version)
 	if err != nil {
 		return "", err
 	}
