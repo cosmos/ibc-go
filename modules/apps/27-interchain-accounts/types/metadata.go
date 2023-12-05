@@ -54,6 +54,15 @@ func NewDefaultMetadataString(controllerConnectionID, hostConnectionID string) s
 	return string(ModuleCdc.MustMarshalJSON(&metadata))
 }
 
+// MetadataFromVersion parses Metadata from a json encoded version string.
+func MetadataFromVersion(versionString string) (Metadata, error) {
+	var metadata Metadata
+	if err := ModuleCdc.UnmarshalJSON([]byte(versionString), &metadata); err != nil {
+		return Metadata{}, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+	}
+	return metadata, nil
+}
+
 // IsPreviousMetadataEqual compares a metadata to a previous version string set in a channel struct.
 // It ensures all fields are equal except the Address string
 func IsPreviousMetadataEqual(previousVersion string, metadata Metadata) bool {
@@ -164,13 +173,4 @@ func validateConnectionParams(metadata Metadata, controllerConnectionID, hostCon
 	}
 
 	return nil
-}
-
-// MetadataFromVersion parses Metadata from a json encoded version string.
-func MetadataFromVersion(versionString string) (Metadata, error) {
-	var metadata Metadata
-	if err := ModuleCdc.UnmarshalJSON([]byte(versionString), &metadata); err != nil {
-		return Metadata{}, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
-	}
-	return metadata, nil
 }
