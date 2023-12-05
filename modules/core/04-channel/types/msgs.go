@@ -847,10 +847,6 @@ func (msg MsgChannelUpgradeCancel) ValidateBasic() error {
 		return ErrInvalidChannelIdentifier
 	}
 
-	if msg.ErrorReceipt.Sequence == 0 {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "upgrade sequence cannot be 0")
-	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
