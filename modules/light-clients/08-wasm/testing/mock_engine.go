@@ -55,7 +55,7 @@ type MockWasmEngine struct {
 }
 
 // NewMockWasmEngine creates and returns a new instance of the mock wasmvm for testing purposes.
-// Each callback method of the mock wasmvm can be overriden to assign specific functionality.
+// Each callback method of the mock wasmvm can be overridden to assign specific functionality.
 // Default functionality is assigned for StoreCode, StoreCodeUnchecked and GetCode. Both Pin and Unpin are implemented as no-op methods.
 // All other callbacks stored in the query and sudo callback maps panic. Use RegisterQueryCallback and RegisterSudoCallback methods
 // to assign expected behaviour for test cases.
