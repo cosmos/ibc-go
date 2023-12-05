@@ -118,10 +118,10 @@ func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icaty
 		return icatypes.Metadata{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
-	var metadata icatypes.Metadata
-	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(appVersion), &metadata); err != nil {
+	metadata, err := icatypes.MetadataFromVersion(appVersion)
+	if err != nil {
 		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
-		return icatypes.Metadata{}, errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+		return icatypes.Metadata{}, err
 	}
 
 	return metadata, nil
