@@ -273,17 +273,17 @@ func (s *FeeMiddlewareTestSuite) TestC() {}
 // e2e/file_two_test.go
 package e2e
 
-func TestTransferTestSuite(t *testing.T) {
-  suite.Run(t, new(TransferTestSuite))
+func TestExampleTestSuite(t *testing.T) {
+  suite.Run(t, new(ExampleTestSuite))
 }
 
-type TransferTestSuite struct {
+type ExampleTestSuite struct {
   testsuite.E2ETestSuite
 }
 
-func (s *TransferTestSuite) TestD() {}
-func (s *TransferTestSuite) TestE() {}
-func (s *TransferTestSuite) TestF() {}
+func (s *ExampleTestSuite) TestD() {}
+func (s *ExampleTestSuite) TestE() {}
+func (s *ExampleTestSuite) TestF() {}
 
 ```
 
@@ -305,15 +305,15 @@ In the above example, the following would be generated.
       "test": "TestC"
     },
     {
-      "entrypoint": "TestTransferTestSuite",
+      "entrypoint": "TestExampleTestSuite",
       "test": "TestD"
     },
     {
-      "entrypoint": "TestTransferTestSuite",
+      "entrypoint": "TestExampleTestSuite",
       "test": "TestE"
     },
     {
-      "entrypoint": "TestTransferTestSuite",
+      "entrypoint": "TestExampleTestSuite",
       "test": "TestF"
     }
   ]
