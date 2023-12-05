@@ -253,27 +253,27 @@ func newStoreAdapter(s storetypes.KVStore) *storeAdapter {
 	return &storeAdapter{parent: s}
 }
 
-// Get implements the KVStore interface.
+// Get implements the wasmvmtypes.KVStore interface.
 func (s storeAdapter) Get(key []byte) []byte {
 	return s.parent.Get(key)
 }
 
-// Set implements the KVStore interface.
+// Set implements the wasmvmtypes.KVStore interface.
 func (s storeAdapter) Set(key, value []byte) {
 	s.parent.Set(key, value)
 }
 
-// Delete implements the KVStore interface.
+// Delete implements the wasmvmtypes.KVStore interface.
 func (s storeAdapter) Delete(key []byte) {
 	s.parent.Delete(key)
 }
 
-// Iterator implements the KVStore interface.
+// Iterator implements the wasmvmtypes.KVStore interface.
 func (s storeAdapter) Iterator(start, end []byte) wasmvmtypes.Iterator {
 	return s.parent.Iterator(start, end)
 }
 
-// ReverseIterator implements the KVStore interface.
+// ReverseIterator implements the wasmvmtypes.KVStore interface.
 func (s storeAdapter) ReverseIterator(start, end []byte) wasmvmtypes.Iterator {
 	return s.parent.ReverseIterator(start, end)
 }
