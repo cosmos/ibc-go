@@ -5,9 +5,14 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+<<<<<<< HEAD
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+=======
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+>>>>>>> e3ab9bec (fix: remove 08-wasm from 02-client exported (#5306))
 )
 
 const maxWasmSize = 3 * 1024 * 1024
@@ -50,8 +55,8 @@ func ValidateClientID(clientID string) error {
 		return errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s", clientID)
 	}
 
-	if !strings.HasPrefix(clientID, exported.Wasm) {
-		return errorsmod.Wrapf(host.ErrInvalidID, "client identifier %s does not contain %s prefix", clientID, exported.Wasm)
+	if !strings.HasPrefix(clientID, Wasm) {
+		return errorsmod.Wrapf(host.ErrInvalidID, "client identifier %s does not contain %s prefix", clientID, Wasm)
 	}
 
 	return nil

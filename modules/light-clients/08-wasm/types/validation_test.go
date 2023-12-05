@@ -9,11 +9,16 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+<<<<<<< HEAD
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
+=======
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+>>>>>>> e3ab9bec (fix: remove 08-wasm from 02-client exported (#5306))
 )
 
 func TestValidateWasmCode(t *testing.T) {
@@ -144,7 +149,7 @@ func TestValidateClientID(t *testing.T) {
 			func() {
 				clientID = ibctesting.FirstClientID
 			},
-			errorsmod.Wrapf(host.ErrInvalidID, "client identifier %s does not contain %s prefix", ibctesting.FirstClientID, exported.Wasm),
+			errorsmod.Wrapf(host.ErrInvalidID, "client identifier %s does not contain %s prefix", ibctesting.FirstClientID, types.Wasm),
 		},
 	}
 

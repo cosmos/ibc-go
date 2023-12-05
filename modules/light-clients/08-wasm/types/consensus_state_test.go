@@ -2,7 +2,10 @@ package types_test
 
 import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+=======
+>>>>>>> e3ab9bec (fix: remove 08-wasm from 02-client exported (#5306))
 )
 
 func (suite *TypesTestSuite) TestConsensusStateValidateBasic() {
@@ -31,7 +34,7 @@ func (suite *TypesTestSuite) TestConsensusStateValidateBasic() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			// check just to increase coverage
-			suite.Require().Equal(exported.Wasm, tc.consensusState.ClientType())
+			suite.Require().Equal(types.Wasm, tc.consensusState.ClientType())
 
 			err := tc.consensusState.ValidateBasic()
 			if tc.expectPass {

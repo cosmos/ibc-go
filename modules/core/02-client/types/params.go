@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
+<<<<<<< HEAD
 var (
 	// DefaultAllowedClients are the default clients for the AllowedClients parameter.
 	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Wasm, exported.Localhost}
@@ -21,6 +22,10 @@ var (
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
+=======
+// DefaultAllowedClients are the default clients for the AllowedClients parameter.
+var DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Localhost}
+>>>>>>> e3ab9bec (fix: remove 08-wasm from 02-client exported (#5306))
 
 // NewParams creates a new parameter configuration for the ibc client module
 func NewParams(allowedClients ...string) Params {
