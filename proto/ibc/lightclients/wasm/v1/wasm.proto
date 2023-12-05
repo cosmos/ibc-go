@@ -31,3 +31,8 @@ message ClientMessage {
 
   bytes data = 1;
 }
+
+// Checksums defines a list of all checksums that are stored
+message Checksums {
+  repeated bytes checksums = 1;
+}

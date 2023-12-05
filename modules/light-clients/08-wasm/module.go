@@ -111,10 +111,15 @@ func NewAppModule(k keeper.Keeper) AppModule {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+
+	wasmMigrator := keeper.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, wasmMigrator.MigrateWasmStore); err != nil {
+		panic(err)
+	}
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 1 }
+func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 // ProposalMsgs returns msgs used for governance proposals for simulations.
 func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {

@@ -25,7 +25,8 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc codec.BinaryCodec
+	cdc          codec.BinaryCodec
+	storeService storetypes.KVStoreService
 
 	clientKeeper types.ClientKeeper
 
@@ -65,6 +66,7 @@ func NewKeeperWithVM(
 
 	return Keeper{
 		cdc:          cdc,
+		storeService: storeService,
 		clientKeeper: clientKeeper,
 		authority:    authority,
 	}
