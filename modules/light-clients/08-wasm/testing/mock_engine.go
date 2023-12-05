@@ -34,7 +34,7 @@ type (
 	sudoFn func(checksum wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
 )
 
-// MockWasmEngine implements types.WasmEngine for testing purpose. One or multiple messages can be stubbed.
+// MockWasmEngine implements types.WasmEngine for testing purposes. One or multiple messages can be stubbed.
 // Without a stub function a panic is thrown.
 // ref: https://github.com/CosmWasm/wasmd/blob/v0.42.0/x/wasm/keeper/wasmtesting/mock_engine.go#L19
 type MockWasmEngine struct {
