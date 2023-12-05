@@ -49,7 +49,7 @@ func ValidateClientID(clientID string) error {
 		return errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s", clientID)
 	}
 
-	if !strings.HasPrefix(clientID, ModuleName) {
+	if !strings.HasPrefix(clientID, Wasm) {
 		return errorsmod.Wrapf(host.ErrInvalidID, "client identifier %s does not contain %s prefix", clientID, Wasm)
 	}
 
