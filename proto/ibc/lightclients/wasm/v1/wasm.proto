@@ -31,3 +31,13 @@ message ClientMessage {
 
   bytes data = 1;
 }
+
+// Checksums defines a list of all checksums that are stored
+//
+// Deprecated: This message is deprecated in favor of storing the checksums
+// using a Collections.KeySet.
+message Checksums {
+  option deprecated = true;
+
+  repeated bytes checksums = 1;
+}
