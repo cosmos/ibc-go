@@ -20,7 +20,7 @@ func NewMigrator(keeper Keeper) Migrator {
 }
 
 // MigrateChecksums migrates the wasm store from using a single key to
-// store a list of checksums to using a KeySet to store the checksums.
+// store a list of checksums to using a collections.KeySet to store the checksums.
 //
 // It grabs the checksums stored previously under the old key and stores
 // them in the global KeySet collection. It then deletes the old key and
