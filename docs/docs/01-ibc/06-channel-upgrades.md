@@ -15,19 +15,19 @@ Learn how to upgrade existing IBC channels.
 
 Channel upgrade cancellation is performed by submitting a `MsgChannelUpgradeCancel` message.
 
-It is possible to cancel a channel upgrade in if the following are true:
+It is possible to cancel an in-progress channel upgrade if the following are true:
 
 - the channel has not yet reached the `FLUSHCOMPLETE` state.
-- the upgrade has initiated. This will be true if the `MsgChannelUpgradeInit` or `MsgChannelUpgradeTry` message has been
+- the upgrade has been initiated. This will be true if the `MsgChannelUpgradeInit` or `MsgChannelUpgradeTry` message has been
   submitted.
-- An `ErrorReceipt` of a failed upgrade attempt on the counterparty chain and proof are provided.
+- ExistenceProof of an `ErrorReceipt` on the counterparty chain at an appropriate upgrade sequence is submitted for a failed upgrade attempt.
 
 > Note: if the signer is the authority, e.g. the `gov` address, no `ErrorReceipt` or proof is required.
 > These can be left empty in the `MsgChannelUpgradeCancel` message.
 
-Upon cancelling a channel upgrade, an `ErrorReceipt` will be written with the current channel's upgrade sequence, and
-the channel will be reverted to the pre-upgraded state.
+Upon cancelling a channel upgrade, an `ErrorReceipt` will be written with the channel's current upgrade sequence, and
+the channel will be reverted to the pre-upgrade state.
 
-The application callback's `OnChanUpgradeRestore` method will be invoked.
+The application's `OnChanUpgradeRestore` callback method will be invoked.
 
-It will then be possible to re-initiate the upgrade by sending a `MsgChannelOpenInit` message.
+It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
