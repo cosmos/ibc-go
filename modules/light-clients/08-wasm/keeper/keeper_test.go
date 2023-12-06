@@ -79,6 +79,8 @@ func (suite *KeeperTestSuite) SetupWasmWithMockVM() {
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+
+	wasmtesting.AllowWasmClients(suite.chainA)
 }
 
 func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
@@ -89,8 +91,15 @@ func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[
 		err := json.Unmarshal(initMsg, &payload)
 		suite.Require().NoError(err)
 
-		store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState))
-		store.Set(host.ConsensusStateKey(payload.ClientState.LatestHeight), clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), payload.ConsensusState))
+		wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+
+		clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.GetLatestHeight().(clienttypes.Height))
+		clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
+		store.Set(host.ClientStateKey(), clientStateBz)
+
+		consensusState := types.NewConsensusState(payload.ConsensusState)
+		consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), consensusState)
+		store.Set(host.ConsensusStateKey(clientState.GetLatestHeight()), consensusStateBz)
 
 		resp, err := json.Marshal(types.EmptyResult{})
 		suite.Require().NoError(err)
@@ -149,6 +158,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			true,
@@ -163,6 +173,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			false,
@@ -177,6 +188,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			false,
@@ -190,6 +202,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
+					nil,
 					nil,
 				)
 			},
@@ -205,6 +218,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
+					nil,
 				)
 			},
 			false,
@@ -225,6 +239,74 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.Require().PanicsWithError(tc.expError.Error(), func() {
 					tc.instantiateFn()
 				})
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestInitializedPinnedCodes() {
+	var capturedChecksums []wasmvm.Checksum
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				suite.mockVM.PinFn = func(checksum wasmvm.Checksum) error {
+					capturedChecksums = append(capturedChecksums, checksum)
+					return nil
+				}
+			},
+			nil,
+		},
+		{
+			"failure: pin error",
+			func() {
+				suite.mockVM.PinFn = func(checksum wasmvm.Checksum) error {
+					return wasmtesting.ErrMockVM
+				}
+			},
+			wasmtesting.ErrMockVM,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			ctx := suite.chainA.GetContext()
+			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+
+			contracts := [][]byte{wasmtesting.Code, wasmtesting.CreateMockContract([]byte("gzipped-contract"))}
+			checksumIDs := make([]types.Checksum, len(contracts))
+			signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
+			// store contract on chain
+			for i, contract := range contracts {
+				msg := types.NewMsgStoreCode(signer, contract)
+
+				res, err := wasmClientKeeper.StoreCode(ctx, msg)
+				suite.Require().NoError(err)
+
+				checksumIDs[i] = res.Checksum
+			}
+
+			// malleate after storing contracts
+			tc.malleate()
+
+			err := keeper.InitializePinnedCodes(ctx)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.ElementsMatch(checksumIDs, capturedChecksums)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}

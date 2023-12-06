@@ -32,7 +32,7 @@ func NewMigrateProposalWrappedStore(subjectStore, substituteStore storetypes.KVS
 }
 
 // GetStore is a wrapper around getStore to allow the function to be directly called in tests.
-func (ws migrateClientWrappedStore) GetStore(key []byte) storetypes.KVStore {
+func (ws migrateClientWrappedStore) GetStore(key []byte) (storetypes.KVStore, bool) {
 	return ws.getStore(key)
 }
 

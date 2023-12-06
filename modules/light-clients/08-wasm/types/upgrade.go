@@ -36,8 +36,8 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 
 	payload := SudoMsg{
 		VerifyUpgradeAndUpdateState: &VerifyUpgradeAndUpdateStateMsg{
-			UpgradeClientState:         *wasmUpgradeClientState,
-			UpgradeConsensusState:      *wasmUpgradeConsState,
+			UpgradeClientState:         wasmUpgradeClientState.Data,
+			UpgradeConsensusState:      wasmUpgradeConsState.Data,
 			ProofUpgradeClient:         proofUpgradeClient,
 			ProofUpgradeConsensusState: proofUpgradeConsState,
 		},

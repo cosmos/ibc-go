@@ -18,6 +18,8 @@ The sample code below shows the relevant integration points in `app.go` required
 import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
+  
+  cmtos "github.com/cometbft/cometbft/libs/os"
 
   wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
   wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
@@ -54,19 +56,25 @@ func NewSimApp(
     ...
     wasmtypes.StoreKey,
   ) 
-   // Instantiate 08-wasm's keeper
-   // This sample code uses a constructor function that
-   // accepts a pointer to an existing instance of Wasm VM.
-   // This is the recommended approach when the chain
-   // also uses `x/wasm`, and then the Wasm VM instance
-   // can be shared.
-   // See the section below for more information.
+
+  // Instantiate 08-wasm's keeper
+  // This sample code uses a constructor function that
+  // accepts a pointer to an existing instance of Wasm VM.
+  // This is the recommended approach when the chain
+  // also uses `x/wasm`, and then the Wasm VM instance
+  // can be shared.
+  // This sample code uses also an implementation of the 
+  // wasmvm.Querier interface (querier). If nil is passed
+  // instead, then a default querier will be used that
+  // returns an error for all query types.
+  // See the section below for more information.
   app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
     appCodec,
     runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
     app.IBCKeeper.ClientKeeper,
     authtypes.NewModuleAddress(govtypes.ModuleName).String(),
     wasmVM,
+    querier,
   )  
   app.ModuleManager = module.NewManager(
     // SDK app modules
@@ -106,12 +114,23 @@ func NewSimApp(
     }
   }
   ...
+
+  if loadLatest {
+    ...
+
+    ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
+
+    // Initialize pinned codes in wasmvm as they are not persisted there
+    if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
+      cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
+    }
+  }
 }
 ```
 
 ## Keeper instantiation
 
-When it comes to instantiating `08-wasm`'s keeper there are two recommended ways of doing it. Choosing one or the other will depend on whether the chain already integrates [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) or not.
+When it comes to instantiating `08-wasm`'s keeper there are two recommended ways of doing it. Choosing one or the other will depend on whether the chain already integrates [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) or not. Both available constructor functions accept a querier parameter that should implement the [`Querier` interface of `wasmvm`](https://github.com/CosmWasm/wasmvm/blob/v1.5.0/types/queries.go#L37). If `nil` is provided, then a default querier implementation is used that returns error for any query type.
 
 ### If `x/wasm` is present
 
@@ -180,12 +199,17 @@ app.WasmKeeper = wasmkeeper.NewKeeper(
   wasmOpts...,
 )
 
+// This sample code uses also an implementation of the 
+// wasmvm.Querier interface (querier). If nil is passed
+// instead, then a default querier will be used that
+// returns an error for all query types.
 app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
   appCodec,
   runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
   app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmer, // pass the Wasm VM instance to `08-wasm` keeper constructor
+  querier,
 )
 ...
 ```
@@ -226,6 +250,7 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
   app.IBCKeeper.ClientKeeper, 
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
+  querier
 )
 ```
 
@@ -245,4 +270,8 @@ Or alternatively the parameter can be updated via a governance proposal (see at 
 
 ## Adding snapshot support
 
-In order to use the `08-wasm` module chains are required to register the `WasmSnapshotter` extension in the snapshot manager. This snapshotter takes care of persisting the external state, in the form of contract code, of the Wasm VM instance to disk when the chain is snapshotted.
+In order to use the `08-wasm` module chains are required to register the `WasmSnapshotter` extension in the snapshot manager. This snapshotter takes care of persisting the external state, in the form of contract code, of the Wasm VM instance to disk when the chain is snapshotted. [This code](https://github.com/cosmos/ibc-go/blob/2bd29c08fd1fe50b461fc33a25735aa792dc896e/modules/light-clients/08-wasm/testing/simapp/app.go#L768-L776) should be placed in `NewSimApp` function in `app.go`:
+
+## Pin byte codes at start
+
+Wasm byte codes should be pinned to the WasmVM cache on every application start, therefore [this code](https://github.com/cosmos/ibc-go/blob/0ed221f687ffce75984bc57402fd678e07aa6cc5/modules/light-clients/08-wasm/testing/simapp/app.go#L821-L826) should be placed in `NewSimApp` function in `app.go`.

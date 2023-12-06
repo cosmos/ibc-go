@@ -126,3 +126,7 @@ form.
 
 For safety, no other module must be capable of minting tokens with the `ibc/` prefix. The IBC
 transfer module needs a subset of the denomination space that only it can create tokens in.
+
+## Channel Closure
+
+The IBC transfer module does not support channel closure.
