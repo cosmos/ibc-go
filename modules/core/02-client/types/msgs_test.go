@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto" //nolint:staticcheck
+
+	"github.com/golang/protobuf/proto" //nolint:staticcheck
+	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -13,7 +16,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -685,7 +690,7 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 }
 
 // TestMsgRecoverClientGetSigners tests GetSigners for MsgRecoverClient
-func (suite *TypesTestSuite) TestMsgRecoverClientGetSigners() {
+func TestMsgRecoverClientGetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -700,12 +705,13 @@ func (suite *TypesTestSuite) TestMsgRecoverClientGetSigners() {
 		msg := types.MsgRecoverClient{
 			Signer: tc.address.String(),
 		}
-		signers, _, err := suite.chainA.Codec.GetMsgV1Signers(&msg)
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().Equal(tc.address.Bytes(), signers[0])
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
-			suite.Require().Error(err)
+			require.Error(t, err)
 		}
 	}
 }
@@ -938,7 +944,7 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 }
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
-func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners() {
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -950,19 +956,18 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.T().Run(tc.name, func(t *testing.T) {
-			msg := types.MsgUpdateParams{
-				Signer: tc.address.String(),
-				Params: types.DefaultParams(),
-			}
 
-			signers, _, err := suite.chainA.Codec.GetMsgV1Signers(&msg)
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(tc.address.Bytes(), signers[0])
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+		msg := types.MsgUpdateParams{
+			Signer: tc.address.String(),
+			Params: types.DefaultParams(),
+		}
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
+		if tc.expPass {
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
+		} else {
+			require.Error(t, err)
+		}
 	}
 }

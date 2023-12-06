@@ -6,6 +6,9 @@ import (
 	"time"
 
 	dbm "github.com/cosmos/cosmos-db"
+
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	log "cosmossdk.io/log"
@@ -15,7 +18,9 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -281,7 +286,7 @@ func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
 }
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
-func (suite *MsgTestSuite) TestMsgUpdateParamsGetSigners() {
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -299,12 +304,13 @@ func (suite *MsgTestSuite) TestMsgUpdateParamsGetSigners() {
 			Params: types.DefaultParams(),
 		}
 
-		signers, _, err := suite.chainA.Codec.GetMsgV1Signers(&msg)
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().Equal(tc.address.Bytes(), signers[0])
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
-			suite.Require().Error(err)
+			require.Error(t, err)
 		}
 	}
 }

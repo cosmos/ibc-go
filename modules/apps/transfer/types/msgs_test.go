@@ -9,7 +9,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -83,13 +85,14 @@ func TestMsgTransferValidation(t *testing.T) {
 }
 
 // TestMsgTransferGetSigners tests GetSigners for MsgTransfer
-func (suite *TypesTestSuite) TestMsgTransferGetSigners() {
+func TestMsgTransferGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-
 	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr.String(), receiver, timeoutHeight, 0, "")
-	signers, _, err := suite.chainA.GetSimApp().AppCodec().GetMsgV1Signers(msg)
-	suite.Require().NoError(err)
-	suite.Require().Equal(addr.Bytes(), signers[0])
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, addr.Bytes(), signers[0])
 }
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
