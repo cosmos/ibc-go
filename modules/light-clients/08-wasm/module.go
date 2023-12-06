@@ -113,8 +113,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	wasmMigrator := keeper.NewMigrator(am.keeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, wasmMigrator.MigrateWasmStore); err != nil {
-		panic(err)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, wasmMigrator.MigrateChecksums); err != nil {
+		panic(fmt.Errorf("failed to migrate checksums from version 1 to 2: %v", err))
 	}
 }
 
