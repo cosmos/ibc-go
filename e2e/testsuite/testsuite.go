@@ -198,7 +198,7 @@ func (s *E2ETestSuite) generatePathName() string {
 // GetPathName returns the name of a path at a specific index. This can be used in tests
 // when the path name is required.
 func (s *E2ETestSuite) GetPathName(idx int64) string {
-	pathName := fmt.Sprintf("%s-path-%d", s.T().Name(), idx)
+	pathName := fmt.Sprintf("path-%d", idx)
 	return strings.ReplaceAll(pathName, "/", "-")
 }
 

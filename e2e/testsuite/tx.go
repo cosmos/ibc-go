@@ -248,24 +248,24 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 	if !ok {
 		panic("ExecuteAndPassGovV1Beta1Proposal must be passed a cosmos.CosmosChain")
 	}
-	fmt.Println("1111")
+
 	proposalID := s.proposalIDs[chainA.Config().ChainID]
 	defer func() {
 		s.proposalIDs[chainA.Config().ChainID] = proposalID + 1
 	}()
-	fmt.Println("1111")
+
 	txResp := s.ExecuteGovV1Beta1Proposal(ctx, cosmosChain, user, content, chainB)
 	s.AssertTxSuccess(txResp)
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// https://github.com/cosmos/ibc-go/issues/2122
-	fmt.Println("1111")
+
 	proposal, err := s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
 	s.Require().NoError(err)
 	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
-	fmt.Println("1111")
+
 	err = cosmosChain.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", proposalID), cosmos.ProposalVoteYes)
 	s.Require().NoError(err)
-	fmt.Println("1111")
+
 	// ensure voting period has not passed before validators finished voting
 	proposal, err = s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
 	s.Require().NoError(err)

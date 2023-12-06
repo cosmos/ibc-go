@@ -24,7 +24,8 @@ func GetTestContainers(ctx context.Context, t *testing.T, dc *dockerclient.Clien
 		Filters: filters.NewArgs(
 			// see: https://github.com/strangelove-ventures/interchaintest/blob/0bdc194c2aa11aa32479f32b19e1c50304301981/internal/dockerutil/setup.go#L31-L36
 			// for the label needed to identify test containers.
-			filters.Arg("label", testLabel+"="+t.Name()),
+			// TODO: Add handle test name
+			filters.Arg("label", testLabel), // Temp hard code
 		),
 	})
 	if err != nil {

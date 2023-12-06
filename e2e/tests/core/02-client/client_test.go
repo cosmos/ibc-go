@@ -44,6 +44,17 @@ const (
 	invalidHashValue = "invalid_hash"
 )
 
+func TestRecoverClientTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(RecoverClientTestSuite))
+}
+
+type RecoverClientTestSuite struct {
+	testsuite.E2ETestSuite
+	chainA ibc.Chain
+	chainB ibc.Chain
+	rly    ibc.Relayer
+}
+
 func TestClientTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(ClientTestSuite))
 }
@@ -61,8 +72,27 @@ func (s *ClientTestSuite) SetupTest() {
 	s.rly = s.SetupRelayer(ctx, s.TransferChannelOptions(), s.chainA, s.chainB)
 }
 
+func (s *RecoverClientTestSuite) SetupTest() {
+	ctx := context.TODO()
+	s.chainA, s.chainB = s.GetChains()
+	s.rly = s.SetupRelayer(ctx, s.TransferChannelOptions(), s.chainA, s.chainB)
+}
+
 // Status queries the current status of the client
 func (s *ClientTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
+	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
+	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
+		ClientId: clientID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return res.Status, nil
+}
+
+// Status queries the current status of the client
+func (s *RecoverClientTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID string) (string, error) {
 	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
 	res, err := queryClient.ClientStatus(ctx, &clienttypes.QueryClientStatusRequest{
 		ClientId: clientID,
@@ -193,7 +223,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
 		// TODO: replace with better handling of path names
-		pathName = fmt.Sprintf("%s-path-%d", s.T().Name(), 0)
+		pathName = fmt.Sprintf("path-%d", 0)
 		pathName = strings.ReplaceAll(pathName, "/", "-")
 	})
 
@@ -254,7 +284,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 }
 
 // TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
-func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
+func (s *RecoverClientTestSuite) TestRecoverClient_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -275,7 +305,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
 		// TODO: replace with better handling of path names
-		pathName = fmt.Sprintf("%s-path-%d", s.T().Name(), 0)
+		pathName = fmt.Sprintf("path-%d", 0)
 		pathName = strings.ReplaceAll(pathName, "/", "-")
 	})
 
