@@ -960,5 +960,5 @@ func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upg
 	}
 
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceiptToWrite)
-	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError)
+	EmitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError)
 }
