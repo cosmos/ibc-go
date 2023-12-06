@@ -177,12 +177,17 @@ func isAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataList
 		return false, err
 	}
 
+	if len(jsonObject) > len(allowedPacketDataList) {
+		return false, fmt.Errorf("packet type greater than packet allow list")
+	}
+
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
 
 	for _, key := range allowedPacketDataList {
+		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
+
 		_, ok := jsonObject[key]
 		if ok {
-			ctx.GasMeter().ConsumeGas(gasCostPerIteration, "transfer authorization")
 			delete(jsonObject, key)
 		}
 	}
