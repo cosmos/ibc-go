@@ -16,7 +16,7 @@ const (
 // registerUpgradeHandlers registers all supported upgrade handlers
 func (app *SimApp) registerUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		"ibcwasm-v8",
+		IBCWasmUpgrade,
 		createWasmStoreUpgradeHandler(app.ModuleManager, app.configurator),
 	)
 
@@ -25,7 +25,7 @@ func (app *SimApp) registerUpgradeHandlers() {
 		panic(err)
 	}
 
-	if upgradeInfo.Name == "ibcwasm-v8" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == IBCWasmUpgrade && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
 				circuittypes.ModuleName,
