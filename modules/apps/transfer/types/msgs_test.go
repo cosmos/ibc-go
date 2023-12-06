@@ -120,7 +120,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 }
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
-func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners() {
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -132,19 +132,20 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(tc.name, func() {
-			address := tc.address
-			msg := types.MsgUpdateParams{
-				Signer: tc.address.String(),
-				Params: types.DefaultParams(),
-			}
-			signers, _, err := suite.chainA.GetSimApp().AppCodec().GetMsgV1Signers(&msg)
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(address.Bytes(), signers[0])
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+		address := tc.address
+		msg := types.MsgUpdateParams{
+			Signer: tc.address.String(),
+			Params: types.DefaultParams(),
+		}
+
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
+		if tc.expPass {
+			require.NoError(t, err)
+			require.Equal(t, address.Bytes(), signers[0])
+		} else {
+			require.Error(t, err)
+		}
 	}
 }

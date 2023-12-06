@@ -758,7 +758,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade(
 }
 
 // TestMsgIBCSoftwareUpgrade_GetSigners tests GetSigners for MsgIBCSoftwareUpgrade
-func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
+func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -777,7 +777,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
 	}
 
 	for _, tc := range testCases {
-		clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+		clientState := ibctm.NewClientState("testchain1-1", ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 		plan := upgradetypes.Plan{
 			Name:   "upgrade IBC clients",
 			Height: 1000,
@@ -787,14 +787,15 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
 			plan,
 			clientState,
 		)
-		suite.Require().NoError(err)
+		require.NoError(t, err)
 
-		signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 		if tc.expPass {
-			suite.Require().NoError(err)
-			suite.Require().Equal(tc.address.Bytes(), signers[0])
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
-			suite.Require().Error(err)
+			require.Error(t, err)
 		}
 	}
 }
