@@ -34,6 +34,31 @@ type (
 	sudoFn func(checksum wasmvm.Checksum, env wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
 )
 
+// MockWasmEngine implements types.WasmEngine for testing purposes. One or multiple messages can be stubbed.
+// Without a stub function a panic is thrown.
+// ref: https://github.com/CosmWasm/wasmd/blob/v0.42.0/x/wasm/keeper/wasmtesting/mock_engine.go#L19
+type MockWasmEngine struct {
+	StoreCodeFn          func(code wasmvm.WasmCode) (wasmvm.Checksum, error)
+	StoreCodeUncheckedFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)
+	InstantiateFn        func(checksum wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+	MigrateFn            func(checksum wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
+	GetCodeFn            func(checksum wasmvm.Checksum) (wasmvm.WasmCode, error)
+	PinFn                func(checksum wasmvm.Checksum) error
+	UnpinFn              func(checksum wasmvm.Checksum) error
+
+	// queryCallbacks contains a mapping of queryMsg field type name to callback function.
+	queryCallbacks map[string]queryFn
+	sudoCallbacks  map[string]sudoFn
+
+	// contracts contains a mapping of checksum to code.
+	storedContracts map[uint32][]byte
+}
+
+// NewMockWasmEngine creates and returns a new instance of the mock wasmvm for testing purposes.
+// Each callback method of the mock wasmvm can be overridden to assign specific functionality.
+// Default functionality is assigned for StoreCode, StoreCodeUnchecked and GetCode. Both Pin and Unpin are implemented as no-op methods.
+// All other callbacks stored in the query and sudo callback maps panic. Use RegisterQueryCallback and RegisterSudoCallback methods
+// to assign expected behaviour for test cases.
 func NewMockWasmEngine() *MockWasmEngine {
 	m := &MockWasmEngine{
 		queryCallbacks:  map[string]queryFn{},
@@ -105,26 +130,6 @@ func (m *MockWasmEngine) RegisterSudoCallback(sudoMessage any, fn sudoFn) {
 		panic(fmt.Errorf("unexpected argument of type %s passed", typeName))
 	}
 	m.sudoCallbacks[typeName] = fn
-}
-
-// MockWasmEngine implements types.WasmEngine for testing purpose. One or multiple messages can be stubbed.
-// Without a stub function a panic is thrown.
-// ref: https://github.com/CosmWasm/wasmd/blob/v0.42.0/x/wasm/keeper/wasmtesting/mock_engine.go#L19
-type MockWasmEngine struct {
-	StoreCodeFn          func(code wasmvm.WasmCode) (wasmvm.Checksum, error)
-	StoreCodeUncheckedFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)
-	InstantiateFn        func(checksum wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
-	MigrateFn            func(checksum wasmvm.Checksum, env wasmvmtypes.Env, migrateMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error)
-	GetCodeFn            func(checksum wasmvm.Checksum) (wasmvm.WasmCode, error)
-	PinFn                func(checksum wasmvm.Checksum) error
-	UnpinFn              func(checksum wasmvm.Checksum) error
-
-	// queryCallbacks contains a mapping of queryMsg field type name to callback function.
-	queryCallbacks map[string]queryFn
-	sudoCallbacks  map[string]sudoFn
-
-	// contracts contains a mapping of checksum to code.
-	storedContracts map[uint32][]byte
 }
 
 // StoreCode implements the WasmEngine interface.
