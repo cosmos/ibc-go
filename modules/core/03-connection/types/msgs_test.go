@@ -6,8 +6,6 @@ import (
 	"time"
 
 	dbm "github.com/cosmos/cosmos-db"
-
-	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
