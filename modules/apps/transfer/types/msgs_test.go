@@ -133,7 +133,6 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 
-		address := tc.address
 		msg := types.MsgUpdateParams{
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
@@ -143,7 +142,7 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expPass {
 			require.NoError(t, err)
-			require.Equal(t, address.Bytes(), signers[0])
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
 			require.Error(t, err)
 		}
