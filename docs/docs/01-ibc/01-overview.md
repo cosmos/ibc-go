@@ -118,12 +118,32 @@ The IBC interfaces expect an `ibcexported.Height` interface, however all clients
 
 ### [Connections](https://github.com/cosmos/ibc-go/blob/main/modules/core/03-connection)
 
-Connections encapsulate two `ConnectionEnd` objects on two separate blockchains. Each
-`ConnectionEnd` is associated with a client of the other blockchain (for example, the counterparty blockchain).
-The connection handshake is responsible for verifying that the light clients on each chain are
-correct for their respective counterparties. Connections, once established, are responsible for
-facilitating all cross-chain verifications of IBC state. A connection can be associated with any
-number of channels.
+Connections encapsulate two [`ConnectionEnd`](https://github.com/cosmos/ibc-go/blob/v8.0.0/proto/ibc/core/connection/v1/connection.proto#L17)
+objects on two separate blockchains. Each `ConnectionEnd` is associated with a client of the
+other blockchain (for example, the counterparty blockchain). The connection handshake is responsible
+for verifying that the light clients on each chain are correct for their respective counterparties.
+Connections, once established, are responsible for facilitating all cross-chain verifications of IBC state.
+A connection can be associated with any number of channels.
+
+The connection handshake is a 4-step handshake. Briefly, if a given chain A wants to open a connection with
+chain B using already established light-clients on both chains:
+
+1. chain A sends a `ConnectionOpenInit` message to signal a connection initialization attempt with chain B.
+2. chain B sends a `ConnectionOpenTry` message to try opening the connection on chain A.
+3. chain A sends a `ConnectionOpenAck` message to mark its connection end state as open.
+4. chain B sends a `ConnectionOpenConfirm` message to mark its connection end state as open.
+
+#### Time Delayed Connections
+
+Connections can be opened with a time delay by setting the `delayPeriod` field (in nanoseconds) in the [`MsgConnectionOpenInit`](https://github.com/cosmos/ibc-go/blob/v8.0.0/proto/ibc/core/connection/v1/tx.proto#L45).
+The time delay is used to require that the underlying light clients have been updated to a certain height before commitment verification can be performed.
+
+`delayPeriod` is used in conjunction with the [`max_expected_time_per_block`](https://github.com/cosmos/ibc-go/blob/v8.0.0/proto/ibc/core/connection/v1/connection.proto#L113) parameter of the connection submodule to determine the `blockDelay`, which is number of blocks that the connection must be delayed by.
+
+When commitment verification is performed, the connection submodule will pass `delayPeriod` and `blockDelay` to the light client. It is up to the light client to determine whether the light client has been updated to the required height. Only the following light clients in `ibc-go` support time delayed connections:
+
+- `07-tendermint`
+- `08-wasm` (passed to the contact)
 
 ### [Proofs](https://github.com/cosmos/ibc-go/blob/main/modules/core/23-commitment) and [Paths](https://github.com/cosmos/ibc-go/blob/main/modules/core/24-host)
   
