@@ -2,29 +2,24 @@ package types
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"reflect"
+	"slices"
 	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	errorsmod "cosmossdk.io/errors"
-<<<<<<< HEAD
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/cachekv"
 	storeprefix "github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/store/tracekv"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-=======
-	"cosmossdk.io/store/cachekv"
-	storeprefix "cosmossdk.io/store/prefix"
-	"cosmossdk.io/store/tracekv"
-	storetypes "cosmossdk.io/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
->>>>>>> cb74fd1b (chore: address vanity nits in 08-wasm (code structure, godocs) (#5320))
 )
 
 var (
@@ -49,34 +44,88 @@ func CreateChecksum(code []byte) (Checksum, error) {
 
 // GetAllChecksums is a helper to get all checksums from the store.
 // It returns an empty slice if no checksums are found
-func GetAllChecksums(ctx context.Context) ([]Checksum, error) {
-	iterator, err := ibcwasm.Checksums.Iterate(ctx, nil)
-	if err != nil {
-		return nil, err
+func GetAllChecksums(ctx sdk.Context, cdc codec.BinaryCodec) ([]Checksum, error) {
+	wasmStoreKey := ibcwasm.GetWasmStoreKey()
+	store := ctx.KVStore(wasmStoreKey)
+
+	bz := store.Get([]byte(KeyChecksums))
+	if len(bz) == 0 {
+		return []Checksum{}, nil
 	}
 
-	keys, err := iterator.Keys()
+	var hashes Checksums
+	err := cdc.Unmarshal(bz, &hashes)
 	if err != nil {
-		return nil, err
+		return []Checksum{}, err
 	}
 
-	checksums := []Checksum{}
-	for _, key := range keys {
-		checksums = append(checksums, key)
+	var checksums []Checksum
+	for _, checksum := range hashes.Checksums {
+		checksums = append(checksums, checksum)
 	}
 
 	return checksums, nil
 }
 
+// AddChecksum adds a checksum to the list of stored checksums in state.
+func AddChecksum(ctx sdk.Context, cdc codec.BinaryCodec, storeKey storetypes.StoreKey, checksum Checksum) error {
+	store := ctx.KVStore(storeKey)
+	checksums, err := GetAllChecksums(ctx, cdc)
+	if err != nil {
+		return err
+	}
+
+	checksums = append(checksums, checksum)
+
+	var hashBz [][]byte
+	for _, checksum := range checksums {
+		hashBz = append(hashBz, checksum)
+	}
+
+	hashes := Checksums{Checksums: hashBz}
+	bz, err := cdc.Marshal(&hashes)
+	if err != nil {
+		return err
+	}
+	store.Set([]byte(KeyChecksums), bz)
+
+	return nil
+}
+
 // HasChecksum returns true if the given checksum exists in the store and
 // false otherwise.
-func HasChecksum(ctx context.Context, checksum Checksum) bool {
-	found, err := ibcwasm.Checksums.Has(ctx, checksum)
+func HasChecksum(ctx sdk.Context, cdc codec.BinaryCodec, checksum Checksum) bool {
+	checksums, err := GetAllChecksums(ctx, cdc)
 	if err != nil {
 		return false
 	}
 
-	return found
+	return slices.ContainsFunc(checksums, func(h Checksum) bool { return bytes.Equal(checksum, h) })
+}
+
+// RemoveChecksum removes the given checksum from the list of stored checksums in state.
+func RemoveChecksum(ctx sdk.Context, cdc codec.BinaryCodec, storeKey storetypes.StoreKey, checksum Checksum) error {
+	store := ctx.KVStore(storeKey)
+	checksums, err := GetAllChecksums(ctx, cdc)
+	if err != nil {
+		return err
+	}
+
+	checksums = slices.DeleteFunc(checksums, func(h Checksum) bool { return bytes.Equal(checksum, h) })
+
+	var hashBz [][]byte
+	for _, checksum := range checksums {
+		hashBz = append(hashBz, checksum)
+	}
+
+	hashes := Checksums{Checksums: hashBz}
+	bz, err := cdc.Marshal(&hashes)
+	if err != nil {
+		return err
+	}
+	store.Set([]byte(KeyChecksums), bz)
+
+	return nil
 }
 
 // migrateClientWrappedStore combines two KVStores into one.
