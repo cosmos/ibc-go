@@ -41,6 +41,7 @@ func NewKeeperWithVM(
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
+	querier wasmvm.Querier,
 ) Keeper {
 	if clientKeeper == nil {
 		panic(errors.New("client keeper must be not nil"))
@@ -59,6 +60,7 @@ func NewKeeperWithVM(
 	}
 
 	ibcwasm.SetVM(vm)
+	ibcwasm.SetQuerier(querier)
 	ibcwasm.SetupWasmStoreService(storeService)
 
 	return Keeper{
@@ -77,13 +79,14 @@ func NewKeeperWithConfig(
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
+	querier wasmvm.Querier,
 ) Keeper {
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
 	if err != nil {
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm)
+	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, querier)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
@@ -91,7 +94,7 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-func (Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
+func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
@@ -118,7 +121,7 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte) ([]byte, error) {
 
 	// create the code in the vm
 	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
-	vmChecksum, err := ibcwasm.GetVM().StoreCode(code)
+	vmChecksum, err := storeFn(code)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}
@@ -187,4 +190,19 @@ func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.Cli
 	}
 
 	return wasmClientState, nil
+}
+
+// InitializePinnedCodes updates wasmvm to pin to cache all contracts marked as pinned
+func InitializePinnedCodes(ctx sdk.Context) error {
+	checksums, err := types.GetAllChecksums(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, checksum := range checksums {
+		if err := ibcwasm.GetVM().Pin(checksum); err != nil {
+			return err
+		}
+	}
+	return nil
 }
