@@ -178,9 +178,6 @@ func extractSuiteAndTestNames(file *ast.File) (string, []string, error) {
 			}
 		}
 	}
-	if suiteNameForFile == "" {
-		return "", nil, fmt.Errorf("file %s had no test suite test case", file.Name.Name)
-	}
 	return suiteNameForFile, testCases, nil
 }
 
