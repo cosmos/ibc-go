@@ -17,10 +17,10 @@ Channel upgrade cancellation is performed by submitting a `MsgChannelUpgradeCanc
 
 It is possible to cancel an in-progress channel upgrade if the following are true:
 
-- the channel has not yet reached the `FLUSHCOMPLETE` state.
-- the upgrade has been initiated. This will be true if the `MsgChannelUpgradeInit` or `MsgChannelUpgradeTry` message has been
+- The channel has not yet reached the `FLUSHCOMPLETE` state.
+- The upgrade has been initiated. This will be true if the `MsgChannelUpgradeInit` or `MsgChannelUpgradeTry` message has been
   submitted.
-- ExistenceProof of an `ErrorReceipt` on the counterparty chain at an appropriate upgrade sequence is submitted for a failed upgrade attempt.
+- Existence proof of an `ErrorReceipt` on the counterparty chain at an appropriate upgrade sequence is submitted for a failed upgrade attempt.
 
 > Note: if the signer is the authority, e.g. the `gov` address, no `ErrorReceipt` or proof is required.
 > These can be left empty in the `MsgChannelUpgradeCancel` message.
