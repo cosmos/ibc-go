@@ -130,8 +130,8 @@ chain B using already established light-clients on both chains:
 
 1. chain A sends a `ConnectionOpenInit` message to signal a connection initialization attempt with chain B.
 2. chain B sends a `ConnectionOpenTry` message to try opening the connection on chain A.
-3. chain A sends a `ConnectionOpenAck` message to mark its connection end status as open.
-4. chain B sends a `ConnectionOpenConfirm` message to mark its connection end status as open.
+3. chain A sends a `ConnectionOpenAck` message to mark its connection end state as open.
+4. chain B sends a `ConnectionOpenConfirm` message to mark its connection end state as open.
 
 #### Time Delayed Connections
 
