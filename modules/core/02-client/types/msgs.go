@@ -83,15 +83,6 @@ func (msg MsgCreateClient) ValidateBasic() error {
 	return consensusState.ValidateBasic()
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgCreateClient) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
-}
-
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (msg MsgCreateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var clientState exported.ClientState
@@ -132,15 +123,6 @@ func (msg MsgUpdateClient) ValidateBasic() error {
 		return err
 	}
 	return host.ClientIdentifierValidator(msg.ClientId)
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgUpdateClient) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
@@ -204,15 +186,6 @@ func (msg MsgUpgradeClient) ValidateBasic() error {
 	return host.ClientIdentifierValidator(msg.ClientId)
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgUpgradeClient) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
-}
-
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (msg MsgUpgradeClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var (
@@ -256,15 +229,6 @@ func (msg MsgSubmitMisbehaviour) ValidateBasic() error {
 	return host.ClientIdentifierValidator(msg.ClientId)
 }
 
-// GetSigners returns the single expected signer for a MsgSubmitMisbehaviour.
-func (msg MsgSubmitMisbehaviour) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
-}
-
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var misbehaviour exported.ClientMessage
@@ -301,15 +265,6 @@ func (msg *MsgRecoverClient) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners returns the expected signers for a MsgRecoverClient message.
-func (msg *MsgRecoverClient) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
-}
-
 // NewMsgIBCSoftwareUpgrade creates a new MsgIBCSoftwareUpgrade instance
 func NewMsgIBCSoftwareUpgrade(signer string, plan upgradetypes.Plan, upgradedClientState exported.ClientState) (*MsgIBCSoftwareUpgrade, error) {
 	anyClient, err := PackClientState(upgradedClientState)
@@ -343,15 +298,6 @@ func (msg *MsgIBCSoftwareUpgrade) ValidateBasic() error {
 	return msg.Plan.ValidateBasic()
 }
 
-// GetSigners returns the expected signers for a MsgIBCSoftwareUpgrade message.
-func (msg *MsgIBCSoftwareUpgrade) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
-}
-
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (msg *MsgIBCSoftwareUpgrade) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return unpacker.UnpackAny(msg.UpgradedClientState, new(exported.ClientState))
@@ -363,15 +309,6 @@ func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 		Signer: signer,
 		Params: params,
 	}
-}
-
-// GetSigners returns the expected signers for a MsgUpdateParams message.
-func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
 }
 
 // ValidateBasic performs basic checks on a MsgUpdateParams.
