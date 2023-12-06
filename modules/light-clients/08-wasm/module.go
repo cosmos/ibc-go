@@ -114,7 +114,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	wasmMigrator := keeper.NewMigrator(am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, wasmMigrator.MigrateChecksums); err != nil {
-		panic(fmt.Errorf("failed to migrate checksums from version 1 to 2: %v", err))
+		panic(fmt.Errorf("failed to migrate 08-wasm module from version 1 to 2 (checksums migration to collections): %v", err))
 	}
 }
 
