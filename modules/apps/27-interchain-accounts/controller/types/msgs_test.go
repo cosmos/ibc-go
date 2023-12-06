@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
-	testifysuite "github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -17,12 +16,6 @@ import (
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
-
-type TypesTestSuite struct {
-	testifysuite.Suite
-
-	chainA *ibctesting.TestChain
-}
 
 func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 	var msg *types.MsgRegisterInterchainAccount
@@ -100,14 +93,15 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgRegisterInterchainAccountGetSigners() {
+func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
-	suite.Require().NoError(err)
+	require.NoError(t, err)
 
 	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
-	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, expSigner.Bytes(), signers[0])
 }
 
 func TestMsgSendTxValidateBasic(t *testing.T) {
@@ -197,9 +191,9 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgSendTxGetSigners() {
+func TestMsgSendTxGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
-	suite.Require().NoError(err)
+	require.NoError(t, err)
 
 	msgBankSend := &banktypes.MsgSend{
 		FromAddress: ibctesting.TestAccAddress,
@@ -210,7 +204,7 @@ func (suite *TypesTestSuite) TestMsgSendTxGetSigners() {
 	encodingConfig := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
 
 	data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
-	suite.Require().NoError(err)
+	require.NoError(t, err)
 
 	packetData := icatypes.InterchainAccountPacketData{
 		Type: icatypes.EXECUTE_TX,
@@ -223,9 +217,9 @@ func (suite *TypesTestSuite) TestMsgSendTxGetSigners() {
 		100000,
 		packetData,
 	)
-	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	signers, _, err := encodingConfig.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, expSigner.Bytes(), signers[0])
 }
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
@@ -253,7 +247,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 }
 
 // TestMsgUpdateParamsGetSigners tests GetSigners for MsgUpdateParams
-func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners(t *testing.T) {
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -265,18 +259,20 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners(t *testing.T) {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(tc.name, func() {
-			msg := types.MsgUpdateParams{
-				Signer: tc.address.String(),
-				Params: types.DefaultParams(),
-			}
-			signers, _, err := suite.chainA.Codec.GetMsgV1Signers(&msg)
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(tc.address.Bytes(), signers[0])
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+		msg := types.MsgUpdateParams{
+			Signer: tc.address.String(),
+			Params: types.DefaultParams(),
+		}
+
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
+		if tc.expPass {
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
+		} else {
+			require.Error(t, err)
+		}
+
 	}
 }

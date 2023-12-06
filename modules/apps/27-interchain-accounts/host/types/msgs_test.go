@@ -4,19 +4,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testifysuite "github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
-
-type TypesTestSuite struct {
-	testifysuite.Suite
-
-	chainA *ibctesting.TestChain
-}
 
 func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	testCases := []struct {
@@ -55,7 +50,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners() {
+func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -67,15 +62,15 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsGetSigners() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(tc.name, func() {
-			msg := types.NewMsgUpdateParams(tc.address.String(), types.DefaultParams())
-			signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(tc.address.Bytes(), signers[0])
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+		msg := types.NewMsgUpdateParams(tc.address.String(), types.DefaultParams())
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+		if tc.expPass {
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
+		} else {
+			require.Error(t, err)
+		}
 	}
 }

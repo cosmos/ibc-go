@@ -4,22 +4,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testifysuite "github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
+	modulefee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
-
-type TypesTestSuite struct {
-	testifysuite.Suite
-
-	chainA *ibctesting.TestChain
-}
 
 func TestMsgRegisterPayeeValidation(t *testing.T) {
 	var msg *types.MsgRegisterPayee
@@ -92,12 +87,14 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestRegisterPayeeGetSigners() {
+func TestRegisterPayeeGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
-	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
-	suite.Require().NoError(err)
-	suite.Require().Equal(accAddress.Bytes(), signers[0])
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, accAddress.Bytes(), signers[0])
 }
 
 func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
@@ -174,12 +171,14 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestRegisterCountepartyAddressGetSigners() {
+func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
-	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
-	suite.Require().NoError(err)
-	suite.Require().Equal(accAddress.Bytes(), signers[0])
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, accAddress.Bytes(), signers[0])
 }
 
 func TestMsgPayPacketFeeValidation(t *testing.T) {
@@ -250,13 +249,15 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestPayPacketFeeGetSigners() {
+func TestPayPacketFeeGetSigners(t *testing.T) {
 	refundAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	msg := types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, refundAddr.String(), nil)
-	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
-	suite.Require().NoError(err)
-	suite.Require().Equal(refundAddr.Bytes(), signers[0])
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, refundAddr.Bytes(), signers[0])
 }
 
 func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
@@ -385,14 +386,15 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestPayPacketFeeAsyncGetSigners() {
+func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	refundAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	packetFee := types.NewPacketFee(fee, refundAddr.String(), nil)
-
 	msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
-	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
-	suite.Require().NoError(err)
-	suite.Require().Equal(refundAddr.Bytes(), signers[0])
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, refundAddr.Bytes(), signers[0])
 }

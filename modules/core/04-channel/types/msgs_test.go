@@ -14,7 +14,9 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -72,19 +74,15 @@ var (
 type TypesTestSuite struct {
 	testifysuite.Suite
 
-	coordinator *ibctesting.Coordinator
-	chainA      *ibctesting.TestChain
-	proof       []byte
+	proof []byte
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-
 	app := simapp.Setup(suite.T(), false)
 	db := dbm.NewMemDB()
 	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
+
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	err := store.LoadVersion(0)
 	suite.Require().NoError(err)
@@ -346,7 +344,9 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 func (suite *TypesTestSuite) TestMsgRecvPacketGetSigners() {
 	signer := sdk.AccAddress(ibctesting.TestAccAddress)
 	msg := types.NewMsgRecvPacket(packet, suite.proof, height, signer.String())
-	signers, _, err := suite.chainA.Codec.GetMsgV1Signers(msg)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
 	suite.Require().NoError(err)
 	suite.Require().Equal(signer.Bytes(), signers[0])
