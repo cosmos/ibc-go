@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
+	"golang.org/x/exp/maps"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -193,7 +194,7 @@ func isAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataList
 	}
 
 	if len(jsonObject) != 0 {
-		return false, fmt.Errorf("not allowed packet data key")
+		return false, fmt.Errorf("not allowed packet data key %v", maps.Keys(jsonObject))
 	}
 
 	return true, nil
