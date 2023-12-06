@@ -107,7 +107,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"success: empty allowPacketDataList and empty memo",
 			func() {
 				allowedList := []string{}
-				transferAuthz.Allocations[0].AllowPacketDataList = allowedList
+				transferAuthz.Allocations[0].AllowPacketData = allowedList
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().NoError(err)
@@ -121,7 +121,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"success: allowPacketDataList allows any packet",
 			func() {
 				allowedList := []string{"*"}
-				transferAuthz.Allocations[0].AllowPacketDataList = allowedList
+				transferAuthz.Allocations[0].AllowPacketData = allowedList
 				msgTransfer.Memo = testMemo
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -136,7 +136,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"success: transfer memo allowed",
 			func() {
 				allowedList := []string{"wasm", "forward"}
-				transferAuthz.Allocations[0].AllowPacketDataList = allowedList
+				transferAuthz.Allocations[0].AllowPacketData = allowedList
 				msgTransfer.Memo = testMemo
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -151,7 +151,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"empty allowPacketDataList but not empty memo",
 			func() {
 				allowedList := []string{}
-				transferAuthz.Allocations[0].AllowPacketDataList = allowedList
+				transferAuthz.Allocations[0].AllowPacketData = allowedList
 				msgTransfer.Memo = testMemo
 			},
 			func(res authz.AcceptResponse, err error) {
@@ -162,7 +162,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			"memo not allowed",
 			func() {
 				allowedList := []string{"forward"}
-				transferAuthz.Allocations[0].AllowPacketDataList = allowedList
+				transferAuthz.Allocations[0].AllowPacketData = allowedList
 				msgTransfer.Memo = testMemo
 			},
 			func(res authz.AcceptResponse, err error) {
