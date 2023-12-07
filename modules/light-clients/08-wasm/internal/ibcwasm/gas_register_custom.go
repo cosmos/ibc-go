@@ -1,4 +1,4 @@
-package types
+package ibcwasm
 
 import (
 	"math"
@@ -19,12 +19,12 @@ const (
 	DefaultDeserializationCostPerByte = 1
 )
 
-var costJSONDeserialization = wasmvmtypes.UFraction{
+var CostJSONDeserialization = wasmvmtypes.UFraction{
 	Numerator:   DefaultDeserializationCostPerByte * DefaultGasMultiplier,
 	Denominator: 1,
 }
 
-func (g WasmGasRegister) runtimeGasForContract(ctx sdk.Context) uint64 {
+func (g WasmGasRegister) RuntimeGasForContract(ctx sdk.Context) uint64 {
 	meter := ctx.GasMeter()
 	if meter.IsOutOfGas() {
 		return 0
@@ -36,7 +36,7 @@ func (g WasmGasRegister) runtimeGasForContract(ctx sdk.Context) uint64 {
 	return g.ToWasmVMGas(meter.Limit() - meter.GasConsumedToLimit())
 }
 
-func (g WasmGasRegister) consumeRuntimeGas(ctx sdk.Context, gas uint64) {
+func (g WasmGasRegister) ConsumeRuntimeGas(ctx sdk.Context, gas uint64) {
 	consumed := g.FromWasmVMGas(gas)
 	ctx.GasMeter().ConsumeGas(consumed, "wasm contract")
 	// throw OutOfGas error if we ran out (got exactly to zero due to better limit enforcing)

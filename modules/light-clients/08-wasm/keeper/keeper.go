@@ -106,7 +106,7 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
-		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
+		ctx.GasMeter().ConsumeGas(ibcwasm.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
 		code, err = types.Uncompress(code, types.MaxWasmByteSize())
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "failed to store contract")
@@ -129,7 +129,7 @@ func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasm
 	}
 
 	// create the code in the vm
-	ctx.GasMeter().ConsumeGas(types.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
+	ctx.GasMeter().ConsumeGas(ibcwasm.VMGasRegister.CompileCosts(len(code)), "Compiling wasm bytecode")
 	vmChecksum, err := storeFn(code)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store contract")

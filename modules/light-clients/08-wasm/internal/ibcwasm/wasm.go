@@ -14,6 +14,8 @@ var (
 
 	querier wasmvm.Querier
 
+	VMGasRegister = NewDefaultWasmGasRegister()
+
 	// state management
 	Schema    collections.Schema
 	Checksums collections.KeySet[[]byte]
