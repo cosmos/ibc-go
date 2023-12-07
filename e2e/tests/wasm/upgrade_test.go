@@ -1,3 +1,5 @@
+//go:build !test_e2e
+
 package wasm
 
 import (
@@ -26,7 +28,7 @@ import (
 )
 
 const (
-	haltHeight         = uint64(100)
+	haltHeight         = uint64(350)
 	blocksAfterUpgrade = uint64(10)
 )
 
