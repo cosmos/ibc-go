@@ -131,7 +131,7 @@ func (k Keeper) ChanUpgradeTry(
 			return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
 
-		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, upgrade.Fields.Version)
+		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, proposedUpgradeFields.Version)
 	}
 
 	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgradeFields); err != nil {
