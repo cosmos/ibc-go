@@ -3,7 +3,7 @@ package types_test
 import (
 	"time"
 
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	client "github.com/cosmos/ibc-go/v8/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -51,10 +51,10 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 
 	now := time.Now().UTC()
 
-	val := tmtypes.NewValidator(pubKey, 10)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{val})
+	val := cmttypes.NewValidator(pubKey, 10)
+	valSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{val})
 
-	signers := make(map[string]tmtypes.PrivValidator)
+	signers := make(map[string]cmttypes.PrivValidator)
 	signers[val.Address.String()] = privVal
 
 	heightMinus1 := types.NewHeight(1, height-1)

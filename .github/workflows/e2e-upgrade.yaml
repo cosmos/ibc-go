@@ -61,7 +61,7 @@ jobs:
       chain-binary: simd
       chain-a-tag: v7.0.0
       chain-b-tag: v7.0.0
-      chain-upgrade-tag: main # TODO: update this to a real tag once v8 is released
+      chain-upgrade-tag: v8.0.0
       upgrade-plan-name: "v8"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV7ToV8ChainUpgrade"
@@ -123,7 +123,7 @@ jobs:
       chain-binary: simd
       chain-a-tag: v7.0.0
       chain-b-tag: v7.0.0
-      chain-upgrade-tag: main # TODO: update this to a real tag once v8 is released
+      chain-upgrade-tag: v8.0.0
       upgrade-plan-name: "v8"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV7ToV8ChainUpgrade"

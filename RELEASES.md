@@ -73,6 +73,7 @@ Only the following major release series have a stable release status. All missin
 |`v6.2.x`|December 09, 2023|
 |`v7.2.x`|March 17, 2024|
 |`v7.3.x`|March 17, 2024|
+|`v8.0.x`|November 10, 2024|
 
 ### Callbacks middleware
 
@@ -118,6 +119,7 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 | 1.19 | v7.2.2 | v0.47.5  | v0.37.2  |
 | 1.19 | v7.3.0 | v0.47.4  | v0.37.2  |
 | 1.19 | v7.3.1 | v0.47.5  | v0.37.2  |
+| 1.21 | v8.0.0 | v0.50.1  | v0.38.0  |
 
 ### Callbacks middleware
 

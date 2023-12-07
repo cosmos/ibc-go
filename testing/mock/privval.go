@@ -8,11 +8,11 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/cometbft/cometbft/crypto"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 )
 
-var _ tmtypes.PrivValidator = PV{}
+var _ cmttypes.PrivValidator = PV{}
 
 // MockPV implements PrivValidator without any safety or persistence.
 // Only use it for testing.
@@ -30,8 +30,8 @@ func (pv PV) GetPubKey() (crypto.PubKey, error) {
 }
 
 // SignVote implements PrivValidator interface
-func (pv PV) SignVote(chainID string, vote *tmproto.Vote) error {
-	signBytes := tmtypes.VoteSignBytes(chainID, vote)
+func (pv PV) SignVote(chainID string, vote *cmtproto.Vote) error {
+	signBytes := cmttypes.VoteSignBytes(chainID, vote)
 	sig, err := pv.PrivKey.Sign(signBytes)
 	if err != nil {
 		return err
@@ -40,8 +40,8 @@ func (pv PV) SignVote(chainID string, vote *tmproto.Vote) error {
 
 	var extSig []byte
 	// We only sign vote extensions for non-nil precommits
-	if vote.Type == tmproto.PrecommitType && !tmtypes.ProtoBlockIDIsNil(&vote.BlockID) {
-		extSignBytes := tmtypes.VoteExtensionSignBytes(chainID, vote)
+	if vote.Type == cmtproto.PrecommitType && !cmttypes.ProtoBlockIDIsNil(&vote.BlockID) {
+		extSignBytes := cmttypes.VoteExtensionSignBytes(chainID, vote)
 		extSig, err = pv.PrivKey.Sign(extSignBytes)
 		if err != nil {
 			return err
@@ -54,8 +54,8 @@ func (pv PV) SignVote(chainID string, vote *tmproto.Vote) error {
 }
 
 // SignProposal implements PrivValidator interface
-func (pv PV) SignProposal(chainID string, proposal *tmproto.Proposal) error {
-	signBytes := tmtypes.ProposalSignBytes(chainID, proposal)
+func (pv PV) SignProposal(chainID string, proposal *cmtproto.Proposal) error {
+	signBytes := cmttypes.ProposalSignBytes(chainID, proposal)
 	sig, err := pv.PrivKey.Sign(signBytes)
 	if err != nil {
 		return err
