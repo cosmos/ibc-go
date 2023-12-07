@@ -50,6 +50,7 @@ func NewKeeperWithVM(
 	authority string,
 	vm ibcwasm.WasmEngine,
 	queryRouter ibcwasm.QueryRouter,
+	opts ...Option,
 ) Keeper {
 	if clientKeeper == nil {
 		panic(errors.New("client keeper must be not nil"))
@@ -67,16 +68,22 @@ func NewKeeperWithVM(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	ibcwasm.SetVM(vm)
-	ibcwasm.SetQueryRouter(queryRouter)
-	ibcwasm.SetupWasmStoreService(storeService)
-
-	return Keeper{
+	keeper := &Keeper{
 		cdc:          cdc,
 		storeService: storeService,
 		clientKeeper: clientKeeper,
 		authority:    authority,
 	}
+
+	for _, opt := range opts {
+		opt.apply(keeper)
+	}
+
+	ibcwasm.SetVM(vm)
+	ibcwasm.SetQueryRouter(queryRouter)
+	ibcwasm.SetupWasmStoreService(storeService)
+
+	return *keeper
 }
 
 // NewKeeperWithConfig creates a new Keeper instance with the provided Wasm configuration.
@@ -89,6 +96,7 @@ func NewKeeperWithConfig(
 	authority string,
 	wasmConfig types.WasmConfig,
 	queryRouter ibcwasm.QueryRouter,
+	opts ...Option,
 ) Keeper {
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
 	if err != nil {

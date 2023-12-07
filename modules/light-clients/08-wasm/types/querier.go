@@ -2,20 +2,27 @@ package types
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"slices"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
+	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
-var _ wasmvmtypes.Querier = (*DefaultQuerier)(nil)
+var (
+	_ wasmvmtypes.Querier = (*DefaultQuerier)(nil)
+
+	defaultAcceptList = []string{}
+	QuerierPlugins    = NewDefaultQueryPlugins()
+)
 
 type DefaultQuerier struct {
 	Ctx      sdk.Context
@@ -28,16 +35,6 @@ func NewQueryHandler(ctx sdk.Context, callerID string) *DefaultQuerier {
 		Ctx:      ctx,
 		CallerID: callerID,
 	}
-}
-
-type QueryPlugins struct {
-	// Bank         func(ctx sdk.Context, request *wasmvmtypes.BankQuery) ([]byte, error)
-	Custom func(ctx sdk.Context, request json.RawMessage) ([]byte, error)
-	// IBC          func(ctx sdk.Context, caller sdk.AccAddress, request *wasmvmtypes.IBCQuery) ([]byte, error)
-	// Staking      func(ctx sdk.Context, request *wasmvmtypes.StakingQuery) ([]byte, error)
-	Stargate func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error)
-	// Wasm         func(ctx sdk.Context, request *wasmvmtypes.WasmQuery) ([]byte, error)
-	// Distribution func(ctx sdk.Context, request *wasmvmtypes.DistributionQuery) ([]byte, error)
 }
 
 // GasConsumed implements the wasmvmtypes.Querier interface.
@@ -57,42 +54,78 @@ func (q *DefaultQuerier) Query(request wasmvmtypes.QueryRequest, gasLimit uint64
 	}()
 
 	if request.Stargate != nil {
-		return handleStargateQuery(subCtx, request.Stargate)
+		return GetQueryPlugins().Stargate(subCtx, request.Stargate)
 	}
 
-	return nil, wasmvmtypes.UnsupportedRequest{Kind: "non-stargate queries in contract are not allowed"}
+	if request.Custom != nil {
+		return GetQueryPlugins().Custom(subCtx, request.Custom)
+	}
+
+	return nil, wasmvmtypes.UnsupportedRequest{Kind: "Unsupported query request"}
 }
 
-var acceptList = map[string]struct{}{
-	"/ibc.core.client.v1.Query/VerifyMembershipProof": {},
+type (
+	CustomQuerier   func(ctx sdk.Context, request json.RawMessage) ([]byte, error)
+	StargateQuerier func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error)
+)
+
+// QueryPlugins is a list of query handlers that can be used to extend the default querier.
+type QueryPlugins struct {
+	Custom   CustomQuerier
+	Stargate StargateQuerier
 }
 
-// handleStargateQuery supports a preconfigured set of stargate queries only.
-// All arguments must be non nil.
-//
-// Warning: Chains need to test and maintain their accept list carefully.
-// There were critical consensus breaking issues in the past with non-deterministic behavior in the SDK.
-func handleStargateQuery(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
-	_, accepted := acceptList[request.Path]
-	if !accepted {
-		return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("'%s' path is not allowed from the contract", request.Path)}
-	}
+// SetQueryPlugins sets the current query plugins
+func SetQueryPlugins(plugins *QueryPlugins) {
+	QuerierPlugins = plugins
+}
 
-	route := ibcwasm.GetQueryRouter().Route(request.Path)
-	if route == nil {
-		return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("No route to query '%s'", request.Path)}
-	}
+// GetQueryPlugins returns the current query plugins
+func GetQueryPlugins() *QueryPlugins {
+	return QuerierPlugins
+}
 
-	res, err := route(ctx, &abci.RequestQuery{
-		Data: request.Data,
-		Path: request.Path,
-	})
-	if err != nil {
-		return nil, err
+// NewDefaultQueryPlugins returns the default set of query plugins
+func NewDefaultQueryPlugins() *QueryPlugins {
+	return &QueryPlugins{
+		Custom:   RejectCustomQuerier(),
+		Stargate: AcceptListStargateQuerier([]string{}),
 	}
-	if res == nil || res.Value == nil {
-		return nil, errors.New("empty response value")
-	}
+}
 
-	return res.Value, nil
+// AcceptListStargateQuerier allows all stargate queries in the GRPCQueryAllowList
+func AcceptListStargateQuerier(accepted []string) func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
+	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
+		accepted = append(defaultAcceptList, accepted...)
+
+		isAccepted := slices.Contains(accepted, request.Path)
+		if !isAccepted {
+			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("'%s' path is not allowed from the contract", request.Path)}
+		}
+
+		route := ibcwasm.GetQueryRouter().Route(request.Path)
+		if route == nil {
+			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("No route to query '%s'", request.Path)}
+		}
+
+		res, err := route(ctx, &abci.RequestQuery{
+			Data: request.Data,
+			Path: request.Path,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if res == nil || res.Value == nil {
+			return nil, errorsmod.Wrap(ErrInvalid, "query response is empty")
+		}
+
+		return res.Value, nil
+	}
+}
+
+// RejectCustomQuerier rejects all custom queries
+func RejectCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
+	return func(ctx sdk.Context, request json.RawMessage) ([]byte, error) {
+		return nil, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are disabled"}
+	}
 }
