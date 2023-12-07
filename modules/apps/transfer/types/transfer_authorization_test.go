@@ -118,7 +118,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
-			"success: allowPacketDataList allows any packet",
+			"success: allowPacketData allows any packet",
 			func() {
 				allowedList := []string{"*"}
 				transferAuthz.Allocations[0].AllowPacketData = allowedList
@@ -148,7 +148,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
-			"empty allowPacketDataList but not empty memo",
+			"empty allowPacketData but not empty memo",
 			func() {
 				allowedList := []string{}
 				transferAuthz.Allocations[0].AllowPacketData = allowedList
