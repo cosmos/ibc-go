@@ -68,9 +68,13 @@ TEST="$(_get_test ${TEST})"
 
 # if jq is installed, we can automatically determine the test entrypoint.
 if command -v jq > /dev/null; then
-   cd ..
-   ENTRY_POINT="$(go run -mod=readonly cmd/build_test_matrix/main.go | jq -r --arg TEST "${TEST}" '.include[] | select( .test == $TEST)  | .entrypoint')"
-   cd - > /dev/null
+    if [ -n "${2:-}" ]; then
+        ENTRY_POINT="${2:-}"
+    else
+        cd ..
+        ENTRY_POINT="$(go run -mod=readonly cmd/build_test_matrix/main.go | jq -r --arg TEST "${TEST}" '.include[] | select( .test == $TEST)  | .entrypoint')"
+        cd - > /dev/null
+    fi
 fi
 
 

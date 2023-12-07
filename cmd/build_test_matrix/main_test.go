@@ -119,11 +119,11 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 
 		fileWithTwoSuites := `package foo
-func SuiteOne(t *testing.T) {
+func TestSuiteOne(t *testing.T) {
 	suite.Run(t, new(FeeMiddlewareTestSuite))
 }
 
-func SuiteTwo(t *testing.T) {
+func TestSuiteTwo(t *testing.T) {
 	suite.Run(t, new(FeeMiddlewareTestSuite))
 }
 
