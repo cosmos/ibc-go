@@ -194,7 +194,7 @@ func isAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataList
 	}
 
 	if len(jsonObject) != 0 {
-		return false, fmt.Errorf("not allowed packet data key %v", maps.Keys(jsonObject))
+		return false, fmt.Errorf("not allowed packet data keys: %v", maps.Keys(jsonObject))
 	}
 
 	return true, nil
