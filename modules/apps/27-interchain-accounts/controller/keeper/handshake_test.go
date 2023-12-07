@@ -577,6 +577,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 		})
 	}
 }
+
 func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 	const (
 		invalidVersion = "invalid-version"
@@ -591,7 +592,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 	// updateMetadata is a helper function which modifies the metadata stored in the channel version
 	// and marshals it into a string to passed to OnChanUpgradeAck as the counterpartyVersion string.
 	updateMetadata := func(modificationFn func(*icatypes.Metadata)) {
-		metadata, err := icatypes.ParseMedataFromString(path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version)
+		metadata, err := icatypes.MetadataFromVersion(path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version)
 		suite.Require().NoError(err)
 		modificationFn(&metadata)
 		counterpartyVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
@@ -608,13 +609,6 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			nil,
 		},
 		{
-			name: "failure: invalid port ID",
-			malleate: func() {
-				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
-			},
-			expError: channeltypes.ErrChannelNotFound,
-		},
-		{
 			name: "failure: empty counterparty version",
 			malleate: func() {
 				counterpartyVersion = ""
@@ -629,13 +623,13 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			expError: icatypes.ErrUnknownDataType,
 		},
 		{
-			name: "failure: invalid encoding",
+			name: "failure: cannot decode self version string",
 			malleate: func() {
-				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.Encoding = "invalid-encoding"
-				})
+				channel := path.EndpointA.GetChannel()
+				channel.Version = invalidVersion
+				path.EndpointA.SetChannel(channel)
 			},
-			expError: icatypes.ErrInvalidCodec,
+			expError: icatypes.ErrUnknownDataType,
 		},
 		{
 			name: "failure: invalid tx type",
@@ -647,16 +641,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			expError: icatypes.ErrUnknownDataType,
 		},
 		{
-			name: "failure: invalid version",
-			malleate: func() {
-				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.Version = invalidVersion
-				})
-			},
-			expError: icatypes.ErrInvalidVersion,
-		},
-		{
-			name: "failure: change address",
+			name: "failure: interchain account address has changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
 					metadata.Address = "different-address"
@@ -665,19 +650,19 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			expError: icatypes.ErrInvalidAccountAddress,
 		},
 		{
-			name: "failure: change controller connection ID",
+			name: "failure: controller connection ID has changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.ControllerConnectionId = differentConnectionID
+					metadata.ControllerConnectionId = "different-connection-id"
 				})
 			},
 			expError: connectiontypes.ErrInvalidConnectionIdentifier,
 		},
 		{
-			name: "failure: change host connection ID",
+			name: "failure: host connection ID has changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.HostConnectionId = differentConnectionID
+					metadata.HostConnectionId = "different-host-id"
 				})
 			},
 			expError: connectiontypes.ErrInvalidConnectionIdentifier,
@@ -696,9 +681,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
-			channel := path.EndpointA.GetChannel()
-
-			currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+			currentMetadata, err := suite.chainA.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().NoError(err)
 
 			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
@@ -731,6 +714,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
+				suite.Require().Equal(path.EndpointA.GetChannel().Version, counterpartyVersion)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 			}

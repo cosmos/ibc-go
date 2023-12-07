@@ -180,22 +180,13 @@ func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpart
 		return errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
 	}
 
-	metadata, err := icatypes.ParseMedataFromString(counterpartyVersion)
+	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
 		return err
 	}
 
-	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	if !found {
-		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
-	}
-
-	currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+	currentMetadata, err := k.getAppMetadata(ctx, portID, channelID)
 	if err != nil {
-		return err
-	}
-
-	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, nil, metadata); err != nil {
 		return err
 	}
 
@@ -211,6 +202,15 @@ func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpart
 
 	if currentMetadata.HostConnectionId != metadata.HostConnectionId {
 		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed host connection ID must not change")
+	}
+
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+	}
+
+	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, channel.ConnectionHops, metadata); err != nil {
+		return err
 	}
 
 	return nil
