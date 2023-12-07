@@ -1,8 +1,6 @@
-package ibcwasm
+package types
 
 import (
-	"errors"
-
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	errorsmod "cosmossdk.io/errors"
@@ -162,7 +160,7 @@ func (g WasmGasRegister) NewContractInstanceCosts(pinned bool, msgLen int) store
 // CompileCosts costs to persist and "compile" a new wasm contract
 func (g WasmGasRegister) CompileCosts(byteLength int) storetypes.Gas {
 	if byteLength < 0 {
-		panic(errors.New("negative length"))
+		panic(errorsmod.Wrap(ErrInvalid, "negative length"))
 	}
 	return g.c.CompileCost * uint64(byteLength)
 }
@@ -170,7 +168,7 @@ func (g WasmGasRegister) CompileCosts(byteLength int) storetypes.Gas {
 // UncompressCosts costs to unpack a new wasm contract
 func (g WasmGasRegister) UncompressCosts(byteLength int) storetypes.Gas {
 	if byteLength < 0 {
-		panic(errors.New("negative length"))
+		panic(errorsmod.Wrap(ErrInvalid, "negative length"))
 	}
 	return g.c.UncompressCost.Mul(uint64(byteLength)).Floor()
 }
@@ -178,7 +176,7 @@ func (g WasmGasRegister) UncompressCosts(byteLength int) storetypes.Gas {
 // InstantiateContractCosts costs when interacting with a wasm contract
 func (g WasmGasRegister) InstantiateContractCosts(pinned bool, msgLen int) storetypes.Gas {
 	if msgLen < 0 {
-		panic(errors.New("negative length"))
+		panic(errorsmod.Wrap(ErrInvalid, "negative length"))
 	}
 	dataCosts := storetypes.Gas(msgLen) * g.c.ContractMessageDataCost
 	if pinned {
