@@ -24,7 +24,7 @@ jobs:
       - id: set-matrix
         run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
-          TEST_EXCLUSIONS: 'TestUpgradeTestSuite,TestGrandpaTestSuite'
+          TEST_EXCLUSIONS: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmChainUpgrade'
 
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix-wasm:
