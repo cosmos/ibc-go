@@ -46,15 +46,14 @@ func SetQueryRouter(router QueryRouter) {
 	queryRouter = router
 }
 
+// GetQueryRouter returns the custom wasm query router for the 08-wasm module.
+func GetQueryRouter() QueryRouter {
+	return queryRouter
+}
+
 // SetQuerier sets the custom wasm query handle for the 08-wasm module.
 // If wasmQuerier is nil a default querier is used that return always an error for any query.
-func SetQuerier(wasmQuerier wasmvm.Querier) {
-	if wasmQuerier == nil {
-		querier = &defaultQuerier{}
-	} else {
-		querier = wasmQuerier
-	}
-}
+func SetQuerier(wasmQuerier wasmvm.Querier) {}
 
 // GetQuerier returns the custom wasm query handler for the 08-wasm module.
 func GetQuerier() wasmvm.Querier {

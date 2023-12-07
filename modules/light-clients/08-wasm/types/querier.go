@@ -1,4 +1,4 @@
-package ibcwasm
+package types
 
 import (
 	"encoding/json"
@@ -10,6 +10,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 )
@@ -17,24 +18,24 @@ import (
 var _ wasmvmtypes.Querier = (*DefaultQuerier)(nil)
 
 type DefaultQuerier struct {
-	Ctx            sdk.Context
+	Ctx      sdk.Context
 	CallerID string
 }
 
 // NewDefaultQuerier returns a default querier that can be used in the contract.
 func NewQueryHandler(ctx sdk.Context, callerID string) *DefaultQuerier {
 	return &DefaultQuerier{
-		Ctx:            ctx,
+		Ctx:      ctx,
 		CallerID: callerID,
 	}
 }
 
 type QueryPlugins struct {
 	// Bank         func(ctx sdk.Context, request *wasmvmtypes.BankQuery) ([]byte, error)
-	Custom       func(ctx sdk.Context, request json.RawMessage) ([]byte, error)
+	Custom func(ctx sdk.Context, request json.RawMessage) ([]byte, error)
 	// IBC          func(ctx sdk.Context, caller sdk.AccAddress, request *wasmvmtypes.IBCQuery) ([]byte, error)
 	// Staking      func(ctx sdk.Context, request *wasmvmtypes.StakingQuery) ([]byte, error)
-	Stargate     func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error)
+	Stargate func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error)
 	// Wasm         func(ctx sdk.Context, request *wasmvmtypes.WasmQuery) ([]byte, error)
 	// Distribution func(ctx sdk.Context, request *wasmvmtypes.DistributionQuery) ([]byte, error)
 }
@@ -77,7 +78,7 @@ func handleStargateQuery(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([
 		return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("'%s' path is not allowed from the contract", request.Path)}
 	}
 
-	route := queryRouter.Route(request.Path)
+	route := ibcwasm.GetQueryRouter().Route(request.Path)
 	if route == nil {
 		return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("No route to query '%s'", request.Path)}
 	}
