@@ -15,10 +15,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-const (
-	differentConnectionID = "connection-100"
-)
-
 // open and close channel is a helper function for TestOnChanOpenTry for reopening accounts
 func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	err := path.EndpointB.ChanOpenTry()

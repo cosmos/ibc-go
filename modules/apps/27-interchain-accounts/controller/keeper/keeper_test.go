@@ -35,7 +35,6 @@ var (
 )
 
 type KeeperTestSuite struct {
-
 	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
