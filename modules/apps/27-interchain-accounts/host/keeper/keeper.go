@@ -16,7 +16,6 @@ import (
 	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -71,15 +70,6 @@ func NewKeeper(
 		msgRouter:      msgRouter,
 		authority:      authority,
 	}
-}
-
-// GetChannel returns the channel associated with the provided portID and channelID.
-func (k *Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, error) {
-	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	if !found {
-		return channeltypes.Channel{}, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
-	return channel, nil
 }
 
 // WithICS4Wrapper sets the ICS4Wrapper. This function may be used after
