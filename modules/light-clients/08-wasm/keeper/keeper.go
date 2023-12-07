@@ -22,11 +22,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// Option is an extension point to instantiate keeper with non default values
-type Option interface {
-	apply(*Keeper)
-}
-
 // Keeper defines the 08-wasm keeper
 type Keeper struct {
 	// implements gRPC QueryServer interface

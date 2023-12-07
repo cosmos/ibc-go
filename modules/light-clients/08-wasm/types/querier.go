@@ -75,6 +75,24 @@ type QueryPlugins struct {
 	Stargate StargateQuerier
 }
 
+// Merge merges the query plugin with a provided one.
+func (e QueryPlugins) Merge(o *QueryPlugins) QueryPlugins {
+	// only update if this is non-nil and then only set values
+	if o == nil {
+		return e
+	}
+
+	if o.Custom != nil {
+		e.Custom = o.Custom
+	}
+
+	if o.Stargate != nil {
+		e.Stargate = o.Stargate
+	}
+
+	return e
+}
+
 // SetQueryPlugins sets the current query plugins
 func SetQueryPlugins(plugins *QueryPlugins) {
 	QuerierPlugins = plugins
