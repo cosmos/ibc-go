@@ -102,6 +102,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+	cmtos "github.com/cometbft/cometbft/libs/os"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -469,12 +471,12 @@ func NewSimApp(
 		// NOTE: mockVM is used for testing purposes only!
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
 			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, nil,
 		)
 	} else {
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, nil,
 		)
 	}
 
@@ -814,6 +816,13 @@ func NewSimApp(
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			panic(fmt.Errorf("error loading last version: %w", err))
+		}
+
+		ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
+
+		// Initialize pinned codes in wasmvm as they are not persisted there
+		if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
+			cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 	}
 

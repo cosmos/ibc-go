@@ -61,7 +61,6 @@ func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 			upgrade = types.NewUpgrade(
 				types.NewUpgradeFields(types.ORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
 				types.NewTimeout(clienttypes.NewHeight(0, 100), 0),
-				0,
 			)
 
 			tc.malleate()
