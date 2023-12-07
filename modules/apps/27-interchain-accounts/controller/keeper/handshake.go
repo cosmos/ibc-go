@@ -43,7 +43,10 @@ func (k Keeper) OnChanOpenInit(
 		return "", errorsmod.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, counterparty.PortId)
 	}
 
-	var metadata icatypes.Metadata
+	var (
+		err      error
+		metadata icatypes.Metadata
+	)
 	if strings.TrimSpace(version) == "" {
 		connection, err := k.channelKeeper.GetConnection(ctx, connectionHops[0])
 		if err != nil {
@@ -52,8 +55,9 @@ func (k Keeper) OnChanOpenInit(
 
 		metadata = icatypes.NewDefaultMetadata(connectionHops[0], connection.GetCounterparty().GetConnectionID())
 	} else {
-		if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(version), &metadata); err != nil {
-			return "", errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+		metadata, err = icatypes.MetadataFromVersion(version)
+		if err != nil {
+			return "", err
 		}
 	}
 
@@ -101,11 +105,10 @@ func (k Keeper) OnChanOpenAck(
 		return errorsmod.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.ControllerPortPrefix, portID)
 	}
 
-	var metadata icatypes.Metadata
-	if err := icatypes.ModuleCdc.UnmarshalJSON([]byte(counterpartyVersion), &metadata); err != nil {
-		return errorsmod.Wrapf(icatypes.ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
+	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
+		return err
 	}
-
 	if activeChannelID, found := k.GetOpenActiveChannel(ctx, metadata.ControllerConnectionId, portID); found {
 		return errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s", activeChannelID, portID)
 	}
@@ -144,17 +147,12 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, con
 		return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "version cannot be empty")
 	}
 
-	metadata, err := icatypes.ParseMedataFromString(version)
+	metadata, err := icatypes.MetadataFromVersion(version)
 	if err != nil {
 		return "", err
 	}
 
-	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	if !found {
-		return "", errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
-	}
-
-	currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+	currentMetadata, err := k.getAppMetadata(ctx, portID, channelID)
 	if err != nil {
 		return "", err
 	}
@@ -166,13 +164,12 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, con
 	// the interchain account address on the host chain
 	// must remain the same after the upgrade.
 	if currentMetadata.Address != metadata.Address {
-		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "address cannot be changed")
+		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be changed")
 	}
 
 	if currentMetadata.ControllerConnectionId != connectionHops[0] {
 		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
 	}
 
-	metadataBz := icatypes.ModuleCdc.MustMarshalJSON(&metadata)
-	return string(metadataBz), nil
+	return version, nil
 }

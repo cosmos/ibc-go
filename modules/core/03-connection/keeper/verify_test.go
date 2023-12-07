@@ -136,7 +136,6 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			tc.malleate()
 
 			connection := path.EndpointA.GetConnection()
-
 			proof, consensusHeight := suite.chainB.QueryConsensusStateProof(path.EndpointB.ClientID)
 			proofHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()-1))
 			consensusState, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetSelfConsensusState(suite.chainA.GetContext(), consensusHeight)
@@ -891,7 +890,6 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 			upgrade = channeltypes.NewUpgrade(
 				channeltypes.NewUpgradeFields(channeltypes.UNORDERED, []string{path.EndpointA.ConnectionID}, "v1.0.0"),
 				channeltypes.NewTimeout(clienttypes.ZeroHeight(), 100000),
-				0,
 			)
 
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)

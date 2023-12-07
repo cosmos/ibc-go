@@ -16,7 +16,7 @@ import (
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -60,7 +60,7 @@ func (suite *CapabilityTestSuite) NewTestContext() sdk.Context {
 	err := cms.LoadLatestVersion()
 	suite.Require().NoError(err)
 
-	return sdk.NewContext(cms, tmproto.Header{}, false, log.NewNopLogger())
+	return sdk.NewContext(cms, cmtproto.Header{}, false, log.NewNopLogger())
 }
 
 // The following test case mocks a specific bug discovered in https://github.com/cosmos/cosmos-sdk/issues/9800

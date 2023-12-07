@@ -28,6 +28,9 @@ relayers:
   - id: rly
     image: ghcr.io/cosmos/relayer
     tag: "latest"
+  - id: hyperspace
+    image: ghcr.io/misko9/hyperspace
+    tag: "timeout"
 
 cometbft:
   logLevel: info
