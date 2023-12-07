@@ -21,7 +21,7 @@ var (
 	_ wasmvmtypes.Querier = (*DefaultQuerier)(nil)
 
 	defaultAcceptList = []string{}
-	QuerierPlugins    = NewDefaultQueryPlugins()
+	queryPlugins      = NewDefaultQueryPlugins()
 )
 
 type DefaultQuerier struct {
@@ -95,12 +95,12 @@ func (e QueryPlugins) Merge(o *QueryPlugins) QueryPlugins {
 
 // SetQueryPlugins sets the current query plugins
 func SetQueryPlugins(plugins *QueryPlugins) {
-	QuerierPlugins = plugins
+	queryPlugins = plugins
 }
 
 // GetQueryPlugins returns the current query plugins
 func GetQueryPlugins() *QueryPlugins {
-	return QuerierPlugins
+	return queryPlugins
 }
 
 // NewDefaultQueryPlugins returns the default set of query plugins
@@ -111,7 +111,8 @@ func NewDefaultQueryPlugins() *QueryPlugins {
 	}
 }
 
-// AcceptListStargateQuerier allows all stargate queries in the GRPCQueryAllowList
+// AcceptListStargateQuerier allows all queries that are in the accept list provided and in the default accept list.
+// This function returns protobuf encoded responses.
 func AcceptListStargateQuerier(accepted []string) func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		accepted = append(defaultAcceptList, accepted...)
@@ -134,7 +135,7 @@ func AcceptListStargateQuerier(accepted []string) func(ctx sdk.Context, request 
 			return nil, err
 		}
 		if res == nil || res.Value == nil {
-			return nil, errorsmod.Wrap(ErrInvalid, "query response is empty")
+			return nil, errorsmod.Wrap(ErrInvalid, "Query response is empty")
 		}
 
 		return res.Value, nil
@@ -144,6 +145,6 @@ func AcceptListStargateQuerier(accepted []string) func(ctx sdk.Context, request 
 // RejectCustomQuerier rejects all custom queries
 func RejectCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 	return func(ctx sdk.Context, request json.RawMessage) ([]byte, error) {
-		return nil, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are disabled"}
+		return nil, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"}
 	}
 }

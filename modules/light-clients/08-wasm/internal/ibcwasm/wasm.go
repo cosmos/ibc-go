@@ -3,8 +3,6 @@ package ibcwasm
 import (
 	"errors"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
 )
@@ -13,7 +11,6 @@ var (
 	vm WasmEngine
 
 	queryRouter QueryRouter
-	querier     wasmvm.Querier
 
 	// state management
 	Schema    collections.Schema
@@ -49,15 +46,6 @@ func SetQueryRouter(router QueryRouter) {
 // GetQueryRouter returns the custom wasm query router for the 08-wasm module.
 func GetQueryRouter() QueryRouter {
 	return queryRouter
-}
-
-// SetQuerier sets the custom wasm query handle for the 08-wasm module.
-// If wasmQuerier is nil a default querier is used that return always an error for any query.
-func SetQuerier(wasmQuerier wasmvm.Querier) {}
-
-// GetQuerier returns the custom wasm query handler for the 08-wasm module.
-func GetQuerier() wasmvm.Querier {
-	return querier
 }
 
 // SetupWasmStoreService sets up the 08-wasm module's collections.
