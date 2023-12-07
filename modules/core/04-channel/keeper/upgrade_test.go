@@ -1247,17 +1247,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "sender is authority, upgrade cannot be cancelled in FLUSHCOMPLETE even with invalid error receipt",
 			malleate: func() {
-				var ok bool
-				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().True(ok)
-
-				errorReceipt.Message = ibctesting.InvalidID
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
-				suite.coordinator.CommitBlock(suite.chainB)
-
+				errorReceiptProof = nil
 				isAuthority = true
 			},
-			expError: nil,
+			expError: commitmenttypes.ErrInvalidProof,
 		},
 		{
 			name: "channel not found",
