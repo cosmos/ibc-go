@@ -46,7 +46,7 @@ func (k Keeper) ChanUpgradeInit(
 
 // WriteUpgradeInitChannel writes a channel which has successfully passed the UpgradeInit handshake step.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeVersion string) types.Channel {
+func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID string, upgrade types.Upgrade, upgradeVersion string) (types.Channel, types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-init")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -57,13 +57,14 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 	channel.UpgradeSequence++
 	upgrade.Fields.Version = upgradeVersion
 
+	upgrade.Fields.Version = upgradeVersion
+
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State, "upgrade-sequence", fmt.Sprintf("%d", channel.UpgradeSequence))
 
-	emitChannelUpgradeInitEvent(ctx, portID, channelID, channel, upgrade)
-	return channel
+	return channel, upgrade
 }
 
 // ChanUpgradeTry is called by a module to accept the first step of a channel upgrade handshake initiated by
@@ -78,23 +79,23 @@ func (k Keeper) ChanUpgradeTry(
 	proofCounterpartyChannel,
 	proofCounterpartyUpgrade []byte,
 	proofHeight clienttypes.Height,
-) (types.Upgrade, error) {
+) (types.Channel, types.Upgrade, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
-		return types.Upgrade{}, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	if !channel.IsOpen() {
-		return types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
+		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
 	connection, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
-		return types.Upgrade{}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
 	if connection.GetState() != int32(connectiontypes.OPEN) {
-		return types.Upgrade{}, errorsmod.Wrapf(
+		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(connection.GetState()).String(),
 		)
 	}
@@ -128,14 +129,14 @@ func (k Keeper) ChanUpgradeTry(
 		// NOTE: OnChanUpgradeInit will not be executed by the application
 		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields)
 		if err != nil {
-			return types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
+			return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
 
-		channel = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, counterpartyUpgradeFields.Version)
+		channel, _ = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, proposedUpgradeFields.Version)
 	}
 
 	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgradeFields); err != nil {
-		return types.Upgrade{}, errorsmod.Wrap(err, "failed upgrade compatibility check")
+		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed upgrade compatibility check")
 	}
 
 	// construct expected counterparty channel from information in state
@@ -159,11 +160,11 @@ func (k Keeper) ChanUpgradeTry(
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
 	); err != nil {
-		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
+		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
 	}
 
 	if counterpartyUpgradeSequence < channel.UpgradeSequence {
-		return upgrade, types.NewUpgradeError(channel.UpgradeSequence-1, errorsmod.Wrapf(
+		return channel, upgrade, types.NewUpgradeError(channel.UpgradeSequence-1, errorsmod.Wrapf(
 			types.ErrInvalidUpgradeSequence, "counterparty upgrade sequence < current upgrade sequence (%d < %d)", counterpartyUpgradeSequence, channel.UpgradeSequence,
 		))
 	}
@@ -177,14 +178,14 @@ func (k Keeper) ChanUpgradeTry(
 		channel.Counterparty.ChannelId,
 		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}),
 	); err != nil {
-		return types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
+		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
 
 	if err := k.startFlushing(ctx, portID, channelID, &upgrade); err != nil {
-		return types.Upgrade{}, err
+		return types.Channel{}, types.Upgrade{}, err
 	}
 
-	return upgrade, nil
+	return channel, upgrade, nil
 }
 
 // WriteUpgradeTryChannel writes the channel end and upgrade to state after successfully passing the UpgradeTry handshake step.
@@ -201,7 +202,6 @@ func (k Keeper) WriteUpgradeTryChannel(ctx sdk.Context, portID, channelID string
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN, "new-state", channel.State)
-	emitChannelUpgradeTryEvent(ctx, portID, channelID, channel, upgrade)
 
 	return channel, upgrade
 }
@@ -314,7 +314,7 @@ func (k Keeper) ChanUpgradeAck(
 // WriteUpgradeAckChannel writes a channel which has successfully passed the UpgradeAck handshake step as well as
 // setting the upgrade for that channel.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string, counterpartyUpgrade types.Upgrade) {
+func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string, counterpartyUpgrade types.Upgrade) (types.Channel, types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-ack")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -341,7 +341,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State.String())
-	emitChannelUpgradeAckEvent(ctx, portID, channelID, channel, upgrade)
+	return channel, upgrade
 }
 
 // ChanUpgradeConfirm is called on the chain which is on FLUSHING after chanUpgradeAck is called on the counterparty.
@@ -422,7 +422,7 @@ func (k Keeper) ChanUpgradeConfirm(
 // If the channel has no in-flight packets, its state is updated to indicate that flushing has completed. Otherwise, the counterparty upgrade is set
 // and the channel state is left unchanged.
 // An event is emitted for the handshake step.
-func (k Keeper) WriteUpgradeConfirmChannel(ctx sdk.Context, portID, channelID string, counterpartyUpgrade types.Upgrade) {
+func (k Keeper) WriteUpgradeConfirmChannel(ctx sdk.Context, portID, channelID string, counterpartyUpgrade types.Upgrade) types.Channel {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-confirm")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -441,8 +441,7 @@ func (k Keeper) WriteUpgradeConfirmChannel(ctx sdk.Context, portID, channelID st
 		// this gets read when timing out and acknowledging packets.
 		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
-
-	emitChannelUpgradeConfirmEvent(ctx, portID, channelID, channel)
+	return channel
 }
 
 // ChanUpgradeOpen is called by a module to complete the channel upgrade handshake and move the channel back to an OPEN state.
@@ -531,7 +530,7 @@ func (k Keeper) ChanUpgradeOpen(
 // WriteUpgradeOpenChannel writes the agreed upon upgrade fields to the channel, and sets the channel state back to OPEN. This can be called in one of two cases:
 // - In the UpgradeConfirm step of the handshake if both sides have already flushed all in-flight packets.
 // - In the UpgradeOpen step of the handshake.
-func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) {
+func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID string) types.Channel {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		panic(fmt.Errorf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
@@ -555,7 +554,7 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 	k.deleteUpgradeInfo(ctx, portID, channelID)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState.String(), "new-state", types.OPEN.String())
-	emitChannelUpgradeOpenEvent(ctx, portID, channelID, channel)
+	return channel
 }
 
 // ChanUpgradeCancel is called by a module to cancel a channel upgrade that is in progress.
@@ -572,21 +571,18 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 
 	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
 	// then we can restore immediately without any additional checks
-	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
 	if isAuthority && channel.State != types.FLUSHCOMPLETE {
 		return nil
 	}
+	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
+	// an error receipt proof must be provided.
+	if len(errorReceiptProof) == 0 {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades AND channel is not in FLUSHCOMPLETE")
+	}
 
-	// an error receipt proof must be provided if the sender is not authorized to cancel upgrades.
 	// the error receipt should also have a sequence greater than or equal to the current upgrade sequence.
-	if !isAuthority {
-		if len(errorReceiptProof) == 0 {
-			return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades")
-		}
-
-		if errorReceipt.Sequence < channel.UpgradeSequence {
-			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
-		}
+	if errorReceipt.Sequence < channel.UpgradeSequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
 	}
 
 	// get underlying connection for proof verification
@@ -637,7 +633,7 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 	channel = k.restoreChannel(ctx, portID, channelID, errorReceipt.Sequence, channel, types.NewUpgradeError(errorReceipt.Sequence, types.ErrInvalidUpgrade))
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
-	emitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
+	EmitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
 }
 
 // ChanUpgradeTimeout times out an outstanding upgrade.
@@ -739,7 +735,7 @@ func (k Keeper) ChanUpgradeTimeout(
 func (k Keeper) WriteUpgradeTimeoutChannel(
 	ctx sdk.Context,
 	portID, channelID string,
-) {
+) (types.Channel, types.Upgrade) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-timeout")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -755,7 +751,8 @@ func (k Keeper) WriteUpgradeTimeoutChannel(
 	channel = k.restoreChannel(ctx, portID, channelID, channel.UpgradeSequence, channel, types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout))
 
 	k.Logger(ctx).Info("channel state restored", "port-id", portID, "channel-id", channelID)
-	emitChannelUpgradeTimeoutEvent(ctx, portID, channelID, channel, upgrade)
+
+	return channel, upgrade
 }
 
 // startFlushing will set the upgrade last packet send and continue blocking the upgrade from continuing until all
@@ -941,18 +938,7 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	// delete state associated with upgrade which is no longer required.
 	k.deleteUpgradeInfo(ctx, portID, channelID)
 
-	k.WriteErrorReceipt(ctx, portID, channelID, err)
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, err.GetErrorReceipt())
 
 	return channel
-}
-
-// WriteErrorReceipt will write an error receipt from the provided UpgradeError.
-func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) {
-	channel, found := k.GetChannel(ctx, portID, channelID)
-	if !found {
-		panic(errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID))
-	}
-
-	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
-	emitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError)
 }

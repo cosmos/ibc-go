@@ -3,9 +3,14 @@ package keeper_test
 import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+)
+
+const (
+	differentConnectionID = "connection-100"
 )
 
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
@@ -467,6 +472,107 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 				suite.Require().Empty(activeChannelID)
 			} else {
 				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
+	var (
+		path     *ibctesting.Path
+		metadata icatypes.Metadata
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			name: "failure: change ICA address",
+			malleate: func() {
+				metadata.Address = TestOwnerAddress
+			},
+			expError: icatypes.ErrInvalidAccountAddress,
+		},
+		{
+			name: "failure: change controller connection id",
+			malleate: func() {
+				metadata.ControllerConnectionId = differentConnectionID
+			},
+			expError: connectiontypes.ErrInvalidConnection,
+		},
+		{
+			name: "failure: change host connection id",
+			malleate: func() {
+				metadata.HostConnectionId = differentConnectionID
+			},
+			expError: connectiontypes.ErrInvalidConnection,
+		},
+		{
+			name: "failure: cannot decode version string",
+			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.Version = "invalid-metadata-string"
+				path.EndpointA.SetChannel(channel)
+			},
+			expError: icatypes.ErrUnknownDataType,
+		},
+		{
+			name: "failure: invalid connection hops",
+			malleate: func() {
+				path.EndpointA.ConnectionID = differentConnectionID
+			},
+			expError: connectiontypes.ErrConnectionNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = NewICAPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupConnections(path)
+
+			err := SetupICAPath(path, TestOwnerAddress)
+			suite.Require().NoError(err)
+
+			currentMetadata, err := suite.chainA.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().NoError(err)
+
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			// use the same address as the previous metadata.
+			metadata.Address = currentMetadata.Address
+
+			// this is the actual change to the version.
+			metadata.Encoding = icatypes.EncodingProto3JSON
+
+			tc.malleate() // malleate mutates test data
+
+			version := string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+
+			upgradeVersion, err := path.EndpointA.Chain.GetSimApp().ICAControllerKeeper.OnChanUpgradeInit(
+				path.EndpointA.Chain.GetContext(),
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				[]string{path.EndpointA.ConnectionID},
+				version,
+			)
+
+			expPass := tc.expError == nil
+
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(upgradeVersion, version)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}

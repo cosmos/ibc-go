@@ -35,19 +35,17 @@
     <img alt="E2E Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg" />
 </div>
 
-The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) allows blockchains to talk to each other. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains.
+The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) allows blockchains to talk to each other. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. For a high-level explanation of what IBC is and how it works, please read [this blog post](https://medium.com/the-interchain-foundation/eli5-what-is-ibc-def44d7b5b4c).
 
 This IBC implementation in Golang is built as a Cosmos SDK module. To understand more about how to use the `ibc-go` module as well as about the IBC protocol, please check out the Interchain Developer Academy [section on IBC](https://tutorials.cosmos.network/academy/3-ibc/), or [our docs](https://ibc.cosmos.network/main/ibc/overview.html).
 
 ## Roadmap
 
-For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/docs/01-ibc/09-roadmap.md).
+For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/docs/01-ibc/10-roadmap.md).
 
 This roadmap is also available as a [project board](https://github.com/orgs/cosmos/projects/7/views/25).
 
 For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
-
-For the latest information on the progress of the work or the decisions made that might influence the roadmap, please follow our [engineering updates](https://github.com/cosmos/ibc-go/wiki/Engineering-updates).
 
 ## Releases
 
@@ -61,13 +59,15 @@ Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/mai
 
 Discover more applications and middleware in the [cosmos/ibc-apps repository](https://github.com/cosmos/ibc-apps#-bonus-content).
 
-## Support
+## Community
 
 We have active, helpful communities on Discord and Telegram.
 
-For questions and support please use the `developers` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/1019978171367559208) or join the [IBC Gang Discord server](https://discord.gg/RdpdkaXKpZ). The issue list of this repo is exclusively for bug reports and feature requests.
+For questions and support please use the `developers` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/1019978171367559208) or join the [IBC Gang Discord server](https://discord.gg/Wtmk6ZNa8G). The issue list of this repo is exclusively for bug reports and feature requests.
 
 To receive announcements of new releases or other technical updates, please join the [Telegram group that we administer](https://t.me/ibc_is_expansive).
+
+We run biweekly community calls to update the community with our current direction and gather feedback on what to work on next. The community calls are also a platform for you to update everyone else with what you're working on, ask questions and find opportunities to collaborate. Please join [this Google group](https://groups.google.com/g/ibc-community) to receive a calendar invitation for the meeting.
 
 ## Contributing
 
@@ -92,7 +92,7 @@ To report a security vulnerability, see our [Coordinated Vulnerability Disclosur
 
 The following audits have been performed on the `ibc-go` source code:
 
-- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/blob/main/docs/audits/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) by Trail of Bits
+- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/blob/main/docs/audits/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) by Trail of Bits.
 
 ## Quick Navigation
 
@@ -138,3 +138,7 @@ The following audits have been performed on the `ibc-go` source code:
 - [IBC Protocol Specification](https://github.com/cosmos/ibc)
 - [Documentation](https://ibc.cosmos.network/main/ibc/overview.html)
 - [Interchain Developer Academy](https://tutorials.cosmos.network/academy/3-ibc/)
+
+---
+
+The development of ibc-go is led primarily by Interchain GmbH. Funding for this development comes primarily from the [Interchain Foundation](https://interchain.io), a Swiss non-profit.

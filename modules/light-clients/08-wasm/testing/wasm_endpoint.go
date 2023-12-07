@@ -29,8 +29,11 @@ func (endpoint *WasmEndpoint) CreateClient() error {
 	checksum, err := types.CreateChecksum(Code)
 	require.NoError(endpoint.Chain.TB, err)
 
-	clientState := types.NewClientState(contractClientState, checksum, clienttypes.NewHeight(0, 1))
-	consensusState := types.NewConsensusState(contractConsensusState)
+	wrappedClientStateBz := clienttypes.MustMarshalClientState(endpoint.Chain.App.AppCodec(), CreateMockTendermintClientState(clienttypes.NewHeight(1, 5)))
+	wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(endpoint.Chain.App.AppCodec(), MockTendermintClientConsensusState)
+
+	clientState := types.NewClientState(wrappedClientStateBz, checksum, clienttypes.NewHeight(0, 1))
+	consensusState := types.NewConsensusState(wrappedClientConsensusStateBz)
 
 	msg, err := clienttypes.NewMsgCreateClient(
 		clientState, consensusState, endpoint.Chain.SenderAccount.GetAddress().String(),
@@ -46,4 +49,13 @@ func (endpoint *WasmEndpoint) CreateClient() error {
 	require.NoError(endpoint.Chain.TB, err)
 
 	return nil
+}
+
+// AllowWasmClients adds 08-wasm to the list of allowed clients
+func AllowWasmClients(chain *ibctesting.TestChain) {
+	ctx := chain.GetContext()
+	clientKeeper := chain.App.GetIBCKeeper().ClientKeeper
+	params := clientKeeper.GetParams(ctx)
+	params.AllowedClients = append(params.AllowedClients, types.Wasm)
+	clientKeeper.SetParams(ctx, params)
 }

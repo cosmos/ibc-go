@@ -297,9 +297,8 @@ message MsgChannelUpgradeInit {
 message MsgChannelUpgradeInitResponse {
   option (gogoproto.goproto_getters) = false;
 
-  string  channel_id       = 1;
-  Upgrade upgrade          = 2 [(gogoproto.nullable) = false];
-  uint64  upgrade_sequence = 3;
+  Upgrade upgrade          = 1 [(gogoproto.nullable) = false];
+  uint64  upgrade_sequence = 2;
 }
 
 // MsgChannelUpgradeTry defines the request type for the ChannelUpgradeTry rpc
