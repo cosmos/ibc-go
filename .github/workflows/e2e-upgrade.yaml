@@ -131,3 +131,17 @@ jobs:
       relayer-type: rly
       relayer-image: ghcr.io/cosmos/relayer
       relayer-tag: latest
+
+  upgrade-ibcwasm-v8-hermes:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-wasm-simd
+      chain-binary: simd
+      chain-a-tag: v7.0.0
+      chain-b-tag: v7.0.0
+      chain-upgrade-tag: v8.0.0-dev1
+      upgrade-plan-name: "ibcwasm-v8"
+      test-entry-point:  "IBCWasmUpgradeTestSuite"
+      test: "TestIBCWasmChainUpgrade"
+      upload-logs: true
+      relayer-type: hermes
