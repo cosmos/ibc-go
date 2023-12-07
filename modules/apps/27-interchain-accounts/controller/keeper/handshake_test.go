@@ -5,7 +5,6 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -572,90 +571,6 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(upgradeVersion, version)
-			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-			}
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
-	var (
-		path     *ibctesting.Path
-		metadata icatypes.Metadata
-	)
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {},
-			nil,
-		},
-		{
-			name: "failure: invalid port ID",
-			malleate: func() {
-				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
-			},
-			expError: porttypes.ErrInvalidPort,
-		},
-		{
-			name: "failure: empty counterparty version",
-			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.Version = ""
-				path.EndpointA.SetChannel(channel)
-			},
-			expError: channeltypes.ErrInvalidChannelVersion,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-
-			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
-
-			err := SetupICAPath(path, TestOwnerAddress)
-			suite.Require().NoError(err)
-
-			currentMetadata, err := suite.chainB.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			suite.Require().NoError(err)
-
-			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
-			// use the same address as the previous metadata.
-			metadata.Address = currentMetadata.Address
-
-			// this is the actual change to the version.
-			metadata.Encoding = icatypes.EncodingProto3JSON
-
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-
-			err = path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
-
-			tc.malleate() // malleate mutates test data
-
-			version, err := suite.chainB.GetSimApp().ICAHostKeeper.OnChanUpgradeTry(
-				suite.chainB.GetContext(),
-				path.EndpointB.ChannelConfig.PortID,
-				path.EndpointB.ChannelID,
-				channeltypes.ORDERED,
-				[]string{path.EndpointB.ConnectionID},
-				path.EndpointA.GetChannel().Version,
-			)
-
-			expPass := tc.expError == nil
-			if expPass {
-				suite.Require().NoError(err)
-				suite.Require().Equal(path.EndpointA.GetChannel().Version, version)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 			}
