@@ -73,11 +73,6 @@ func NewKeeper(
 	}
 }
 
-// GetChannelKeeper returns the ChannelKeeper
-func (k *Keeper) GetChannelKeeper() icatypes.ChannelKeeper {
-	return k.channelKeeper
-}
-
 // GetChannel returns the channel associated with the provided portID and channelID.
 func (k *Keeper) GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)

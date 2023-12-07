@@ -625,9 +625,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
-			channel := path.EndpointA.GetChannel()
-
-			currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+			currentMetadata, err := suite.chainB.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().NoError(err)
 
 			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
@@ -656,8 +654,8 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 
 			expPass := tc.expError == nil
 			if expPass {
-				suite.Require().Equal(path.EndpointA.GetChannel().Version, version)
 				suite.Require().NoError(err)
+				suite.Require().Equal(path.EndpointA.GetChannel().Version, version)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 			}
