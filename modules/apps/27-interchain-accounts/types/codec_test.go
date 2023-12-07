@@ -36,11 +36,6 @@ func (mockSdkMsg) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (mockSdkMsg) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{}
-}
-
 // TestSerializeAndDeserializeCosmosTx tests the SerializeCosmosTx and DeserializeCosmosTx functions
 // for all supported encoding types.
 //
