@@ -1221,6 +1221,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "sender is authority, upgrade can be cancelled in FLUSHING state even with invalid error receipt upgrade sequence",
 			malleate: func() {
+				isAuthority = true
+
 				channel := path.EndpointA.GetChannel()
 				channel.State = types.FLUSHING
 				path.EndpointA.SetChannel(channel)
@@ -1239,18 +1241,38 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
-
-				isAuthority = true
 			},
 			expError: nil,
 		},
 		{
-			name: "sender is authority, upgrade cannot be cancelled in FLUSHCOMPLETE even with invalid error receipt",
+			name: "sender is authority, upgrade cannot be cancelled in FLUSHCOMPLETE with invalid error receipt",
 			malleate: func() {
-				errorReceiptProof = nil
 				isAuthority = true
+				errorReceiptProof = nil
 			},
 			expError: commitmenttypes.ErrInvalidProof,
+		},
+		{
+			name: "sender is authority, upgrade cannot be cancalled in FLUSHCOMPLETE with error receipt sequence less than channel upgrade sequence",
+			malleate: func() {
+				isAuthority = true
+
+				var ok bool
+				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(ok)
+
+				errorReceipt.Sequence = path.EndpointA.GetChannel().UpgradeSequence - 1
+
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+
+				suite.coordinator.CommitBlock(suite.chainB)
+
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+
+				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
+			},
+			expError: types.ErrInvalidUpgradeSequence,
 		},
 		{
 			name: "channel not found",
