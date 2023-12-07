@@ -134,7 +134,7 @@ func (Keeper) OnChanCloseConfirm(
 // OnChanUpgradeTry performs the upgrade try step of the channel upgrade handshake.
 func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 	if portID != icatypes.HostPortID {
-		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "port ID must be %s", icatypes.HostPortID)
+		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
 
 	counterpartyVersion = strings.TrimSpace(counterpartyVersion)
@@ -142,17 +142,12 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 		return "", errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
 	}
 
-	metadata, err := icatypes.ParseMedataFromString(counterpartyVersion)
+	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
 		return "", err
 	}
 
-	channel, err := k.GetChannel(ctx, portID, channelID)
-	if err != nil {
-		return "", err
-	}
-
-	currentMetadata, err := icatypes.ParseMedataFromString(channel.Version)
+	currentMetadata, err := k.getAppMetadata(ctx, portID, channelID)
 	if err != nil {
 		return "", err
 	}
@@ -164,7 +159,7 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 	// the interchain account address on the host chain
 	// must remain the same after the upgrade.
 	if currentMetadata.Address != metadata.Address {
-		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "address cannot be changed")
+		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be changed")
 	}
 
 	if currentMetadata.HostConnectionId != connectionHops[0] {
