@@ -22,6 +22,11 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
+// Option is an extension point to instantiate keeper with non default values
+type Option interface {
+	apply(*Keeper)
+}
+
 // Keeper defines the 08-wasm keeper
 type Keeper struct {
 	// implements gRPC QueryServer interface
@@ -45,7 +50,6 @@ func NewKeeperWithVM(
 	authority string,
 	vm ibcwasm.WasmEngine,
 	queryRouter ibcwasm.QueryRouter,
-	querier wasmvm.Querier,
 ) Keeper {
 	if clientKeeper == nil {
 		panic(errors.New("client keeper must be not nil"))
@@ -65,7 +69,6 @@ func NewKeeperWithVM(
 
 	ibcwasm.SetVM(vm)
 	ibcwasm.SetQueryRouter(queryRouter)
-	ibcwasm.SetQuerier(querier)
 	ibcwasm.SetupWasmStoreService(storeService)
 
 	return Keeper{
@@ -86,14 +89,13 @@ func NewKeeperWithConfig(
 	authority string,
 	wasmConfig types.WasmConfig,
 	queryRouter ibcwasm.QueryRouter,
-	querier wasmvm.Querier,
 ) Keeper {
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
 	if err != nil {
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, queryRouter, querier)
+	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, queryRouter)
 }
 
 // GetAuthority returns the 08-wasm module's authority.

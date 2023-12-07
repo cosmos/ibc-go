@@ -159,7 +159,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
-					nil,
 				)
 			},
 			true,
@@ -175,7 +174,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					"", // authority
 					ibcwasm.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
-					nil,
 				)
 			},
 			false,
@@ -191,7 +189,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
-					nil,
 				)
 			},
 			false,
@@ -207,7 +204,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
-					nil,
 				)
 			},
 			false,
@@ -223,7 +219,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
-					nil,
 				)
 			},
 			false,
@@ -238,7 +233,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
-					nil,
 					nil,
 				)
 			},
