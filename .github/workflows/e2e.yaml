@@ -27,7 +27,7 @@ jobs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
       - id: get-tag
@@ -63,4 +63,4 @@ jobs:
       chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-binary: 'simd'
       # on regular PRs we won't run upgrade tests.
-      test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite'
+      test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmChainUpgrade'
