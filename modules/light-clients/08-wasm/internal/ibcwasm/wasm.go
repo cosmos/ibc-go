@@ -12,7 +12,8 @@ import (
 var (
 	vm WasmEngine
 
-	querier wasmvm.Querier
+	queryRouter QueryRouter
+	querier     wasmvm.Querier
 
 	VMGasRegister = NewDefaultWasmGasRegister()
 
@@ -36,6 +37,15 @@ func SetVM(wasmVM WasmEngine) {
 // GetVM returns the wasm VM for the 08-wasm module.
 func GetVM() WasmEngine {
 	return vm
+}
+
+// SetQueryRouter sets the custom wasm query router for the 08-wasm module.
+// Panics if the queryRouter is nil.
+func SetQueryRouter(router QueryRouter) {
+	if router == nil {
+		panic(errors.New("query router must be not nil"))
+	}
+	queryRouter = router
 }
 
 // SetQuerier sets the custom wasm query handle for the 08-wasm module.
