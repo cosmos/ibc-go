@@ -3,6 +3,8 @@ package ibcwasm
 import (
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
 )
 
 var _ WasmEngine = (*wasmvm.VM)(nil)
@@ -114,4 +116,10 @@ type WasmEngine interface {
 	// the implementor's choice.
 	// Unpin is idempotent.
 	Unpin(checksum wasmvm.Checksum) error
+}
+
+type QueryRouter interface {
+	// Route returns the GRPCQueryHandler for a given query route path or nil
+	// if not found
+	Route(path string) baseapp.GRPCQueryHandler
 }
