@@ -55,6 +55,7 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 	}
 
 	channel.UpgradeSequence++
+
 	upgrade.Fields.Version = upgradeVersion
 
 	k.SetChannel(ctx, portID, channelID, channel)
