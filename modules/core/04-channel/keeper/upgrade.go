@@ -57,8 +57,6 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 	channel.UpgradeSequence++
 	upgrade.Fields.Version = upgradeVersion
 
-	upgrade.Fields.Version = upgradeVersion
-
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
@@ -132,7 +130,7 @@ func (k Keeper) ChanUpgradeTry(
 			return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
 
-		channel, _ = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, proposedUpgradeFields.Version)
+		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, proposedUpgradeFields.Version)
 	}
 
 	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgradeFields); err != nil {
