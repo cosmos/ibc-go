@@ -1219,8 +1219,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: nil,
 		},
 		{
-			name: "sender is authority, upgrade can be cancelled even with invalid error receipt upgrade sequence",
+			name: "sender is authority, upgrade can be cancelled in FLUSHING state even with invalid error receipt upgrade sequence",
 			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.FLUSHING
+				path.EndpointA.SetChannel(channel)
+
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
@@ -1241,12 +1245,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: nil,
 		},
 		{
-			name: "sender is authority, channel in flushing, upgrade can be cancelled even with invalid error receipt",
+			name: "sender is authority, upgrade cannot be cancelled in FLUSHCOMPLETE even with invalid error receipt",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
-
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
