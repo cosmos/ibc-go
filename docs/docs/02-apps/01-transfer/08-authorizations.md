@@ -31,7 +31,7 @@ Setting a `TransferAuthorization` is expected to fail if:
 - the source port ID is invalid
 - the source channel ID is invalid
 - there are duplicate entries in the `AllowList`
-- the `memo` field is not allowed by `AllowPacketDataList`
+- the `memo` field is not allowed by `AllowPacketData`
 
 Below is the `TransferAuthorization` message:
 
