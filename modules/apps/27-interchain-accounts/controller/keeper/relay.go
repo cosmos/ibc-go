@@ -31,6 +31,7 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string, icaPacketDa
 	if !k.GetParams(ctx).ControllerEnabled {
 		return 0, types.ErrControllerSubModuleDisabled
 	}
+
 	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionID, portID)
 	if !found {
 		return 0, errorsmod.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel on connection %s for port %s", connectionID, portID)
