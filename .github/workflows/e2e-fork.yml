@@ -18,13 +18,13 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
       - id: set-matrix
         run: echo "matrix=$(go run cmd/build_test_suite_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
-          TEST_EXCLUSIONS: 'TestUpgradeTestSuite,TestGrandpaTestSuite'
+          TEST_EXCLUSIONS: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite'
 
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix-wasm:
@@ -34,7 +34,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
       - id: set-matrix
@@ -63,7 +63,7 @@ jobs:
       - name: Docker Build
         run: docker build . -t "${CHAIN_IMAGE}:${CHAIN_A_TAG}" --build-arg IBC_GO_VERSION=latest
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: '1.21'
       - name: Run e2e Test
@@ -98,7 +98,7 @@ jobs:
           checksum="$(scripts/get-libwasm-version.py --get-checksum)"
           docker build . -t "${CHAIN_IMAGE}:${CHAIN_A_TAG}" -f modules/light-clients/08-wasm/Dockerfile --build-arg LIBWASM_VERSION=${version} --build-arg LIBWASM_CHECKSUM=${checksum}
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: '1.21'
       - name: Run e2e Test
