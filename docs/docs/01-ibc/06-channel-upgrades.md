@@ -11,7 +11,9 @@ slug: /ibc/channel-upgrades
 Learn how to upgrade existing IBC channels.
 :::
 
-Channel upgradeability is an IBC-level protocol that allows chains to leverage new channel features without having to create new channels or perform a network-wide upgrade. Prior to this feature, developers who wanted to update an application module or add a middleware to their application flow would need to negotiate a new channel in order to use the updated application feature/middleware, resulting in a loss of the accumulated state/liquidity, token fungibility (as the channel would have been encoded in the IBC denom), and any other larger network effects of losing usage of the existing channel from relayers monitoring, etc.
+Channel upgradeability is an IBC-level protocol that allows chains to leverage new channel features without having to create new channels or perform a network-wide upgrade. 
+
+Prior to this feature, developers who wanted to update an application module or add a middleware to their application flow would need to negotiate a new channel in order to use the updated application feature/middleware, resulting in a loss of the accumulated state/liquidity, token fungibility (as the channel would have been encoded in the IBC denom), and any other larger network effects of losing usage of the existing channel from relayers monitoring, etc.
 
 With channel upgradeability, applications will be able to implement features such as but not limited to: [including a memo field in the packet data for fungible tokens](https://github.com/cosmos/ibc/pull/842), adding [denom metadata to tokens](https://github.com/cosmos/ibc/discussions/719), or utilizing the [fee middleware](https://github.com/cosmos/ibc/tree/main/spec/app/ics-029-fee-payment), all while maintaining the channels on which they currently operate.
 
@@ -20,6 +22,25 @@ This document outlines the channel upgrade feature, and the multiple steps used 
 ## Channel Upgrade Handshake
 
 Channel upgrades will be initialized using a handshake process that is designed to be similar to the standard connection/channel opening handshake.
+
+```go
+interface ChannelEnd {
+  state: ChannelState
+  ordering: ChannelOrder
+  counterpartyPortIdentifier: Identifier
+  counterpartyChannelIdentifier: Identifier
+  connectionHops: [Identifier]
+  version: string
+  upgradeSequence: uint64
+}
+```
+
+Anything within this channel end interface except the identifiers (counterparty port ID and channel ID) can be changed — such as the version, connection hops, and channel ordering. For example, the fee middleware can be added to an application module by updating the version string [shown here](https://github.com/cosmos/ibc-go/blob/995b647381b909e9d6065d6c21004f18fab37f55/modules/apps/29-fee/types/metadata.pb.go#L28).
+
+There a few caveats for the changes in the channel end fields:
+
+1. Connection hops can change in a channel upgrade, however both sides must still be each other's counterparty.
+2. The channel ordering can only be upgraded if the new ordering is a subset of its previous one. This means that a channel can be upgraded from an ordered to an unordered channel but not the other way around.
 
 On a high level, successful handshake process for channel upgrades works as follows:
 
