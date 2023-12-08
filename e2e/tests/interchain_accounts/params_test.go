@@ -60,6 +60,8 @@ func (s *InterchainAccountsTestSuite) TestControllerEnabledParam() {
 	})
 
 	t.Run("disable the controller", func(t *testing.T) {
+		s.InitGRPCClients(s.chainA)
+		s.InitGRPCClients(s.chainB)
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
 			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, s.chainA)
 			s.Require().NoError(err)
@@ -123,6 +125,8 @@ func (s *InterchainAccountsTestSuite) TestHostEnabledParam() {
 	})
 
 	t.Run("disable the host", func(t *testing.T) {
+		s.InitGRPCClients(s.chainA)
+		s.InitGRPCClients(s.chainB)
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainBVersion) {
 			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, s.chainB)
 			s.Require().NoError(err)
@@ -144,6 +148,8 @@ func (s *InterchainAccountsTestSuite) TestHostEnabledParam() {
 	})
 
 	t.Run("ensure the host is disabled", func(t *testing.T) {
+		s.InitGRPCClients(s.chainA)
+		s.InitGRPCClients(s.chainB)
 		params := s.QueryHostParams(ctx, s.chainB)
 		s.Require().False(params.HostEnabled)
 	})
