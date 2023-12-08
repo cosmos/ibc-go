@@ -22,7 +22,7 @@ It takes:
 
 - an `AllowList` list that specifies the list of addresses that are allowed to receive funds. If this list is empty, then all addresses are allowed to receive funds from the `TransferAuthorization`.
 
-- an `AllowPacketData` list that specifies the list of memo packet data keys that are allowed to send the packet. If this list is empty, then only an empty memo is allowed (a `memo` field with non-empty content will be denied). If this list includes a single element equal to `"*"`, then any content in `memo` field will be allowed.
+- an `AllowedPacketData` list that specifies the list of memo packet data keys that are allowed to send the packet. If this list is empty, then only an empty memo is allowed (a `memo` field with non-empty content will be denied). If this list includes a single element equal to `"*"`, then any content in `memo` field will be allowed.
 
 Setting a `TransferAuthorization` is expected to fail if:
 
@@ -31,7 +31,7 @@ Setting a `TransferAuthorization` is expected to fail if:
 - the source port ID is invalid
 - the source channel ID is invalid
 - there are duplicate entries in the `AllowList`
-- the `memo` field is not allowed by `AllowPacketData`
+- the `memo` field is not allowed by `AllowedPacketData`
 
 Below is the `TransferAuthorization` message:
 
@@ -53,7 +53,7 @@ type Allocation struct {
   AllowList []string 
   // allow list of packet data keys, an empty list.
   // an empty list prohibits all packet data keys; a list only with "*" permits any packet data key
-  AllowPacketData []string 
+  AllowedPacketData []string 
 }
 
 ```

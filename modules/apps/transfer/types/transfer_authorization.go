@@ -169,7 +169,6 @@ func isAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataList
 		return nil
 	}
 
-	// unmarshal memo
 	jsonObject := make(map[string]interface{})
 	err := json.Unmarshal([]byte(memo), &jsonObject)
 	if err != nil {
