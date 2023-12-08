@@ -115,9 +115,10 @@ func (suite *KeeperTestSuite) TestSendTx() {
 			false,
 		},
 		{
-			"host submodule disabled", func() {
+			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
-			}, false,
+			},
+			false,
 		},
 		{
 			"timeout timestamp is not in the future",
