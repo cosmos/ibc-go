@@ -52,7 +52,7 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
 
-		err := isAllowedPacketDataKeys(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowPacketData)
+		err := isAllowedPacketDataKeys(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowedPacketData)
 		if err != nil {
 			return authz.AcceptResponse{}, errorsmod.Wrapf(ErrInvalidMemo, "error: %v", err)
 		}
