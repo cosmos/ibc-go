@@ -131,7 +131,7 @@ func (k Keeper) ChanUpgradeTry(
 			return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
 
-		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, upgrade.Fields.Version)
+		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, proposedUpgradeFields.Version)
 	}
 
 	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgradeFields); err != nil {
@@ -570,21 +570,18 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 
 	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
 	// then we can restore immediately without any additional checks
-	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
 	if isAuthority && channel.State != types.FLUSHCOMPLETE {
 		return nil
 	}
+	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
+	// an error receipt proof must be provided.
+	if len(errorReceiptProof) == 0 {
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades AND channel is not in FLUSHCOMPLETE")
+	}
 
-	// an error receipt proof must be provided if the sender is not authorized to cancel upgrades.
 	// the error receipt should also have a sequence greater than or equal to the current upgrade sequence.
-	if !isAuthority {
-		if len(errorReceiptProof) == 0 {
-			return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades")
-		}
-
-		if errorReceipt.Sequence < channel.UpgradeSequence {
-			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
-		}
+	if errorReceipt.Sequence < channel.UpgradeSequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
 	}
 
 	// get underlying connection for proof verification
