@@ -188,6 +188,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 		})
 
 		t.Run("packets are relayed", func(t *testing.T) {
+			s.Require().NoError(test.WaitForBlocks(ctx, 10, s.chainA, s.chainB))
 			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, s.chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)

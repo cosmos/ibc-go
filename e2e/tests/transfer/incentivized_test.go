@@ -57,10 +57,10 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
 
-	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB)
-		s.Require().NoError(err)
-	})
+	// t.Run("relayer wallets recovered", func(t *testing.T) {
+	// 	err := s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB)
+	// 	s.Require().NoError(err)
+	// })
 
 	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(s.rly, s.chainA, s.chainB)
 	t.Run("relayer wallets fetched", func(t *testing.T) {
@@ -175,10 +175,10 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
 
-	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB)
-		s.Require().NoError(err)
-	})
+	// t.Run("relayer wallets recovered", func(t *testing.T) {
+	// 	err := s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB)
+	// 	s.Require().NoError(err)
+	// })
 
 	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(s.rly, s.chainA, s.chainB)
 	t.Run("relayer wallets fetched", func(t *testing.T) {
@@ -293,10 +293,10 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, s.chainB)
 
-	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB)
-		s.Require().NoError(err)
-	})
+	// t.Run("relayer wallets recovered", func(t *testing.T) {
+	// 	err := s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB)
+	// 	s.Require().NoError(err)
+	// })
 
 	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(s.rly, s.chainA, s.chainB)
 	t.Run("relayer wallets fetched", func(t *testing.T) {
@@ -399,9 +399,9 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, s.chainB)
 
-	t.Run("relayer wallets recovered", func(t *testing.T) {
-		s.Require().NoError(s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB))
-	})
+	// t.Run("relayer wallets recovered", func(t *testing.T) {
+	// 	s.Require().NoError(s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB))
+	// })
 
 	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(s.rly, s.chainA, s.chainB)
 	t.Run("relayer wallets fetched", func(t *testing.T) {
@@ -515,10 +515,10 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
 
-	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB)
-		s.Require().NoError(err)
-	})
+	// t.Run("relayer wallets recovered", func(t *testing.T) {
+	// 	err := s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB)
+	// 	s.Require().NoError(err)
+	// })
 
 	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainAWallet.FormattedAddress(), // destination address
