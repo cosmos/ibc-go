@@ -1,7 +1,7 @@
 ---
 title: Capability Module
 sidebar_label: Capability Module
-sidebar_position: 11
+sidebar_position: 12
 slug: /ibc/capability-module
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Relayer
 sidebar_label: Relayer
-sidebar_position: 7
+sidebar_position: 8
 slug: /ibc/relayer
 ---
 
