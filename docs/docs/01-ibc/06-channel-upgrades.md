@@ -11,6 +11,27 @@ slug: /ibc/channel-upgrades
 Learn how to upgrade existing IBC channels.
 :::
 
+## Channel State and Packet Flushing
+
+`FLUSHING` and `FLUSHCOMPLETE` are additional states which have been added to enable the upgrade feature.
+
+This is found in the channel state, on the `ChannelEnd` interface:
+
+```interface ChannelEnd {
+  state: ChannelState
+  ordering: ChannelOrder
+  counterpartyPortIdentifier: Identifier
+  counterpartyChannelIdentifier: Identifier
+  connectionHops: [Identifier]
+  version: string
+  upgradeSequence: uint64
+}
+```
+
+`startFlushing` is the specific method which is called in `ChanUpgradeTry` and `ChanUpgradeAck` to update the state on the channel end. This will set the timeout on the upgrade and update the channel state to `FLUSHING` which will block the upgrade from continuing until all in-flight packets have been flushed. The state will change to `FLUSHCOMPLETE` once there are no in-flight packets left and the channel end is ready to move to `OPEN`. This flush state will also have an impact on how a channel ugrade can be cancelled, as detailed below.
+
+All other parameters will remain the same during the upgrade handshake until the upgrade handshake completes. When the channel is reset to `OPEN` on a successful upgrade handshake, the relevant fields on the channel end will be switched over to the `UpgradeFields` specified in the upgrade.
+
 ## Cancelling a Channel Upgrade
 
 Channel upgrade cancellation is performed by submitting a `MsgChannelUpgradeCancel` message.
