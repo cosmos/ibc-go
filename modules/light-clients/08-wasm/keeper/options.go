@@ -18,7 +18,7 @@ func (f optsFn) apply(keeper *Keeper) {
 func WithQueryPlugins(x *types.QueryPlugins) Option {
 	return optsFn(func(_ *Keeper) {
 		q := types.GetQueryPlugins()
-		q.Merge(x)
-		types.SetQueryPlugins(q)
+		m := q.Merge(x)
+		types.SetQueryPlugins(&m)
 	})
 }
