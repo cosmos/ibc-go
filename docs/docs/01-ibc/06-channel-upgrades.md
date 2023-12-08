@@ -17,6 +17,19 @@ With channel upgradeability, applications will be able to implement features suc
 
 This document outlines the channel upgrade feature, and the multiple steps used in the upgrade process.
 
+## Channel Upgrade Handshake
+
+Channel upgrades will be initialized using a handshake process that is designed to be similar to the standard connection/channel opening handshake.
+
+On a high level, successful handshake process for channel upgrades works as follows:
+
+1. The chain initiating the upgrade process (chain A) sets its channel state from `OPEN` to `INITUPGRADE` via the `ChanUpgradeInit` function.
+2. Subsequently, the counterparty (chain B) changes its channel end from `OPEN` to `TRYUPGRADE` with `ChanUpgradeTry`.
+3. Upon successful completion of the previous step, chain A sets its channel state to `OPEN` with `ChanUpgradeAck`.
+4. Finally, chain B sets its channel state to `OPEN` with `ChanUpgradeConfirm`.
+
+Each handshake step will be documented below in greater detail.
+
 ## Cancelling a Channel Upgrade
 
 Channel upgrade cancellation is performed by submitting a `MsgChannelUpgradeCancel` message.
