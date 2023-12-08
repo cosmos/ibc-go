@@ -52,7 +52,7 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
 
-		err := isAllowedPacketDataKeys(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowedPacketData)
+		err := validateMemo(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowedPacketData)
 		if err != nil {
 			return authz.AcceptResponse{}, errorsmod.Wrapf(ErrInvalidMemo, "error: %v", err)
 		}
@@ -153,7 +153,7 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 }
 
 // areAllowedPacketDataKeys returns a nil error indicating if the memo is valid for transfer.
-func isAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataList []string) error {
+func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) error {
 	// if the allow list is empty, then the memo must be an empty string
 	if len(allowedPacketDataList) == 0 {
 		if len(strings.TrimSpace(memo)) != 0 {
