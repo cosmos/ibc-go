@@ -3,12 +3,10 @@ package types
 import (
 	"context"
 	"encoding/json"
-	fmt "fmt"
 	"math/big"
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
-	"golang.org/x/exp/maps"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -54,13 +52,9 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 		}
 
-		isAllowedPacket, err := isAllowedPacketDataKeys(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowPacketData)
+		err := isAllowedPacketDataKeys(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowPacketData)
 		if err != nil {
 			return authz.AcceptResponse{}, errorsmod.Wrapf(ErrInvalidMemo, "error: %v", err)
-		}
-
-		if !isAllowedPacket {
-			return authz.AcceptResponse{}, ErrInvalidMemo
 		}
 
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
@@ -158,28 +152,32 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	return false
 }
 
-// areAllowedPacketDataKeys returns a boolean indicating if the memo is valid for transfer. If it is not valid and non-nil error is also returned.
-func isAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataList []string) (bool, error) {
+// areAllowedPacketDataKeys returns a nil error indicating if the memo is valid for transfer.
+func isAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataList []string) error {
 	// if the allow list is empty, then the memo must be an empty string
 	if len(allowedPacketDataList) == 0 {
-		return len(strings.TrimSpace(memo)) == 0, nil
+		if len(strings.TrimSpace(memo)) != 0 {
+			return errorsmod.Wrapf(ErrTransferAuthorizationPacket, "memo not allowed in empty allowedPacketDataList")
+		}
+
+		return nil
 	}
 
 	// if allowedPacketDataList has only 1 element and it equals AllowAllPacketDataKeys
 	// then accept all the packet data keys
 	if len(allowedPacketDataList) == 1 && allowedPacketDataList[0] == AllowAllPacketDataKeys {
-		return true, nil
+		return nil
 	}
 
 	// unmarshal memo
 	jsonObject := make(map[string]interface{})
 	err := json.Unmarshal([]byte(memo), &jsonObject)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	if len(jsonObject) > len(allowedPacketDataList) {
-		return false, fmt.Errorf("packet type greater than packet allow list")
+		return errorsmod.Wrapf(ErrTransferAuthorizationPacket, "packet contains more packet data keys than packet allow list has")
 	}
 
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
@@ -194,10 +192,10 @@ func isAllowedPacketDataKeys(ctx sdk.Context, memo string, allowedPacketDataList
 	}
 
 	if len(jsonObject) != 0 {
-		return false, fmt.Errorf("not allowed packet data key %v", maps.Keys(jsonObject))
+		return errorsmod.Wrapf(ErrTransferAuthorizationPacket, "packet data not allowed")
 	}
 
-	return true, nil
+	return nil
 }
 
 // UnboundedSpendLimit returns the sentinel value that can be used
