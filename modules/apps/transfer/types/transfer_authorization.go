@@ -152,7 +152,7 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 	return false
 }
 
-// areAllowedPacketDataKeys returns a nil error indicating if the memo is valid for transfer.
+// validateMemo returns a nil error indicating if the memo is valid for transfer.
 func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) error {
 	// if the allow list is empty, then the memo must be an empty string
 	if len(allowedPacketDataList) == 0 {
