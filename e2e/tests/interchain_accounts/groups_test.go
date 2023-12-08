@@ -76,11 +76,6 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 		err               error
 	)
 
-	// setup relayers and connection-0 between two chains
-	// channel-0 is a transfer channel but it will not be used in this test case
-	_, err = s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
-	s.Require().NoError(err)
-
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
 	chainAAddress := chainAWallet.FormattedAddress()
 
@@ -136,8 +131,9 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 		s.Require().NoError(err)
 
 		channels, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		chanNumber++
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2) // 1 transfer (created by default), 1 interchain-accounts
+		s.Require().Equal(len(channels), chanNumber) // 1 transfer (created by default), 1 interchain-accounts
 	})
 
 	t.Run("fund interchain account wallet", func(t *testing.T) {

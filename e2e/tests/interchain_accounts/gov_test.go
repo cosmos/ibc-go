@@ -63,8 +63,9 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() {
 		s.Require().NotZero(len(interchainAccAddr))
 
 		channels, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		chanNumber++
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Equal(len(channels), chanNumber)
 	})
 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {

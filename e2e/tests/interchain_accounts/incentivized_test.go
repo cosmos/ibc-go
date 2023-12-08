@@ -11,6 +11,7 @@ import (
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -25,7 +26,24 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivized() {
+func TestIncentivizeInterchainAccountsTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(IncentivizeInterchainAccountsTestSuite))
+}
+
+type IncentivizeInterchainAccountsTestSuite struct {
+	testsuite.E2ETestSuite
+	chainA ibc.Chain
+	chainB ibc.Chain
+	rly    ibc.Relayer
+}
+
+func (s *IncentivizeInterchainAccountsTestSuite) SetupTest() {
+	ctx := context.TODO()
+	s.chainA, s.chainB = s.GetChains()
+	s.rly = s.SetupRelayer(ctx, nil, s.chainA, s.chainB)
+}
+
+func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -40,10 +58,10 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivi
 		testFee       = testvalues.DefaultFee(chainADenom)
 	)
 
-	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB)
-		s.Require().NoError(err)
-	})
+	// t.Run("relayer wallets recovered", func(t *testing.T) {
+	// 	err := s.RecoverRelayerWallets(ctx, s.rly, s.chainA, s.chainB)
+	// 	s.Require().NoError(err)
+	// })
 
 	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(s.rly, s.chainA, s.chainB)
 	t.Run("relayer wallets fetched", func(t *testing.T) {
@@ -80,8 +98,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivi
 		s.Require().NotZero(len(interchainAcc))
 
 		channels, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		chanNumber++
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Equal(len(channels), chanNumber)
 
 		// interchain accounts channel at index: 0
 		channelOutput = channels[0]
@@ -203,7 +222,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivi
 	})
 }
 
-func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_Incentivized() {
+func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_Incentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -258,8 +277,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_Incentivized(
 		s.Require().NotZero(len(interchainAcc))
 
 		channels, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		chanNumber++
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Equal(len(channels), chanNumber)
 
 		// interchain accounts channel at index: 0
 		channelOutput = channels[0]

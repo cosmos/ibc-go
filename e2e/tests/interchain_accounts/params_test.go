@@ -42,10 +42,6 @@ func (s *InterchainAccountsTestSuite) TestControllerEnabledParam() {
 	t.Parallel()
 	ctx := context.TODO()
 
-	// setup relayers and connection-0 between two chains
-	// channel-0 is a transfer channel but it will not be used in this test case
-	_, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
-	s.Require().NoError(err)
 	chainAVersion := s.chainA.Config().Images[0].Version
 
 	// setup controller account on chainA
@@ -53,6 +49,12 @@ func (s *InterchainAccountsTestSuite) TestControllerEnabledParam() {
 	controllerAddress := controllerAccount.FormattedAddress()
 
 	t.Run("ensure the controller is enabled", func(t *testing.T) {
+		// setup relayers and connection-0 between two chains
+		// channel-0 is a transfer channel but it will not be used in this test case
+		_, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		s.InitGRPCClients(s.chainA)
+		s.InitGRPCClients(s.chainB)
+		s.Require().NoError(err)
 		params := s.QueryControllerParams(ctx, s.chainA)
 		s.Require().True(params.ControllerEnabled)
 	})
@@ -79,6 +81,8 @@ func (s *InterchainAccountsTestSuite) TestControllerEnabledParam() {
 	})
 
 	t.Run("ensure controller is disabled", func(t *testing.T) {
+		s.InitGRPCClients(s.chainA)
+		s.InitGRPCClients(s.chainB)
 		params := s.QueryControllerParams(ctx, s.chainA)
 		s.Require().False(params.ControllerEnabled)
 	})
@@ -98,10 +102,6 @@ func (s *InterchainAccountsTestSuite) TestHostEnabledParam() {
 	t.Parallel()
 	ctx := context.TODO()
 
-	// setup relayers and connection-0 between two chains
-	// channel-0 is a transfer channel but it will not be used in this test case
-	_, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
-	s.Require().NoError(err)
 	chainBVersion := s.chainB.Config().Images[0].Version
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
@@ -110,6 +110,13 @@ func (s *InterchainAccountsTestSuite) TestHostEnabledParam() {
 
 	// Assert that default value for enabled is true.
 	t.Run("ensure the host is enabled", func(t *testing.T) {
+		// setup relayers and connection-0 between two chains
+		// channel-0 is a transfer channel but it will not be used in this test case
+		_, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		s.Require().NoError(err)
+		s.InitGRPCClients(s.chainA)
+		s.InitGRPCClients(s.chainB)
+
 		params := s.QueryHostParams(ctx, s.chainB)
 		s.Require().True(params.HostEnabled)
 		s.Require().Equal([]string{hosttypes.AllowAllHostMsgs}, params.AllowMessages)

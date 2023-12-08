@@ -4,6 +4,7 @@ package interchainaccounts
 
 import (
 	"context"
+	"strconv"
 	"testing"
 	"time"
 
@@ -24,6 +25,10 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+)
+
+var (
+	chanNumber = 1
 )
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
@@ -85,8 +90,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 		s.Require().NotZero(len(hostAccount))
 
 		channels, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		chanNumber++
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Equal(len(channels), chanNumber)
 	})
 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
@@ -182,8 +188,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		s.Require().NotZero(len(hostAccount))
 
 		channels, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		chanNumber++
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Equal(len(channels), chanNumber)
 	})
 
 	t.Run("fail to execute bank transfer over ICA", func(t *testing.T) {
@@ -255,9 +262,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	var (
 		portID      string
 		hostAccount string
-
-		initialChannelID        = "channel-1"
-		channelIDAfterReopening = "channel-2"
 	)
 
 	t.Run("register interchain account", func(t *testing.T) {
@@ -280,7 +284,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
-		_, err = s.QueryChannel(ctx, s.chainA, portID, initialChannelID)
+		chanNumber++
+		_, err = s.QueryChannel(ctx, s.chainA, portID, "channel-"+strconv.Itoa(chanNumber-1))
 		s.Require().NoError(err)
 	})
 
@@ -341,7 +346,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 
 	t.Run("verify channel is closed due to timeout on ordered channel", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, s.chainA, portID, initialChannelID)
+		channel, err := s.QueryChannel(ctx, s.chainA, portID, "channel-"+strconv.Itoa(chanNumber-1))
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.CLOSED, channel.State, "the channel was not in an expected state")
@@ -370,7 +375,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 
 	t.Run("verify new channel is now open and interchain account has been reregistered with the same portID", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, s.chainA, portID, channelIDAfterReopening)
+		chanNumber++
+		channel, err := s.QueryChannel(ctx, s.chainA, portID, "channel-"+strconv.Itoa(chanNumber-1))
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel was not in an expected state")
