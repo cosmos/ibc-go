@@ -11,13 +11,13 @@ import (
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
+const testMemo = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
+
 func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 	var (
 		msgTransfer   types.MsgTransfer
 		transferAuthz types.TransferAuthorization
 	)
-
-	const testMemo = `{"wasm":{"contract":"osmo1c3ljch9dfw5kf52nfwpxd2zmj2ese7agnx0p9tenkrryasrle5sqf3ftpg","msg":{"osmosis_swap":{"output_denom":"uosmo","slippage":{"twap":{"slippage_percentage":"20","window_seconds":10}},"receiver":"feeabs/feeabs1efd63aw40lxf3n4mhf7dzhjkr453axurwrhrrw","on_failed_delivery":"do_nothing"}}}}`
 
 	testCases := []struct {
 		name         string
@@ -104,7 +104,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
-			"success: empty allowPacketDataList and empty memo",
+			"success: empty allowPacketData and empty memo",
 			func() {
 				allowedList := []string{}
 				transferAuthz.Allocations[0].AllowPacketData = allowedList
@@ -118,7 +118,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
-			"success: allowPacketDataList allows any packet",
+			"success: allowPacketData allows any packet",
 			func() {
 				allowedList := []string{"*"}
 				transferAuthz.Allocations[0].AllowPacketData = allowedList
@@ -148,7 +148,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 		},
 		{
-			"empty allowPacketDataList but not empty memo",
+			"empty allowPacketData but not empty memo",
 			func() {
 				allowedList := []string{}
 				transferAuthz.Allocations[0].AllowPacketData = allowedList
