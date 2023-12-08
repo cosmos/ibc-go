@@ -75,18 +75,18 @@ type QueryPlugins struct {
 }
 
 // Merge merges the query plugin with a provided one.
-func (e QueryPlugins) Merge(o *QueryPlugins) QueryPlugins {
+func (e QueryPlugins) Merge(x *QueryPlugins) QueryPlugins {
 	// only update if this is non-nil and then only set values
-	if o == nil {
+	if x == nil {
 		return e
 	}
 
-	if o.Custom != nil {
-		e.Custom = o.Custom
+	if x.Custom != nil {
+		e.Custom = x.Custom
 	}
 
-	if o.Stargate != nil {
-		e.Stargate = o.Stargate
+	if x.Stargate != nil {
+		e.Stargate = x.Stargate
 	}
 
 	return e
