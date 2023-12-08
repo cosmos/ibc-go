@@ -20,8 +20,7 @@ import (
 var (
 	_ wasmvmtypes.Querier = (*DefaultQuerier)(nil)
 
-	defaultAcceptList = []string{}
-	queryPlugins      = NewDefaultQueryPlugins()
+	queryPlugins = NewDefaultQueryPlugins()
 )
 
 type DefaultQuerier struct {
@@ -113,9 +112,10 @@ func NewDefaultQueryPlugins() *QueryPlugins {
 
 // AcceptListStargateQuerier allows all queries that are in the accept list provided and in the default accept list.
 // This function returns protobuf encoded responses.
-func AcceptListStargateQuerier(accepted []string) func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
+func AcceptListStargateQuerier(accepted []string) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
-		accepted = append(defaultAcceptList, accepted...)
+		// A default list of accepted queries can be added here.
+		// accepted = append(defaultAcceptList, accepted...)
 
 		isAccepted := slices.Contains(accepted, request.Path)
 		if !isAccepted {
