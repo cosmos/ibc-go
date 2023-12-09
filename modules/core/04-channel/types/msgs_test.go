@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	log "cosmossdk.io/log"
@@ -15,6 +16,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
@@ -341,11 +344,15 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 }
 
 func (suite *TypesTestSuite) TestMsgRecvPacketGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
 	msg := types.NewMsgRecvPacket(packet, suite.proof, height, addr)
-	res := msg.GetSigners()
 
-	expected := "[7465737461646472313131313131313131313131]"
-	suite.Equal(expected, fmt.Sprintf("%v", res))
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
@@ -761,12 +768,17 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmGetSigners() {
+func TestMsgChannelUpgradeConfirmGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
+	require.NoError(t, err)
 
 	msg := &types.MsgChannelUpgradeConfirm{Signer: addr}
-	suite.Require().Equal([]sdk.AccAddress{expSigner}, msg.GetSigners())
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	require.NoError(t, err)
+	require.Equal(t, expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
@@ -929,8 +941,11 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutGetSigners() {
 		suite.proof,
 		height, addr,
 	)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().Equal([]sdk.AccAddress{expSigner}, msg.GetSigners())
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
@@ -998,5 +1013,9 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelGetSigners() {
 	suite.Require().NoError(err)
 
 	msg := types.NewMsgChannelUpgradeCancel(ibctesting.MockPort, ibctesting.FirstChannelID, types.ErrorReceipt{Sequence: 1}, suite.proof, height, addr)
-	suite.Require().Equal([]sdk.AccAddress{expSigner}, msg.GetSigners())
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
