@@ -6,6 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
@@ -32,4 +35,20 @@ func GenerateString(length uint) string {
 		bytes[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(bytes)
+}
+
+// Parse out msg responses from a transaction result
+func UnmarshalMsgResponse(cdc *codec.LegacyAmino, resp abci.ExecTxResult, msgs ...codec.ProtoMarshaler) error {
+	var txMsgData sdk.TxMsgData
+	if err := cdc.Unmarshal(resp.Data, &txMsgData); err != nil {
+		return err
+	}
+
+	for i, msg := range msgs {
+		if err := cdc.Unmarshal(txMsgData.MsgResponses[i].Value, msg); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
