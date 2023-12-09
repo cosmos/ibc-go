@@ -1,7 +1,7 @@
 package ibctesting
 
 import (
-	"encoding/hex"
+	"fmt"
 	"math/rand"
 	"testing"
 
@@ -12,7 +12,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/ibc-go/e2e/testsuite"
 )
 
 // ApplyValSetChanges takes in cmttypes.ValidatorSet and []abci.ValidatorUpdate and will return a new cmttypes.ValidatorSet which has the
@@ -40,12 +39,21 @@ func GenerateString(length uint) string {
 }
 
 // UnmarshalMsgResponse parse out msg responses from a transaction result
-func UnmarshalMsgResponse(cdc *codec.LegacyAmino, resp abci.ExecTxResult, msgs ...codec.ProtoMarshaler) error {
-	// Convert the response data to sdk.TxResponse
-	txResp := sdk.TxResponse{
-		Data: hex.EncodeToString(resp.Data),
+func UnmarshalMsgResponse(cdc *codec.ProtoCodec, data []byte, msgs ...codec.ProtoMarshaler) error {
+	var txMsgData sdk.TxMsgData
+	if err := cdc.Unmarshal(data, &txMsgData); err != nil {
+		return err
 	}
 
-	// Use UnmarshalMsgResponses from testsuite package
-	return testsuite.UnmarshalMsgResponses(txResp, msgs...)
+	if len(msgs) != len(txMsgData.MsgResponses) {
+		return fmt.Errorf("expected %d message responses but got %d", len(msgs), len(txMsgData.MsgResponses))
+	}
+
+	for i, msg := range msgs {
+		if err := cdc.Unmarshal(txMsgData.MsgResponses[i].Value, msg); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
