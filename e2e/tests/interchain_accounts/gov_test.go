@@ -98,6 +98,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() {
 
 			msgSendTx := controllertypes.NewMsgSendTx(govModuleAddress.String(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 			s.ExecuteAndPassGovV1Proposal(ctx, msgSendTx, s.chainA, controllerAccount)
+			s.Require().NoError(test.WaitForBlocks(ctx, 5, s.chainA, s.chainB))
 		})
 
 		t.Run("verify tokens transferred", func(t *testing.T) {
