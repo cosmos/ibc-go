@@ -35,10 +35,15 @@ func (p Params) IsAllowedClient(clientType string) bool {
 
 // validateClients checks that the given clients are not blank.
 func validateClients(clients []string) error {
+	foundClients := make(map[string]bool, len(clients))
 	for i, clientType := range clients {
 		if strings.TrimSpace(clientType) == "" {
 			return fmt.Errorf("client type %d cannot be blank", i)
 		}
+		if foundClients[clientType] {
+			return fmt.Errorf("duplicate client type: %s", clientType)
+		}
+		foundClients[clientType] = true
 	}
 
 	return nil
