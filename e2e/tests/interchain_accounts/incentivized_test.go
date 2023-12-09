@@ -47,11 +47,6 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 	t := s.T()
 	ctx := context.TODO()
 
-	// setup relayers and connection-0 between two chains
-	// channel-0 is a transfer channel but it will not be used in this test case
-	_, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
-	s.Require().NoError(err)
-
 	var (
 		chainADenom   = s.chainA.Config().Denom
 		interchainAcc = ""
@@ -188,7 +183,6 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 		})
 
 		t.Run("packets are relayed", func(t *testing.T) {
-			s.Require().NoError(test.WaitForBlocks(ctx, 10, s.chainA, s.chainB))
 			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, s.chainA, channelOutput.PortID, channelOutput.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
@@ -226,11 +220,6 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_Incentivized() {
 	t := s.T()
 	ctx := context.TODO()
-
-	// setup relayers and connection-0 between two chains
-	// channel-0 is a transfer channel but it will not be used in this test case
-	_, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
-	s.Require().NoError(err)
 
 	var (
 		chainADenom   = s.chainA.Config().Denom
