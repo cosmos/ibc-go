@@ -6,7 +6,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -18,16 +20,30 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+func TestLocalhostTransferTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(LocalhostTransferTestSuite))
+}
+
+type LocalhostTransferTestSuite struct {
+	testsuite.E2ETestSuite
+	chainA ibc.Chain
+	chainB ibc.Chain
+	rly    ibc.Relayer
+}
+
+func (s *LocalhostTransferTestSuite) SetupTest() {
+	ctx := context.TODO()
+	s.chainA, s.chainB = s.GetChains()
+	s.rly = s.SetupRelayer(ctx, s.TransferChannelOptions(), s.chainA, s.chainB)
+}
+
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth
 // to ensure ibc functions as expected on localhost. This test is largely the same as TestMsgTransfer_Succeeds_Nonincentivized
 // except that chain B is replaced with an additional wallet on chainA.
-func (s *TransferTestSuite) TestMsgTransfer_Localhost() {
+func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 
 	ctx := context.TODO()
-
-	_, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
-	s.Require().NoError(err)
 
 	chainADenom := s.chainA.Config().Denom
 
