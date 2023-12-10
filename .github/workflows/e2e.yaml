@@ -63,4 +63,4 @@ jobs:
       chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-binary: 'simd'
       # on regular PRs we won't run upgrade tests.
-      test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmChainUpgrade'
+      test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite'
