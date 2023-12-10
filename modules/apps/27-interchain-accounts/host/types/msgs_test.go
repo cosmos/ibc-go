@@ -6,7 +6,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -62,12 +64,13 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 		tc := tc
 
 		msg := types.NewMsgUpdateParams(tc.address.String(), types.DefaultParams())
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
+			require.Error(t, err)
 		}
 	}
 }
