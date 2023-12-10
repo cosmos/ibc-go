@@ -55,7 +55,7 @@ Please make sure to check out our [Pull request guidelines](./docs/dev/pull-requ
 ## Relevant development docs
 
 - [Project structure](./docs/dev/project-structure.md)
-- [Develoment setup](./docs/dev/development-setup.md)
+- [Development setup](./docs/dev/development-setup.md)
 - [Go style guide](./docs/dev/go-style-guide.md)
 - [Documentation guide](./docs/README.md)
 - [Writing tests](./testing/README.md)
