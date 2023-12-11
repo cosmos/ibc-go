@@ -5,12 +5,13 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -371,7 +372,10 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), types.PortID)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			cbs, ok := app.(porttypes.UpgradableModule)
 			suite.Require().True(ok)
 
 			version, err := cbs.OnChanUpgradeTry(
@@ -439,7 +443,10 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), types.PortID)
 			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			cbs, ok := app.(porttypes.UpgradableModule)
 			suite.Require().True(ok)
 
 			err = cbs.OnChanUpgradeAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.Version)

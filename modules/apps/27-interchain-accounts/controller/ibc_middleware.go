@@ -4,10 +4,9 @@ import (
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
@@ -233,6 +232,11 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+	cbs, ok := im.app.(porttypes.UpgradableModule)
+	if !ok {
+		return "", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+	}
+
 	if !im.keeper.GetParams(ctx).ControllerEnabled {
 		return "", types.ErrControllerSubModuleDisabled
 	}
@@ -248,7 +252,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID str
 	}
 
 	if im.app != nil && im.keeper.IsMiddlewareEnabled(ctx, portID, connectionID) {
-		return im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, version)
+		return cbs.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, version)
 	}
 
 	return version, nil
