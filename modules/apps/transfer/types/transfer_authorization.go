@@ -77,10 +77,11 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			}}, nil
 		}
 		a.Allocations[index] = Allocation{
-			SourcePort:    allocation.SourcePort,
-			SourceChannel: allocation.SourceChannel,
-			SpendLimit:    limitLeft,
-			AllowList:     allocation.AllowList,
+			SourcePort:        allocation.SourcePort,
+			SourceChannel:     allocation.SourceChannel,
+			SpendLimit:        limitLeft,
+			AllowList:         allocation.AllowList,
+			AllowedPacketData: allocation.AllowedPacketData,
 		}
 
 		return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
@@ -157,7 +158,7 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 	// if the allow list is empty, then the memo must be an empty string
 	if len(allowedPacketDataList) == 0 {
 		if len(strings.TrimSpace(memo)) != 0 {
-			return errorsmod.Wrapf(ErrTransferAuthorizationPacket, "memo not allowed in empty allowedPacketDataList")
+			return errorsmod.Wrapf(ErrInvalidAuthorization, "memo not allowed in empty allowedPacketDataList")
 		}
 
 		return nil
@@ -176,7 +177,7 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 	}
 
 	if len(jsonObject) > len(allowedPacketDataList) {
-		return errorsmod.Wrapf(ErrTransferAuthorizationPacket, "packet contains more packet data keys than packet allow list has")
+		return errorsmod.Wrapf(ErrInvalidAuthorization, "packet contains more packet data keys than packet allow list has")
 	}
 
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
@@ -191,7 +192,7 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 	}
 
 	if len(jsonObject) != 0 {
-		return errorsmod.Wrapf(ErrTransferAuthorizationPacket, "packet data not allowed")
+		return errorsmod.Wrapf(ErrInvalidAuthorization, "packet data not allowed")
 	}
 
 	return nil
