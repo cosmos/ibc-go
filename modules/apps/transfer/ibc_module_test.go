@@ -5,8 +5,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -372,7 +372,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), types.PortID)
 			suite.Require().NoError(err)
 
-			app, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			app, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)

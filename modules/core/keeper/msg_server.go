@@ -3,10 +3,12 @@ package keeper
 import (
 	"context"
 
+	metrics "github.com/hashicorp/go-metrics"
+
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	metrics "github.com/hashicorp/go-metrics"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"

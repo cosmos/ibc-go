@@ -5,9 +5,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
 	feekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
