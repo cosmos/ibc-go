@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	log "cosmossdk.io/log"
@@ -935,17 +934,17 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 	}
 }
 
-func TestMsgChannelUpgradeConfirmGetSigners(t *testing.T) {
+func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	require.NoError(t, err)
+	suite.Require().NoError(err)
 
 	msg := &types.MsgChannelUpgradeConfirm{Signer: addr}
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	require.NoError(t, err)
-	require.Equal(t, expSigner.Bytes(), signers[0])
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
