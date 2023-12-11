@@ -52,7 +52,7 @@ pub enum QueryMsg {
 }
 ```
 
-To learn what it is expected from the Wasm light client contract when processing each message, please read the corresponsing section of the [Light client developer guide](../01-developer-guide/01-overview.md):
+To learn what it is expected from the Wasm light client contract when processing each message, please read the corresponding section of the [Light client developer guide](../01-developer-guide/01-overview.md):
 
 - For `StatusMsg`, see the section [`Status` method](../01-developer-guide/02-client-state.md#status-method).
 - For `ExportMetadataMsg`, see the section [Genesis metadata](../01-developer-guide/08-genesis.md#genesis-metadata).
@@ -89,7 +89,7 @@ pub enum SudoMsg {
 }
 ```
 
-To learn what it is expected from the Wasm light client contract when processing each message, please read the corresponsing section of the [Light client developer guide](../01-developer-guide/01-overview.md):
+To learn what it is expected from the Wasm light client contract when processing each message, please read the corresponding section of the [Light client developer guide](../01-developer-guide/01-overview.md):
 
 - For `UpdateStateMsg`, see the section [`UpdateState`](../01-developer-guide/04-updates-and-misbehaviour.md#updatestate).
 - For `UpdateStateOnMisbehaviourMsg`, see the section [`UpdateStateOnMisbehaviour`](../01-developer-guide/04-updates-and-misbehaviour.md#updatestateonmisbehaviour).
@@ -100,7 +100,7 @@ To learn what it is expected from the Wasm light client contract when processing
 
 ### Migration
 
-The `08-wasm` proxy light client exposes the `MigrateContract` RPC endpoint that can be used to migrate a given Wasm light client contract (specified by the client identifier) to a new Wasm byte code (specified by the hash of the byte code). The expected use case for this RPC endpoint is to enable contracts to migrate to new byte code in case the current byte code is found to have a bug or vulnerability. The Wasm byte code that contracts are migrated have to be uploaded beforehand using `MsgStoreCode` and must implement the `migrate` entry point. See section[`MsgMigrateContract`](./04-messages.md#msgmigratecontract) for information about the request messsage for this RPC endpoint. 
+The `08-wasm` proxy light client exposes the `MigrateContract` RPC endpoint that can be used to migrate a given Wasm light client contract (specified by the client identifier) to a new Wasm byte code (specified by the hash of the byte code). The expected use case for this RPC endpoint is to enable contracts to migrate to new byte code in case the current byte code is found to have a bug or vulnerability. The Wasm byte code that contracts are migrated have to be uploaded beforehand using `MsgStoreCode` and must implement the `migrate` entry point. See section[`MsgMigrateContract`](./04-messages.md#msgmigratecontract) for information about the request message for this RPC endpoint. 
 
 ## Expected behaviour
 

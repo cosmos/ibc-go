@@ -55,6 +55,6 @@ message RegisteredCounterpartyPayee {
 message ForwardRelayerAddress {
   // the forward relayer address
   string address = 1;
-  // unique packet identifer comprised of the channel ID, port ID and sequence
+  // unique packet identifier comprised of the channel ID, port ID and sequence
   ibc.core.channel.v1.PacketId packet_id = 2 [(gogoproto.nullable) = false];
 }
