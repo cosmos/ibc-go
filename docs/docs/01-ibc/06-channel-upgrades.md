@@ -21,9 +21,9 @@ After this message is handled successfully, the channel's upgrade sequence will 
 
 ### Governance Gating on `ChanUpgradeInit`
 
-A technical committee/DAO on A, elected by chain governance, initiates a governance proposal using the groups module sending the `MsgChanUpgradeInit`. If this proposal passes, the counterparty channels upgrade executes in a permissioned and pre-approved manner. 
+A message signer who has been designated as the `authority` of the `IBCKeeper` sending the `MsgChanUpgradeInit`. If this proposal passes, the counterparty channels will upgrade by default.
 
-If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChanUpgradeInit`, one for each channel they would like to upgrade.
+If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChanUpgradeInit`, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
 
 ## Cancelling a Channel Upgrade
 
