@@ -23,7 +23,7 @@ After this message is handled successfully, the channel's upgrade sequence will 
 
 A technical committee/DAO on A, elected by chain governance, initiates a governance proposal using the groups module sending the `MsgChanUpgradeInit`. If this proposal passes, the counterparty channels upgrade executes in a permissioned and pre-approved manner. 
 
-If chains want to initiate the upgrade of many channels, they need to submit a governance proposal with multiple MsgChannelUpgradeInit, one for each channel they would like to upgrade.
+If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChanUpgradeInit`, one for each channel they would like to upgrade.
 
 ## Cancelling a Channel Upgrade
 
