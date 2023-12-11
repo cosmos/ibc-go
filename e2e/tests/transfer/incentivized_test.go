@@ -334,6 +334,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	s.AssertTxSuccess(resp)
 
 	t.Run("there should be incentivized packets", func(t *testing.T) {
+		s.Require().NoError(test.WaitForBlocks(ctx, 5, s.chainA, s.chainB), "failed to wait for blocks")
 		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, s.chainA, chainAChannels.PortID, chainAChannels.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Len(packets, 1)
@@ -557,6 +558,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 		})
 
 		t.Run("should be incentivized packets", func(t *testing.T) {
+			s.Require().NoError(test.WaitForBlocks(ctx, 5, s.chainA, s.chainB), "failed to wait for blocks")
 			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, s.chainA, chainAChannels.PortID, chainAChannels.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
