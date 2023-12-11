@@ -294,7 +294,7 @@ func (m *RegisteredCounterpartyPayee) GetCounterpartyPayee() string {
 type ForwardRelayerAddress struct {
 	// the forward relayer address
 	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	// unique packet identifer comprised of the channel ID, port ID and sequence
+	// unique packet identifier comprised of the channel ID, port ID and sequence
 	PacketId types.PacketId `protobuf:"bytes,2,opt,name=packet_id,json=packetId,proto3" json:"packet_id"`
 }
 
