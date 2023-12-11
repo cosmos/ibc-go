@@ -148,6 +148,18 @@ func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgChannelOpenInitGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgChannelOpenInit(portid, version, types.ORDERED, connHops, cpportid, addr)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
+}
+
 func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 	counterparty := types.NewCounterparty(cpportid, cpchanid)
 	initChannel := types.NewChannel(types.INIT, types.ORDERED, counterparty, connHops, version)
@@ -190,6 +202,18 @@ func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgChannelOpenTryGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
+}
+
 func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 	testCases := []struct {
 		name    string
@@ -223,6 +247,18 @@ func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgChannelOpenAckGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgChannelOpenAck(portid, chanid, chanid, version, suite.proof, height, addr)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
+}
+
 func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 	testCases := []struct {
 		name    string
@@ -254,6 +290,18 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgChannelOpenConfirmGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgChannelOpenConfirm(portid, chanid, suite.proof, height, addr)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
+}
+
 func (suite *TypesTestSuite) TestMsgChannelCloseInitValidateBasic() {
 	testCases := []struct {
 		name    string
@@ -282,6 +330,18 @@ func (suite *TypesTestSuite) TestMsgChannelCloseInitValidateBasic() {
 			}
 		})
 	}
+}
+
+func (suite *TypesTestSuite) TestMsgChannelCloseInitGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgChannelCloseInit(portid, chanid, addr)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
@@ -315,6 +375,18 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgChannelCloseConfirmGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
+}
+
 func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 	testCases := []struct {
 		name    string
@@ -343,14 +415,15 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 }
 
 func (suite *TypesTestSuite) TestMsgRecvPacketGetSigners() {
-	signer := sdk.AccAddress(ibctesting.TestAccAddress)
-	msg := types.NewMsgRecvPacket(packet, suite.proof, height, signer.String())
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgRecvPacket(packet, suite.proof, height, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
 	suite.Require().NoError(err)
-	suite.Require().Equal(signer.Bytes(), signers[0])
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
@@ -379,6 +452,18 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 			}
 		})
 	}
+}
+
+func (suite *TypesTestSuite) TestMsgTimeoutGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgTimeout(packet, 1, suite.proof, height, addr)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
@@ -410,6 +495,18 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgTimeoutOnCloseGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
+}
+
 func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 	testCases := []struct {
 		name    string
@@ -436,6 +533,18 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 			}
 		})
 	}
+}
+
+func (suite *TypesTestSuite) TestMsgAcknowledgementGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, addr)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
@@ -500,6 +609,22 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 			}
 		})
 	}
+}
+
+func (suite *TypesTestSuite) TestMsgChannelUpgradeInitGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgChannelUpgradeInit(
+		ibctesting.MockPort, ibctesting.FirstChannelID,
+		types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
+		addr,
+	)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
@@ -600,6 +725,28 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgChannelUpgradeTryGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgChannelUpgradeTry(
+		ibctesting.MockPort,
+		ibctesting.FirstChannelID,
+		[]string{ibctesting.FirstConnectionID},
+		types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
+		1,
+		suite.proof,
+		suite.proof,
+		height,
+		addr,
+	)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
+}
+
 func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 	var msg *types.MsgChannelUpgradeAck
 
@@ -674,6 +821,27 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 			}
 		})
 	}
+}
+
+func (suite *TypesTestSuite) TestMsgChannelUpgradeAckGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	upgrade := types.NewUpgrade(
+		types.NewUpgradeFields(types.ORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
+		types.NewTimeout(clienttypes.NewHeight(1, 100), 0),
+	)
+
+	msg := types.NewMsgChannelUpgradeAck(
+		ibctesting.MockPort, ibctesting.FirstChannelID,
+		upgrade, suite.proof, suite.proof,
+		height, addr,
+	)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
@@ -771,7 +939,12 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmGetSigners() {
 	suite.Require().NoError(err)
 
 	msg := &types.MsgChannelUpgradeConfirm{Signer: addr}
-	suite.Require().Equal([]sdk.AccAddress{expSigner}, msg.GetSigners())
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
@@ -934,8 +1107,11 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutGetSigners() {
 		suite.proof,
 		height, addr,
 	)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().Equal([]sdk.AccAddress{expSigner}, msg.GetSigners())
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
@@ -1003,5 +1179,9 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelGetSigners() {
 	suite.Require().NoError(err)
 
 	msg := types.NewMsgChannelUpgradeCancel(ibctesting.MockPort, ibctesting.FirstChannelID, types.ErrorReceipt{Sequence: 1}, suite.proof, height, addr)
-	suite.Require().Equal([]sdk.AccAddress{expSigner}, msg.GetSigners())
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
