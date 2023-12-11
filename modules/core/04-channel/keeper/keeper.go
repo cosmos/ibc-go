@@ -610,3 +610,29 @@ func (k Keeper) HasInflightPackets(ctx sdk.Context, portID, channelID string) bo
 
 	return iterator.Valid()
 }
+
+func (k Keeper) tryFlushChannel(
+	ctx sdk.Context,
+	channel types.Channel,
+	packet exported.PacketI,
+	upgradeTimeout types.Timeout,
+) bool {
+	if channel.State == types.FLUSHING {
+		if hasPassed, err := upgradeTimeout.HasPassed(ctx); hasPassed {
+			// packet flushing timeout has expired, abort the upgrade and return nil,
+			// committing an error receipt to state, restoring the channel and successfully acknowledging the packet.
+			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
+			return false
+		}
+
+		// set the channel state to flush complete if all packets have been acknowledged/flushed.
+		if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+			channel.State = types.FLUSHCOMPLETE
+			k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+		}
+	} else {
+		return false
+	}
+	return true
+}

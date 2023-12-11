@@ -475,22 +475,12 @@ func (k Keeper) AcknowledgePacket(
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
-		// counterparty upgrade is written in the OnChanUpgradeAck step.
+
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 		if found {
-			timeout := counterpartyUpgrade.Timeout
-			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
-				// packet flushing timeout has expired, abort the upgrade and return nil,
-				// committing an error receipt to state, restoring the channel and successfully acknowledging the packet.
-				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
+			flushed := k.tryFlushChannel(ctx, channel, packet, counterpartyUpgrade.Timeout)
+			if !flushed {
 				return nil
-			}
-
-			// set the channel state to flush complete if all packets have been acknowledged/flushed.
-			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-				channel.State = types.FLUSHCOMPLETE
-				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-				emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
 		}
 	}

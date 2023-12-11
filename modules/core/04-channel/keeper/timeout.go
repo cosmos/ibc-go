@@ -156,17 +156,7 @@ func (k Keeper) TimeoutExecuted(
 		// once we have received the counterparty timeout in the channel UpgradeAck or UpgradeConfirm handshake steps
 		// then we can move to flushing complete if the timeout has not passed and there are no in-flight packets
 		if found {
-			timeout := counterpartyUpgrade.Timeout
-			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
-				// packet flushing timeout has expired, abort the upgrade and return nil,
-				// committing an error receipt to state, restoring the channel and successfully timing out the packet.
-				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
-			} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-				// set the channel state to flush complete if all packets have been flushed.
-				channel.State = types.FLUSHCOMPLETE
-				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-				emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-			}
+			k.tryFlushChannel(ctx, channel, packet, counterpartyUpgrade.Timeout)
 		}
 	}
 
