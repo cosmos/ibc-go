@@ -364,28 +364,26 @@ func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID st
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
-	panic("implement me")
+func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+	return im.app.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, version)
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
-	panic("implement me")
+func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+	return im.app.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	panic("implement me")
+func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+	return im.app.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
-	panic("implement me")
+func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface
 func (IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
-	panic("implement me")
 }
 
 // GetAppVersion implements the ICS4Wrapper interface. Callbacks has no version,
