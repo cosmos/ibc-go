@@ -563,16 +563,17 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
+	// // if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
+	// // then we can restore immediately without any additional checks
+	// if isAuthority && channel.State != types.FLUSHCOMPLETE {
+	// 	return nil
+	// }
+
 	_, found = k.GetUpgrade(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
-	// then we can restore immediately without any additional checks
-	if isAuthority && channel.State != types.FLUSHCOMPLETE {
-		return nil
-	}
 	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
 	// an error receipt proof must be provided.
 	if len(errorReceiptProof) == 0 {
@@ -614,7 +615,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 
 // WriteUpgradeCancelChannel writes a channel which has canceled the upgrade process.Auxiliary upgrade state is
 // also deleted.
-func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt) {
+func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	defer telemetry.IncrCounter(1, "ibc", "channel", "upgrade-cancel")
 
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -629,7 +630,7 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 
 	previousState := channel.State
 
-	channel = k.restoreChannel(ctx, portID, channelID, errorReceipt.Sequence, channel, types.NewUpgradeError(errorReceipt.Sequence, types.ErrInvalidUpgrade))
+	channel = k.restoreChannel(ctx, portID, channelID, sequence, channel, types.NewUpgradeError(sequence, types.ErrInvalidUpgrade))
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
 	EmitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)

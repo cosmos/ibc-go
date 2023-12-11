@@ -13,6 +13,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -1024,19 +1025,37 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
-	isAuthority := k.GetAuthority() == msg.Signer
-	if err := k.ChannelKeeper.ChanUpgradeCancel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt, msg.ProofErrorReceipt, msg.ProofHeight, isAuthority); err != nil {
-		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "error", err.Error())
-		return nil, errorsmod.Wrap(err, "channel upgrade cancel failed")
+	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
 	}
 
-	k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt)
+	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
+	// then we can restore immediately without any additional checks
+	isAuthority := k.GetAuthority() == msg.Signer
+	if isAuthority && channel.State != types.FLUSHCOMPLETE {
+		k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId, channel.UpgradeSequence)
 
-	cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
+		cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
-	ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+		ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
-	return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
+		return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
+
+	} else {
+		if err := k.ChannelKeeper.ChanUpgradeCancel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt, msg.ProofErrorReceipt, msg.ProofHeight, isAuthority); err != nil {
+			ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "error", err.Error())
+			return nil, errorsmod.Wrap(err, "channel upgrade cancel failed")
+		}
+
+		k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt.Sequence)
+
+		cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
+
+		ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+
+		return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
+	}
 }
 
 // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
