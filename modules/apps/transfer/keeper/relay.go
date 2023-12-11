@@ -124,7 +124,7 @@ func (k Keeper) sendTransfer(
 			ctx, types.ModuleName, sdk.NewCoins(token),
 		); err != nil {
 			// NOTE: should not happen as the module account was
-			// retrieved on the step above and it has enough balace
+			// retrieved on the step above and it has enough balance
 			// to burn.
 			panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
 		}
