@@ -280,6 +280,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper,
 				[]string{ibctesting.FirstConnectionID},
 				metadata,
+				true,
 			)
 
 			if tc.expPass {
@@ -435,6 +436,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper,
 				[]string{ibctesting.FirstConnectionID},
 				metadata,
+				false,
 			)
 
 			if tc.expPass {

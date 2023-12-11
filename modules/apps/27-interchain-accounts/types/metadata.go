@@ -79,7 +79,7 @@ func IsPreviousMetadataEqual(previousVersion string, metadata Metadata) bool {
 }
 
 // ValidateMetadata performs validation of the provided ICS27 controller/host metadata parameters
-func ValidateMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
+func ValidateMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata, isController bool) error {
 	if !isSupportedEncoding(metadata.Encoding) {
 		return errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", metadata.Encoding)
 	}
@@ -93,7 +93,46 @@ func ValidateMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHo
 		return err
 	}
 
-	if err := validateConnectionParams(metadata, connectionHops[0], connection.GetCounterparty().GetConnectionID()); err != nil {
+	// validate connection params expects the controller ID as the first argument, so we need to flip the arguments if
+	// the caller is the host chain
+	if isController {
+	 err = validateConnectionParams(metadata, connectionHops[0], connection.GetCounterparty().GetConnectionID())
+	} else {
+		err =  validateConnectionParams(metadata, connection.GetCounterparty().GetConnectionID(), connectionHops[0])
+	}
+	if err != nil {
+		return err
+	}
+
+	if metadata.Address != "" {
+		if err := ValidateAccountAddress(metadata.Address); err != nil {
+			return err
+		}
+	}
+
+	if metadata.Version != Version {
+		return errorsmod.Wrapf(ErrInvalidVersion, "expected %s, got %s", Version, metadata.Version)
+	}
+
+	return nil
+}
+
+// ValidateHostMetadata performs validation of the provided ICS27 host metadata parameters
+func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
+	if !isSupportedEncoding(metadata.Encoding) {
+		return errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", metadata.Encoding)
+	}
+
+	if !isSupportedTxType(metadata.TxType) {
+		return errorsmod.Wrapf(ErrUnknownDataType, "unsupported transaction type %s", metadata.TxType)
+	}
+
+	connection, err := channelKeeper.GetConnection(ctx, connectionHops[0])
+	if err != nil {
+		return err
+	}
+
+	if err := validateConnectionParams(metadata, connection.GetCounterparty().GetConnectionID(), connectionHops[0]); err != nil {
 		return err
 	}
 
