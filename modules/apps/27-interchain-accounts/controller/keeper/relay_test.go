@@ -115,7 +115,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 			false,
 		},
 		{
-			"controller submodule disabled", 
+			"controller submodule disabled",
 			func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
 			},
