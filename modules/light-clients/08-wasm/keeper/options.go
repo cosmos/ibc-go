@@ -15,10 +15,10 @@ func (f optsFn) apply(keeper *Keeper) {
 
 // WithQueryPlugins is an optional constructor parameter to pass custom query plugins for wasmVM requests.
 // Missing fields will be filled with default queriers.
-func WithQueryPlugins(x *types.QueryPlugins) Option {
+func WithQueryPlugins(plugins *types.QueryPlugins) Option {
 	return optsFn(func(_ *Keeper) {
-		q := types.GetQueryPlugins()
-		m := q.Merge(x)
-		types.SetQueryPlugins(&m)
+		currentPlugins := types.GetQueryPlugins()
+		newPlugins := currentPlugins.Merge(plugins)
+		types.SetQueryPlugins(&newPlugins)
 	})
 }
