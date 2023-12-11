@@ -5,13 +5,11 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 )
 
 // ApplyValSetChanges takes in cmttypes.ValidatorSet and []abci.ValidatorUpdate and will return a new cmttypes.ValidatorSet which has the
@@ -38,8 +36,8 @@ func GenerateString(length uint) string {
 	return string(bytes)
 }
 
-// UnmarshalMsgResponse parse out msg responses from a transaction result
-func UnmarshalMsgResponse(cdc *codec.ProtoCodec, data []byte, msgs ...codec.ProtoMarshaler) error {
+// UnmarshalMsgResponses parse out msg responses from a transaction result
+func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...codec.ProtoMarshaler) error {
 	var txMsgData sdk.TxMsgData
 	if err := cdc.Unmarshal(data, &txMsgData); err != nil {
 		return err
