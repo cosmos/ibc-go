@@ -275,7 +275,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 
 			tc.malleate() // malleate mutates test data
 
-			err := types.ValidateHostMetadata(
+			err := types.ValidateControllerMetadata(
 				suite.chainA.GetContext(),
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper,
 				[]string{ibctesting.FirstConnectionID},
