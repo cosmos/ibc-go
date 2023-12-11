@@ -43,7 +43,7 @@ func (k Keeper) OnChanOpenTry(
 		return "", err
 	}
 
-	if err = icatypes.ValidateMetadata(ctx, k.channelKeeper, connectionHops, metadata, false); err != nil {
+	if err = icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", err
 	}
 
@@ -151,7 +151,7 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 		return "", err
 	}
 
-	if err := icatypes.ValidateMetadata(ctx, k.channelKeeper, connectionHops, metadata, false); err != nil {
+	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", errorsmod.Wrap(err, "invalid metadata")
 	}
 

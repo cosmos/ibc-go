@@ -78,8 +78,8 @@ func IsPreviousMetadataEqual(previousVersion string, metadata Metadata) bool {
 		previousMetadata.TxType == metadata.TxType)
 }
 
-// ValidateMetadata performs validation of the provided ICS27 controller/host metadata parameters
-func ValidateMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata, isController bool) error {
+// ValidateControllerMetadata performs validation of the provided ICS27 controller metadata parameters
+func ValidateControllerMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
 	if !isSupportedEncoding(metadata.Encoding) {
 		return errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", metadata.Encoding)
 	}
@@ -93,14 +93,7 @@ func ValidateMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHo
 		return err
 	}
 
-	// validate connection params expects the controller ID as the first argument, so we need to flip the arguments if
-	// the caller is the host chain
-	if isController {
-	 err = validateConnectionParams(metadata, connectionHops[0], connection.GetCounterparty().GetConnectionID())
-	} else {
-		err =  validateConnectionParams(metadata, connection.GetCounterparty().GetConnectionID(), connectionHops[0])
-	}
-	if err != nil {
+	if err := validateConnectionParams(metadata, connectionHops[0], connection.GetCounterparty().GetConnectionID()); err != nil {
 		return err
 	}
 

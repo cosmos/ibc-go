@@ -275,12 +275,11 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 
 			tc.malleate() // malleate mutates test data
 
-			err := types.ValidateMetadata(
+			err := types.ValidateHostMetadata(
 				suite.chainA.GetContext(),
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper,
 				[]string{ibctesting.FirstConnectionID},
 				metadata,
-				true,
 			)
 
 			if tc.expPass {
@@ -431,12 +430,11 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 
 			tc.malleate() // malleate mutates test data
 
-			err := types.ValidateMetadata(
+			err := types.ValidateHostMetadata(
 				suite.chainA.GetContext(),
 				suite.chainA.App.GetIBCKeeper().ChannelKeeper,
 				[]string{ibctesting.FirstConnectionID},
 				metadata,
-				false,
 			)
 
 			if tc.expPass {
