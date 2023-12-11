@@ -78,8 +78,8 @@ func IsPreviousMetadataEqual(previousVersion string, metadata Metadata) bool {
 		previousMetadata.TxType == metadata.TxType)
 }
 
-// ValidateControllerMetadata performs validation of the provided ICS27 controller metadata parameters
-func ValidateControllerMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
+// ValidateMetadata performs validation of the provided ICS27 controller/host metadata parameters
+func ValidateMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
 	if !isSupportedEncoding(metadata.Encoding) {
 		return errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", metadata.Encoding)
 	}
@@ -95,40 +95,6 @@ func ValidateControllerMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, co
 
 	if err := validateConnectionParams(metadata, connectionHops[0], connection.GetCounterparty().GetConnectionID()); err != nil {
 		return err
-	}
-
-	if metadata.Address != "" {
-		if err := ValidateAccountAddress(metadata.Address); err != nil {
-			return err
-		}
-	}
-
-	if metadata.Version != Version {
-		return errorsmod.Wrapf(ErrInvalidVersion, "expected %s, got %s", Version, metadata.Version)
-	}
-
-	return nil
-}
-
-// ValidateHostMetadata performs validation of the provided ICS27 host metadata parameters
-func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
-	if !isSupportedEncoding(metadata.Encoding) {
-		return errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", metadata.Encoding)
-	}
-
-	if !isSupportedTxType(metadata.TxType) {
-		return errorsmod.Wrapf(ErrUnknownDataType, "unsupported transaction type %s", metadata.TxType)
-	}
-
-	if len(connectionHops) > 0 {
-		connection, err := channelKeeper.GetConnection(ctx, connectionHops[0])
-		if err != nil {
-			return err
-		}
-
-		if err := validateConnectionParams(metadata, connection.GetCounterparty().GetConnectionID(), connectionHops[0]); err != nil {
-			return err
-		}
 	}
 
 	if metadata.Address != "" {

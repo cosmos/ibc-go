@@ -61,7 +61,7 @@ func (k Keeper) OnChanOpenInit(
 		}
 	}
 
-	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
+	if err := icatypes.ValidateMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", err
 	}
 
@@ -118,7 +118,7 @@ func (k Keeper) OnChanOpenAck(
 		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
 	}
 
-	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, channel.ConnectionHops, metadata); err != nil {
+	if err := icatypes.ValidateMetadata(ctx, k.channelKeeper, channel.ConnectionHops, metadata); err != nil {
 		return err
 	}
 
@@ -157,7 +157,7 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, con
 		return "", err
 	}
 
-	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
+	if err := icatypes.ValidateMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", errorsmod.Wrap(err, "invalid metadata")
 	}
 
@@ -209,7 +209,7 @@ func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpart
 		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
 	}
 
-	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, channel.ConnectionHops, metadata); err != nil {
+	if err := icatypes.ValidateMetadata(ctx, k.channelKeeper, channel.ConnectionHops, metadata); err != nil {
 		return err
 	}
 
