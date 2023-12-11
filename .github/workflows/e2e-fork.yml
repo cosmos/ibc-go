@@ -23,12 +23,12 @@ jobs:
           go-version: '1.21'
       - id: build-matrix
         run: 
-          matrix=$(go run cmd/build_test_matrix/main.go)
+          go run cmd/build_test_matrix/main.go
         env:
           TEST_EXCLUSIONS: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite'
       - id: set-matrix
         run: 
-          echo "$matrix" >> $GITHUB_OUTPUT
+          echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
 
   # dynamically build a matrix of test/test suite pairs to run
   build-test-matrix-wasm:
@@ -41,11 +41,14 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
+      - id: build-matrix
+        run: go run cmd/build_test_matrix/main.go
+        env:
+          TEST_ENTRYPOINT: 'TestGrandpaTestSuite'
       - id: set-matrix
         run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
           TEST_ENTRYPOINT: 'TestGrandpaTestSuite'
-
 
   # e2e-fork runs the e2e tests directly by using a matrix strategy.
   e2e-fork:

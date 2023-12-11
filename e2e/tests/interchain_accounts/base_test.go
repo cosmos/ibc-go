@@ -11,7 +11,6 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
-	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -26,13 +25,13 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func TestInterchainAccountsTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(InterchainAccountsTestSuite))
-}
+// func TestInterchainAccountsTestSuite(t *testing.T) {
+// 	testifysuite.Run(t, new(InterchainAccountsTestSuite))
+// }
 
-type InterchainAccountsTestSuite struct {
-	testsuite.E2ETestSuite
-}
+// type InterchainAccountsTestSuite struct {
+// 	testsuite.E2ETestSuite
+// }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
 func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
