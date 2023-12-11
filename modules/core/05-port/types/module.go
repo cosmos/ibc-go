@@ -2,8 +2,8 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -12,7 +12,6 @@ import (
 // IBCModule defines an interface that implements all the callbacks
 // that modules must define as specified in ICS-26
 type IBCModule interface {
-	UpgradableModule
 	// OnChanOpenInit will verify that the relayer-chosen parameters
 	// are valid and perform any custom INIT logic.
 	// It may return an error if the chosen parameters are invalid
