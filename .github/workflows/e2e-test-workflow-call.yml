@@ -204,11 +204,13 @@ jobs:
       - id: set-matrix
         run: 
           matrix=$(go run cmd/build_test_matrix/main.go)
-          echo "$matrix" >> $GITHUB_OUTPUT
         env:
           TEST_ENTRYPOINT: '${{ inputs.test-entry-point }}'
           TEST_EXCLUSIONS: '${{ inputs.test-exclusions }}'
           TEST_NAME: '${{ inputs.test }}'
+      - id: echo-matrix
+        run: 
+          echo "$matrix" >> $GITHUB_OUTPUT
 
   # e2e-tests runs the actual go test command to trigger the test.
   # the tests themselves are configured via environment variables to specify
