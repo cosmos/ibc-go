@@ -137,8 +137,7 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
 
-	counterpartyVersion = strings.TrimSpace(counterpartyVersion)
-	if counterpartyVersion == "" {
+	if strings.TrimSpace(counterpartyVersion) == "" {
 		return "", errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
 	}
 
