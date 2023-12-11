@@ -35,7 +35,7 @@ type TestSuite struct {
 }
 
 func main() {
-	githubActionMatrix, err := getGithubActionMatrixForTests(e2eTestDirectory, getTestEntrypointToRun(), getExcludedTestSuiteFunctions())
+	githubActionMatrix, err := getGithubActionMatrixForTests(e2eTestDirectory, getExcludedTestSuiteFunctions())
 	if err != nil {
 		fmt.Printf("error generating github action json: %s", err)
 		os.Exit(1)
@@ -47,16 +47,6 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println(string(ghBytes))
-}
-
-// getTestEntrypointToRun returns the specified test function to run if present, otherwise
-// it returns an empty string which will result in running all test suites.
-func getTestEntrypointToRun() string {
-	testSuite, ok := os.LookupEnv(testEntryPointEnv)
-	if !ok {
-		return ""
-	}
-	return testSuite
 }
 
 // getExcludedTestFunctions returns a list of test functions that we don't want to run.
@@ -80,7 +70,7 @@ func contains(s string, items []string) bool {
 // getGithubActionMatrixForTests returns a json string representing the contents that should go in the matrix
 // field in a github action workflow. This string can be used with `fromJSON(str)` to dynamically build
 // the workflow matrix to include all E2E tests under the e2eRootDirectory directory.
-func getGithubActionMatrixForTests(e2eRootDirectory, suite string, excludedItems []string) (GithubActionTestMatrix, error) {
+func getGithubActionMatrixForTests(e2eRootDirectory string, excludedItems []string) (GithubActionTestMatrix, error) {
 	testSuite := []string{}
 	fset := token.NewFileSet()
 	err := filepath.Walk(e2eRootDirectory, func(path string, info fs.FileInfo, err error) error {
