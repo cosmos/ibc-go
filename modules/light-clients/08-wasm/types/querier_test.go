@@ -98,9 +98,6 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
-			// reset query plugins after each test
-			types.SetQueryPlugins(types.NewDefaultQueryPlugins())
-
 			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
 			err := endpoint.CreateClient()
 			suite.Require().NoError(err)
@@ -110,6 +107,9 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
 			clientState := endpoint.GetClientState()
 			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
+
+			// reset query plugins after each test
+			types.SetQueryPlugins(types.NewDefaultQueryPlugins())
 		})
 	}
 }

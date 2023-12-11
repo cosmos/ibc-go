@@ -18,35 +18,36 @@ import (
 )
 
 var (
-	_ wasmvmtypes.Querier = (*QueryHandler)(nil)
+	_ wasmvmtypes.Querier = (*queryHandler)(nil)
 
 	queryPlugins = NewDefaultQueryPlugins()
 )
 
-// QueryHandler is a wrapper around the sdk.Context and the CallerID that calls
+// queryHandler is a wrapper around the sdk.Context and the CallerID that calls
 // into the query plugins.
-type QueryHandler struct {
+type queryHandler struct {
 	Ctx      sdk.Context
 	CallerID string
 }
 
-// NewQueryHandler returns a default querier that can be used in the contract.
-func NewQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
-	return &QueryHandler{
+// newQueryHandler returns a default querier that can be used in the contract.
+func newQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
+	return &queryHandler{
 		Ctx:      ctx,
 		CallerID: callerID,
 	}
 }
 
 // GasConsumed implements the wasmvmtypes.Querier interface.
-func (q *QueryHandler) GasConsumed() uint64 {
+func (q *queryHandler) GasConsumed() uint64 {
 	return VMGasRegister.ToWasmVMGas(q.Ctx.GasMeter().GasConsumed())
 }
 
 // Query implements the wasmvmtypes.Querier interface.
-func (q *QueryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
+func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
 	sdkGas := VMGasRegister.FromWasmVMGas(gasLimit)
 
+	// discard all changes/events in subCtx by not committing the cached context
 	subCtx, _ := q.Ctx.WithGasMeter(storetypes.NewGasMeter(sdkGas)).CacheContext()
 
 	// make sure we charge the higher level context even on panic
@@ -68,7 +69,7 @@ type (
 	StargateQuerier func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error)
 )
 
-// QueryPlugins is a list of query handlers that can be used to extend the default querier.
+// QueryPlugins is a list of queriers that can be used to extend the default querier.
 type QueryPlugins struct {
 	Custom   CustomQuerier
 	Stargate StargateQuerier
@@ -122,14 +123,14 @@ func NewDefaultQueryPlugins() *QueryPlugins {
 	}
 }
 
-// AcceptListStargateQuerier allows all queries that are in the accept list provided and in the default accept list.
+// AcceptListStargateQuerier allows all queries that are in the provided accept list.
 // This function returns protobuf encoded responses in bytes.
-func AcceptListStargateQuerier(accepted []string) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+func AcceptListStargateQuerier(acceptedQueries []string) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		// A default list of accepted queries can be added here.
 		// accepted = append(defaultAcceptList, accepted...)
 
-		isAccepted := slices.Contains(accepted, request.Path)
+		isAccepted := slices.Contains(acceptedQueries, request.Path)
 		if !isAccepted {
 			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("'%s' path is not allowed from the contract", request.Path)}
 		}
@@ -147,7 +148,7 @@ func AcceptListStargateQuerier(accepted []string) func(sdk.Context, *wasmvmtypes
 			return nil, err
 		}
 		if res == nil || res.Value == nil {
-			return nil, errorsmod.Wrap(ErrInvalid, "Query response is empty")
+			return nil, wasmvmtypes.InvalidResponse{Err: "Query response is empty"}
 		}
 
 		return res.Value, nil

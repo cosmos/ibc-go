@@ -141,6 +141,9 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
+			// make sure the default query plugins are set
+			types.SetQueryPlugins(types.NewDefaultQueryPlugins())
+
 			tc.malleate()
 			tc.verifyFn(k)
 
