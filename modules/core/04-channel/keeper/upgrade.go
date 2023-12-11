@@ -563,18 +563,12 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	// // if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
-	// // then we can restore immediately without any additional checks
-	// if isAuthority && channel.State != types.FLUSHCOMPLETE {
-	// 	return nil
-	// }
-
 	_, found = k.GetUpgrade(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	// otherwise, we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
+	// we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
 	// an error receipt proof must be provided.
 	if len(errorReceiptProof) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades AND channel is not in FLUSHCOMPLETE")
