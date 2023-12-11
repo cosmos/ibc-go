@@ -18,31 +18,33 @@ import (
 )
 
 var (
-	_ wasmvmtypes.Querier = (*DefaultQuerier)(nil)
+	_ wasmvmtypes.Querier = (*QueryHandler)(nil)
 
 	queryPlugins = NewDefaultQueryPlugins()
 )
 
-type DefaultQuerier struct {
+// QueryHandler is a wrapper around the sdk.Context and the CallerID that calls
+// into the query plugins.
+type QueryHandler struct {
 	Ctx      sdk.Context
 	CallerID string
 }
 
-// NewDefaultQuerier returns a default querier that can be used in the contract.
-func NewQueryHandler(ctx sdk.Context, callerID string) *DefaultQuerier {
-	return &DefaultQuerier{
+// NewQueryHandler returns a default querier that can be used in the contract.
+func NewQueryHandler(ctx sdk.Context, callerID string) *QueryHandler {
+	return &QueryHandler{
 		Ctx:      ctx,
 		CallerID: callerID,
 	}
 }
 
 // GasConsumed implements the wasmvmtypes.Querier interface.
-func (q *DefaultQuerier) GasConsumed() uint64 {
+func (q *QueryHandler) GasConsumed() uint64 {
 	return VMGasRegister.ToWasmVMGas(q.Ctx.GasMeter().GasConsumed())
 }
 
 // Query implements the wasmvmtypes.Querier interface.
-func (q *DefaultQuerier) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
+func (q *QueryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
 	sdkGas := VMGasRegister.FromWasmVMGas(gasLimit)
 
 	subCtx, _ := q.Ctx.WithGasMeter(storetypes.NewGasMeter(sdkGas)).CacheContext()
@@ -52,15 +54,13 @@ func (q *DefaultQuerier) Query(request wasmvmtypes.QueryRequest, gasLimit uint64
 		q.Ctx.GasMeter().ConsumeGas(subCtx.GasMeter().GasConsumed(), "contract sub-query")
 	}()
 
-	if request.Stargate != nil {
-		return GetQueryPlugins().Stargate(subCtx, request.Stargate)
+	res, err := GetQueryPlugins().HandleQuery(subCtx, q.CallerID, request)
+	if err == nil {
+		return res, nil
 	}
 
-	if request.Custom != nil {
-		return GetQueryPlugins().Custom(subCtx, request.Custom)
-	}
-
-	return nil, wasmvmtypes.UnsupportedRequest{Kind: "Unsupported query request"}
+	Logger(q.Ctx).Debug("Redacting query error", "cause", err)
+	return nil, redactError(err)
 }
 
 type (
@@ -92,6 +92,18 @@ func (e QueryPlugins) Merge(x *QueryPlugins) QueryPlugins {
 	return e
 }
 
+func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error) {
+	if request.Stargate != nil {
+		return e.Stargate(ctx, request.Stargate)
+	}
+
+	if request.Custom != nil {
+		return e.Custom(ctx, request.Custom)
+	}
+
+	return nil, wasmvmtypes.UnsupportedRequest{Kind: "Unsupported query request"}
+}
+
 // SetQueryPlugins sets the current query plugins
 func SetQueryPlugins(plugins *QueryPlugins) {
 	queryPlugins = plugins
@@ -111,7 +123,7 @@ func NewDefaultQueryPlugins() *QueryPlugins {
 }
 
 // AcceptListStargateQuerier allows all queries that are in the accept list provided and in the default accept list.
-// This function returns protobuf encoded responses.
+// This function returns protobuf encoded responses in bytes.
 func AcceptListStargateQuerier(accepted []string) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		// A default list of accepted queries can be added here.
@@ -147,4 +159,17 @@ func RejectCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 	return func(ctx sdk.Context, request json.RawMessage) ([]byte, error) {
 		return nil, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"}
 	}
+}
+
+// Wasmd Issue [#759](https://github.com/CosmWasm/wasmd/issues/759)
+// Don't return error string for worries of non-determinism
+func redactError(err error) error {
+	// Do not redact system errors
+	// SystemErrors must be created in 08-wasm and we can ensure determinism
+	if wasmvmtypes.ToSystemError(err) != nil {
+		return err
+	}
+
+	codespace, code, _ := errorsmod.ABCIInfo(err, false)
+	return fmt.Errorf("codespace: %s, code: %d", codespace, code)
 }
