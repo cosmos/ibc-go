@@ -257,7 +257,7 @@ type QueryConsensusStateRequest struct {
 	RevisionNumber uint64 `protobuf:"varint,2,opt,name=revision_number,json=revisionNumber,proto3" json:"revision_number,omitempty"`
 	// consensus state revision height
 	RevisionHeight uint64 `protobuf:"varint,3,opt,name=revision_height,json=revisionHeight,proto3" json:"revision_height,omitempty"`
-	// latest_height overrrides the height field and queries the latest stored
+	// latest_height overrides the height field and queries the latest stored
 	// ConsensusState
 	LatestHeight bool `protobuf:"varint,4,opt,name=latest_height,json=latestHeight,proto3" json:"latest_height,omitempty"`
 }
