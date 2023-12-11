@@ -30,7 +30,7 @@ require (
 	github.com/cosmos/ibc-go/v8 v8.0.0
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.18.0
+	github.com/spf13/viper v1.18.1
 	github.com/stretchr/testify v1.8.4
 )
 
