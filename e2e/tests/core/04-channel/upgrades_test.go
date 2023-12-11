@@ -1,6 +1,6 @@
 //go:build !test_e2e
 
-package connection
+package channel
 
 import (
 	"context"
