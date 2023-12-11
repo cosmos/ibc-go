@@ -51,6 +51,7 @@ func (s *ChannelTestSuite) TestChannelUpgradeWithFeeMiddleware() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
+	// trying to create some inflight packets, although they might get relayed before the upgrade starts
 	t.Run("create inflight transfer packets between chain A and chain B", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
@@ -59,13 +60,18 @@ func (s *ChannelTestSuite) TestChannelUpgradeWithFeeMiddleware() {
 		s.AssertTxSuccess(transferTxResp)
 	})
 
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
 		s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
-	})
+	// TODO: eventually we should be able to start the relayer after the gov proposal executes, but we need a new relayer image with a fix for this
+	// t.Run("start relayer", func(t *testing.T) {
+	// 	s.StartRelayer(relayer)
+	// })
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 40, chainA, chainB), "failed to wait for blocks")
 
@@ -85,15 +91,36 @@ func (s *ChannelTestSuite) TestChannelUpgradeWithFeeMiddleware() {
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
-	t.Run("verify channel A upgraded and has version with ics29", func(t *testing.T) {
+	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
 		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
+		// check the channel version include the fee version
 		version, err := feetypes.MetadataFromVersion(channel.Version)
 		s.Require().NoError(err)
-
 		s.Require().Equal(feetypes.Version, version, "the channel version did not include ics29")
+
+		// extra check
+		feeEnabled, err := s.QueryFeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(true, feeEnabled)
 	})
+
+	t.Run("verify channel B upgraded and has version with ics29", func(t *testing.T) {
+		channel, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+
+		// check the channel version include the fee version
+		version, err := feetypes.MetadataFromVersion(channel.Version)
+		s.Require().NoError(err)
+		s.Require().Equal(feetypes.Version, version, "the channel version did not include ics29")
+
+		// extra check
+		feeEnabled, err := s.QueryFeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(true, feeEnabled)
+	})
+
 }
 
 // initiateChannelUpgrade
