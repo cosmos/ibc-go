@@ -139,7 +139,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store.Set([]byte(types.ParamsKey), bz)
 }
 
-// GetDenomTrace retreives the full identifiers trace and base denomination from the store.
+// GetDenomTrace retrieves the full identifiers trace and base denomination from the store.
 func (k Keeper) GetDenomTrace(ctx sdk.Context, denomTraceHash cmtbytes.HexBytes) (types.DenomTrace, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
 	bz := store.Get(denomTraceHash)

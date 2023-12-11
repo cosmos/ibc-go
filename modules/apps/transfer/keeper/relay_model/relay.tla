@@ -1,6 +1,6 @@
 -------------------------- MODULE relay ----------------------------
 (**
- * A primitive model for account arithmetics and token movement 
+ * A primitive model for account arithmetic and token movement 
  * of the Cosmos SDK ICS20 Token Transfer
  * We completely abstract away many details, 
  * and want to focus on a minimal spec useful for testing
@@ -210,7 +210,7 @@ OnTimeoutPacketNext(packet) ==
         /\ error' = FALSE
         /\ IF ~IsSource(packet)
             THEN 
-            \* transfer from the escrow acount to the sender account
+            \* transfer from the escrow account to the sender account
                 \* LET denomsuffix == SubSeq(denom, 3, Len(denom)) IN
                LET escrow == GetSourceEscrowAccount(packet) IN
                 bank' = [bankwithsender
