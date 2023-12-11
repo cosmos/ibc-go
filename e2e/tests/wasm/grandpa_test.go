@@ -19,13 +19,13 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	cmtjson "github.com/cometbft/cometbft/libs/json"
-
 	"cosmossdk.io/math"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+
+	cmtjson "github.com/cometbft/cometbft/libs/json"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"

@@ -741,6 +741,10 @@ func NewSimApp(
 	}
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
+	// registerUpgradeHandlers is used for registering any on-chain upgrades.
+	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
+	app.registerUpgradeHandlers()
+
 	// add test gRPC service for testing gRPC queries in isolation
 	testpb.RegisterQueryServer(app.GRPCQueryRouter(), testpb.QueryImpl{})
 

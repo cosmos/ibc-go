@@ -14,7 +14,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -701,12 +703,13 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 		msg := types.MsgRecoverClient{
 			Signer: tc.address.String(),
 		}
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
+			require.Error(t, err)
 		}
 	}
 }
@@ -755,7 +758,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade(
 }
 
 // TestMsgIBCSoftwareUpgrade_GetSigners tests GetSigners for MsgIBCSoftwareUpgrade
-func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
+func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -774,7 +777,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
 	}
 
 	for _, tc := range testCases {
-		clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+		clientState := ibctm.NewClientState("testchain1-1", ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 		plan := upgradetypes.Plan{
 			Name:   "upgrade IBC clients",
 			Height: 1000,
@@ -784,12 +787,15 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_GetSigners() {
 			plan,
 			clientState,
 		)
-		suite.Require().NoError(err)
+		require.NoError(t, err)
 
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 		if tc.expPass {
-			suite.Require().Equal([]sdk.AccAddress{tc.address}, msg.GetSigners())
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
-			suite.Require().Panics(func() { msg.GetSigners() })
+			require.Error(t, err)
 		}
 	}
 }
@@ -949,18 +955,18 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 
 	for _, tc := range testCases {
 		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			msg := types.MsgUpdateParams{
-				Signer: tc.address.String(),
-				Params: types.DefaultParams(),
-			}
-			if tc.expPass {
-				require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
-			} else {
-				require.Panics(t, func() {
-					msg.GetSigners()
-				})
-			}
-		})
+
+		msg := types.MsgUpdateParams{
+			Signer: tc.address.String(),
+			Params: types.DefaultParams(),
+		}
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
+		if tc.expPass {
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
+		} else {
+			require.Error(t, err)
+		}
 	}
 }
