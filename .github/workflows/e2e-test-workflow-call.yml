@@ -201,14 +201,14 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-      - id: set-matrix
+      - id: build-matrix
         run: 
           matrix=$(go run cmd/build_test_matrix/main.go)
         env:
           TEST_ENTRYPOINT: '${{ inputs.test-entry-point }}'
           TEST_EXCLUSIONS: '${{ inputs.test-exclusions }}'
           TEST_NAME: '${{ inputs.test }}'
-      - id: echo-matrix
+      - id: set-matrix
         run: 
           echo "$matrix" >> $GITHUB_OUTPUT
 
