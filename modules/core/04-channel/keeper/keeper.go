@@ -611,6 +611,10 @@ func (k Keeper) HasInflightPackets(ctx sdk.Context, portID, channelID string) bo
 	return iterator.Valid()
 }
 
+// tryFlushChannel attempts to move the channel state to FLUSHCOMPLETE. It returns true
+// if there are no pending inflight packets on this channel end and the channel successfully
+// moves to FLUSHCOMPLETE; otherwise it returns false. If the upgrade timeout has passed,
+// the upgrade is aborted and an error receipt is written.
 func (k Keeper) tryFlushChannel(
 	ctx sdk.Context,
 	channel types.Channel,

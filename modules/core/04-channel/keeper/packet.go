@@ -475,7 +475,7 @@ func (k Keeper) AcknowledgePacket(
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
-
+		// counterparty upgrade is written in the OnChanUpgradeAck step.
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 		if found {
 			flushed := k.tryFlushChannel(ctx, channel, packet, counterpartyUpgrade.Timeout)
