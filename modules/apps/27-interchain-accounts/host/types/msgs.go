@@ -30,13 +30,3 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 
 	return msg.Params.Validate()
 }
-
-// GetSigners implements sdk.Msg
-func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
-}

@@ -50,16 +50,6 @@ func (msg MsgRegisterInterchainAccount) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgRegisterInterchainAccount) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
-}
-
 // NewMsgSendTx creates a new instance of MsgSendTx
 func NewMsgSendTx(owner, connectionID string, relativeTimeoutTimestamp uint64, packetData icatypes.InterchainAccountPacketData) *MsgSendTx {
 	return &MsgSendTx{
@@ -95,16 +85,6 @@ func (msg MsgSendTx) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgSendTx) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
-}
-
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
 func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
@@ -121,14 +101,4 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
 }
