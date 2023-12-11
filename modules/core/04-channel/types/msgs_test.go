@@ -455,6 +455,18 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 	}
 }
 
+func (suite *TypesTestSuite) TestMsgTimeoutGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+	msg := types.NewMsgTimeout(packet, 1, suite.proof, height, addr)
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
+}
+
 func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 	testCases := []struct {
 		name    string
