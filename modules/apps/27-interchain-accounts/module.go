@@ -73,7 +73,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(genesistypes.DefaultGenesis())
 }
 
-// ValidateGenesis performs genesis state validation for the IBC interchain acounts module
+// ValidateGenesis performs genesis state validation for the IBC interchain accounts module
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs genesistypes.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {

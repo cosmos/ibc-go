@@ -33,7 +33,7 @@ Alpha releases are intended to make available new features as soon as they are f
 
 Initial users of alpha releases are expected to be advanced, patient, and capable of handling unusual errors. Very basic integration testing will be performed by the ibc-go development team before alpha releases.  
 
-An internal audit is typically performed before the alpha release allowing the development team to guage the maturity and stability of changes included in the next release.
+An internal audit is typically performed before the alpha release allowing the development team to gauge the maturity and stability of changes included in the next release.
 
 ### Beta
 
