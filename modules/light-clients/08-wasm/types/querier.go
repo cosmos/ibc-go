@@ -105,7 +105,7 @@ func (e QueryPlugins) Merge(x *QueryPlugins) QueryPlugins {
 }
 
 // HandleQuery implements the ibcwasm.QueryPluginsI interface.
-func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error) {
+func (e QueryPlugins) HandleQuery(ctx sdk.Context, _ string, request wasmvmtypes.QueryRequest) ([]byte, error) {
 	if request.Stargate != nil {
 		return e.Stargate(ctx, request.Stargate)
 	}
