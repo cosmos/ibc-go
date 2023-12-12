@@ -17,6 +17,18 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 )
 
+/*
+`queryHandler` is a contextual querier which references the global `ibcwasm.QueryPluginsI`
+to handle queries. The global `ibcwasm.QueryPluginsI` points to a `types.QueryPlugins` which
+contains two sub-queriers: `types.CustomQuerier` and `types.StargateQuerier`. These sub-queriers
+can be replaced by the user through the options api in the keeper.
+
+In addition, the `types.StargateQuerier` references a global `ibcwasm.QueryRouter` which points
+to `baseapp.GRPCQueryRouter`.
+
+This design is based on wasmd's (v0.50.0) querier plugin design.
+*/
+
 var (
 	_ wasmvmtypes.Querier   = (*queryHandler)(nil)
 	_ ibcwasm.QueryPluginsI = (*QueryPlugins)(nil)
@@ -92,6 +104,7 @@ func (e QueryPlugins) Merge(x *QueryPlugins) QueryPlugins {
 	return e
 }
 
+// HandleQuery implements the ibcwasm.QueryPluginsI interface.
 func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error) {
 	if request.Stargate != nil {
 		return e.Stargate(ctx, request.Stargate)

@@ -126,5 +126,6 @@ type QueryRouter interface {
 }
 
 type QueryPluginsI interface {
+	// HandleQuery will route the query to the correct plugin and return the result
 	HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error)
 }
