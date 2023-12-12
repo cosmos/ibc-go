@@ -30,6 +30,9 @@ var (
 
 	ErrMockContract = errors.New("mock contract error")
 	ErrMockVM       = errors.New("mock vm error")
+
+	// character set used for generating a random string in GenerateString
+	charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 // CreateMockTendermintClientState returns a valid Tendermint client state for use in tests.
