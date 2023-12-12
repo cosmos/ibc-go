@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-// NOTE: this is a mock implmentation for exported.ClientState. This implementation
+// NOTE: this is a mock implementation for exported.ClientState. This implementation
 // should only be registered on the InterfaceRegistry during cli command genesis migration.
 // This implementation is only used to successfully unmarshal the previous solo machine
 // client state and consensus state and migrate them to the new implementations. When the proto

@@ -5887,7 +5887,7 @@ paths:
           format: uint64
         - name: latest_height
           description: >-
-            latest_height overrrides the height field and queries the latest
+            latest_height overrides the height field and queries the latest
             stored
 
             ConsensusState.
@@ -7189,7 +7189,7 @@ paths:
                               identifier
                         description: >-
                           Version defines the versioning scheme used to
-                          negotiate the IBC verison in
+                          negotiate the IBC version in
 
                           the connection handshake.
                       title: >-
@@ -7598,7 +7598,7 @@ paths:
                             identifier
                       description: >-
                         Version defines the versioning scheme used to negotiate
-                        the IBC verison in
+                        the IBC version in
 
                         the connection handshake.
                     description: >-
@@ -15870,7 +15870,7 @@ definitions:
         format: uint64
         title: packet sequence
     title: |-
-      PacketId is an identifer for a unique Packet
+      PacketId is an identifier for a unique Packet
       Source chains refer to packets by source port/channel
       Destination chains refer to packets by destination port/channel
   ibc.core.client.v1.ConsensusStateWithHeight:
@@ -17660,7 +17660,7 @@ definitions:
               title: list of features compatible with the specified identifier
           description: >-
             Version defines the versioning scheme used to negotiate the IBC
-            verison in
+            version in
 
             the connection handshake.
         description: >-
@@ -17782,7 +17782,7 @@ definitions:
               title: list of features compatible with the specified identifier
           description: >-
             Version defines the versioning scheme used to negotiate the IBC
-            verison in
+            version in
 
             the connection handshake.
         title: >-
@@ -18367,7 +18367,7 @@ definitions:
                   title: list of features compatible with the specified identifier
               description: >-
                 Version defines the versioning scheme used to negotiate the IBC
-                verison in
+                version in
 
                 the connection handshake.
             description: >-
@@ -18504,7 +18504,7 @@ definitions:
                     title: list of features compatible with the specified identifier
                 description: >-
                   Version defines the versioning scheme used to negotiate the
-                  IBC verison in
+                  IBC version in
 
                   the connection handshake.
               title: >-
@@ -18650,7 +18650,7 @@ definitions:
           type: string
         title: list of features compatible with the specified identifier
     description: |-
-      Version defines the versioning scheme used to negotiate the IBC verison in
+      Version defines the versioning scheme used to negotiate the IBC version in
       the connection handshake.
   ibc.core.channel.v1.Channel:
     type: object
