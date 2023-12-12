@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 ```
 
-To create interaction between chainA and chainB, we need to contruct a `Path` these chains will use.
+To create interaction between chainA and chainB, we need to construct a `Path` these chains will use.
 A path contains two endpoints, `EndpointA` and `EndpointB` (corresponding to the order of the chains passed
 into the `NewPath` function). A path is a pointer and its values will be filled in as necessary during the
 setup portion of testing.
@@ -203,7 +203,7 @@ type Endpoint struct {
 The fields empty after `NewPath` is called are `ClientID`, `ConnectionID` and
 `ChannelID` as the clients, connections, and channels for these endpoints have not yet been created. The
 `ClientConfig`, `ConnectionConfig` and `ChannelConfig` contain all the necessary information for clients,
-connections, and channels to be initialized. If you would like to use endpoints which are intitialized to
+connections, and channels to be initialized. If you would like to use endpoints which are initialized to
 use your Port IDs, you might add a helper function similar to the one found in transfer:
 
 ```go

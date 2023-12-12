@@ -380,15 +380,6 @@ func (msg MsgAcknowledgement) ValidateBasic() error {
 	return msg.Packet.ValidateBasic()
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgAcknowledgement) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}
-
 var _ sdk.Msg = &MsgChannelUpgradeInit{}
 
 // NewMsgChannelUpgradeInit constructs a new MsgChannelUpgradeInit
@@ -421,16 +412,6 @@ func (msg MsgChannelUpgradeInit) ValidateBasic() error {
 	}
 
 	return msg.Fields.ValidateBasic()
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgChannelUpgradeInit) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{signer}
 }
 
 var _ sdk.Msg = &MsgChannelUpgradeTry{}
@@ -499,16 +480,6 @@ func (msg MsgChannelUpgradeTry) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgChannelUpgradeTry) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{signer}
-}
-
 var _ sdk.Msg = &MsgChannelUpgradeAck{}
 
 // NewMsgChannelUpgradeAck constructs a new MsgChannelUpgradeAck
@@ -544,16 +515,6 @@ func (msg MsgChannelUpgradeAck) ValidateBasic() error {
 	}
 
 	return msg.CounterpartyUpgrade.ValidateBasic()
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgChannelUpgradeAck) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{signer}
 }
 
 var _ sdk.Msg = &MsgChannelUpgradeConfirm{}
@@ -611,16 +572,6 @@ func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
 	return msg.CounterpartyUpgrade.ValidateBasic()
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgChannelUpgradeConfirm) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{signer}
-}
-
 var _ sdk.Msg = &MsgChannelUpgradeOpen{}
 
 // NewMsgChannelUpgradeOpen constructs a new MsgChannelUpgradeOpen
@@ -667,15 +618,6 @@ func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgChannelUpgradeOpen) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
 }
 
 var _ sdk.Msg = &MsgChannelUpgradeTimeout{}
@@ -725,16 +667,6 @@ func (msg MsgChannelUpgradeTimeout) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgChannelUpgradeTimeout) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{signer}
-}
-
 var _ sdk.Msg = &MsgChannelUpgradeCancel{}
 
 // NewMsgChannelUpgradeCancel constructs a new MsgChannelUpgradeCancel
@@ -774,31 +706,12 @@ func (msg MsgChannelUpgradeCancel) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgChannelUpgradeCancel) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{signer}
-}
-
 // NewMsgUpdateChannelParams creates a new instance of MsgUpdateParams.
 func NewMsgUpdateChannelParams(authority string, params Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
 		Authority: authority,
 		Params:    params,
 	}
-}
-
-// GetSigners returns the expected signers for a MsgUpdateParams message.
-func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{accAddr}
 }
 
 // ValidateBasic performs basic checks on a MsgUpdateParams.
