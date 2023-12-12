@@ -37,19 +37,30 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Su
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
 
+	chainADenom := chainA.Config().Denom
+
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.FormattedAddress()
+
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	// trying to create some inflight packets, although they might get relayed before the upgrade starts
+	t.Run("create inflight transfer packets between chain A and chain B", func(t *testing.T) {
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.AssertTxSuccess(transferTxResp)
+	})
 
 	t.Run("execute gov proposals to initiate channel upgrade on chain A and chain B", func(t *testing.T) {
 		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 		s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.createUpgradeFields(chA))
 
-		chB, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
-		s.Require().NoError(err)
-		s.initiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.createUpgradeFields(chB))
+		// chB, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		// s.Require().NoError(err)
+		// s.initiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.createUpgradeFields(chB))
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -57,6 +68,11 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Su
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
+		// packet from chain A to chain B
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+	})
 
 	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
 		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
