@@ -590,7 +590,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 	)
 
 	// updateMetadata is a helper function which modifies the metadata stored in the channel version
-	// and marshals it into a string to passed to OnChanUpgradeAck as the counterpartyVersion string.
+	// and marshals it into a string to pass to OnChanUpgradeAck as the counterpartyVersion string.
 	updateMetadata := func(modificationFn func(*icatypes.Metadata)) {
 		metadata, err := icatypes.MetadataFromVersion(path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version)
 		suite.Require().NoError(err)
