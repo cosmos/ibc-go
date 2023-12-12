@@ -173,3 +173,45 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, con
 
 	return version, nil
 }
+
+// OnChanUpgradeAck implements the ack setup of the channel upgrade handshake.
+func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+	if strings.TrimSpace(counterpartyVersion) == "" {
+		return errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
+	}
+
+	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
+		return err
+	}
+
+	currentMetadata, err := k.getAppMetadata(ctx, portID, channelID)
+	if err != nil {
+		return err
+	}
+
+	// the interchain account address on the host chain
+	// must remain the same after the upgrade.
+	if currentMetadata.Address != metadata.Address {
+		return errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "address cannot be changed")
+	}
+
+	if currentMetadata.ControllerConnectionId != metadata.ControllerConnectionId {
+		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed controller connection ID must not change")
+	}
+
+	if currentMetadata.HostConnectionId != metadata.HostConnectionId {
+		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed host connection ID must not change")
+	}
+
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
+	}
+
+	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, channel.ConnectionHops, metadata); err != nil {
+		return err
+	}
+
+	return nil
+}
