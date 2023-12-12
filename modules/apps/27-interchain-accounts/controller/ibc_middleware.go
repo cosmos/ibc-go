@@ -235,7 +235,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
-		return "", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
 	}
 
 	if !im.keeper.GetParams(ctx).ControllerEnabled {

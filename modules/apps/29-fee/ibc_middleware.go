@@ -337,7 +337,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 ) (string, error) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
-		return "", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
 	}
 
 	versionMetadata, err := types.MetadataFromVersion(upgradeVersion)
@@ -369,7 +369,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
-		return "", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
 	}
 
 	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
@@ -401,7 +401,7 @@ func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID stri
 func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
-		return errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+		return errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
 	}
 
 	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
@@ -423,7 +423,7 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
-		panic(errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
+		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
 	}
 
 	// discard the version metadata returned as upgrade fields have already been validated in previous handshake steps.
@@ -444,7 +444,7 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
-		panic(errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
+		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
 	}
 
 	cbs.OnChanUpgradeRestore(ctx, portID, channelID)
