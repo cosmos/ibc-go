@@ -72,7 +72,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 			true,
 		},
 		{
-			"valid time misbehaviour, header 1 time stricly less than header 2 time", func() {
+			"valid time misbehaviour, header 1 time strictly less than header 2 time", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
@@ -420,7 +420,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 			true,
 		},
 		{
-			"valid time misbehaviour, header 1 time stricly less than header 2 time", func() {
+			"valid time misbehaviour, header 1 time strictly less than header 2 time", func() {
 				trustedHeight := path.EndpointA.GetClientState().GetLatestHeight().(clienttypes.Height)
 
 				trustedVals, found := suite.chainB.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
