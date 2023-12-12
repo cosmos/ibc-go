@@ -291,7 +291,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 					suite.chainB.GetContext(),
 					host.ChannelCapabilityPath(path.EndpointB.ChannelConfig.PortID, channelID),
 				)
-				suite.Require().True(ok, "could not retrieve channel capapbility after successful ChanOpenTry")
+				suite.Require().True(ok, "could not retrieve channel capability after successful ChanOpenTry")
 				suite.Require().Equal(chanCap.String(), capability.String(), "channel capability is not correct")
 			} else {
 				suite.Require().Error(err)
@@ -499,7 +499,7 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 		}, true},
 		{"channel doesn't exist", func() {}, false},
 		{"channel state is not TRYOPEN", func() {
-			// create fully open channels on both cahins
+			// create fully open channels on both chains
 			suite.coordinator.Setup(path)
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		}, false},
