@@ -54,7 +54,7 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 
 		err := validateMemo(sdk.UnwrapSDKContext(ctx), msgTransfer.Memo, allocation.AllowedPacketData)
 		if err != nil {
-			return authz.AcceptResponse{}, errorsmod.Wrapf(ErrInvalidMemo, "error: %v", err)
+			return authz.AcceptResponse{}, err
 		}
 
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
