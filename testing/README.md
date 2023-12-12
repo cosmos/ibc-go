@@ -152,7 +152,7 @@ Here is an example of how to setup your testing environment in every package you
 ```go
 // KeeperTestSuite is a testing suite to test keeper functions.
 type KeeperTestSuite struct {
-  suite.Suite
+  testifysuite.Suite
 
   coordinator *ibctesting.Coordinator
 
@@ -163,7 +163,7 @@ type KeeperTestSuite struct {
 
 // TestKeeperTestSuite runs all the tests within this package.
 func TestKeeperTestSuite(t *testing.T) {
-  suite.Run(t, new(KeeperTestSuite))
+  testifysuite.Run(t, new(KeeperTestSuite))
 }
 
 // SetupTest creates a coordinator with 2 test chains.
@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 ```
 
-To create interaction between chainA and chainB, we need to contruct a `Path` these chains will use.
+To create interaction between chainA and chainB, we need to construct a `Path` these chains will use.
 A path contains two endpoints, `EndpointA` and `EndpointB` (corresponding to the order of the chains passed
 into the `NewPath` function). A path is a pointer and its values will be filled in as necessary during the
 setup portion of testing.
@@ -203,7 +203,7 @@ type Endpoint struct {
 The fields empty after `NewPath` is called are `ClientID`, `ConnectionID` and
 `ChannelID` as the clients, connections, and channels for these endpoints have not yet been created. The
 `ClientConfig`, `ConnectionConfig` and `ChannelConfig` contain all the necessary information for clients,
-connections, and channels to be initialized. If you would like to use endpoints which are intitialized to
+connections, and channels to be initialized. If you would like to use endpoints which are initialized to
 use your Port IDs, you might add a helper function similar to the one found in transfer:
 
 ```go
@@ -212,7 +212,7 @@ func NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
   path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
   path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
 
-  return pa``th
+  return path
 }
 
 ```
@@ -251,7 +251,7 @@ Here is a basic example of the testing package being used to simulate IBC functi
 
   packet2 := NewPacket()
 
-  path.Relay(packet2, expectedAck)
+  path.RelayPacket(packet2)
 
   // if needed we can update our clients
   path.EndpointB.UpdateClient()    
@@ -270,8 +270,8 @@ import (
   "github.com/cometbft/cometbft/libs/log"
   dbm "github.com/cometbft/cometbft-db"
 
-  "github.com/cosmos/ibc-go/v7/modules/apps/transfer/simapp"
-  ibctesting "github.com/cosmos/ibc-go/v7/testing"
+  "github.com/cosmos/ibc-go/v8/modules/apps/transfer/simapp"
+  ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {

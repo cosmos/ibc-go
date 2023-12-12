@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 func TestChannelValidateBasic(t *testing.T) {
@@ -54,73 +54,6 @@ func TestCounterpartyValidateBasic(t *testing.T) {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
 		} else {
 			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
-		}
-	}
-}
-
-func TestSubsetOf(t *testing.T) {
-	testCases := []struct {
-		name     string
-		order    types.Order
-		newOrder types.Order
-		expPass  bool
-	}{
-		{
-			"ordered -> ordered",
-			types.ORDERED,
-			types.ORDERED,
-			true,
-		},
-		{
-			"ordered -> unordered",
-			types.ORDERED,
-			types.UNORDERED,
-			true,
-		},
-		{
-			"unordered -> unordered",
-			types.UNORDERED,
-			types.UNORDERED,
-			true,
-		},
-		{
-			"unordered -> ordered",
-			types.UNORDERED,
-			types.ORDERED,
-			false,
-		},
-		{
-			"none -> ordered",
-			types.NONE,
-			types.ORDERED,
-			false,
-		},
-		{
-			"none -> unordered",
-			types.NONE,
-			types.UNORDERED,
-			false,
-		},
-		{
-			"ordered -> none",
-			types.ORDERED,
-			types.NONE,
-			false,
-		},
-		{
-			"unordered -> none",
-			types.UNORDERED,
-			types.NONE,
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		ok := tc.order.SubsetOf(tc.newOrder)
-		if tc.expPass {
-			require.True(t, ok, tc.name)
-		} else {
-			require.False(t, ok, tc.name)
 		}
 	}
 }

@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* 2022-08-02: Initial draft
+- 2022-08-02: Initial draft
 
 ## Status
 
@@ -10,7 +10,7 @@ Accepted, applied in v7
 
 ## Context
 
-The `06-solomachine` implemention up until ibc-go v7 constructed sign bytes using a `DataType` which described what type of data was being signed.
+The `06-solomachine` implementation up until ibc-go v7 constructed sign bytes using a `DataType` which described what type of data was being signed.
 This design decision arose from a misunderstanding of the security implications.
 It was noted that the proto definitions do not [provide uniqueness](https://github.com/cosmos/cosmos-sdk/pull/7237#discussion_r484264573) which is a necessity for ensuring two signatures over different data types can never be the same.
 What was missed is that the uniqueness is not provided by the proto definition, but by the usage of the proto definition.
@@ -34,14 +34,14 @@ This removes an extra layer of complexity from signature construction and allows
 
 ### Positive
 
-* Simplification of solo machine signature construction
-* Support for generic verification
+- Simplification of solo machine signature construction
+- Support for generic verification
 
 ### Negative
 
-* Breaks existing signature construction in a non-backwards compatible way
-* Solo machines must update to handle the new format
-* Migration required for solo machine client and consensus states
+- Breaks existing signature construction in a non-backwards compatible way
+- Solo machines must update to handle the new format
+- Migration required for solo machine client and consensus states
 
 ### Neutral
 
@@ -49,4 +49,4 @@ No notable consequences
 
 ## References
 
-* [#1141](https://github.com/cosmos/ibc-go/issues/1141)
+- [#1141](https://github.com/cosmos/ibc-go/issues/1141)

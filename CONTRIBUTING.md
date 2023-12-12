@@ -23,11 +23,9 @@ New features or improvements should be written in an issue using the [new featur
 - discarding the suggestion if deemed not aligned with the objectives of ibc-go;
 - or proposing (in the case of applications or light clients) to be developed and maintained in a separate repository.
 
-Please check out also our [Request For Maintainership](./MAINTAINERSHIP.md) process, which contains information relevant to this.
-
 ### Architecture Decision Records (ADR)
 
-When proposing an architecture decision for the ibc-go, please create an [ADR](./docs/architecture/README.md) so further discussions can be made. We are following this process so all involved parties are in agreement before any party begins coding the proposed implementation. Please use the [ADR template](./docs/architecture/adr-template.md) to scaffold any new ADR. If you would like to see some examples of how these are written refer to ibc-go's [ADRs](./docs/architecture/). Solidified designs that will be implemented in ibc-go (and do not have a spec). They should document the architecture that will be built. Most design feedback should be gathered before the initial draft of the ADR. ADR's can/should be written for any design decisions we make which may be changed at some point in the future.
+When proposing an architecture decision for the ibc-go, please create an [ADR](./docs/architecture/README.md) so further discussions can be made. We are following this process so all involved parties are in agreement before any party begins coding the proposed implementation. Please use the [ADR template](./docs/architecture/adr.template.md) to scaffold any new ADR. If you would like to see some examples of how these are written refer to ibc-go's [ADRs](./docs/architecture/). ADRs are solidified designs that will be implemented in ibc-go (and do not have a spec). They should document the architecture that will be built. Most design feedback should be gathered before the initial draft of the ADR. ADR's can/should be written for any design decisions we make which may be changed at some point in the future.
 
 ### Participating in discussions
 
@@ -57,9 +55,9 @@ Please make sure to check out our [Pull request guidelines](./docs/dev/pull-requ
 ## Relevant development docs
 
 - [Project structure](./docs/dev/project-structure.md)
-- [Develoment setup](./docs/dev/development-setup.md)
+- [Development setup](./docs/dev/development-setup.md)
 - [Go style guide](./docs/dev/go-style-guide.md)
-- [Documentation guidelines](./docs/DOCS_GUIDELINES.md)
+- [Documentation guide](./docs/README.md)
 - [Writing tests](./testing/README.md)
 - [Pull request guidelines](./docs/dev/pull-requests.md)
 - [Release process](./docs/dev/release-management.md)

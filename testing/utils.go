@@ -1,17 +1,23 @@
 package ibctesting
 
 import (
+	"fmt"
+	"math/rand"
 	"testing"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/stretchr/testify/require"
+
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 )
 
-// ApplyValSetChanges takes in tmtypes.ValidatorSet and []abci.ValidatorUpdate and will return a new tmtypes.ValidatorSet which has the
+// ApplyValSetChanges takes in cmttypes.ValidatorSet and []abci.ValidatorUpdate and will return a new cmttypes.ValidatorSet which has the
 // provided validator updates applied to the provided validator set.
-func ApplyValSetChanges(tb testing.TB, valSet *tmtypes.ValidatorSet, valUpdates []abci.ValidatorUpdate) *tmtypes.ValidatorSet {
-	updates, err := tmtypes.PB2TM.ValidatorUpdates(valUpdates)
+func ApplyValSetChanges(tb testing.TB, valSet *cmttypes.ValidatorSet, valUpdates []abci.ValidatorUpdate) *cmttypes.ValidatorSet {
+	tb.Helper()
+	updates, err := cmttypes.PB2TM.ValidatorUpdates(valUpdates)
 	require.NoError(tb, err)
 
 	// must copy since validator set will mutate with UpdateWithChangeSet
@@ -20,4 +26,36 @@ func ApplyValSetChanges(tb testing.TB, valSet *tmtypes.ValidatorSet, valUpdates 
 	require.NoError(tb, err)
 
 	return newVals
+}
+
+// VoteAndCheckProposalStatus votes on a gov proposal, checks if the proposal has passed, and returns an error if it has not with the failure reason.
+func VoteAndCheckProposalStatus(endpoint *Endpoint, proposalID uint64) error {
+	// vote on proposal
+	ctx := endpoint.Chain.GetContext()
+	require.NoError(endpoint.Chain.TB, endpoint.Chain.GetSimApp().GovKeeper.AddVote(ctx, proposalID, endpoint.Chain.SenderAccount.GetAddress(), govtypesv1.NewNonSplitVoteOption(govtypesv1.OptionYes), ""))
+
+	// fast forward the chain context to end the voting period
+	params, err := endpoint.Chain.GetSimApp().GovKeeper.Params.Get(ctx)
+	require.NoError(endpoint.Chain.TB, err)
+
+	endpoint.Chain.Coordinator.IncrementTimeBy(*params.VotingPeriod + *params.MaxDepositPeriod)
+	endpoint.Chain.NextBlock()
+
+	// check if proposal passed or failed on msg execution
+	// we need to grab the context again since the previous context is no longer valid as the chain header time has been incremented
+	p, err := endpoint.Chain.GetSimApp().GovKeeper.Proposals.Get(endpoint.Chain.GetContext(), proposalID)
+	require.NoError(endpoint.Chain.TB, err)
+	if p.Status != govtypesv1.StatusPassed {
+		return fmt.Errorf("proposal failed: %s", p.FailedReason)
+	}
+	return nil
+}
+
+// GenerateString generates a random string of the given length in bytes
+func GenerateString(length uint) string {
+	bytes := make([]byte, length)
+	for i := range bytes {
+		bytes[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(bytes)
 }

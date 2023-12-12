@@ -1,0 +1,27 @@
+{
+  "chain-a": [
+    "release-v7.3.x"
+  ],
+  "chain-b": [
+    "v8.0.0",
+    "v7.3.1",
+    "v7.2.2",
+    "v6.2.1",
+    "v6.1.2",
+    "release-v7.3.x"
+  ],
+  "entrypoint": [
+    "TestIncentivizedTransferTestSuite"
+  ],
+  "test": [
+    "TestMsgPayPacketFee_AsyncSingleSender_Succeeds",
+    "TestMsgPayPacketFee_InvalidReceiverAccount",
+    "TestMultiMsg_MsgPayPacketFeeSingleSender",
+    "TestMsgPayPacketFee_SingleSender_TimesOut",
+    "TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress",
+    "TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}

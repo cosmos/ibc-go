@@ -5,13 +5,14 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // TimeoutPacket is called by a module which originally attempted to send a
@@ -83,13 +84,6 @@ func (k Keeper) TimeoutPacket(
 		return types.ErrNoOpMsg
 	}
 
-	if channel.State != types.OPEN {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
-		)
-	}
-
 	packetCommitment := types.CommitPacket(k.cdc, packet)
 
 	// verify we sent the packet and haven't cleared it out yet
@@ -131,6 +125,9 @@ func (k Keeper) TimeoutPacket(
 
 // TimeoutExecuted deletes the commitment send from this chain after it verifies timeout.
 // If the timed-out packet came from an ORDERED channel then this channel will be closed.
+// If the channel is in the FLUSHING state and there is a counterparty upgrade, then the
+// upgrade will be aborted if the upgrade has timed out. Otherwise, if there are no more inflight packets,
+// then the channel will be set to the FLUSHCOMPLETE state.
 //
 // CONTRACT: this function must be called in the IBC handler
 func (k Keeper) TimeoutExecuted(
@@ -153,9 +150,37 @@ func (k Keeper) TimeoutExecuted(
 
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
+	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
+	if channel.State == types.FLUSHING && channel.Ordering == types.UNORDERED {
+		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+		// once we have received the counterparty timeout in the channel UpgradeAck or UpgradeConfirm handshake steps
+		// then we can move to flushing complete if the timeout has not passed and there are no in-flight packets
+		if found {
+			timeout := counterpartyUpgrade.Timeout
+			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
+				// packet flushing timeout has expired, abort the upgrade and return nil,
+				// committing an error receipt to state, restoring the channel and successfully timing out the packet.
+				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
+			} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+				// set the channel state to flush complete if all packets have been flushed.
+				channel.State = types.FLUSHCOMPLETE
+				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+				emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			}
+		}
+	}
+
 	if channel.Ordering == types.ORDERED {
+		// NOTE: if the channel is ORDERED and a packet is timed out in FLUSHING state then
+		// the upgrade is aborted and the channel is set to CLOSED.
+		if channel.State == types.FLUSHING {
+			// an error receipt is written to state and the channel is restored to OPEN
+			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), types.ErrPacketTimeout)
+		}
+
 		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+		emitChannelClosedEvent(ctx, packet, channel)
 	}
 
 	k.Logger(ctx).Info(
@@ -169,10 +194,6 @@ func (k Keeper) TimeoutExecuted(
 
 	// emit an event marking that we have processed the timeout
 	emitTimeoutPacketEvent(ctx, packet, channel)
-
-	if channel.Ordering == types.ORDERED && channel.State == types.CLOSED {
-		emitChannelClosedEvent(ctx, packet, channel)
-	}
 
 	return nil
 }

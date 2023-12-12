@@ -3,13 +3,17 @@ package types_test
 import (
 	"testing"
 
-	"github.com/cometbft/cometbft/crypto/secp256k1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
+	"github.com/cometbft/cometbft/crypto/secp256k1"
+
+	modulefee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
+	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestMsgRegisterPayeeValidation(t *testing.T) {
@@ -64,6 +68,8 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
+		tc := tc
+
 		relayerAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 		payeeAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
@@ -84,7 +90,11 @@ func TestMsgRegisterPayeeValidation(t *testing.T) {
 func TestRegisterPayeeGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
-	require.Equal(t, []sdk.AccAddress{accAddress}, msg.GetSigners())
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, accAddress.Bytes(), signers[0])
 }
 
 func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
@@ -135,9 +145,18 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"invalid counterparty payee address: too long",
+			func() {
+				msg.CounterpartyPayee = ibctesting.GenerateString(types.MaximumCounterpartyPayeeLength + 1)
+			},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {
+		i, tc := i, tc
+
 		msg = types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, defaultAccAddress, defaultAccAddress)
 
 		tc.malleate()
@@ -155,7 +174,11 @@ func TestMsgRegisterCountepartyPayeeValidation(t *testing.T) {
 func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
-	require.Equal(t, []sdk.AccAddress{accAddress}, msg.GetSigners())
+
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, accAddress.Bytes(), signers[0])
 }
 
 func TestMsgPayPacketFeeValidation(t *testing.T) {
@@ -209,6 +232,8 @@ func TestMsgPayPacketFeeValidation(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 		msg = types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, defaultAccAddress, nil)
 
@@ -229,21 +254,10 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	msg := types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, refundAddr.String(), nil)
 
-	require.Equal(t, []sdk.AccAddress{refundAddr}, msg.GetSigners())
-}
-
-func TestMsgPayPacketFeeRoute(t *testing.T) {
-	var msg types.MsgPayPacketFee
-	require.Equal(t, types.RouterKey, msg.Route())
-}
-
-func TestMsgPayPacketFeeGetSignBytes(t *testing.T) {
-	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
-	msg := types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, defaultAccAddress, nil)
-
-	require.NotPanics(t, func() {
-		_ = msg.GetSignBytes()
-	})
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, refundAddr.Bytes(), signers[0])
 }
 
 func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
@@ -352,6 +366,8 @@ func TestMsgPayPacketFeeAsyncValidation(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
+
 		packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 		fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 		packetFee := types.NewPacketFee(fee, defaultAccAddress, nil)
@@ -375,25 +391,10 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	packetFee := types.NewPacketFee(fee, refundAddr.String(), nil)
-
 	msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
 
-	require.Equal(t, []sdk.AccAddress{refundAddr}, msg.GetSigners())
-}
-
-func TestMsgPayPacketFeeAsyncRoute(t *testing.T) {
-	var msg types.MsgPayPacketFeeAsync
-	require.Equal(t, types.RouterKey, msg.Route())
-}
-
-func TestMsgPayPacketFeeAsyncGetSignBytes(t *testing.T) {
-	packetID := channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1)
-	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
-	packetFee := types.NewPacketFee(fee, defaultAccAddress, nil)
-
-	msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
-
-	require.NotPanics(t, func() {
-		_ = msg.GetSignBytes()
-	})
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, refundAddr.Bytes(), signers[0])
 }

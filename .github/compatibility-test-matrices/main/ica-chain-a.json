@@ -1,13 +1,25 @@
 {
-  "chain-a": ["main"],
-  "chain-b": ["main"],
-  "entrypoint": ["TestInterchainAccountsTestSuite"],
+  "chain-a": [
+    "main"
+  ],
+  "chain-b": [
+    "main",
+    "v8.0.0",
+    "v7.3.1",
+    "v7.2.2",
+    "v6.2.1",
+    "v6.1.2"
+  ],
+  "entrypoint": [
+    "TestInterchainAccountsTestSuite"
+  ],
   "test": [
     "TestMsgSendTx_SuccessfulTransfer",
     "TestMsgSendTx_FailedTransfer_InsufficientFunds",
-    "TestMsgSubmitTx_SuccessfulTransfer_AfterReopeningICA"
+    "TestMsgSendTx_SuccessfulTransfer_AfterReopeningICA",
+    "TestControllerEnabledParam"
   ],
-  "relayer-type": ["rly"],
-  "chain-binary": ["simd"],
-  "chain-image": ["ghcr.io/cosmos/ibc-go-simd"]
+  "relayer-type": [
+    "hermes"
+  ]
 }

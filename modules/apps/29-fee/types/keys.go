@@ -7,8 +7,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
 const (
@@ -79,7 +79,7 @@ func KeyPayee(relayerAddr, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", PayeeKeyPrefix, relayerAddr, channelID))
 }
 
-// ParseKeyPayeeAddress returns the registered relayer addresss and channelID used to the store the fee payee address
+// ParseKeyPayeeAddress returns the registered relayer address and channelID used to the store the fee payee address
 func ParseKeyPayeeAddress(key string) (relayerAddr, channelID string, err error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 3 {

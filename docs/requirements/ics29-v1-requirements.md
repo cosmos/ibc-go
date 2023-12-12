@@ -85,7 +85,7 @@ See section [Definitions](https://github.com/cosmos/ibc/tree/main/spec/app/ics-0
 | 4.06 | The next sequence packet may be incentivized by multiple account addresses. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/msg_server_test.go#L183) | `Verified` |
 | 4.07 | The next sequence packet shall only be incentivized with valid coin denominations. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/msg_server_test.go#L246-L266) | `Verified` |
 
-#### Aynchronously
+#### Asynchronously
 
 | ID  | Description | Verification | Status |
 | --- | ----------- | ------------ | ------ |
@@ -103,7 +103,7 @@ See section [Definitions](https://github.com/cosmos/ibc/tree/main/spec/app/ics-0
 
 | ID  | Description | Verification | Status |
 | --- | ----------- | ------------ | ------ |
-| 5.01 | Fee distribution shall occurr on the source chain from which packets originate. | Either in [`OnAcknowledgementPacket`](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/ibc_middleware.go#L288) or in [`OnTimeoutPacket`](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/ibc_middleware.go#L330). | `Verified` |
+| 5.01 | Fee distribution shall occur on the source chain from which packets originate. | Either in [`OnAcknowledgementPacket`](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/ibc_middleware.go#L288) or in [`OnTimeoutPacket`](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/ibc_middleware.go#L330). | `Verified` |
 
 #### `OnAcknowledgementPacket`
 

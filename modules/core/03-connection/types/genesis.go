@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // NewConnectionPaths creates a ConnectionPaths instance.
@@ -41,7 +41,7 @@ func DefaultGenesisState() GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	// keep track of the max sequence to ensure it is less than
-	// the next sequence used in creating connection identifers.
+	// the next sequence used in creating connection identifiers.
 	var maxSequence uint64
 
 	for i, conn := range gs.Connections {

@@ -2,11 +2,11 @@ package mock
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // IBCApp contains IBC application module callbacks as defined in 05-port.
@@ -85,6 +85,44 @@ type IBCApp struct {
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error
+
+	OnChanUpgradeInit func(
+		ctx sdk.Context,
+		portID, channelID string,
+		order channeltypes.Order,
+		connectionHops []string,
+		version string,
+	) (string, error)
+
+	OnChanUpgradeTry func(
+		ctx sdk.Context,
+		portID, channelID string,
+		order channeltypes.Order,
+		connectionHops []string,
+		counterpartyVersion string,
+	) (string, error)
+
+	OnChanUpgradeAck func(
+		ctx sdk.Context,
+		portID,
+		channelID,
+		counterpartyVersion string,
+	) error
+
+	OnChanUpgradeOpen func(
+		ctx sdk.Context,
+		portID,
+		channelID string,
+		order channeltypes.Order,
+		connectionHops []string,
+		version string,
+	)
+
+	OnChanUpgradeRestore func(
+		ctx sdk.Context,
+		portID,
+		channelID string,
+	)
 }
 
 // NewIBCApp returns a IBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.

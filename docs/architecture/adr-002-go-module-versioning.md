@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* 05/01/2022: initial draft
+- 05/01/2022: initial draft
 
 ## Status
 
@@ -15,9 +15,9 @@ It was subsequently migrated to its own repository, ibc-go.
 The first official release on ibc-go was v1.0.0.
 v1.0.0 was decided to be used instead of v0.1.0 primarily for the following reasons:
 
-* Maintaining compatibility with the IBC specification v1 requires stronger support/guarantees.
-* Using the major, minor, and patch numbers allows for easier communication of what breaking changes are included in a release.
-* The IBC module is being used by numerous high value projects which require stability.
+- Maintaining compatibility with the IBC specification v1 requires stronger support/guarantees.
+- Using the major, minor, and patch numbers allows for easier communication of what breaking changes are included in a release.
+- The IBC module is being used by numerous high value projects which require stability.
 
 ### Problems
 
@@ -47,7 +47,7 @@ Thus, bumping the import versioning causes the protobuf definitions to be genera
 When registering these types at compile time, the go compiler will panic.
 The generated types need to be registered against the proto codec, but there exist two definitions for the same name.
 
-The protobuf conflict policy can be overriden via the environment variable `GOLANG_PROTOBUF_REGISTRATION_CONFLICT`, but it is possible this could lead to various runtime errors or unexpected behaviour (see [here](https://github.com/protocolbuffers/protobuf-go/blob/master/reflect/protoregistry/registry.go#L46)).
+The protobuf conflict policy can be overridden via the environment variable `GOLANG_PROTOBUF_REGISTRATION_CONFLICT`, but it is possible this could lead to various runtime errors or unexpected behaviour (see [here](https://github.com/protocolbuffers/protobuf-go/blob/master/reflect/protoregistry/registry.go#L46)).
 More information [here](https://developers.google.com/protocol-buffers/docs/reference/go/faq#namespace-conflict) on namespace conflicts for protobuf versioning.
 
 ### Potential solutions

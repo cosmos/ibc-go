@@ -18,7 +18,7 @@ Other helpful commands:
 
 We use [Protocol Buffers](https://developers.google.com/protocol-buffers) along with [buf](https://docs.buf.build/introduction) and [gogoproto](https://github.com/gogo/protobuf) to generate code for use in ibc-go.
 
-For determinstic behavior around protobuf tooling, everything is containerized using Docker. Make sure to have Docker installed on your machine, or head to [Docker's website](https://docs.docker.com/get-docker/) to install it.
+For deterministic behavior around protobuf tooling, everything is containerized using Docker. Make sure to have Docker installed on your machine, or head to [Docker's website](https://docs.docker.com/get-docker/) to install it.
 
 For formatting code in `.proto` files, you can run the `make proto-format` command.
 
@@ -42,6 +42,7 @@ It reads protobuf service definitions and generates a reverse-proxy server which
 - No `--force` onto `main` (except when reverting a broken commit, which should seldom happen).
 - Create a development branch either on `github.com/cosmos/ibc-go`, or your fork (using `git remote add fork`).
 - Before submitting a pull request, begin `git rebase` on top of `main`.
+- Ensure you are using the pre-commit hooks by running `make setup-pre-commit`.
 
 All Go tests in ibc-go can be ran by running `make test`.
 

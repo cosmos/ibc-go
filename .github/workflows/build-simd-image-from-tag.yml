@@ -21,12 +21,12 @@ jobs:
    build-image-at-tag:
       runs-on: ubuntu-latest
       steps:
-         - uses: actions/checkout@v3
+         - uses: actions/checkout@v4
            with:
             ref: "${{ env.GIT_TAG }}"
             fetch-depth: 0
          - name: Log in to the Container registry
-           uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+           uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
            with:
               registry: ${{ env.REGISTRY }}
               username: ${{ github.actor }}

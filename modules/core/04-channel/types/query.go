@@ -3,13 +3,13 @@ package types
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 var (
-	_ codectypes.UnpackInterfacesMessage = QueryChannelClientStateResponse{}
-	_ codectypes.UnpackInterfacesMessage = QueryChannelConsensusStateResponse{}
+	_ codectypes.UnpackInterfacesMessage = (*QueryChannelClientStateResponse)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*QueryChannelConsensusStateResponse)(nil)
 )
 
 // NewQueryChannelResponse creates a new QueryChannelResponse instance
@@ -94,6 +94,17 @@ func NewQueryNextSequenceReceiveResponse(
 	}
 }
 
+// NewQueryNextSequenceSendResponse creates a new QueryNextSequenceSendResponse instance
+func NewQueryNextSequenceSendResponse(
+	sequence uint64, proof []byte, height clienttypes.Height,
+) *QueryNextSequenceSendResponse {
+	return &QueryNextSequenceSendResponse{
+		NextSequenceSend: sequence,
+		Proof:            proof,
+		ProofHeight:      height,
+	}
+}
+
 // NewQueryUpgradeErrorResponse creates a new QueryUpgradeErrorResponse instance
 func NewQueryUpgradeErrorResponse(errorReceipt ErrorReceipt, proof []byte, height clienttypes.Height) *QueryUpgradeErrorResponse {
 	return &QueryUpgradeErrorResponse{
@@ -103,11 +114,11 @@ func NewQueryUpgradeErrorResponse(errorReceipt ErrorReceipt, proof []byte, heigh
 	}
 }
 
-// NewQueryUpgradeSequenceResponse creates a new QueryUpgradeSequenceResponse instance
-func NewQueryUpgradeSequenceResponse(sequence uint64, proof []byte, height clienttypes.Height) *QueryUpgradeSequenceResponse {
-	return &QueryUpgradeSequenceResponse{
-		UpgradeSequence: sequence,
-		Proof:           proof,
-		ProofHeight:     height,
+// NewQueryUpgradeResponse creates a new QueryUpgradeResponse instance
+func NewQueryUpgradeResponse(upgrade Upgrade, proof []byte, height clienttypes.Height) *QueryUpgradeResponse {
+	return &QueryUpgradeResponse{
+		Upgrade:     upgrade,
+		Proof:       proof,
+		ProofHeight: height,
 	}
 }

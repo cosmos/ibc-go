@@ -2,14 +2,18 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // OnChanOpenTry performs basic validation of the ICA channel
@@ -34,13 +38,12 @@ func (k Keeper) OnChanOpenTry(
 		return "", errorsmod.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
 
-	var metadata icatypes.Metadata
-	metadata, err1 := icatypes.MedataFromVersion(counterpartyVersion)
-	if err1 != nil {
-		return "", nil
+	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
+		return "", err
 	}
 
-	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
+	if err = icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", err
 	}
 
@@ -48,16 +51,16 @@ func (k Keeper) OnChanOpenTry(
 	if found {
 		channel, found := k.channelKeeper.GetChannel(ctx, portID, activeChannelID)
 		if !found {
-			panic(fmt.Sprintf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
+			panic(fmt.Errorf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
-		if channel.State == channeltypes.OPEN {
+		if channel.IsOpen() {
 			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
 		}
 
 		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
 		if !found {
-			panic(fmt.Sprintf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
+			panic(fmt.Errorf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
 		}
 
 		if !icatypes.IsPreviousMetadataEqual(appVersion, metadata) {
@@ -67,14 +70,11 @@ func (k Keeper) OnChanOpenTry(
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
 	// The capability being claimed in OpenInit is for a controller chain (the port is different)
-	if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+	if err = k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", errorsmod.Wrapf(err, "failed to claim capability for channel %s on port %s", channelID, portID)
 	}
 
-	var (
-		accAddress sdk.AccAddress
-		err        error
-	)
+	var accAddress sdk.AccAddress
 
 	interchainAccAddr, found := k.GetInterchainAccountAddress(ctx, metadata.HostConnectionId, counterparty.PortId)
 	if found {
@@ -123,10 +123,47 @@ func (k Keeper) OnChanOpenConfirm(
 }
 
 // OnChanCloseConfirm removes the active channel stored in state
-func (k Keeper) OnChanCloseConfirm(
+func (Keeper) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
 	return nil
+}
+
+// OnChanUpgradeTry performs the upgrade try step of the channel upgrade handshake.
+func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+	if portID != icatypes.HostPortID {
+		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.HostPortID, portID)
+	}
+
+	if strings.TrimSpace(counterpartyVersion) == "" {
+		return "", errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
+	}
+
+	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
+		return "", err
+	}
+
+	currentMetadata, err := k.getAppMetadata(ctx, portID, channelID)
+	if err != nil {
+		return "", err
+	}
+
+	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
+		return "", errorsmod.Wrap(err, "invalid metadata")
+	}
+
+	// the interchain account address on the host chain
+	// must remain the same after the upgrade.
+	if currentMetadata.Address != metadata.Address {
+		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be changed")
+	}
+
+	if currentMetadata.HostConnectionId != connectionHops[0] {
+		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
+	}
+
+	return counterpartyVersion, nil
 }

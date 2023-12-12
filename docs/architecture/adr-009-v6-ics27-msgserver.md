@@ -2,7 +2,7 @@
 
 ## Changelog
 
-* 2022/09/07: Initial draft
+- 2022/09/07: Initial draft
 
 ## Status
 
@@ -11,14 +11,14 @@ Accepted, implemented in v6 of ibc-go
 ## Context
 
 ICS 27 (Interchain Accounts) brought a cross-chain account management protocol built upon IBC.
-It enabled chains to programatically create accounts on behalf of counterparty chains which may enable a variety of authentication methods for this interchain account.
+It enabled chains to programmatically create accounts on behalf of counterparty chains which may enable a variety of authentication methods for this interchain account.
 The initial release of ICS 27 focused on enabling authentication schemes which may not require signing with a private key, such as via on-chain mechanisms like governance.
 
 Following the initial release of ICS 27 it became evident that:
 
-* a default authentication module would enable more usage of ICS 27
-* generic authentication modules should be capable of authenticating an interchain account registration
-* application logic which wraps ICS 27 packet sends do not need to be associated with the authentication logic
+- a default authentication module would enable more usage of ICS 27
+- generic authentication modules should be capable of authenticating an interchain account registration
+- application logic which wraps ICS 27 packet sends do not need to be associated with the authentication logic
 
 ## Decision
 
@@ -27,19 +27,19 @@ To minimize disruption to developers working on the original design of the ICS 2
 
 ### Msg server
 
-To acheive this, as stated by [@damiannolan](https://github.com/cosmos/ibc-go/issues/2026#issue-1341640594), it was proposed to:
+To achieve this, as stated by [@damiannolan](https://github.com/cosmos/ibc-go/issues/2026#issue-1341640594), it was proposed to:
 
 > Add a new `MsgServer` to `27-interchain-accounts` which exposes two distinct rpc endpoints:
 >
-> * `RegisterInterchainAccount`
-> * `SendTx`
+> - `RegisterInterchainAccount`
+> - `SendTx`
 
 This will enable any SDK (authentication) module to register interchain accounts and send transactions on their behalf.
 Examples of existing SDK modules which would benefit from this change include:
 
-* x/auth
-* x/gov
-* x/group
+- x/auth
+- x/gov
+- x/group
 
 The existing go functions: `RegisterInterchainAccount()` and `SendTx()` will remain to operate as they did in previous release versions.
 
@@ -60,8 +60,8 @@ Underlying applications will be passed a `nil` capability in `OnChanOpenInit`.
 
 Channel capability migrations will be added in two steps:
 
-* Upgrade handler migration which modifies the channel capability owner from the underlying app to the controller module
-* ICS 27 module automatic migration which asserts the upgrade handler channel capability migration has been performed successfully
+- Upgrade handler migration which modifies the channel capability owner from the underlying app to the controller module
+- ICS 27 module automatic migration which asserts the upgrade handler channel capability migration has been performed successfully
 
 See issue [#2033](https://github.com/cosmos/ibc-go/issues/2033)
 
@@ -78,9 +78,9 @@ See issue [#2145](https://github.com/cosmos/ibc-go/issues/2145)
 ### Future considerations
 
 [ADR 008](https://github.com/cosmos/ibc-go/pull/1976) proposes the creation of a middleware which enables callers of an IBC packet send to perform application logic in conjunction with the IBC application.
-The underlying application can be removed at the availablity of such a middleware as that will be the preferred method for executing application logic upon a ICS 27 packet send.
+The underlying application can be removed at the availability of such a middleware as that will be the preferred method for executing application logic upon a ICS 27 packet send.
 
-### Miscellanous
+### Miscellaneous
 
 In order to avoid import cycles, the genesis types have been moved to their own directory.
 A new protobuf package has been created for the genesis types.
@@ -95,21 +95,21 @@ See issue [#2165](https://github.com/cosmos/ibc-go/issues/2165)
 
 ### Positive
 
-* default authentication modules are provided (x/auth, x/group, x/gov)
-* any SDK authentication module may now be used with ICS 27
-* separation of authentication from application logic in relation to ICS 27
-* minimized disruption to existing development around ICS 27 controller module
-* underlying applications no longer have to handle capabilities
-* removal of the underlying application upon the creation of ADR 008 may be done in a minimally disruptive fashion
-* only underlying applications which registered the interchain account will perform application logic for that account (underlying applications do not need to be aware of accounts they did not register)
+- default authentication modules are provided (x/auth, x/group, x/gov)
+- any SDK authentication module may now be used with ICS 27
+- separation of authentication from application logic in relation to ICS 27
+- minimized disruption to existing development around ICS 27 controller module
+- underlying applications no longer have to handle capabilities
+- removal of the underlying application upon the creation of ADR 008 may be done in a minimally disruptive fashion
+- only underlying applications which registered the interchain account will perform application logic for that account (underlying applications do not need to be aware of accounts they did not register)
 
 ### Negative
 
-* the security model has been reduced to that of the SDK. SDK modules may send packets for any interchain account.
-* additional maintenance of the messages added and the middleware enabled flag
-* underlying applications which will become ADR 008 modules are not required to be aware of accounts they did not register
-* calling legacy API vs the new API results in different behaviour for ICS 27 application stacks which have an underlying application
+- the security model has been reduced to that of the SDK. SDK modules may send packets for any interchain account.
+- additional maintenance of the messages added and the middleware enabled flag
+- underlying applications which will become ADR 008 modules are not required to be aware of accounts they did not register
+- calling legacy API vs the new API results in different behaviour for ICS 27 application stacks which have an underlying application
 
 ### Neutral
 
-* A major release is required
+- A major release is required

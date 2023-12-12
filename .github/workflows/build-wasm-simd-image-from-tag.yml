@@ -1,0 +1,44 @@
+name: Build Wasm Simd Image
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The tag of the image to build'
+        required: true
+        type: string
+
+env:
+   REGISTRY: ghcr.io
+   ORG: cosmos
+   IMAGE_NAME: ibc-go-wasm-simd
+   GIT_TAG: "${{ inputs.tag }}"
+
+jobs:
+   build-image-at-tag:
+      runs-on: ubuntu-latest
+      steps:
+         - uses: actions/checkout@v4
+           with:
+            ref: "${{ env.GIT_TAG }}"
+            fetch-depth: 0
+         - uses: actions/setup-python@v5
+           with:
+             python-version: '3.10'
+         - name: Install dependencies
+           run: make python-install-deps
+         - name: Log in to the Container registry
+           uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+           with:
+              registry: ${{ env.REGISTRY }}
+              username: ${{ github.actor }}
+              password: ${{ secrets.GITHUB_TOKEN }}
+         - name: Build image
+           run: |
+            # remove any `/` characters from the docker tag and replace them with a -
+             
+            version="$(scripts/get-libwasm-version.py --get-version)"
+            checksum="$(scripts/get-libwasm-version.py --get-checksum)"
+             
+            docker_tag="$(echo $GIT_TAG | sed 's/\//-/')"
+            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" -f modules/light-clients/08-wasm/Dockerfile --build-arg LIBWASM_VERSION=${version} --build-arg LIBWASM_CHECKSUM=${checksum}
+            docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"

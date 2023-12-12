@@ -1,28 +1,67 @@
 name: Compatibility E2E (Unreleased)
-on:
-  workflow_dispatch:
-    inputs:
-      release-branch:
-        description: 'Select unreleased to run all release branches against each other'
-        required: true
-        type: choice
-        options:
-          - unreleased
+on: workflow_dispatch
 
 env:
   REGISTRY: ghcr.io
   ORG: cosmos
   IMAGE_NAME: ibc-go-simd
-  RELEASE_BRANCH: '${{ inputs.release-branch }}'
 
 jobs:
-  transfer:
+  build-release-images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        release-branch:
+          - release/v6.1.x
+          - release/v6.2.x
+          - release/v7.2.x
+          - release/v7.3.x
+          - release/v8.0.x
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "${{ matrix.release-branch }}"
+          fetch-depth: 0
+      - name: Log in to the Container registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build image
+        run: |
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
+          # TODO: IBC_GO_VERSION does not yet do anything in the tests but is required.
+          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ matrix.release-branch }}
+          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+      - name: Display image details
+        run: |
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
+          docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+
+  transfer-1:
     needs:
       - build-release-images
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file-directory: "unreleased"
-      test-suite: "transfer"
+      test-suite: "transfer-1"
+
+  transfer-2:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-2"
+
+  transfer-3:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-3"
 
   connection:
     needs:
@@ -40,10 +79,82 @@ jobs:
       test-file-directory: "unreleased"
       test-suite: "client"
 
-  incentivized-transfer:
+  genesis:
     needs:
       - build-release-images
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file-directory: "unreleased"
-      test-suite: "incentivized-transfer"
+      test-suite: "genesis"
+
+  ica-gov:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "ica-gov"
+
+  ica-groups:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "ica-groups"
+
+  incentivized-ica:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "incentivized-ica"
+
+  incentivized-transfer-1:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "incentivized-transfer-1"
+
+  incentivized-transfer-2:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "incentivized-transfer-2"
+
+  incentivized-transfer-3:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "incentivized-transfer-3"
+
+  localhost-ica:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "localhost-ica"
+
+  localhost-transfer:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "localhost-transfer"
+
+  transfer-authz:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-authz"

@@ -2,26 +2,39 @@ syntax = "proto3";
 
 package ibc.core.channel.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types";
+option go_package = "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types";
 
 import "gogoproto/gogo.proto";
-import "ibc/core/client/v1/client.proto";
+import "ibc/core/channel/v1/channel.proto";
 
-// UpgradeTimeout defines a type which encapsulates the upgrade timeout values at which the counterparty
-// must no longer proceed with the upgrade handshake.
-message UpgradeTimeout {
-  // block height after which the upgrade times out
-  ibc.core.client.v1.Height timeout_height = 1 [(gogoproto.nullable) = false];
-  // block timestamp (in nanoseconds) after which the upgrade times out
-  uint64 timeout_timestamp = 2;
+// Upgrade is a verifiable type which contains the relevant information
+// for an attempted upgrade. It provides the proposed changes to the channel
+// end and the timeout for this upgrade attempt.
+message Upgrade {
+  option (gogoproto.goproto_getters) = false;
+
+  UpgradeFields fields  = 1 [(gogoproto.nullable) = false];
+  Timeout       timeout = 2 [(gogoproto.nullable) = false];
+}
+
+// UpgradeFields are the fields in a channel end which may be changed
+// during a channel upgrade.
+message UpgradeFields {
+  option (gogoproto.goproto_getters) = false;
+
+  Order           ordering        = 1;
+  repeated string connection_hops = 2;
+  string          version         = 3;
 }
 
 // ErrorReceipt defines a type which encapsulates the upgrade sequence and error associated with the
 // upgrade handshake failure. When a channel upgrade handshake is aborted both chains are expected to increment to the
 // next sequence.
 message ErrorReceipt {
+  option (gogoproto.goproto_getters) = false;
+
   // the channel upgrade sequence
   uint64 sequence = 1;
   // the error message detailing the cause of failure
-  string error = 2;
+  string message = 2;
 }

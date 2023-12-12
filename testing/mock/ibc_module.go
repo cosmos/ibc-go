@@ -3,16 +3,30 @@ package mock
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
+
+var (
+	_ porttypes.IBCModule             = (*IBCModule)(nil)
+	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
+)
+
+// applicationCallbackError is a custom error type that will be unique for testing purposes.
+type applicationCallbackError struct{}
+
+func (applicationCallbackError) Error() string {
+	return "mock application callback failed"
+}
 
 // IBCModule implements the ICS26 callbacks for testing/mock.
 type IBCModule struct {
@@ -163,28 +177,53 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, version, previousVersion string) (string, error) {
-	return Version, nil
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+	if im.IBCApp.OnChanUpgradeInit != nil {
+		return im.IBCApp.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, version)
+	}
+
+	return version, nil
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, sequence uint64, counterparty channeltypes.Counterparty, previousVersion, counterpartyVersion string) (string, error) {
-	return Version, nil
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+	if im.IBCApp.OnChanUpgradeTry != nil {
+		return im.IBCApp.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
+	}
+
+	return counterpartyVersion, nil
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyChannelID, counterpartyVersion string) error {
+func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+	if im.IBCApp.OnChanUpgradeAck != nil {
+		return im.IBCApp.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
+	}
+
 	return nil
 }
 
-// OnChanUpgradeConfirm implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeConfirm(ctx sdk.Context, portID, channelID string) error {
-	return nil
+// OnChanUpgradeOpen implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+	if im.IBCApp.OnChanUpgradeOpen != nil {
+		im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, version)
+	}
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) error {
-	return nil
+func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
+	if im.IBCApp.OnChanUpgradeRestore != nil {
+		im.IBCApp.OnChanUpgradeRestore(ctx, portID, channelID)
+	}
+}
+
+// UnmarshalPacketData returns the MockPacketData. This function implements the optional
+// PacketDataUnmarshaler interface required for ADR 008 support.
+func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
+	if reflect.DeepEqual(bz, MockPacketData) {
+		return MockPacketData, nil
+	}
+	return nil, MockApplicationCallbackError
 }
 
 // GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.

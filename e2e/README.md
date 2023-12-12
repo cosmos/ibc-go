@@ -1,43 +1,35 @@
 # Table of Contents
 
-- [Table of Contents](#table-of-contents)
-- [How to write tests](#how-to-write-tests)
-  - [Adding a new test](#adding-a-new-test)
-  - [Running tests with custom images](#running-tests-with-custom-images)
-    - [Example Command](#example-command)
-    - [Running tests in CI](#running-tests-in-ci)
-  - [Code samples](#code-samples)
-    - [Setup](#setup)
-    - [Creating test users](#creating-test-users)
-    - [Waiting](#waiting)
-    - [Query wallet balances](#query-wallet-balances)
-    - [Broadcasting messages](#broadcasting-messages)
-    - [Starting the relayer](#starting-the-relayer)
-    - [Arbitrary commands](#arbitrary-commands)
-    - [IBC transfer](#ibc-transfer)
-  - [Test design](#test-design)
-    - [interchaintest](#interchaintest)
-    - [CI configuration](#ci-configuration)
-  - [How tests are run](#how-tests-are-run)
-    - [Example](#example)
-    - [Misceleneous](#misceleneous)
-  - [GitHub Workflows](#github-workflows)
-    - [Building and pushing a `simd` image](#building-and-pushing-a-simd-image)
-  - [Running Compatibility Tests](#running-compatibility-tests)
-  - [Troubleshooting](#troubleshooting)
-    - [Accessing Logs](#accessing-logs)
-  - [Importable Workflow](#importable-workflow)
-    - [Prerequisites](#prerequisites)
-    - [How to import the workflow](#how-to-import-the-workflow)
-    - [Workflow Options](#workflow-options)
+1. [How to write tests](#how-to-write-tests)
+   - a. [Adding a new test](#adding-a-new-test)
+   - b. [Running the tests with custom images](#running-tests-with-custom-images)
+   - b. [Code samples](#code-samples)
+     - [Setup](#setup)
+     - [Creating test users](#creating-test-users)
+     - [Waiting](#waiting)
+     - [Query wallet balances](#query-wallet-balances)
+     - [Broadcasting messages](#broadcasting-messages)
+     - [Starting the relayer](#starting-the-relayer)
+     - [Arbitrary commands](#arbitrary-commands)
+     - [IBC transfer](#ibc-transfer)
+2. [Test design](#test-design)
+   - a. [interchaintest](#interchaintest)
+   - b. [CI configuration](#ci-configuration)
+3. [Github Workflows](#github-workflows)
+4. [Running Compatibility Tests](#running-compatibility-tests)
+5. [Troubleshooting](#troubleshooting)
+6. [Importable Workflow](#importable-workflow)
 
 # How to write tests
 
 ## Adding a new test
 
 All tests should go under the [e2e](https://github.com/cosmos/ibc-go/tree/main/e2e) directory. When adding a new test, either add a new test function
-to an existing test suite **_in the same file_**, or create a new test suite in a new file and add test functions there.
+to an existing test suite ***in the same file***, or create a new test suite in a new file and add test functions there.
 New test files should follow the convention of `module_name_test.go`.
+
+After creating a new test file, be sure to add a build constraint that ensures this file will **not** be included in the package to be built when
+running tests locally via `make test`. For an example of this, see any of the existing test files.
 
 New test suites should be composed of `testsuite.E2ETestSuite`. This type has lots of useful helper functionality that will
 be quite common in most tests.
@@ -63,12 +55,12 @@ options specified in your config file.
 | CHAIN_B_TAG          | The tag used for chain A                  | latest        |
 | CHAIN_BINARY         | The binary used in the container          | simd          |
 | RELAYER_TAG          | The tag used for the relayer              | main          |
-| RELAYER_TYPE         | The type of relayer to use (rly/hermes)   | rly           |
+| RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes        |
 
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
 
-These environment variables allow us to run tests with arbitrary verions (from branches or released) of simd
+These environment variables allow us to run tests with arbitrary versions (from branches or released) of simd
 and the go relayer.
 
 Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd).
@@ -83,7 +75,6 @@ export CHAIN_BINARY="simd"
 # We can also specify different values for the chains if needed.
 # they will default to the same as chain a.
 # export CHAIN_B_TAG="main"
-# export CHAIN_BINARY="icad"
 
 export RELAYER_TAG="v2.0.0"
 make e2e-test entrypoint=TestInterchainAccountsTestSuite test=TestMsgSubmitTx_SuccessfulTransfer
@@ -381,13 +372,13 @@ json matrix files under .github/compatibility-test-matrices and is equivalent to
 
 ### Accessing Logs
 
-- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There 
+- When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There
   may be some discrepancy in the logs collected and the output of interchain test. The containers may run for a some
   time after the logs are collected, resulting in the displayed logs to differ slightly.
 
 ## Importable Workflow
 
-This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/bc963bcfd115a0e06b8196b114496db5ea011247/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
+This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/185a220244663457372185992cfc85ed9e458bf1/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
 can be used to test both non-IBC chains, and also IBC-enabled chains.
 
 ### Prerequisites

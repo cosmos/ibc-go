@@ -4,12 +4,12 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
@@ -81,7 +81,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"signature uses new pubkey to sign",
 				func() {
-					// store in temp before assinging to interface type
+					// store in temp before assigning to interface type
 					cs := sm.ClientState()
 					h := sm.CreateHeader(sm.Diversifier)
 
@@ -120,7 +120,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 			{
 				"signature signs over old pubkey",
 				func() {
-					// store in temp before assinging to interface type
+					// store in temp before assigning to interface type
 					cs := sm.ClientState()
 					oldPubKey := sm.PublicKey
 					h := sm.CreateHeader(sm.Diversifier)

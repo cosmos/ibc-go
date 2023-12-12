@@ -8,6 +8,7 @@
 - 2021/05/20: Revision to simplify consensus state copying, remove initial height
 - 2022/04/08: Revision to deprecate AllowUpdateAfterExpiry and AllowUpdateAfterMisbehaviour
 - 2022/07/15: Revision to allow updating of TrustingPeriod
+- 2023/09/05: Revision to migrate from gov v1beta1 to gov v1
 
 ## Status
 
@@ -44,17 +45,20 @@ We elect not to deal with chains which have actually halted, which is necessaril
     1. `allow_update_after_misbehaviour` (boolean, default true). Note that this flag has been deprecated, it remains to signal intent but checks against this value will not be enforced.
 1. Require Tendermint light clients (ICS 07) to expose the following additional state mutation functions
     1. `Unfreeze()`, which unfreezes a light client after misbehaviour and clears any frozen height previously set
-1. Add a new governance proposal type, `ClientUpdateProposal`, in the `x/ibc` module
-    1. Extend the base `Proposal` with two client identifiers (`string`).
+1. Add a new governance proposal with `MsgRecoverClient`.
+    1. Create a new Msg with two client identifiers (`string`) and a signer.
     1. The first client identifier is the proposed client to be updated. This client must be either frozen or expired.
     1. The second client is a substitute client. It carries all the state for the client which may be updated. It must have identitical client and chain parameters to the client which may be updated (except for latest height, frozen height, and chain-id). It should be continually updated during the voting period.
     1. If this governance proposal passes, the client on trial will be updated to the latest state of the substitute.
+    1. The signer must be the authority set for the ibc module.
 
     Previously, `AllowUpdateAfterExpiry` and `AllowUpdateAfterMisbehaviour` were used to signal the recovery options for an expired or frozen client, and governance proposals were not allowed to overwrite the client if these parameters were set to false. However, this has now been deprecated because a code migration can overwrite the client and consensus states regardless of the value of these parameters. If governance would vote to overwrite a client or consensus state, it is likely that governance would also be willing to perform a code migration to do the same.
 
-    In addition, `TrustingPeriod` was initally not allowed to be updated by a client upgrade proposal. However, due to the number of situations experienced in production where the `TrustingPeriod` of a client should be allowed to be updated because of ie: initial misconfiguration for a canonical channel, governance should be allowed to update this client parameter.
+    In addition, `TrustingPeriod` was initially not allowed to be updated by a client upgrade proposal. However, due to the number of situations experienced in production where the `TrustingPeriod` of a client should be allowed to be updated because of ie: initial misconfiguration for a canonical channel, governance should be allowed to update this client parameter.
 
-    Note that this should NOT be lightly updated, as there may be a gap in time between when misbehaviour has occured and when the evidence of misbehaviour is submitted. For example, if the `UnbondingPeriod` is 2 weeks and the `TrustingPeriod` has also been set to two weeks, a validator could wait until right before `UnbondingPeriod` finishes, submit false information, then unbond and exit without being slashed for misbehaviour. Therefore, we recommend that the trusting period for the 07-tendermint client be set to 2/3 of the `UnbondingPeriod`.
+    In versions older than ibc-go v8, `MsgRecoverClient` was a governance proposal type `ClientUpdateProposal`. It has been removed and replaced by `MsgRecoverClient` in the migration from governance v1beta1 to governance v1.
+
+    Note that this should NOT be lightly updated, as there may be a gap in time between when misbehaviour has occurred and when the evidence of misbehaviour is submitted. For example, if the `UnbondingPeriod` is 2 weeks and the `TrustingPeriod` has also been set to two weeks, a validator could wait until right before `UnbondingPeriod` finishes, submit false information, then unbond and exit without being slashed for misbehaviour. Therefore, we recommend that the trusting period for the 07-tendermint client be set to 2/3 of the `UnbondingPeriod`.
 
 Note that clients frozen due to misbehaviour must wait for the evidence to expire to avoid becoming refrozen.
 
@@ -83,3 +87,4 @@ No neutral consequences.
 - [Prior discussion](https://github.com/cosmos/ics/issues/421)
 - [Epoch number discussion](https://github.com/cosmos/ics/issues/439)
 - [Upgrade plan discussion](https://github.com/cosmos/ics/issues/445)
+- [Migration from gov v1beta1 to gov v1](https://github.com/cosmos/ibc-go/issues/3672)

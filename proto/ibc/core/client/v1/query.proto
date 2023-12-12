@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.client.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v7/modules/core/02-client/types";
+option go_package = "github.com/cosmos/ibc-go/v8/modules/core/02-client/types";
 
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/core/client/v1/client.proto";
@@ -108,7 +108,7 @@ message QueryConsensusStateRequest {
   uint64 revision_number = 2;
   // consensus state revision height
   uint64 revision_height = 3;
-  // latest_height overrrides the height field and queries the latest stored
+  // latest_height overrides the height field and queries the latest stored
   // ConsensusState
   bool latest_height = 4;
 }

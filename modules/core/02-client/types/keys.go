@@ -8,8 +8,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 const (
@@ -25,6 +25,9 @@ const (
 	// KeyNextClientSequence is the key used to store the next client sequence in
 	// the keeper.
 	KeyNextClientSequence = "nextClientSequence"
+
+	// ParamsKey is the store key for the IBC client parameters
+	ParamsKey = "clientParams"
 )
 
 // FormatClientIdentifier returns the client identifier with the sequence appended.
@@ -38,7 +41,7 @@ func FormatClientIdentifier(clientType string, sequence uint64) string {
 // which per the specification only permits ASCII for the {client-type} segment and
 // 1 to 20 digits for the {N} segment.
 // `([\w-]+\w)?` allows for a letter or hyphen, with the {client-type} starting with a letter
-// and ending with a letter, i.e. `letter+(letter|hypen+letter)?`.
+// and ending with a letter, i.e. `letter+(letter|hyphen+letter)?`.
 var IsClientIDFormat = regexp.MustCompile(`^\w+([\w-]+\w)?-[0-9]{1,20}$`).MatchString
 
 // IsValidClientID checks if the clientID is valid and can be parsed into the client

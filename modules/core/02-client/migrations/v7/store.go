@@ -4,17 +4,18 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v7/internal/errors"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 // Localhost is the client type for a localhost client. It is also used as the clientID
@@ -35,16 +36,16 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 		return err
 	}
 
-	if err := handleTendermintMigration(ctx, store, cdc, clientKeeper); err != nil {
+	if err := handleTendermintMigration(ctx, store, clientKeeper); err != nil {
 		return err
 	}
 
-	return handleLocalhostMigration(ctx, store, cdc, clientKeeper)
+	return handleLocalhostMigration(ctx, store, clientKeeper)
 }
 
 // handleSolomachineMigration iterates over the solo machine clients and migrates client state from
 // protobuf definition v2 to v3. All consensus states stored outside of the client state are pruned.
-func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func handleSolomachineMigration(ctx sdk.Context, store storetypes.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
 	clients, err := collectClients(ctx, store, exported.Solomachine)
 	if err != nil {
 		return err
@@ -81,7 +82,7 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 
 // handlerTendermintMigration asserts that the tendermint client in state can be decoded properly.
 // This ensures the upgrading chain properly registered the tendermint client types on the chain codec.
-func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func handleTendermintMigration(ctx sdk.Context, store storetypes.KVStore, clientKeeper ClientKeeper) error {
 	clients, err := collectClients(ctx, store, exported.Tendermint)
 	if err != nil {
 		return err
@@ -113,7 +114,7 @@ func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bin
 }
 
 // handleLocalhostMigration removes all client and consensus states associated with the localhost client type.
-func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func handleLocalhostMigration(ctx sdk.Context, store storetypes.KVStore, clientKeeper ClientKeeper) error {
 	clients, err := collectClients(ctx, store, Localhost)
 	if err != nil {
 		return err
@@ -136,9 +137,9 @@ func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bina
 // avoid state corruption as modifying state during iteration is unsafe. A special case
 // for tendermint clients is included as only one tendermint clientID is required for
 // v7 migrations.
-func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clients []string, err error) {
+func collectClients(ctx sdk.Context, store storetypes.KVStore, clientType string) (clients []string, err error) {
 	clientPrefix := host.PrefixedClientStoreKey([]byte(clientType))
-	iterator := sdk.KVStorePrefixIterator(store, clientPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, clientPrefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -162,8 +163,8 @@ func collectClients(ctx sdk.Context, store sdk.KVStore, clientType string) (clie
 
 // removeAllClientConsensusStates removes all client consensus states from the associated
 // client store.
-func removeAllClientConsensusStates(clientStore sdk.KVStore) {
-	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
+func removeAllClientConsensusStates(clientStore storetypes.KVStore) {
+	iterator := storetypes.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
 	var heights []exported.Height
 
 	defer iterator.Close()

@@ -25,7 +25,8 @@ func (fr FeatureReleases) IsSupported(versionStr string) bool {
 	const releasePrefix = "release-"
 	if strings.HasPrefix(versionStr, releasePrefix) {
 		versionStr = versionStr[len(releasePrefix):]
-		versionStr = strings.ReplaceAll(versionStr, "x", "0")
+		// replace x with 999 so the release version is always larger than the others in the release line.
+		versionStr = strings.ReplaceAll(versionStr, "x", "999")
 	}
 
 	// assume any non-semantic version formatted version supports the feature
@@ -34,7 +35,7 @@ func (fr FeatureReleases) IsSupported(versionStr string) bool {
 		return true
 	}
 
-	if semverGTE(versionStr, fr.MajorVersion) {
+	if fr.MajorVersion != "" && GTE(versionStr, fr.MajorVersion) {
 		return true
 	}
 
@@ -42,15 +43,15 @@ func (fr FeatureReleases) IsSupported(versionStr string) bool {
 		mvMajor, versionStrMajor := semver.Major(mv), semver.Major(versionStr)
 
 		if semverEqual(mvMajor, versionStrMajor) {
-			return semverGTE(versionStr, mv)
+			return GTE(versionStr, mv)
 		}
 	}
 
 	return false
 }
 
-// semverGTE returns true if versionA is greater than or equal to versionB.
-func semverGTE(versionA, versionB string) bool {
+// GTE returns true if versionA is greater than or equal to versionB.
+func GTE(versionA, versionB string) bool {
 	return semver.Compare(versionA, versionB) >= 0
 }
 

@@ -3,14 +3,13 @@ package host
 import "fmt"
 
 const (
-	KeySequencePrefix          = "sequences"
-	KeyChannelCapabilityPrefix = "capabilities"
-	KeyNextSeqSendPrefix       = "nextSequenceSend"
-	KeyNextSeqRecvPrefix       = "nextSequenceRecv"
-	KeyNextSeqAckPrefix        = "nextSequenceAck"
-	KeyPacketCommitmentPrefix  = "commitments"
-	KeyPacketAckPrefix         = "acks"
-	KeyPacketReceiptPrefix     = "receipts"
+	KeySequencePrefix         = "sequences"
+	KeyNextSeqSendPrefix      = "nextSequenceSend"
+	KeyNextSeqRecvPrefix      = "nextSequenceRecv"
+	KeyNextSeqAckPrefix       = "nextSequenceAck"
+	KeyPacketCommitmentPrefix = "commitments"
+	KeyPacketAckPrefix        = "acks"
+	KeyPacketReceiptPrefix    = "receipts"
 )
 
 // ICS04

@@ -1,32 +1,16 @@
-# Security
+# How to Report a Security Bug
 
-> **IMPORTANT**: If you find a security issue, you can contact our team directly at
-security@interchain.berlin, or report it to our [bug bounty program](https://hackerone.com/cosmos) on HackerOne. *DO NOT* open a public issue on the repository.
+If you believe you have found a security vulnerability in the Interchain Stack, you can report it to our primary vulnerability disclosure channel, the [Cosmos HackerOne Bug Bounty program](https://hackerone.com/cosmos?type=team).
 
-## Bug Bounty
+<!-- markdown-link-check-disable-next-line -->
+If you prefer to report an issue via email, you may send a bug report to [security@interchain.io](security@interchain.io) with the issue details, reproduction, impact, and other information. Please submit only one unique email thread per vulnerability. Any issues reported via email are ineligible for bounty rewards. 
 
-As part of our [Coordinated Vulnerability Disclosure Policy](https://tendermint.com/security), we operate a
-[bug bounty program](https://hackerone.com/cosmos) with Hacker One.
+Artifacts from an email report are saved at the time the email is triaged. Please note: our team is not able to monitor dynamic content (e.g. a Google Docs link that is edited after receipt) throughout the lifecycle of a report. If you would like to share additional information or modify previous information, please include it in an additional reply as an additional attachment.
 
-See the policy linked above for more details on submissions and rewards and read
-this [blog post](https://blog.cosmos.network/bug-bounty-program-for-tendermint-cosmos-833c67693586) for the program scope.
+Please DO NOT file a public issue in this repository to report a security vulnerability. 
 
-The following is a list of examples of the kinds of bugs we're most interested
-in for the IBC Golang repository. Please refer to the corresponding repositories for vulnerabilities on the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk/blob/master/SECURITY.md) and [CometBFT](https://github.com/cometbft/cometbft/blob/master/SECURITY.md) repositories.
+# Coordinated Vulnerability Disclosure Policy and Safe Harbor
 
-### IBC Core
+For the most up-to-date version of the policies that govern vulnerability disclosure, please consult the [HackerOne program page](https://hackerone.com/cosmos?type=team&view_policy=true).
 
-- [`02-client`](https://github.com/cosmos/ibc-go/tree/main/modules/core/02-client)
-- [`03-connection`](https://github.com/cosmos/ibc-go/tree/main/modules/core/03-connection)
-- [`04-channel`](https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel)
-- [`05-port`](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port)
-- [`23-commitment`](https://github.com/cosmos/ibc-go/tree/main/modules/core/23-commitment)
-- [`24-host`](https://github.com/cosmos/ibc-go/tree/main/modules/core/24-host)
-
-### IBC Applications
-
-- [`transfer`](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer)
-
-### Light Clients
-
-- [`07-tendermint`](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
+The policy hosted on HackerOne is the official Coordinated Vulnerability Disclosure policy and Safe Harbor for the Interchain Stack, and the teams and infrastructure it supports, and it supersedes previous security policies that have been used in the past by individual teams and projects with targets in scope of the program.

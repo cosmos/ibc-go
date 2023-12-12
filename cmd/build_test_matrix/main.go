@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -16,7 +17,7 @@ const (
 	testNamePrefix     = "Test"
 	testFileNameSuffix = "_test.go"
 	e2eTestDirectory   = "e2e"
-	// testEntryPointEnv specifes a single test function to run if provided.
+	// testEntryPointEnv specifies a single test function to run if provided.
 	testEntryPointEnv = "TEST_ENTRYPOINT"
 	// testExclusionsEnv is a comma separated list of test function names that will not be included
 	// in the results of this script.
@@ -144,6 +145,10 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 			})
 		}
 	}
+	// Sort the test cases by name so that the order is consistent.
+	sort.SliceStable(gh.Include, func(i, j int) bool {
+		return gh.Include[i].Test < gh.Include[j].Test
+	})
 
 	if testName != "" && len(gh.Include) != 1 {
 		return GithubActionTestMatrix{}, fmt.Errorf("expected exactly 1 test in the output matrix but got %d", len(gh.Include))
