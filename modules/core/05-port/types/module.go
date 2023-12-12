@@ -12,7 +12,6 @@ import (
 // IBCModule defines an interface that implements all the callbacks
 // that modules must define as specified in ICS-26
 type IBCModule interface {
-	UpgradableModule
 	// OnChanOpenInit will verify that the relayer-chosen parameters
 	// are valid and perform any custom INIT logic.
 	// It may return an error if the chosen parameters are invalid

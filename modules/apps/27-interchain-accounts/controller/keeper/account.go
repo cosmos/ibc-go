@@ -85,7 +85,7 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 	firstMsgResponse := res.MsgResponses[0]
 	channelOpenInitResponse, ok := firstMsgResponse.GetCachedValue().(*channeltypes.MsgChannelOpenInitResponse)
 	if !ok {
-		return "", errorsmod.Wrapf(ibcerrors.ErrInvalidType, "failed to covert %T message response to %T", firstMsgResponse.GetCachedValue(), &channeltypes.MsgChannelOpenInitResponse{})
+		return "", errorsmod.Wrapf(ibcerrors.ErrInvalidType, "failed to convert %T message response to %T", firstMsgResponse.GetCachedValue(), &channeltypes.MsgChannelOpenInitResponse{})
 	}
 
 	return channelOpenInitResponse.ChannelId, nil
