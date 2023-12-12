@@ -154,14 +154,7 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 // TODO: Actually setup a single chain. Seeing panic: runtime error: index out of range [0] with length 0 when using a single chain.
 // issue: https://github.com/strangelove-ventures/interchaintest/issues/401
 func (s *E2ETestSuite) SetupSingleChain(ctx context.Context) ibc.Chain {
-	chainA, chainB := s.GetChains(func(options *ChainOptions) {
-		numValidators, numFullNodes := 1, 0
-		options.ChainASpec.NumFullNodes = &numFullNodes
-		options.ChainASpec.NumValidators = &numValidators
-
-		options.ChainBSpec.NumFullNodes = &numFullNodes
-		options.ChainBSpec.NumValidators = &numValidators
-	})
+	chainA, chainB := s.GetChains()
 
 	ic := interchaintest.NewInterchain().AddChain(chainA).AddChain(chainB)
 
