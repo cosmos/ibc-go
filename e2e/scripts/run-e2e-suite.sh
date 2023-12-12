@@ -11,20 +11,12 @@ function _verify_jq() {
       fi
 }
 
-
 function _verify_dependencies() {
     # jq is always required to determine the entrypoint of the test.
     _verify_jq
 }
 
 _verify_dependencies
-
-# if jq is installed, we can automatically determine the test entrypoint.
-# if command -v jq > /dev/null; then
-#    cd ..
-#    ENTRY_POINT="$(go run -mod=readonly cmd/build_test_matrix/main.go | jq -r --arg TEST "${TEST}" '.include[] | select( .test == $TEST)  | .entrypoint')"
-#    cd - > /dev/null
-# fi
 
 # find the name of the file that has this test in it.
 test_file="$(grep --recursive --files-with-matches './' -e "${ENTRY_POINT}(t")"

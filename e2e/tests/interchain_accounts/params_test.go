@@ -26,15 +26,14 @@ func TestParamsInterchainAccountsTestSuite(t *testing.T) {
 
 type ParamsInterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
-	chainA ibc.Chain
-	chainB ibc.Chain
-	rly    ibc.Relayer
 }
 
 func (s *ParamsInterchainAccountsTestSuite) SetupTest() {
 	ctx := context.TODO()
-	s.chainA, s.chainB = s.GetChains()
-	s.rly = s.SetupRelayer(ctx, nil, s.chainA, s.chainB)
+	chainA, chainB := s.GetChains()
+	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
+	s.SetChainsIntoSuite(chainA, chainB)
+	s.SetRelayerIntoSuite(relayer)
 }
 
 // QueryControllerParams queries the params for the controller
@@ -60,24 +59,27 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainAVersion := s.chainA.Config().Images[0].Version
+	chainA, chainB := s.GetChainsFromSuite()
+	relayer := s.GetRelayerFromSuite()
+
+	chainAVersion := chainA.Config().Images[0].Version
 
 	// setup controller account on chainA
-	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
 	controllerAddress := controllerAccount.FormattedAddress()
 
 	t.Run("ensure the controller is enabled", func(t *testing.T) {
 		// setup relayers and connection-0 between two chains
 		// channel-0 is a transfer channel but it will not be used in this test case
-		_, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		_, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		params := s.QueryControllerParams(ctx, s.chainA)
+		params := s.QueryControllerParams(ctx, chainA)
 		s.Require().True(params.ControllerEnabled)
 	})
 
 	t.Run("disable the controller", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, s.chainA)
+			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
@@ -85,19 +87,19 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 				Signer: authority.String(),
 				Params: controllertypes.NewParams(false),
 			}
-			s.ExecuteAndPassGovV1Proposal(ctx, &msg, s.chainA, controllerAccount)
+			s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainA, controllerAccount)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(controllertypes.StoreKey, string(controllertypes.KeyControllerEnabled), "false"),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, s.chainA, controllerAccount, proposal, s.chainB)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal, chainB)
 		}
 	})
 
 	t.Run("ensure controller is disabled", func(t *testing.T) {
-		params := s.QueryControllerParams(ctx, s.chainA)
+		params := s.QueryControllerParams(ctx, chainA)
 		s.Require().False(params.ControllerEnabled)
 	})
 
@@ -106,13 +108,13 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
-		txResp := s.BroadcastMessages(ctx, s.chainA, controllerAccount, s.chainB, msgRegisterAccount)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, chainB, msgRegisterAccount)
 		s.AssertTxFailure(txResp, controllertypes.ErrControllerSubModuleDisabled)
 	})
 
 	t.Run("enable the controller", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, s.chainA)
+			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
@@ -120,19 +122,19 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 				Signer: authority.String(),
 				Params: controllertypes.NewParams(true),
 			}
-			s.ExecuteAndPassGovV1Proposal(ctx, &msg, s.chainA, controllerAccount)
+			s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainA, controllerAccount)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(controllertypes.StoreKey, string(controllertypes.KeyControllerEnabled), "true"),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, s.chainA, controllerAccount, proposal, s.chainB)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal, chainB)
 		}
 	})
 
 	t.Run("ensure controller is enable", func(t *testing.T) {
-		params := s.QueryControllerParams(ctx, s.chainA)
+		params := s.QueryControllerParams(ctx, chainA)
 		s.Require().True(params.ControllerEnabled)
 	})
 }
@@ -141,27 +143,30 @@ func (s *ParamsInterchainAccountsTestSuite) TestHostEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainBVersion := s.chainB.Config().Images[0].Version
+	chainA, chainB := s.GetChainsFromSuite()
+	relayer := s.GetRelayerFromSuite()
+
+	chainBVersion := chainB.Config().Images[0].Version
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
-	chainBUser := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, s.chainB)
+	chainBUser := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
 
 	// Assert that default value for enabled is true.
 	t.Run("ensure the host is enabled", func(t *testing.T) {
 		// setup relayers and connection-0 between two chains
 		// channel-0 is a transfer channel but it will not be used in this test case
-		_, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		_, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
 
-		params := s.QueryHostParams(ctx, s.chainB)
+		params := s.QueryHostParams(ctx, chainB)
 		s.Require().True(params.HostEnabled)
 		s.Require().Equal([]string{hosttypes.AllowAllHostMsgs}, params.AllowMessages)
 	})
 
 	t.Run("disable the host", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainBVersion) {
-			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, s.chainB)
+			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
@@ -169,25 +174,25 @@ func (s *ParamsInterchainAccountsTestSuite) TestHostEnabledParam() {
 				Signer: authority.String(),
 				Params: hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
 			}
-			s.ExecuteAndPassGovV1Proposal(ctx, &msg, s.chainB, chainBUser)
+			s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainB, chainBUser)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(hosttypes.StoreKey, string(hosttypes.KeyHostEnabled), "false"),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, s.chainB, chainBUser, proposal, s.chainA)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal, chainA)
 		}
 	})
 
 	t.Run("ensure the host is disabled", func(t *testing.T) {
-		params := s.QueryHostParams(ctx, s.chainB)
+		params := s.QueryHostParams(ctx, chainB)
 		s.Require().False(params.HostEnabled)
 	})
 
 	t.Run("enable the host", func(t *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainBVersion) {
-			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, s.chainB)
+			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
 			s.Require().NoError(err)
 			s.Require().NotNil(authority)
 
@@ -195,19 +200,19 @@ func (s *ParamsInterchainAccountsTestSuite) TestHostEnabledParam() {
 				Signer: authority.String(),
 				Params: hosttypes.NewParams(true, []string{hosttypes.AllowAllHostMsgs}),
 			}
-			s.ExecuteAndPassGovV1Proposal(ctx, &msg, s.chainB, chainBUser)
+			s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainB, chainBUser)
 		} else {
 			changes := []paramsproposaltypes.ParamChange{
 				paramsproposaltypes.NewParamChange(hosttypes.StoreKey, string(hosttypes.KeyHostEnabled), "true"),
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, s.chainB, chainBUser, proposal, s.chainA)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal, chainA)
 		}
 	})
 
 	t.Run("ensure the host is enable", func(t *testing.T) {
-		params := s.QueryHostParams(ctx, s.chainB)
+		params := s.QueryHostParams(ctx, chainB)
 		s.Require().True(params.HostEnabled)
 	})
 }

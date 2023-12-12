@@ -33,9 +33,6 @@ func TestGenesisTestSuite(t *testing.T) {
 
 type GenesisTestSuite struct {
 	testsuite.E2ETestSuite
-	chainA ibc.Chain
-	chainB ibc.Chain
-	rly    ibc.Relayer
 }
 
 func (s *GenesisTestSuite) SetupTest() {
@@ -50,33 +47,39 @@ func (s *GenesisTestSuite) SetupTest() {
 	}
 
 	// create chains with specified chain configuration options
-	s.chainA, s.chainB = s.GetChains(chainOpts)
-	s.rly = s.SetupRelayer(ctx, nil, s.chainA, s.chainB)
+	chainA, chainB := s.GetChains(chainOpts)
+	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
+	s.SetChainsIntoSuite(chainA, chainB)
+	s.SetRelayerIntoSuite(relayer)
 }
 
 func (s *GenesisTestSuite) TestIBCGenesis() {
 	t := s.T()
 
 	ctx := context.Background()
-	channelA, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+
+	chainA, chainB := s.GetChainsFromSuite()
+	relayer := s.GetRelayerFromSuite()
+
+	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 	s.Require().NoError(err)
 	chainAChannels := channelA[len(channelA)-1]
 	var (
-		chainADenom    = s.chainA.Config().Denom
+		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, chainAChannels.Counterparty.PortID, chainAChannels.Counterparty.ChannelID) // IBC token sent to chainB
 
 	)
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, s.chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
 	chainBAddress := chainBWallet.FormattedAddress()
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, s.chainA, s.chainB), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, s.chainA, chainAWallet, chainAChannels.PortID, chainAChannels.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, s.chainB), 0, "", s.chainB)
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, chainAChannels.PortID, chainAChannels.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", chainB)
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -90,9 +93,9 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
-	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
 	controllerAddress := controllerAccount.FormattedAddress()
-	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, s.chainB)
+	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
 	var hostAccount string
 
 	t.Run("ics27: broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
@@ -100,18 +103,18 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
-		txResp := s.BroadcastMessages(ctx, s.chainA, controllerAccount, s.chainB, msgRegisterAccount)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, chainB, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(s.rly)
+		s.StartRelayer(relayer)
 	})
 
 	t.Run("ics20: packets are relayed", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, s.chainA, chainAChannels.PortID, chainAChannels.ChannelID, 1)
+		s.AssertPacketRelayed(ctx, chainA, chainAChannels.PortID, chainAChannels.ChannelID, 1)
 
-		actualBalance, err := s.QueryBalance(ctx, s.chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 
 		s.Require().NoError(err)
 
@@ -121,23 +124,23 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	t.Run("ics27: verify interchain account", func(t *testing.T) {
 		var err error
-		hostAccount, err = s.QueryInterchainAccount(ctx, s.chainA, controllerAddress, ibctesting.FirstConnectionID)
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
-		channels, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), 2)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, s.chainA, s.chainB), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
-		s.HaltChainAndExportGenesis(ctx, s.chainA.(*cosmos.CosmosChain), s.rly, int64(haltHeight))
+		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), relayer, int64(haltHeight))
 	})
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, s.chainA, chainAWallet, chainAChannels.PortID, chainAChannels.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, s.chainB), 0, "", s.chainB)
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, chainAChannels.PortID, chainAChannels.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", chainB)
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -152,10 +155,10 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	t.Run("ics27: interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
 		t.Run("fund interchain account wallet", func(t *testing.T) {
 			// fund the host account so it has some $$ to send
-			err := s.chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
+			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
 				Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
-				Denom:   s.chainB.Config().Denom,
+				Denom:   chainB.Config().Denom,
 			})
 			s.Require().NoError(err)
 		})
@@ -165,7 +168,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
 				ToAddress:   chainBAccount.FormattedAddress(),
-				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(s.chainB.Config().Denom)),
+				Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 			}
 
 			cdc := testsuite.Codec()
@@ -182,19 +185,19 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 			resp := s.BroadcastMessages(
 				ctx,
-				s.chainA,
+				chainA,
 				controllerAccount,
-				s.chainB,
+				chainB,
 				msgSendTx,
 			)
 
 			s.AssertTxSuccess(resp)
 
-			s.Require().NoError(test.WaitForBlocks(ctx, 10, s.chainA, s.chainB))
+			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 5, s.chainA, s.chainB), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 }
 
 func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain, relayer ibc.Relayer, haltHeight int64) {

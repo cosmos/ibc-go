@@ -27,15 +27,14 @@ func TestRecoverClientTestSuite(t *testing.T) {
 
 type RecoverClientTestSuite struct {
 	testsuite.E2ETestSuite
-	chainA ibc.Chain
-	chainB ibc.Chain
-	rly    ibc.Relayer
 }
 
 func (s *RecoverClientTestSuite) SetupTest() {
 	ctx := context.TODO()
-	s.chainA, s.chainB = s.GetChains()
-	s.rly = s.SetupRelayer(ctx, s.TransferChannelOptions(), s.chainA, s.chainB)
+	chainA, chainB := s.GetChains()
+	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
+	s.SetChainsIntoSuite(chainA, chainB)
+	s.SetRelayerIntoSuite(relayer)
 }
 
 // Status queries the current status of the client
@@ -56,6 +55,9 @@ func (s *RecoverClientTestSuite) TestRecoverClient_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
+	chainA, chainB := s.GetChainsFromSuite()
+	relayer := s.GetRelayerFromSuite()
+
 	var (
 		pathName           string
 		subjectClientID    string
@@ -65,7 +67,7 @@ func (s *RecoverClientTestSuite) TestRecoverClient_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		_, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		_, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
 
 		// TODO: update when client identifier created is accessible
@@ -77,14 +79,14 @@ func (s *RecoverClientTestSuite) TestRecoverClient_Succeeds() {
 		pathName = strings.ReplaceAll(pathName, "/", "-")
 	})
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
 
 	t.Run("create subject client with bad trusting period", func(t *testing.T) {
 		createClientOptions := ibc.CreateClientOptions{
 			TrustingPeriod: badTrustingPeriod.String(),
 		}
 
-		s.SetupClients(ctx, s.rly, createClientOptions)
+		s.SetupClients(ctx, relayer, createClientOptions)
 
 		// TODO: update when client identifier created is accessible
 		// currently assumes second client is 07-tendermint-1
@@ -94,42 +96,42 @@ func (s *RecoverClientTestSuite) TestRecoverClient_Succeeds() {
 	time.Sleep(badTrustingPeriod)
 
 	t.Run("update substitute client", func(t *testing.T) {
-		s.UpdateClients(ctx, s.rly, pathName)
+		s.UpdateClients(ctx, relayer, pathName)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, s.chainA, s.chainB), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("check status of each client", func(t *testing.T) {
 		t.Run("substitute should be active", func(t *testing.T) {
-			status, err := s.Status(ctx, s.chainA, substituteClientID)
+			status, err := s.Status(ctx, chainA, substituteClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
 
 		t.Run("subject should be expired", func(t *testing.T) {
-			status, err := s.Status(ctx, s.chainA, subjectClientID)
+			status, err := s.Status(ctx, chainA, subjectClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Expired.String(), status)
 		})
 	})
 
 	t.Run("execute proposal for MsgRecoverClient", func(t *testing.T) {
-		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, s.chainA)
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
 		s.Require().NotNil(recoverClientMsg)
-		s.ExecuteAndPassGovV1Proposal(ctx, recoverClientMsg, s.chainA, chainAWallet)
+		s.ExecuteAndPassGovV1Proposal(ctx, recoverClientMsg, chainA, chainAWallet)
 	})
 
 	t.Run("check status of each client", func(t *testing.T) {
 		t.Run("substitute should be active", func(t *testing.T) {
-			status, err := s.Status(ctx, s.chainA, substituteClientID)
+			status, err := s.Status(ctx, chainA, substituteClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
 
 		t.Run("subject should be active", func(t *testing.T) {
-			status, err := s.Status(ctx, s.chainA, subjectClientID)
+			status, err := s.Status(ctx, chainA, subjectClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})

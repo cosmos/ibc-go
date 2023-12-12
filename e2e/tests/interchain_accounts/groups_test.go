@@ -70,16 +70,19 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 	t := s.T()
 	ctx := context.TODO()
 
+	chainA, chainB := s.GetChainsFromSuite()
+	relayer := s.GetRelayerFromSuite()
+
 	var (
 		groupPolicyAddr   string
 		interchainAccAddr string
 		err               error
 	)
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, s.chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, s.chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	t.Run("create group with new threshold decision policy", func(t *testing.T) {
@@ -94,18 +97,18 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 		msgCreateGroupWithPolicy, err := grouptypes.NewMsgCreateGroupWithPolicy(chainAAddress, members, DefaultMetadata, DefaultMetadata, true, decisionPolicy)
 		s.Require().NoError(err)
 
-		txResp := s.BroadcastMessages(ctx, s.chainA, chainAWallet, s.chainB, msgCreateGroupWithPolicy)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, msgCreateGroupWithPolicy)
 		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("submit proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
-		groupPolicyAddr = s.QueryGroupPolicyAddress(ctx, s.chainA)
+		groupPolicyAddr = s.QueryGroupPolicyAddress(ctx, chainA)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID))
 
 		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED, "e2e groups proposal: for MsgRegisterInterchainAccount", "e2e groups proposal: for MsgRegisterInterchainAccount")
 		s.Require().NoError(err)
 
-		txResp := s.BroadcastMessages(ctx, s.chainA, chainAWallet, s.chainB, msgSubmitProposal)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, msgSubmitProposal)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -117,30 +120,30 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 			Exec:       grouptypes.Exec_EXEC_TRY,
 		}
 
-		txResp := s.BroadcastMessages(ctx, s.chainA, chainAWallet, s.chainB, msgVote)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, msgVote)
 		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(s.rly)
+		s.StartRelayer(relayer)
 	})
 
 	t.Run("verify interchain account registration success", func(t *testing.T) {
-		interchainAccAddr, err = s.QueryInterchainAccount(ctx, s.chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
+		interchainAccAddr, err = s.QueryInterchainAccount(ctx, chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
 		s.Require().NotEmpty(interchainAccAddr)
 		s.Require().NoError(err)
 
-		channels, err := s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		chanNumber++
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), chanNumber) // 1 transfer (created by default), 1 interchain-accounts
 	})
 
 	t.Run("fund interchain account wallet", func(t *testing.T) {
-		err := s.chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
+		err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: interchainAccAddr,
 			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
-			Denom:   s.chainB.Config().Denom,
+			Denom:   chainB.Config().Denom,
 		})
 		s.Require().NoError(err)
 	})
@@ -149,7 +152,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 		msgBankSend := &banktypes.MsgSend{
 			FromAddress: interchainAccAddr,
 			ToAddress:   chainBAddress,
-			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(s.chainB.Config().Denom)),
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
 		}
 
 		cdc := testsuite.Codec()
@@ -167,7 +170,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgSubmitTx}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED, "e2e groups proposal: for MsgRegisterInterchainAccount", "e2e groups proposal: for MsgRegisterInterchainAccount")
 		s.Require().NoError(err)
 
-		txResp := s.BroadcastMessages(ctx, s.chainA, chainAWallet, s.chainB, msgSubmitProposal)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, msgSubmitProposal)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -179,20 +182,20 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 			Exec:       grouptypes.Exec_EXEC_TRY,
 		}
 
-		txResp := s.BroadcastMessages(ctx, s.chainA, chainAWallet, s.chainB, msgVote)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, msgVote)
 		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		s.Require().NoError(test.WaitForBlocks(ctx, 10, s.chainA, s.chainB), "failed to wait for blocks")
-		balance, err := s.QueryBalance(ctx, s.chainB, chainBAddress, s.chainB.Config().Denom)
+		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+		balance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainB.Config().Denom)
 
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance.Int64())
 
-		balance, err = s.QueryBalance(ctx, s.chainB, interchainAccAddr, s.chainB.Config().Denom)
+		balance, err = s.QueryBalance(ctx, chainB, interchainAccAddr, chainB.Config().Denom)
 		s.Require().NoError(err)
 
 		expected = testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
