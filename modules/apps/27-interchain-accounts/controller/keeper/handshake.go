@@ -18,7 +18,7 @@ import (
 // The channel order must be ORDERED, the counterparty port identifier
 // must be the host chain representation as defined in the types package,
 // the channel version must be equal to the version in the types package,
-// there must not be an active channel for the specfied port identifier,
+// there must not be an active channel for the specified port identifier,
 // and the interchain accounts module must be able to claim the channel
 // capability.
 func (k Keeper) OnChanOpenInit(

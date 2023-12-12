@@ -156,7 +156,7 @@ func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, client
 		NextValidatorsHash: header.Header.NextValidatorsHash,
 	}
 
-	// set client state, consensus state and asssociated metadata
+	// set client state, consensus state and associated metadata
 	setClientState(clientStore, cdc, &cs)
 	setConsensusState(clientStore, cdc, consensusState, header.GetHeight())
 	setConsensusMetadata(ctx, clientStore, header.GetHeight())
