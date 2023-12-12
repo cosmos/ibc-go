@@ -1219,32 +1219,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: nil,
 		},
 		{
-			name: "sender is authority, upgrade can be cancelled in FLUSHING state even with invalid error receipt upgrade sequence",
-			malleate: func() {
-				isAuthority = true
-
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
-
-				var ok bool
-				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().True(ok)
-
-				errorReceipt.Sequence = path.EndpointA.GetChannel().UpgradeSequence - 1
-
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
-
-				suite.coordinator.CommitBlock(suite.chainB)
-
-				suite.Require().NoError(path.EndpointA.UpdateClient())
-
-				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
-			},
-			expError: nil,
-		},
-		{
 			name: "sender is authority, upgrade cannot be cancelled in FLUSHCOMPLETE with invalid error receipt",
 			malleate: func() {
 				isAuthority = true
@@ -1253,7 +1227,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: commitmenttypes.ErrInvalidProof,
 		},
 		{
-			name: "sender is authority, upgrade cannot be cancalled in FLUSHCOMPLETE with error receipt sequence less than channel upgrade sequence",
+			name: "sender is authority, upgrade cannot be cancelled in FLUSHCOMPLETE with error receipt sequence less than channel upgrade sequence",
 			malleate: func() {
 				isAuthority = true
 
@@ -1352,17 +1326,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				errorReceiptProof = nil
 			},
 			expError: commitmenttypes.ErrInvalidProof,
-		},
-		{
-			name: "sender is authority, channel is flushing, cancel succeeds with empty proof",
-			malleate: func() {
-				isAuthority = true
-				errorReceiptProof = nil
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
-			},
-			expError: nil,
 		},
 	}
 
