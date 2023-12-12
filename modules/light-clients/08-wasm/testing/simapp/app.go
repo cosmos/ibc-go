@@ -494,6 +494,7 @@ func NewSimApp(
 	if mockVM != nil {
 		// NOTE: mockVM is used for testing purposes only!
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
+<<<<<<< HEAD
 			appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, nil,
 		)
@@ -501,6 +502,15 @@ func NewSimApp(
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 			appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, nil,
+=======
+			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, app.GRPCQueryRouter(),
+		)
+	} else {
+		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
+			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, app.GRPCQueryRouter(),
+>>>>>>> e2bcb775 (feat(08-wasm): querier plugins implemented (#5345))
 		)
 	}
 
