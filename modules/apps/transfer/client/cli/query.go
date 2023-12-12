@@ -45,7 +45,7 @@ func GetCmdQueryDenomTrace() *cobra.Command {
 }
 
 // GetCmdQueryDenomTraces defines the command to query all the denomination trace infos
-// that this chain mantains.
+// that this chain maintains.
 func GetCmdQueryDenomTraces() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "denom-traces",

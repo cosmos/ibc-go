@@ -16,8 +16,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-// test sending from chainA to chainB using both coin that orignate on
-// chainA and coin that orignate on chainB
+// test sending from chainA to chainB using both coin that originate on
+// chainA and coin that originate on chainB
 func (suite *KeeperTestSuite) TestSendTransfer() {
 	var (
 		coin            sdk.Coin
@@ -181,16 +181,16 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 		Set up:
 		- Two transfer channels between chain A and chain B (channel-0 and channel-1).
 		- Tokens of native denom "stake" on chain A transferred to chain B over channel-0
-		and vouchers minted with denom trace "tranfer/channel-0/stake".
+		and vouchers minted with denom trace "transfer/channel-0/stake".
 
 		Execute:
-		- Transfer vouchers of denom trace "tranfer/channel-0/stake" from chain B to chain A
+		- Transfer vouchers of denom trace "transfer/channel-0/stake" from chain B to chain A
 		over channel-1.
 
 		Assert:
 		- The vouchers are not of a native denom (because they are of an IBC denom), but chain B
 		is the source, then the value for total escrow amount should still be stored for the IBC
-		denom that corresponds to the trace "tranfer/channel-0/stake".
+		denom that corresponds to the trace "transfer/channel-0/stake".
 	*/
 
 	// set up
@@ -241,7 +241,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 	suite.Require().Equal(sdkmath.NewInt(100), totalEscrow.Amount)
 }
 
-// test receiving coin on chainB with coin that orignate on chainA and
+// test receiving coin on chainB with coin that originate on chainA and
 // coin that originated on chainB (source). The bulk of the testing occurs
 // in the test case for loop since setup is intensive for all cases. The
 // malleate function allows for testing invalid cases.
@@ -453,7 +453,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		Assert:
 		- The vouchers are not of a native denom (because they are of an IBC denom), but chain B
 		is the source, then the value for total escrow amount should still be updated for the IBC
-		denom that corresponds to the trace "tranfer/channel-0/stake" when the vouchers are
+		denom that corresponds to the trace "transfer/channel-0/stake" when the vouchers are
 		received back on chain B.
 	*/
 
@@ -515,7 +515,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	err := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 	suite.Require().NoError(err)
 
-	// check total amount in escrow of sent token on reveiving chain
+	// check total amount in escrow of sent token on receiving chain
 	totalEscrowChainB = suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.ZeroInt(), totalEscrowChainB.Amount)
 }
@@ -644,13 +644,13 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		account for port ID transfer and channel ID channel-1.
 
 		Execute:
-		- Acknowledge vouchers of denom trace "tranfer/channel-0/stake" sent from chain B
+		- Acknowledge vouchers of denom trace "transfer/channel-0/stake" sent from chain B
 		to chain B over channel-1.
 
 		Assert:
 		- The vouchers are not of a native denom (because they are of an IBC denom), but chain B
 		is the source, then the value for total escrow amount should still be updated for the IBC
-		denom that corresponds to the trace "tranfer/channel-0/stake" when processing the failed
+		denom that corresponds to the trace "transfer/channel-0/stake" when processing the failed
 		acknowledgement.
 	*/
 
@@ -841,13 +841,13 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		account for port ID transfer and channel ID channel-1.
 
 		Execute:
-		- Timeout vouchers of denom trace "tranfer/channel-0/stake" sent from chain B
+		- Timeout vouchers of denom trace "transfer/channel-0/stake" sent from chain B
 		to chain B over channel-1.
 
 		Assert:
 		- The vouchers are not of a native denom (because they are of an IBC denom), but chain B
 		is the source, then the value for total escrow amount should still be updated for the IBC
-		denom that corresponds to the trace "tranfer/channel-0/stake" when processing the timeout.
+		denom that corresponds to the trace "transfer/channel-0/stake" when processing the timeout.
 	*/
 
 	seq := uint64(1)

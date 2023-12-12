@@ -77,11 +77,11 @@ type WasmEngine interface {
 		deserCost wasmvmtypes.UFraction,
 	) (*wasmvmtypes.Response, uint64, error)
 
-	// Sudo allows native Go modules to make priviledged (sudo) calls on the contract.
+	// Sudo allows native Go modules to make privileged (sudo) calls on the contract.
 	// The contract can expose entry points that cannot be triggered by any transaction, but only via
 	// native Go modules, and delegate the access control to the system.
 	//
-	// These work much like Migrate (same scenario) but allows custom apps to extend the priviledged entry points
+	// These work much like Migrate (same scenario) but allows custom apps to extend the privileged entry points
 	// without forking cosmwasm-vm.
 	Sudo(
 		checksum wasmvm.Checksum,
