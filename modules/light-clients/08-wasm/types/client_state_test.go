@@ -579,14 +579,14 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 		{
 			"invalid path argument",
 			func() {
-				path = ibcmock.KeyPath{}
+				path = mock.KeyPath{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
 		{
 			"proof height is invalid type",
 			func() {
-				proofHeight = ibcmock.Height{}
+				proofHeight = mock.Height{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
