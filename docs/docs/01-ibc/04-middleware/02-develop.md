@@ -15,7 +15,7 @@ The interfaces a middleware must implement are found [here](https://github.com/c
 ```go
 // Middleware implements the ICS26 Module interface
 type Middleware interface {
-  IBCModule // middleware has acccess to an underlying application which may be wrapped by more middleware
+  IBCModule // middleware has access to an underlying application which may be wrapped by more middleware
   ICS4Wrapper // middleware has access to ICS4Wrapper which may be core IBC Channel Handler or a higher-level middleware that wraps this middleware.
 }
 ```
@@ -348,7 +348,7 @@ See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_
 
 Middleware must also wrap ICS-04 so that any communication from the application to the `channelKeeper` goes through the middleware first. Similar to the packet callbacks, the middleware may modify outgoing acknowledgements and packets in any way it wishes.
 
-To ensure optimal generalisability, the `ICS4Wrapper` abstraction serves to abstract away whether a middleware is the topmost middleware (and thus directly caling into the ICS-04 `channelKeeper`) or itself being wrapped by another middleware.
+To ensure optimal generalisability, the `ICS4Wrapper` abstraction serves to abstract away whether a middleware is the topmost middleware (and thus directly calling into the ICS-04 `channelKeeper`) or itself being wrapped by another middleware.
 
 Remember that middleware can be stateful or stateless. When defining the stateful middleware's keeper, the `ics4Wrapper` field is included. Then the appropriate keeper can be passed when instantiating the middleware's keeper in `app.go`
 

@@ -7,7 +7,7 @@ slug: /roadmap/roadmap
 
 # Roadmap ibc-go
 
-*Lastest update: March 31, 2022*
+*Last update: March 31, 2022*
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 
@@ -20,8 +20,8 @@ At a high level we will focus on:
 - Finishing the implementation of [relayer incentivisation](https://github.com/orgs/cosmos/projects/7/views/8).
 - Finishing the [refactoring of 02-client](https://github.com/cosmos/ibc-go/milestone/16).
 - Finishing the upgrade to Cosmos SDK v0.46 and Tendermint v0.35.
-- Implementing and testing the changes needed to support the [transtion to SMT storage](https://github.com/cosmos/ibc-go/milestone/21) in the Cosmos SDK.
-- Desiging the implementation and scoping the engineering work for [channel upgradability](https://github.com/cosmos/ibc/blob/master/spec/core/ics-004-channel-and-packet-semantics/UPGRADES.md).
+- Implementing and testing the changes needed to support the [transition to SMT storage](https://github.com/cosmos/ibc-go/milestone/21) in the Cosmos SDK.
+- Designing the implementation and scoping the engineering work for [channel upgradability](https://github.com/cosmos/ibc/blob/master/spec/core/ics-004-channel-and-packet-semantics/UPGRADES.md).
 - Improving the project's documentation and writing guides for [light client](https://github.com/cosmos/ibc-go/issues/59) and middleware implementation.
 - Working on [core backlog issues](https://github.com/cosmos/ibc-go/milestone/8).
 - Spending time on expanding and deepening our knowledge of IBC, but also other parts of the Cosmos stack.

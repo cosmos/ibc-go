@@ -79,7 +79,7 @@ func KeyPayee(relayerAddr, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", PayeeKeyPrefix, relayerAddr, channelID))
 }
 
-// ParseKeyPayeeAddress returns the registered relayer addresss and channelID used to the store the fee payee address
+// ParseKeyPayeeAddress returns the registered relayer address and channelID used to the store the fee payee address
 func ParseKeyPayeeAddress(key string) (relayerAddr, channelID string, err error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 3 {

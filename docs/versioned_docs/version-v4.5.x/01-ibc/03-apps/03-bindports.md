@@ -70,7 +70,7 @@ Currently, ports must be bound on app initialization. In order to bind modules t
        if err := host.PortIdentifierValidator(gs.PortId); err != nil {
            return err
        }
-       //addtional validations
+       //additional validations
 
        return gs.Params.Validate()
    }
