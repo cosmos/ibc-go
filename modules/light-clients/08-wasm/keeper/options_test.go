@@ -6,7 +6,6 @@ import (
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
-	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
@@ -38,7 +37,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 			func() {
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
@@ -63,7 +62,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
@@ -89,7 +88,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
@@ -116,7 +115,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),

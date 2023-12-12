@@ -10,21 +10,14 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm"
 
 	errorsmod "cosmossdk.io/errors"
-<<<<<<< HEAD
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-=======
->>>>>>> e2bcb775 (feat(08-wasm): querier plugins implemented (#5345))
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-<<<<<<< HEAD
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-=======
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
->>>>>>> e2bcb775 (feat(08-wasm): querier plugins implemented (#5345))
 )
 
 // Keeper defines the 08-wasm keeper
@@ -63,15 +56,7 @@ func NewKeeperWithVM(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-<<<<<<< HEAD
-	ibcwasm.SetVM(vm)
-	ibcwasm.SetQuerier(querier)
-	ibcwasm.SetWasmStoreKey(storeKey)
-
-	return Keeper{
-=======
 	keeper := &Keeper{
->>>>>>> e2bcb775 (feat(08-wasm): querier plugins implemented (#5345))
 		cdc:          cdc,
 		clientKeeper: clientKeeper,
 		authority:    authority,
@@ -86,7 +71,7 @@ func NewKeeperWithVM(
 
 	ibcwasm.SetVM(vm)
 	ibcwasm.SetQueryRouter(queryRouter)
-	ibcwasm.SetupWasmStoreService(storeService)
+	ibcwasm.SetWasmStoreKey(storeKey)
 
 	return *keeper
 }
@@ -108,11 +93,7 @@ func NewKeeperWithConfig(
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-<<<<<<< HEAD
-	return NewKeeperWithVM(cdc, storeKey, clientKeeper, authority, vm, querier)
-=======
-	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, queryRouter, opts...)
->>>>>>> e2bcb775 (feat(08-wasm): querier plugins implemented (#5345))
+	return NewKeeperWithVM(cdc, storeKey, clientKeeper, authority, vm, queryRouter, opts...)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
@@ -120,11 +101,7 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-<<<<<<< HEAD
 func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)) ([]byte, error) {
-=======
-func (Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode) (wasmvm.Checksum, error)) ([]byte, error) {
->>>>>>> e2bcb775 (feat(08-wasm): querier plugins implemented (#5345))
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")

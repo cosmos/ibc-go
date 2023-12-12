@@ -1,11 +1,11 @@
 package types
 
 import (
-	"cosmossdk.io/log"
+	"github.com/cometbft/cometbft/libs/log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 )
 
 // IBC 08-wasm events

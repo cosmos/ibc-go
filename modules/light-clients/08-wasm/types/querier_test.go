@@ -38,13 +38,6 @@ func MockCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 			return data, err
 		}
 
-<<<<<<< HEAD
-func (*CustomQueryHandler) Query(request wasmvmtypes.QueryRequest, _ uint64) ([]byte, error) {
-	var customQuery CustomQuery
-	err := json.Unmarshal([]byte(request.Custom), &customQuery)
-	if err != nil {
-=======
->>>>>>> e2bcb775 (feat(08-wasm): querier plugins implemented (#5345))
 		return nil, wasmtesting.ErrMockContract
 	}
 }

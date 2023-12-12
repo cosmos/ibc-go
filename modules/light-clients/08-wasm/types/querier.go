@@ -8,7 +8,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -142,14 +142,14 @@ func AcceptListStargateQuerier(acceptedQueries []string) func(sdk.Context, *wasm
 			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("No route to query '%s'", request.Path)}
 		}
 
-		res, err := route(ctx, &abci.RequestQuery{
+		res, err := route(ctx, abci.RequestQuery{
 			Data: request.Data,
 			Path: request.Path,
 		})
 		if err != nil {
 			return nil, err
 		}
-		if res == nil || res.Value == nil {
+		if res.Value == nil {
 			return nil, wasmvmtypes.InvalidResponse{Err: "Query response is empty"}
 		}
 
