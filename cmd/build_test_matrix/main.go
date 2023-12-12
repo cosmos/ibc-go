@@ -17,7 +17,7 @@ const (
 	testNamePrefix     = "Test"
 	testFileNameSuffix = "_test.go"
 	e2eTestDirectory   = "e2e"
-	// testEntryPointEnv specifes a single test function to run if provided.
+	// testEntryPointEnv specifies a single test function to run if provided.
 	testEntryPointEnv = "TEST_ENTRYPOINT"
 	// testExclusionsEnv is a comma separated list of test function names that will not be included
 	// in the results of this script.

@@ -170,7 +170,7 @@ func TestValidateIBCDenom(t *testing.T) {
 		{"empty denom", "", true},
 		{"denom 'ibc'", "ibc", true},
 		{"denom 'ibc/'", "ibc/", true},
-		{"invald hash", "ibc/!@#$!@#", true},
+		{"invalid hash", "ibc/!@#$!@#", true},
 	}
 
 	for _, tc := range testCases {

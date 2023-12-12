@@ -34,7 +34,7 @@ const (
 	// exceeded for a proposal to succeed.
 	DefaultGroupThreshold = "1"
 
-	// DefaultMetadata defines a resusable metadata string for testing purposes
+	// DefaultMetadata defines a reusable metadata string for testing purposes
 	DefaultMetadata = "custom metadata"
 
 	// DefaultMinExecutionPeriod is the minimum duration after the proposal submission

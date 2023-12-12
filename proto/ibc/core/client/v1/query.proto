@@ -108,7 +108,7 @@ message QueryConsensusStateRequest {
   uint64 revision_number = 2;
   // consensus state revision height
   uint64 revision_height = 3;
-  // latest_height overrrides the height field and queries the latest stored
+  // latest_height overrides the height field and queries the latest stored
   // ConsensusState
   bool latest_height = 4;
 }

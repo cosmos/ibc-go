@@ -20,7 +20,7 @@ const (
 )
 
 // GetCmdQueryChannels defines the command to query all the channels ends
-// that this chain mantains.
+// that this chain maintains.
 func GetCmdQueryChannels() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "channels",

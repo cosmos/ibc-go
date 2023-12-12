@@ -26,7 +26,7 @@ The fee middleware module exposes two different ways to pay fees for relaying IB
      Fee                 Fee
      // the source port unique identifier
      SourcePortId        string
-     // the source channel unique identifer
+     // the source channel unique identifier
      SourceChannelId     string
      // account address to refund fee if necessary
      Signer              string
