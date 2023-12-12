@@ -175,7 +175,8 @@ func validateConnectionParams(metadata Metadata, controllerConnectionID, hostCon
 	return nil
 }
 
-func MedataFromVersion(versionString string) (Metadata, error) {
+// MetadataFromVersion parses Metadata from a json encoded version string.
+func MetadataFromVersion(versionString string) (Metadata, error) {
 	var metadata Metadata
 	if err := ModuleCdc.UnmarshalJSON([]byte(versionString), &metadata); err != nil {
 		return Metadata{}, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal ICS-27 interchain accounts metadata")
