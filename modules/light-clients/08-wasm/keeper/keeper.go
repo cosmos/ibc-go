@@ -10,9 +10,9 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
@@ -41,7 +41,8 @@ func NewKeeperWithVM(
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
-	querier wasmvm.Querier,
+	queryRouter ibcwasm.QueryRouter,
+	opts ...Option,
 ) Keeper {
 	if clientKeeper == nil {
 		panic(errors.New("client keeper must be not nil"))
@@ -55,15 +56,24 @@ func NewKeeperWithVM(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	ibcwasm.SetVM(vm)
-	ibcwasm.SetQuerier(querier)
-	ibcwasm.SetWasmStoreKey(storeKey)
-
-	return Keeper{
+	keeper := &Keeper{
 		cdc:          cdc,
 		clientKeeper: clientKeeper,
 		authority:    authority,
 	}
+
+	// set query plugins to ensure there is a non-nil query plugin
+	// regardless of what options the user provides
+	ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
+	for _, opt := range opts {
+		opt.apply(keeper)
+	}
+
+	ibcwasm.SetVM(vm)
+	ibcwasm.SetQueryRouter(queryRouter)
+	ibcwasm.SetWasmStoreKey(storeKey)
+
+	return *keeper
 }
 
 // NewKeeperWithConfig creates a new Keeper instance with the provided Wasm configuration.
@@ -75,14 +85,15 @@ func NewKeeperWithConfig(
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
-	querier wasmvm.Querier,
+	queryRouter ibcwasm.QueryRouter,
+	opts ...Option,
 ) Keeper {
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
 	if err != nil {
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(cdc, storeKey, clientKeeper, authority, vm, querier)
+	return NewKeeperWithVM(cdc, storeKey, clientKeeper, authority, vm, queryRouter, opts...)
 }
 
 // GetAuthority returns the 08-wasm module's authority.

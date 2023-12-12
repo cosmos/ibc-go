@@ -157,7 +157,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
-					nil,
+					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			true,
@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
 					ibcwasm.GetVM(),
-					nil,
+					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			false,
@@ -187,7 +187,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
-					nil,
+					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			false,
@@ -202,11 +202,26 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
-					nil,
+					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			false,
 			errors.New("wasm VM must be not nil"),
+		},
+		{
+			"failure: nil query router",
+			func() {
+				keeper.NewKeeperWithVM(
+					GetSimApp(suite.chainA).AppCodec(),
+					GetSimApp(suite.chainA).GetKey(types.StoreKey),
+					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
+					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
+					ibcwasm.GetVM(),
+					nil,
+				)
+			},
+			false,
+			errors.New("query router must be not nil"),
 		},
 	}
 

@@ -495,12 +495,12 @@ func NewSimApp(
 		// NOTE: mockVM is used for testing purposes only!
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
 			appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, nil,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, app.GRPCQueryRouter(),
 		)
 	} else {
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 			appCodec, keys[wasmtypes.StoreKey], app.IBCKeeper.ClientKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, nil,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, app.GRPCQueryRouter(),
 		)
 	}
 
