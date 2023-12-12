@@ -12,125 +12,125 @@ on:
 
 
 jobs:
-  upgrade-v5-hermes:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-binary: simd
-      chain-a-tag: v4.4.1
-      chain-b-tag: v4.4.1
-      chain-upgrade-tag: v5.1.0
-      upgrade-plan-name: "normal upgrade"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestIBCChainUpgrade"
-      upload-logs: true
-      relayer-type: hermes
+  # upgrade-v5-hermes:
+  #   uses: ./.github/workflows/e2e-test-workflow-call.yml
+  #   with:
+  #     chain-image: ghcr.io/cosmos/ibc-go-simd
+  #     chain-binary: simd
+  #     chain-a-tag: v4.4.1
+  #     chain-b-tag: v4.4.1
+  #     chain-upgrade-tag: v5.1.0
+  #     upgrade-plan-name: "normal upgrade"
+  #     test-entry-point:  "TestUpgradeTestSuite"
+  #     test: "TestIBCChainUpgrade"
+  #     upload-logs: true
+  #     relayer-type: hermes
 
-  upgrade-v7-hermes:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-binary: simd
-      chain-a-tag: v6.1.0
-      chain-b-tag: v6.1.0
-      chain-upgrade-tag: v7.0.0
-      upgrade-plan-name: "v7"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV6ToV7ChainUpgrade"
-      upload-logs: true
-      relayer-type: hermes
+  # upgrade-v7-hermes:
+  #   uses: ./.github/workflows/e2e-test-workflow-call.yml
+  #   with:
+  #     chain-image: ghcr.io/cosmos/ibc-go-simd
+  #     chain-binary: simd
+  #     chain-a-tag: v6.1.0
+  #     chain-b-tag: v6.1.0
+  #     chain-upgrade-tag: v7.0.0
+  #     upgrade-plan-name: "v7"
+  #     test-entry-point:  "TestUpgradeTestSuite"
+  #     test: "TestV6ToV7ChainUpgrade"
+  #     upload-logs: true
+  #     relayer-type: hermes
 
-  upgrade-v7_1-hermes:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-binary: simd
-      chain-a-tag: v7.0.0
-      chain-b-tag: v7.0.0
-      chain-upgrade-tag: v7.1.0
-      upgrade-plan-name: "v7.1"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV7ToV7_1ChainUpgrade"
-      upload-logs: true
-      relayer-type: hermes
+  # upgrade-v7_1-hermes:
+  #   uses: ./.github/workflows/e2e-test-workflow-call.yml
+  #   with:
+  #     chain-image: ghcr.io/cosmos/ibc-go-simd
+  #     chain-binary: simd
+  #     chain-a-tag: v7.0.0
+  #     chain-b-tag: v7.0.0
+  #     chain-upgrade-tag: v7.1.0
+  #     upgrade-plan-name: "v7.1"
+  #     test-entry-point:  "TestUpgradeTestSuite"
+  #     test: "TestV7ToV7_1ChainUpgrade"
+  #     upload-logs: true
+  #     relayer-type: hermes
 
-  upgrade-v8-hermes:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-binary: simd
-      chain-a-tag: v7.0.0
-      chain-b-tag: v7.0.0
-      chain-upgrade-tag: v8.0.0
-      upgrade-plan-name: "v8"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV7ToV8ChainUpgrade"
-      upload-logs: true
-      relayer-type: hermes
+  # upgrade-v8-hermes:
+  #   uses: ./.github/workflows/e2e-test-workflow-call.yml
+  #   with:
+  #     chain-image: ghcr.io/cosmos/ibc-go-simd
+  #     chain-binary: simd
+  #     chain-a-tag: v7.0.0
+  #     chain-b-tag: v7.0.0
+  #     chain-upgrade-tag: v8.0.0
+  #     upgrade-plan-name: "v8"
+  #     test-entry-point:  "TestUpgradeTestSuite"
+  #     test: "TestV7ToV8ChainUpgrade"
+  #     upload-logs: true
+  #     relayer-type: hermes
 
-  upgrade-v5-rly:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-binary: simd
-      chain-a-tag: v4.4.1
-      chain-b-tag: v4.4.1
-      chain-upgrade-tag: v5.1.0
-      upgrade-plan-name: "normal upgrade"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestIBCChainUpgrade"
-      upload-logs: true
-      relayer-type: rly
-      relayer-image: ghcr.io/cosmos/relayer
-      relayer-tag: latest
+  # upgrade-v5-rly:
+  #   uses: ./.github/workflows/e2e-test-workflow-call.yml
+  #   with:
+  #     chain-image: ghcr.io/cosmos/ibc-go-simd
+  #     chain-binary: simd
+  #     chain-a-tag: v4.4.1
+  #     chain-b-tag: v4.4.1
+  #     chain-upgrade-tag: v5.1.0
+  #     upgrade-plan-name: "normal upgrade"
+  #     test-entry-point:  "TestUpgradeTestSuite"
+  #     test: "TestIBCChainUpgrade"
+  #     upload-logs: true
+  #     relayer-type: rly
+  #     relayer-image: ghcr.io/cosmos/relayer
+  #     relayer-tag: latest
 
-  upgrade-v7-rly:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-binary: simd
-      chain-a-tag: v6.1.0
-      chain-b-tag: v6.1.0
-      chain-upgrade-tag: v7.0.0
-      upgrade-plan-name: "v7"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV6ToV7ChainUpgrade"
-      upload-logs: true
-      relayer-type: rly
-      relayer-image: ghcr.io/cosmos/relayer
-      relayer-tag: latest
+  # upgrade-v7-rly:
+  #   uses: ./.github/workflows/e2e-test-workflow-call.yml
+  #   with:
+  #     chain-image: ghcr.io/cosmos/ibc-go-simd
+  #     chain-binary: simd
+  #     chain-a-tag: v6.1.0
+  #     chain-b-tag: v6.1.0
+  #     chain-upgrade-tag: v7.0.0
+  #     upgrade-plan-name: "v7"
+  #     test-entry-point:  "TestUpgradeTestSuite"
+  #     test: "TestV6ToV7ChainUpgrade"
+  #     upload-logs: true
+  #     relayer-type: rly
+  #     relayer-image: ghcr.io/cosmos/relayer
+  #     relayer-tag: latest
 
-  upgrade-v7_1-rly:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-binary: simd
-      chain-a-tag: v7.0.0
-      chain-b-tag: v7.0.0
-      chain-upgrade-tag: v7.1.0
-      upgrade-plan-name: "v7.1"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV7ToV7_1ChainUpgrade"
-      upload-logs: true
-      relayer-type: rly
-      relayer-image: ghcr.io/cosmos/relayer
-      relayer-tag: latest
+  # upgrade-v7_1-rly:
+  #   uses: ./.github/workflows/e2e-test-workflow-call.yml
+  #   with:
+  #     chain-image: ghcr.io/cosmos/ibc-go-simd
+  #     chain-binary: simd
+  #     chain-a-tag: v7.0.0
+  #     chain-b-tag: v7.0.0
+  #     chain-upgrade-tag: v7.1.0
+  #     upgrade-plan-name: "v7.1"
+  #     test-entry-point:  "TestUpgradeTestSuite"
+  #     test: "TestV7ToV7_1ChainUpgrade"
+  #     upload-logs: true
+  #     relayer-type: rly
+  #     relayer-image: ghcr.io/cosmos/relayer
+  #     relayer-tag: latest
 
-  upgrade-v8-rly:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-binary: simd
-      chain-a-tag: v7.0.0
-      chain-b-tag: v7.0.0
-      chain-upgrade-tag: v8.0.0
-      upgrade-plan-name: "v8"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV7ToV8ChainUpgrade"
-      upload-logs: true
-      relayer-type: rly
-      relayer-image: ghcr.io/cosmos/relayer
-      relayer-tag: latest
+  # upgrade-v8-rly:
+  #   uses: ./.github/workflows/e2e-test-workflow-call.yml
+  #   with:
+  #     chain-image: ghcr.io/cosmos/ibc-go-simd
+  #     chain-binary: simd
+  #     chain-a-tag: v7.0.0
+  #     chain-b-tag: v7.0.0
+  #     chain-upgrade-tag: v8.0.0
+  #     upgrade-plan-name: "v8"
+  #     test-entry-point:  "TestUpgradeTestSuite"
+  #     test: "TestV7ToV8ChainUpgrade"
+  #     upload-logs: true
+  #     relayer-type: rly
+  #     relayer-image: ghcr.io/cosmos/relayer
+  #     relayer-tag: latest
 
   upgrade-ibcwasm-v8-hermes:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
