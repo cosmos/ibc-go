@@ -25,7 +25,7 @@ It may be desirable to allow smart contracts to control an interchain account.
 To facilitate such an action, the controller submodule may be provided an underlying application which redirects to smart contract callers.
 An improved design has been suggested in [ADR 008](https://github.com/cosmos/ibc-go/pull/1976) which performs this action via middleware.
 
-Implementors of this use case are recommended to follow the ADR 008 approach.
+Implementers of this use case are recommended to follow the ADR 008 approach.
 The underlying application may continue to be used as a short term solution for ADR 008 and the [legacy API](03-auth-modules.md#registerinterchainaccount) should continue to be utilized in such situations.
 
 ## Packet callbacks
