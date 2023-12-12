@@ -11,6 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -52,7 +53,7 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 				querierPlugin := types.QueryPlugins{
 					Custom: MockCustomQuerier(),
 				}
-				types.SetQueryPlugins(&querierPlugin)
+				ibcwasm.SetQueryPlugins(&querierPlugin)
 
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					echo := CustomQuery{
@@ -109,7 +110,7 @@ func (suite *TypesTestSuite) TestCustomQuery() {
 			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 
 			// reset query plugins after each test
-			types.SetQueryPlugins(types.NewDefaultQueryPlugins())
+			ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
 		})
 	}
 }
@@ -128,7 +129,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 					Stargate: types.AcceptListStargateQuerier([]string{typeURL}),
 				}
 
-				types.SetQueryPlugins(&querierPlugin)
+				ibcwasm.SetQueryPlugins(&querierPlugin)
 
 				suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, querier wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) ([]byte, uint64, error) {
 					queryRequest := types.QueryChecksumsRequest{}
@@ -194,7 +195,7 @@ func (suite *TypesTestSuite) TestStargateQuery() {
 			clientState.Status(suite.chainA.GetContext(), clientStore, suite.chainA.App.AppCodec())
 
 			// reset query plugins after each test
-			types.SetQueryPlugins(types.NewDefaultQueryPlugins())
+			ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
 		})
 	}
 }

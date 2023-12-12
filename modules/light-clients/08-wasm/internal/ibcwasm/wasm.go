@@ -10,7 +10,8 @@ import (
 var (
 	vm WasmEngine
 
-	queryRouter QueryRouter
+	queryRouter  QueryRouter
+	queryPlugins QueryPluginsI
 
 	// state management
 	Schema    collections.Schema
@@ -46,6 +47,16 @@ func SetQueryRouter(router QueryRouter) {
 // GetQueryRouter returns the custom wasm query router for the 08-wasm module.
 func GetQueryRouter() QueryRouter {
 	return queryRouter
+}
+
+// SetQueryPlugins sets the current query plugins
+func SetQueryPlugins(plugins QueryPluginsI) {
+	queryPlugins = plugins
+}
+
+// GetQueryPlugins returns the current query plugins
+func GetQueryPlugins() QueryPluginsI {
+	return queryPlugins
 }
 
 // SetupWasmStoreService sets up the 08-wasm module's collections.

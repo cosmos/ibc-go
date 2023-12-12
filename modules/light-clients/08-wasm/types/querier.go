@@ -18,9 +18,8 @@ import (
 )
 
 var (
-	_ wasmvmtypes.Querier = (*queryHandler)(nil)
-
-	queryPlugins = NewDefaultQueryPlugins()
+	_ wasmvmtypes.Querier   = (*queryHandler)(nil)
+	_ ibcwasm.QueryPluginsI = (*QueryPlugins)(nil)
 )
 
 // queryHandler is a wrapper around the sdk.Context and the CallerID that calls
@@ -55,7 +54,7 @@ func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) 
 		q.Ctx.GasMeter().ConsumeGas(subCtx.GasMeter().GasConsumed(), "contract sub-query")
 	}()
 
-	res, err := GetQueryPlugins().HandleQuery(subCtx, q.CallerID, request)
+	res, err := ibcwasm.GetQueryPlugins().HandleQuery(subCtx, q.CallerID, request)
 	if err == nil {
 		return res, nil
 	}
@@ -67,13 +66,13 @@ func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) 
 type (
 	CustomQuerier   func(ctx sdk.Context, request json.RawMessage) ([]byte, error)
 	StargateQuerier func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error)
-)
 
-// QueryPlugins is a list of queriers that can be used to extend the default querier.
-type QueryPlugins struct {
-	Custom   CustomQuerier
-	Stargate StargateQuerier
-}
+	// QueryPlugins is a list of queriers that can be used to extend the default querier.
+	QueryPlugins struct {
+		Custom   CustomQuerier
+		Stargate StargateQuerier
+	}
+)
 
 // Merge merges the query plugin with a provided one.
 func (e QueryPlugins) Merge(x *QueryPlugins) QueryPlugins {
@@ -103,16 +102,6 @@ func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvm
 	}
 
 	return nil, wasmvmtypes.UnsupportedRequest{Kind: "Unsupported query request"}
-}
-
-// SetQueryPlugins sets the current query plugins
-func SetQueryPlugins(plugins *QueryPlugins) {
-	queryPlugins = plugins
-}
-
-// GetQueryPlugins returns the current query plugins
-func GetQueryPlugins() *QueryPlugins {
-	return queryPlugins
 }
 
 // NewDefaultQueryPlugins returns the default set of query plugins

@@ -5,6 +5,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var _ WasmEngine = (*wasmvm.VM)(nil)
@@ -122,4 +123,8 @@ type QueryRouter interface {
 	// Route returns the GRPCQueryHandler for a given query route path or nil
 	// if not found
 	Route(path string) baseapp.GRPCQueryHandler
+}
+
+type QueryPluginsI interface {
+	HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error)
 }

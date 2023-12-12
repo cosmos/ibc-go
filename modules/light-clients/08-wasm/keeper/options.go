@@ -1,6 +1,9 @@
 package keeper
 
-import "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+import (
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+)
 
 // Option is an extension point to instantiate keeper with non default values
 type Option interface {
@@ -17,8 +20,11 @@ func (f optsFn) apply(keeper *Keeper) {
 // Missing fields will be filled with default queriers.
 func WithQueryPlugins(plugins *types.QueryPlugins) Option {
 	return optsFn(func(_ *Keeper) {
-		currentPlugins := types.GetQueryPlugins()
+		currentPlugins, ok := ibcwasm.GetQueryPlugins().(*types.QueryPlugins)
+		if !ok {
+			panic("invalid query plugins type")
+		}
 		newPlugins := currentPlugins.Merge(plugins)
-		types.SetQueryPlugins(&newPlugins)
+		ibcwasm.SetQueryPlugins(&newPlugins)
 	})
 }
