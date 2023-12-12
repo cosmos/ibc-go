@@ -28,7 +28,7 @@ type ChannelTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// TestChannelUpgradeWithFeeMiddleware
+// TestChannelUpgradeWithFeeMiddleware tests upgrading a transfer channel to wire up fee middleware
 func (s *ChannelTestSuite) TestChannelUpgradeWithFeeMiddleware() {
 	t := s.T()
 	ctx := context.TODO()
@@ -36,7 +36,6 @@ func (s *ChannelTestSuite) TestChannelUpgradeWithFeeMiddleware() {
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
-	// chainAVersion := chainA.Config().Images[0].Version
 
 	chainADenom := chainA.Config().Denom
 	chainBDenom := chainB.Config().Denom
@@ -60,20 +59,15 @@ func (s *ChannelTestSuite) TestChannelUpgradeWithFeeMiddleware() {
 		s.AssertTxSuccess(transferTxResp)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
-	})
-
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
 		s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA)
 	})
 
-	// TODO: eventually we should be able to start the relayer after the gov proposal executes, but we need a new relayer image with a fix for this
-	// t.Run("start relayer", func(t *testing.T) {
-	// 	s.StartRelayer(relayer)
-	// })
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 40, chainA, chainB), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
 		// packet from chain A to chain B
@@ -98,7 +92,7 @@ func (s *ChannelTestSuite) TestChannelUpgradeWithFeeMiddleware() {
 		// check the channel version include the fee version
 		version, err := feetypes.MetadataFromVersion(channel.Version)
 		s.Require().NoError(err)
-		s.Require().Equal(feetypes.Version, version, "the channel version did not include ics29")
+		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
 
 		// extra check
 		feeEnabled, err := s.QueryFeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
@@ -113,17 +107,16 @@ func (s *ChannelTestSuite) TestChannelUpgradeWithFeeMiddleware() {
 		// check the channel version include the fee version
 		version, err := feetypes.MetadataFromVersion(channel.Version)
 		s.Require().NoError(err)
-		s.Require().Equal(feetypes.Version, version, "the channel version did not include ics29")
+		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
 
 		// extra check
 		feeEnabled, err := s.QueryFeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
 		s.Require().Equal(true, feeEnabled)
 	})
-
 }
 
-// initiateChannelUpgrade
+// initiateChannelUpgrade creates and submits a governance proposal to execute the message to initiate a channel upgrade
 func (s *ChannelTestSuite) initiateChannelUpgrade(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, channel ibc.ChannelOutput) {
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
 	s.Require().NoError(err)
