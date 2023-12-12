@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"errors"
+
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -22,7 +24,7 @@ func WithQueryPlugins(plugins *types.QueryPlugins) Option {
 	return optsFn(func(_ *Keeper) {
 		currentPlugins, ok := ibcwasm.GetQueryPlugins().(*types.QueryPlugins)
 		if !ok {
-			panic("invalid query plugins type")
+			panic(errors.New("invalid query plugins type"))
 		}
 		newPlugins := currentPlugins.Merge(plugins)
 		ibcwasm.SetQueryPlugins(&newPlugins)

@@ -51,6 +51,9 @@ func GetQueryRouter() QueryRouter {
 
 // SetQueryPlugins sets the current query plugins
 func SetQueryPlugins(plugins QueryPluginsI) {
+	if plugins == nil {
+		panic(errors.New("query plugins must be not nil"))
+	}
 	queryPlugins = plugins
 }
 
