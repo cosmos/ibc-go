@@ -68,6 +68,7 @@ func NewKeeperWithVM(
 		authority:    authority,
 	}
 
+	ibcwasm.SetQueryPlugins(types.NewDefaultQueryPlugins())
 	for _, opt := range opts {
 		opt.apply(keeper)
 	}
