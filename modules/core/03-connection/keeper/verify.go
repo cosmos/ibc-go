@@ -490,7 +490,7 @@ func (k Keeper) VerifyChannelUpgrade(
 // getBlockDelay calculates the block delay period from the time delay of the connection
 // and the maximum expected time per block.
 func (k Keeper) getBlockDelay(ctx sdk.Context, connection exported.ConnectionI) uint64 {
-	// expectedTimePerBlock should never be zero, however if it is then return a 0 blcok delay for safety
+	// expectedTimePerBlock should never be zero, however if it is then return a 0 block delay for safety
 	// as the expectedTimePerBlock parameter was not set.
 	expectedTimePerBlock := k.GetParams(ctx).MaxExpectedTimePerBlock
 	if expectedTimePerBlock == 0 {

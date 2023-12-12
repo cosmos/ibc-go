@@ -22,6 +22,7 @@ It is possible for the authority to cancel an in-progress channel upgrade if the
 - If the channel state has reached FLUSHCOMPLETE, an existence proof of an `ErrorReceipt` on the counterparty chain is provided at our upgrade sequence or greater
 
 It is possible for a relayer to cancel an in-progress channel upgrade if the following are true:
+
 - An existence proof of an `ErrorReceipt` on the counterparty chain is provided at our upgrade sequence or greater
 
 > Note: if the signer is the authority, e.g. the `gov` address, no `ErrorReceipt` or proof is required if the current channel state is not in FLUSHCOMPLETE.

@@ -223,7 +223,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
 
-	// in case of async aknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
+	// in case of async acknowledgement (ack == nil) store the relayer address for use later during async WriteAcknowledgement
 	if ack == nil {
 		im.keeper.SetRelayerAddressForAsyncAck(ctx, channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()), relayer.String())
 		return nil
