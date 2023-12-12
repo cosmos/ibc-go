@@ -15,7 +15,7 @@ import (
 )
 
 // GetCmdQueryConnections defines the command to query all the connection ends
-// that this chain mantains.
+// that this chain maintains.
 func GetCmdQueryConnections() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "connections",
