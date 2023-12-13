@@ -18,6 +18,7 @@ import (
 
 var (
 	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
+	_ porttypes.UpgradableModule      = (*IBCMiddleware)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 )
 
