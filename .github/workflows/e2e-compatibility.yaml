@@ -62,13 +62,13 @@ jobs:
       - name: Build image
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
-          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9]/-/g')"
           docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
           docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
       - name: Display image details
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
-          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9]/-/g')"
           docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
 
   transfer-chain-a:

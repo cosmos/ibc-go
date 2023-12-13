@@ -34,6 +34,6 @@ jobs:
          - name: Build image
            run: |
             # remove any `/` characters from the docker tag and replace them with a -
-            docker_tag="$(echo $GIT_TAG | sed 's/\//-/')"
+            docker_tag="$(echo $GIT_TAG | sed 's/[^a-zA-Z0-9]/-/g')"
             docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
             docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
