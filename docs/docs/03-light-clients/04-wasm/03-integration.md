@@ -209,7 +209,7 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
   app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmer, // pass the Wasm VM instance to `08-wasm` keeper constructor
-  querier,
+  app.GRPCQueryRouter(),
 )
 ...
 ```
@@ -250,7 +250,7 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
   app.IBCKeeper.ClientKeeper, 
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
-  querier
+  app.GRPCQueryRouter(),
 )
 ```
 
@@ -275,3 +275,57 @@ In order to use the `08-wasm` module chains are required to register the `WasmSn
 ## Pin byte codes at start
 
 Wasm byte codes should be pinned to the WasmVM cache on every application start, therefore [this code](https://github.com/cosmos/ibc-go/blob/0ed221f687ffce75984bc57402fd678e07aa6cc5/modules/light-clients/08-wasm/testing/simapp/app.go#L821-L826) should be placed in `NewSimApp` function in `app.go`.
+
+## 08-wasm options
+
+The `08-wasm` module comes with an options api inspired by the one in `x/wasm`.
+Currently the only option available is the `WithQueryPlugins` option, which allows to register custom query plugins for the `08-wasm` module. The use of this api is optional and it is only required if the chain wants to register custom query plugins for the `08-wasm` module.
+
+### `WithQueryPlugins`
+
+By default, the `08-wasm` module does not support any queries. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L45) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L54-L61).
+
+Assuming that the keeper is not yet instantiated, the following sample code shows how to register query plugins for the `08-wasm` module.
+
+We first construct a [`QueryPlugins`](https://github.com/cosmos/ibc-go/blob/08-wasm/release/v0.1.x%2Bibc-go-v8.0.x-wasmvm-v1.5.x/modules/light-clients/08-wasm/types/querier.go#L78-L87) object with the desired query plugins:
+
+```go
+queryPlugins := ibcwasmtypes.QueryPlugins {
+  Custom: MyCustomQueryPlugin(),
+  Stargate: ibcwasmtypes.AcceptListStargateQuerier(myAcceptList),
+}
+```
+
+You may leave any of the fields in the `QueryPlugins` object as `nil` if you do not want to register a query plugin for that query type.
+
+Then, we pass the `QueryPlugins` object to the `WithQueryPlugins` option:
+
+```go
+querierOption := ibcwasmtypes.WithQueryPlugins(queryPlugins)
+```
+
+Finally, we pass the option to the `NewKeeperWithConfig` or `NewKeeperWithVM` constructor function during [Keeper instantiation](#keeper-instantiation)
+
+```diff
+app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
+  appCodec,
+  runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+  app.IBCKeeper.ClientKeeper, 
+  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+  wasmConfig,
+  app.GRPCQueryRouter(),
++ querierOption,
+)
+```
+
+```diff
+app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
+  appCodec,
+  runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+  app.IBCKeeper.ClientKeeper,
+  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+  wasmer, // pass the Wasm VM instance to `08-wasm` keeper constructor
+  app.GRPCQueryRouter(),
++ querierOption,
+)
+```
