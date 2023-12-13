@@ -1325,9 +1325,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 		{
 			"core handler returns error and writes upgrade error receipt",
 			func() {
-				// force an upgrade error by modifying the counterparty channel upgrade timeout to be no longer valid
+				// force an upgrade error by modifying the counterparty channel upgrade timeout to be elapsed
 				upgrade := path.EndpointA.GetChannelUpgrade()
-				upgrade.Timeout = channeltypes.NewTimeout(clienttypes.ZeroHeight(), 0)
+				upgrade.Timeout = channeltypes.NewTimeout(clienttypes.ZeroHeight(), uint64(path.EndpointB.Chain.CurrentHeader.Time.UnixNano()))
 
 				path.EndpointA.SetChannelUpgrade(upgrade)
 
