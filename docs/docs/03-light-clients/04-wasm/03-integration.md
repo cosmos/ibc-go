@@ -250,7 +250,7 @@ Check out also the [`WasmConfig` type definition](https://github.com/cosmos/ibc-
 ### Options
 
 The `08-wasm` module comes with an options API inspired by the one in `x/wasm`.
-Currently the only option available is the `WithQueryPlugins` option, which allows to register custom query plugins for the `08-wasm` module. The use of this API is optional and it is only required if the chain wants to register custom query plugins for the `08-wasm` module.
+Currently the only option available is the `WithQueryPlugins` option, which allows registration of custom query plugins for the `08-wasm` module. The use of this API is optional and it is only required if the chain wants to register custom query plugins for the `08-wasm` module.
 
 ### `WithQueryPlugins`
 
