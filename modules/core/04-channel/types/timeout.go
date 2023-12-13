@@ -28,7 +28,7 @@ func (t Timeout) Elapsed(height clienttypes.Height, timestamp uint64) bool {
 // ErrTimeoutElapsed returns a timeout elapsed error indicating which timeout value
 // has elapsed.
 func (t Timeout) ErrTimeoutElapsed(height clienttypes.Height, timestamp uint64) error {
-	if !t.heightElapsed(height) {
+	if t.heightElapsed(height) {
 		return errorsmod.Wrapf(ErrTimeoutElapsed, "current height: %s, timeout height %s", height, t.Height)
 	}
 
