@@ -118,20 +118,19 @@ func (k Keeper) ChanUpgradeTry(
 	if found {
 		proposedUpgradeFields = upgrade.Fields
 	} else {
-		// if the counterparty sequence is greater than the current sequence, we fast-forward to the counterparty sequence.
-		if counterpartyUpgradeSequence > channel.UpgradeSequence {
-			// using -1 as WriteUpgradeInitChannel increments the sequence
-			channel.UpgradeSequence = counterpartyUpgradeSequence - 1
-			k.SetChannel(ctx, portID, channelID, channel)
-		}
-
 		// NOTE: OnChanUpgradeInit will not be executed by the application
 		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields)
 		if err != nil {
 			return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
 
-		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, proposedUpgradeFields.Version)
+		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, upgrade.Fields.Version)
+
+		// if the counterparty sequence is greater than the current sequence, we fast-forward to the counterparty sequence.
+		if counterpartyUpgradeSequence > channel.UpgradeSequence {
+			channel.UpgradeSequence = counterpartyUpgradeSequence
+			k.SetChannel(ctx, portID, channelID, channel)
+		}
 	}
 
 	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgradeFields); err != nil {
@@ -940,4 +939,22 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	k.SetUpgradeErrorReceipt(ctx, portID, channelID, err.GetErrorReceipt())
 
 	return channel
+}
+
+// writeErrorReceipt will write an error receipt from the provided UpgradeError.
+func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		panic(errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID))
+	}
+
+	errorReceiptToWrite := upgradeError.GetErrorReceipt()
+
+	existingErrorReceipt, found := k.GetUpgradeErrorReceipt(ctx, portID, channelID)
+	if found && existingErrorReceipt.Sequence >= errorReceiptToWrite.Sequence {
+		panic(errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than existing error receipt sequence (%d)", errorReceiptToWrite.Sequence, existingErrorReceipt.Sequence))
+	}
+
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceiptToWrite)
+	EmitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError)
 }
