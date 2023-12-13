@@ -402,7 +402,6 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 	}
 
 	cbs.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, version)
-
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface
@@ -413,7 +412,6 @@ func (im IBCMiddleware) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID 
 	}
 
 	cbs.OnChanUpgradeRestore(ctx, portID, channelID)
-
 }
 
 // GetAppVersion implements the ICS4Wrapper interface. Callbacks has no version,
