@@ -628,9 +628,7 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 	}
 
 	previousState := channel.State
-
-	channel = k.restoreChannel(ctx, portID, channelID, errorReceipt.Sequence, channel, types.NewUpgradeError(errorReceipt.Sequence, types.ErrInvalidUpgrade))
-
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
 	EmitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
 }
@@ -746,8 +744,8 @@ func (k Keeper) WriteUpgradeTimeoutChannel(
 	if !found {
 		panic(fmt.Errorf("could not find existing upgrade when cancelling channel upgrade, channelID: %s, portID: %s", channelID, portID))
 	}
-
-	channel = k.restoreChannel(ctx, portID, channelID, channel.UpgradeSequence, channel, types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout))
+	err := types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout)
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, err.GetErrorReceipt())
 
 	k.Logger(ctx).Info("channel state restored", "port-id", portID, "channel-id", channelID)
 
@@ -923,7 +921,7 @@ func (k Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 
 	// the channel upgrade sequence has already been updated in ChannelUpgradeTry, so we can pass
 	// its updated value.
-	k.restoreChannel(ctx, portID, channelID, channel.UpgradeSequence, channel, upgradeError)
+	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
 	return nil
 }
 
