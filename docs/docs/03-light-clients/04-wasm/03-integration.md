@@ -252,7 +252,7 @@ Check out also the [`WasmConfig` type definition](https://github.com/cosmos/ibc-
 The `08-wasm` module comes with an options API inspired by the one in `x/wasm`.
 Currently the only option available is the `WithQueryPlugins` option, which allows registration of custom query plugins for the `08-wasm` module. The use of this API is optional and it is only required if the chain wants to register custom query plugins for the `08-wasm` module.
 
-### `WithQueryPlugins`
+#### `WithQueryPlugins`
 
 By default, the `08-wasm` module does not support any queries. However, it is possible to register custom query plugins for [`QueryRequest::Custom`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L45) and [`QueryRequest::Stargate`](https://github.com/CosmWasm/cosmwasm/blob/v1.5.0/packages/std/src/query/mod.rs#L54-L61).
 
@@ -268,6 +268,9 @@ queryPlugins := ibcwasmtypes.QueryPlugins {
 ```
 
 You may leave any of the fields in the `QueryPlugins` object as `nil` if you do not want to register a query plugin for that query type.
+
+`myAcceptList` is a `[]string` containing the list of gRPC query paths that the chain wants to allow for the `08-wasm` module to query.
+These queries must be registered in the chain's gRPC query router, be deterministic, and track their gas usage. The `AcceptListStargateQuerier` function will return a query plugin that will only allow queries for the paths in the `myAcceptList` and encode the query response **in protobuf unlike the implementation in `x/wasm`**.
 
 Then, we pass the `QueryPlugins` object to the `WithQueryPlugins` option:
 
