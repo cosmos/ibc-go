@@ -19,6 +19,7 @@ import (
 var (
 	_ porttypes.IBCModule             = (*IBCModule)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
+	_ porttypes.UpgradableModule      = (*IBCModule)(nil)
 )
 
 // applicationCallbackError is a custom error type that will be unique for testing purposes.
