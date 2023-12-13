@@ -258,7 +258,7 @@ By default, the `08-wasm` module does not support any queries. However, it is po
 
 Assuming that the keeper is not yet instantiated, the following sample code shows how to register query plugins for the `08-wasm` module.
 
-We first construct a [`QueryPlugins`](https://github.com/cosmos/ibc-go/blob/08-wasm/release/v0.1.x%2Bibc-go-v8.0.x-wasmvm-v1.5.x/modules/light-clients/08-wasm/types/querier.go#L78-L87) object with the desired query plugins:
+We first construct a [`QueryPlugins`](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/types/querier.go#L78-L87) object with the desired query plugins:
 
 ```go
 queryPlugins := ibcwasmtypes.QueryPlugins {
