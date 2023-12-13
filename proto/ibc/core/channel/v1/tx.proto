@@ -324,7 +324,6 @@ message MsgChannelUpgradeTry {
 message MsgChannelUpgradeTryResponse {
   option (gogoproto.goproto_getters) = false;
 
-  string             channel_id       = 1;
   Upgrade            upgrade          = 2 [(gogoproto.nullable) = false];
   uint64             upgrade_sequence = 3;
   ResponseResultType result           = 4;
@@ -404,11 +403,7 @@ message MsgChannelUpgradeTimeout {
 }
 
 // MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type
-message MsgChannelUpgradeTimeoutResponse {
-  option (gogoproto.goproto_getters) = false;
-
-  ResponseResultType result = 1;
-}
+message MsgChannelUpgradeTimeoutResponse {}
 
 // MsgChannelUpgradeCancel defines the request type for the ChannelUpgradeCancel rpc
 message MsgChannelUpgradeCancel {

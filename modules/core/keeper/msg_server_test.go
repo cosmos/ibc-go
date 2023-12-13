@@ -1664,7 +1664,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().False(found, "channel upgrade should be nil")
 
 				suite.Require().NotNil(res)
-				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
 			},
 		},
 		{
