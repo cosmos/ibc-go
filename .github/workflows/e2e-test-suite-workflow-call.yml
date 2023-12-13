@@ -202,11 +202,12 @@ jobs:
         with:
           go-version: '1.21'
       - id: set-matrix
-        run: echo "matrix=$(go run cmd/build_test_suite_matrix/main.go)" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
           TEST_ENTRYPOINT: '${{ inputs.test-entry-point }}'
           TEST_SUITE_EXCLUSIONS: '${{ inputs.test-exclusions }}'
           TEST_NAME: '${{ inputs.test }}'
+          TEST_BY_SUITE: 'True'
 
   # e2e-tests runs the actual go test command to trigger the test.
   # the tests themselves are configured via environment variables to specify
