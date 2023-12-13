@@ -4,6 +4,13 @@ set -eo pipefail
 
 ENTRY_POINT="${1}"
 
+function _check_env() {
+      if ["$ENTRY_POINT" == ""] ; then
+          echo "requires an entrypoint to continue"
+          exit 1
+      fi
+}
+
 function _verify_jq() {
       if ! command -v jq > /dev/null ; then
           echo "jq is required to extract test entrypoint."
@@ -12,6 +19,7 @@ function _verify_jq() {
 }
 
 function _verify_dependencies() {
+    _check_env
     # jq is always required to determine the entrypoint of the test.
     _verify_jq
 }
