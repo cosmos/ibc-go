@@ -57,7 +57,7 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 			heightDiff = 0    // must be explicitly changed
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			tc.malleate()
 
@@ -131,7 +131,7 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 			suite.SetupTest() // reset
 			heightDiff = 0    // must be explicitly changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			tc.malleate()
 
@@ -195,7 +195,7 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			connectionKey := host.ConnectionKey(path.EndpointB.ConnectionID)
 			proof, proofHeight := suite.chainB.QueryProof(connectionKey)
@@ -260,7 +260,7 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proof, proofHeight := suite.chainB.QueryProof(channelKey)
@@ -338,7 +338,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -431,7 +431,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			ack = ibcmock.MockAcknowledgement // must be explicitly changed
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// send and receive packet
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
@@ -536,7 +536,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// send, only receive in malleate if applicable
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
@@ -637,7 +637,7 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// send and receive packet
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)

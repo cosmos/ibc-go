@@ -523,7 +523,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	// create path and setup clients
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	// get the first height as it will be pruned first.
 	var pruneHeight exported.Height

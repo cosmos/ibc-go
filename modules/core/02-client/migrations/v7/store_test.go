@@ -50,7 +50,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 
 	// create tendermint clients
 	for _, path := range paths {
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 	}
 
 	solomachines := []*ibctesting.Solomachine{

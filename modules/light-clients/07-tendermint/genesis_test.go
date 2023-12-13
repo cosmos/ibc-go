@@ -14,7 +14,7 @@ import (
 func (suite *TendermintTestSuite) TestExportMetadata() {
 	// test initializing client and exporting metadata
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	clientState := path.EndpointA.GetClientState()
 	height := clientState.GetLatestHeight()

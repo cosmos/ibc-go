@@ -118,7 +118,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 func (suite *InterchainAccountsTestSuite) TestChanOpenInit() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	// use chainB (host) for ChanOpenInit
 	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, icatypes.Version, channeltypes.ORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, icatypes.ModuleName)
@@ -183,7 +183,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -236,7 +236,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -298,7 +298,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -331,7 +331,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 // OnChanCloseInit on host (chainB)
 func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -369,7 +369,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -431,7 +431,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			suite.SetupTest() // reset
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
@@ -515,7 +515,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 			suite.SetupTest() // reset
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -568,7 +568,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 			suite.SetupTest() // reset
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -634,7 +634,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	path.EndpointA.ChannelConfig.Version = feeICAVersion
 	path.EndpointB.ChannelConfig.Version = feeICAVersion
 
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -720,7 +720,7 @@ func (suite *InterchainAccountsTestSuite) assertBalance(addr sdk.AccAddress, exp
 
 func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 

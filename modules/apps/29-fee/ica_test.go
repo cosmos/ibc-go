@@ -92,7 +92,7 @@ func RegisterInterchainAccount(endpoint *ibctesting.Endpoint, owner string) erro
 // TestFeeInterchainAccounts Integration test to ensure ics29 works with ics27
 func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	path := NewIncentivizedICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupPath(path, defaultOwnerAddress)
 	suite.Require().NoError(err)

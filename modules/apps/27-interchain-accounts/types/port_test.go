@@ -41,7 +41,7 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			tc.malleate() // malleate mutates test data
 

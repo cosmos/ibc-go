@@ -71,57 +71,6 @@ func (coord *Coordinator) UpdateTimeForChain(chain *TestChain) {
 	chain.CurrentHeader.Time = coord.CurrentTime.UTC()
 }
 
-// Setup constructs a TM client, connection, and channel on both chains provided. It will
-// fail if any error occurs. The clientID's, TestConnections, and TestChannels are returned
-// for both chains. The channels created are connected to the ibc-transfer application.
-func (coord *Coordinator) Setup(path *Path) {
-	coord.SetupConnections(path)
-
-	// channels can also be referenced through the returned connections
-	coord.CreateChannels(path)
-}
-
-// SetupClients is a helper function to create clients on both chains. It assumes the
-// caller does not anticipate any errors.
-func (coord *Coordinator) SetupClients(path *Path) {
-	err := path.EndpointA.CreateClient()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointB.CreateClient()
-	require.NoError(coord.T, err)
-}
-
-// SetupClientConnections is a helper function to create clients and the appropriate
-// connections on both the source and counterparty chain. It assumes the caller does not
-// anticipate any errors.
-func (coord *Coordinator) SetupConnections(path *Path) {
-	coord.SetupClients(path)
-
-	coord.CreateConnections(path)
-}
-
-// CreateConnection constructs and executes connection handshake messages in order to create
-// OPEN channels on chainA and chainB. The connection information of for chainA and chainB
-// are returned within a TestConnection struct. The function expects the connections to be
-// successfully opened otherwise testing will fail.
-func (coord *Coordinator) CreateConnections(path *Path) {
-	err := path.EndpointA.ConnOpenInit()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointB.ConnOpenTry()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointA.ConnOpenAck()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointB.ConnOpenConfirm()
-	require.NoError(coord.T, err)
-
-	// ensure counterparty is up to date
-	err = path.EndpointA.UpdateClient()
-	require.NoError(coord.T, err)
-}
-
 // CreateMockChannels constructs and executes channel handshake messages to create OPEN
 // channels that use a mock application module that returns nil on all callbacks. This
 // function is expects the channels to be successfully opened otherwise testing will

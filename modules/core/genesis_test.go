@@ -325,10 +325,10 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 			"success",
 			func() {
 				// creates clients
-				suite.coordinator.Setup(ibctesting.NewPath(suite.chainA, suite.chainB))
+				ibctesting.NewPath(suite.chainA, suite.chainB).Setup()
 				// create extra clients
-				suite.coordinator.SetupClients(ibctesting.NewPath(suite.chainA, suite.chainB))
-				suite.coordinator.SetupClients(ibctesting.NewPath(suite.chainA, suite.chainB))
+				ibctesting.NewPath(suite.chainA, suite.chainB).SetupClients()
+				ibctesting.NewPath(suite.chainA, suite.chainB).SetupClients()
 			},
 		},
 	}

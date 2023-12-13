@@ -67,7 +67,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			version = nil        // must be explicitly changed
 			expErrorMsgSubstring = ""
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			tc.malleate()
 
@@ -229,7 +229,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			versions = types.GetCompatibleVersions()   // may be changed in malleate
 			delayPeriod = 0                            // may be changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			tc.malleate()
 
@@ -482,7 +482,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			version = types.GetCompatibleVersions()[0] // must be explicitly changed in malleate
 			consensusHeight = clienttypes.ZeroHeight() // must be explicitly changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			tc.malleate()
 
@@ -543,7 +543,7 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 		}, false},
 		{"chain B's connection state is not TRYOPEN", func() {
 			// connections are OPEN
-			suite.coordinator.CreateConnections(path)
+			path.CreateConnections()
 		}, false},
 		{"connection state verification failed", func() {
 			// chainA is in INIT
@@ -561,7 +561,7 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			tc.malleate()
 

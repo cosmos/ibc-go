@@ -18,7 +18,7 @@ func TestChangeValSet(t *testing.T) {
 	chainB := coord.GetChain(ibctesting.GetChainID(2))
 
 	path := ibctesting.NewPath(chainA, chainB)
-	coord.Setup(path)
+	path.Setup()
 
 	amount, ok := sdkmath.NewIntFromString("10000000000000000000")
 	require.True(t, ok)

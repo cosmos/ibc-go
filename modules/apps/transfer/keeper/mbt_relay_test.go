@@ -304,8 +304,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		suite.SetupTest()
 		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
-		suite.coordinator.Setup(pathAtoB)
-		suite.coordinator.Setup(pathBtoC)
+		pathAtoB.Setup()
+		pathBtoC.Setup()
 
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)

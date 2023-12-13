@@ -155,7 +155,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 			timeoutTimestamp = ^uint64(0) // default
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -196,7 +196,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)

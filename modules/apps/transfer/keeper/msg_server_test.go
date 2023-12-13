@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			suite.SetupTest()
 
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
 			msg = types.NewMsgTransfer(

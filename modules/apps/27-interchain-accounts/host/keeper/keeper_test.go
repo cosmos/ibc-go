@@ -202,7 +202,7 @@ func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -227,7 +227,7 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -261,7 +261,7 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -293,7 +293,7 @@ func (suite *KeeperTestSuite) TestIsActiveChannel() {
 	suite.SetupTest()
 
 	path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)

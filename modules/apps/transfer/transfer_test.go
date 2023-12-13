@@ -42,7 +42,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// pathAtoB.EndpointA = endpoint on chainA
 	// pathAtoB.EndpointB = endpoint on chainB
 	pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(pathAtoB)
+	pathAtoB.Setup()
 
 	originalBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	timeoutHeight := clienttypes.NewHeight(1, 110)
@@ -79,7 +79,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// pathBtoC.EndpointA = endpoint on chainB
 	// pathBtoC.EndpointB = endpoint on chainC
 	pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
-	suite.coordinator.Setup(pathBtoC)
+	pathBtoC.Setup()
 
 	// send from chainB to chainC
 	msg = types.NewMsgTransfer(pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, coinSentFromAToB, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")

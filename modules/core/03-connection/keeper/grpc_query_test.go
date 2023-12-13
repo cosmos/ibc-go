@@ -49,7 +49,7 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 			"success",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+				path.SetupClients()
 				err := path.EndpointA.ConnOpenInit()
 				suite.Require().NoError(err)
 
@@ -124,9 +124,9 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path3 := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupConnections(path1)
-				suite.coordinator.SetupConnections(path2)
-				suite.coordinator.SetupClients(path3)
+				path1.SetupConnections()
+				path2.SetupConnections()
+				path3.SetupClients()
 
 				err := path3.EndpointA.ConnOpenInit()
 				suite.Require().NoError(err)
@@ -217,14 +217,14 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 			"success",
 			func() {
 				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupConnections(path1)
+				path1.SetupConnections()
 
 				// create another connection using same underlying clients
 				path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path2.EndpointA.ClientID = path1.EndpointA.ClientID
 				path2.EndpointB.ClientID = path1.EndpointB.ClientID
 
-				suite.coordinator.CreateConnections(path2)
+				path2.CreateConnections()
 
 				expPaths = []string{path1.EndpointA.ConnectionID, path2.EndpointA.ConnectionID}
 				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetClientConnectionPaths(suite.chainA.GetContext(), path1.EndpointA.ClientID, expPaths)
@@ -299,7 +299,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 			"client state not found",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				// set connection to empty so clientID is empty
 				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID, types.ConnectionEnd{})
@@ -313,7 +313,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 			"success",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupConnections(path)
+				path.SetupConnections()
 
 				expClientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
 				expIdentifiedClientState = clienttypes.NewIdentifiedClientState(path.EndpointA.ClientID, expClientState)
@@ -397,7 +397,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 			"consensus state not found",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				req = &types.QueryConnectionConsensusStateRequest{
 					ConnectionId:   path.EndpointA.ConnectionID,
@@ -410,7 +410,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 			"success",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupConnections(path)
+				path.SetupConnections()
 
 				clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
 				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, clientState.GetLatestHeight())

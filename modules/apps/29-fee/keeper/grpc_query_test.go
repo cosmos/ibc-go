@@ -644,7 +644,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 		{
 			"success: with multiple fee enabled channels",
 			func() {
-				suite.coordinator.Setup(suite.pathAToC)
+				suite.pathAToC.Setup()
 
 				expChannel := types.FeeEnabledChannel{
 					PortId:    suite.pathAToC.EndpointA.ChannelConfig.PortID,
@@ -695,7 +695,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			suite.coordinator.Setup(suite.path)
+			suite.path.Setup()
 
 			expChannel := types.FeeEnabledChannel{
 				PortId:    suite.path.EndpointA.ChannelConfig.PortID,
@@ -769,7 +769,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			suite.SetupTest() // reset
 			expEnabled = true
 
-			suite.coordinator.Setup(suite.path)
+			suite.path.Setup()
 
 			req = &types.QueryFeeEnabledChannelRequest{
 				PortId:    suite.path.EndpointA.ChannelConfig.PortID,

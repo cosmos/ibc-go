@@ -38,7 +38,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			amount := sdkmath.NewInt(100)
 

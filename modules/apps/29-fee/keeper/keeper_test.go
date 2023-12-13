@@ -90,7 +90,7 @@ func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetPayeeAddress() {
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 
 	payeeAddr, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetPayeeAddress(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.path.EndpointA.ChannelID)
 	suite.Require().False(found)
@@ -109,7 +109,7 @@ func (suite *KeeperTestSuite) TestGetSetPayeeAddress() {
 }
 
 func (suite *KeeperTestSuite) TestFeesInEscrow() {
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 
 	// escrow five fees for packet sequence 1
 	packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
@@ -141,7 +141,7 @@ func (suite *KeeperTestSuite) TestIsLocked() {
 }
 
 func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()
@@ -205,7 +205,7 @@ func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 
 	// escrow a fee
 	refundAcc := suite.chainA.SenderAccount.GetAddress()

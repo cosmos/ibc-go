@@ -11,11 +11,11 @@ import (
 
 func (suite *TypesTestSuite) TestValidateBasic() {
 	subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(subjectPath)
+	subjectPath.SetupClients()
 	subject := subjectPath.EndpointA.ClientID
 
 	substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(substitutePath)
+	substitutePath.SetupClients()
 	substitute := substitutePath.EndpointA.ClientID
 
 	testCases := []struct {

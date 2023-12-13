@@ -18,7 +18,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	suite.coordinator.Setup(path)
+	path.Setup()
 
 	// set up coin & ics20 packet
 	coin := ibctesting.TestCoin

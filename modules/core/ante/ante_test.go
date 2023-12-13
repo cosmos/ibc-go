@@ -37,7 +37,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 	suite.path = ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 }
 
 // TestAnteTestSuite runs all the tests within this package.

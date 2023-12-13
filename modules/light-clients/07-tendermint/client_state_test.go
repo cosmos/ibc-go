@@ -57,7 +57,7 @@ func (suite *TendermintTestSuite) TestStatus() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			clientState = path.EndpointA.GetClientState().(*ibctm.ClientState)
@@ -104,7 +104,7 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			clientState := path.EndpointA.GetClientState()
 			height = clientState.GetLatestHeight()
@@ -512,7 +512,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			suite.SetupTest() // reset
 			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
 			testingpath.SetChannelOrdered()
-			suite.coordinator.Setup(testingpath)
+			testingpath.Setup()
 
 			// reset time and block delays to 0, malleate may change to a specific non-zero value.
 			delayTimePeriod = 0
@@ -729,7 +729,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			suite.SetupTest() // reset
 			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
 			testingpath.SetChannelOrdered()
-			suite.coordinator.Setup(testingpath)
+			testingpath.Setup()
 
 			// reset time and block delays to 0, malleate may change to a specific non-zero value.
 			delayTimePeriod = 0

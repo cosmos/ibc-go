@@ -165,7 +165,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			suite.SetupTest()
 
 			path := NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			transferAuthz = types.TransferAuthorization{
 				Allocations: []types.Allocation{

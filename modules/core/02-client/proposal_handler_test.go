@@ -27,11 +27,11 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 		{
 			"valid update client proposal", func() {
 				subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(subjectPath)
+				subjectPath.SetupClients()
 				subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID)
 
 				substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(substitutePath)
+				substitutePath.SetupClients()
 
 				// update substitute twice
 				err = substitutePath.EndpointA.UpdateClient()

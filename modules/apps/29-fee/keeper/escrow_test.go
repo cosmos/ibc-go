@@ -171,8 +171,8 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest()                   // reset
-			suite.coordinator.Setup(suite.path) // setup channel
+			suite.SetupTest()  // reset
+			suite.path.Setup() // setup channel
 
 			// setup accounts
 			forwardRelayer = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -283,8 +283,8 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest()                   // reset
-			suite.coordinator.Setup(suite.path) // setup channel
+			suite.SetupTest()  // reset
+			suite.path.Setup() // setup channel
 
 			// setup accounts
 			timeoutRelayer = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
@@ -458,8 +458,8 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			suite.SetupTest()                   // reset
-			suite.coordinator.Setup(suite.path) // setup channel
+			suite.SetupTest()  // reset
+			suite.path.Setup() // setup channel
 			expIdentifiedPacketFees = []types.IdentifiedPacketFees{}
 			expEscrowBal = sdk.Coins{}
 			locked = false
