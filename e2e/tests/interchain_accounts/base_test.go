@@ -47,8 +47,7 @@ func (s *InterchainAccountsTestSuite) SetupTest() {
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
 func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
-	chainA, chainB := s.GetChains()
-	txResp := s.BroadcastMessages(ctx, chainA, user, chainB, msgRegisterAccount)
+	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
 	s.AssertTxSuccess(txResp)
 }
 
@@ -76,7 +75,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, chainB, msgRegisterAccount)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -131,7 +130,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 				ctx,
 				chainA,
 				controllerAccount,
-				chainB,
 				msgSendTx,
 			)
 
@@ -177,7 +175,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, chainB, msgRegisterAccount)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -229,7 +227,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 				ctx,
 				chainA,
 				controllerAccount,
-				chainB,
 				msgSendTx,
 			)
 
@@ -337,7 +334,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 				ctx,
 				chainA,
 				controllerAccount,
-				chainB,
 				msgSendTx,
 			)
 
@@ -414,7 +410,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 			ctx,
 			chainA,
 			controllerAccount,
-			chainB,
 			msgSendTx,
 		)
 

@@ -59,7 +59,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChains()
+	chainA, _ := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	chainAVersion := chainA.Config().Images[0].Version
@@ -94,7 +94,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal, chainB)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal)
 		}
 	})
 
@@ -108,7 +108,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, chainB, msgRegisterAccount)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxFailure(txResp, controllertypes.ErrControllerSubModuleDisabled)
 	})
 
@@ -129,7 +129,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal, chainB)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal)
 		}
 	})
 
@@ -181,7 +181,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestHostEnabledParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal, chainA)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal)
 		}
 	})
 
@@ -207,7 +207,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestHostEnabledParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal, chainA)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainB, chainBUser, proposal)
 		}
 	})
 

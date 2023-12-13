@@ -169,7 +169,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		}, upgradedClientState)
 
 		s.Require().NoError(err)
-		txResp := s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, legacyUpgradeProposal, chainB)
+		txResp := s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, legacyUpgradeProposal)
 		s.AssertTxFailure(txResp, govtypes.ErrInvalidProposalContent)
 	})
 }
@@ -240,7 +240,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 
 	t.Run("pass client update proposal", func(t *testing.T) {
 		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
-		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal, chainB)
+		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 	})
 
 	t.Run("check status of each client", func(t *testing.T) {
@@ -352,7 +352,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		msgUpdateClient, err := clienttypes.NewMsgUpdateClient(ibctesting.FirstClientID, maliciousHeader, rlyWallet.FormattedAddress())
 		s.Require().NoError(err)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, chainB, msgUpdateClient)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -408,7 +408,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 			}
 
 			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal, chainB)
+			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 		}
 	})
 

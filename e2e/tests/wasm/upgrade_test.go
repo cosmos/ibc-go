@@ -88,7 +88,7 @@ func (s *IBCWasmUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmo
 	}
 
 	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion), "upgrade chain E2E test", plan)
-	s.ExecuteAndPassGovV1Beta1ProposalWithoutChainAB(ctx, chain, wallet, upgradeProposal)
+	s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
 
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height before upgrade")

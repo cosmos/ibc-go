@@ -97,7 +97,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 		msgCreateGroupWithPolicy, err := grouptypes.NewMsgCreateGroupWithPolicy(chainAAddress, members, DefaultMetadata, DefaultMetadata, true, decisionPolicy)
 		s.Require().NoError(err)
 
-		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, msgCreateGroupWithPolicy)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgCreateGroupWithPolicy)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -108,7 +108,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED, "e2e groups proposal: for MsgRegisterInterchainAccount", "e2e groups proposal: for MsgRegisterInterchainAccount")
 		s.Require().NoError(err)
 
-		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, msgSubmitProposal)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -120,7 +120,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 			Exec:       grouptypes.Exec_EXEC_TRY,
 		}
 
-		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, msgVote)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -170,7 +170,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgSubmitTx}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED, "e2e groups proposal: for MsgRegisterInterchainAccount", "e2e groups proposal: for MsgRegisterInterchainAccount")
 		s.Require().NoError(err)
 
-		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, msgSubmitProposal)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgSubmitProposal)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -182,7 +182,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 			Exec:       grouptypes.Exec_EXEC_TRY,
 		}
 
-		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, msgVote)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgVote)
 		s.AssertTxSuccess(txResp)
 	})
 

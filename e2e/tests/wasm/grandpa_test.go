@@ -827,6 +827,6 @@ func (s *GrandpaTestSuite) allowWasmClients(ctx context.Context, chain ibc.Chain
 		}
 
 		proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-		s.ExecuteAndPassGovV1Beta1ProposalWithoutChainAB(ctx, chain, wallet, proposal)
+		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, proposal)
 	}
 }

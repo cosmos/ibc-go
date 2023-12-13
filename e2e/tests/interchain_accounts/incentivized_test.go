@@ -79,7 +79,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version)
 
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, chainA, msgRegisterAccount)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -163,7 +163,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, chainB, msgPayPacketFee, msgSendTx)
+			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
 			s.AssertTxSuccess(resp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
@@ -256,7 +256,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_In
 		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version)
 
-		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, chainB, msgRegisterAccount)
+		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
 	})
 
@@ -331,7 +331,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_In
 
 			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
 
-			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, chainB, msgPayPacketFee, msgSendTx)
+			resp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgPayPacketFee, msgSendTx)
 			s.AssertTxSuccess(resp)
 
 			s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))

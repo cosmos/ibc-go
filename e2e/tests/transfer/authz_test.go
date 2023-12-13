@@ -75,7 +75,7 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, chainB, msgGrant)
+		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
 		s.AssertTxSuccess(resp)
 	}
 
@@ -117,7 +117,7 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			Msgs:    []*codectypes.Any{protoAny},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, chainB, msgExec)
+		resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
 		s.AssertTxSuccess(resp)
 	})
 
@@ -152,7 +152,7 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			MsgTypeUrl: transfertypes.TransferAuthorization{}.MsgTypeURL(),
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, chainB, &msgRevoke)
+		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, &msgRevoke)
 		s.AssertTxSuccess(resp)
 	})
 
@@ -174,7 +174,7 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			Msgs:    []*codectypes.Any{protoAny},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, chainB, msgExec)
+		resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
 		s.AssertTxFailure(resp, authz.ErrNoAuthorizationFound)
 	})
 }
@@ -233,7 +233,7 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, chainB, msgGrant)
+		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
 		s.AssertTxSuccess(resp)
 	})
 
@@ -258,7 +258,7 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				Msgs:    []*codectypes.Any{protoAny},
 			}
 
-			resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, chainB, msgExec)
+			resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
 			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
 				s.AssertTxFailure(resp, ibcerrors.ErrInsufficientFunds)
 			} else {
@@ -315,7 +315,7 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				Msgs:    []*codectypes.Any{protoAny},
 			}
 
-			resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, chainB, msgExec)
+			resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
 			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
 				s.AssertTxFailure(resp, ibcerrors.ErrInvalidAddress)
 			} else {

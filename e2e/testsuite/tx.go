@@ -33,48 +33,7 @@ import (
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
-func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chainA ibc.Chain, user ibc.Wallet, chainB ibc.Chain, msgs ...sdk.Msg) sdk.TxResponse {
-	cosmosChain, ok := chainA.(*cosmos.CosmosChain)
-	if !ok {
-		panic("BroadcastMessages expects a cosmos.CosmosChain")
-	}
-
-	broadcaster := cosmos.NewBroadcaster(s.T(), cosmosChain)
-
-	// strip out any fields that may not be supported for the given chain version.
-	msgs = sanitize.Messages(cosmosChain.Nodes()[0].Image.Version, msgs...)
-
-	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
-		// use a codec with all the types our tests care about registered.
-		// BroadcastTx will deserialize the response and will not be able to otherwise.
-		cdc := Codec()
-		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
-	})
-
-	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
-		return factory.WithGas(DefaultGasValue)
-	})
-
-	// Retry the operation a few times if the user signing the transaction is a relayer. (See issue #3264)
-	var resp sdk.TxResponse
-	var err error
-	broadcastFunc := func() (sdk.TxResponse, error) {
-		return cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
-	}
-	if s.relayers.ContainsRelayer(s.T().Name(), user) {
-		// Retry five times, the value of 5 chosen is arbitrary.
-		resp, err = s.retryNtimes(broadcastFunc, 5)
-	} else {
-		resp, err = broadcastFunc()
-	}
-	s.Require().NoError(err)
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))
-
-	return resp
-}
-
-func (s *E2ETestSuite) BroadcastMessagesWithoutChainAB(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
+func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
 		panic("BroadcastMessages expects a cosmos.CosmosChain")
@@ -110,9 +69,7 @@ func (s *E2ETestSuite) BroadcastMessagesWithoutChainAB(ctx context.Context, chai
 	}
 	s.Require().NoError(err)
 
-	chainA, chainB := s.GetChains()
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 2, chainA, chainB))
+	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
 
 	return resp
 }
@@ -211,7 +168,7 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	)
 	s.Require().NoError(err)
 
-	resp := s.BroadcastMessagesWithoutChainAB(ctx, cosmosChain, user, msgSubmitProposal)
+	resp := s.BroadcastMessages(ctx, cosmosChain, user, msgSubmitProposal)
 	s.AssertTxSuccess(resp)
 
 	s.Require().NoError(cosmosChain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
@@ -243,39 +200,7 @@ func (s *E2ETestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc
 
 // ExecuteAndPassGovV1Beta1Proposal submits the given v1beta1 governance proposal using the provided user and uses all validators to vote yes on the proposal.
 // It ensures the proposal successfully passes.
-func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, chainA ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content, chainB ibc.Chain) {
-	cosmosChain, ok := chainA.(*cosmos.CosmosChain)
-	if !ok {
-		panic("ExecuteAndPassGovV1Beta1Proposal must be passed a cosmos.CosmosChain")
-	}
-
-	proposalID := s.proposalIDs[chainA.Config().ChainID]
-	defer func() {
-		s.proposalIDs[chainA.Config().ChainID] = proposalID + 1
-	}()
-
-	txResp := s.ExecuteGovV1Beta1Proposal(ctx, cosmosChain, user, content, chainB)
-	s.AssertTxSuccess(txResp)
-	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
-	// https://github.com/cosmos/ibc-go/issues/2122
-
-	proposal, err := s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
-	s.Require().NoError(err)
-	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
-
-	err = cosmosChain.VoteOnProposalAllValidators(ctx, fmt.Sprintf("%d", proposalID), cosmos.ProposalVoteYes)
-	s.Require().NoError(err)
-
-	// ensure voting period has not passed before validators finished voting
-	proposal, err = s.QueryProposalV1Beta1(ctx, cosmosChain, proposalID)
-	s.Require().NoError(err)
-	s.Require().Equal(govtypesv1beta1.StatusVotingPeriod, proposal.Status)
-
-	err = s.waitForGovV1Beta1ProposalToPass(ctx, cosmosChain, proposalID)
-	s.Require().NoError(err)
-}
-
-func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1ProposalWithoutChainAB(ctx context.Context, chain ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content) {
+func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, chain ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content) {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
 		panic("ExecuteAndPassGovV1Beta1Proposal must be passed a cosmos.CosmosChain")
@@ -286,9 +211,8 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1ProposalWithoutChainAB(ctx contex
 		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
 	}()
 
-	txResp := s.ExecuteGovV1Beta1ProposalWithoutChainAB(ctx, cosmosChain, user, content)
+	txResp := s.ExecuteGovV1Beta1Proposal(ctx, cosmosChain, user, content)
 	s.AssertTxSuccess(txResp)
-
 	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
 	// https://github.com/cosmos/ibc-go/issues/2122
 
@@ -322,51 +246,40 @@ func (s *E2ETestSuite) waitForGovV1Beta1ProposalToPass(ctx context.Context, chai
 }
 
 // ExecuteGovV1Beta1Proposal submits a v1beta1 governance proposal using the provided content.
-func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chainA ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content, chainB ibc.Chain) sdk.TxResponse {
-	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
-	s.Require().NoError(err)
-
-	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chainA.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
-	s.Require().NoError(err)
-
-	return s.BroadcastMessages(ctx, chainA, user, chainB, msgSubmitProposal)
-}
-
-func (s *E2ETestSuite) ExecuteGovV1Beta1ProposalWithoutChainAB(ctx context.Context, chain ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content) sdk.TxResponse {
+func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content) sdk.TxResponse {
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
 	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
 	s.Require().NoError(err)
 
-	return s.BroadcastMessagesWithoutChainAB(ctx, chain, user, msgSubmitProposal)
+	return s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
 }
 
 // Transfer broadcasts a MsgTransfer message.
-func (s *E2ETestSuite) Transfer(ctx context.Context, chainA ibc.Chain, user ibc.Wallet,
-	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string, chainB ibc.Chain,
+func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
+	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) sdk.TxResponse {
 	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
-	return s.BroadcastMessages(ctx, chainA, user, chainB, msg)
+	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
-func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chainA ibc.Chain,
+func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain ibc.Chain,
 	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string, chainB ibc.Chain,
 ) sdk.TxResponse {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
-	return s.BroadcastMessages(ctx, chainA, user, chainB, msg)
+	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
 // PayPacketFeeAsync broadcasts a MsgPayPacketFeeAsync message.
 func (s *E2ETestSuite) PayPacketFeeAsync(
 	ctx context.Context,
-	chainA ibc.Chain,
+	chain ibc.Chain,
 	user ibc.Wallet,
 	packetID channeltypes.PacketId,
 	packetFee feetypes.PacketFee,
-	chainB ibc.Chain,
 ) sdk.TxResponse {
 	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
-	return s.BroadcastMessages(ctx, chainA, user, chainB, msg)
+	return s.BroadcastMessages(ctx, chain, user, msg)
 }

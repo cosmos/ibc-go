@@ -72,7 +72,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 	chainBVersion := chainB.Config().Images[0].Version
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, chainAChannels.PortID, chainAChannels.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", chainB)
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, chainAChannels.PortID, chainAChannels.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -115,7 +115,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 	}
 
 	t.Run("non-native IBC token transfer from chainB to chainA, receiver is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, chainAChannels.Counterparty.PortID, chainAChannels.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "", chainA)
+		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, chainAChannels.Counterparty.PortID, chainAChannels.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 

@@ -115,7 +115,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee, chainB)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 
@@ -209,7 +209,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 
 	t.Run("send IBC transfer", func(t *testing.T) {
 		transferMsg := transfertypes.NewMsgTransfer(chainAChannels.PortID, chainAChannels.ChannelID, transferAmount, chainAWallet.FormattedAddress(), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, transferMsg)
+		txResp := s.BroadcastMessages(ctx, chainA, chainAWallet, transferMsg)
 		// this message should be successful, as receiver account is not validated on the sending chain.
 		s.AssertTxSuccess(txResp)
 	})
@@ -233,7 +233,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee, chainB)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 
@@ -338,7 +338,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 
 	payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, chainAChannels.PortID, chainAChannels.ChannelID, chainAWallet.FormattedAddress(), nil)
 	transferMsg := transfertypes.NewMsgTransfer(chainAChannels.PortID, chainAChannels.ChannelID, transferAmount, chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
-	resp := s.BroadcastMessages(ctx, chainA, chainAWallet, chainB, payPacketFeeMsg, transferMsg)
+	resp := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
 	s.AssertTxSuccess(resp)
 
 	t.Run("there should be incentivized packets", func(t *testing.T) {
@@ -465,7 +465,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 		})
 
 		t.Run("should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee, chainB)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 
@@ -567,7 +567,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 		t.Run("should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee, chainB)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 
@@ -691,11 +691,11 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 		packetFee2 := feetypes.NewPacketFee(testFee, chainAWallet2.FormattedAddress(), nil)
 
 		t.Run("paying packetFee1 should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet1, packetID, packetFee1, chainB)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet1, packetID, packetFee1)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 		t.Run("paying packetFee2 should succeed", func(t *testing.T) {
-			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet2, packetID, packetFee2, chainB)
+			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet2, packetID, packetFee2)
 			s.AssertTxSuccess(payPacketFeeTxResp)
 		})
 
