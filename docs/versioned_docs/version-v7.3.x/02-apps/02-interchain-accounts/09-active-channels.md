@@ -13,7 +13,7 @@ In the case of a channel closing, a controller chain needs to be able to regain 
 
 When an Interchain Account is registered using `MsgRegisterInterchainAccount`, a new channel is created on a particular port. During the `OnChanOpenAck` and `OnChanOpenConfirm` steps (on controller & host chain respectively) the `Active Channel` for this interchain account is stored in state.
 
-It is possible to create a new channel using the same controller chain portID if the previously set `Active Channel` is now in a `CLOSED` state. This channel creation can be initialized programatically by sending a new `MsgChannelOpenInit` message like so:
+It is possible to create a new channel using the same controller chain portID if the previously set `Active Channel` is now in a `CLOSED` state. This channel creation can be initialized programmatically by sending a new `MsgChannelOpenInit` message like so:
 
 ```go
 msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionBytes), channeltypes.ORDERED, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())

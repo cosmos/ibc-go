@@ -46,7 +46,7 @@ IBC middleware will wrap over an underlying IBC application and sits between cor
 ```go
 // Middleware implements the ICS26 Module interface
 type Middleware interface {
-    porttypes.IBCModule // middleware has acccess to an underlying application which may be wrapped by more middleware
+    porttypes.IBCModule // middleware has access to an underlying application which may be wrapped by more middleware
     ics4Wrapper: ICS4Wrapper // middleware has access to ICS4Wrapper which may be core IBC Channel Handler or a higher-level middleware that wraps this middleware.
 }
 ```

@@ -32,7 +32,7 @@ var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
 
-// NewFungibleTokenPacketData contructs a new FungibleTokenPacketData instance
+// NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(
 	denom string, amount string,
 	sender, receiver string,
