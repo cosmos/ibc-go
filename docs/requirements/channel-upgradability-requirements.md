@@ -164,6 +164,13 @@ Sample exception flows:
 | 3.16 | If the `ChanUpgradeCancel` datagram is submitted by an authorized actor (e.g. governance) then the upgrade will be canceled without requiring the counterparty to write an `ErrorReciept`| TBD | `Drafted` |
 | 3.17 | An upgrade should be timed out if the chain has not completed flushing all pending packets within the timeout specified by the counterparty | TBD | `Drafted` |
 
+# External interface requirements
+
+| ID | Description | Verification | Status |
+| -- | ----------- | ------------ | ------ |
+| 4.01 | There should be a gRPC query to retrieve the upgrade fields and timeout stored for a given port ID and channel ID | TBD | `Drafted` |
+| 4.02 | There should be a gRPC query to retrieve the upgrade error receipt stored for a given port ID and channel ID | TBD | `Drafted` |
+
 # Non-functional requirements
 
 | ID | Description | Verification | Status |
