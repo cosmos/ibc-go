@@ -43,7 +43,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
 

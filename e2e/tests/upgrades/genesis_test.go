@@ -58,7 +58,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	ctx := context.Background()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)

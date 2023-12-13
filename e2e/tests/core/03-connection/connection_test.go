@@ -70,7 +70,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)

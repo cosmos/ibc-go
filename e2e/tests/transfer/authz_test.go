@@ -26,7 +26,7 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
@@ -183,7 +183,7 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)

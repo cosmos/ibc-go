@@ -44,7 +44,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
@@ -158,7 +158,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Timeout_Nonincentiviz
 
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)

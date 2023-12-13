@@ -49,7 +49,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
 
@@ -202,7 +202,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 
 	chainBDenom := chainB.Config().Denom
 

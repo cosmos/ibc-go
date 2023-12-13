@@ -47,7 +47,7 @@ func (s *InterchainAccountsTestSuite) SetupTest() {
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
 func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	txResp := s.BroadcastMessages(ctx, chainA, user, chainB, msgRegisterAccount)
 	s.AssertTxSuccess(txResp)
 }
@@ -56,7 +56,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	// setup relayers and connection-0 between two chains
@@ -157,7 +157,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	// setup relayers and connection-0 between two chains
@@ -252,7 +252,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	// setup relayers and connection-0 between two chains

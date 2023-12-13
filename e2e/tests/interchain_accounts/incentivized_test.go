@@ -46,7 +46,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	var (
@@ -223,7 +223,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_In
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	var (

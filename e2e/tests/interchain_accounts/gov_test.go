@@ -29,7 +29,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	// setup relayers and connection-0 between two chains

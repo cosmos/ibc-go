@@ -237,7 +237,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 	if s.paths == nil {
 		testName = s.T().Name()
 		s.paths = map[string]pathPair{}
-		path, ok := s.paths[s.T().Name()]
+		path, ok := s.paths[testName]
 		if ok {
 			return path.chainA, path.chainB
 		}
@@ -249,7 +249,7 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 
 		chainA, chainB := s.createChains(chainOptions)
 		path = newPath(chainA, chainB)
-		s.paths[s.T().Name()] = path
+		s.paths[testName] = path
 
 		if s.proposalIDs == nil {
 			s.proposalIDs = map[string]uint64{}
@@ -449,10 +449,6 @@ func (s *E2ETestSuite) SetChainsIntoSuite(chainA, chainB ibc.Chain) {
 
 func (s *E2ETestSuite) SetRelayerIntoSuite(relayer ibc.Relayer) {
 	s.rly = relayer
-}
-
-func (s *E2ETestSuite) GetChainsFromSuite() (ibc.Chain, ibc.Chain) {
-	return s.chainA, s.chainB
 }
 
 func (s *E2ETestSuite) GetRelayerFromSuite() ibc.Relayer {

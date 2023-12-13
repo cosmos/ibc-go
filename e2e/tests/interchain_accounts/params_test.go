@@ -59,7 +59,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	chainAVersion := chainA.Config().Images[0].Version
@@ -143,7 +143,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestHostEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	chainBVersion := chainB.Config().Images[0].Version

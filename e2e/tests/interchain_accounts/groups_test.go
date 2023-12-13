@@ -70,7 +70,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	var (

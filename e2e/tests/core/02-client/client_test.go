@@ -87,7 +87,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
@@ -178,7 +178,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	var (
@@ -262,7 +262,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	var (
@@ -369,7 +369,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	t.Parallel()
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChainsFromSuite()
+	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	chainAVersion := chainA.Config().Images[0].Version
