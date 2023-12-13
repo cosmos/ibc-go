@@ -109,9 +109,6 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 func (s *E2ETestSuite) SetupRelayer(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainA ibc.Chain, chainB ibc.Chain) ibc.Relayer {
 	if r == nil {
 		r = s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
-		s.InitGRPCClients(chainA)
-		s.InitGRPCClients(chainB)
-		return r
 	}
 	s.InitGRPCClients(chainA)
 	s.InitGRPCClients(chainB)
