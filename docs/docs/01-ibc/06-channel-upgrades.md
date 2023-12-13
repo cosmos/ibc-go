@@ -25,20 +25,20 @@ Channel upgrades will be initialized using a handshake process that is designed 
 
 ```go
 type Channel struct {
-	// current state of the channel end
-	State State `protobuf:"varint,1,opt,name=state,proto3,enum=ibc.core.channel.v1.State" json:"state,omitempty"`
-	// whether the channel is ordered or unordered
-	Ordering Order `protobuf:"varint,2,opt,name=ordering,proto3,enum=ibc.core.channel.v1.Order" json:"ordering,omitempty"`
-	// counterparty channel end
-	Counterparty Counterparty `protobuf:"bytes,3,opt,name=counterparty,proto3" json:"counterparty"`
-	// list of connection identifiers, in order, along which packets sent on
-	// this channel will travel
-	ConnectionHops []string `protobuf:"bytes,4,rep,name=connection_hops,json=connectionHops,proto3" json:"connection_hops,omitempty"`
-	// opaque channel version, which is agreed upon during the handshake
-	Version string `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
-	// upgrade sequence indicates the latest upgrade attempt performed by this channel
-	// the value of 0 indicates the channel has never been upgraded
-	UpgradeSequence uint64 `protobuf:"varint,6,opt,name=upgrade_sequence,json=upgradeSequence,proto3" json:"upgrade_sequence,omitempty"`
+  // current state of the channel end
+  State State `protobuf:"varint,1,opt,name=state,proto3,enum=ibc.core.channel.v1.State" json:"state,omitempty"`
+  // whether the channel is ordered or unordered
+  Ordering Order `protobuf:"varint,2,opt,name=ordering,proto3,enum=ibc.core.channel.v1.Order" json:"ordering,omitempty"`
+  // counterparty channel end
+  Counterparty Counterparty `protobuf:"bytes,3,opt,name=counterparty,proto3" json:"counterparty"`
+  // list of connection identifiers, in order, along which packets sent on
+  // this channel will travel
+  ConnectionHops []string `protobuf:"bytes,4,rep,name=connection_hops,json=connectionHops,proto3" json:"connection_hops,omitempty"`
+  // opaque channel version, which is agreed upon during the handshake
+  Version string `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
+  // upgrade sequence indicates the latest upgrade attempt performed by this channel
+  // the value of 0 indicates the channel has never been upgraded
+  UpgradeSequence uint64 `protobuf:"varint,6,opt,name=upgrade_sequence,json=upgradeSequence,proto3" json:"upgrade_sequence,omitempty"`
 }
 ```
 
