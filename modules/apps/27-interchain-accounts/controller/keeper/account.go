@@ -63,7 +63,11 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 		return "", errorsmod.Wrapf(icatypes.ErrPortAlreadyBound, "another module has claimed capability for and bound port with portID: %s", portID)
 	case !k.portKeeper.IsBound(ctx, portID):
 		k.setPort(ctx, portID)
-		capability := k.portKeeper.BindPort(ctx, portID)
+		capability, err := k.portKeeper.BindPort(ctx, portID)
+		if err != nil {
+			return "", err
+		}
+
 		if err := k.ClaimCapability(ctx, capability, host.PortPath(portID)); err != nil {
 			return "", errorsmod.Wrapf(err, "unable to bind to newly generated portID: %s", portID)
 		}

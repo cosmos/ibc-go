@@ -61,7 +61,8 @@ func (k Keeper) ChanOpenInit(
 		return "", nil, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
 	}
 
-	if !k.portKeeper.Authenticate(ctx, portCap, portID) {
+	authenticate, _ := k.portKeeper.Authenticate(ctx, portCap, portID)
+	if !authenticate {
 		return "", nil, errorsmod.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
 	}
 
@@ -122,7 +123,8 @@ func (k Keeper) ChanOpenTry(
 	// generate a new channel
 	channelID := k.GenerateChannelIdentifier(ctx)
 
-	if !k.portKeeper.Authenticate(ctx, portCap, portID) {
+	authenticate, _ := k.portKeeper.Authenticate(ctx, portCap, portID)
+	if !authenticate {
 		return "", nil, errorsmod.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
 	}
 

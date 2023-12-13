@@ -64,7 +64,7 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // BindPort defines a wrapper function for the port Keeper's function in
 // order to expose it to module's InitGenesis function
-func (k Keeper) BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability {
+func (k Keeper) BindPort(ctx sdk.Context, portID string) (*capabilitytypes.Capability, error) {
 	return k.portKeeper.BindPort(ctx, portID)
 }
 

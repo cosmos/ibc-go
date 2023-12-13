@@ -103,7 +103,10 @@ func (k Keeper) hasCapability(ctx sdk.Context, portID string) bool {
 // BindPort defines a wrapper function for the ort Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-	capability := k.portKeeper.BindPort(ctx, portID)
+	capability, err := k.portKeeper.BindPort(ctx, portID)
+	if err != nil {
+		return err
+	}
 	return k.ClaimCapability(ctx, capability, host.PortPath(portID))
 }
 

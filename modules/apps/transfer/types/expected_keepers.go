@@ -53,7 +53,7 @@ type ConnectionKeeper interface {
 
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {
-	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
+	BindPort(ctx sdk.Context, portID string) (*capabilitytypes.Capability, error)
 }
 
 // ParamSubspace defines the expected Subspace interface for module parameters.

@@ -77,5 +77,5 @@ type ConnectionKeeper interface {
 
 // PortKeeper expected account IBC port keeper
 type PortKeeper interface {
-	Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, portID string) bool
+	Authenticate(ctx sdk.Context, key *capabilitytypes.Capability, portID string) (bool, error)
 }

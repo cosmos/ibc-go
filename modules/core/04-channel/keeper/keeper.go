@@ -477,8 +477,11 @@ func (k Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string)
 	if err != nil {
 		return "", nil, err
 	}
-
-	return porttypes.GetModuleOwner(modules), capability, nil
+	moduleOwner, err := porttypes.GetModuleOwner(modules)
+	if err != nil {
+		return "", nil, err
+	}
+	return moduleOwner, capability, nil
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement

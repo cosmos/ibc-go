@@ -22,8 +22,9 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		{
 			"success: capabilities already initialized for first port",
 			func() {
-				capability := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), ports[0])
-				err := suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(ports[0]))
+				capability, err := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), ports[0])
+				suite.Require().NoError(err)
+				err = suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(ports[0]))
 				suite.Require().NoError(err)
 			},
 		},

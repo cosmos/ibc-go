@@ -17,7 +17,10 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.ControllerGe
 		// generate port capability if it does not already exist
 		if !keeper.hasCapability(ctx, portID) {
 			// use the port keeper to generate a new capability
-			capability := keeper.portKeeper.BindPort(ctx, portID)
+			capability, err := keeper.portKeeper.BindPort(ctx, portID)
+			if err != nil {
+				panic(err)
+			}
 
 			// use the controller scoped keeper to claim the port capability
 			if err := keeper.ClaimCapability(ctx, capability, host.PortPath(portID)); err != nil {
