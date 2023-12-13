@@ -51,8 +51,8 @@ type Allocation struct {
   SpendLimit sdk.Coins  
   // allow list of receivers, an empty allow list permits any receiver address
   AllowList []string 
-  // allow list of packet data keys, an empty list.
-  // an empty list prohibits all packet data keys; a list only with "*" permits any packet data key
+  // allow list of packet data keys, an empty list prohibits all packet data keys;
+  // a list only with "*" permits any packet data key
   AllowedPacketData []string 
 }
 
