@@ -300,6 +300,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(upgrade)
 				suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
+				suite.Require().Equal(path.EndpointA.GetChannel().UpgradeSequence, path.EndpointB.GetChannel().UpgradeSequence)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
 			}
