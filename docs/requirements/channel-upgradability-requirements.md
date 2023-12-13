@@ -4,7 +4,7 @@ Rather than create a new channel to expand upon the capabilities of an existing 
 
 ## Problem
 
-Currently, once a channel is opened and the channel handshake is complete, you cannot change or renegociate the semantics of that channel. This means that if you wanted to make a change to a channel affecting the semantics on both channel ends, you would need to open a new channel meaning all previous state in the prior channel would be lost. This is particularly important for channels using the ICS 20 (fungible token transfer) application module because tokens are not fungible between channels.
+Currently, once a channel is opened and the channel handshake is complete, you cannot change or renegociate the semantics of that channel. This means that if you wanted to make a change to a channel affecting the semantics on both channel ends, you would need to open a new channel, meaning all previous state in the prior channel would be lost. This is particularly important for channels using the ICS 20 (fungible token transfer) application module because tokens are not fungible between channels.
 
 Upgrading a channel enables upgrading the application module claiming the channel, where the upgrade requires a new packet data structure or adding a middleware at both channel ends. Currently it is possible to make changes to one end of a channel that does not require the counterparty to make changes, for example adding rate limiting middleware. Channel upgradability is solving the problem when changes need to be agreed upon on both sides of the channel.
 
@@ -18,10 +18,10 @@ A new `ChannelEnd` interface is defined after a channel upgrade, the scope of th
 
 | Features  | Release |
 | --------- | ------- |
-| Performing a channel upgrade results in an application module changing from v1 to v2, claiming the same `channelID` and `portID` | v9 |
-| Performing a channel upgrade results in a channel with the same `channelID` and `portID` changing the channel ordering | v9 |
-| Performing a channel upgrade results in a channel with the same `channelID` and `portID` having a new channel version, where the change is needed on both `ChannelEnd`s, for example additional middleware added to the application stack on both sides of the channel, or a change to the packet data or acknowledgement structure | v9 |
-| Performing a channel upgrade results in a channel with the same `channelID` and `portID` modifying the `connectionHops` | v9 |
+| Performing a channel upgrade results in an application module changing from v1 to v2, claiming the same `channelID` and `portID` | v8.1 |
+| Performing a channel upgrade results in a channel with the same `channelID` and `portID` changing the channel ordering | v8.1 |
+| Performing a channel upgrade results in a channel with the same `channelID` and `portID` having a new channel version, where the change is needed on both `ChannelEnd`s, for example additional middleware added to the application stack on both sides of the channel, or a change to the packet data or acknowledgement structure | v8.1 |
+| Performing a channel upgrade results in a channel with the same `channelID` and `portID` modifying the `connectionHops` | v8.1 |
 
 # User requirements
 
@@ -46,15 +46,15 @@ These must be specified for each channel ID and port ID selected for the upgrade
 | ------------------- | ------- | -------- | ---- | -------- |
 | (`transfer`, `channel-0`) & (`transfer`, `channel-1`)| `ics20-2` |  |  | Upgrading ics20 to v2 for 2 channels |
 | (`icacontroller-cosmos13fx6...`, `channel-2`)|  | `UNORDERED` |  | Upgrading single ICA controller channel to be unordered |
-| (`transfer`, `channel-1`)| `{"fee_version":"ics29-1", "app_version":"ics20-1"}`|  | | Upgrade single transfer channel to have ics-29 enabled |
+| (`transfer`, `channel-1`) | `{"fee_version":"ics29-1", "app_version":"ics20-1"}`|  | | Upgrade single transfer channel to have ics-29 enabled |
 | (`icacontroller-cosmos89y4...`, `channel-7`) | `{"fee_version":"ics29-1", "app_version":"ics27-1"}` |  |  | Upgrade an ICA controller channel to have ics-29 enabled |
 
 ### Upgrade Flow
 
-Upgrades can be proposed only in a **permissioned** manner: upgrade initiation is approved by governance or groups proposal and `MsgChannelUpgradeInit` is automatically submitted on proposal passing. Governance of the counterparty chain must approve upgrades for channels in specific connections. Assuming that the proposed upgrade parameters are identical on both chains, then the following upgrade initiation combinations are possible:
+Upgrades can be proposed only in a **permissioned** manner: upgrade initiation is approved by governance or groups proposal and `MsgChannelUpgradeInit` is automatically submitted on proposal passing. A permissioned mechanism may also optionally be implemented for the counterparty chain such that governance would need to allow (or prohibit, in the case of using a deny list) upgrades for channels in specific connections. Assuming that the proposed upgrade parameters are identical on both chains, then the following upgrade initiation combinations are possible:
 
 - Chain A's governance proposal to initiate the upgrade of (`transfer`, `channel-0`) is accepted and `MsgChannelUpgradeInit` is executed. Chain B's governance proposal to allow upgrades for channels in connection `connection-0` is accepted. When the on-chain parameter with the list of allowed connections is updated, then a relayer can submit `MsgChannelUpgradeTry` on chain B for the counterparty channel (`transfer`, `channel-0`) in `connection-0`.
-- Governance of both chain A and chain B submit proposal to initiate the upgrade of (`transfer`, `channel-0`) on chain A and the counterparty channel (`transfer`, `channel-0`) on chain B. The proposal passes and `MsgChannelUpgradeInit` is executed on both chains.  This is a crossing hello scenario. A relayer can then continue the handshake submitting `MsgChannelUpgradeTry` on either chain A or chain B.
+- Governance of both chain A and chain B submit proposal to initiate the upgrade of (`transfer`, `channel-0`) on chain A and the counterparty channel (`transfer`, `channel-0`) on chain B. The proposal passes and `MsgChannelUpgradeInit` is executed on both chains. This is a crossing hello scenario. A relayer can then continue the handshake submitting `MsgChannelUpgradeTry` on either chain A or chain B.
 
 A normal flow and crossing hello flow are described in more detail below. For the sake of simplicity, the samples below make the following assumptions:
 
@@ -92,7 +92,7 @@ Sample exception flows:
 
 ### Crossing hello flow
 
-The crossing hello flow for upgrades happens when a governance proposal on both chains passes and executes  `MsgChannelUpgradeInit` with the same upgrade parameters for channel ends that are the counterparty of each other:
+The crossing hello flow for upgrades happens when a governance proposal on both chains passes and executes `MsgChannelUpgradeInit` with the same upgrade parameters for channel ends that are the counterparty of each other:
 
 1. Governance proposal with `MsgChannelUpgradeInit` proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}` is submitted on chain A.
 2. Governance proposal passes and `MsgChannelUpgradeInit` executes successfully on chain A.
@@ -120,7 +120,7 @@ Sample exception flows:
 ## Assumptions and dependencies
 
 - Functional relayer infrastructure is required to perform a channel upgrade.
-- Chains wishing to successfully upgrade a channel must be using a minimum ibc-go version in the v9 line.
+- Chains wishing to successfully upgrade a channel must be using a minimum ibc-go version of v8.1.
 - Chains proposing an upgrade must have the middleware or application module intended to be used in the channel upgrade configured.
 
 ## Features
@@ -146,7 +146,7 @@ Sample exception flows:
 
 | ID | Description | Verification | Status |
 | -- | ----------- | ------------ | ------ |
-| 3.01 | The upgrade proposing chain channel state will remain `OPEN` after successful or unsuccessful execution of the `ChanUpgradeInit` datagram | TBD | `Drafted` |
+| 3.01 | The upgrade proposing chain's channel state will remain `OPEN` after successful or unsuccessful execution of the `ChanUpgradeInit` datagram | TBD | `Drafted` |
 | 3.02 | If the counterparty chain accepts the upgrade its channel state will go from `OPEN` to `FLUSHING` after successful execution of the `ChanUpgradeTry` datagram, initiated by a relayer | TBD | `Drafted` |
 | 3.03 | A relayer must initiate the `ChanUpgradeAck` datagram on the upgrade proposing chain, on successful execution the channel state will go from `OPEN` to `FLUSHING`| TBD | `Drafted` |
 | 3.04 | The `ChanUpgradeAck` datagram informs the chain of the timeout period specified by the counterparty for the upgrade process to complete | TBD | `Drafted` |
@@ -162,13 +162,7 @@ Sample exception flows:
 | 3.14 | If an upgrade handshake is unsuccessful, the original channel will be restored | TBD | `Drafted` |
 | 3.15 | A relayer can submit the `ChanUpgradeCancel` to cancel an upgrade which will successfully execute if the counterparty wrote an `ErrorReciept`| TBD | `Drafted` |
 | 3.16 | If the `ChanUpgradeCancel` datagram is submitted by an authorized actor (e.g. governance) then the upgrade will be canceled without requiring the counterparty to write an `ErrorReciept`| TBD | `Drafted` |
-| 3.17 | An upgrade should be timed out if the counterparty has not completed flushing all pending packets within the timeout specified by the counterparty | TBD | `Drafted` |
-
-# External interface requirements
-
-| ID | Description | Verification | Status |
-| -- | ----------- | ------------ | ------ |
-| 4.01 | There should be a CLI command to query the channel upgrade sequence number | TBD | `Drafted` |
+| 3.17 | An upgrade should be timed out if the chain has not completed flushing all pending packets within the timeout specified by the counterparty | TBD | `Drafted` |
 
 # Non-functional requirements
 
