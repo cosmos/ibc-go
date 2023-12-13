@@ -351,7 +351,8 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		msg     *types.MsgChannelCloseConfirm
 		expPass bool
 	}{
-		{"", types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr, 0), true},
+		{"success", types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr, 0), true},
+		{"success, positive counterparty upgrade sequence", types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr, 1), true},
 		{"too short port id", types.NewMsgChannelCloseConfirm(invalidShortPort, chanid, suite.proof, height, addr, 0), false},
 		{"too long port id", types.NewMsgChannelCloseConfirm(invalidLongPort, chanid, suite.proof, height, addr, 0), false},
 		{"port id contains non-alpha", types.NewMsgChannelCloseConfirm(invalidPort, chanid, suite.proof, height, addr, 0), false},
@@ -474,6 +475,7 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 		expPass bool
 	}{
 		{"success", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr, 0), true},
+		{"success, positive counterparty upgrade sequence", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr, 1), true},
 		{"seq 0", types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr, 0), false},
 		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr, 0), false},
 		{"empty proof", types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr, 0), false},
