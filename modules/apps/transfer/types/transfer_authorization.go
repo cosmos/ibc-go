@@ -158,7 +158,7 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 	// if the allow list is empty, then the memo must be an empty string
 	if len(allowedPacketDataList) == 0 {
 		if len(strings.TrimSpace(memo)) != 0 {
-			return errorsmod.Wrapf(ErrInvalidAuthorization, "memo not allowed in empty allowedPacketDataList")
+			return errorsmod.Wrapf(ErrInvalidAuthorization, "memo must be empty because allowed packet data in allocation is empty")
 		}
 
 		return nil
