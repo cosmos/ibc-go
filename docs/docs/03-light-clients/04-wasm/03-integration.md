@@ -263,14 +263,15 @@ We first construct a [`QueryPlugins`](https://github.com/cosmos/ibc-go/blob/08-w
 ```go
 queryPlugins := ibcwasmtypes.QueryPlugins {
   Custom: MyCustomQueryPlugin(),
+  // `myAcceptList` is a `[]string` containing the list of gRPC query paths that the chain wants to allow for the `08-wasm` module to query.
+  // These queries must be registered in the chain's gRPC query router, be deterministic, and track their gas usage.
+  // The `AcceptListStargateQuerier` function will return a query plugin that will only allow queries for the paths in the `myAcceptList`.
+  // The query responses are encoded in protobuf unlike the implementation in `x/wasm`.
   Stargate: ibcwasmtypes.AcceptListStargateQuerier(myAcceptList),
 }
 ```
 
 You may leave any of the fields in the `QueryPlugins` object as `nil` if you do not want to register a query plugin for that query type.
-
-`myAcceptList` is a `[]string` containing the list of gRPC query paths that the chain wants to allow for the `08-wasm` module to query.
-These queries must be registered in the chain's gRPC query router, be deterministic, and track their gas usage. The `AcceptListStargateQuerier` function will return a query plugin that will only allow queries for the paths in the `myAcceptList` and encode the query response **in protobuf unlike the implementation in `x/wasm`**.
 
 Then, we pass the `QueryPlugins` object to the `WithQueryPlugins` option:
 
