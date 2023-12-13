@@ -33,7 +33,7 @@ At a high level we will focus on:
 - Finishing and releasing the upgrade to Cosmos SDK v0.46.
 - Writing the [light client implementation guide](https://github.com/cosmos/ibc-go/issues/59).
 - Working on [core backlog issues](https://github.com/cosmos/ibc-go/milestone/28).
-- Depending on the timeline of the Cosmos SDK, implementing and testing the changes needed to support the [transtion to SMT storage](https://github.com/cosmos/ibc-go/milestone/21).
+- Depending on the timeline of the Cosmos SDK, implementing and testing the changes needed to support the [transition to SMT storage](https://github.com/cosmos/ibc-go/milestone/21).
 
 We have also received a lot of feedback to improve Interchain Accounts and we might also work on a few things, but will depend on priorities and availability.
 

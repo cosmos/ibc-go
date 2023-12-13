@@ -94,7 +94,7 @@ message MsgPayPacketFee {
   ibc.applications.fee.v1.Fee fee = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   // the source port unique identifier
   string source_port_id = 2;
-  // the source channel unique identifer
+  // the source channel unique identifier
   string source_channel_id = 3;
   // account address to refund fee if necessary
   string signer = 4;
