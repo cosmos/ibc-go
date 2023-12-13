@@ -10,6 +10,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 type testCase = struct {
@@ -795,6 +796,24 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 
 			channelCap = capabilitytypes.NewCapability(3)
 		}, false},
+		{
+			"failure: invalid counterparty upgrade sequence",
+			func() {
+				suite.coordinator.Setup(path)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				// trigger upgradeInit on B which will bump the counterparty upgrade sequence.
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.SetChannelState(types.CLOSED)
+				suite.Require().NoError(err)
+
+				channelCap = capabilitytypes.NewCapability(3)
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {

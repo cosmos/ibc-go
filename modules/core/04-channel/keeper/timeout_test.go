@@ -15,6 +15,7 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 // TestTimeoutPacket test the TimeoutPacket call on chainA by ensuring the timeout has passed
@@ -712,6 +713,34 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), uint64(suite.chainB.GetContext().BlockTime().UnixNano()))
 			chanCap = capabilitytypes.NewCapability(100)
 		}, false},
+		{
+			"failure: invalid counterparty upgrade sequence",
+			func() {
+				ordered = false
+				suite.coordinator.Setup(path)
+
+				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
+
+				sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+
+				// trigger upgradeInit on B which will bump the counterparty upgrade sequence.
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+				err = path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointB.SetChannelState(types.CLOSED)
+				suite.Require().NoError(err)
+
+				// need to update chainA's client representing chainB to prove missing ack
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
+				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {
