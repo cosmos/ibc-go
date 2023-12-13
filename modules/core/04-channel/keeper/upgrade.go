@@ -942,8 +942,8 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	return channel
 }
 
-// WriteErrorReceipt will write an error receipt from the provided UpgradeError.
-func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) {
+// writeErrorReceipt will write an error receipt from the provided UpgradeError.
+func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		panic(errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID))
