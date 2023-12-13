@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 		{
 			"fails with wasm code too large",
 			func() {
-				msg = types.NewMsgStoreCode(signer, wasmtesting.CreateMockContract([]byte(ibctesting.GenerateString(uint(types.MaxWasmByteSize())))))
+				msg = types.NewMsgStoreCode(signer, wasmtesting.CreateMockContract([]byte(wasmtesting.GenerateString(uint(types.MaxWasmByteSize())))))
 			},
 			types.ErrWasmCodeTooLarge,
 		},

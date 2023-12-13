@@ -11,6 +11,7 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
+	mock "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/mock"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
@@ -19,7 +20,6 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	ibcmock "github.com/cosmos/ibc-go/v7/testing/mock"
 )
 
 func (suite *TypesTestSuite) TestStatus() {
@@ -137,7 +137,7 @@ func (suite *TypesTestSuite) TestGetTimestampAtHeight() {
 		{
 			"error: invalid height",
 			func() {
-				height = ibcmock.Height{}
+				height = mock.Height{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
@@ -438,14 +438,14 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 		{
 			"invalid path argument",
 			func() {
-				path = ibcmock.KeyPath{}
+				path = mock.KeyPath{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
 		{
 			"proof height is invalid type",
 			func() {
-				proofHeight = ibcmock.Height{}
+				proofHeight = mock.Height{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
@@ -579,14 +579,14 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 		{
 			"invalid path argument",
 			func() {
-				path = ibcmock.KeyPath{}
+				path = mock.KeyPath{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
 		{
 			"proof height is invalid type",
 			func() {
-				proofHeight = ibcmock.Height{}
+				proofHeight = mock.Height{}
 			},
 			ibcerrors.ErrInvalidType,
 		},
