@@ -12,7 +12,7 @@ require (
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0-00010101000000-000000000000
 	github.com/cosmos/ibc-go/v8 v8.0.0
 	github.com/docker/docker v24.0.7+incompatible
-	github.com/strangelove-ventures/interchaintest/v8 v8.0.1-0.20231206154526-2f014d308bea
+	github.com/strangelove-ventures/interchaintest/v8 v8.0.1-0.20231128172851-d6b47e1686ce
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.26.0
 	golang.org/x/mod v0.14.0
