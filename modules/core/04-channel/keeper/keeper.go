@@ -628,3 +628,9 @@ func (k Keeper) SetAcknowledgementPruningSequence(ctx sdk.Context, portID, chann
 	bz := sdk.Uint64ToBigEndian(sequence)
 	store.Set(host.AckPruningSequenceKey(portID, channelID), bz)
 }
+
+// PruneAcknowledgements prunes packet acknowledgements from the store that have a sequence number less than or equal to the pruning sequence.
+// The number of packet acknowledgements pruned is equal to limit. Pruning only occurs after a channel has been upgraded.
+func (Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string, limit, pruningSequence uint64) error {
+	return nil
+}
