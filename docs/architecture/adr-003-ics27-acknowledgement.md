@@ -90,7 +90,7 @@ If the `sdk.TxMsgData.Data` field is not empty then the format for v0.45 was use
 
 Replicate the transaction response format as provided by the current SDK version.
 When the SDK version changes, adjust the transaction response format to use the updated transaction response format.
-Include the transaction response bytes in the result channel acknowledgement.
+Include the transaction response bytes in the result channel acknowledgment.
 
 A test has been [written](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/apps/27-interchain-accounts/host/ibc_module_test.go#L716-#L774) to fail if the `MsgResponse` is no longer included in consensus.
 
