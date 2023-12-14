@@ -726,12 +726,12 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 }
 
 // NewMsgPruneAcknowledgements creates a new instance of MsgPruneAcknowledgements.
-func NewMsgPruneAcknowledgements(portID, channelID string, numToPrune uint64, signer string) *MsgPruneAcknowledgements {
+func NewMsgPruneAcknowledgements(portID, channelID string, limit uint64, signer string) *MsgPruneAcknowledgements {
 	return &MsgPruneAcknowledgements{
-		PortId:     portID,
-		ChannelId:  channelID,
-		NumToPrune: numToPrune,
-		Signer:     signer,
+		PortId:    portID,
+		ChannelId: channelID,
+		Limit:     limit,
+		Signer:    signer,
 	}
 }
 
@@ -750,8 +750,8 @@ func (msg *MsgPruneAcknowledgements) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if msg.NumToPrune == 0 {
-		return errorsmod.Wrap(ErrInvalidPruningAmount, "number of acknowledgements to prune must be greater than 0")
+	if msg.Limit == 0 {
+		return errorsmod.Wrap(ErrInvalidPruningLimit, "number of acknowledgements to prune must be greater than 0")
 	}
 
 	return nil

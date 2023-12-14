@@ -1205,11 +1205,11 @@ func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsValidateBasic() {
 			nil,
 		},
 		{
-			"failure: zero pruning amount",
+			"failure: zero pruning limit",
 			func() {
-				msg.NumToPrune = 0
+				msg.Limit = 0
 			},
-			types.ErrInvalidPruningAmount,
+			types.ErrInvalidPruningLimit,
 		},
 		{
 			"invalid port identifier",

@@ -450,7 +450,7 @@ message MsgPruneAcknowledgements {
 
   string port_id      = 1;
   string channel_id   = 2;
-  uint64 num_to_prune = 3;
+  uint64 limit = 3;
   string signer       = 4;
 }
 
