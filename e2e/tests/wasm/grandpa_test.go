@@ -683,7 +683,7 @@ func (s *GrandpaTestSuite) clientStatus(ctx context.Context, chain ibc.Chain, cl
 }
 
 func (s *GrandpaTestSuite) fundUsers(ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
-	users := interchaintest.GetAndFundTestUsers(s.T(), ctx, "user", fundAmount, polkadotChain, cosmosChain)
+	users := interchaintest.GetAndFundTestUsers(s.T(), ctx, "user", sdkmath.NewInt(fundAmount), polkadotChain, cosmosChain)
 	polkadotUser, cosmosUser := users[0], users[1]
 	err := testutil.WaitForBlocks(ctx, 2, polkadotChain, cosmosChain) // Only waiting 1 block is flaky for parachain
 	s.Require().NoError(err, "cosmos or polkadot chain failed to make blocks")

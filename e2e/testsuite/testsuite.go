@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	dockerclient "github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -302,13 +303,13 @@ func (s *E2ETestSuite) RestartRelayer(ctx context.Context, ibcrelayer ibc.Relaye
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
 func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc.Wallet {
 	chainA, _ := s.GetChains()
-	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chainA)[0]
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
 func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
 	_, chainB := s.GetChains()
-	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chainB)[0]
 }
 
 // GetChainANativeBalance gets the balance of a given user on chain A.
