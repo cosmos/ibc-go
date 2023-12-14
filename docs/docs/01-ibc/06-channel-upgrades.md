@@ -13,7 +13,7 @@ Learn how to upgrade existing IBC channels.
 
 Channel upgradability is an IBC-level protocol that allows chains to leverage new channel features without having to create new channels or perform a network-wide upgrade. 
 
-Prior to this feature, developers who wanted to update an application module or add a middleware to their application flow would need to negotiate a new channel in order to use the updated application feature/middleware, resulting in a loss of the accumulated state/liquidity, token fungibility (as the channel would have been encoded in the IBC denom), and any other larger network effects of losing usage of the existing channel from relayers monitoring, etc.
+Prior to this feature, developers who wanted to update an application module or add a middleware to their application flow would need to create a new channel in order to use the updated application feature/middleware, resulting in a loss of the accumulated state/liquidity, token fungibility (as the channel ID is encoded in the IBC denom), and any other larger network effects of losing usage of the existing channel from relayers monitoring, etc.
 
 With channel upgradability, applications will be able to implement features such as but not limited to: potentially adding [denom metadata to tokens](https://github.com/cosmos/ibc/discussions/719), or utilizing the [fee middleware](https://github.com/cosmos/ibc/tree/main/spec/app/ics-029-fee-payment), all while maintaining the channels on which they currently operate.
 
@@ -46,10 +46,10 @@ The version, connection hops, and channel ordering are fields in this channel st
 
 On a high level, successful handshake process for channel upgrades works as follows:
 
-1. The chain initiating the upgrade process (chain A) submits the `ChanUpgradeInit` function.
-2. Subsequently, the counterparty (chain B) changes its channel end from `OPEN` to `FLUSHING` with `ChanUpgradeTry`.
-3. Upon successful completion of the previous step, chain A sets its channel state from `OPEN` to `FLUSHING` or `FLUSHCOMPLETE` with `ChanUpgradeAck` depending on the packet flushing status
-4. Finally, chain B sets its channel state to `FLUSHCOMPLETE` when its packet flush is finished, and then `OPEN` with `ChanUpgradeConfirm`.
+1. The chain initiating the upgrade process will propose a potential upgrade.
+2. If the counterparty agrees with the proposal, it will block sends and begin flushing its channel end. 
+3. Upon successful completion of the previous step, the initiating chain will also block packet sends and begin flushing its channel end. 
+4. Once both channel ends have completely flushed before either upgrade timeout has elapsed, both channel ends can be opened and upgraded to the new channel fields. 
 
 Each handshake step will be documented below in greater detail.
 
