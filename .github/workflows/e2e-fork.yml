@@ -74,6 +74,8 @@ jobs:
         run: |
           cd e2e
           make e2e-test-suite entrypoint=${{ matrix.entrypoint }}
+        env:
+          KEEP_CONTAINERS: "true"
 
   # this workflow runs only the wasm tests.
   e2e-fork-wasm:
