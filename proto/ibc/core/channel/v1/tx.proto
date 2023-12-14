@@ -448,10 +448,10 @@ message MsgPruneAcknowledgements {
   option (cosmos.msg.v1.signer)      = "signer";
   option (gogoproto.goproto_getters) = false;
 
-  string port_id      = 1;
-  string channel_id   = 2;
-  uint64 limit = 3;
-  string signer       = 4;
+  string port_id    = 1;
+  string channel_id = 2;
+  uint64 limit      = 3;
+  string signer     = 4;
 }
 
 // MsgPruneAcknowledgementsResponse defines the response type for the PruneAcknowledgements rpc.
