@@ -610,20 +610,20 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"host submodule disabled", func() {
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-			}, false,
+			}, types.ErrHostSubModuleDisabled,
 		},
 		{
 			"unordered channels not supported", func() {
 				order = channeltypes.UNORDERED
-			}, false,
+			}, channeltypes.ErrInvalidChannelOrdering,
 		},
 	}
 
@@ -670,7 +670,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version,
 			)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
