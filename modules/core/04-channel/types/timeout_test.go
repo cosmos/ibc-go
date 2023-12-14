@@ -180,12 +180,12 @@ func (suite *TypesTestSuite) TestErrTimeoutElapsed() {
 		{
 			"height elapsed when less than current height",
 			types.NewTimeout(clienttypes.NewHeight(0, 1), 0),
-			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current height: %s, timeout height %s", clienttypes.NewHeight(0, 1), height),
+			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current height: %s, timeout height %s", height, clienttypes.NewHeight(0, 1)),
 		},
 		{
 			"timestamp elapsed when less than current timestamp",
 			types.NewTimeout(clienttypes.ZeroHeight(), timestamp-1),
-			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp %d", timestamp-1, timestamp),
+			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp %d", timestamp, timestamp-1),
 		},
 	}
 
@@ -193,7 +193,7 @@ func (suite *TypesTestSuite) TestErrTimeoutElapsed() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			err := tc.timeout.ErrTimeoutElapsed(height, timestamp)
-			suite.Require().ErrorIs(err, tc.expError)
+			suite.Require().Equal(err.Error(), tc.expError.Error())
 		})
 	}
 }
@@ -214,17 +214,17 @@ func (suite *TypesTestSuite) TestErrTimeoutNotReached() {
 		{
 			"neither timeout reached with height and timestamp",
 			types.NewTimeout(height.Increment().(clienttypes.Height), timestamp+1),
-			errorsmod.Wrapf(types.ErrTimeoutNotReached, "current height: %s, timeout height %s", height, height),
+			errorsmod.Wrapf(types.ErrTimeoutNotReached, "current height: %s, timeout height %s", height, height.Increment().(clienttypes.Height)),
 		},
 		{
 			"timeout not reached with height and zero timestamp",
 			types.NewTimeout(height.Increment().(clienttypes.Height), 0),
-			errorsmod.Wrapf(types.ErrTimeoutNotReached, "current height: %s, timeout height %s", height, height),
+			errorsmod.Wrapf(types.ErrTimeoutNotReached, "current height: %s, timeout height %s", height, height.Increment().(clienttypes.Height)),
 		},
 		{
 			"timeout not reached with timestamp and zero height",
 			types.NewTimeout(clienttypes.ZeroHeight(), timestamp+1),
-			errorsmod.Wrapf(types.ErrTimeoutNotReached, "current timestamp: %d, timeout timestamp %d", timestamp, timestamp),
+			errorsmod.Wrapf(types.ErrTimeoutNotReached, "current timestamp: %d, timeout timestamp %d", timestamp, timestamp+1),
 		},
 	}
 
@@ -232,7 +232,7 @@ func (suite *TypesTestSuite) TestErrTimeoutNotReached() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			err := tc.timeout.ErrTimeoutNotReached(height, timestamp)
-			suite.Require().ErrorIs(err, tc.expError)
+			suite.Require().Equal(err.Error(), tc.expError.Error())
 		})
 	}
 }

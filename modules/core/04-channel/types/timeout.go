@@ -38,7 +38,7 @@ func (t Timeout) ErrTimeoutElapsed(height clienttypes.Height, timestamp uint64) 
 // ErrTimeoutNotReached returns a timeout not reached error indicating which timeout value
 // has not been reached.
 func (t Timeout) ErrTimeoutNotReached(height clienttypes.Height, timestamp uint64) error {
-	if !t.heightElapsed(height) {
+	if !t.Height.IsZero() && !t.heightElapsed(height) {
 		return errorsmod.Wrapf(ErrTimeoutNotReached, "current height: %s, timeout height %s", height, t.Height)
 	}
 
