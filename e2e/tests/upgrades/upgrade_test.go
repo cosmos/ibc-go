@@ -76,7 +76,8 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 		allNodes = append(allNodes, node)
 	}
 
-	test.WaitForInSync(ctx, chain, allNodes...)
+	err = test.WaitForInSync(ctx, chain, allNodes...)
+	s.Require().NoError(err, "error waiting for node(s) to sync")
 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
