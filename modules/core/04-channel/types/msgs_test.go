@@ -20,6 +20,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
@@ -1195,33 +1197,33 @@ func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsValidateBasic() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
-			"success: positive amount",
+			"failure: zero pruning amount",
 			func() {
-				msg.NumToPrune = 1
+				msg.NumToPrune = 0
 			},
-			true,
+			types.ErrInvalidPruningAmount,
 		},
 		{
 			"invalid port identifier",
 			func() {
 				msg.PortId = invalidPort
 			},
-			false,
+			host.ErrInvalidID,
 		},
 		{
 			"invalid channel identifier",
 			func() {
 				msg.ChannelId = invalidChannel
 			},
-			false,
+			types.ErrInvalidChannelIdentifier,
 		},
 
 		{
@@ -1229,22 +1231,23 @@ func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsValidateBasic() {
 			func() {
 				msg.Signer = emptyAddr
 			},
-			false,
+			ibcerrors.ErrInvalidAddress,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			msg = types.NewMsgPruneAcknowledgements(ibctesting.MockPort, ibctesting.FirstChannelID, 0, addr)
+			msg = types.NewMsgPruneAcknowledgements(ibctesting.MockPort, ibctesting.FirstChannelID, 1, addr)
 
 			tc.malleate()
 			err := msg.ValidateBasic()
 
-			if tc.expPass {
+			expPass := tc.expErr == nil
+			if expPass {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

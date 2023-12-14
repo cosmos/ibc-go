@@ -750,6 +750,9 @@ func (msg *MsgPruneAcknowledgements) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	// NOTE(jim): num_to_prune == 0 is a valid amount/error/special prune-all (meh)?
+	if msg.NumToPrune == 0 {
+		return errorsmod.Wrap(ErrInvalidPruningAmount, "number of acknowledgements to prune must be greater than 0")
+	}
+
 	return nil
 }
