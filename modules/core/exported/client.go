@@ -148,6 +148,9 @@ type ConsensusState interface {
 	ClientType() string // Consensus kind
 
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
+	//
+	// Deprecated: GetTimestamp is not used outside of the light client implementations,
+	// and therefore it doesn't need to be an interface function.
 	GetTimestamp() uint64
 
 	ValidateBasic() error
