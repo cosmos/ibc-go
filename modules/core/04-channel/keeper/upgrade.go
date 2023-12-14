@@ -118,20 +118,19 @@ func (k Keeper) ChanUpgradeTry(
 	if found {
 		proposedUpgradeFields = upgrade.Fields
 	} else {
-		// if the counterparty sequence is greater than the current sequence, we fast-forward to the counterparty sequence.
-		if counterpartyUpgradeSequence > channel.UpgradeSequence {
-			// using -1 as WriteUpgradeInitChannel increments the sequence
-			channel.UpgradeSequence = counterpartyUpgradeSequence - 1
-			k.SetChannel(ctx, portID, channelID, channel)
-		}
-
 		// NOTE: OnChanUpgradeInit will not be executed by the application
 		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields)
 		if err != nil {
 			return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
 		}
 
-		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, proposedUpgradeFields.Version)
+		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, upgrade.Fields.Version)
+
+		// if the counterparty sequence is greater than the current sequence, we fast-forward to the counterparty sequence.
+		if counterpartyUpgradeSequence > channel.UpgradeSequence {
+			channel.UpgradeSequence = counterpartyUpgradeSequence
+			k.SetChannel(ctx, portID, channelID, channel)
+		}
 	}
 
 	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgradeFields); err != nil {
