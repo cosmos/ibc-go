@@ -225,14 +225,15 @@ func (msg MsgChannelCloseInit) ValidateBasic() error {
 // NewMsgChannelCloseConfirm creates a new MsgChannelCloseConfirm instance
 func NewMsgChannelCloseConfirm(
 	portID, channelID string, proofInit []byte, proofHeight clienttypes.Height,
-	signer string,
+	signer string, counterpartyUpgradeSequence uint64,
 ) *MsgChannelCloseConfirm {
 	return &MsgChannelCloseConfirm{
-		PortId:      portID,
-		ChannelId:   channelID,
-		ProofInit:   proofInit,
-		ProofHeight: proofHeight,
-		Signer:      signer,
+		PortId:                      portID,
+		ChannelId:                   channelID,
+		ProofInit:                   proofInit,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
+		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
 	}
 }
 
@@ -320,14 +321,16 @@ func NewMsgTimeoutOnClose(
 	packet Packet, nextSequenceRecv uint64,
 	proofUnreceived, proofClose []byte,
 	proofHeight clienttypes.Height, signer string,
+	counterpartyUpgradeSequence uint64,
 ) *MsgTimeoutOnClose {
 	return &MsgTimeoutOnClose{
-		Packet:           packet,
-		NextSequenceRecv: nextSequenceRecv,
-		ProofUnreceived:  proofUnreceived,
-		ProofClose:       proofClose,
-		ProofHeight:      proofHeight,
-		Signer:           signer,
+		Packet:                      packet,
+		NextSequenceRecv:            nextSequenceRecv,
+		ProofUnreceived:             proofUnreceived,
+		ProofClose:                  proofClose,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
+		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
 	}
 }
 
