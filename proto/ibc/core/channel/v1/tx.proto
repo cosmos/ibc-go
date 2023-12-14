@@ -190,11 +190,12 @@ message MsgChannelCloseConfirm {
 
   option (gogoproto.goproto_getters) = false;
 
-  string                    port_id      = 1;
-  string                    channel_id   = 2;
-  bytes                     proof_init   = 3;
-  ibc.core.client.v1.Height proof_height = 4 [(gogoproto.nullable) = false];
-  string                    signer       = 5;
+  string                    port_id                       = 1;
+  string                    channel_id                    = 2;
+  bytes                     proof_init                    = 3;
+  ibc.core.client.v1.Height proof_height                  = 4 [(gogoproto.nullable) = false];
+  string                    signer                        = 5;
+  uint64                    counterparty_upgrade_sequence = 6;
 }
 
 // MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response
@@ -246,12 +247,13 @@ message MsgTimeoutOnClose {
 
   option (gogoproto.goproto_getters) = false;
 
-  Packet                    packet             = 1 [(gogoproto.nullable) = false];
-  bytes                     proof_unreceived   = 2;
-  bytes                     proof_close        = 3;
-  ibc.core.client.v1.Height proof_height       = 4 [(gogoproto.nullable) = false];
-  uint64                    next_sequence_recv = 5;
-  string                    signer             = 6;
+  Packet                    packet                        = 1 [(gogoproto.nullable) = false];
+  bytes                     proof_unreceived              = 2;
+  bytes                     proof_close                   = 3;
+  ibc.core.client.v1.Height proof_height                  = 4 [(gogoproto.nullable) = false];
+  uint64                    next_sequence_recv            = 5;
+  string                    signer                        = 6;
+  uint64                    counterparty_upgrade_sequence = 7;
 }
 
 // MsgTimeoutOnCloseResponse defines the Msg/TimeoutOnClose response type.
