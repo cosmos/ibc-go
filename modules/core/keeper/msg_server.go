@@ -840,7 +840,6 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 
 	return &channeltypes.MsgChannelUpgradeTryResponse{
 		Result:          channeltypes.SUCCESS,
-		ChannelId:       msg.ChannelId,
 		Upgrade:         upgrade,
 		UpgradeSequence: channel.UpgradeSequence,
 	}, nil
@@ -1039,15 +1038,12 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 	ctx.Logger().Info("channel upgrade timeout callback succeeded: portID %s, channelID %s", msg.PortId, msg.ChannelId)
 	keeper.EmitChannelUpgradeTimeoutEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
-	return &channeltypes.MsgChannelUpgradeTimeoutResponse{
-		Result: channeltypes.SUCCESS,
-	}, nil
+	return &channeltypes.MsgChannelUpgradeTimeoutResponse{}, nil
 }
 
 // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
 func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeCancel) (*channeltypes.MsgChannelUpgradeCancelResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
 	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
@@ -1066,13 +1062,30 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
 	}
 
+	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+	if !found {
+		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
+	}
+
+	// if the msgSender is authorized to make and cancel upgrades AND the current channel has not already reached FLUSHCOMPLETE
+	// then we can restore immediately without any additional checks
 	isAuthority := k.GetAuthority() == msg.Signer
-	if err := k.ChannelKeeper.ChanUpgradeCancel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt, msg.ProofErrorReceipt, msg.ProofHeight, isAuthority); err != nil {
+	if isAuthority && channel.State != channeltypes.FLUSHCOMPLETE {
+		k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId, channel.UpgradeSequence)
+
+		cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
+
+		ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+
+		return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
+	}
+
+	if err := k.ChannelKeeper.ChanUpgradeCancel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt, msg.ProofErrorReceipt, msg.ProofHeight); err != nil {
 		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "error", err.Error())
 		return nil, errorsmod.Wrap(err, "channel upgrade cancel failed")
 	}
 
-	k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt)
+	k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt.Sequence)
 
 	cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 

@@ -1518,7 +1518,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 		expResult func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error)
 	}{
 		{
-			"success",
+			"success: keeper is not authority, valid error receipt so channnel changed to match error receipt seq",
 			func() {},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
 				suite.Require().NoError(err)
@@ -1528,6 +1528,92 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Channel state should be reverted back to open.
 				suite.Require().Equal(channeltypes.OPEN, channel.State)
 				// Upgrade sequence should be changed to match sequence on error receipt.
+				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
+			},
+		},
+		{
+			"success: keeper is authority & channel state in FLUSHING, so error receipt is ignored and channel is restored to initial upgrade sequence",
+			func() {
+				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.FLUSHING
+				channel.UpgradeSequence = uint64(3)
+				path.EndpointA.SetChannel(channel)
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				// Channel state should be reverted back to open.
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				// Upgrade sequence should be changed to match initial upgrade sequence.
+				suite.Require().Equal(uint64(3), channel.UpgradeSequence)
+			},
+		},
+		{
+			"success: keeper is authority & channel state in FLUSHING, can be cancelled even with invalid error receipt",
+			func() {
+				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+				msg.ProofErrorReceipt = []byte("invalid proof")
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.FLUSHING
+				channel.UpgradeSequence = uint64(1)
+				path.EndpointA.SetChannel(channel)
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				// Channel state should be reverted back to open.
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				// Upgrade sequence should be changed to match initial upgrade sequence.
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+			},
+		},
+		{
+			"success: keeper is authority & channel state in FLUSHING, can be cancelled even with empty error receipt",
+			func() {
+				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+				msg.ProofErrorReceipt = nil
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.FLUSHING
+				channel.UpgradeSequence = uint64(1)
+				path.EndpointA.SetChannel(channel)
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				// Channel state should be reverted back to open.
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				// Upgrade sequence should be changed to match initial upgrade sequence.
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+			},
+		},
+		{
+			"success: keeper is authority but channel state in FLUSHCOMPLETE, requires valid error receipt",
+			func() {
+				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.FLUSHCOMPLETE
+				channel.UpgradeSequence = uint64(1)
+				path.EndpointA.SetChannel(channel)
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				// Channel state should be reverted back to open.
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				// Upgrade sequence should be changed to match error receipt sequence.
 				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
 			},
 		},
@@ -1664,7 +1750,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().False(found, "channel upgrade should be nil")
 
 				suite.Require().NotNil(res)
-				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
 			},
 		},
 		{
