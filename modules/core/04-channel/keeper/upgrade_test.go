@@ -228,7 +228,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			func() {
 				counterpartyUpgrade.Fields.ConnectionHops = []string{ibctesting.InvalidID}
 			},
-			types.ErrIncompatibleCounterpartyUpgrade,
+			commitmenttypes.ErrInvalidProof,
 		},
 		{
 			"fails due to incompatible upgrades, chainB proposes a new connection hop that does not match counterparty",
@@ -252,7 +252,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				channel.UpgradeSequence = 5
 				path.EndpointB.SetChannel(channel)
 			},
-			// channel sequence - 1 will be returned (upgrade sequence is bumped in init as this is non-crossing hellos case)
+			// channel sequence will be returned so that counterparty inits on completely fresh sequence for both sides
 			types.NewUpgradeError(5, types.ErrInvalidUpgradeSequence),
 		},
 	}
@@ -1399,7 +1399,7 @@ func (suite *KeeperTestSuite) TestChanUpgrade_UpgradeSucceeds_AfterCancel() {
 	path.EndpointA.SetChannel(channel)
 
 	channel = path.EndpointB.GetChannel()
-	channel.UpgradeSequence = 2
+	channel.UpgradeSequence = 5
 	path.EndpointB.SetChannel(channel)
 
 	suite.Require().NoError(path.EndpointA.UpdateClient())
@@ -1430,8 +1430,8 @@ func (suite *KeeperTestSuite) TestChanUpgrade_UpgradeSucceeds_AfterCancel() {
 		channel := path.EndpointA.GetChannel()
 		suite.Require().Equal(types.OPEN, channel.State)
 
-		suite.T().Run("verify upgrade sequences are synced", func(t *testing.T) {
-			suite.Require().Equal(uint64(2), channel.UpgradeSequence)
+		suite.T().Run("verify upgrade sequence fastforwards to channelB sequence", func(t *testing.T) {
+			suite.Require().Equal(uint64(5), channel.UpgradeSequence)
 		})
 	})
 
@@ -1448,8 +1448,8 @@ func (suite *KeeperTestSuite) TestChanUpgrade_UpgradeSucceeds_AfterCancel() {
 		suite.Require().Equal(types.OPEN, channel.State, "channel should be in OPEN state")
 		suite.Require().Equal(mock.UpgradeVersion, channel.Version, "version should be correctly upgraded")
 		suite.Require().Equal(mock.UpgradeVersion, path.EndpointB.GetChannel().Version, "version should be correctly upgraded")
-		suite.Require().Equal(uint64(3), channel.UpgradeSequence, "upgrade sequence should be incremented")
-		suite.Require().Equal(uint64(3), path.EndpointB.GetChannel().UpgradeSequence, "upgrade sequence should be incremented on counterparty")
+		suite.Require().Equal(uint64(6), channel.UpgradeSequence, "upgrade sequence should be incremented")
+		suite.Require().Equal(uint64(6), path.EndpointB.GetChannel().UpgradeSequence, "upgrade sequence should be incremented on counterparty")
 	})
 }
 
