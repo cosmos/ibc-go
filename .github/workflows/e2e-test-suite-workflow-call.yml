@@ -244,7 +244,7 @@ jobs:
           cd e2e
           make e2e-test-suite entrypoint=${{ matrix.entrypoint }}
         env:
-          KEEP_CONTAINERS: "true"
+          KEEP_CONTAINTERS: "true"
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v3
         if: ${{ failure() && inputs.upload-logs }}
