@@ -19,7 +19,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
