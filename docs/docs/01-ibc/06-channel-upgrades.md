@@ -53,6 +53,20 @@ On a high level, successful handshake process for channel upgrades works as foll
 
 Each handshake step will be documented below in greater detail.
 
+## Initializing a Channel Upgrade
+
+A channel upgrade is initialised by submitting the `ChanUpgradeInit` message, which can be submitted only by the chain itself upon governance authorization. This message should specify an appropriate timeout window for the upgrade. It is possible to upgrade the channel ordering, the channel connection hops, and the channel version. 
+
+As part of the handling of the `ChanUpgradeInit` message, the application's callbacks `OnChanUpgradeInit` will be triggered as well.
+
+After this message is handled successfully, the channel's upgrade sequence will be incremented. This upgrade sequence will serve as a nonce for the upgrade process to provide replay protection.
+
+### Governance gating on `ChanUpgradeInit`
+
+The message signer for `MsgChanUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
+
+If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChanUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
+
 ## Cancelling a Channel Upgrade
 
 Channel upgrade cancellation is performed by submitting a `MsgChannelUpgradeCancel` message.
