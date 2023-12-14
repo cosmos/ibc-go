@@ -1596,6 +1596,27 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			},
 		},
 		{
+			"success: keeper is authority but channel state in FLUSHCOMPLETE, requires valid error receipt",
+			func() {
+				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.FLUSHCOMPLETE
+				channel.UpgradeSequence = uint64(1)
+				path.EndpointA.SetChannel(channel)
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				// Channel state should be reverted back to open.
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				// Upgrade sequence should be changed to match error receipt sequence.
+				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
+			},
+		},
+		{
 			"capability not found",
 			func() {
 				msg.ChannelId = ibctesting.InvalidID

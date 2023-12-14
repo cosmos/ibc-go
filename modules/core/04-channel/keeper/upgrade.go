@@ -556,8 +556,10 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 	return channel
 }
 
-// ChanUpgradeCancel is called by a module to cancel a channel upgrade that is in progress.
-func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt, errorReceiptProof []byte, proofHeight clienttypes.Height, isAuthority bool) error {
+// ChanUpgradeCancel is called by the msg server to prove that an error receipt was written on the counterparty
+// which constitutes a valid situation where the upgrade should be cancelled. An error is returned if sufficient evidence
+// for cancelling the upgrade has not been provided.
+func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt, errorReceiptProof []byte, proofHeight clienttypes.Height) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -568,7 +570,6 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrapf(types.ErrUpgradeNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	// we can only cancel if the counterparty wrote an error receipt during the upgrade handshake
 	// an error receipt proof must be provided.
 	if len(errorReceiptProof) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades AND channel is not in FLUSHCOMPLETE")
