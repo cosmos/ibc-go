@@ -153,37 +153,37 @@ func (suite *TypesTestSuite) TestErrTimeoutElapsed() {
 		expError error
 	}{
 		{
-			"elapsed: both timeout with height and timestamp",
+			"both timeout with height and timestamp",
 			types.NewTimeout(height, timestamp),
 			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current height: %s, timeout height %s", height, height),
 		},
 		{
-			"elapsed: timeout with height and zero timestamp",
+			"timeout with height and zero timestamp",
 			types.NewTimeout(height, 0),
 			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current height: %s, timeout height %s", height, height),
 		},
 		{
-			"elapsed: timeout with timestamp and zero height",
+			"timeout with timestamp and zero height",
 			types.NewTimeout(clienttypes.ZeroHeight(), timestamp),
 			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp %d", timestamp, timestamp),
 		},
 		{
-			"elapsed: height elapsed, timestamp did not",
+			"height elapsed, timestamp did not",
 			types.NewTimeout(height, timestamp+1),
 			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current height: %s, timeout height %s", height, height),
 		},
 		{
-			"elapsed: timestamp elapsed, height did not",
+			"timestamp elapsed, height did not",
 			types.NewTimeout(height.Increment().(clienttypes.Height), timestamp),
 			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp %d", timestamp, timestamp),
 		},
 		{
-			"elapsed: height elapsed when less than current height",
+			"height elapsed when less than current height",
 			types.NewTimeout(clienttypes.NewHeight(0, 1), 0),
 			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current height: %s, timeout height %s", clienttypes.NewHeight(0, 1), height),
 		},
 		{
-			"elapsed: timestamp elapsed when less than current timestamp",
+			"timestamp elapsed when less than current timestamp",
 			types.NewTimeout(clienttypes.ZeroHeight(), timestamp-1),
 			errorsmod.Wrapf(types.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp %d", timestamp-1, timestamp),
 		},
@@ -193,6 +193,45 @@ func (suite *TypesTestSuite) TestErrTimeoutElapsed() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			err := tc.timeout.ErrTimeoutElapsed(height, timestamp)
+			suite.Require().ErrorIs(err, tc.expError)
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestErrTimeoutNotReached() {
+	// elapsed is expected to be true when either timeout height or timestamp
+	// is greater than or equal to 2
+	var (
+		height    = clienttypes.NewHeight(0, 2)
+		timestamp = uint64(2)
+	)
+
+	testCases := []struct {
+		name     string
+		timeout  types.Timeout
+		expError error
+	}{
+		{
+			"neither timeout reached with height and timestamp",
+			types.NewTimeout(height.Increment().(clienttypes.Height), timestamp+1),
+			errorsmod.Wrapf(types.ErrTimeoutNotReached, "current height: %s, timeout height %s", height, height),
+		},
+		{
+			"timeout not reached with height and zero timestamp",
+			types.NewTimeout(height.Increment().(clienttypes.Height), 0),
+			errorsmod.Wrapf(types.ErrTimeoutNotReached, "current height: %s, timeout height %s", height, height),
+		},
+		{
+			"timeout not reached with timestamp and zero height",
+			types.NewTimeout(clienttypes.ZeroHeight(), timestamp+1),
+			errorsmod.Wrapf(types.ErrTimeoutNotReached, "current timestamp: %d, timeout timestamp %d", timestamp, timestamp),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			err := tc.timeout.ErrTimeoutNotReached(height, timestamp)
 			suite.Require().ErrorIs(err, tc.expError)
 		})
 	}
