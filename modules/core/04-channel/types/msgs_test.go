@@ -1188,3 +1188,76 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelGetSigners() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
+
+func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsValidateBasic() {
+	var msg *types.MsgPruneAcknowledgements
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"success: positive amount",
+			func() {
+				msg.NumToPrune = 1
+			},
+			true,
+		},
+		{
+			"invalid port identifier",
+			func() {
+				msg.PortId = invalidPort
+			},
+			false,
+		},
+		{
+			"invalid channel identifier",
+			func() {
+				msg.ChannelId = invalidChannel
+			},
+			false,
+		},
+
+		{
+			"missing signer address",
+			func() {
+				msg.Signer = emptyAddr
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			msg = types.NewMsgPruneAcknowledgements(ibctesting.MockPort, ibctesting.FirstChannelID, 0, addr)
+
+			tc.malleate()
+			err := msg.ValidateBasic()
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsGetSigners() {
+	expSigner, err := sdk.AccAddressFromBech32(addr)
+	suite.Require().NoError(err)
+
+	msg := types.NewMsgPruneAcknowledgements(ibctesting.MockPort, ibctesting.FirstChannelID, 0, addr)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expSigner.Bytes(), signers[0])
+}

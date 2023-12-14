@@ -724,3 +724,32 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 	}
 	return msg.Params.Validate()
 }
+
+// NewMsgPruneAcknowledgements creates a new instance of MsgPruneAcknowledgements.
+func NewMsgPruneAcknowledgements(portID, channelID string, numToPrune uint64, signer string) *MsgPruneAcknowledgements {
+	return &MsgPruneAcknowledgements{
+		PortId:     portID,
+		ChannelId:  channelID,
+		NumToPrune: numToPrune,
+		Signer:     signer,
+	}
+}
+
+// ValidateBasic performs basic checks on a MsgPruneAcknowledgements.
+func (msg *MsgPruneAcknowledgements) ValidateBasic() error {
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return errorsmod.Wrap(err, "invalid port ID")
+	}
+
+	if !IsValidChannelID(msg.ChannelId) {
+		return ErrInvalidChannelIdentifier
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	// NOTE(jim): num_to_prune == 0 is a valid amount/error/special prune-all (meh)?
+	return nil
+}

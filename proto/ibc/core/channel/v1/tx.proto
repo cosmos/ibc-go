@@ -68,6 +68,9 @@ service Msg {
 
   // UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
   rpc UpdateChannelParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
+  rpc PruneAcknowledgements(MsgPruneAcknowledgements) returns (MsgPruneAcknowledgementsResponse);
 }
 
 // ResponseResultType defines the possible outcomes of the execution of a message
@@ -439,3 +442,17 @@ message MsgUpdateParams {
 
 // MsgUpdateParamsResponse defines the MsgUpdateParams response type.
 message MsgUpdateParamsResponse {}
+
+// MsgPruneAcknowledgements defines the request type for the PruneAcknowledgements rpc.
+message MsgPruneAcknowledgements {
+  option (cosmos.msg.v1.signer)      = "signer";
+  option (gogoproto.goproto_getters) = false;
+
+  string port_id      = 1;
+  string channel_id   = 2;
+  uint64 num_to_prune = 3;
+  string signer       = 4;
+}
+
+// MsgPruneAcknowledgementsResponse defines the response type for the PruneAcknowledgements rpc.
+message MsgPruneAcknowledgementsResponse {}
