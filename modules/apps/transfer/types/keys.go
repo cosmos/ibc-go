@@ -11,7 +11,7 @@ const (
 	// ModuleName defines the IBC transfer name
 	ModuleName = "transfer"
 
-	// Version defines the current version the IBC tranfer
+	// Version defines the current version the IBC transfer
 	// module supports
 	Version = "ics20-1"
 
@@ -29,6 +29,9 @@ const (
 
 	// DenomPrefix is the prefix used for internal SDK coin representation.
 	DenomPrefix = "ibc"
+
+	// AllowAllPacketDataKeys holds the string key that allows all packet data keys in authz transfer messages
+	AllowAllPacketDataKeys = "*"
 
 	KeyTotalEscrowPrefix = "totalEscrowForDenom"
 
@@ -58,7 +61,7 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 	return hash[:20]
 }
 
-// TotalEscrowForDenomKey returns the store key of under which the total amout of
+// TotalEscrowForDenomKey returns the store key of under which the total amount of
 // source chain tokens in escrow is stored.
 func TotalEscrowForDenomKey(denom string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", KeyTotalEscrowPrefix, denom))

@@ -14,15 +14,18 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 const (
-	// valid constatns used for testing
+	// valid constants used for testing
 	portid   = "testportid"
 	chanid   = "channel-0"
 	cpportid = "testcpport"
@@ -339,11 +342,14 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 }
 
 func (suite *TypesTestSuite) TestMsgRecvPacketGetSigners() {
-	msg := types.NewMsgRecvPacket(packet, suite.proof, height, addr)
-	res := msg.GetSigners()
+	signer := sdk.AccAddress(ibctesting.TestAccAddress)
+	msg := types.NewMsgRecvPacket(packet, suite.proof, height, signer.String())
 
-	expected := "[7465737461646472313131313131313131313131]"
-	suite.Equal(expected, fmt.Sprintf("%v", res))
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(signer.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {

@@ -425,3 +425,14 @@ func (s *E2ETestSuite) QueryWasmCode(ctx context.Context, chain ibc.Chain, check
 	}
 	return res.Data, nil
 }
+
+// QueryWasmChecksums queries the wasm code checksums stored within the 08-wasm module.
+func (s *E2ETestSuite) QueryWasmChecksums(ctx context.Context, chain ibc.Chain) ([]string, error) {
+	queryClient := s.GetChainGRCPClients(chain).WasmQueryClient
+	res, err := queryClient.Checksums(ctx, &wasmtypes.QueryChecksumsRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Checksums, nil
+}

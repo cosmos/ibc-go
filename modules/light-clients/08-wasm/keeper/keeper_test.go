@@ -79,6 +79,8 @@ func (suite *KeeperTestSuite) SetupWasmWithMockVM() {
 
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+
+	wasmtesting.AllowWasmClients(suite.chainA)
 }
 
 func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
@@ -156,7 +158,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
-					nil,
+					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			true,
@@ -171,7 +173,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
 					ibcwasm.GetVM(),
-					nil,
+					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			false,
@@ -186,7 +188,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
-					nil,
+					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			false,
@@ -201,7 +203,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
-					nil,
+					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			false,
@@ -216,11 +218,26 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					ibcwasm.GetVM(),
-					nil,
+					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			false,
 			errors.New("store service must be not nil"),
+		},
+		{
+			"failure: nil query router",
+			func() {
+				keeper.NewKeeperWithVM(
+					GetSimApp(suite.chainA).AppCodec(),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
+					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
+					ibcwasm.GetVM(),
+					nil,
+				)
+			},
+			false,
+			errors.New("query router must be not nil"),
 		},
 	}
 

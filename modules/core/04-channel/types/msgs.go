@@ -73,15 +73,6 @@ func (msg MsgChannelOpenInit) ValidateBasic() error {
 	return msg.Channel.ValidateBasic()
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgChannelOpenInit) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}
-
 // NewMsgChannelOpenTry creates a new MsgChannelOpenTry instance
 // The version string is deprecated and will be ignored by core IBC.
 // It is left as an argument for go API backwards compatibility.
@@ -131,15 +122,6 @@ func (msg MsgChannelOpenTry) ValidateBasic() error {
 	return msg.Channel.ValidateBasic()
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgChannelOpenTry) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}
-
 // NewMsgChannelOpenAck creates a new MsgChannelOpenAck instance
 func NewMsgChannelOpenAck(
 	portID, channelID, counterpartyChannelID string, cpv string, proofTry []byte, proofHeight clienttypes.Height,
@@ -177,15 +159,6 @@ func (msg MsgChannelOpenAck) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgChannelOpenAck) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}
-
 // NewMsgChannelOpenConfirm creates a new MsgChannelOpenConfirm instance
 func NewMsgChannelOpenConfirm(
 	portID, channelID string, proofAck []byte, proofHeight clienttypes.Height,
@@ -218,15 +191,6 @@ func (msg MsgChannelOpenConfirm) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgChannelOpenConfirm) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}
-
 // NewMsgChannelCloseInit creates a new MsgChannelCloseInit instance
 func NewMsgChannelCloseInit(
 	portID string, channelID string, signer string,
@@ -251,15 +215,6 @@ func (msg MsgChannelCloseInit) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgChannelCloseInit) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
 }
 
 // NewMsgChannelCloseConfirm creates a new MsgChannelCloseConfirm instance
@@ -294,15 +249,6 @@ func (msg MsgChannelCloseConfirm) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgChannelCloseConfirm) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}
-
 // NewMsgRecvPacket constructs new MsgRecvPacket
 func NewMsgRecvPacket(
 	packet Packet, proofCommitment []byte, proofHeight clienttypes.Height,
@@ -335,15 +281,6 @@ func (msg MsgRecvPacket) GetDataSignBytes() []byte {
 	return []byte(s)
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgRecvPacket) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}
-
 // NewMsgTimeout constructs new MsgTimeout
 func NewMsgTimeout(
 	packet Packet, nextSequenceRecv uint64, proofUnreceived []byte,
@@ -371,15 +308,6 @@ func (msg MsgTimeout) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Packet.ValidateBasic()
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgTimeout) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
 }
 
 // NewMsgTimeoutOnClose constructs new MsgTimeoutOnClose
@@ -416,15 +344,6 @@ func (msg MsgTimeoutOnClose) ValidateBasic() error {
 	return msg.Packet.ValidateBasic()
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgTimeoutOnClose) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}
-
 // NewMsgAcknowledgement constructs a new MsgAcknowledgement
 func NewMsgAcknowledgement(
 	packet Packet,
@@ -454,13 +373,4 @@ func (msg MsgAcknowledgement) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Packet.ValidateBasic()
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgAcknowledgement) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
 }

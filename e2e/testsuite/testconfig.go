@@ -445,6 +445,11 @@ func IsCI() bool {
 	return strings.ToLower(os.Getenv("CI")) == "true"
 }
 
+// IsFork returns true if the tests are running in fork mode, false is returned otherwise.
+func IsFork() bool {
+	return strings.ToLower(os.Getenv("FORK")) == "true"
+}
+
 // ChainOptions stores chain configurations for the chains that will be
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
