@@ -71,17 +71,6 @@ var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
-// MemoFeatureReleases represents the releases the memo field was released in.
-var MemoFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v6",
-	MinorVersions: []string{
-		"v2.5",
-		"v3.4",
-		"v4.2",
-		"v5.1",
-	},
-}
-
 // TotalEscrowFeatureReleases represents the releases the total escrow state entry was released in.
 var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",

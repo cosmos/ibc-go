@@ -209,6 +209,7 @@ func (k Keeper) TimeoutOnClose(
 	proofClosed []byte,
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
+	counterpartyUpgradeSequence uint64,
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
@@ -263,9 +264,14 @@ func (k Keeper) TimeoutOnClose(
 	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 
 	counterparty := types.NewCounterparty(packet.GetSourcePort(), packet.GetSourceChannel())
-	expectedChannel := types.NewChannel(
-		types.CLOSED, channel.Ordering, counterparty, counterpartyHops, channel.Version,
-	)
+	expectedChannel := types.Channel{
+		State:           types.CLOSED,
+		Ordering:        channel.Ordering,
+		Counterparty:    counterparty,
+		ConnectionHops:  counterpartyHops,
+		Version:         channel.Version,
+		UpgradeSequence: counterpartyUpgradeSequence,
+	}
 
 	// check that the opposing channel end has closed
 	if err := k.connectionKeeper.VerifyChannelState(
