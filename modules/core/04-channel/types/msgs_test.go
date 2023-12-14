@@ -1225,9 +1225,8 @@ func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsValidateBasic() {
 			},
 			types.ErrInvalidChannelIdentifier,
 		},
-
 		{
-			"missing signer address",
+			"empty signer address",
 			func() {
 				msg.Signer = emptyAddr
 			},
