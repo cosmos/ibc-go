@@ -578,9 +578,10 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 // 'TimeoutExecuted' can be found in the 04-channel/keeper/timeout_test.go.
 func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 	var (
-		packet    channeltypes.Packet
-		packetKey []byte
-		path      *ibctesting.Path
+		packet                      channeltypes.Packet
+		packetKey                   []byte
+		path                        *ibctesting.Path
+		counterpartyUpgradeSequence uint64
 	)
 
 	testCases := []struct {
@@ -717,7 +718,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proofClosed, _ := suite.chainB.QueryProof(channelKey)
 
-			msg := channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+			msg := channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.chainA.SenderAccount.GetAddress().String(), counterpartyUpgradeSequence)
 
 			_, err := keeper.Keeper.TimeoutOnClose(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
 
