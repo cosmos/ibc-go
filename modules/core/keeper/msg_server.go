@@ -432,7 +432,7 @@ func (k Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Msg
 		return nil, errorsmod.Wrapf(err, "channel close confirm callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
 
-	err = k.ChannelKeeper.ChanCloseConfirm(ctx, msg.PortId, msg.ChannelId, capability, msg.ProofInit, msg.ProofHeight)
+	err = k.ChannelKeeper.ChanCloseConfirm(ctx, msg.PortId, msg.ChannelId, capability, msg.ProofInit, msg.ProofHeight, msg.CounterpartyUpgradeSequence)
 	if err != nil {
 		ctx.Logger().Error("channel close confirm failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrap(err, "channel handshake close confirm failed")
@@ -622,7 +622,7 @@ func (k Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeo
 	// If the timeout was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	err = k.ChannelKeeper.TimeoutOnClose(cacheCtx, capability, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv)
+	err = k.ChannelKeeper.TimeoutOnClose(cacheCtx, capability, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv, msg.CounterpartyUpgradeSequence)
 
 	switch err {
 	case nil:
