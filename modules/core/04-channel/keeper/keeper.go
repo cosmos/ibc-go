@@ -610,3 +610,21 @@ func (k Keeper) HasInflightPackets(ctx sdk.Context, portID, channelID string) bo
 
 	return iterator.Valid()
 }
+
+// GetAcknowledgementPruningSequence gets a channel's acknowledgement pruning sequence from the store.
+func (k Keeper) GetAcknowledgementPruningSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.AckPruningSequenceKey(portID, channelID))
+	if len(bz) == 0 {
+		return 0, false
+	}
+
+	return sdk.BigEndianToUint64(bz), true
+}
+
+// SetAcknowledgementPruningSequence sets a channel's acknowledgement pruning sequence to the store.
+func (k Keeper) SetAcknowledgementPruningSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := sdk.Uint64ToBigEndian(sequence)
+	store.Set(host.AckPruningSequenceKey(portID, channelID), bz)
+}
