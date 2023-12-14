@@ -518,8 +518,13 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 	)
 
 	err = s.ExecuteGovV1Proposal(ctx, message, cosmosChain, cosmosWallet)
-	// This is the error string that is returned from the contract
-	s.Require().ErrorContains(err, "migration not supported")
+	s.Require().Error(err)
+
+	version := cosmosChain.Nodes()[0].Image.Version
+	if govV1FailedReasonFeatureReleases.IsSupported(version) {
+		// This is the error string that is returned from the contract
+		s.Require().ErrorContains(err, "migration not supported")
+	}
 }
 
 // TestRecoverClient_Succeeds_GrandpaContract features:
