@@ -71,6 +71,13 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	err = test.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, chain)
 	s.Require().Error(err, "chain did not halt at halt height")
 
+	var allNodes []test.ChainHeighter
+	for _, node := range chain.Nodes() {
+		allNodes = append(allNodes, node)
+	}
+
+	test.WaitForInSync(ctx, chain, allNodes...)
+
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
