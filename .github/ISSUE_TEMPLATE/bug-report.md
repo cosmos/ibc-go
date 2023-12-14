@@ -22,7 +22,7 @@ through the appropriate channels won't receive any bounty.
 
 ## Expected Behaviour
 
-<!-- What is the expected behaviour? -->
+<!-- What is the expected behavior? -->
 
 ## Version
 
