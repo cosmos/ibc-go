@@ -20,6 +20,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+const invalidVersion = "invalid|version"
+
 var (
 	// TestOwnerAddress defines a reusable bech32 address for testing purposes
 	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
@@ -327,7 +329,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"ICA OnChanOpenACK fails - invalid version", func() {
-				path.EndpointB.ChannelConfig.Version = "invalid|version"
+				path.EndpointB.ChannelConfig.Version = invalidVersion
 			}, false,
 		},
 		{
@@ -790,7 +792,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		},
 		{
 			"ICA OnChanUpgradeInit fails - invalid version", func() {
-				version = "invalid|version"
+				version = invalidVersion
 			}, false,
 		},
 		{
@@ -887,7 +889,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 		},
 		{
 			"ICA OnChanUpgradeAck fails - invalid version", func() {
-				counterpartyVersion = "invalid|version"
+				counterpartyVersion = invalidVersion
 			}, false,
 		},
 		{
