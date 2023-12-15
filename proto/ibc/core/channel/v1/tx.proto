@@ -68,6 +68,9 @@ service Msg {
 
   // UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
   rpc UpdateChannelParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
+  rpc PruneAcknowledgements(MsgPruneAcknowledgements) returns (MsgPruneAcknowledgementsResponse);
 }
 
 // ResponseResultType defines the possible outcomes of the execution of a message
@@ -190,11 +193,12 @@ message MsgChannelCloseConfirm {
 
   option (gogoproto.goproto_getters) = false;
 
-  string                    port_id      = 1;
-  string                    channel_id   = 2;
-  bytes                     proof_init   = 3;
-  ibc.core.client.v1.Height proof_height = 4 [(gogoproto.nullable) = false];
-  string                    signer       = 5;
+  string                    port_id                       = 1;
+  string                    channel_id                    = 2;
+  bytes                     proof_init                    = 3;
+  ibc.core.client.v1.Height proof_height                  = 4 [(gogoproto.nullable) = false];
+  string                    signer                        = 5;
+  uint64                    counterparty_upgrade_sequence = 6;
 }
 
 // MsgChannelCloseConfirmResponse defines the Msg/ChannelCloseConfirm response
@@ -246,12 +250,13 @@ message MsgTimeoutOnClose {
 
   option (gogoproto.goproto_getters) = false;
 
-  Packet                    packet             = 1 [(gogoproto.nullable) = false];
-  bytes                     proof_unreceived   = 2;
-  bytes                     proof_close        = 3;
-  ibc.core.client.v1.Height proof_height       = 4 [(gogoproto.nullable) = false];
-  uint64                    next_sequence_recv = 5;
-  string                    signer             = 6;
+  Packet                    packet                        = 1 [(gogoproto.nullable) = false];
+  bytes                     proof_unreceived              = 2;
+  bytes                     proof_close                   = 3;
+  ibc.core.client.v1.Height proof_height                  = 4 [(gogoproto.nullable) = false];
+  uint64                    next_sequence_recv            = 5;
+  string                    signer                        = 6;
+  uint64                    counterparty_upgrade_sequence = 7;
 }
 
 // MsgTimeoutOnCloseResponse defines the Msg/TimeoutOnClose response type.
@@ -322,10 +327,9 @@ message MsgChannelUpgradeTry {
 message MsgChannelUpgradeTryResponse {
   option (gogoproto.goproto_getters) = false;
 
-  string             channel_id       = 1;
-  Upgrade            upgrade          = 2 [(gogoproto.nullable) = false];
-  uint64             upgrade_sequence = 3;
-  ResponseResultType result           = 4;
+  Upgrade            upgrade          = 1 [(gogoproto.nullable) = false];
+  uint64             upgrade_sequence = 2;
+  ResponseResultType result           = 3;
 }
 
 // MsgChannelUpgradeAck defines the request type for the ChannelUpgradeAck rpc
@@ -402,11 +406,7 @@ message MsgChannelUpgradeTimeout {
 }
 
 // MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type
-message MsgChannelUpgradeTimeoutResponse {
-  option (gogoproto.goproto_getters) = false;
-
-  ResponseResultType result = 1;
-}
+message MsgChannelUpgradeTimeoutResponse {}
 
 // MsgChannelUpgradeCancel defines the request type for the ChannelUpgradeCancel rpc
 message MsgChannelUpgradeCancel {
@@ -442,3 +442,17 @@ message MsgUpdateParams {
 
 // MsgUpdateParamsResponse defines the MsgUpdateParams response type.
 message MsgUpdateParamsResponse {}
+
+// MsgPruneAcknowledgements defines the request type for the PruneAcknowledgements rpc.
+message MsgPruneAcknowledgements {
+  option (cosmos.msg.v1.signer)      = "signer";
+  option (gogoproto.goproto_getters) = false;
+
+  string port_id    = 1;
+  string channel_id = 2;
+  uint64 limit      = 3;
+  string signer     = 4;
+}
+
+// MsgPruneAcknowledgementsResponse defines the response type for the PruneAcknowledgements rpc.
+message MsgPruneAcknowledgementsResponse {}
