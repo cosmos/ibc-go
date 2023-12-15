@@ -12,16 +12,16 @@ import (
 	"testing"
 	"time"
 
-	testifysuite "github.com/stretchr/testify/suite"
-
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -104,7 +104,8 @@ func (s *IBCWasmUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmo
 		allNodes = append(allNodes, node)
 	}
 
-	testutil.WaitForInSync(ctx, chain, allNodes...)
+	err = testutil.WaitForInSync(ctx, chain, allNodes...)
+	s.Require().NoError(err, "error waiting for node(s) to sync")
 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
