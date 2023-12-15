@@ -130,29 +130,31 @@ func (k Keeper) ChanUpgradeTry(
 	)
 
 	upgrade, isCrossingHello = k.GetUpgrade(ctx, portID, channelID)
-	// In this case, the counterparty upgrade is outdated. We want to force the counterparty
-	// to abort their upgrade and come back to sync with our own upgrade sequence.
-	// In the case, that we are in a non-crossing hello (i.e. upgrade does not exist on our side),
-	// the sequence on both sides should move to a fresh sequence on the next upgrade attempt.
-	// Thus, we write an error receipt with our own upgrade sequence which will cause the counterparty
-	// to cancel their upgrade and move to the same sequence. When a new upgrade attempt is started from either
-	// side, it will be a fresh sequence for both sides (i.e. channel.upgradeSequence + 1)
-	// In the crossing hello case, we already have an upgrade but it is at a higher sequence than the counterparty.
-	// Thus, our upgrade should take priority. We force the counterparty to abort their upgrade by invalidating all counterparty
-	// upgrade attempts below our own sequence by setting errorReceipt to upgradeSequence - 1.
-	// The upgrade handshake may then proceed on the counterparty with our sequence
-	// NOTE: Two possible outcomes may occur in this scenario.
-	// The UpgradeCancel datagram may reach the counterparty first, which will cause the counterparty to cancel. The counterparty
-	// may then receive a TRY with our channel upgrade sequence and correctly increment their sequence to become synced with our upgrade attempt.
-	// The UpgradeTRY message may arrive first, in this case, **IF** the upgrade fields are mutually compatible; the counterparty will simply
-	// fast forward their sequence to our own and continue the upgrade. The following Cancel message will be rejected as it is below the current sequence.
 	if counterpartyUpgradeSequence < channel.UpgradeSequence {
+		// In this case, the counterparty upgrade is outdated. We want to force the counterparty
+		// to abort their upgrade and come back to sync with our own upgrade sequence.
 		var upgradeSequence uint64
 		if isCrossingHello {
+			// In the crossing hello case, we already have an upgrade but it is at a higher sequence than the counterparty.
+			// Thus, our upgrade should take priority. We force the counterparty to abort their upgrade by invalidating all counterparty
+			// upgrade attempts below our own sequence by setting errorReceipt to upgradeSequence - 1.
+			// The upgrade handshake may then proceed on the counterparty with our sequence
 			upgradeSequence = channel.UpgradeSequence - 1
 		} else {
+			// In the case, that we are in a non-crossing hello (i.e. upgrade does not exist on our side),
+			// the sequence on both sides should move to a fresh sequence on the next upgrade attempt.
+			// Thus, we write an error receipt with our own upgrade sequence which will cause the counterparty
+			// to cancel their upgrade and move to the same sequence. When a new upgrade attempt is started from either
+			// side, it will be a fresh sequence for both sides (i.e. channel.upgradeSequence + 1)
 			upgradeSequence = channel.UpgradeSequence
 		}
+
+		// NOTE: Two possible outcomes may occur in this scenario.
+		// The ChanUpgradeCancel datagram may reach the counterparty first, which will cause the counterparty to cancel. The counterparty
+		// may then receive a TRY with our channel upgrade sequence and correctly increment their sequence to become synced with our upgrade attempt.
+		// The ChanUpgradeTry message may arrive first, in this case, **IF** the upgrade fields are mutually compatible; the counterparty will simply
+		// fast forward their sequence to our own and continue the upgrade. The following ChanUpgradeCancel message will be rejected as it is below the current sequence.
+
 		return channel, upgrade, types.NewUpgradeError(upgradeSequence, errorsmod.Wrapf(
 			types.ErrInvalidUpgradeSequence, "counterparty upgrade sequence < current upgrade sequence (%d < %d)", counterpartyUpgradeSequence, channel.UpgradeSequence,
 		))
