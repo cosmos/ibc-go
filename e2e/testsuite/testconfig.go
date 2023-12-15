@@ -56,7 +56,7 @@ const (
 	defaultRlyTag = "latest"
 
 	// TODO: https://github.com/cosmos/ibc-go/issues/4965
-	defaultHyperspaceTag = "timeout"
+	defaultHyperspaceTag = "20231122v39"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
 	defaultHermesTag = "luca_joss-channel-upgrade-authority"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
