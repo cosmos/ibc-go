@@ -77,6 +77,11 @@ on:
         required: false
         type: boolean
         default: false
+      test-by-suite:
+        description: 'Flag to specify if these tests should be performed run by suite or not'
+        required: false
+        type: string
+        default: 'false'
 
 env:
   REGISTRY: ghcr.io
@@ -209,6 +214,7 @@ jobs:
           TEST_ENTRYPOINT: '${{ inputs.test-entry-point }}'
           TEST_EXCLUSIONS: '${{ inputs.test-exclusions }}'
           TEST_NAME: '${{ inputs.test }}'
+          TEST_BY_SUITE: '${{ inputs.test-by-suite }}'
 
   # e2e-tests runs the actual go test command to trigger the test.
   # the tests themselves are configured via environment variables to specify
