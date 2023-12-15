@@ -277,12 +277,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			},
 			types.ErrIncompatibleCounterpartyUpgrade,
 		},
-		// ChainA(Sequence: 0, ics20-2), ChainB(Sequence: 4, ics20-3)
-		// ChainA.INIT(Sequence: 1)
-		// ChainB.INIT(Sequence: 5)
-		// ChainA.TRY => error (incompatible versions)
-		// ChainB.TRY(ErrorReceipt: 4)
 		{
+			// ChainA(Sequence: 0, ics20-2), ChainB(Sequence: 4, ics20-3)
+			// ChainA.INIT(Sequence: 1)
+			// ChainB.INIT(Sequence: 5)
+			// ChainA.TRY => error (incompatible versions)
+			// ChainB.TRY(ErrorReceipt: 4)
 			"crossing hellos: upgrade starts with mismatching upgrade sequences and try fails on counterparty due to incompatible version",
 			func() {
 				channel := path.EndpointB.GetChannel()
