@@ -22,8 +22,7 @@ const (
 	testEntryPointEnv = "TEST_ENTRYPOINT"
 	// testExclusionsEnv is a comma separated list of test function names that will not be included
 	// in the results of this script.
-	testExclusionsEnv      = "TEST_EXCLUSIONS"
-	testSuiteExclusionsEnv = "TEST_SUITE_EXCLUSIONS"
+	testExclusionsEnv = "TEST_EXCLUSIONS"
 	// testNameEnv if provided returns a single test entry so that only one test is actually run.
 	testNameEnv = "TEST_NAME"
 )
@@ -49,7 +48,7 @@ type TestSuitePair struct {
 func main() {
 	testBySuite, _ := os.LookupEnv("TEST_BY_SUITE")
 	if testBySuite == "True" {
-		githubActionMatrix, err := getGithubActionMatrixForTestSuite(e2eTestDirectory, getExcludedTestSuiteFunctions())
+		githubActionMatrix, err := getGithubActionMatrixForTestSuite(e2eTestDirectory, getExcludedTestFunctions())
 		if err != nil {
 			fmt.Printf("error generating github action json: %s", err)
 			os.Exit(1)
@@ -75,15 +74,6 @@ func main() {
 		}
 		fmt.Println(string(ghBytes))
 	}
-}
-
-// getExcludedTestSuiteFunctions returns a list of test suite that we don't want to run.
-func getExcludedTestSuiteFunctions() []string {
-	exclusions, ok := os.LookupEnv(testSuiteExclusionsEnv)
-	if !ok {
-		return nil
-	}
-	return strings.Split(exclusions, ",")
 }
 
 // getGithubActionMatrixForTestSuite returns a json string representing the contents that should go in the matrix

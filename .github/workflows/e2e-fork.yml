@@ -26,7 +26,7 @@ jobs:
           output=$(go run cmd/build_test_matrix/main.go)
           echo "matrix=$output" >> $GITHUB_OUTPUT
         env:
-          TEST_SUITE_EXCLUSIONS: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite'
+          TEST_EXCLUSIONS: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite'
           TEST_BY_SUITE: 'True'
 
   # dynamically build a matrix of test/test suite pairs to run
