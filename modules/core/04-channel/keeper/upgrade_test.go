@@ -279,7 +279,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			// ChainB.TRY => error (incompatible versions)
 			"crossing hellos: fails due to incompatible version",
 			func() {
-				// use imcompatible version
+				// use incompatible version
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = fmt.Sprintf("%s-v3", mock.Version)
 				proposedUpgrade = path.EndpointB.GetProposedUpgrade()
 
@@ -305,7 +305,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				channel.UpgradeSequence = 4
 				path.EndpointB.SetChannel(channel)
 
-				// use imcompatible version
+				// use incompatible version
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = fmt.Sprintf("%s-v3", mock.Version)
 				proposedUpgrade = path.EndpointB.GetProposedUpgrade()
 
