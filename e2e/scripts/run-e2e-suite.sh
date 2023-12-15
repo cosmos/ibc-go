@@ -3,10 +3,11 @@
 set -eo pipefail
 
 ENTRY_POINT="${1}"
+export KEEP_CONTAINTERS='true'
 
 function _check_env() {
-      if ["$ENTRY_POINT" == ""] ; then
-          echo "requires an entrypoint to continue"
+      if [ "$ENTRY_POINT" = "" ]; then
+          echo "requires an entrypoint"
           exit 1
       fi
 }

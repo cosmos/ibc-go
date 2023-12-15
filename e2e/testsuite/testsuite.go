@@ -55,7 +55,6 @@ type E2ETestSuite struct {
 
 var (
 	testName string
-	r        ibc.Relayer
 )
 
 // pathPair is a pairing of two chains which will be used in a test.
@@ -107,12 +106,12 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 }
 
 func (s *E2ETestSuite) SetupRelayer(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainA ibc.Chain, chainB ibc.Chain) ibc.Relayer {
-	if r == nil {
-		r = s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
+	if s.rly == nil {
+		s.rly = s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
 	}
 	s.InitGRPCClients(chainA)
 	s.InitGRPCClients(chainB)
-	return r
+	return s.rly
 }
 
 func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.Chain, channelOpts func(*ibc.CreateChannelOptions), buildOptions ...func(options *interchaintest.InterchainBuildOptions)) ibc.Relayer {
