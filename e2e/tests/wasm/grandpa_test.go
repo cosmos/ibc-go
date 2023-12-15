@@ -742,12 +742,12 @@ func (s *GrandpaTestSuite) GetGrandpaTestChains() (ibc.Chain, ibc.Chain) {
 			// TODO: https://github.com/cosmos/ibc-go/issues/4965
 			{
 				Repository: "ghcr.io/misko9/polkadot-node",
-				Version:    "local",
+				Version:    "v0.9.39",
 				UidGid:     "1000:1000",
 			},
 			{
 				Repository: "ghcr.io/misko9/parachain-node",
-				Version:    "latest",
+				Version:    "20231122v39",
 				UidGid:     "1000:1000",
 			},
 		}
