@@ -1129,3 +1129,8 @@ func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Msg
 
 	return &channeltypes.MsgUpdateParamsResponse{}, nil
 }
+
+// PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
+func (Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
+	return &channeltypes.MsgPruneAcknowledgementsResponse{}, nil
+}
