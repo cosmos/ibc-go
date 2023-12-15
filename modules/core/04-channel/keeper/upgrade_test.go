@@ -255,6 +255,70 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			// channel sequence will be returned so that counterparty inits on completely fresh sequence for both sides
 			types.NewUpgradeError(5, types.ErrInvalidUpgradeSequence),
 		},
+		{
+			// ChainA(Sequence: 0), ChainB(Sequence 4)
+			// ChainA.INIT(Sequence: 1)
+			// ChainB.INIT(Sequence: 5)
+			// ChainB.TRY(ErrorReceipt: 4)
+			"crossing hellos: fails due to mismatch in upgrade sequences",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 4
+				path.EndpointB.SetChannel(channel)
+
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+			},
+			types.NewUpgradeError(4, types.ErrInvalidUpgradeSequence),
+		},
+		{
+			// ChainA(Sequence: 0, ics20-2), ChainB(Sequence: 0, ics20-3)
+			// ChainA.INIT(Sequence: 1)
+			// ChainB.INIT(Sequence: 1)
+			// ChainA.TRY => error (incompatible versions)
+			// ChainB.TRY => error (incompatible versions)
+			"crossing hellos: fails due to incompatible version",
+			func() {
+				// use imcompatible version
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = fmt.Sprintf("%s-v3", mock.Version)
+				proposedUpgrade = path.EndpointB.GetProposedUpgrade()
+
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeTry()
+				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, "incompatible counterparty upgrade")
+				suite.Require().Equal(uint64(1), path.EndpointA.GetChannel().UpgradeSequence)
+			},
+			types.ErrIncompatibleCounterpartyUpgrade,
+		},
+		// ChainA(Sequence: 0, ics20-2), ChainB(Sequence: 4, ics20-3)
+		// ChainA.INIT(Sequence: 1)
+		// ChainB.INIT(Sequence: 5)
+		// ChainA.TRY => error (incompatible versions)
+		// ChainB.TRY(ErrorReceipt: 4)
+		{
+			"crossing hellos: upgrade starts with mismatching upgrade sequences and try fails on counterparty due to incompatible version",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 4
+				path.EndpointB.SetChannel(channel)
+
+				// use imcompatible version
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = fmt.Sprintf("%s-v3", mock.Version)
+				proposedUpgrade = path.EndpointB.GetProposedUpgrade()
+
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.ChanUpgradeTry()
+				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, "incompatible counterparty upgrade")
+				suite.Require().Equal(uint64(1), path.EndpointA.GetChannel().UpgradeSequence)
+			},
+			types.NewUpgradeError(4, types.ErrInvalidUpgradeSequence),
+		},
 	}
 
 	for _, tc := range testCases {
