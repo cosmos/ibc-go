@@ -77,11 +77,6 @@ on:
         required: false
         type: boolean
         default: false
-      test-by-suite:
-        description: 'Flag to specify if these tests should be performed run by suite or not'
-        required: false
-        type: string
-        default: 'false'
 
 env:
   REGISTRY: ghcr.io
@@ -146,7 +141,7 @@ jobs:
       - uses: actions/checkout@v4
         if: ${{ inputs.build-and-push-docker-image-wasm }}
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v4
         if: ${{ inputs.build-and-push-docker-image-wasm }}
         with:
           python-version: '3.10'
@@ -203,18 +198,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: cosmos/ibc-go
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v4
         with:
           go-version: '1.21'
       - id: set-matrix
-        run: |
-          output=$(go run cmd/build_test_matrix/main.go)
-          echo "matrix=$output" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
         env:
           TEST_ENTRYPOINT: '${{ inputs.test-entry-point }}'
-          TEST_EXCLUSIONS: '${{ inputs.test-exclusions }}'
+          TEST_SUITE_EXCLUSIONS: '${{ inputs.test-exclusions }}'
           TEST_NAME: '${{ inputs.test }}'
-          TEST_BY_SUITE: '${{ inputs.test-by-suite }}'
+          TEST_BY_SUITE: 'True'
 
   # e2e-tests runs the actual go test command to trigger the test.
   # the tests themselves are configured via environment variables to specify
@@ -225,51 +218,6 @@ jobs:
       - build-test-matrix
       - docker-build
       - docker-build-wasm
-    if: inputs.test-by-suite != 'true'
-    env:
-      CHAIN_IMAGE: '${{ inputs.chain-image }}'
-      CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
-      CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
-      RELAYER_IMAGE: '${{ inputs.relayer-image }}'
-      RELAYER_TAG: '${{ inputs.relayer-tag }}'
-      RELAYER_ID: '${{ inputs.relayer-type }}'
-      CHAIN_BINARY: '${{ inputs.chain-binary }}'
-      CHAIN_UPGRADE_TAG: '${{ inputs.chain-upgrade-tag }}'
-      CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: cosmos/ibc-go
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-      - name: Run e2e Test
-        id: e2e_test
-        run: |
-          cd e2e
-          make e2e-test test=${{ matrix.test }}
-      - name: Upload Diagnostics
-        uses: actions/upload-artifact@v3
-        if: ${{ failure() && inputs.upload-logs }}
-        continue-on-error: true
-        with:
-          name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
-          path: e2e/diagnostics
-          retention-days: 5
-
-  # e2e-tests-by-suite runs the actual go test command to trigger the test.
-  # the tests themselves are configured via environment variables to specify
-  # things like chain and relayer images and tags.
-  e2e-tests-by-suite:
-    runs-on: ubuntu-latest
-    needs:
-      - build-test-matrix
-      - docker-build
-      - docker-build-wasm
-    if: inputs.test-by-suite == 'true'
     env:
       CHAIN_IMAGE: '${{ inputs.chain-image }}'
       CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
