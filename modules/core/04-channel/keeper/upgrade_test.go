@@ -2329,17 +2329,38 @@ func (suite *KeeperTestSuite) TestChanUpgradeCrossingHelloWithHistoricalProofs()
 	var path *ibctesting.Path
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
+		name       string
+		sequenceFn func()
+		malleate   func()
+		expError   error
 	}{
 		{
 			"success",
 			func() {},
+			func() {},
 			nil,
 		},
 		{
+			// ChainA(Sequence: 0), ChainB(Sequence 4)
+			// ChainA.INIT(Sequence: 1)
+			// ChainB.INIT(Sequence: 5)
+			// ChainA.TRY(Sequence: 5) // fastforward
+			// ChainB.TRY(ErrorReceipt: 4)
+			"fails due to mismatch in upgrade sequences",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 4
+				path.EndpointB.SetChannel(channel)
+			},
+			func() {
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(uint64(5), channel.UpgradeSequence)
+			},
+			types.NewUpgradeError(4, types.ErrInvalidUpgradeSequence),
+		},
+		{
 			"counterparty (chain B) has already progressed to ACK step",
+			func() {},
 			func() {
 				err := path.EndpointB.ChanUpgradeAck()
 				suite.Require().NoError(err)
@@ -2361,6 +2382,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeCrossingHelloWithHistoricalProofs()
 
 			err := path.EndpointA.ChanUpgradeInit()
 			suite.Require().NoError(err)
+
+			tc.sequenceFn()
 
 			err = path.EndpointB.ChanUpgradeInit()
 			suite.Require().NoError(err)
