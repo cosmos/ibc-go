@@ -30,7 +30,7 @@ relayers:
     tag: "latest"
   - id: hyperspace
     image: ghcr.io/misko9/hyperspace
-    tag: "20231122v3"
+    tag: "20231122v39"
 
 cometbft:
   logLevel: info
