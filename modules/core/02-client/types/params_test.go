@@ -19,6 +19,8 @@ func TestIsAllowedClient(t *testing.T) {
 		{"success: valid client with custom params", exported.Tendermint, NewParams(exported.Tendermint), true},
 		{"success: invalid blank client", " ", DefaultParams(), false},
 		{"success: invalid client with custom params", exported.Localhost, NewParams(exported.Tendermint), false},
+		{"success: wildcard allow all client", "test-client-type", NewAllowAllClientParams(), true},
+		{"success: invalid wildcard allow all client with blank client", " ", NewAllowAllClientParams(), false},
 	}
 
 	for _, tc := range testCases {
