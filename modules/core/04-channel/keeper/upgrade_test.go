@@ -300,6 +300,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(upgrade)
 				suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
+				suite.Require().Equal(path.EndpointA.GetChannel().UpgradeSequence, path.EndpointB.GetChannel().UpgradeSequence)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
 			}
@@ -1196,7 +1197,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		errorReceipt      types.ErrorReceipt
 		errorReceiptProof []byte
 		proofHeight       clienttypes.Height
-		isAuthority       bool
 	)
 
 	tests := []struct {
@@ -1219,44 +1219,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: nil,
 		},
 		{
-			name: "sender is authority, upgrade can be cancelled in FLUSHING state even with invalid error receipt upgrade sequence",
+			name: "upgrade cannot be cancelled in FLUSHCOMPLETE with invalid error receipt",
 			malleate: func() {
-				isAuthority = true
-
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
-
-				var ok bool
-				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().True(ok)
-
-				errorReceipt.Sequence = path.EndpointA.GetChannel().UpgradeSequence - 1
-
-				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
-
-				suite.coordinator.CommitBlock(suite.chainB)
-
-				suite.Require().NoError(path.EndpointA.UpdateClient())
-
-				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
-			},
-			expError: nil,
-		},
-		{
-			name: "sender is authority, upgrade cannot be cancelled in FLUSHCOMPLETE with invalid error receipt",
-			malleate: func() {
-				isAuthority = true
 				errorReceiptProof = nil
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
 		{
-			name: "sender is authority, upgrade cannot be cancalled in FLUSHCOMPLETE with error receipt sequence less than channel upgrade sequence",
+			name: "upgrade cannot be cancelled in FLUSHCOMPLETE with error receipt sequence less than channel upgrade sequence",
 			malleate: func() {
-				isAuthority = true
-
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
@@ -1289,7 +1260,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: types.ErrUpgradeNotFound,
 		},
 		{
-			name: "sender is not authority, error receipt sequence less than channel upgrade sequence",
+			name: "error receipt sequence less than channel upgrade sequence",
 			malleate: func() {
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -1318,7 +1289,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: connectiontypes.ErrConnectionNotFound,
 		},
 		{
-			name: "sender is authority, channel is in flush complete, error verification failed",
+			name: "channel is in flush complete, error verification failed",
 			malleate: func() {
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -1328,13 +1299,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
 				suite.coordinator.CommitBlock(suite.chainB)
-
-				isAuthority = true
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
 		{
-			name: "sender is not authority, error verification failed",
+			name: "error verification failed",
 			malleate: func() {
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -1347,22 +1316,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: commitmenttypes.ErrInvalidProof,
 		},
 		{
-			name: "sender is not authority, error verification failed with empty proof",
+			name: "error verification failed with empty proof",
 			malleate: func() {
 				errorReceiptProof = nil
 			},
 			expError: commitmenttypes.ErrInvalidProof,
-		},
-		{
-			name: "sender is authority, channel is flushing, cancel succeeds with empty proof",
-			malleate: func() {
-				isAuthority = true
-				errorReceiptProof = nil
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
-			},
-			expError: nil,
 		},
 	}
 
@@ -1370,8 +1328,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			isAuthority = false
-
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
@@ -1412,7 +1368,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 			tc.malleate()
 
-			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight, isAuthority)
+			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -1465,11 +1421,11 @@ func (suite *KeeperTestSuite) TestChanUpgrade_UpgradeSucceeds_AfterCancel() {
 		upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		errorReceiptProof, proofHeight := suite.chainB.QueryProof(upgradeErrorReceiptKey)
 
-		err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight, true)
+		err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
 		suite.Require().NoError(err)
 
 		// need to explicitly call WriteUpgradeOpenChannel as this usually would happen in the msg server layer.
-		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
+		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt.Sequence)
 
 		channel := path.EndpointA.GetChannel()
 		suite.Require().Equal(types.OPEN, channel.State)
@@ -1564,10 +1520,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 
 			if tc.expPanic {
 				suite.Require().Panics(func() {
-					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt.Sequence)
 				})
 			} else {
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt)
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt.Sequence)
 
 				channel = path.EndpointA.GetChannel()
 

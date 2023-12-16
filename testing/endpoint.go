@@ -563,6 +563,7 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	timeoutOnCloseMsg := channeltypes.NewMsgTimeoutOnClose(
 		packet, nextSeqRecv,
 		proof, proofClosed, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String(),
+		endpoint.Counterparty.GetChannel().UpgradeSequence,
 	)
 
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
