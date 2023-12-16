@@ -16,30 +16,14 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main'"
 
-  install-tparse:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-      - name: Display go version
-        run: go version
-      - name: install tparse
-        run: |
-          go install github.com/mfridman/tparse@v0.8.3
-      - uses: actions/cache@v3
-        with:
-          path: ~/go/bin
-          key: ${{ runner.os }}-go-tparse-binary
-
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-arch: ['amd64', 'arm', 'arm64']
+        go-arch: ['amd64', 'arm64']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
       - uses: technote-space/get-diff-action@v6.1.2
@@ -51,13 +35,19 @@ jobs:
             go.sum
       - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
+      - name: Install compiler for arm64.
+        if: matrix.go-arch == 'arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
       - name: Build e2e
         run: |
           cd e2e
           find ./tests -type d | while IFS= read -r dir
           do
               if ls "${dir}"/*.go >/dev/null 2>&1; then
-                  GOARCH=${{ matrix.go-arch }} go test -c "$dir"
+                  CGO_ENABLED=1 GOARCH=${{ matrix.go-arch }} go test -c "$dir"
               fi
           done
 
@@ -70,19 +60,19 @@ jobs:
       - name: Split pkgs into 4 files
         run: split -d -n l/4 pkgs.txt pkgs.txt.part.
       # cache multiple
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: '${{ github.sha }}-00'
           path: ./pkgs.txt.part.00
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: '${{ github.sha }}-01'
           path: ./pkgs.txt.part.01
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: '${{ github.sha }}-02'
           path: ./pkgs.txt.part.02
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: '${{ github.sha }}-03'
           path: ./pkgs.txt.part.03
@@ -96,7 +86,7 @@ jobs:
         part: ['00', '01', '02', '03']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: '1.21'
       - uses: technote-space/get-diff-action@v6.1.2
@@ -105,7 +95,7 @@ jobs:
             **/**.go
             go.mod
             go.sum
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: '${{ github.sha }}-${{ matrix.part }}'
         if: env.GIT_DIFF
@@ -113,7 +103,7 @@ jobs:
         run: |
           cat pkgs.txt.part.${{ matrix.part }} | xargs go test -mod=readonly -timeout 30m -coverprofile=${{ matrix.part }}profile.out -covermode=atomic -tags='ledger test_ledger_mock'
         if: env.GIT_DIFF
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: '${{ github.sha }}-${{ matrix.part }}-coverage'
           path: ./${{ matrix.part }}profile.out
@@ -129,19 +119,19 @@ jobs:
             **/**.go
             go.mod
             go.sum
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: '${{ github.sha }}-00-coverage'
         if: env.GIT_DIFF
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: '${{ github.sha }}-01-coverage'
         if: env.GIT_DIFF
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: '${{ github.sha }}-02-coverage'
         if: env.GIT_DIFF
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: '${{ github.sha }}-03-coverage'
         if: env.GIT_DIFF

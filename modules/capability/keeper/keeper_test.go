@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	key := storetypes.NewKVStoreKey(types.StoreKey)
 	testCtx := testutil.DefaultContextWithDB(suite.T(), key, storetypes.NewTransientStoreKey("transient_test"))
 	suite.ctx = testCtx.Ctx
-	encCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModuleBasic{})
+	encCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModule{})
 	suite.keeper = keeper.NewKeeper(encCfg.Codec, key, key)
 }
 
@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) TestSeal() {
 	})
 
 	caps := make([]*types.Capability, 5)
-	// Get Latest Index before creating new ones to sychronize indices correctly
+	// Get Latest Index before creating new ones to synchronize indices correctly
 	prevIndex := suite.keeper.GetLatestIndex(suite.ctx)
 
 	for i := range caps {

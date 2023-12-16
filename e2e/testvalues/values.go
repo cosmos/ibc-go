@@ -15,11 +15,14 @@ import (
 )
 
 const (
-	StartingTokenAmount int64         = 100_000_000
-	IBCTransferAmount   int64         = 10_000
-	InvalidAddress      string        = "<invalid-address>"
-	VotingPeriod        time.Duration = time.Second * 30
+	StartingTokenAmount             int64  = 500_000_000_000
+	IBCTransferAmount               int64  = 10_000
+	InvalidAddress                  string = "<invalid-address>"
+	DefaultGovV1ProposalTokenAmount        = 500_000_000
 )
+
+// VotingPeriod may differ per test.
+var VotingPeriod = time.Second * 30
 
 // ImmediatelyTimeout returns an ibc.IBCTimeout which will cause an IBC transfer to timeout immediately.
 func ImmediatelyTimeout() *ibc.IBCTimeout {
@@ -38,6 +41,10 @@ func DefaultFee(denom string) feetypes.Fee {
 
 func DefaultTransferAmount(denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(IBCTransferAmount)}
+}
+
+func TransferAmount(amount int64, denom string) sdk.Coin {
+	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(amount)}
 }
 
 func TendermintClientID(id int) string {
@@ -64,19 +71,9 @@ var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
-// MemoFeatureReleases represents the releases the memo field was released in.
-var MemoFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v6",
-	MinorVersions: []string{
-		"v2.5",
-		"v3.4",
-		"v4.2",
-		"v5.1",
-	},
-}
-
 // TotalEscrowFeatureReleases represents the releases the total escrow state entry was released in.
 var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 	MinorVersions: []string{
 		"v7.1",
 	},
@@ -84,17 +81,13 @@ var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
 
 // IbcErrorsFeatureReleases represents the releases the IBC module level errors was released in.
 var IbcErrorsFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v8.0",
+	MajorVersion: "v8",
 }
 
 // LocalhostClientFeatureReleases represents the releases the localhost client was released in.
 var LocalhostClientFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 	MinorVersions: []string{
 		"v7.1",
 	},
-}
-
-// DenomMetadataFeatureReleases represents the releases the human readable denom feature was released in.
-var DenomMetadataFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v8",
 }

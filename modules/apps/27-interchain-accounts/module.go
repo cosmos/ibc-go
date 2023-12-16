@@ -73,7 +73,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(genesistypes.DefaultGenesis())
 }
 
-// ValidateGenesis performs genesis state validation for the IBC interchain acounts module
+// ValidateGenesis performs genesis state validation for the IBC interchain accounts module
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs genesistypes.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
@@ -118,27 +118,6 @@ func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 	return AppModule{
 		controllerKeeper: controllerKeeper,
 		hostKeeper:       hostKeeper,
-	}
-}
-
-// InitModule will initialize the interchain accounts module. It should only be
-// called once and as an alternative to InitGenesis.
-func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes.Params, hostParams hosttypes.Params) {
-	if am.controllerKeeper != nil {
-		controllerkeeper.InitGenesis(ctx, *am.controllerKeeper, genesistypes.ControllerGenesisState{
-			Params: controllerParams,
-		})
-	}
-
-	if am.hostKeeper != nil {
-		if err := hostParams.Validate(); err != nil {
-			panic(fmt.Errorf("could not set ica host params at initialization: %v", err))
-		}
-
-		hostkeeper.InitGenesis(ctx, *am.hostKeeper, genesistypes.HostGenesisState{
-			Params: hostParams,
-			Port:   types.HostPortID,
-		})
 	}
 }
 

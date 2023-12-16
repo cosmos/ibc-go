@@ -38,7 +38,21 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#4763](https://github.com/cosmos/ibc-go/pull/4763) Bump SDK v0.50-rc.1.
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Features
+
+### Bug Fixes
+
+## [v8.0.0](https://github.com/cosmos/ibc-go/releases/tag/v8.0.0) - 2023-11-10
+
+### Dependencies
+
+* [\#5038](https://github.com/cosmos/ibc-go/pull/5038) Bump SDK v0.50.1 and cometBFT v0.38.
 * [\#4398](https://github.com/cosmos/ibc-go/pull/4398) Update all modules to go 1.21.
 
 ### API Breaking
@@ -55,6 +69,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (testing) [\#4018](https://github.com/cosmos/ibc-go/pull/4018) Allow failure expectations when using `chain.SendMsgs`.
 
 ### State Machine Breaking
+
+* (apps/transfer, apps/27-interchain-accounts, app/29-fee) [\#4992](https://github.com/cosmos/ibc-go/pull/4992) Set validation for length of string fields.
 
 ### Improvements
 
@@ -89,6 +105,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (testing) [\#4630](https://github.com/cosmos/ibc-go/pull/4630) Update `testconfig` to use revision formatted chain IDs.
 * (core/04-channel) [\#4706](https://github.com/cosmos/ibc-go/pull/4706) Retrieve correct next send sequence for packets in unordered channels.
 * (core/02-client) [\#4746](https://github.com/cosmos/ibc-go/pull/4746) Register implementations against `govtypes.Content` interface.
+* (apps/27-interchain-accounts) [\#4944](https://github.com/cosmos/ibc-go/pull/4944) Add missing proto interface registration.
+* (core/02-client) [\#5020](https://github.com/cosmos/ibc-go/pull/5020) Fix expect pointer error when unmarshalling misbehaviour file.
 
 ### Documentation
 
@@ -102,7 +120,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#3986](https://github.com/cosmos/ibc-go/pull/3986) Add function `RelayPacketWithResults`.
 * [\#4182](https://github.com/cosmos/ibc-go/pull/4182) Return current validator set when requesting current height in `GetValsAtHeight`.
 * [\#4319](https://github.com/cosmos/ibc-go/pull/4319) Fix in `TimeoutPacket` function to use counterparty `portID`/`channelID` in `GetNextSequenceRecv` query.
-[\#4180](https://github.com/cosmos/ibc-go/pull/4180) Remove unused function `simapp.SetupWithGenesisAccounts`.
+* [\#4180](https://github.com/cosmos/ibc-go/pull/4180) Remove unused function `simapp.SetupWithGenesisAccounts`.
 
 ### Miscellaneous Tasks
 
@@ -122,6 +140,20 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#3893](https://github.com/cosmos/ibc-go/pull/3893) Add deprecated option to `MsgSubmitMisbehaviour`.
 * (apps/transfer, apps/29-fee) [\#4570](https://github.com/cosmos/ibc-go/pull/4570) Remove `GetSignBytes` from 29-fee and transfer msgs.
 * [\#3630](https://github.com/cosmos/ibc-go/pull/3630) Add annotation to Msg service.
+
+## [v7.3.1](https://github.com/cosmos/ibc-go/releases/tag/v7.3.1) - 2023-10-20
+
+### Dependencies
+
+* [\#4539](https://github.com/cosmos/ibc-go/pull/4539) Update Cosmos SDK to v0.47.5.
+
+### Improvements
+
+* (apps/27-interchain-accounts) [\#4537](https://github.com/cosmos/ibc-go/pull/4537) Add argument to `generate-packet-data` cli to choose the encoding format for the messages in the ICA packet data.
+
+### Bug Fixes
+
+* (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
 ## [v7.3.0](https://github.com/cosmos/ibc-go/releases/tag/v7.3.0) - 2023-08-31
 
@@ -145,6 +177,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (04-channel) [\#4476](https://github.com/cosmos/ibc-go/pull/4476) Use UTC time in log messages for packet timeout error.
 * (testing) [\#4483](https://github.com/cosmos/ibc-go/pull/4483) Use the correct revision height when querying trusted validator set.
+
+## [v7.2.2](https://github.com/cosmos/ibc-go/releases/tag/v7.2.2) - 2023-10-20
+
+### Dependencies
+
+* [\#4539](https://github.com/cosmos/ibc-go/pull/4539) Update Cosmos SDK to v0.47.5.
+
+### Bug Fixes
+
+* (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
 ## [v7.2.1](https://github.com/cosmos/ibc-go/releases/tag/v7.2.1) - 2023-08-31
 
@@ -290,6 +332,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (light-clients/07-tendermint) [\#3022](https://github.com/cosmos/ibc-go/pull/3022) Correctly close iterator in `07-tendermint` store.
 * (core/02-client) [\#3010](https://github.com/cosmos/ibc-go/pull/3010) Update `Paginate` to use `FilterPaginate` in `ClientStates` and `ConnectionChannels` grpc queries.
 
+## [v6.2.1](https://github.com/cosmos/ibc-go/releases/tag/v6.2.1) - 2023-10-20
+
+### Bug Fixes
+
+* (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
+* (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
+
 ## [v6.2.0](https://github.com/cosmos/ibc-go/releases/tag/v6.2.0) - 2023-05-31
 
 ### Dependencies
@@ -308,6 +357,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
+
+## [v6.1.2](https://github.com/cosmos/ibc-go/releases/tag/v6.1.2) - 2023-10-20
+
+### Bug Fixes
+
+* (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
+* (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
 ## [v6.1.1](https://github.com/cosmos/ibc-go/releases/tag/v6.1.1) - 2023-05-25
 
@@ -369,7 +425,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#2290](https://github.com/cosmos/ibc-go/pull/2290) Changed `DefaultParams` function in `host` submodule to allow all messages by default. Defined a constant named `AllowAllHostMsgs` for `host` module to keep wildcard "*" string which allows all messages.
 * (apps/27-interchain-accounts) [\#2297](https://github.com/cosmos/ibc-go/pull/2297) Adding cli command to generate ICS27 packet data.
 * (modules/core/keeper) [\#1728](https://github.com/cosmos/ibc-go/pull/2399) Updated channel callback errors to include portID & channelID for better identification of errors.
-* (testing) [\#2657](https://github.com/cosmos/ibc-go/pull/2657) Carry `ProposerAddress` through commited blocks. Allow `DefaultGenTxGas` to be modified.
+* (testing) [\#2657](https://github.com/cosmos/ibc-go/pull/2657) Carry `ProposerAddress` through committed blocks. Allow `DefaultGenTxGas` to be modified.
 * (core/03-connection) [\#2745](https://github.com/cosmos/ibc-go/pull/2745) Adding `ConnectionParams` grpc query and CLI to 03-connection.
 * (apps/29-fee) [\#2786](https://github.com/cosmos/ibc-go/pull/2786) Save gas by checking key existence with `KVStore`'s `Has` method.
 
@@ -384,6 +440,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/keeper) [\#2403](https://github.com/cosmos/ibc-go/pull/2403) Added a function in keeper to cater for blank pointers.
 * (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 * (modules/core/keeper) [\#2745](https://github.com/cosmos/ibc-go/pull/2745) Fix request wiring for `UpgradedConsensusState` in core query server.
+
+## [v5.3.2](https://github.com/cosmos/ibc-go/releases/tag/v5.3.2) - 2023-10-20
+
+### Bug Fixes
+
+* (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
+* (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
 ## [v5.3.1](https://github.com/cosmos/ibc-go/releases/tag/v5.3.1) - 2023-05-25
 
@@ -468,17 +531,38 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (27-interchain-accounts) [\#1352](https://github.com/cosmos/ibc-go/pull/1352) Add support for Cosmos-SDK simulation to ics27 module.  
-* (linting) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) Fix linting errors, resulting compatiblity with go1.18 linting style, golangci-lint 1.46.2 and the revivie linter.  This caused breaking changes in core/04-channel, core/ante, and the testing library.
+* (linting) [\#1418](https://github.com/cosmos/ibc-go/pull/1418) Fix linting errors, resulting compatibility with go1.18 linting style, golangci-lint 1.46.2 and the revivie linter.  This caused breaking changes in core/04-channel, core/ante, and the testing library.
 
 ### Features
 
-* (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpont to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
+* (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpoint to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
 
 ### Bug Fixes
 
 * (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
 * (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
+
+## [v4.5.1](https://github.com/cosmos/ibc-go/releases/tag/v4.5.1) - 2023-10-20
+
+### Bug Fixes
+
+* (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
+* (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
+
+## [v4.5.0](https://github.com/cosmos/ibc-go/releases/tag/v4.5.0) - 2023-10-03
+
+### Dependencies
+
+* [\#4738](https://github.com/cosmos/ibc-go/pull/4738) Bump Cosmos SDK to v0.45.16.
+* [\#4782](https://github.com/cosmos/ibc-go/pull/4782) Bump ics23 to v0.9.1.
+
+## [v4.4.3](https://github.com/cosmos/ibc-go/releases/tag/v4.4.3) - 2023-10-20
+
+### Bug Fixes
+
+* (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
+* (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
 ## [v4.4.2](https://github.com/cosmos/ibc-go/releases/tag/v4.4.2) - 2023-05-25
 
@@ -605,7 +689,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-* (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpont to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
+* (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpoint to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
 
 ### Bug Fixes
 
@@ -708,7 +792,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-* (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpont to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
+* (apps/27-interchain-accounts) [\#2193](https://github.com/cosmos/ibc-go/pull/2193) Adding `InterchainAccount` gRPC query endpoint to ICS27 `controller` submodule to allow users to retrieve registered interchain account addresses.
 
 ### Bug Fixes
 
@@ -1326,7 +1410,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (04-channel) [\#220](https://github.com/cosmos/ibc-go/pull/220) Channel handshake events are now emitted with the channel keeper.
-* (core/02-client) [\#205](https://github.com/cosmos/ibc-go/pull/205) Add in-place and genesis migrations from SDK v0.42.0 to ibc-go v1.0.0. Solo machine protobuf defintions are migrated from v1 to v2. All solo machine consensus states are pruned. All expired tendermint consensus states are pruned.
+* (core/02-client) [\#205](https://github.com/cosmos/ibc-go/pull/205) Add in-place and genesis migrations from SDK v0.42.0 to ibc-go v1.0.0. Solo machine protobuf definitions are migrated from v1 to v2. All solo machine consensus states are pruned. All expired tendermint consensus states are pruned.
 * (modules/core) [\#184](https://github.com/cosmos/ibc-go/pull/184) Improve error messages. Uses unique error codes to indicate already relayed packets.
 * (07-tendermint) [\#182](https://github.com/cosmos/ibc-go/pull/182) Remove duplicate checks in upgrade logic.
 * (modules/core/04-channel) [\#7949](https://github.com/cosmos/cosmos-sdk/issues/7949) Standardized channel `Acknowledgement` moved to its own file. Codec registration redundancy removed.

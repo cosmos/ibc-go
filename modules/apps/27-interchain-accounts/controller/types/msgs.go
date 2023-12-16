@@ -12,6 +12,8 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
+const MaximumOwnerLength = 2048 // maximum length of the owner in bytes (value chosen arbitrarily)
+
 var (
 	_ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
 	_ sdk.Msg = (*MsgSendTx)(nil)
@@ -41,17 +43,11 @@ func (msg MsgRegisterInterchainAccount) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "owner address cannot be empty")
 	}
 
-	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgRegisterInterchainAccount) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		panic(err)
+	if len(msg.Owner) > MaximumOwnerLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner address must not exceed %d bytes", MaximumOwnerLength)
 	}
 
-	return []sdk.AccAddress{accAddr}
+	return nil
 }
 
 // NewMsgSendTx creates a new instance of MsgSendTx
@@ -74,6 +70,10 @@ func (msg MsgSendTx) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "owner address cannot be empty")
 	}
 
+	if len(msg.Owner) > MaximumOwnerLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner address must not exceed %d bytes", MaximumOwnerLength)
+	}
+
 	if err := msg.PacketData.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(err, "invalid interchain account packet data")
 	}
@@ -83,16 +83,6 @@ func (msg MsgSendTx) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgSendTx) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
 }
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
@@ -111,14 +101,4 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
 }

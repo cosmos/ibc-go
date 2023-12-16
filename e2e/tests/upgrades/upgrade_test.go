@@ -71,6 +71,14 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	err = test.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, chain)
 	s.Require().Error(err, "chain did not halt at halt height")
 
+	var allNodes []test.ChainHeighter
+	for _, node := range chain.Nodes() {
+		allNodes = append(allNodes, node)
+	}
+
+	err = test.WaitForInSync(ctx, chain, allNodes...)
+	s.Require().NoError(err, "error waiting for node(s) to sync")
+
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
@@ -101,7 +109,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -144,7 +152,8 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -154,7 +163,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
@@ -171,8 +180,8 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 2)
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount * 2
@@ -190,7 +199,8 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 		t.Run("packets are relayed", func(t *testing.T) {
 			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
-			actualBalance, err := chainA.GetBalance(ctx, chainAAddress, chainAIBCToken.IBCDenom())
+			actualBalance, err := s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+
 			s.Require().NoError(err)
 
 			expected := testvalues.IBCTransferAmount
@@ -220,7 +230,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("verify tokens sent", func(t *testing.T) {
-		balance, err := chain.GetBalance(ctx, userWalletAddr, chain.Config().Denom)
+		balance, err := s.QueryBalance(ctx, chain, userWalletAddr, chain.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount * 2
@@ -231,7 +241,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 		testCfg := testsuite.LoadConfig()
 		proposerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-		s.UpgradeChain(ctx, chain, proposerWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chain.(*cosmos.CosmosChain), proposerWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("send funds to test wallet", func(t *testing.T) {
@@ -244,7 +254,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	})
 
 	t.Run("verify tokens sent", func(t *testing.T) {
-		balance, err := chain.GetBalance(ctx, userWalletAddr, chain.Config().Denom)
+		balance, err := s.QueryBalance(ctx, chain, userWalletAddr, chain.Config().Denom)
 		s.Require().NoError(err)
 
 		expected := testvalues.StartingTokenAmount * 3
@@ -262,7 +272,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -317,7 +327,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 
 	resp := s.BroadcastMessages(
 		ctx,
-		chainA,
+		chainA.(*cosmos.CosmosChain),
 		chainAWallet,
 		msgCreateSoloMachineClient,
 	)
@@ -356,7 +366,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -368,7 +378,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA, chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	// see this issue https://github.com/informalsystems/hermes/issues/3579
@@ -390,14 +400,14 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 
 	t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB.(*cosmos.CosmosChain)), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount * 2
@@ -416,7 +426,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -430,7 +440,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("transfer native tokens from chainA to chainB", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB.(*cosmos.CosmosChain)), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -451,7 +461,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	t.Run("packet is relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -462,7 +472,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainA, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
@@ -507,7 +517,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -542,7 +552,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	t.Run("packet is relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount
@@ -553,7 +563,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainB, govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
 	t.Run("update params", func(t *testing.T) {

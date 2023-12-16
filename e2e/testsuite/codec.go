@@ -3,7 +3,6 @@ package testsuite
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 
 	"github.com/cosmos/gogoproto/jsonpb"
 	"github.com/cosmos/gogoproto/proto"
@@ -23,6 +22,7 @@ import (
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
@@ -34,6 +34,7 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	simappparams "github.com/cosmos/ibc-go/v8/testing/simapp/params"
 )
 
@@ -75,6 +76,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	ibctmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	localhost.RegisterInterfaces(cfg.InterfaceRegistry)
+	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	// all other types
 	upgradetypes.RegisterInterfaces(cfg.InterfaceRegistry)
@@ -99,22 +101,7 @@ func UnmarshalMsgResponses(txResp sdk.TxResponse, msgs ...codec.ProtoMarshaler) 
 		return err
 	}
 
-	var txMsgData sdk.TxMsgData
-	if err := cdc.Unmarshal(bz, &txMsgData); err != nil {
-		return err
-	}
-
-	if len(msgs) != len(txMsgData.MsgResponses) {
-		return fmt.Errorf("expected %d message responses but got %d", len(msgs), len(txMsgData.MsgResponses))
-	}
-
-	for i, msg := range msgs {
-		if err := cdc.Unmarshal(txMsgData.MsgResponses[i].Value, msg); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return ibctesting.UnmarshalMsgResponses(cdc, bz, msgs...)
 }
 
 // MustProtoMarshalJSON provides an auxiliary function to return Proto3 JSON encoded

@@ -12,6 +12,11 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
+const (
+	MaximumReceiverLength = 2048  // maximum length of the receiver address in bytes (value chosen arbitrarily)
+	MaximumMemoLength     = 32768 // maximum length of the memo in bytes (value chosen arbitrarily)
+)
+
 var (
 	_ sdk.Msg              = (*MsgUpdateParams)(nil)
 	_ sdk.Msg              = (*MsgTransfer)(nil)
@@ -35,16 +40,6 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
 }
 
 // NewMsgTransfer creates a new MsgTransfer instance
@@ -83,7 +78,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if !msg.Token.IsPositive() {
 		return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, msg.Token.String())
 	}
-	// NOTE: sender format must be validated as it is required by the GetSigners function.
+
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
@@ -91,14 +86,11 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if strings.TrimSpace(msg.Receiver) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing recipient address")
 	}
-	return ValidateIBCDenom(msg.Token.Denom)
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgTransfer) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		panic(err)
+	if len(msg.Receiver) > MaximumReceiverLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "recipient address must not exceed %d bytes", MaximumReceiverLength)
 	}
-	return []sdk.AccAddress{signer}
+	if len(msg.Memo) > MaximumMemoLength {
+		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
+	}
+	return ValidateIBCDenom(msg.Token.Denom)
 }

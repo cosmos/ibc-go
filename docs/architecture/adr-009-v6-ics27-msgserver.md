@@ -11,7 +11,7 @@ Accepted, implemented in v6 of ibc-go
 ## Context
 
 ICS 27 (Interchain Accounts) brought a cross-chain account management protocol built upon IBC.
-It enabled chains to programatically create accounts on behalf of counterparty chains which may enable a variety of authentication methods for this interchain account.
+It enabled chains to programmatically create accounts on behalf of counterparty chains which may enable a variety of authentication methods for this interchain account.
 The initial release of ICS 27 focused on enabling authentication schemes which may not require signing with a private key, such as via on-chain mechanisms like governance.
 
 Following the initial release of ICS 27 it became evident that:
@@ -27,7 +27,7 @@ To minimize disruption to developers working on the original design of the ICS 2
 
 ### Msg server
 
-To acheive this, as stated by [@damiannolan](https://github.com/cosmos/ibc-go/issues/2026#issue-1341640594), it was proposed to:
+To achieve this, as stated by [@damiannolan](https://github.com/cosmos/ibc-go/issues/2026#issue-1341640594), it was proposed to:
 
 > Add a new `MsgServer` to `27-interchain-accounts` which exposes two distinct rpc endpoints:
 >
@@ -78,9 +78,9 @@ See issue [#2145](https://github.com/cosmos/ibc-go/issues/2145)
 ### Future considerations
 
 [ADR 008](https://github.com/cosmos/ibc-go/pull/1976) proposes the creation of a middleware which enables callers of an IBC packet send to perform application logic in conjunction with the IBC application.
-The underlying application can be removed at the availablity of such a middleware as that will be the preferred method for executing application logic upon a ICS 27 packet send.
+The underlying application can be removed at the availability of such a middleware as that will be the preferred method for executing application logic upon a ICS 27 packet send.
 
-### Miscellanous
+### Miscellaneous
 
 In order to avoid import cycles, the genesis types have been moved to their own directory.
 A new protobuf package has been created for the genesis types.

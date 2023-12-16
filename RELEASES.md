@@ -33,7 +33,7 @@ Alpha releases are intended to make available new features as soon as they are f
 
 Initial users of alpha releases are expected to be advanced, patient, and capable of handling unusual errors. Very basic integration testing will be performed by the ibc-go development team before alpha releases.  
 
-An internal audit is typically performed before the alpha release allowing the development team to guage the maturity and stability of changes included in the next release.
+An internal audit is typically performed before the alpha release allowing the development team to gauge the maturity and stability of changes included in the next release.
 
 ### Beta
 
@@ -69,19 +69,15 @@ Only the following major release series have a stable release status. All missin
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v4.4.x`|October 31, 2023|
-|`v5.2.x`|September 28, 2023|
-|`v5.3.x`|October 31, 2023|
-|`v6.1.x`|December 09, 2023|
-|`v6.2.x`|December 09, 2023|
 |`v7.2.x`|March 17, 2024|
 |`v7.3.x`|March 17, 2024|
+|`v8.0.x`|November 10, 2024|
 
 ### Callbacks middleware
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.1.x-ibc-go-v7.3.x`|August 31, 2024|
+|`v0.1.x-ibc-go-v7.3.x`|March 17, 2024|
 
 ### What pull requests will be included in stable patch-releases?
 
@@ -112,15 +108,12 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 
 | Go | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|--------|------------|---------------------|
-| 1.19 | v4.4.1 | v0.45.15 | v0.34.27 |
-| 1.19 | v4.4.2 | v0.45.15 | v0.34.27 |
-| 1.18 | v5.2.1 | v0.46.7  | v0.34.24 |
-| 1.19 | v5.3.1 | v0.46.12 | v0.34.27 |
-| 1.18 | v6.1.1 | v0.46.7  | v0.34.24 |
-| 1.19 | v6.2.0 | v0.46.12 | v0.34.27 |
 | 1.19 | v7.2.0 | v0.47.3  | v0.37.2  |
 | 1.19 | v7.2.1 | v0.47.3  | v0.37.2  |
+| 1.19 | v7.2.2 | v0.47.5  | v0.37.2  |
 | 1.19 | v7.3.0 | v0.47.4  | v0.37.2  |
+| 1.19 | v7.3.1 | v0.47.5  | v0.37.2  |
+| 1.21 | v8.0.0 | v0.50.1  | v0.38.0  |
 
 ### Callbacks middleware
 

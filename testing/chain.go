@@ -458,11 +458,11 @@ func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterpa
 		trustedHeight = chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
 	}
 	var (
-		tmTrustedVals *cmttypes.ValidatorSet
-		ok            bool
+		cmtTrustedVals *cmttypes.ValidatorSet
+		ok             bool
 	)
 
-	tmTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
+	cmtTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
 	if !ok {
 		return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
 	}
@@ -471,10 +471,11 @@ func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterpa
 	// for now assume revision number is 0
 	header.TrustedHeight = trustedHeight
 
-	trustedVals, err := tmTrustedVals.ToProto()
+	trustedVals, err := cmtTrustedVals.ToProto()
 	if err != nil {
 		return nil, err
 	}
+	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
 	header.TrustedValidators = trustedVals
 
 	return header, nil
@@ -503,14 +504,14 @@ func (chain *TestChain) CurrentTMClientHeader() *ibctm.Header {
 
 // CreateTMClientHeader creates a TM header to update the TM client. Args are passed in to allow
 // caller flexibility to use params that differ from the chain.
-func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, cmtValSet, nextVals, tmTrustedVals *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) *ibctm.Header {
+func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, cmtValSet, nextVals, cmtTrustedVals *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) *ibctm.Header {
 	var (
 		valSet      *cmtproto.ValidatorSet
 		trustedVals *cmtproto.ValidatorSet
 	)
 	require.NotNil(chain.TB, cmtValSet)
 
-	tmHeader := cmttypes.Header{
+	cmtHeader := cmttypes.Header{
 		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
 		Height:             blockHeight,
@@ -527,7 +528,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck
 	}
 
-	hhash := tmHeader.Hash()
+	hhash := cmtHeader.Hash()
 	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
 	voteSet := cmttypes.NewVoteSet(chainID, blockHeight, 1, cmtproto.PrecommitType, cmtValSet)
 
@@ -543,18 +544,20 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 	require.NoError(chain.TB, err)
 
 	signedHeader := &cmtproto.SignedHeader{
-		Header: tmHeader.ToProto(),
+		Header: cmtHeader.ToProto(),
 		Commit: extCommit.ToCommit().ToProto(),
 	}
 
 	if cmtValSet != nil { //nolint:staticcheck
 		valSet, err = cmtValSet.ToProto()
 		require.NoError(chain.TB, err)
+		valSet.TotalVotingPower = cmtValSet.TotalVotingPower()
 	}
 
-	if tmTrustedVals != nil {
-		trustedVals, err = tmTrustedVals.ToProto()
+	if cmtTrustedVals != nil {
+		trustedVals, err = cmtTrustedVals.ToProto()
 		require.NoError(chain.TB, err)
+		trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
 	}
 
 	// The trusted fields may be nil. They may be filled before relaying messages to a client.

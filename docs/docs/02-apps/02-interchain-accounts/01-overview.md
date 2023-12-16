@@ -37,3 +37,8 @@ SDK modules on a chain are assumed to be trustworthy. For example, there are no 
 The implementation of ICS-27 in ibc-go uses this assumption in its security considerations.
 
 The implementation assumes other IBC application modules will not bind to ports within the ICS-27 namespace.
+
+## Channel Closure
+
+The provided interchain account host and controller implementations do not support `ChanCloseInit`. However, they do support `ChanCloseConfirm`.
+This means that the host and controller modules cannot close channels, but they will confirm channel closures initiated by other implementations of ICS-27.
