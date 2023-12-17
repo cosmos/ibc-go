@@ -40,7 +40,7 @@ func (p Params) IsAllowedClient(clientType string) bool {
 	// If exist then allow all type of client
 	if slices.Contains(p.AllowedClients, AllowAllClient) {
 		// Still need to check for blank client type
-		return strings.TrimSpace(clientType) == ""
+		return !(strings.TrimSpace(clientType) == "")
 	}
 
 	return slices.Contains(p.AllowedClients, clientType)

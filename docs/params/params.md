@@ -18,4 +18,4 @@ The allowed clients parameter defines an allowlist of client types supported by 
 that is not registered on this list will fail upon creation or on genesis validation. Note that,
 since the client type is an arbitrary string, chains they must not register two light clients which
 return the same value for the `ClientType()` function, otherwise the allowlist check can be
-bypassed.
+bypassed. If AllowAllClient wildcard ( `*` ) is set then supported all client type.
