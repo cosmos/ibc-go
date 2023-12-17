@@ -9,10 +9,7 @@ import (
 )
 
 // DefaultAllowedClients are the default clients for the AllowedClients parameter.
-var (
-	DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Localhost}
-	AllowAllClient        = "*"
-)
+var DefaultAllowedClients = []string{exported.Solomachine, exported.Tendermint, exported.Localhost}
 
 // NewParams creates a new parameter configuration for the ibc client module
 func NewParams(allowedClients ...string) Params {
@@ -39,10 +36,10 @@ func (p Params) Validate() error {
 
 // IsAllowedClient checks if the given client type is registered on the allowlist.
 func (p Params) IsAllowedClient(clientType string) bool {
-	// Check for wildcard allow all client
+	// Check for allow all client wildcard
 	// If exist then allow all type of client
 	if slices.Contains(p.AllowedClients, AllowAllClient) {
-		// Still need to specify the client type
+		// Still need to check for blank client type
 		if strings.TrimSpace(clientType) == "" {
 			return false
 		}
