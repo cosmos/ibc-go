@@ -1835,6 +1835,15 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 			},
 			connectiontypes.ErrInvalidConnectionState,
 		},
+		{
+			"next sequence send not found",
+			func() {
+				// Delete next sequence send key from store
+				store := suite.chainB.GetContext().KVStore(suite.chainB.GetSimApp().GetKey(exported.StoreKey))
+				store.Delete(host.NextSequenceSendKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+			},
+			types.ErrSequenceSendNotFound,
+		},
 	}
 
 	for _, tc := range testCases {
