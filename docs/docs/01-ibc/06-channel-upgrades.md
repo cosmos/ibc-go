@@ -11,7 +11,7 @@ slug: /ibc/channel-upgrades
 Learn how to upgrade existing IBC channels.
 :::
 
-Channel upgradability is an IBC-level protocol that allows chains to leverage new channel features without having to create new channels or perform a network-wide upgrade. 
+Channel upgradability is an IBC-level protocol that allows chains to leverage new application and channel features without having to create new channels or perform a network-wide upgrade. 
 
 Prior to this feature, developers who wanted to update an application module or add a middleware to their application flow would need to create a new channel in order to use the updated application feature/middleware, resulting in a loss of the accumulated state/liquidity, token fungibility (as the channel ID is encoded in the IBC denom), and any other larger network effects of losing usage of the existing channel from relayers monitoring, etc.
 
@@ -42,14 +42,14 @@ type Channel struct {
 }
 ```
 
-The version, connection hops, and channel ordering are fields in this channel struct which can be changed. For example, the fee middleware can be added to an application module by updating the version string [shown here](https://github.com/cosmos/ibc-go/blob/995b647381b909e9d6065d6c21004f18fab37f55/modules/apps/29-fee/types/metadata.pb.go#L28). However, although connection hops can change in a channel upgrade, both sides must still be each other's counterparty.
+The version, connection hops, and channel ordering are fields in this channel struct which can be changed. For example, the fee middleware can be added to an application module by updating the version string [shown here](https://github.com/cosmos/ibc-go/blob/995b647381b909e9d6065d6c21004f18fab37f55/modules/apps/29-fee/types/metadata.pb.go#L28). However, although connection hops can change in a channel upgrade, both sides must still be each other's counterparty. This is enforced by the upgrade protocol and upgrade attempts which try to alter an expected counterparty will fail.
 
 On a high level, successful handshake process for channel upgrades works as follows:
 
 1. The chain initiating the upgrade process will propose a potential upgrade.
-2. If the counterparty agrees with the proposal, it will block sends and begin flushing its channel end. 
-3. Upon successful completion of the previous step, the initiating chain will also block packet sends and begin flushing its channel end. 
-4. Once both channel ends have completely flushed before either upgrade timeout has elapsed, both channel ends can be opened and upgraded to the new channel fields. 
+2. If the counterparty agrees with the proposal, it will block sends and begin flushing any in-flight packets on its channel end. This flushing process will be covered in more detail below.
+3. Upon successful completion of the previous step, the initiating chain will also block packet sends and begin flushing any in-flight packets on its channel end. 
+4. Once both channel ends have completed flushing packets within the upgrade timeout window, both channel ends can be opened and upgraded to the new channel fields. 
 
 Each handshake step will be documented below in greater detail.
 
