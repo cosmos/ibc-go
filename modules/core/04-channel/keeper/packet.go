@@ -132,24 +132,6 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s], but got %s", types.OPEN, types.FLUSHING, channel.State)
 	}
 
-	// in the case of the channel being in FLUSHING we need to ensure that the the counterparty last sequence send
-	// is less than or equal to the packet sequence.
-	if channel.State == types.FLUSHING {
-		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
-		if !found {
-			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetDestChannel())
-		}
-
-		// only error if the counterparty latest sequence send is set (> 0)
-		counterpartyLatestSequenceSend := counterpartyUpgrade.LatestSequenceSend
-		if counterpartyLatestSequenceSend != 0 && packet.GetSequence() > counterpartyLatestSequenceSend {
-			return errorsmod.Wrapf(
-				types.ErrInvalidPacket,
-				"failed to receive packet, cannot flush packet at sequence greater than counterparty last sequence send (%d) > (%d)", packet.GetSequence(), counterpartyLatestSequenceSend,
-			)
-		}
-	}
-
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
 	capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
