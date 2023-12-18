@@ -1887,3 +1887,10 @@ func (suite *KeeperTestSuite) TestQueryUpgrade() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryChannelParams() {
+	ctx := suite.chainA.GetContext()
+	expParams := types.DefaultParams()
+	res, _ := suite.chainA.QueryServer.ChannelParams(ctx, &types.QueryChannelParamsRequest{})
+	suite.Require().Equal(&expParams, res.Params)
+}
