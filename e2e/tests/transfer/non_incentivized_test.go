@@ -151,6 +151,10 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 			s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
 		})
 	}
+
+	t.Run("stop relayer", func(t *testing.T) {
+		s.StopRelayer(ctx, relayer)
+	})
 }
 
 func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
@@ -203,5 +207,9 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Timeout_Nonincentiviz
 		bal, err = s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.StartingTokenAmount, bal)
+	})
+
+	t.Run("stop relayer", func(t *testing.T) {
+		s.StopRelayer(ctx, relayer)
 	})
 }

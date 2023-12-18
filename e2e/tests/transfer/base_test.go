@@ -92,6 +92,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 		expected := testvalues.StartingTokenAmount
 		s.Require().Equal(expected, actualBalance)
 	})
+
+	t.Run("stop relayer", func(t *testing.T) {
+		s.StopRelayer(ctx, relayer)
+	})
 }
 
 // TestSendEnabledParam tests changing ics20 SendEnabled parameter
@@ -276,6 +280,10 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount // only first send marked
 			s.Require().Equal(expected, actualBalance)
 		})
+
+		t.Run("stop relayer", func(t *testing.T) {
+			s.StopRelayer(ctx, relayer)
+		})
 	})
 }
 
@@ -332,5 +340,9 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
+	})
+
+	t.Run("stop relayer", func(t *testing.T) {
+		s.StopRelayer(ctx, relayer)
 	})
 }

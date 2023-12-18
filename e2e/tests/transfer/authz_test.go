@@ -177,6 +177,10 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
 		s.AssertTxFailure(resp, authz.ErrNoAuthorizationFound)
 	})
+
+	t.Run("stop relayer", func(t *testing.T) {
+		s.StopRelayer(ctx, relayer)
+	})
 }
 
 func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
@@ -322,6 +326,10 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				s.AssertTxFailure(resp, sdkerrors.ErrInvalidAddress)
 			}
 		})
+	})
+
+	t.Run("stop relayer", func(t *testing.T) {
+		s.StopRelayer(ctx, relayer)
 	})
 }
 
