@@ -174,7 +174,7 @@ func (k Keeper) ChanUpgradeTry(
 		proofHeight, proofCounterpartyUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
-		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}),
+		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
 	); err != nil {
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
 	}
