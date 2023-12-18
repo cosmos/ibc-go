@@ -539,6 +539,10 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
+	if channel.Ordering == types.ORDERED && upgrade.Fields.Ordering == types.UNORDERED {
+		k.SetNextSequenceAck(ctx, portID, channelID, 0)
+	}
+
 	// Switch channel fields to upgrade fields and set channel state to OPEN
 	previousState := channel.State
 	channel.Ordering = upgrade.Fields.Ordering
@@ -546,6 +550,7 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 	channel.ConnectionHops = upgrade.Fields.ConnectionHops
 	channel.State = types.OPEN
 
+	k.SetNextSequenceRecv(ctx, portID, channelID, upgrade.LatestSequenceSend+1)
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	// delete state associated with upgrade which is no longer required.

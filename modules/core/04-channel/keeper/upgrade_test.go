@@ -1140,6 +1140,13 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
+			// send second packet
+			sequence0, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+			packet0 := types.NewPacket(ibctesting.MockPacketData, sequence0, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointB.RecvPacket(packet0)
+			suite.Require().NoError(err)
+
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Ordering = types.ORDERED
@@ -1150,11 +1157,19 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 			suite.Require().NoError(path.EndpointA.ChanUpgradeAck())
 			suite.Require().NoError(path.EndpointB.ChanUpgradeConfirm())
 
-			// Ack packet to delete packet commitment before calling WriteUpgradeOpenChannel
+			// Ack packets to delete packet commitments before calling WriteUpgradeOpenChannel
 			err = path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
 			suite.Require().NoError(err)
 
+			err = path.EndpointA.AcknowledgePacket(packet0, ibctesting.MockAcknowledgement)
+			suite.Require().NoError(err)
+
 			ctx := suite.chainA.GetContext()
+			// assert that sequence (set in ChanUpgradeTry) is still 1, because channel was UNORDERED/not updated
+			seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(found)
+			suite.Require().Equal(uint64(1), seq)
+
 			tc.malleate()
 
 			if tc.expPanic {
@@ -1169,6 +1184,11 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 				suite.Require().Equal(types.OPEN, channel.State)
 				suite.Require().Equal(mock.UpgradeVersion, channel.Version)
 				suite.Require().Equal(types.ORDERED, channel.Ordering)
+
+				// assert that NextSeqRecv is now 3, because seq updated in WriteUpgradeOpenChannel to latest sequence (two packets sent) + 1
+				seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(3), seq)
 
 				// Assert that state stored for upgrade has been deleted
 				upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
