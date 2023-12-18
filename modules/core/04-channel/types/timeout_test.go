@@ -193,7 +193,7 @@ func (suite *TypesTestSuite) TestErrTimeoutElapsed() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			err := tc.timeout.ErrTimeoutElapsed(height, timestamp)
-			suite.Require().Equal(err.Error(), tc.expError.Error())
+			suite.Require().Equal(tc.expError.Error(), err.Error())
 		})
 	}
 }
@@ -232,7 +232,7 @@ func (suite *TypesTestSuite) TestErrTimeoutNotReached() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			err := tc.timeout.ErrTimeoutNotReached(height, timestamp)
-			suite.Require().Equal(err.Error(), tc.expError.Error())
+			suite.Require().Equal(tc.expError.Error(), err.Error())
 		})
 	}
 }
