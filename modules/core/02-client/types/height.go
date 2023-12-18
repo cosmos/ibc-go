@@ -102,7 +102,7 @@ func (h Height) String() string {
 }
 
 // Decrement will return a new height with the RevisionHeight decremented
-// If the RevisionHeight is already at lowest value (1), then false success flag is returend
+// If the RevisionHeight is already at lowest value (1), then false success flag is returned
 func (h Height) Decrement() (decremented exported.Height, success bool) {
 	if h.RevisionHeight == 0 {
 		return Height{}, false

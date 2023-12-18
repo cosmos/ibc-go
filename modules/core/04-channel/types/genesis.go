@@ -75,7 +75,7 @@ func DefaultGenesisState() GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	// keep track of the max sequence to ensure it is less than
-	// the next sequence used in creating connection identifers.
+	// the next sequence used in creating connection identifiers.
 	var maxSequence uint64
 
 	for i, channel := range gs.Channels {

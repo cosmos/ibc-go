@@ -123,7 +123,7 @@ type MsgConnectionOpenTry struct {
 	DelayPeriod          uint64        `protobuf:"varint,5,opt,name=delay_period,json=delayPeriod,proto3" json:"delay_period,omitempty"`
 	CounterpartyVersions []*Version    `protobuf:"bytes,6,rep,name=counterparty_versions,json=counterpartyVersions,proto3" json:"counterparty_versions,omitempty"`
 	ProofHeight          types1.Height `protobuf:"bytes,7,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
-	// proof of the initialization the connection on Chain A: `UNITIALIZED ->
+	// proof of the initialization the connection on Chain A: `UNINITIALIZED ->
 	// INIT`
 	ProofInit []byte `protobuf:"bytes,8,opt,name=proof_init,json=proofInit,proto3" json:"proof_init,omitempty"`
 	// proof of client state included in message
@@ -214,7 +214,7 @@ type MsgConnectionOpenAck struct {
 	Version                  *Version      `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
 	ClientState              *types.Any    `protobuf:"bytes,4,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 	ProofHeight              types1.Height `protobuf:"bytes,5,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
-	// proof of the initialization the connection on Chain B: `UNITIALIZED ->
+	// proof of the initialization the connection on Chain B: `UNINITIALIZED ->
 	// TRYOPEN`
 	ProofTry []byte `protobuf:"bytes,6,opt,name=proof_try,json=proofTry,proto3" json:"proof_try,omitempty"`
 	// proof of client state included in message

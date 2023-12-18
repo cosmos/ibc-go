@@ -202,7 +202,9 @@ jobs:
         with:
           go-version: '1.21'
       - id: set-matrix
-        run: echo "matrix=$(go run cmd/build_test_matrix/main.go)" >> $GITHUB_OUTPUT
+        run: |
+          output=$(go run cmd/build_test_matrix/main.go)
+          echo "matrix=$output" >> $GITHUB_OUTPUT
         env:
           TEST_ENTRYPOINT: '${{ inputs.test-entry-point }}'
           TEST_EXCLUSIONS: '${{ inputs.test-exclusions }}'
@@ -243,7 +245,7 @@ jobs:
           cd e2e
           make e2e-test test=${{ matrix.test }}
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ failure() && inputs.upload-logs }}
         continue-on-error: true
         with:
