@@ -7,9 +7,10 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
-// TODO: determine sane default value for upgrade timeout.
-
-var DefaultTimeout = NewTimeout(clienttypes.ZeroHeight(), uint64(time.Hour.Nanoseconds()))
+// DefaultTimeout defines a default parameter for the channel upgrade protocol.
+// It allows relayers a window in which they can flush all in-flight packets on a channel before completing the upgrade handshake.
+// This parameter can be overriden by a valid authority using the UpdateChannelParams rpc.
+var DefaultTimeout = NewTimeout(clienttypes.ZeroHeight(), uint64(10*time.Minute.Nanoseconds()))
 
 // NewParams creates a new parameter configuration for the channel submodule
 func NewParams(upgradeTimeout Timeout) Params {
