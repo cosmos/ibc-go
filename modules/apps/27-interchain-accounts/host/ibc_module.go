@@ -168,6 +168,11 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 		return "", types.ErrHostSubModuleDisabled
 	}
 
+	// support for unordered ICA channels is not implemented yet
+	if order != channeltypes.ORDERED {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
+	}
+
 	return im.keeper.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
 }
 
