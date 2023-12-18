@@ -10,6 +10,7 @@ const (
 	KeyPacketCommitmentPrefix = "commitments"
 	KeyPacketAckPrefix        = "acks"
 	KeyPacketReceiptPrefix    = "receipts"
+	KeyAckPruningSequence     = "ackPruningSequence"
 )
 
 // ICS04
@@ -89,6 +90,16 @@ func PacketReceiptPath(portID, channelID string, sequence uint64) string {
 // receipt is stored
 func PacketReceiptKey(portID, channelID string, sequence uint64) []byte {
 	return []byte(PacketReceiptPath(portID, channelID, sequence))
+}
+
+// AckPruningSequencePath defines the path under which the pruning sequence is stored
+func AckPruningSequencePath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s", KeyAckPruningSequence, channelPath(portID, channelID))
+}
+
+// AckPruningSequenceKey returns the store key for the pruning sequence of a particular channel
+func AckPruningSequenceKey(portID, channelID string) []byte {
+	return []byte(AckPruningSequencePath(portID, channelID))
 }
 
 func sequencePath(sequence uint64) string {

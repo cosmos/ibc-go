@@ -628,6 +628,16 @@ func (k Keeper) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*typ
 	return types.NewQueryUpgradeResponse(upgrade, nil, selfHeight), nil
 }
 
+// ChannelParams implements the Query/ChannelParams gRPC method.
+func (k Keeper) ChannelParams(c context.Context, req *types.QueryChannelParamsRequest) (*types.QueryChannelParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	params := k.GetParams(ctx)
+
+	return &types.QueryChannelParamsResponse{
+		Params: &params,
+	}, nil
+}
+
 func validategRPCRequest(portID, channelID string) error {
 	if err := host.PortIdentifierValidator(portID); err != nil {
 		return status.Error(codes.InvalidArgument, err.Error())

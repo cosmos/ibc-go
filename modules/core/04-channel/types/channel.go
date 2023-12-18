@@ -117,13 +117,14 @@ func (c Counterparty) ValidateBasic() error {
 // NewIdentifiedChannel creates a new IdentifiedChannel instance
 func NewIdentifiedChannel(portID, channelID string, ch Channel) IdentifiedChannel {
 	return IdentifiedChannel{
-		State:          ch.State,
-		Ordering:       ch.Ordering,
-		Counterparty:   ch.Counterparty,
-		ConnectionHops: ch.ConnectionHops,
-		Version:        ch.Version,
-		PortId:         portID,
-		ChannelId:      channelID,
+		State:           ch.State,
+		Ordering:        ch.Ordering,
+		Counterparty:    ch.Counterparty,
+		ConnectionHops:  ch.ConnectionHops,
+		Version:         ch.Version,
+		UpgradeSequence: ch.UpgradeSequence,
+		PortId:          portID,
+		ChannelId:       channelID,
 	}
 }
 
