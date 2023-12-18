@@ -310,9 +310,29 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
 In order to use the `08-wasm` module chains must update the [`AllowedClients` parameter in the 02-client submodule](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/core/client/v1/client.proto#L103) of core IBC. This can be configured directly in the application upgrade handler with the sample code below:
 
 ```go
-params := clientKeeper.GetParams(ctx)
-params.AllowedClients = append(params.AllowedClients, exported.Wasm)
-clientKeeper.SetParams(ctx, params)
+import (
+  ...
+  wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  ...
+)
+
+...
+
+func CreateWasmUpgradeHandler(
+  mm *module.Manager,
+  configurator module.Configurator,
+  clientKeeper clientkeeper.Keeper,
+) upgradetypes.UpgradeHandler {
+  return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+    sdkCtx := sdk.UnwrapSDKContext(ctx)
+    // explicitly update the IBC 02-client params, adding the wasm client type
+    params := clientKeeper.GetParams(ctx)
+    params.AllowedClients = append(params.AllowedClients, wasmtypes.Wasm)
+    clientKeeper.SetParams(ctx, params)
+
+    return mm.RunMigrations(ctx, configurator, vm)
+  }
+}
 ```
 
 Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients`](../01-developer-guide/09-setup.md#creating-clients) for an example of how to do this).
