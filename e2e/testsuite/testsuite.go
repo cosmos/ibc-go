@@ -319,7 +319,7 @@ func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
 func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
-	chainB, _ := s.GetChains()
+	_, chainB := s.GetChains()
 	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
 }
 
@@ -336,7 +336,7 @@ func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wall
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
 func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
-	chainB, _ := s.GetChains()
+	_, chainB := s.GetChains()
 
 	balance, err := s.QueryBalance(ctx, chainB, user.FormattedAddress(), chainB.Config().Denom)
 	if err != nil {
