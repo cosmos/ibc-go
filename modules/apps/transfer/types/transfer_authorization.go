@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
-	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -188,7 +188,12 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 		}
 	}
 
-	keys := reflect.ValueOf(jsonObject).MapKeys()
+	var keys []string
+	for k := range jsonObject {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
 	if len(jsonObject) != 0 {
 		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed packet data keys: %s", keys)
 	}
