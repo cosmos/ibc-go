@@ -117,6 +117,11 @@ service Query {
     option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
                                    "ports/{port_id}/upgrade";
   }
+
+  // ChannelParams queries all parameters of the ibc channel submodule.
+  rpc ChannelParams(QueryChannelParamsRequest) returns (QueryChannelParamsResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v1/params";
+  }
 }
 
 // QueryChannelRequest is the request type for the Query/Channel RPC method
@@ -442,4 +447,13 @@ message QueryUpgradeResponse {
   bytes proof = 2;
   // height at which the proof was retrieved
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryChannelParamsRequest is the request type for the Query/ChannelParams RPC method.
+message QueryChannelParamsRequest {}
+
+// QueryChannelParamsResponse is the response type for the Query/ChannelParams RPC method.
+message QueryChannelParamsResponse {
+  // params defines the parameters of the module.
+  Params params = 1;
 }

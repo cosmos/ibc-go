@@ -33,6 +33,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryNextSequenceSend(),
 		GetCmdQueryUpgradeError(),
 		GetCmdQueryUpgrade(),
+		GetCmdChannelParams(),
 	)
 
 	return queryCmd
