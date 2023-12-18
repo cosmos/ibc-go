@@ -769,6 +769,12 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 	channel.State = types.FLUSHING
 	k.SetChannel(ctx, portID, channelID, channel)
 
+	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	upgrade.LatestSequenceSend = nextSequenceSend - 1
 	upgrade.Timeout = k.getAbsoluteUpgradeTimeout(ctx)
 	k.SetUpgrade(ctx, portID, channelID, *upgrade)
 
