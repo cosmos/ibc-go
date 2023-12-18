@@ -79,10 +79,10 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 		err               error
 	)
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	t.Run("create group with new threshold decision policy", func(t *testing.T) {

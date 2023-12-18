@@ -70,10 +70,10 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	)
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
@@ -93,9 +93,9 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
-	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	controllerAddress := controllerAccount.FormattedAddress()
-	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	var hostAccount string
 
 	t.Run("ics27: broadcast MsgRegisterInterchainAccount", func(t *testing.T) {

@@ -65,7 +65,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 	chainAVersion := chainA.Config().Images[0].Version
 
 	// setup controller account on chainA
-	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	controllerAddress := controllerAccount.FormattedAddress()
 
 	t.Run("ensure the controller is enabled", func(t *testing.T) {
@@ -150,7 +150,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestHostEnabledParam() {
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
-	chainBUser := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBUser := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	// Assert that default value for enabled is true.
 	t.Run("ensure the host is enabled", func(t *testing.T) {

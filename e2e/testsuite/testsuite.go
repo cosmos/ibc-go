@@ -72,7 +72,8 @@ func newPath(chainA, chainB ibc.Chain) pathPair {
 
 // GetRelayerUsers returns two ibc.Wallet instances which can be used for the relayer users
 // on the two chains.
-func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, chainA, chainB ibc.Chain) (ibc.Wallet, ibc.Wallet) {
+func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context) (ibc.Wallet, ibc.Wallet) {
+	chainA, chainB := s.GetChains()
 	chainAAccountBytes, err := chainA.GetAddress(ctx, ChainARelayerName)
 	s.Require().NoError(err)
 
@@ -256,7 +257,8 @@ func (s *E2ETestSuite) GetChains(chainOpts ...ChainOptionConfiguration) (ibc.Cha
 }
 
 // GetRelayerWallets returns the ibcrelayer wallets associated with the chains.
-func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer, chainA, chainB ibc.Chain) (ibc.Wallet, ibc.Wallet, error) {
+func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer) (ibc.Wallet, ibc.Wallet, error) {
+	chainA, chainB := s.GetChains()
 	chainARelayerWallet, ok := ibcrelayer.GetWallet(chainA.Config().ChainID)
 	if !ok {
 		return nil, nil, fmt.Errorf("unable to find chain A relayer wallet")
@@ -271,11 +273,13 @@ func (s *E2ETestSuite) GetRelayerWallets(ibcrelayer ibc.Relayer, chainA, chainB 
 
 // RecoverRelayerWallets adds the corresponding ibcrelayer address to the keychain of the chain.
 // This is useful if commands executed on the chains expect the relayer information to present in the keychain.
-func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc.Relayer, chainA, chainB ibc.Chain) error {
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(ibcrelayer, chainA, chainB)
+func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc.Relayer) error {
+	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(ibcrelayer)
 	if err != nil {
 		return err
 	}
+
+	chainA, chainB := s.GetChains()
 
 	if err := chainA.RecoverKey(ctx, ChainARelayerName, chainARelayerWallet.Mnemonic()); err != nil {
 		return fmt.Errorf("could not recover relayer wallet on chain A: %s", err)
@@ -308,12 +312,14 @@ func (s *E2ETestSuite) RestartRelayer(ctx context.Context, ibcrelayer ibc.Relaye
 }
 
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
-func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64, chainA ibc.Chain) ibc.Wallet {
+func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc.Wallet {
+	chainA, _ := s.GetChains()
 	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
-func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64, chainB ibc.Chain) ibc.Wallet {
+func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
+	chainB, _ := s.GetChains()
 	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
 }
 
@@ -329,7 +335,9 @@ func (s *E2ETestSuite) GetChainANativeBalance(ctx context.Context, user ibc.Wall
 }
 
 // GetChainBNativeBalance gets the balance of a given user on chain B.
-func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet, chainB ibc.Chain) (int64, error) {
+func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wallet) (int64, error) {
+	chainB, _ := s.GetChains()
+
 	balance, err := s.QueryBalance(ctx, chainB, user.FormattedAddress(), chainB.Config().Denom)
 	if err != nil {
 		return -1, err

@@ -266,7 +266,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain ibc.Chain,
-	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string, chainB ibc.Chain,
+	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
 ) sdk.TxResponse {
 	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
 	return s.BroadcastMessages(ctx, chain, user, msg)

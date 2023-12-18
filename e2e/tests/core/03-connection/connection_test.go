@@ -81,10 +81,10 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	chainBDenom := chainB.Config().Denom
 	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, chainAChannels.PortID, chainAChannels.ChannelID)
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
@@ -126,7 +126,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 		})
 
 		t.Run("tokens are escrowed", func(t *testing.T) {
-			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet, chainB)
+			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount

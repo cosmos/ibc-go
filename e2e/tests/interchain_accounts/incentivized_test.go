@@ -56,24 +56,24 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 	)
 
 	// t.Run("relayer wallets recovered", func(t *testing.T) {
-	// 	err := s.RecoverRelayerWallets(ctx, relayer, chainA, chainB)
+	// 	err := s.RecoverRelayerWallets(ctx, relayer)
 	// 	s.Require().NoError(err)
 	// })
 
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer, chainA, chainB)
+	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
 	t.Run("relayer wallets fetched", func(t *testing.T) {
 		s.Require().NoError(err)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
-	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx, chainA, chainB)
+	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx)
 	relayerAStartingBalance, err := s.GetChainANativeBalance(ctx, chainARelayerUser)
 	s.Require().NoError(err)
 	t.Logf("relayer A user starting with balance: %d", relayerAStartingBalance)
 
-	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
-	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
@@ -117,7 +117,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 		})
 
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress(), chainA)
+			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 			s.AssertTxSuccess(resp)
 		})
 
@@ -233,24 +233,24 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_In
 	)
 
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer, chainA, chainB)
+		err := s.RecoverRelayerWallets(ctx, relayer)
 		s.Require().NoError(err)
 	})
 
-	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer, chainA, chainB)
+	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
 	t.Run("relayer wallets fetched", func(t *testing.T) {
 		s.Require().NoError(err)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
-	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx, chainA, chainB)
+	chainARelayerUser, chainBRelayerUser := s.GetRelayerUsers(ctx)
 	relayerAStartingBalance, err := s.GetChainANativeBalance(ctx, chainARelayerUser)
 	s.Require().NoError(err)
 	t.Logf("relayer A user starting with balance: %d", relayerAStartingBalance)
 
-	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
-	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
@@ -284,7 +284,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_In
 
 	t.Run("execute interchain account bank send through controller", func(t *testing.T) {
 		t.Run("register counterparty payee", func(t *testing.T) {
-			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress(), chainA)
+			resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelOutput.Counterparty.PortID, channelOutput.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 			s.AssertTxSuccess(resp)
 		})
 

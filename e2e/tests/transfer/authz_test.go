@@ -35,13 +35,13 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	chainADenom := chainA.Config().Denom
 
-	granterWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	granterWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granterAddress := granterWallet.FormattedAddress()
 
-	granteeWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	granteeWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granteeAddress := granteeWallet.FormattedAddress()
 
-	receiverWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	receiverWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -193,13 +193,13 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 
-	granterWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	granterWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granterAddress := granterWallet.FormattedAddress()
 
-	granteeWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	granteeWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granteeAddress := granteeWallet.FormattedAddress()
 
-	receiverWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	receiverWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -294,7 +294,7 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	})
 
 	t.Run("send funds to invalid address", func(t *testing.T) {
-		invalidWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+		invalidWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 		invalidWalletAddress := invalidWallet.FormattedAddress()
 
 		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {

@@ -79,7 +79,7 @@ func (s *RecoverClientTestSuite) TestRecoverClient_Succeeds() {
 		pathName = strings.ReplaceAll(pathName, "/", "-")
 	})
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("create subject client with bad trusting period", func(t *testing.T) {
 		createClientOptions := ibc.CreateClientOptions{

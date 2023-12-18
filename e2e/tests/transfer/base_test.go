@@ -59,7 +59,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 
 	chainADenom := chainA.Config().Denom
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
@@ -109,10 +109,10 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 
 	chainADenom := chainA.Config().Denom
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	chainAVersion := chainA.Config().Images[0].Version
@@ -172,8 +172,8 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	s.Require().NoError(err)
 	chainAChannels := channelA[len(channelA)-1]
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	var (
 		chainBDenom    = chainB.Config().Denom
@@ -206,7 +206,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 		})
 
 		t.Run("tokens are escrowed", func(t *testing.T) {
-			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet, chainB)
+			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
@@ -258,7 +258,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 		})
 
 		t.Run("tokens are escrowed", func(t *testing.T) {
-			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet, chainB)
+			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount - (testvalues.IBCTransferAmount * 2) // second send
@@ -270,7 +270,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 		})
 
 		t.Run("tokens are unescrowed in failed acknowledgement", func(t *testing.T) {
-			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet, chainB)
+			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
 			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount // only first send marked
@@ -299,10 +299,10 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 	chainADenom := chainA.Config().Denom
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")

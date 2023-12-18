@@ -53,9 +53,9 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 
 	chainADenom := chainA.Config().Denom
 
-	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
-	userAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
-	userBWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userBWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	var (
 		msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse
@@ -206,9 +206,9 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 
 	chainBDenom := chainB.Config().Denom
 
-	rlyWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
-	userAWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
-	userBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	rlyWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	userAWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	userBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	var (
 		msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse

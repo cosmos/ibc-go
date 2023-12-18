@@ -37,9 +37,9 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() {
 	_, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 	s.Require().NoError(err)
 
-	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBAccount.FormattedAddress()
 
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)

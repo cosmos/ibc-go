@@ -53,10 +53,10 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 
 	chainADenom := chainA.Config().Denom
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
@@ -158,15 +158,15 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Timeout_Nonincentiviz
 
 	ctx := context.TODO()
 
-	chainA, chainB := s.GetChains()
+	chainA, _ := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
 	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 	s.Require().NoError(err)
 	chainAChannels := channelA[len(channelA)-1]
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainBWallet.FormattedAddress(), // destination address
@@ -195,7 +195,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Timeout_Nonincentiviz
 
 	t.Run("ensure escrowed tokens have been refunded to sender due to timeout", func(t *testing.T) {
 		// ensure destination address did not receive any tokens
-		bal, err := s.GetChainBNativeBalance(ctx, chainBWallet, chainB)
+		bal, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.StartingTokenAmount, bal)
 

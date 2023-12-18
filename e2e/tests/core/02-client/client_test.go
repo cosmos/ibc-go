@@ -90,7 +90,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	chainA, chainB := s.GetChains()
 	relayer := s.GetRelayerFromSuite()
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	const planHeight = int64(300)
 	const legacyPlanHeight = planHeight * 2
@@ -202,7 +202,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		pathName = strings.ReplaceAll(pathName, "/", "-")
 	})
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("create subject client with bad trusting period", func(t *testing.T) {
 		createClientOptions := ibc.CreateClientOptions{
@@ -348,7 +348,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	})
 
 	t.Run("update client with duplicate misbehaviour header", func(t *testing.T) {
-		rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+		rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 		msgUpdateClient, err := clienttypes.NewMsgUpdateClient(ibctesting.FirstClientID, maliciousHeader, rlyWallet.FormattedAddress())
 		s.Require().NoError(err)
 
@@ -374,7 +374,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 
 	chainAVersion := chainA.Config().Images[0].Version
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 

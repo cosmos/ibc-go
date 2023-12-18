@@ -55,7 +55,7 @@ func (s *IBCWasmUpgradeTestSuite) TestIBCWasmChainUpgrade() {
 	chain := s.SetupSingleChain(ctx)
 	checksum := ""
 
-	userWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chain)
+	userWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	s.Require().NoError(testutil.WaitForBlocks(ctx, 1, chain), "failed to wait for blocks")
 
 	t.Run("create and exec store code proposal", func(t *testing.T) {

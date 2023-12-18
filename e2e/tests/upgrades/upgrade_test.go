@@ -122,12 +122,12 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 
 	// create separate user specifically for the upgrade proposal to more easily verify starting
 	// and end balances of the chainA users.
-	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
@@ -214,7 +214,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	ctx := context.Background()
 	chain := s.SetupSingleChain(ctx)
 
-	userWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chain)
+	userWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userWalletAddr := userWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chain), "failed to wait for blocks")
@@ -238,7 +238,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		testCfg := testsuite.LoadConfig()
-		proposerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chain)
+		proposerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 		s.UpgradeChain(ctx, chain.(*cosmos.CosmosChain), proposerWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
@@ -279,10 +279,10 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
 	)
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	// create second tendermint client
@@ -374,7 +374,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 
 	// create separate user specifically for the upgrade proposal to more easily verify starting
 	// and end balances of the chainA users.
-	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("upgrade chainA", func(t *testing.T) {
 		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
@@ -430,10 +430,10 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 
 	chainADenom := chainA.Config().Denom
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
@@ -470,7 +470,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
 
 	t.Run("upgrade chain", func(t *testing.T) {
-		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
@@ -521,10 +521,10 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 
 	chainADenom := chainA.Config().Denom
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount, chainA)
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
@@ -561,7 +561,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
 
 	t.Run("upgrade chain", func(t *testing.T) {
-		govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+		govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 		s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 

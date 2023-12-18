@@ -91,7 +91,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 
 	s.InitGRPCClients(cosmosChain)
 
-	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
@@ -248,7 +248,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 
 	s.InitGRPCClients(cosmosChain)
 
-	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
@@ -368,7 +368,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 
 	s.InitGRPCClients(cosmosChain)
 
-	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
@@ -461,7 +461,7 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 
 	s.InitGRPCClients(cosmosChain)
 
-	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw.wasm.gz")
 	s.Require().NoError(err)
@@ -559,7 +559,7 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 
 	s.InitGRPCClients(cosmosChain)
 
-	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount, chainB)
+	cosmosWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	file, err := os.Open("contracts/ics10_grandpa_cw_expiry.wasm.gz")
 	s.Require().NoError(err)
