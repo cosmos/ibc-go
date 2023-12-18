@@ -21,7 +21,7 @@ This document outlines the channel upgrade feature, and the multiple steps used 
 
 ## Channel Upgrade Handshake
 
-Channel upgrades will be initialized using a handshake process that is designed to be similar to the standard connection/channel opening handshake.
+Channel upgrades will be achieved using a handshake process that is designed to be similar to the standard connection/channel opening handshake.
 
 ```go
 type Channel struct {
@@ -46,7 +46,7 @@ The version, connection hops, and channel ordering are fields in this channel st
 
 On a high level, successful handshake process for channel upgrades works as follows:
 
-1. The chain initiating the upgrade process will propose a potential upgrade.
+1. The chain initiating the upgrade process will propose an upgrade.
 2. If the counterparty agrees with the proposal, it will block sends and begin flushing any in-flight packets on its channel end. This flushing process will be covered in more detail below.
 3. Upon successful completion of the previous step, the initiating chain will also block packet sends and begin flushing any in-flight packets on its channel end. 
 4. Once both channel ends have completed flushing packets within the upgrade timeout window, both channel ends can be opened and upgraded to the new channel fields. 
