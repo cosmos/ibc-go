@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -69,9 +68,5 @@ func (ack Acknowledgement) Success() bool {
 // Acknowledgement implements the Acknowledgement interface. It returns the
 // acknowledgement serialised using JSON.
 func (ack Acknowledgement) Acknowledgement() []byte {
-	res, err := json.Marshal(&ack)
-	if err != nil {
-		panic("acknowledgement cannot marshal json")
-	}
-	return res
+	return SubModuleCdc.MustMarshalJSON(&ack)
 }
