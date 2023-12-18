@@ -502,6 +502,32 @@ func (chain *TestChain) CurrentTMClientHeader() *ibctm.Header {
 	)
 }
 
+func CommitHeader(uncommittedHeader cmttypes.Header, valSet *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) (*cmtproto.SignedHeader, error) {
+	hhash := uncommittedHeader.Hash()
+	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
+	voteSet := cmttypes.NewVoteSet(uncommittedHeader.ChainID, uncommittedHeader.Height, 1, cmtproto.PrecommitType, valSet)
+
+	// MakeCommit expects a signer array in the same order as the validator array.
+	// Thus we iterate over the ordered validator set and construct a signer array
+	// from the signer map in the same order.
+	var signerArr []cmttypes.PrivValidator //nolint:prealloc // using prealloc here would be needlessly complex
+	for _, v := range valSet.Validators {  //nolint:staticcheck // need to check for nil validator set
+		signerArr = append(signerArr, signers[v.Address.String()])
+	}
+
+	extCommit, err := cmttypes.MakeExtCommit(blockID, uncommittedHeader.Height, 1, voteSet, signerArr, uncommittedHeader.Time, false)
+	if err != nil {
+		return nil, err
+	}
+
+	signedHeader := &cmtproto.SignedHeader{
+		Header: uncommittedHeader.ToProto(),
+		Commit: extCommit.ToCommit().ToProto(),
+	}
+
+	return signedHeader, nil
+}
+
 // CreateTMClientHeader creates a TM header to update the TM client. Args are passed in to allow
 // caller flexibility to use params that differ from the chain.
 func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, cmtValSet, nextVals, cmtTrustedVals *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) *ibctm.Header {
@@ -511,7 +537,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 	)
 	require.NotNil(chain.TB, cmtValSet)
 
-	cmtHeader := cmttypes.Header{
+	uncommittedHeader := cmttypes.Header{
 		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
 		Height:             blockHeight,
@@ -528,25 +554,8 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck
 	}
 
-	hhash := cmtHeader.Hash()
-	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
-	voteSet := cmttypes.NewVoteSet(chainID, blockHeight, 1, cmtproto.PrecommitType, cmtValSet)
-
-	// MakeCommit expects a signer array in the same order as the validator array.
-	// Thus we iterate over the ordered validator set and construct a signer array
-	// from the signer map in the same order.
-	var signerArr []cmttypes.PrivValidator   //nolint:prealloc // using prealloc here would be needlessly complex
-	for _, v := range cmtValSet.Validators { //nolint:staticcheck // need to check for nil validator set
-		signerArr = append(signerArr, signers[v.Address.String()])
-	}
-
-	extCommit, err := cmttypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signerArr, timestamp, false)
+	signedHeader, err := CommitHeader(uncommittedHeader, cmtValSet, signers)
 	require.NoError(chain.TB, err)
-
-	signedHeader := &cmtproto.SignedHeader{
-		Header: cmtHeader.ToProto(),
-		Commit: extCommit.ToCommit().ToProto(),
-	}
 
 	if cmtValSet != nil { //nolint:staticcheck
 		valSet, err = cmtValSet.ToProto()
