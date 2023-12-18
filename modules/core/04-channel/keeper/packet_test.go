@@ -351,6 +351,30 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channel := path.EndpointB.GetChannel()
 				channel.State = types.FLUSHING
 				path.EndpointB.SetChannel(channel)
+
+				// set last packet sent sequence to sequence + 1
+				counterpartyUpgrade := types.Upgrade{LatestSequenceSend: sequence + 1}
+				path.EndpointB.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
+			},
+			nil,
+		},
+		{
+			"success with an counterparty latest sequence send set to 0",
+			func() {
+				suite.coordinator.Setup(path)
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				channel := path.EndpointB.GetChannel()
+				channel.State = types.FLUSHING
+				path.EndpointB.SetChannel(channel)
+
+				// set last packet sent sequence to zero.
+				counterpartyUpgrade := types.Upgrade{LatestSequenceSend: 0}
+				path.EndpointB.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 			},
 			nil,
 		},

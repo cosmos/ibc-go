@@ -9107,6 +9107,15 @@ paths:
                     channel_id:
                       type: string
                       title: channel identifier
+                    upgrade_sequence:
+                      type: string
+                      format: uint64
+                      title: >-
+                        upgrade sequence indicates the latest upgrade attempt
+                        performed by this channel
+
+                        the value of 0 indicates the channel has never been
+                        upgraded
                   description: >-
                     IdentifiedChannel defines a channel with additional port and
                     channel
@@ -13970,6 +13979,15 @@ paths:
                     channel_id:
                       type: string
                       title: channel identifier
+                    upgrade_sequence:
+                      type: string
+                      format: uint64
+                      title: >-
+                        upgrade sequence indicates the latest upgrade attempt
+                        performed by this channel
+
+                        the value of 0 indicates the channel has never been
+                        upgraded
                   description: >-
                     IdentifiedChannel defines a channel with additional port and
                     channel
@@ -19088,6 +19106,14 @@ definitions:
       channel_id:
         type: string
         title: channel identifier
+      upgrade_sequence:
+        type: string
+        format: uint64
+        title: >-
+          upgrade sequence indicates the latest upgrade attempt performed by
+          this channel
+
+          the value of 0 indicates the channel has never been upgraded
     description: |-
       IdentifiedChannel defines a channel with additional port and channel
       identifier fields.
@@ -19864,6 +19890,14 @@ definitions:
             channel_id:
               type: string
               title: channel identifier
+            upgrade_sequence:
+              type: string
+              format: uint64
+              title: >-
+                upgrade sequence indicates the latest upgrade attempt performed
+                by this channel
+
+                the value of 0 indicates the channel has never been upgraded
           description: |-
             IdentifiedChannel defines a channel with additional port and channel
             identifier fields.
@@ -20006,6 +20040,14 @@ definitions:
             channel_id:
               type: string
               title: channel identifier
+            upgrade_sequence:
+              type: string
+              format: uint64
+              title: >-
+                upgrade sequence indicates the latest upgrade attempt performed
+                by this channel
+
+                the value of 0 indicates the channel has never been upgraded
           description: |-
             IdentifiedChannel defines a channel with additional port and channel
             identifier fields.
