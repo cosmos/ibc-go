@@ -26,7 +26,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // Upgrade is a verifiable type which contains the relevant information
 // for an attempted upgrade. It provides the proposed changes to the channel
 // end, the timeout for this upgrade attempt and the latest packet sequence sent
-// to allow the counterparty to block sends after the upgrade has started.
+// which allows the counterparty to efficiently know the highest sequence it has received.
+// The latest sequence send is used for pruning and upgrading from unordered to ordered channels.
 type Upgrade struct {
 	Fields             UpgradeFields `protobuf:"bytes,1,opt,name=fields,proto3" json:"fields"`
 	Timeout            Timeout       `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout"`
