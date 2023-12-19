@@ -237,7 +237,7 @@ wasmConfig := wasmtypes.WasmConfig{
 }
 app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
   appCodec,
-  runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+  keys[wasmtypes.StoreKey],
   app.IBCKeeper.ClientKeeper, 
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
@@ -284,7 +284,7 @@ Finally, we pass the option to the `NewKeeperWithConfig` or `NewKeeperWithVM` co
 ```diff
 app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
   appCodec,
-  runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+  keys[wasmtypes.StoreKey],
   app.IBCKeeper.ClientKeeper, 
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
