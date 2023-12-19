@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
+	"sort"
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -176,10 +177,6 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 		return err
 	}
 
-	if len(jsonObject) > len(allowedPacketDataList) {
-		return errorsmod.Wrapf(ErrInvalidAuthorization, "packet contains more packet data keys than packet allow list has")
-	}
-
 	gasCostPerIteration := ctx.KVGasConfig().IterNextCostFlat
 
 	for _, key := range allowedPacketDataList {
@@ -191,8 +188,14 @@ func validateMemo(ctx sdk.Context, memo string, allowedPacketDataList []string) 
 		}
 	}
 
+	var keys []string
+	for k := range jsonObject {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
 	if len(jsonObject) != 0 {
-		return errorsmod.Wrapf(ErrInvalidAuthorization, "packet data not allowed")
+		return errorsmod.Wrapf(ErrInvalidAuthorization, "not allowed packet data keys: %s", keys)
 	}
 
 	return nil
