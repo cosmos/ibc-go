@@ -348,7 +348,10 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(upgrade)
 				suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
-				suite.Require().Equal(path.EndpointA.GetChannel().UpgradeSequence, path.EndpointB.GetChannel().UpgradeSequence)
+
+				nextSequenceSend, found := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(nextSequenceSend-1, upgrade.LatestSequenceSend)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
 			}
@@ -654,6 +657,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				channel := path.EndpointA.GetChannel()
 				channel.Ordering = types.ORDERED
 				path.EndpointA.SetChannel(channel)
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"fails due to proof verification failure, counterparty update has unexpected sequence",
+			func() {
+				// Decrementing LatestSequenceSend is sufficient to cause the proof to fail.
+				counterpartyUpgrade.LatestSequenceSend--
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -1999,6 +2010,15 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 			},
 			connectiontypes.ErrInvalidConnectionState,
 		},
+		{
+			"next sequence send not found",
+			func() {
+				// Delete next sequence send key from store
+				store := suite.chainB.GetContext().KVStore(suite.chainB.GetSimApp().GetKey(exported.StoreKey))
+				store.Delete(host.NextSequenceSendKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+			},
+			types.ErrSequenceSendNotFound,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -2032,7 +2052,12 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 				suite.assertUpgradeError(err, tc.expError)
 			} else {
 				channel := path.EndpointB.GetChannel()
+
+				nextSequenceSend, ok := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(ok)
+
 				suite.Require().Equal(types.FLUSHING, channel.State)
+				suite.Require().Equal(nextSequenceSend-1, upgrade.LatestSequenceSend)
 
 				expectedTimeoutTimestamp := types.DefaultTimeout.Timestamp + uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 				suite.Require().Equal(expectedTimeoutTimestamp, upgrade.Timeout.Timestamp)
