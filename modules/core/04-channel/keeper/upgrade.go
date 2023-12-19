@@ -432,10 +432,10 @@ func (k Keeper) WriteUpgradeConfirmChannel(ctx sdk.Context, portID, channelID st
 		previousState := channel.State
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
-		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
-
 		k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
 	}
+
+	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	return channel
 }
 
