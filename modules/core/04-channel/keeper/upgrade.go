@@ -541,7 +541,7 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 
 	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, portID, channelID)
 	if !found {
-		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+		panic(fmt.Errorf("could not find counterparty upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
 	// next seq recv and ack is used for ordered channels to verify the packet has been received/acked in the correct order

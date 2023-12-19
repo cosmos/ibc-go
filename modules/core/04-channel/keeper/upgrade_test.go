@@ -1191,8 +1191,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_UnorderedToOrdered() {
 				suite.Require().Equal(mock.UpgradeVersion, channel.Version)
 				suite.Require().Equal(types.ORDERED, channel.Ordering)
 
-				// assert that NextSeqRecv is now 2, because seq updated in WriteUpgradeOpenChannel to latest sequence (two packets sent) + 1
-				seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// assert that NextSeqRecv is incremented to 2, because channel is now ORDERED
+				// seq updated in WriteUpgradeOpenChannel to latest sequence (one packet sent) + 1
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(2), seq)
 
