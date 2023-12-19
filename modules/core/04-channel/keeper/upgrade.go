@@ -323,10 +323,6 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	if !k.HasInflightPackets(ctx, portID, channelID) {
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
-	} else {
-		// the counterparty upgrade is only required if the channel is still in the FLUSHING state.
-		// this gets read when timing out and acknowledging packets.
-		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -337,6 +333,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
+	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State.String())
 	return channel, upgrade
