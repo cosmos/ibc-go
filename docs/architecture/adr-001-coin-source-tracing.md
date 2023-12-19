@@ -26,7 +26,7 @@ to the receiving chain through IBC TAO logic. It is expected that the
 receiving chain will mint vouchers to the receiving address.
 
 2. Sender chain is acting as the sink zone. The coins (vouchers) are burned
-on the sender chain and then transferred to the receiving chain though IBC
+on the sender chain and then transferred to the receiving chain through IBC
 TAO logic. It is expected that the receiving chain, which had previously
 sent the original denomination, will unescrow the fungible token and send
 it to the receiving address.
