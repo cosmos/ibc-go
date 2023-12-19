@@ -225,14 +225,15 @@ func (msg MsgChannelCloseInit) ValidateBasic() error {
 // NewMsgChannelCloseConfirm creates a new MsgChannelCloseConfirm instance
 func NewMsgChannelCloseConfirm(
 	portID, channelID string, proofInit []byte, proofHeight clienttypes.Height,
-	signer string,
+	signer string, counterpartyUpgradeSequence uint64,
 ) *MsgChannelCloseConfirm {
 	return &MsgChannelCloseConfirm{
-		PortId:      portID,
-		ChannelId:   channelID,
-		ProofInit:   proofInit,
-		ProofHeight: proofHeight,
-		Signer:      signer,
+		PortId:                      portID,
+		ChannelId:                   channelID,
+		ProofInit:                   proofInit,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
+		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
 	}
 }
 
@@ -320,14 +321,16 @@ func NewMsgTimeoutOnClose(
 	packet Packet, nextSequenceRecv uint64,
 	proofUnreceived, proofClose []byte,
 	proofHeight clienttypes.Height, signer string,
+	counterpartyUpgradeSequence uint64,
 ) *MsgTimeoutOnClose {
 	return &MsgTimeoutOnClose{
-		Packet:           packet,
-		NextSequenceRecv: nextSequenceRecv,
-		ProofUnreceived:  proofUnreceived,
-		ProofClose:       proofClose,
-		ProofHeight:      proofHeight,
-		Signer:           signer,
+		Packet:                      packet,
+		NextSequenceRecv:            nextSequenceRecv,
+		ProofUnreceived:             proofUnreceived,
+		ProofClose:                  proofClose,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
+		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
 	}
 }
 
@@ -720,4 +723,36 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Params.Validate()
+}
+
+// NewMsgPruneAcknowledgements creates a new instance of MsgPruneAcknowledgements.
+func NewMsgPruneAcknowledgements(portID, channelID string, limit uint64, signer string) *MsgPruneAcknowledgements {
+	return &MsgPruneAcknowledgements{
+		PortId:    portID,
+		ChannelId: channelID,
+		Limit:     limit,
+		Signer:    signer,
+	}
+}
+
+// ValidateBasic performs basic checks on a MsgPruneAcknowledgements.
+func (msg *MsgPruneAcknowledgements) ValidateBasic() error {
+	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
+		return errorsmod.Wrap(err, "invalid port ID")
+	}
+
+	if !IsValidChannelID(msg.ChannelId) {
+		return ErrInvalidChannelIdentifier
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	if msg.Limit == 0 {
+		return errorsmod.Wrap(ErrInvalidPruningLimit, "number of acknowledgements to prune must be greater than 0")
+	}
+
+	return nil
 }

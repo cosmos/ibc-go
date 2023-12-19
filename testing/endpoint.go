@@ -563,6 +563,7 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	timeoutOnCloseMsg := channeltypes.NewMsgTimeoutOnClose(
 		packet, nextSeqRecv,
 		proof, proofClosed, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String(),
+		endpoint.Counterparty.GetChannel().UpgradeSequence,
 	)
 
 	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
@@ -867,7 +868,8 @@ func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
 			ConnectionHops: []string{endpoint.ConnectionID},
 			Version:        endpoint.ChannelConfig.Version,
 		},
-		Timeout: channeltypes.NewTimeout(endpoint.Counterparty.Chain.GetTimeoutHeight(), 0),
+		Timeout:            channeltypes.NewTimeout(endpoint.Counterparty.Chain.GetTimeoutHeight(), 0),
+		LatestSequenceSend: 0,
 	}
 
 	override := endpoint.ChannelConfig.ProposedUpgrade

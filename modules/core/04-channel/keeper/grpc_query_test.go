@@ -1863,6 +1863,7 @@ func (suite *KeeperTestSuite) TestQueryUpgrade() {
 			expectedUpgrade = types.NewUpgrade(
 				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
 				types.NewTimeout(clienttypes.ZeroHeight(), 1000000),
+				0,
 			)
 
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expectedUpgrade)
@@ -1886,4 +1887,11 @@ func (suite *KeeperTestSuite) TestQueryUpgrade() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestQueryChannelParams() {
+	ctx := suite.chainA.GetContext()
+	expParams := types.DefaultParams()
+	res, _ := suite.chainA.QueryServer.ChannelParams(ctx, &types.QueryChannelParamsRequest{})
+	suite.Require().Equal(&expParams, res.Params)
 }

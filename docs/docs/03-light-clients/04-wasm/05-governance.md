@@ -33,7 +33,7 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
   app.IBCKeeper.ClientKeeper,
  	authtypes.NewModuleAddress(govtypes.ModuleName).String(), // authority
   wasmVM,
-  querier,
+  app.GRPCQueryRouter(),
 )
 ```
 
