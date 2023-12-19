@@ -713,7 +713,7 @@ func modifyClientGenesisAppState(chainConfig ibc.ChainConfig, ibcAppState []byte
 		return nil, fmt.Errorf("failed to unmarshal genesis bytes into client genesis state: %w", err)
 	}
 
-	ibcGenesisState.ClientGenesis.Params.AllowedClients = []string{ibcexported.Solomachine, ibcexported.Tendermint, ibcexported.Localhost, wasmtypes.Wasm}
+	ibcGenesisState.ClientGenesis.Params.AllowedClients = append(ibcGenesisState.ClientGenesis.Params.AllowedClients, wasmtypes.Wasm)
 	ibcGenBz, err := cdc.MarshalJSON(ibcGenesisState)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
