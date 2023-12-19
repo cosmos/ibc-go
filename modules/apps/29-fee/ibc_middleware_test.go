@@ -1344,7 +1344,12 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 	}{
 		{
 			"success: enable fees",
-			func() {},
+			func() {
+				// Assert in callback that correct version is passed
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, version string) {
+					suite.Require().Equal(ibcmock.Version, version)
+				}
+			},
 			true,
 		},
 		{
@@ -1353,17 +1358,23 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 				// create a new path using a fee enabled channel and downgrade it to disable fees
 				path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-				mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+				mockFeeVersion := &types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}
+				mockFeeVersionBz := string(types.ModuleCdc.MustMarshalJSON(mockFeeVersion))
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 				path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
-				path.EndpointA.ChannelConfig.Version = mockFeeVersion
-				path.EndpointB.ChannelConfig.Version = mockFeeVersion
+				path.EndpointA.ChannelConfig.Version = mockFeeVersionBz
+				path.EndpointB.ChannelConfig.Version = mockFeeVersionBz
 
 				upgradeVersion := ibcmock.Version
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 
 				suite.coordinator.Setup(path)
+
+				// Assert in callback that correct version is passed
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, version string) {
+					suite.Require().Equal(mockFeeVersion.AppVersion, version)
+				}
 			},
 			false,
 		},
