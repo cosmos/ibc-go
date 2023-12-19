@@ -135,13 +135,6 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 	s.startRelayerFn = func(relayer ibc.Relayer) {
 		err := relayer.StartRelayer(ctx, eRep, pathName)
 		s.Require().NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
-		s.T().Cleanup(func() {
-			if !s.T().Failed() {
-				if err := relayer.StopRelayer(ctx, eRep); err != nil {
-					s.T().Logf("error stopping relayer: %v", err)
-				}
-			}
-		})
 		// wait for relayer to start.
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 	}
@@ -377,9 +370,9 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.C
 	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
 	// this allows us to process the logs before the containers are removed.
 	t.Cleanup(func() {
-		debugModeEnabled := LoadConfig().DebugConfig.DumpLogs
+		dumpLogs := LoadConfig().DebugConfig.DumpLogs
 		chains := []string{chainOptions.ChainASpec.ChainConfig.Name, chainOptions.ChainBSpec.ChainConfig.Name}
-		diagnostics.Collect(t, s.DockerClient, debugModeEnabled, chains...)
+		diagnostics.Collect(t, s.DockerClient, dumpLogs, chains...)
 	})
 
 	chains, err := cf.Chains(t.Name())
