@@ -14,8 +14,8 @@ The 02-client submodule contains the following parameters:
 
 ### AllowedClients
 
-The allowed clients parameter defines an allowlist of client types supported by the chain. A client
+The allowed clients parameter defines an allow list of client types supported by the chain. A client
 that is not registered on this list will fail upon creation or on genesis validation. Note that,
-since the client type is an arbitrary string, chains they must not register two light clients which
-return the same value for the `ClientType()` function, otherwise the allowlist check can be
-bypassed. If AllowAllClient wildcard ( `*` ) is set then supported all client type.
+since the client type is an arbitrary string, chains must not register two light clients which
+return the same value for the `ClientType()` function, otherwise the allow list check can be
+bypassed. If `AllowAllClients` wildcard (`*`) is set, then all client type are supported.

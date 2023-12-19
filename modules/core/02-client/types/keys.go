@@ -29,9 +29,9 @@ const (
 	// ParamsKey is the store key for the IBC client parameters
 	ParamsKey = "clientParams"
 
-	// AllowAllClient is the value that if set in AllowedClients param
+	// AllowAllClients is the value that if set in AllowedClients param
 	// would allow any wired up light client modules to be allowed
-	AllowAllClient = "*"
+	AllowAllClients = "*"
 )
 
 // FormatClientIdentifier returns the client identifier with the sequence appended.
