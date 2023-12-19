@@ -9,15 +9,15 @@ import "ibc/core/channel/v1/channel.proto";
 
 // Upgrade is a verifiable type which contains the relevant information
 // for an attempted upgrade. It provides the proposed changes to the channel
-// end, the timeout for this upgrade attempt and the latest packet sequence sent
-// which allows the counterparty to efficiently know the highest sequence it has received. 
-// The latest sequence send is used for pruning and upgrading from unordered to ordered channels. 
+// end, the timeout for this upgrade attempt and the next packet sequence
+// which allows the counterparty to efficiently know the highest sequence it has received.
+// The next packet send is used for pruning and upgrading from unordered to ordered channels.
 message Upgrade {
   option (gogoproto.goproto_getters) = false;
 
-  UpgradeFields fields               = 1 [(gogoproto.nullable) = false];
-  Timeout       timeout              = 2 [(gogoproto.nullable) = false];
-  uint64        latest_sequence_send = 3;
+  UpgradeFields fields           = 1 [(gogoproto.nullable) = false];
+  Timeout       timeout          = 2 [(gogoproto.nullable) = false];
+  uint64        next_packet_send = 3;
 }
 
 // UpgradeFields are the fields in a channel end which may be changed
