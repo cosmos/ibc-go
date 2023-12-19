@@ -782,6 +782,13 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 			"success", func() {}, nil,
 		},
 		{
+			"success: nil underlying app",
+			func() {
+				isNilApp = true
+			},
+			nil,
+		},
+		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
 			}, types.ErrControllerSubModuleDisabled,
@@ -877,6 +884,13 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 	}{
 		{
 			"success", func() {}, nil,
+		},
+		{
+			"success: nil underlying app",
+			func() {
+				isNilApp = true
+			},
+			nil,
 		},
 		{
 			"controller submodule disabled", func() {
