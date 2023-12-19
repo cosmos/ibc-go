@@ -646,13 +646,10 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 
 			if !tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
-				_, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(ok)
-			} else {
-				counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(ok)
-				suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 			}
+			counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(ok)
+			suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 		})
 	}
 }
