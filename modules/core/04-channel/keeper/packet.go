@@ -250,7 +250,6 @@ func (k Keeper) RecvPacket(
 		// incrementing nextSequenceRecv and storing under this chain's channelEnd identifiers
 		// Since this is the receiving chain, our channelEnd is packet's destination port and channel
 		k.SetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv)
-
 	}
 
 	// log that a packet has been received & executed
