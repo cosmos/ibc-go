@@ -33,6 +33,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
@@ -448,11 +449,11 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	t.Run("ensure allowed clients are set to the default", func(t *testing.T) {
 		allowedClients := s.QueryAllowedClients(ctx, chainA)
 
-		defaultAllowedClients := clienttypes.DefaultAllowedClients
+		expectAllowedClients := append(clienttypes.DefaultAllowedClients, wasmtypes.Wasm)
 		if !testvalues.LocalhostClientFeatureReleases.IsSupported(chainAVersion) {
-			defaultAllowedClients = slices.DeleteFunc(defaultAllowedClients, func(s string) bool { return s == ibcexported.Localhost })
+			expectAllowedClients = slices.DeleteFunc(expectAllowedClients, func(s string) bool { return s == ibcexported.Localhost })
 		}
-		s.Require().Equal(defaultAllowedClients, allowedClients)
+		s.Require().Equal(expectAllowedClients, allowedClients)
 	})
 
 	allowedClient := ibcexported.Solomachine
