@@ -533,6 +533,11 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
+	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Errorf("could not find counterparty upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
 	// next seq recv and ack is used for ordered channels to verify the packet has been received/acked in the correct order
 	// this is no longer necessary if the channel is UNORDERED and should be reset to 1
 	if channel.Ordering == types.ORDERED && upgrade.Fields.Ordering == types.UNORDERED {
@@ -544,11 +549,6 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 	// we can be sure that the next packet we are set to receive will be the first packet the counterparty sends after reopening.
 	// we can be sure that our next acknowledgement will be our first packet sent after upgrade, as the counterparty processed all sent packets after flushing completes.
 	if channel.Ordering == types.UNORDERED && upgrade.Fields.Ordering == types.ORDERED {
-		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, portID, channelID)
-		if !found {
-			panic(fmt.Errorf("could not find counterparty upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
-		}
-
 		k.SetNextSequenceRecv(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
 		k.SetNextSequenceAck(ctx, portID, channelID, upgrade.NextSequenceSend)
 	}
