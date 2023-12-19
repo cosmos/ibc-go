@@ -552,8 +552,8 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 			panic(fmt.Errorf("could not find counterparty upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
 		}
 
-		k.SetNextSequenceRecv(ctx, portID, channelID, counterpartyUpgrade.NextPacketSend)
-		k.SetNextSequenceAck(ctx, portID, channelID, upgrade.NextPacketSend)
+		k.SetNextSequenceRecv(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
+		k.SetNextSequenceAck(ctx, portID, channelID, upgrade.NextSequenceSend)
 	}
 
 	// Switch channel fields to upgrade fields and set channel state to OPEN
@@ -791,7 +791,7 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 		return errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	upgrade.NextPacketSend = nextSequenceSend
+	upgrade.NextSequenceSend = nextSequenceSend
 	upgrade.Timeout = k.getAbsoluteUpgradeTimeout(ctx)
 	k.SetUpgrade(ctx, portID, channelID, *upgrade)
 

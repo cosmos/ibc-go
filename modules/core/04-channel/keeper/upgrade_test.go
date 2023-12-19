@@ -303,7 +303,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 				nextSequenceSend, found := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(found)
-				suite.Require().Equal(nextSequenceSend, upgrade.NextPacketSend)
+				suite.Require().Equal(nextSequenceSend, upgrade.NextSequenceSend)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
 			}
@@ -489,7 +489,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			"fails due to proof verification failure, counterparty update has unexpected sequence",
 			func() {
 				// Decrementing LatestSequenceSend is sufficient to cause the proof to fail.
-				counterpartyUpgrade.NextPacketSend--
+				counterpartyUpgrade.NextSequenceSend--
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -2036,7 +2036,7 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 				suite.Require().True(ok)
 
 				suite.Require().Equal(types.FLUSHING, channel.State)
-				suite.Require().Equal(nextSequenceSend, upgrade.NextPacketSend)
+				suite.Require().Equal(nextSequenceSend, upgrade.NextSequenceSend)
 
 				expectedTimeoutTimestamp := types.DefaultTimeout.Timestamp + uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 				suite.Require().Equal(expectedTimeoutTimestamp, upgrade.Timeout.Timestamp)
