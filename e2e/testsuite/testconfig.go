@@ -553,7 +553,7 @@ func defaultGovv1ClientModifyGenesis(version string) func(ibc.ChainConfig, []byt
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
-		clientGenBz, err := modifyClientAppState(chainConfig, appState[clienttypes.SubModuleName])
+		clientGenBz, err := modifyClientAppState(chainConfig, appState[ibcexported.ModuleName])
 		if err != nil {
 			return nil, err
 		}
@@ -563,7 +563,7 @@ func defaultGovv1ClientModifyGenesis(version string) func(ibc.ChainConfig, []byt
 			return nil, err
 		}
 
-		appState[clienttypes.SubModuleName] = clientGenBz
+		appState[ibcexported.ModuleName] = clientGenBz
 		appState[govtypes.ModuleName] = govGenBz
 
 		appGenesis.AppState, err = json.Marshal(appState)
@@ -609,7 +609,7 @@ func defaultGovv1Beta1ClientModifyGenesis() func(ibc.ChainConfig, []byte) ([]byt
 			return nil, fmt.Errorf("failed to extract gov genesis bytes: %s", err)
 		}
 
-		clientModuleBytes, err := json.Marshal(appStateMap[clienttypes.SubModuleName])
+		clientModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
 		if err != nil {
 			return nil, fmt.Errorf("failed to extract client genesis bytes: %s", err)
 		}
@@ -636,7 +636,7 @@ func defaultGovv1Beta1ClientModifyGenesis() func(ibc.ChainConfig, []byte) ([]byt
 			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
 		}
 
-		appStateMap[clienttypes.SubModuleName] = clientModuleGenesisMap
+		appStateMap[ibcexported.ModuleName] = clientModuleGenesisMap
 		appStateMap[govtypes.ModuleName] = govModuleGenesisMap
 		genesisDocMap[appStateKey] = appStateMap
 
