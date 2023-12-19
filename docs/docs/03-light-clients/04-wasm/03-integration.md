@@ -347,16 +347,15 @@ func (app SimApp) RegisterUpgradeHandlers() {
   ...
 
   if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-      storeUpgrades := storetypes.StoreUpgrades{
-        Added: []string{
-          ibcwasmtypes.ModuleName,
-        },
-      }
-
-
-      // configure store loader that checks if version == upgradeHeight and applies store upgrades
-      app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+    storeUpgrades := storetypes.StoreUpgrades{
+      Added: []string{
+        ibcwasmtypes.ModuleName,
+      },
     }
+
+    // configure store loader that checks if version == upgradeHeight and applies store upgrades
+    app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+  }
 }
 ```
 
