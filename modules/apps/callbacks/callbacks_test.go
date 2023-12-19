@@ -81,7 +81,7 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 	s.path.EndpointA.ChannelConfig.Version = transfertypes.Version
 	s.path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
-	s.coordinator.Setup(s.path)
+	s.path.Setup()
 }
 
 // SetupFeeTransferTest sets up a fee middleware enabled transfer channel between chainA and chainB
@@ -94,7 +94,7 @@ func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 	s.path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 	s.path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	s.coordinator.Setup(s.path)
+	s.path.Setup()
 }
 
 func (s *CallbacksTestSuite) SetupMockFeeTest() {
@@ -111,7 +111,7 @@ func (s *CallbacksTestSuite) SetupMockFeeTest() {
 // It funds and returns the interchain account address owned by chainA's SenderAccount.
 func (s *CallbacksTestSuite) SetupICATest() string {
 	s.setupChains()
-	s.coordinator.SetupConnections(s.path)
+	s.path.SetupConnections()
 
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	// ICAVersion defines a interchain accounts version string
