@@ -11,7 +11,7 @@ Learn how to upload Wasm light client byte code on a chain, and how to migrate a
 
 ## Setting an authority
 
-Both the storage of Wasm light client byte code as well as the migration of an existing Wasm light client contract are permissioned (i.e. only allowed to an authority such as governance). The designated authority is specified when instantiating `08-wasm`'s keeper: both [`NewKeeperWithVM`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L39-L47) and [`NewKeeperWithConfig`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L88-L96) constructor functions accept an `authority` argument that must be the address of the authorized actor. For example, in `app.go`, when instantiating the keeper, you can pass the address of the governance module:
+Both the storage of Wasm light client byte code as well as the migration of an existing Wasm light client contract are permissioned (i.e. only allowed to an authority such as governance). The designated authority is specified when instantiating `08-wasm`'s keeper: both [`NewKeeperWithVM`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v7.3-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L38-L46) and [`NewKeeperWithConfig`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v7.3-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L82-L90) constructor functions accept an `authority` argument that must be the address of the authorized actor. For example, in `app.go`, when instantiating the keeper, you can pass the address of the governance module:
 
 ```go
 // app.go
@@ -39,7 +39,7 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
 
 ## Storing new Wasm light client byte code
 
- If governance is the allowed authority, the governance v1 proposal that needs to be submitted to upload a new light client contract should contain the message [`MsgStoreCode`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/proto/ibc/lightclients/wasm/v1/tx.proto#L23-L30) with the base64-encoded byte code of the Wasm contract. Use the following CLI command and JSON as an example:
+ If governance is the allowed authority, the governance v1 proposal that needs to be submitted to upload a new light client contract should contain the message [`MsgStoreCode`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v7.3-wasmvm-v1.5/proto/ibc/lightclients/wasm/v1/tx.proto#L22-L30) with the base64-encoded byte code of the Wasm contract. Use the following CLI command and JSON as an example:
 
 ```shell
 simd tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
@@ -69,7 +69,7 @@ Alternatively, the process of submitting the proposal may be simpler if you use 
 
 ## Migrating an existing Wasm light client contract
 
-If governance is the allowed authority, the governance v1 proposal that needs to be submitted to migrate an existing new Wasm light client contract should contain the message [`MsgMigrateContract`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/proto/ibc/lightclients/wasm/v1/tx.proto#L52-L63) with the checksum of the Wasm byte code to migrate to. Use the following CLI command and JSON as an example:
+If governance is the allowed authority, the governance v1 proposal that needs to be submitted to migrate an existing new Wasm light client contract should contain the message [`MsgMigrateContract`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v7.3-wasmvm-v1.5/proto/ibc/lightclients/wasm/v1/tx.proto#L51-L63) with the checksum of the Wasm byte code to migrate to. Use the following CLI command and JSON as an example:
 
 ```shell
 simd tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
@@ -99,7 +99,7 @@ To learn more about the `submit-proposal` CLI command, please check out [the rel
 
 ## Removing an existing checksum
 
-If governance is the allowed authority, the governance v1 proposal that needs to be submitted to remove a specific checksum from the list of allowed checksums should contain the message [`MsgRemoveChecksum`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/proto/ibc/lightclients/wasm/v1/tx.proto#L39-L46) with the checksum (of a corresponding Wasm byte code). Use the following CLI command and JSON as an example:
+If governance is the allowed authority, the governance v1 proposal that needs to be submitted to remove a specific checksum from the list of allowed checksums should contain the message [`MsgRemoveChecksum`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v7.3-wasmvm-v1.5/proto/ibc/lightclients/wasm/v1/tx.proto#L38-L46) with the checksum (of a corresponding Wasm byte code). Use the following CLI command and JSON as an example:
 
 ```shell
 simd tx gov submit-proposal <path/to/proposal.json> --from <key_or_address>
