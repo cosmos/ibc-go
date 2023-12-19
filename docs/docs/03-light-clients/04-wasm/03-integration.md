@@ -116,7 +116,7 @@ func NewSimApp(
     ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
 
     // Initialize pinned codes in wasmvm as they are not persisted there
-    if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil { // appCodec is required in v7
+    if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
       cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
     }
   }
@@ -237,7 +237,7 @@ wasmConfig := wasmtypes.WasmConfig{
 }
 app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
   appCodec,
-  runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), // v7 use app.keys[wasmtypes.StoreKey]
+  runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
   app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
