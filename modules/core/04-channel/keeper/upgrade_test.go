@@ -1193,6 +1193,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_UnorderedToOrdered() {
 
 				// assert that NextSeqRecv is incremented to 2, because channel is now ORDERED
 				// seq updated in WriteUpgradeOpenChannel to latest sequence (one packet sent) + 1
+				seq, found = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(2), seq)
 
