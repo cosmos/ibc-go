@@ -27,6 +27,9 @@ import (
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 const (
@@ -529,15 +532,15 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 	simdSupportsGovV1Genesis := binary == defaultBinary && testvalues.GovGenesisFeatureReleases.IsSupported(version)
 
 	if simdSupportsGovV1Genesis {
-		return defaultGovv1ModifyGenesis(version)
+		return defaultGovv1ClientModifyGenesis(version)
 	}
 
-	return defaultGovv1Beta1ModifyGenesis()
+	return defaultGovv1Beta1ClientModifyGenesis()
 }
 
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // are functional for e2e testing purposes.
-func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
+func defaultGovv1ClientModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
 	stdlibJSONMarshalling := semverutil.FeatureReleases{MajorVersion: "v8"}
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
 		appGenesis, err := genutiltypes.AppGenesisFromReader(bytes.NewReader(genbz))
@@ -550,11 +553,17 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
+		clientGenBz, err := modifyClientAppState(chainConfig, appState[clienttypes.SubModuleName])
+		if err != nil {
+			return nil, err
+		}
+
 		govGenBz, err := modifyGovV1AppState(chainConfig, appState[govtypes.ModuleName])
 		if err != nil {
 			return nil, err
 		}
 
+		appState[clienttypes.SubModuleName] = clientGenBz
 		appState[govtypes.ModuleName] = govGenBz
 
 		appGenesis.AppState, err = json.Marshal(appState)
@@ -581,7 +590,7 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 
 // defaultGovv1Beta1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // // are functional for e2e testing purposes.
-func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
+func defaultGovv1Beta1ClientModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
 	const appStateKey = "app_state"
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
 		genesisDocMap := map[string]interface{}{}
@@ -600,6 +609,16 @@ func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, err
 			return nil, fmt.Errorf("failed to extract gov genesis bytes: %s", err)
 		}
 
+		clientModuleBytes, err := json.Marshal(appStateMap[clienttypes.SubModuleName])
+		if err != nil {
+			return nil, fmt.Errorf("failed to extract client genesis bytes: %s", err)
+		}
+
+		clientGenesisBytes, err := modifyClientAppState(chainConfig, clientModuleBytes)
+		if err != nil {
+			return nil, err
+		}
+
 		govModuleGenesisBytes, err := modifyGovv1Beta1AppState(chainConfig, govModuleBytes)
 		if err != nil {
 			return nil, err
@@ -611,6 +630,13 @@ func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, err
 			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
 		}
 
+		clientModuleGenesisMap := map[string]interface{}{}
+		err = json.Unmarshal(clientGenesisBytes, &clientModuleGenesisMap)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+		}
+
+		appStateMap[clienttypes.SubModuleName] = clientModuleGenesisMap
 		appStateMap[govtypes.ModuleName] = govModuleGenesisMap
 		genesisDocMap[appStateKey] = appStateMap
 
@@ -672,4 +698,25 @@ func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) (
 	}
 
 	return govGenBz, nil
+}
+
+// modifyClientAppState takes the existing client app state and marshals it to a client GenesisState.
+func modifyClientAppState(chainConfig ibc.ChainConfig, clientAppState []byte) ([]byte, error) {
+	cfg := testutil.MakeTestEncodingConfig()
+
+	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	clientGenesisState := &clienttypes.GenesisState{}
+	if err := cdc.UnmarshalJSON(clientAppState, clientGenesisState); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis bytes into client genesis state: %w", err)
+	}
+
+	clientGenesisState.Params.AllowedClients = []string{ibcexported.Solomachine, ibcexported.Tendermint, ibcexported.Localhost, wasmtypes.Wasm}
+	clientGenBz, err := cdc.MarshalJSON(clientGenesisState)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	}
+
+	return clientGenBz, nil
 }
