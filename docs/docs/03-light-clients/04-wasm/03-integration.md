@@ -22,8 +22,8 @@ import (
   cmtos "github.com/cometbft/cometbft/libs/os"
 
   wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-  wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-  wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
   ...
 )
 
@@ -39,7 +39,7 @@ ModuleBasics = module.NewBasicManager(
 // Add 08-wasm Keeper
 type SimApp struct {
   ...
-  WasmClientKeeper wasmkeeper.Keeper
+  WasmClientKeeper ibcwasmkeeper.Keeper
   ...
 }
 
@@ -54,7 +54,7 @@ func NewSimApp(
   ...
   keys := sdk.NewKVStoreKeys(
     ...
-    wasmtypes.StoreKey,
+    ibcwasmtypes.StoreKey,
   )
 
   // Instantiate 08-wasm's keeper
@@ -63,9 +63,9 @@ func NewSimApp(
   // This is the recommended approach when the chain
   // also uses `x/wasm`, and then the Wasm VM instance
   // can be shared.
-  app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
+  app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
     appCodec,
-    runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+    runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
     app.IBCKeeper.ClientKeeper,
     authtypes.NewModuleAddress(govtypes.ModuleName).String(),
     wasmVM,
@@ -78,17 +78,17 @@ func NewSimApp(
   )
   app.ModuleManager.SetOrderBeginBlockers(
     ...
-    wasmtypes.ModuleName,
+    ibcwasmtypes.ModuleName,
     ...
   )
   app.ModuleManager.SetOrderEndBlockers(
     ...
-    wasmtypes.ModuleName,
+    ibcwasmtypes.ModuleName,
     ...
   )
   genesisModuleOrder := []string{
     ...
-    wasmtypes.ModuleName,
+    ibcwasmtypes.ModuleName,
     ...
   }
   app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
@@ -102,7 +102,7 @@ func NewSimApp(
   // must be before Loading version
   if manager := app.SnapshotManager(); manager != nil {
     err := manager.RegisterExtensions(
-      wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmClientKeeper),
+      ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmClientKeeper),
     )
     if err != nil {
       panic(fmt.Errorf("failed to register snapshot extension: %s", err))
@@ -116,7 +116,7 @@ func NewSimApp(
     ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
 
     // Initialize pinned codes in wasmvm as they are not persisted there
-    if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
+    if err := ibcwasmkeeper.InitializePinnedCodes(ctx); err != nil {
       cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
     }
   }
@@ -136,7 +136,7 @@ In order to share the Wasm VM instance please follow the guideline below. Please
 - Instantiate the Wasm VM in `app.go` with the parameters of your choice.
 - [Create an `Option` with this Wasm VM instance](https://github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/options.go#L21-L25).
 - Add the option created in the previous step to a slice and [pass it to the `x/wasm NewKeeper` constructor function](https://github.com/CosmWasm/wasmd/blob/db93d7b6c7bb6f4a340d74b96a02cec885729b59/x/wasm/keeper/keeper_cgo.go#L36).
-- Pass the pointer to the Wasm VM instance to `08-wasm` [NewKeeperWithVM constructor function](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L39-L47).
+- Pass the pointer to the Wasm VM instance to `08-wasm` [NewKeeperWithVM constructor function](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/keeper/keeper.go#L39-L47).
 
 The code to set this up would look something like this:
 
@@ -147,7 +147,7 @@ import (
   "github.com/cosmos/cosmos-sdk/runtime"
 
   wasmvm "github.com/CosmWasm/wasmvm"
-  wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+  ibcwasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
   ...
 )
 
@@ -167,15 +167,15 @@ if err != nil {
 
 // create an Option slice (or append to an existing one)
 // with the option to use a custom Wasm VM instance
-wasmOpts = []wasmkeeper.Option{
-  wasmkeeper.WithWasmEngine(wasmer),
+wasmOpts = []ibcwasmkeeper.Option{
+  ibcwasmkeeper.WithWasmEngine(wasmer),
 }
 
 // the keeper will use the provided Wasm VM instance,
 // instead of instantiating a new one
-app.WasmKeeper = wasmkeeper.NewKeeper(
+app.WasmKeeper = ibcwasmkeeper.NewKeeper(
   appCodec,
-  keys[wasmtypes.StoreKey],
+  keys[ibcwasmtypes.StoreKey],
   app.AccountKeeper,
   app.BankKeeper,
   app.StakingKeeper,
@@ -194,9 +194,9 @@ app.WasmKeeper = wasmkeeper.NewKeeper(
   wasmOpts...,
 )
 
-app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
+app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
   appCodec,
-  runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+  runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
   app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmer, // pass the Wasm VM instance to `08-wasm` keeper constructor
@@ -208,14 +208,14 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
 ### If `x/wasm` is not present
 
 If the chain does not use [`x/wasm`](https://github.com/CosmWasm/wasmd/tree/main/x/wasm), even though it is still possible to use the method above from the previous section
-(e.g. instantiating a Wasm VM in app.go an pass it to 08-wasm's [`NewKeeperWithVM` constructor function](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L39-L47), since there would be no need in this case to share the Wasm VM instance with another module, you can use the [`NewKeeperWithConfig`` constructor function](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L88-L96) and provide the Wasm VM configuration parameters of your choice instead. A Wasm VM instance will be created in`NewKeeperWithConfig`. The parameters that can set are:
+(e.g. instantiating a Wasm VM in app.go an pass it to 08-wasm's [`NewKeeperWithVM` constructor function](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/keeper/keeper.go#L39-L47), since there would be no need in this case to share the Wasm VM instance with another module, you can use the [`NewKeeperWithConfig`` constructor function](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/keeper/keeper.go#L88-L96) and provide the Wasm VM configuration parameters of your choice instead. A Wasm VM instance will be created in`NewKeeperWithConfig`. The parameters that can set are:
 
 - `DataDir` is the [directory for Wasm blobs and various caches](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L25). In `wasmd` this is set to the [`wasm` folder under the home directory](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/app/app.go#L578).
 - `SupportedCapabilities` is a comma separated [list of capabilities supported by the chain](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L26). [`wasmd` sets this to all the available capabilities](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/app/app.go#L586), but 08-wasm only requires `iterator`.
 - `MemoryCacheSize` sets [the size in MiB of an in-memory cache for e.g. module caching](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L29C16-L29C104). It is not consensus-critical and should be defined on a per-node basis, often in the range 100 to 1000 MB. [`wasmd` reads this value of](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/app/app.go#L579). Default value is 256.
 - `ContractDebugMode` is a [flag to enable/disable printing debug logs from the contract to STDOUT](https://github.com/CosmWasm/wasmvm/blob/1638725b25d799f078d053391945399cb35664b1/lib.go#L28). This should be false in production environments. Default value is false.
 
-Another configuration parameter of the Wasm VM is the contract memory limit (in MiB), which is [set to 32](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/types/config.go#L8), [following the example of `wasmd`](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/x/wasm/keeper/keeper.go#L32-L34). This parameter is not configurable by users of `08-wasm`.
+Another configuration parameter of the Wasm VM is the contract memory limit (in MiB), which is [set to 32](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/types/config.go#L8), [following the example of `wasmd`](https://github.com/CosmWasm/wasmd/blob/36416def20effe47fb77f29f5ba35a003970fdba/x/wasm/keeper/keeper.go#L32-L34). This parameter is not configurable by users of `08-wasm`.
 
 The following sample code shows how the keeper would be constructed using this method:
 
@@ -225,19 +225,19 @@ import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
 
-  wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-  wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  ibcwasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+  ibcibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
   ...
 )
 ...
-wasmConfig := wasmtypes.WasmConfig{
+wasmConfig := ibcwasmtypes.WasmConfig{
   DataDir:               "ibc_08-wasm_client_data",
   SupportedCapabilities: "iterator",
   ContractDebugMode:     false,
 }
-app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
+app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithConfig(
   appCodec,
-  runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+  runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
   app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
@@ -245,7 +245,7 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 )
 ```
 
-Check out also the [`WasmConfig` type definition](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/types/config.go#L21-L31) for more information on each of the configurable parameters. Some parameters allow node-level configurations. There is additionally the function [`DefaultWasmConfig`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/types/config.go#L36-L42) available that returns a configuration with the default values.
+Check out also the [`WasmConfig` type definition](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/types/config.go#L21-L31) for more information on each of the configurable parameters. Some parameters allow node-level configurations. There is additionally the function [`DefaultWasmConfig`](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/types/config.go#L36-L42) available that returns a configuration with the default values.
 
 ### Options
 
@@ -258,16 +258,16 @@ By default, the `08-wasm` module does not support any queries. However, it is po
 
 Assuming that the keeper is not yet instantiated, the following sample code shows how to register query plugins for the `08-wasm` module.
 
-We first construct a [`QueryPlugins`](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/types/querier.go#L78-L87) object with the desired query plugins:
+We first construct a [`QueryPlugins`](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/types/querier.go#L78-L87) object with the desired query plugins:
 
 ```go
-queryPlugins := ibcwasmtypes.QueryPlugins {
+queryPlugins := ibcibcwasmtypes.QueryPlugins {
   Custom: MyCustomQueryPlugin(),
   // `myAcceptList` is a `[]string` containing the list of gRPC query paths that the chain wants to allow for the `08-wasm` module to query.
   // These queries must be registered in the chain's gRPC query router, be deterministic, and track their gas usage.
   // The `AcceptListStargateQuerier` function will return a query plugin that will only allow queries for the paths in the `myAcceptList`.
   // The query responses are encoded in protobuf unlike the implementation in `x/wasm`.
-  Stargate: ibcwasmtypes.AcceptListStargateQuerier(myAcceptList),
+  Stargate: ibcibcwasmtypes.AcceptListStargateQuerier(myAcceptList),
 }
 ```
 
@@ -282,9 +282,9 @@ querierOption := ibcwasmkeeper.WithQueryPlugins(&queryPlugins)
 Finally, we pass the option to the `NewKeeperWithConfig` or `NewKeeperWithVM` constructor function during [Keeper instantiation](#keeper-instantiation):
 
 ```diff
-app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
+app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithConfig(
   appCodec,
-  runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+  runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
   app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
@@ -294,9 +294,9 @@ app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 ```
 
 ```diff
-app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
+app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
   appCodec,
-  runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+  runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
   app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmer, // pass the Wasm VM instance to `08-wasm` keeper constructor
@@ -312,7 +312,7 @@ In order to use the `08-wasm` module chains must update the [`AllowedClients` pa
 ```go
 import (
   ...
-  wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
   ...
 )
 
@@ -327,7 +327,7 @@ func CreateWasmUpgradeHandler(
     sdkCtx := sdk.UnwrapSDKContext(ctx)
     // explicitly update the IBC 02-client params, adding the wasm client type
     params := clientKeeper.GetParams(ctx)
-    params.AllowedClients = append(params.AllowedClients, wasmtypes.Wasm)
+    params.AllowedClients = append(params.AllowedClients, ibcwasmtypes.Wasm)
     clientKeeper.SetParams(ctx, params)
 
     return mm.RunMigrations(ctx, configurator, vm)
@@ -349,7 +349,7 @@ func (app SimApp) RegisterUpgradeHandlers() {
   if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
     storeUpgrades := storetypes.StoreUpgrades{
       Added: []string{
-        ibcwasmtypes.ModuleName,
+        ibcibcwasmtypes.ModuleName,
       },
     }
 
@@ -361,8 +361,8 @@ func (app SimApp) RegisterUpgradeHandlers() {
 
 ## Adding snapshot support
 
-In order to use the `08-wasm` module chains are required to register the `WasmSnapshotter` extension in the snapshot manager. This snapshotter takes care of persisting the external state, in the form of contract code, of the Wasm VM instance to disk when the chain is snapshotted. [This code](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/testing/simapp/app.go#L775-L782) should be placed in `NewSimApp` function in `app.go`.
+In order to use the `08-wasm` module chains are required to register the `WasmSnapshotter` extension in the snapshot manager. This snapshotter takes care of persisting the external state, in the form of contract code, of the Wasm VM instance to disk when the chain is snapshotted. [This code](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/testing/simapp/app.go#L775-L782) should be placed in `NewSimApp` function in `app.go`.
 
 ## Pin byte codes at start
 
-Wasm byte codes should be pinned to the WasmVM cache on every application start, therefore [this code](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/testing/simapp/app.go#L825-L830) should be placed in `NewSimApp` function in `app.go`.
+Wasm byte codes should be pinned to the WasmVM cache on every application start, therefore [this code](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/testing/simapp/app.go#L825-L830) should be placed in `NewSimApp` function in `app.go`.
