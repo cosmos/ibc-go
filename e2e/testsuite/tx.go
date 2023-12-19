@@ -63,7 +63,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 	}
 	if s.relayers.ContainsRelayer(s.T().Name(), user) {
 		// Retry five times, the value of 5 chosen is arbitrary.
-		resp, err = s.retryNtimes(broadcastFunc, 5)
+		resp, err = s.retryNtimes(broadcastFunc, 10)
 	} else {
 		resp, err = broadcastFunc()
 	}

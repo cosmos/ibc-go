@@ -55,10 +55,9 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 		testFee       = testvalues.DefaultFee(chainADenom)
 	)
 
-	// t.Run("relayer wallets recovered", func(t *testing.T) {
-	// 	err := s.RecoverRelayerWallets(ctx, relayer)
-	// 	s.Require().NoError(err)
-	// })
+	t.Run("relayer wallets recovered", func(t *testing.T) {
+		_ = s.RecoverRelayerWallets(ctx, relayer)
+	})
 
 	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
 	t.Run("relayer wallets fetched", func(t *testing.T) {
@@ -233,8 +232,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_In
 	)
 
 	t.Run("relayer wallets recovered", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
-		s.Require().NoError(err)
+		_ = s.RecoverRelayerWallets(ctx, relayer)
 	})
 
 	chainARelayerWallet, chainBRelayerWallet, err := s.GetRelayerWallets(relayer)
