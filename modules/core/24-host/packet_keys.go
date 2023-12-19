@@ -3,14 +3,15 @@ package host
 import "fmt"
 
 const (
-	KeySequencePrefix         = "sequences"
-	KeyNextSeqSendPrefix      = "nextSequenceSend"
-	KeyNextSeqRecvPrefix      = "nextSequenceRecv"
-	KeyNextSeqAckPrefix       = "nextSequenceAck"
-	KeyPacketCommitmentPrefix = "commitments"
-	KeyPacketAckPrefix        = "acks"
-	KeyPacketReceiptPrefix    = "receipts"
-	KeyAckPruningSequence     = "ackPruningSequence"
+	KeySequencePrefix          = "sequences"
+	KeyNextSeqSendPrefix       = "nextSequenceSend"
+	KeyNextSeqRecvPrefix       = "nextSequenceRecv"
+	KeyNextSeqAckPrefix        = "nextSequenceAck"
+	KeyPacketCommitmentPrefix  = "commitments"
+	KeyPacketAckPrefix         = "acks"
+	KeyPacketReceiptPrefix     = "receipts"
+	KeyPruningSequence         = "pruningSequence"
+	KeyCounterpartyNextSeqSend = "counterpartyNextSequenceSend"
 )
 
 // ICS04
@@ -92,14 +93,24 @@ func PacketReceiptKey(portID, channelID string, sequence uint64) []byte {
 	return []byte(PacketReceiptPath(portID, channelID, sequence))
 }
 
-// AckPruningSequencePath defines the path under which the pruning sequence is stored
-func AckPruningSequencePath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyAckPruningSequence, channelPath(portID, channelID))
+// PruningSequencePath defines the path under which the pruning sequence is stored
+func PruningSequencePath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s", KeyPruningSequence, channelPath(portID, channelID))
 }
 
-// AckPruningSequenceKey returns the store key for the pruning sequence of a particular channel
-func AckPruningSequenceKey(portID, channelID string) []byte {
-	return []byte(AckPruningSequencePath(portID, channelID))
+// PruningSequenceKey returns the store key for the pruning sequence of a particular channel
+func PruningSequenceKey(portID, channelID string) []byte {
+	return []byte(PruningSequencePath(portID, channelID))
+}
+
+// CounterpartyNextSequenceSendPath defines the path under which the next send sequence counter of the counterparty chain is stored
+func CounterpartyNextSequenceSendPath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s", KeyCounterpartyNextSeqSend, channelPath(portID, channelID))
+}
+
+// CounterpartyNextSequenceSendKey returns the store key for the next send sequence counter of the counterparty chain
+func CounterpartyNextSequenceSendKey(portID, channelID string) []byte {
+	return []byte(CounterpartyNextSequenceSendPath(portID, channelID))
 }
 
 func sequencePath(sequence uint64) string {
