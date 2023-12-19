@@ -1128,17 +1128,17 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_UnorderedToOrdered() {
 			suite.coordinator.Setup(path)
 
 			// Need to create a packet commitment on A so as to keep it from going to OPEN if no inflight packets exist.
-			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence0, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			err = path.EndpointB.RecvPacket(packet)
+			packet0 := types.NewPacket(ibctesting.MockPacketData, sequence0, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointB.RecvPacket(packet0)
 			suite.Require().NoError(err)
 
 			// send second packet from B to A
-			sequence0, err := path.EndpointB.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence1, err := path.EndpointB.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet0 := types.NewPacket(ibctesting.MockPacketData, sequence0, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			err = path.EndpointA.RecvPacket(packet0)
+			packet1 := types.NewPacket(ibctesting.MockPacketData, sequence1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointA.RecvPacket(packet1)
 			suite.Require().NoError(err)
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
@@ -1152,10 +1152,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_UnorderedToOrdered() {
 			suite.Require().NoError(path.EndpointB.ChanUpgradeConfirm())
 
 			// Ack packets to delete packet commitments before calling WriteUpgradeOpenChannel
-			err = path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
+			err = path.EndpointA.AcknowledgePacket(packet0, ibctesting.MockAcknowledgement)
 			suite.Require().NoError(err)
 
-			err = path.EndpointB.AcknowledgePacket(packet0, ibctesting.MockAcknowledgement)
+			err = path.EndpointB.AcknowledgePacket(packet1, ibctesting.MockAcknowledgement)
 			suite.Require().NoError(err)
 
 			ctx := suite.chainA.GetContext()
@@ -1254,17 +1254,17 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_OrderedToUnordered() {
 			suite.coordinator.Setup(path)
 
 			// Need to create a packet commitment on A so as to keep it from going to OPEN if no inflight packets exist.
-			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequenc0, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			err = path.EndpointB.RecvPacket(packet)
+			packe0 := types.NewPacket(ibctesting.MockPacketData, sequenc0, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointB.RecvPacket(packe0)
 			suite.Require().NoError(err)
 
 			// send second packet from B to A
-			sequence0, err := path.EndpointB.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence1, err := path.EndpointB.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet0 := types.NewPacket(ibctesting.MockPacketData, sequence0, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			err = path.EndpointA.RecvPacket(packet0)
+			packet1 := types.NewPacket(ibctesting.MockPacketData, sequence1, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointA.RecvPacket(packet1)
 			suite.Require().NoError(err)
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
@@ -1278,10 +1278,10 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_OrderedToUnordered() {
 			suite.Require().NoError(path.EndpointB.ChanUpgradeConfirm())
 
 			// Ack packets to delete packet commitments before calling WriteUpgradeOpenChannel
-			err = path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
+			err = path.EndpointA.AcknowledgePacket(packe0, ibctesting.MockAcknowledgement)
 			suite.Require().NoError(err)
 
-			err = path.EndpointB.AcknowledgePacket(packet0, ibctesting.MockAcknowledgement)
+			err = path.EndpointB.AcknowledgePacket(packet1, ibctesting.MockAcknowledgement)
 			suite.Require().NoError(err)
 
 			ctx := suite.chainA.GetContext()
