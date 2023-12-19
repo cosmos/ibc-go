@@ -13,7 +13,7 @@ Learn about the `08-wasm` light client proxy module. {synopsis}
 
 ### Context
 
-Traditionally, light clients used by ibc-go have been implemented only in Go, and since ibc-go v7 (with the release of the 02-client refactor), they are [first-class Cosmos SDK modules](../../../architecture/adr-010-light-clients-as-sdk-modules.md). This means that updating existing light client implementations or adding support for new light clients is a multi-step, time-consuming process involving on-chain governance: it is necessary to modify the codebase of ibc-go (if the light client is part of its codebase), re-build chains' binaries, pass a governance proposal and have validators upgrade their nodes. 
+Traditionally, light clients used by ibc-go have been implemented only in Go, and since ibc-go v7 (with the release of the 02-client refactor), they are [first-class Cosmos SDK modules](../../../../architecture/adr-010-light-clients-as-sdk-modules.md). This means that updating existing light client implementations or adding support for new light clients is a multi-step, time-consuming process involving on-chain governance: it is necessary to modify the codebase of ibc-go (if the light client is part of its codebase), re-build chains' binaries, pass a governance proposal and have validators upgrade their nodes. 
 
 ### Motivation
 
