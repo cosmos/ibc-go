@@ -4,7 +4,7 @@ Rather than create a new channel to expand upon the capabilities of an existing 
 
 ## Problem
 
-Currently, once a channel is opened and the channel handshake is complete, you cannot change or renegociate the semantics of that channel. This means that if you wanted to make a change to a channel affecting the semantics on both channel ends, you would need to open a new channel, meaning all previous state in the prior channel would be lost. This is particularly important for channels using the ICS 20 (fungible token transfer) application module because tokens are not fungible between channels.
+Currently, once a channel is opened and the channel handshake is complete, you cannot change or renegotiate the semantics of that channel. This means that if you wanted to make a change to a channel affecting the semantics on both channel ends, you would need to open a new channel, meaning all previous state in the prior channel would be lost. This is particularly important for channels using the ICS 20 (fungible token transfer) application module because tokens are not fungible between channels.
 
 Upgrading a channel enables upgrading the application module claiming the channel, where the upgrade requires a new packet data structure or adding a middleware at both channel ends. Currently it is possible to make changes to one end of a channel that does not require the counterparty to make changes, for example adding rate limiting middleware. Channel upgradability is solving the problem when changes need to be agreed upon on both sides of the channel.
 
