@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"errors"
+	"fmt"
 
 	"cosmossdk.io/log"
 
@@ -48,7 +48,7 @@ func (k *Keeper) BindPort(ctx sdk.Context, portID string) (*capabilitytypes.Capa
 	}
 
 	if k.IsBound(ctx, portID) {
-		return nil, errors.New("port is already bound")
+		return nil, fmt.Errorf("port %s is already bound", portID)
 	}
 
 	key, err := k.scopedKeeper.NewCapability(ctx, host.PortPath(portID))

@@ -493,7 +493,10 @@ func NewSimApp(
 
 	// The mock module is used for testing IBC
 	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
-	ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
+	_, err := ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
+	if err != nil {
+		panic(err)
+	}
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -516,7 +519,10 @@ func NewSimApp(
 	app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.ICS4Wrapper))
 
 	// Add transfer stack to IBC Router
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+	_, err = ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+	if err != nil {
+		panic(err)
+	}
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -562,7 +568,10 @@ func NewSimApp(
 	app.FeeMockModule = feeMockModule
 	var feeWithMockModule porttypes.Middleware = ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	feeWithMockModule = ibccallbacks.NewIBCMiddleware(feeWithMockModule, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
-	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
+	_, err = ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
+	if err != nil {
+		panic(err)
+	}
 
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)

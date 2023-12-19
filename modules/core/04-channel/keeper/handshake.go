@@ -61,7 +61,10 @@ func (k Keeper) ChanOpenInit(
 		return "", nil, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", connectionEnd.ClientId, status)
 	}
 
-	authenticate, _ := k.portKeeper.Authenticate(ctx, portCap, portID)
+	authenticate, err := k.portKeeper.Authenticate(ctx, portCap, portID)
+	if err != nil {
+		panic(err)
+	}
 	if !authenticate {
 		return "", nil, errorsmod.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
 	}
@@ -123,7 +126,10 @@ func (k Keeper) ChanOpenTry(
 	// generate a new channel
 	channelID := k.GenerateChannelIdentifier(ctx)
 
-	authenticate, _ := k.portKeeper.Authenticate(ctx, portCap, portID)
+	authenticate, err := k.portKeeper.Authenticate(ctx, portCap, portID)
+	if err != nil {
+		panic(err)
+	}
 	if !authenticate {
 		return "", nil, errorsmod.Wrapf(porttypes.ErrInvalidPort, "caller does not own port capability for port ID %s", portID)
 	}
@@ -167,19 +173,14 @@ func (k Keeper) ChanOpenTry(
 		counterpartyHops, counterpartyVersion,
 	)
 
-	if err := k.connectionKeeper.VerifyChannelState(
+	if err = k.connectionKeeper.VerifyChannelState(
 		ctx, connectionEnd, proofHeight, proofInit,
 		counterparty.PortId, counterparty.ChannelId, expectedChannel,
 	); err != nil {
 		return "", nil, err
 	}
 
-	var (
-		capKey *capabilitytypes.Capability
-		err    error
-	)
-
-	capKey, err = k.scopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
+	capKey, err := k.scopedKeeper.NewCapability(ctx, host.ChannelCapabilityPath(portID, channelID))
 	if err != nil {
 		return "", nil, errorsmod.Wrapf(err, "could not create channel capability for port ID %s and channel ID %s", portID, channelID)
 	}

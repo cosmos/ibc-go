@@ -37,11 +37,13 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestBind() {
-	// Test that invalid portID causes panic
-	require.Panics(suite.T(), func() { suite.keeper.BindPort(suite.ctx, invalidPort) }, "Did not panic on invalid portID")
+	// Test that invalid portID causes error
+	_, err := suite.keeper.BindPort(suite.ctx, invalidPort)
+	require.Error(suite.T(), err, "did not error on invalid portID")
 
 	// Test that valid BindPort returns capability key
-	capKey, _ := suite.keeper.BindPort(suite.ctx, validPort)
+	capKey, err := suite.keeper.BindPort(suite.ctx, validPort)
+	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), capKey, "capabilityKey is nil on valid BindPort")
 
 	isBound := suite.keeper.IsBound(suite.ctx, validPort)
@@ -50,8 +52,9 @@ func (suite *KeeperTestSuite) TestBind() {
 	isNotBound := suite.keeper.IsBound(suite.ctx, "not-a-port")
 	require.False(suite.T(), isNotBound, "port is not bound")
 
-	// Test that rebinding the same portid causes panic
-	require.Panics(suite.T(), func() { suite.keeper.BindPort(suite.ctx, validPort) }, "did not panic on re-binding the same port")
+	// Test that rebinding the same portid causes error
+	_, err = suite.keeper.BindPort(suite.ctx, validPort)
+	require.Error(suite.T(), err, "did not panic on re-binding the same port")
 }
 
 func (suite *KeeperTestSuite) TestAuthenticate() {
@@ -59,19 +62,24 @@ func (suite *KeeperTestSuite) TestAuthenticate() {
 	require.NoError(suite.T(), err)
 
 	// Require that passing in invalid portID causes panic
-	require.Panics(suite.T(), func() { suite.keeper.Authenticate(suite.ctx, capKey, invalidPort) }, "did not panic on invalid portID")
+	auth, err := suite.keeper.Authenticate(suite.ctx, capKey, invalidPort)
+	require.Error(suite.T(), err, "did not error on invalid portID")
 
 	// Valid authentication should return true
-	auth, _ := suite.keeper.Authenticate(suite.ctx, capKey, validPort)
+	auth, err = suite.keeper.Authenticate(suite.ctx, capKey, validPort)
+	require.NoError(suite.T(), err)
 	require.True(suite.T(), auth, "valid authentication failed")
 
 	// Test that authenticating against incorrect portid fails
-	auth, _ = suite.keeper.Authenticate(suite.ctx, capKey, "wrongportid")
+	auth, err = suite.keeper.Authenticate(suite.ctx, capKey, "wrongportid")
+	require.NoError(suite.T(), err)
 	require.False(suite.T(), auth, "invalid authentication failed")
 
 	// Test that authenticating port against different valid
 	// capability key fails
-	capKey2, _ := suite.keeper.BindPort(suite.ctx, "otherportid")
-	auth, _ = suite.keeper.Authenticate(suite.ctx, capKey2, validPort)
+	capKey2, err := suite.keeper.BindPort(suite.ctx, "otherportid")
+	require.NoError(suite.T(), err)
+	auth, err = suite.keeper.Authenticate(suite.ctx, capKey2, validPort)
+	require.NoError(suite.T(), err)
 	require.False(suite.T(), auth, "invalid authentication for different capKey failed")
 }
