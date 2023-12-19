@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 )
 
 // NewIncentivizedAcknowledgement creates a new instance of IncentivizedAcknowledgement
@@ -25,7 +26,8 @@ func (ack IncentivizedAcknowledgement) Success() bool {
 func (ack IncentivizedAcknowledgement) Acknowledgement() []byte {
 	res, err := json.Marshal(&ack)
 	if err != nil {
-		panic("acknowledgement cannot marshal json")
+		panic(errors.New("cannot marshal acknowledgement into json"))
 	}
+
 	return res
 }
