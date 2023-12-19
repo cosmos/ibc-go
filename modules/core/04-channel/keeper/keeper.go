@@ -629,6 +629,13 @@ func (k Keeper) GetCounterpartyNextSequenceSend(ctx sdk.Context, portID, channel
 	return sdk.BigEndianToUint64(bz), true
 }
 
+// SetPruningSequence sets a channel's pruning sequence to the store.
+func (k Keeper) SetPruningSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := sdk.Uint64ToBigEndian(sequence)
+	store.Set(host.PruningSequenceKey(portID, channelID), bz)
+}
+
 // GetPruningSequence gets a channel's pruning sequence from the store.
 func (k Keeper) GetPruningSequence(ctx sdk.Context, portID, channelID string) uint64 {
 	store := ctx.KVStore(k.storeKey)
@@ -638,13 +645,6 @@ func (k Keeper) GetPruningSequence(ctx sdk.Context, portID, channelID string) ui
 	}
 
 	return sdk.BigEndianToUint64(bz)
-}
-
-// SetPruningSequence sets a channel's pruning sequence to the store.
-func (k Keeper) SetPruningSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.PruningSequenceKey(portID, channelID), bz)
 }
 
 // HasPruningSequence returns true if the pruning sequence is set for the specified channel.
