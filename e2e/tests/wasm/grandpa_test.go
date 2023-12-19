@@ -74,7 +74,6 @@ type GrandpaTestSuite struct {
 // * send transfer over ibc
 func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	ctx := context.Background()
-	t := s.T()
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
@@ -226,7 +225,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 // * sends transfer over ibc channel, this transfer should timeout
 func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 	ctx := context.Background()
-	t := s.T()
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
@@ -341,7 +339,6 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 // * Migrates the wasm client contract
 func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 	ctx := context.Background()
-	t := s.T()
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
@@ -429,7 +426,6 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_Success_GrandpaContract() {
 // * Migrates the wasm client contract with a contract that will always fail migration
 func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract() {
 	ctx := context.Background()
-	t := s.T()
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
@@ -518,7 +514,6 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 // This contract modifies the unbonding period to 1600s with the trusting period being calculated as (unbonding period / 3).
 func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	ctx := context.Background()
-	t := s.T()
 
 	// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
 	// the contract uses 1600s as the unbonding period with the trusting period evaluating to (unbonding period / 3)
