@@ -337,6 +337,29 @@ func CreateWasmUpgradeHandler(
 
 Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients`](../01-developer-guide/09-setup.md#creating-clients) for an example of how to do this).
 
+## Adding the module to the store
+
+As part of the upgrade migration you must also add the module to the upgrades store.
+
+```go
+func (app SimApp) RegisterUpgradeHandlers() {
+
+  ...
+
+  if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+      storeUpgrades := storetypes.StoreUpgrades{
+        Added: []string{
+          ibcwasmtypes.ModuleName,
+        },
+      }
+
+
+      // configure store loader that checks if version == upgradeHeight and applies store upgrades
+      app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+    }
+}
+```
+
 ## Adding snapshot support
 
 In order to use the `08-wasm` module chains are required to register the `WasmSnapshotter` extension in the snapshot manager. This snapshotter takes care of persisting the external state, in the form of contract code, of the Wasm VM instance to disk when the chain is snapshotted. [This code](https://github.com/cosmos/ibc-go/blob/2bd29c08fd1fe50b461fc33a25735aa792dc896e/modules/light-clients/08-wasm/testing/simapp/app.go#L768-L776) should be placed in `NewSimApp` function in `app.go`.
