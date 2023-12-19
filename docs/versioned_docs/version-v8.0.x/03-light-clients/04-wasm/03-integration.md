@@ -276,7 +276,7 @@ You may leave any of the fields in the `QueryPlugins` object as `nil` if you do 
 Then, we pass the `QueryPlugins` object to the `WithQueryPlugins` option:
 
 ```go
-querierOption := ibcwasmtypes.WithQueryPlugins(queryPlugins)
+querierOption := ibcwasmtypes.WithQueryPlugins(&queryPlugins)
 ```
 
 Finally, we pass the option to the `NewKeeperWithConfig` or `NewKeeperWithVM` constructor function during [Keeper instantiation](#keeper-instantiation):
