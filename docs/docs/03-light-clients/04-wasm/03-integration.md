@@ -18,7 +18,7 @@ The sample code below shows the relevant integration points in `app.go` required
 import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
-  
+
   cmtos "github.com/cometbft/cometbft/libs/os"
 
   wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
@@ -55,7 +55,7 @@ func NewSimApp(
   keys := sdk.NewKVStoreKeys(
     ...
     wasmtypes.StoreKey,
-  ) 
+  )
 
   // Instantiate 08-wasm's keeper
   // This sample code uses a constructor function that
@@ -70,22 +70,22 @@ func NewSimApp(
     authtypes.NewModuleAddress(govtypes.ModuleName).String(),
     wasmVM,
     app.GRPCQueryRouter(),
-  )  
+  )
   app.ModuleManager = module.NewManager(
     // SDK app modules
     ...
     wasm.NewAppModule(app.WasmClientKeeper),
-  ) 
+  )
   app.ModuleManager.SetOrderBeginBlockers(
     ...
     wasmtypes.ModuleName,
     ...
-  ) 
+  )
   app.ModuleManager.SetOrderEndBlockers(
     ...
     wasmtypes.ModuleName,
     ...
-  ) 
+  )
   genesisModuleOrder := []string{
     ...
     wasmtypes.ModuleName,
@@ -95,7 +95,7 @@ func NewSimApp(
   app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
   ...
 
-	// initialize BaseApp
+  // initialize BaseApp
   app.SetInitChainer(app.InitChainer)
   ...
 
@@ -145,7 +145,7 @@ The code to set this up would look something like this:
 import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
-  
+
   wasmvm "github.com/CosmWasm/wasmvm"
   wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
   ...
@@ -155,10 +155,10 @@ import (
 
 // instantiate the Wasm VM with the chosen parameters
 wasmer, err := wasmvm.NewVM(
-  dataDir, 
-  availableCapabilities, 
-  contractMemoryLimit,
-  contractDebugMode, 
+  dataDir,
+  availableCapabilities,
+  contractMemoryLimit, // default of 32
+  contractDebugMode,
   memoryCacheSize,
 )
 if err != nil {
@@ -238,7 +238,7 @@ wasmConfig := wasmtypes.WasmConfig{
 app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
   appCodec,
   runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
-  app.IBCKeeper.ClientKeeper, 
+  app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
   app.GRPCQueryRouter(),
@@ -276,7 +276,7 @@ You may leave any of the fields in the `QueryPlugins` object as `nil` if you do 
 Then, we pass the `QueryPlugins` object to the `WithQueryPlugins` option:
 
 ```go
-querierOption := ibcwasmtypes.WithQueryPlugins(&queryPlugins)
+querierOption := ibcwasmkeeper.WithQueryPlugins(&queryPlugins)
 ```
 
 Finally, we pass the option to the `NewKeeperWithConfig` or `NewKeeperWithVM` constructor function during [Keeper instantiation](#keeper-instantiation):
@@ -285,7 +285,7 @@ Finally, we pass the option to the `NewKeeperWithConfig` or `NewKeeperWithVM` co
 app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
   appCodec,
   runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
-  app.IBCKeeper.ClientKeeper, 
+  app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
   app.GRPCQueryRouter(),
@@ -336,6 +336,28 @@ func CreateWasmUpgradeHandler(
 ```
 
 Or alternatively the parameter can be updated via a governance proposal (see at the bottom of section [`Creating clients`](../01-developer-guide/09-setup.md#creating-clients) for an example of how to do this).
+
+## Adding the module to the store
+
+As part of the upgrade migration you must also add the module to the upgrades store.
+
+```go
+func (app SimApp) RegisterUpgradeHandlers() {
+
+  ...
+
+  if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+    storeUpgrades := storetypes.StoreUpgrades{
+      Added: []string{
+        ibcwasmtypes.ModuleName,
+      },
+    }
+
+    // configure store loader that checks if version == upgradeHeight and applies store upgrades
+    app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+  }
+}
+```
 
 ## Adding snapshot support
 
