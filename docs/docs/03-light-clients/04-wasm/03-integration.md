@@ -95,7 +95,7 @@ func NewSimApp(
   app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
   ...
 
-	// initialize BaseApp
+  // initialize BaseApp
   app.SetInitChainer(app.InitChainer)
   ...
 
@@ -158,8 +158,8 @@ wasmer, err := wasmvm.NewVM(
   dataDir,
   availableCapabilities,
   contractMemoryLimit, // default of 32
-  wasmConfig.ContractDebugMode,
-  wasmConfig.MemoryCacheSize,
+  contractDebugMode,
+  memoryCacheSize,
 )
 if err != nil {
   panic(err)
