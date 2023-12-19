@@ -804,11 +804,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 			}, ibcmock.MockApplicationCallbackError,
 		},
 		{
-			"nil underlying app", func() {
-				isNilApp = true
-			}, porttypes.ErrInvalidRoute,
-		},
-		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeInit = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
@@ -899,11 +894,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 					return ibcmock.MockApplicationCallbackError
 				}
 			}, ibcmock.MockApplicationCallbackError,
-		},
-		{
-			"nil underlying app", func() {
-				isNilApp = true
-			}, porttypes.ErrInvalidRoute,
 		},
 		{
 			"middleware disabled", func() {
