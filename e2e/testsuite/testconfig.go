@@ -30,6 +30,7 @@ import (
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
 const (
@@ -553,7 +554,7 @@ func defaultGovv1ClientModifyGenesis(version string) func(ibc.ChainConfig, []byt
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
-		clientGenBz, err := modifyClientAppState(chainConfig, appState[ibcexported.ModuleName])
+		ibcGenBz, err := modifyClientGenesisAppState(chainConfig, appState[ibcexported.ModuleName])
 		if err != nil {
 			return nil, err
 		}
@@ -563,7 +564,7 @@ func defaultGovv1ClientModifyGenesis(version string) func(ibc.ChainConfig, []byt
 			return nil, err
 		}
 
-		appState[ibcexported.ModuleName] = clientGenBz
+		appState[ibcexported.ModuleName] = ibcGenBz
 		appState[govtypes.ModuleName] = govGenBz
 
 		appGenesis.AppState, err = json.Marshal(appState)
@@ -609,12 +610,12 @@ func defaultGovv1Beta1ClientModifyGenesis() func(ibc.ChainConfig, []byte) ([]byt
 			return nil, fmt.Errorf("failed to extract gov genesis bytes: %s", err)
 		}
 
-		clientModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
+		ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
 		if err != nil {
-			return nil, fmt.Errorf("failed to extract client genesis bytes: %s", err)
+			return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
 		}
 
-		clientGenesisBytes, err := modifyClientAppState(chainConfig, clientModuleBytes)
+		ibcGenesisBytes, err := modifyClientGenesisAppState(chainConfig, ibcModuleBytes)
 		if err != nil {
 			return nil, err
 		}
@@ -630,13 +631,13 @@ func defaultGovv1Beta1ClientModifyGenesis() func(ibc.ChainConfig, []byte) ([]byt
 			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
 		}
 
-		clientModuleGenesisMap := map[string]interface{}{}
-		err = json.Unmarshal(clientGenesisBytes, &clientModuleGenesisMap)
+		ibcModuleGenesisMap := map[string]interface{}{}
+		err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
 		}
 
-		appStateMap[ibcexported.ModuleName] = clientModuleGenesisMap
+		appStateMap[ibcexported.ModuleName] = ibcModuleGenesisMap
 		appStateMap[govtypes.ModuleName] = govModuleGenesisMap
 		genesisDocMap[appStateKey] = appStateMap
 
@@ -700,23 +701,23 @@ func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) (
 	return govGenBz, nil
 }
 
-// modifyClientAppState takes the existing client app state and marshals it to a client GenesisState.
-func modifyClientAppState(chainConfig ibc.ChainConfig, clientAppState []byte) ([]byte, error) {
+// modifyClientGenesisAppState takes the existing ibc app state and marshals it to a ibc GenesisState.
+func modifyClientGenesisAppState(chainConfig ibc.ChainConfig, ibcAppState []byte) ([]byte, error) {
 	cfg := testutil.MakeTestEncodingConfig()
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
-	clientGenesisState := &clienttypes.GenesisState{}
-	if err := cdc.UnmarshalJSON(clientAppState, clientGenesisState); err != nil {
+	ibcGenesisState := &ibctypes.GenesisState{}
+	if err := cdc.UnmarshalJSON(ibcAppState, ibcGenesisState); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal genesis bytes into client genesis state: %w", err)
 	}
 
-	clientGenesisState.Params.AllowedClients = []string{ibcexported.Solomachine, ibcexported.Tendermint, ibcexported.Localhost, wasmtypes.Wasm}
-	clientGenBz, err := cdc.MarshalJSON(clientGenesisState)
+	ibcGenesisState.ClientGenesis.Params.AllowedClients = []string{ibcexported.Solomachine, ibcexported.Tendermint, ibcexported.Localhost, wasmtypes.Wasm}
+	ibcGenBz, err := cdc.MarshalJSON(ibcGenesisState)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
 	}
 
-	return clientGenBz, nil
+	return ibcGenBz, nil
 }
