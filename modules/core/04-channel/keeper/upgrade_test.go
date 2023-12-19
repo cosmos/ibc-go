@@ -1096,7 +1096,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
+func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_UnorderedToOrdered() {
 	var path *ibctesting.Path
 
 	testCases := []struct {
@@ -1140,11 +1140,11 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
-			// send second packet
-			sequence0, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			// send second packet from B to A
+			sequence0, err := path.EndpointB.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet0 := types.NewPacket(ibctesting.MockPacketData, sequence0, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			err = path.EndpointB.RecvPacket(packet0)
+			packet0 := types.NewPacket(ibctesting.MockPacketData, sequence0, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointA.RecvPacket(packet0)
 			suite.Require().NoError(err)
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
@@ -1161,12 +1161,18 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 			err = path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
 			suite.Require().NoError(err)
 
-			err = path.EndpointA.AcknowledgePacket(packet0, ibctesting.MockAcknowledgement)
+			err = path.EndpointB.AcknowledgePacket(packet0, ibctesting.MockAcknowledgement)
 			suite.Require().NoError(err)
 
 			ctx := suite.chainA.GetContext()
-			// assert that sequence (set in ChanUpgradeTry) is still 1, because channel was UNORDERED/not updated
+
+			// assert that sequence (reset in ChanUpgradeTry) is 1 because channel is UNORDERED
 			seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(found)
+			suite.Require().Equal(uint64(1), seq)
+
+			// assert that NextSeqAck is 1 because channel is UNORDERED
+			seq, found = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceAck(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(found)
 			suite.Require().Equal(uint64(1), seq)
 
@@ -1185,10 +1191,140 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 				suite.Require().Equal(mock.UpgradeVersion, channel.Version)
 				suite.Require().Equal(types.ORDERED, channel.Ordering)
 
-				// assert that NextSeqRecv is now 3, because seq updated in WriteUpgradeOpenChannel to latest sequence (two packets sent) + 1
+				// assert that NextSeqRecv is now 2, because seq updated in WriteUpgradeOpenChannel to latest sequence (two packets sent) + 1
 				seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
-				suite.Require().Equal(uint64(3), seq)
+				suite.Require().Equal(uint64(2), seq)
+
+				// assert that NextSeqAck is incremented to 2 because channel is now ORDERED
+				seq, found = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceAck(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(2), seq)
+
+				// Assert that state stored for upgrade has been deleted
+				upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().Equal(types.Upgrade{}, upgrade)
+				suite.Require().False(found)
+
+				counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
+				suite.Require().False(found)
+
+				// events := ctx.EventManager().Events().ToABCIEvents()
+				// expEvents := ibctesting.EventsMap{
+				//	types.EventTypeChannelUpgradeOpen: {
+				//		types.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+				//		types.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+				//		types.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+				//		types.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+				//		types.AttributeKeyChannelState:          types.OPEN.String(),
+				//		types.AttributeKeyUpgradeConnectionHops: channel.ConnectionHops[0],
+				//		types.AttributeKeyUpgradeVersion:        channel.Version,
+				//		types.AttributeKeyUpgradeOrdering:       channel.Ordering.String(),
+				//		types.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
+				//	},
+				//	sdk.EventTypeMessage: {
+				//		sdk.AttributeKeyModule: types.AttributeValueCategory,
+				//	},
+				// }
+				// ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_OrderedToUnordered() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPanic bool
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+			expPanic: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.EndpointA.ChannelConfig.Order = types.ORDERED
+			path.EndpointB.ChannelConfig.Order = types.ORDERED
+			suite.coordinator.Setup(path)
+
+			// Need to create a packet commitment on A so as to keep it from going to OPEN if no inflight packets exist.
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+			packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointB.RecvPacket(packet)
+			suite.Require().NoError(err)
+
+			// send second packet from B to A
+			sequence0, err := path.EndpointB.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+			packet0 := types.NewPacket(ibctesting.MockPacketData, sequence0, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointA.RecvPacket(packet0)
+			suite.Require().NoError(err)
+
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Ordering = types.UNORDERED
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Ordering = types.UNORDERED
+
+			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
+			suite.Require().NoError(path.EndpointA.ChanUpgradeAck())
+			suite.Require().NoError(path.EndpointB.ChanUpgradeConfirm())
+
+			// Ack packets to delete packet commitments before calling WriteUpgradeOpenChannel
+			err = path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.AcknowledgePacket(packet0, ibctesting.MockAcknowledgement)
+			suite.Require().NoError(err)
+
+			ctx := suite.chainA.GetContext()
+
+			// assert that NextSeqAck is incremented to 2 because channel is still ordered
+			seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceAck(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(found)
+			suite.Require().Equal(uint64(2), seq)
+
+			// assert that sequence (set in ChanUpgradeTry) is incremented to 2 because channel is still ordered
+			seq, found = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(found)
+			suite.Require().Equal(uint64(2), seq)
+
+			tc.malleate()
+
+			if tc.expPanic {
+				suite.Require().Panics(func() {
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeOpenChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				})
+			} else {
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeOpenChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				channel := path.EndpointA.GetChannel()
+
+				// Assert that channel state has been updated
+				suite.Require().Equal(types.OPEN, channel.State)
+				suite.Require().Equal(mock.UpgradeVersion, channel.Version)
+				suite.Require().Equal(types.UNORDERED, channel.Ordering)
+
+				// assert that NextSeqRecv is now 1, because channel is now UNORDERED
+				seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), seq)
+
+				// assert that NextSeqAck is now 1, because channel is now UNORDERED
+				seq, found = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceAck(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), seq)
 
 				// Assert that state stored for upgrade has been deleted
 				upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)

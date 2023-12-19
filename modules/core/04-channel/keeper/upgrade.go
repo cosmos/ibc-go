@@ -539,8 +539,24 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
+	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	// next seq recv and ack is used for ordered channels to verify the packet has been received/acked in the correct order
+	// this is no longer necessary if the channel is UNORDERED and should be reset to 1
 	if channel.Ordering == types.ORDERED && upgrade.Fields.Ordering == types.UNORDERED {
-		k.SetNextSequenceAck(ctx, portID, channelID, 0)
+		k.SetNextSequenceRecv(ctx, portID, channelID, 1)
+		k.SetNextSequenceAck(ctx, portID, channelID, 1)
+	}
+
+	// next seq recv and ack should updated when moving from UNORDERED to ORDERED using the latest packet sequence sent before the upgrade
+	// we can be sure that the next packet we are set to receive will be the first packet the counterparty sends after reopening.
+	// we can be sure that our next acknowledgement will be our first packet sent after upgrade, as the counterparty processed all sent packets after flushing completes.
+	if channel.Ordering == types.UNORDERED && upgrade.Fields.Ordering == types.ORDERED {
+		k.SetNextSequenceRecv(ctx, portID, channelID, counterpartyUpgrade.LatestSequenceSend+1)
+		k.SetNextSequenceAck(ctx, portID, channelID, upgrade.LatestSequenceSend+1)
 	}
 
 	// Switch channel fields to upgrade fields and set channel state to OPEN
@@ -550,7 +566,6 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 	channel.ConnectionHops = upgrade.Fields.ConnectionHops
 	channel.State = types.OPEN
 
-	k.SetNextSequenceRecv(ctx, portID, channelID, upgrade.LatestSequenceSend+1)
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	// delete state associated with upgrade which is no longer required.
