@@ -54,4 +54,5 @@ var (
 	ErrInvalidPruningLimit             = errorsmod.Register(SubModuleName, 38, "invalid pruning limit")
 	ErrTimeoutNotReached               = errorsmod.Register(SubModuleName, 39, "timeout not reached")
 	ErrTimeoutElapsed                  = errorsmod.Register(SubModuleName, 40, "timeout elapsed")
+	ErrPruningSequenceNotFound         = errorsmod.Register(SubModuleName, 41, "pruning sequence not found")
 )

@@ -1131,6 +1131,19 @@ func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Msg
 }
 
 // PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
-func (Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
+func (k Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.ChannelKeeper.HasPruningSequenceStart(ctx, msg.PortId, msg.ChannelId) {
+		return nil, errorsmod.Wrapf(channeltypes.ErrPruningSequenceNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
+	}
+
+	sequenceStart := k.ChannelKeeper.GetPruningSequenceStart(ctx, msg.PortId, msg.ChannelId)
+
+	sequenceStart = k.ChannelKeeper.PruneAcknowledgements(ctx, msg.PortId, msg.ChannelId, msg.Limit, sequenceStart)
+
+	// update pruning sequence in store
+	k.ChannelKeeper.SetPruningSequenceStart(ctx, msg.PortId, msg.ChannelId, sequenceStart)
+
 	return &channeltypes.MsgPruneAcknowledgementsResponse{}, nil
 }

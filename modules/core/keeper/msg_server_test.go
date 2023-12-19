@@ -2016,3 +2016,66 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: pruning sequence not found",
+			func() {
+				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
+				store.Delete(host.PruningSequenceStartKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			channeltypes.ErrPruningSequenceNotFound,
+		},
+		// TODO(jim): Exercise this path
+		// {
+		//  	"failure: pruning fails",
+		//  	func() {},
+		//      nil,
+		// },
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// TODO(jim): initiate full upgrade handshake when pruning seq PR is merged
+			//            for now, just manually set a dummy pruning sequence.
+			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 10)
+
+			msg := channeltypes.NewMsgPruneAcknowledgements(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				10,
+				suite.chainA.SenderAccount.GetAddress().String(),
+			)
+
+			tc.malleate()
+
+			resp, err := suite.chainA.App.GetIBCKeeper().PruneAcknowledgements(suite.chainA.GetContext(), msg)
+
+			if tc.expErr == nil {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(resp)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(resp)
+			}
+		})
+	}
+}
