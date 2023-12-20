@@ -52,7 +52,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chain
 
 	testContainers, err := dockerutil.GetTestContainers(ctx, t, dc)
 	if err != nil {
-		t.Logf("failed listing containers test cleanup: %s", err)
+		t.Logf("failed listing containers during test cleanup: %s", err)
 		return
 	}
 
@@ -72,7 +72,6 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chain
 
 		logFile := fmt.Sprintf("%s/%s.log", containerDir, containerName)
 		if err := os.WriteFile(logFile, logsBz, defaultFilePerm); err != nil {
-			t.Logf("failed writing log file for container %s in test cleanup: %s", containerName, err)
 			continue
 		}
 
@@ -82,11 +81,11 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chain
 		for _, chainName := range chainNames {
 			diagnosticFiles = append(diagnosticFiles, chainDiagnosticAbsoluteFilePaths(chainName)...)
 		}
+		diagnosticFiles = append(diagnosticFiles, relayerDiagnosticAbsoluteFilePaths()...)
 
 		for _, absoluteFilePathInContainer := range diagnosticFiles {
 			localFilePath := ospath.Join(containerDir, ospath.Base(absoluteFilePathInContainer))
 			if err := fetchAndWriteDiagnosticsFile(ctx, dc, container.ID, localFilePath, absoluteFilePathInContainer); err != nil {
-				t.Logf("failed to fetch and write file %s for container %s in test cleanup: %s", absoluteFilePathInContainer, containerName, err)
 				continue
 			}
 			t.Logf("successfully wrote diagnostics file %s", absoluteFilePathInContainer)
@@ -94,7 +93,6 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, chain
 
 		localFilePath := ospath.Join(containerDir, dockerInspectFileName)
 		if err := fetchAndWriteDockerInspectOutput(ctx, dc, container.ID, localFilePath); err != nil {
-			t.Logf("failed to fetch docker inspect output: %s", err)
 			continue
 		}
 		t.Logf("successfully wrote docker inspect output")
@@ -153,6 +151,14 @@ func chainDiagnosticAbsoluteFilePaths(chainName string) []string {
 		fmt.Sprintf("/var/cosmos-chain/%s/config/app.toml", chainName),
 		fmt.Sprintf("/var/cosmos-chain/%s/config/config.toml", chainName),
 		fmt.Sprintf("/var/cosmos-chain/%s/config/client.toml", chainName),
+	}
+}
+
+// relayerDiagnosticAbsoluteFilePaths returns a slice of absolute file paths (in the containers) which are the files that should be
+// copied locally when fetching diagnostics.
+func relayerDiagnosticAbsoluteFilePaths() []string {
+	return []string{
+		"/home/hermes/.hermes/config.toml",
 	}
 }
 
