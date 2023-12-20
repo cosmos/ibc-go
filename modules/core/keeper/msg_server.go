@@ -1134,10 +1134,13 @@ func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Msg
 func (k Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := k.ChannelKeeper.PruneStalePacketData(ctx, msg.PortId, msg.ChannelId, msg.Limit)
+	pruned, left, err := k.ChannelKeeper.PruneStalePacketData(ctx, msg.PortId, msg.ChannelId, msg.Limit)
 	if err != nil {
 		return nil, err
 	}
 
-	return &channeltypes.MsgPruneAcknowledgementsResponse{}, nil
+	return &channeltypes.MsgPruneAcknowledgementsResponse{
+		Pruned: pruned,
+		Left:   left,
+	}, nil
 }

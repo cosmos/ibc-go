@@ -568,14 +568,14 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 		name     string
 		pre      func()
 		malleate func()
-		post     func()
+		post     func(pruned, left uint64)
 		expError error
 	}{
 		{
 			"success: no packets sent, no stale packet data pruned",
 			func() {},
 			func() {},
-			func() {
+			func(pruned, left uint64) {
 				// Assert that PruneSequenceStart and PruneSequenceEnd are both set to 1.
 				start := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				end, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceEnd(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -583,6 +583,10 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 
 				suite.Require().Equal(uint64(1), start)
 				suite.Require().Equal(uint64(1), end)
+
+				// We expect 0 to be pruned and 0 left.
+				suite.Require().Equal(uint64(0), pruned)
+				suite.Require().Equal(uint64(0), left)
 			},
 			nil,
 		},
@@ -593,12 +597,16 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
 			},
 			func() {},
-			func() {
+			func(pruned, left uint64) {
 				sequenceEnd, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceEnd(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 
 				// We expect nothing to be left and sequenceStart == sequenceEnd.
 				postPruneExpState(0, 0, sequenceEnd)
+
+				// We expect 10 to be pruned and 0 left.
+				suite.Require().Equal(uint64(10), pruned)
+				suite.Require().Equal(uint64(0), left)
 			},
 			nil,
 		},
@@ -612,9 +620,13 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 				// Prune only 5 packet acks.
 				limit = 5
 			},
-			func() {
+			func(pruned, left uint64) {
 				// We expect 5 to be left and sequenceStart == 6.
 				postPruneExpState(5, 5, 6)
+
+				// We expect 5 to be pruned and 5 left.
+				suite.Require().Equal(uint64(5), pruned)
+				suite.Require().Equal(uint64(5), left)
 			},
 			nil,
 		},
@@ -637,12 +649,16 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 				// set limit to 15, get them all in one go.
 				limit = 15
 			},
-			func() {
+			func(pruned, left uint64) {
 				sequenceEnd, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceEnd(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 
 				// We expect nothing to be left and sequenceStart == sequenceEnd.
 				postPruneExpState(0, 0, sequenceEnd)
+
+				// We expect 15 to be pruned and 0 left.
+				suite.Require().Equal(uint64(15), pruned)
+				suite.Require().Equal(uint64(0), left)
 			},
 			nil,
 		},
@@ -655,13 +671,17 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			},
 			func() {
 				// Prune 5 packets on A.
-				err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(
+				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
 					5, // limit == 5
 				)
 				suite.Require().NoError(err)
+
+				// We expect 5 to be pruned and 5 left.
+				suite.Require().Equal(uint64(5), pruned)
+				suite.Require().Equal(uint64(5), left)
 
 				// Check state post-prune
 				postPruneExpState(5, 5, 6)
@@ -676,9 +696,13 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 
 				// A total of 15 stale acks/receipts exist on A. Prune 10 of them (default in test).
 			},
-			func() {
+			func(pruned, left uint64) {
 				// Expected state should be 5 acks/receipts left, sequenceStart == 16.
 				postPruneExpState(5, 5, 16)
+
+				// We expect 10 to be pruned and 5 left.
+				suite.Require().Equal(uint64(10), pruned)
+				suite.Require().Equal(uint64(5), left)
 			},
 			nil,
 		},
@@ -700,9 +724,13 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 				upgradeFields = types.UpgradeFields{Version: fmt.Sprintf("%s-v3", ibcmock.Version), Ordering: types.UNORDERED}
 				suite.UpgradeChannel(path, upgradeFields)
 			},
-			func() {
+			func(pruned, left uint64) {
 				// After pruning 10 sequences we should be left with 5 acks and zero receipts.
 				postPruneExpState(5, 0, 11)
+
+				// We expect 10 to be pruned and 5 left.
+				suite.Require().Equal(uint64(10), pruned)
+				suite.Require().Equal(uint64(5), left)
 			},
 			nil,
 		},
@@ -714,13 +742,25 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			},
 			// keep default limit of 10
 			func() {},
-			func() {
+			func(pruned, left uint64) {
+				// We expect 5 to be pruned and 0 left.
+				suite.Require().Equal(uint64(5), pruned)
+				suite.Require().Equal(uint64(0), left)
+
 				// channel upgraded, send additional packets and try and prune.
 				suite.sendMockPackets(path.EndpointB, path.EndpointA, 12)
 
 				// attempt to prune 5 packets.
-				err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 5)
+				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(
+					suite.chainA.GetContext(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					5,
+				)
 				suite.Require().NoError(err)
+				// We expect 0 to be pruned and 0 left.
+				suite.Require().Equal(uint64(0), pruned)
+				suite.Require().Equal(uint64(0), left)
 
 				// we _do not_ expect error, simply a fast return
 				postPruneExpState(12, 12, 6)
@@ -733,7 +773,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			func() {
 				path.EndpointA.ChannelConfig.PortID = "portidone"
 			},
-			func() {},
+			func(_, _ uint64) {},
 			types.ErrPruningSequenceStartNotFound,
 		},
 		{
@@ -743,7 +783,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
 				store.Delete(host.PruningSequenceEndKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			func() {},
+			func(_, _ uint64) {},
 			types.ErrPruningSequenceEndNotFound,
 		},
 	}
@@ -767,7 +807,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 
 			tc.malleate()
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(
+			pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
@@ -777,7 +817,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			suite.Require().ErrorIs(err, tc.expError)
 
 			// check on post state.
-			tc.post()
+			tc.post(pruned, left)
 		})
 	}
 }

@@ -676,37 +676,41 @@ func (k Keeper) HasPruningSequenceStart(ctx sdk.Context, portID, channelID strin
 //
 // Pruning sequence start keeps track of the packet ack/receipt that can be pruned next. When it reaches pruningSequenceEnd,
 // pruning is complete.
-func (k Keeper) PruneStalePacketData(ctx sdk.Context, portID, channelID string, limit uint64) error {
+func (k Keeper) PruneStalePacketData(ctx sdk.Context, portID, channelID string, limit uint64) (uint64, uint64, error) {
 	if !k.HasPruningSequenceStart(ctx, portID, channelID) {
-		return errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 	pruningSequenceStart := k.GetPruningSequenceStart(ctx, portID, channelID)
 
 	pruningSequenceEnd, found := k.GetPruningSequenceEnd(ctx, portID, channelID)
 	if !found {
-		return errorsmod.Wrapf(types.ErrPruningSequenceEndNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceEndNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	limit = pruningSequenceStart + limit
-	for ; pruningSequenceStart < limit; pruningSequenceStart++ {
+	start := pruningSequenceStart
+	end := pruningSequenceStart + limit
+	for ; start < end; start++ {
 		// Stop pruning if pruningSequenceStart has reached pruningSequenceEnd, pruningSequenceEnd is
 		// set to be equal to the _next_ sequence to be sent by the counterparty.
-		if pruningSequenceStart >= pruningSequenceEnd {
+		if start >= pruningSequenceEnd {
 			break
 		}
 
-		if k.HasPacketAcknowledgement(ctx, portID, channelID, pruningSequenceStart) {
-			k.deletePacketAcknowledgement(ctx, portID, channelID, pruningSequenceStart)
+		if k.HasPacketAcknowledgement(ctx, portID, channelID, start) {
+			k.deletePacketAcknowledgement(ctx, portID, channelID, start)
 		}
 
 		// Note packet receipts are only relevant for unordered channels.
-		if k.HasPacketReceipt(ctx, portID, channelID, pruningSequenceStart) {
-			k.deletePacketReceipt(ctx, portID, channelID, pruningSequenceStart)
+		if k.HasPacketReceipt(ctx, portID, channelID, start) {
+			k.deletePacketReceipt(ctx, portID, channelID, start)
 		}
 	}
 
 	// Set pruning sequence start to the updated value
-	k.SetPruningSequenceStart(ctx, portID, channelID, pruningSequenceStart)
+	k.SetPruningSequenceStart(ctx, portID, channelID, start)
 
-	return nil
+	pruned := start - pruningSequenceStart
+	left := pruningSequenceEnd - start
+
+	return pruned, left, nil
 }
