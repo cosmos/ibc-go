@@ -74,6 +74,7 @@ type GrandpaTestSuite struct {
 // * send transfer over ibc
 func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	ctx := context.Background()
+	t := s.T()
 
 	chainA, chainB := s.GetGrandpaTestChains()
 
@@ -225,6 +226,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 // * sends transfer over ibc channel, this transfer should timeout
 func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 	ctx := context.Background()
+	t := s.T()
 
 	chainA, chainB := s.GetGrandpaTestChains()
 

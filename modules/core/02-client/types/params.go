@@ -47,7 +47,7 @@ func (p Params) IsAllowedClient(clientType string) bool {
 // If AllowAllClients wildcard (*) is used, then there should no other client types in the allow list
 func validateClients(clients []string) error {
 	if slices.Contains(clients, AllowAllClients) && len(clients) > 1 {
-		return fmt.Errorf("allow list must have only one element because allow all clients wildcard (%s) is present", AllowAllClients)
+		return fmt.Errorf("allow list must have only one element because the allow all clients wildcard (%s) is present", AllowAllClients)
 	}
 
 	foundClients := make(map[string]bool, len(clients))
