@@ -64,6 +64,7 @@ func (suite *KeeperTestSuite) TestAuthenticate() {
 	// Require that passing in invalid portID causes panic
 	auth, err := suite.keeper.Authenticate(suite.ctx, capKey, invalidPort)
 	require.Error(suite.T(), err, "did not error on invalid portID")
+	require.False(suite.T(), auth, "invalid authentication failed")
 
 	// Valid authentication should return true
 	auth, err = suite.keeper.Authenticate(suite.ctx, capKey, validPort)
