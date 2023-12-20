@@ -1345,8 +1345,12 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 		{
 			"success: enable fees",
 			func() {
-				// Assert in callback that correct version is passed
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, version string) {
+				// Assert in callback that correct upgrade information is passed
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+					suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, portID)
+					suite.Require().Equal(path.EndpointA.ChannelID, channelID)
+					suite.Require().Equal(channeltypes.UNORDERED, order)
+					suite.Require().Equal([]string{path.EndpointA.ConnectionID}, connectionHops)
 					suite.Require().Equal(ibcmock.Version, version)
 				}
 			},
@@ -1372,7 +1376,11 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 				suite.coordinator.Setup(path)
 
 				// Assert in callback that correct version is passed
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, version string) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+					suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, portID)
+					suite.Require().Equal(path.EndpointA.ChannelID, channelID)
+					suite.Require().Equal(channeltypes.UNORDERED, order)
+					suite.Require().Equal([]string{path.EndpointA.ConnectionID}, connectionHops)
 					suite.Require().Equal(mockFeeVersion.AppVersion, version)
 				}
 			},
