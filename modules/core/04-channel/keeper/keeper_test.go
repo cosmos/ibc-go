@@ -545,8 +545,23 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 
 func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 	var (
-		path  *ibctesting.Path
-		limit uint64
+		path          *ibctesting.Path
+		limit         uint64
+		upgradeFields types.UpgradeFields
+
+		// postPruneExpState is a helper function to verify the expected state after pruning. Argument expLeft
+		// denotes the expected amount of packet acks and receipts left after pruning. Argument expSequenceStart
+		// denotes the expected value of PruneSequenceStart.
+		postPruneExpState = func(expAcksLen, expReceiptsLen, expSequenceStart uint64) {
+			acks := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketAcks(suite.chainA.GetContext())
+			suite.Require().Len(acks, int(expAcksLen))
+
+			receipts := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketReceipts(suite.chainA.GetContext())
+			suite.Require().Len(receipts, int(expReceiptsLen))
+
+			start := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().Equal(start, expSequenceStart)
+		}
 	)
 
 	testCases := []struct {
@@ -556,6 +571,141 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 		post     func()
 		expError error
 	}{
+		{
+			"success: no packets sent, no stale packet data pruned",
+			func() {},
+			func() {},
+			func() {
+				// Assert that PruneSequenceStart and PruneSequenceEnd are both set to 1.
+				start := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				end, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceEnd(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+
+				suite.Require().Equal(uint64(1), start)
+				suite.Require().Equal(uint64(1), end)
+			},
+			nil,
+		},
+		{
+			"success: stale packet data pruned up to limit",
+			func() {
+				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
+				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
+			},
+			func() {},
+			func() {
+				sequenceEnd, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceEnd(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+
+				// We expect nothing to be left and sequenceStart == sequenceEnd.
+				postPruneExpState(0, 0, sequenceEnd)
+			},
+			nil,
+		},
+		{
+			"success: stale packet partially pruned",
+			func() {
+				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
+				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
+			},
+			func() {
+				// Prune only 5 packet acks.
+				limit = 5
+			},
+			func() {
+				// We expect 5 to be left and sequenceStart == 6.
+				postPruneExpState(5, 5, 6)
+			},
+			nil,
+		},
+		{
+			"success: stale packet data pruned, two upgrades",
+			func() {
+				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
+				// This is _before_ the first upgrade.
+				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
+			},
+			func() {
+				// Previous upgrade is complete, send additional packets and do yet another upgrade.
+				// This is _after_ the first upgrade.
+				suite.sendMockPackets(path.EndpointB, path.EndpointA, 5)
+
+				// Do another upgrade.
+				upgradeFields = types.UpgradeFields{Version: fmt.Sprintf("%s-v3", ibcmock.Version)}
+				suite.UpgradeChannel(path, upgradeFields)
+
+				// set limit to 15, get them all in one go.
+				limit = 15
+			},
+			func() {
+				sequenceEnd, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceEnd(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+
+				// We expect nothing to be left and sequenceStart == sequenceEnd.
+				postPruneExpState(0, 0, sequenceEnd)
+			},
+			nil,
+		},
+		{
+			"success: stale packet data partially pruned, update, prune again",
+			func() {
+				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
+				// This is _before_ the first upgrade.
+				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
+			},
+			func() {
+				// Prune 5 packets on A.
+				err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneAcknowledgements(
+					suite.chainA.GetContext(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					5, // limit == 5
+				)
+				suite.Require().NoError(err)
+
+				// Check state post-prune
+				postPruneExpState(5, 5, 6)
+
+				// Previous upgrade is complete, send additional packets and do yet another upgrade.
+				// This is _after_ the first upgrade.
+				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
+
+				// Do another upgrade.
+				upgradeFields = types.UpgradeFields{Version: fmt.Sprintf("%s-v3", ibcmock.Version)}
+				suite.UpgradeChannel(path, upgradeFields)
+
+				// A total of 15 stale acks/receipts exist on A. Prune 10 of them (default in test).
+			},
+			func() {
+				// Expected state should be 5 acks/receipts left, sequenceStart == 16.
+				postPruneExpState(5, 5, 16)
+			},
+			nil,
+		},
+		{
+			"success: unordered -> ordered -> unordered, acksLen != receiptsLen after packet sends",
+			func() {
+				// Send 5 packets from B -> A, creating 5 packet receipts and 5 packet acks on A.
+				// This is _before_ the first upgrade.
+				suite.sendMockPackets(path.EndpointB, path.EndpointA, 5)
+
+				// Set Order for upgrade to Ordered.
+				upgradeFields = types.UpgradeFields{Version: fmt.Sprintf("%s-v2", ibcmock.Version), Ordering: types.ORDERED}
+			},
+			func() {
+				// Previous upgrade is complete, send additional packets now on ordered channel (only acks!)
+				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
+
+				// Do another upgrade (go back to Unordered)
+				upgradeFields = types.UpgradeFields{Version: fmt.Sprintf("%s-v3", ibcmock.Version), Ordering: types.UNORDERED}
+				suite.UpgradeChannel(path, upgradeFields)
+			},
+			func() {
+				// After pruning 10 sequences we should be left with 5 acks and zero receipts.
+				postPruneExpState(5, 0, 11)
+			},
+			nil,
+		},
 		{
 			"failure: packet sequence start not set",
 			func() {},
@@ -585,34 +735,18 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			// TODO(jim): setup.coordinator.UpgradeChannel() wen?
-			// configure the channel upgrade version on testing endpoints
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
-
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.ChanUpgradeTry()
-			suite.Require().NoError(err)
-
-			err = path.EndpointA.ChanUpgradeAck()
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.ChanUpgradeConfirm()
-			suite.Require().NoError(err)
-
-			err = path.EndpointA.ChanUpgradeOpen()
-			suite.Require().NoError(err)
-
-			err = path.EndpointA.UpdateClient()
-			suite.Require().NoError(err)
-
+			// Defaults will be filled in for rest.
+			upgradeFields = types.UpgradeFields{Version: ibcmock.UpgradeVersion}
 			limit = 10
+
+			// perform pre upgrade ops.
+			tc.pre()
+
+			suite.UpgradeChannel(path, upgradeFields)
 
 			tc.malleate()
 
-			err = suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneAcknowledgements(
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneAcknowledgements(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
@@ -621,7 +755,47 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 
 			suite.Require().ErrorIs(err, tc.expError)
 
+			// check on post state.
 			tc.post()
 		})
+	}
+}
+
+func (suite *KeeperTestSuite) UpgradeChannel(path *ibctesting.Path, upgradeFields types.UpgradeFields) {
+	// TODO(jim): setup.coordinator.UpgradeChannel() wen?
+	// configure the channel upgrade version on testing endpoints
+	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields = upgradeFields
+	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields = upgradeFields
+
+	err := path.EndpointA.ChanUpgradeInit()
+	suite.Require().NoError(err)
+
+	err = path.EndpointB.ChanUpgradeTry()
+	suite.Require().NoError(err)
+
+	err = path.EndpointA.ChanUpgradeAck()
+	suite.Require().NoError(err)
+
+	err = path.EndpointB.ChanUpgradeConfirm()
+	suite.Require().NoError(err)
+
+	err = path.EndpointA.ChanUpgradeOpen()
+	suite.Require().NoError(err)
+
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) sendMockPackets(source, dest *ibctesting.Endpoint, numPackets int) {
+	for i := 0; i < numPackets; i++ {
+		sequence, err := source.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+		suite.Require().NoError(err)
+		packet := types.NewPacket(ibctesting.MockPacketData, sequence, source.ChannelConfig.PortID, source.ChannelID, dest.ChannelConfig.PortID, dest.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+		err = dest.RecvPacket(packet)
+		suite.Require().NoError(err)
+
+		// Acknowledge the packet on the source
+		err = source.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
+		suite.Require().NoError(err)
 	}
 }
