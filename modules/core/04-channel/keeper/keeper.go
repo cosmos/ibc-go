@@ -671,14 +671,13 @@ func (k Keeper) HasPruningSequenceStart(ctx sdk.Context, portID, channelID strin
 	return store.Has(host.PruningSequenceStartKey(portID, channelID))
 }
 
-// PruneAcknowledgements prunes packet acknowledgements from the store that have a sequence number less than pruning sequence end.
-// The number of packet acknowledgements pruned is equal to limit. Pruning only occurs after a channel has been upgraded.
+// PruneStalePacketData prunes packet acknowledgements and receipts that have a sequence number less than pruning sequence end.
+// The number of packet acks/receipts pruned is equal to limit. Pruning can only occur after a channel has been upgraded.
 //
-// The pruningSequence keeps track of the packet acknowledgement that can be pruned next. When the pruning sequence reaches
-// the last send sequence, pruning is complete.
-func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string, limit uint64) error {
+// Pruning sequence start keeps track of the packet ack/receipt that can be pruned next. When it reaches pruningSequenceEnd,
+// pruning is complete.
+func (k Keeper) PruneStalePacketData(ctx sdk.Context, portID, channelID string, limit uint64) error {
 	if !k.HasPruningSequenceStart(ctx, portID, channelID) {
-		// indicates that a channel upgrade has not been performed
 		return errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 	pruningSequenceStart := k.GetPruningSequenceStart(ctx, portID, channelID)
@@ -690,6 +689,8 @@ func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string,
 
 	limit = pruningSequenceStart + limit
 	for ; pruningSequenceStart < limit; pruningSequenceStart++ {
+		// Stop pruning if pruningSequenceStart has reached pruningSequenceEnd, pruningSequenceEnd is
+		// set to be equal to the _next_ sequence to be sent by the counterparty.
 		if pruningSequenceStart >= pruningSequenceEnd {
 			break
 		}
@@ -698,7 +699,7 @@ func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string,
 			k.deletePacketAcknowledgement(ctx, portID, channelID, pruningSequenceStart)
 		}
 
-		// Note: packet ack at sequence `pruningSequence` does not imply packet receipt at sequence `pruningSequence` exists
+		// Note packet receipts are only relevant for unordered channels.
 		if k.HasPacketReceipt(ctx, portID, channelID, pruningSequenceStart) {
 			k.deletePacketReceipt(ctx, portID, channelID, pruningSequenceStart)
 		}

@@ -1134,8 +1134,7 @@ func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Msg
 func (k Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Get updated value for pruning sequence.
-	err := k.ChannelKeeper.PruneAcknowledgements(ctx, msg.PortId, msg.ChannelId, msg.Limit)
+	err := k.ChannelKeeper.PruneStalePacketData(ctx, msg.PortId, msg.ChannelId, msg.Limit)
 	if err != nil {
 		return nil, err
 	}

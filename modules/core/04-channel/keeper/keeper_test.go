@@ -655,7 +655,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			},
 			func() {
 				// Prune 5 packets on A.
-				err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneAcknowledgements(
+				err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
@@ -746,7 +746,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 
 			tc.malleate()
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneAcknowledgements(
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
@@ -761,8 +761,9 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 	}
 }
 
+// UpgradeChannel performs a channel upgrade given a specific set of upgrade fields.
+// Question(jim): setup.coordinator.UpgradeChannel() wen?
 func (suite *KeeperTestSuite) UpgradeChannel(path *ibctesting.Path, upgradeFields types.UpgradeFields) {
-	// TODO(jim): setup.coordinator.UpgradeChannel() wen?
 	// configure the channel upgrade version on testing endpoints
 	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields = upgradeFields
 	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields = upgradeFields
@@ -786,6 +787,8 @@ func (suite *KeeperTestSuite) UpgradeChannel(path *ibctesting.Path, upgradeField
 	suite.Require().NoError(err)
 }
 
+// sendMockPacket sends a packet from source to dest and acknowledges it on the source (completing the packet lifecycle).
+// Question(jim): find a nicer home for this?
 func (suite *KeeperTestSuite) sendMockPackets(source, dest *ibctesting.Endpoint, numPackets int) {
 	for i := 0; i < numPackets; i++ {
 		sequence, err := source.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
