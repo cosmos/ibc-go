@@ -2018,9 +2018,7 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 }
 
 func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
-	var (
-		path *ibctesting.Path
-	)
+	var msg *channeltypes.MsgPruneAcknowledgements
 
 	testCases := []struct {
 		name     string
@@ -2035,8 +2033,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 		{
 			"failure: core keeper function fails, pruning sequence end not found",
 			func() {
-				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
-				store.Delete(host.PruningSequenceEndKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				msg.PortId = "portidone"
 			},
 			channeltypes.ErrPruningSequenceEndNotFound,
 		},
@@ -2047,7 +2044,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
 			// configure the channel upgrade version on testing endpoints
@@ -2072,7 +2069,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			msg := channeltypes.NewMsgPruneAcknowledgements(
+			msg = channeltypes.NewMsgPruneAcknowledgements(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				10,

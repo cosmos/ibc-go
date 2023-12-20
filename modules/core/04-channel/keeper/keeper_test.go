@@ -10,6 +10,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -540,4 +541,87 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	suite.Require().Panics(func() {
 		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetParams(ctx)
 	})
+}
+
+func (suite *KeeperTestSuite) TestPruneStalePacketData() {
+	var (
+		path  *ibctesting.Path
+		limit uint64
+	)
+
+	testCases := []struct {
+		name     string
+		pre      func()
+		malleate func()
+		post     func()
+		expError error
+	}{
+		{
+			"failure: packet sequence start not set",
+			func() {},
+			func() {
+				path.EndpointA.ChannelConfig.PortID = "portidone"
+			},
+			func() {},
+			types.ErrPruningSequenceStartNotFound,
+		},
+		{
+			"failure: packet sequence end not set",
+			func() {},
+			func() {
+				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
+				store.Delete(host.PruningSequenceEndKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			func() {},
+			types.ErrPruningSequenceEndNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// TODO(jim): setup.coordinator.UpgradeChannel() wen?
+			// configure the channel upgrade version on testing endpoints
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeConfirm()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeOpen()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			limit = 10
+
+			tc.malleate()
+
+			err = suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneAcknowledgements(
+				suite.chainA.GetContext(),
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				limit,
+			)
+
+			suite.Require().ErrorIs(err, tc.expError)
+
+			tc.post()
+		})
+	}
 }
