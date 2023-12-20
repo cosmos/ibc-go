@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"reflect"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -495,6 +497,66 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			nil,
 		},
 		{
+			name: "failure: invalid order",
+			malleate: func() {
+				order = channeltypes.UNORDERED
+			},
+			expError: channeltypes.ErrInvalidChannelOrdering,
+		},
+		{
+			name: "failure: connectionID not found",
+			malleate: func() {
+				// channelID is provided via the endpoint channelID
+				path.EndpointA.ChannelID = "invalid channel"
+			},
+			expError: channeltypes.ErrChannelNotFound,
+		},
+		{
+			name: "failure: invalid proposed connectionHops",
+			malleate: func() {
+				// connection hops is provided via endpoint connectionID
+				path.EndpointA.ConnectionID = differentConnectionID
+			},
+			expError: channeltypes.ErrInvalidUpgrade,
+		},
+		{
+			name: "failure: empty version",
+			malleate: func() {
+				metadata = icatypes.Metadata{}
+			},
+			expError: icatypes.ErrInvalidVersion,
+		},
+		{
+			name: "failure: cannot decode version string",
+			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.Version = "invalid-metadata-string"
+				path.EndpointA.SetChannel(channel)
+			},
+			expError: icatypes.ErrUnknownDataType,
+		},
+		{
+			name: "failure: failed controller metadata validation, invalid encoding",
+			malleate: func() {
+				metadata.Encoding = "invalid encoding"
+			},
+			expError: icatypes.ErrInvalidCodec,
+		},
+		{
+			name: "failure: failed controller metadata validation, invalid tx type",
+			malleate: func() {
+				metadata.TxType = "invalid tx type"
+			},
+			expError: icatypes.ErrUnknownDataType,
+		},
+		{
+			name: "failure: failed controller metadata validation, invalid interchain account version",
+			malleate: func() {
+				metadata.Version = "invalid interchain account version"
+			},
+			expError: icatypes.ErrInvalidVersion,
+		},
+		{
 			name: "failure: change ICA address",
 			malleate: func() {
 				metadata.Address = TestOwnerAddress
@@ -514,29 +576,6 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 				metadata.HostConnectionId = differentConnectionID
 			},
 			expError: connectiontypes.ErrInvalidConnection,
-		},
-		{
-			name: "failure: cannot decode version string",
-			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.Version = "invalid-metadata-string"
-				path.EndpointA.SetChannel(channel)
-			},
-			expError: icatypes.ErrUnknownDataType,
-		},
-		{
-			name: "failure: invalid connection hops",
-			malleate: func() {
-				path.EndpointA.ConnectionID = differentConnectionID
-			},
-			expError: connectiontypes.ErrConnectionNotFound,
-		},
-		{
-			name: "failure: invalid order",
-			malleate: func() {
-				order = channeltypes.UNORDERED
-			},
-			expError: channeltypes.ErrInvalidChannelOrdering,
 		},
 	}
 
@@ -565,7 +604,10 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 
 			tc.malleate() // malleate mutates test data
 
-			version := string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+			var version string // allow for testing empty strings
+			if !reflect.DeepEqual(metadata, icatypes.Metadata{}) {
+				version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+			}
 
 			upgradeVersion, err := path.EndpointA.Chain.GetSimApp().ICAControllerKeeper.OnChanUpgradeInit(
 				path.EndpointA.Chain.GetContext(),

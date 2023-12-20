@@ -142,17 +142,42 @@ func (Keeper) OnChanCloseConfirm(
 }
 
 // OnChanUpgradeInit performs the upgrade init step of the channel upgrade handshake.
+// The upgrade init callback must verify the proposed changes to the order, connectionHops, and version.
+// Within the version we have the tx type, encoding, interchain account address, host/controller connectionID's
+// and the interchain account version.
+//
+// The following may be changed:
+// - tx type (must be supported)
+// - encoding (must be supported)
+//
+// The following may not be changed:
+// - order
+// - connectionHops (and subsequently host/controller connectionIDs)
+// - interchain account address
+// - interchain account version
 func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
-	if strings.TrimSpace(version) == "" {
-		return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "version cannot be empty")
-	}
-
+	// verify order has not changed
 	// support for unordered ICA channels is not implemented yet
 	if order != channeltypes.ORDERED {
 		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
 	}
 
-	metadata, err := icatypes.MetadataFromVersion(version)
+	// verify connection hops has not changed
+	connectionID, err := k.GetConnectionID(ctx, portID, channelID)
+	if err != nil {
+		return "", err
+	}
+
+	if len(connectionHops) != 1 || connectionHops[0] != connectionID {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidUpgrade, "expected connection hops %s, got %s", []string{connectionID}, connectionHops)
+	}
+
+	// verify proposed version only modifies tx type or encoding
+	if strings.TrimSpace(version) == "" {
+		return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "version cannot be empty")
+	}
+
+	proposedMetadata, err := icatypes.MetadataFromVersion(version)
 	if err != nil {
 		return "", err
 	}
@@ -162,30 +187,49 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, ord
 		return "", err
 	}
 
-	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
-		return "", errorsmod.Wrap(err, "invalid metadata")
+	// ValidateControllerMetadata will ensure the interchain account version has not changed and that the
+	// tx type and encoding are supported
+	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, connectionHops, proposedMetadata); err != nil {
+		return "", errorsmod.Wrap(err, "invalid upgrade metadata")
 	}
 
 	// the interchain account address on the host chain
 	// must remain the same after the upgrade.
-	if currentMetadata.Address != metadata.Address {
+	if currentMetadata.Address != proposedMetadata.Address {
 		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be changed")
 	}
 
-	if currentMetadata.ControllerConnectionId != connectionHops[0] {
-		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
+	if currentMetadata.ControllerConnectionId != proposedMetadata.ControllerConnectionId {
+		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed controller connection ID must not change")
+	}
+
+	if currentMetadata.HostConnectionId != proposedMetadata.HostConnectionId {
+		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed host connection ID must not change")
 	}
 
 	return version, nil
 }
 
 // OnChanUpgradeAck implements the ack setup of the channel upgrade handshake.
+// The upgrade ack callback must verify the proposed changes to the channel version.
+// Within the channel version we have the tx type, encoding, interchain account address, host/controller connectionID's
+// and the interchain account version.
+//
+// The following may be changed:
+// - tx type (must be supported)
+// - encoding (must be supported)
+//
+// The following may not be changed:
+// - controller connectionID
+// - host connectionID
+// - interchain account address
+// - interchain account version
 func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 	if strings.TrimSpace(counterpartyVersion) == "" {
 		return errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
 	}
 
-	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
+	proposedMetadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
 		return err
 	}
@@ -193,20 +237,6 @@ func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpart
 	currentMetadata, err := k.getAppMetadata(ctx, portID, channelID)
 	if err != nil {
 		return err
-	}
-
-	// the interchain account address on the host chain
-	// must remain the same after the upgrade.
-	if currentMetadata.Address != metadata.Address {
-		return errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "address cannot be changed")
-	}
-
-	if currentMetadata.ControllerConnectionId != metadata.ControllerConnectionId {
-		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed controller connection ID must not change")
-	}
-
-	if currentMetadata.HostConnectionId != metadata.HostConnectionId {
-		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed host connection ID must not change")
 	}
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
@@ -214,8 +244,25 @@ func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpart
 		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
 	}
 
-	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, channel.ConnectionHops, metadata); err != nil {
-		return err
+	// ValidateControllerMetadata will ensure the interchain account version has not changed and that the
+	// tx type and encoding are supported. Note, we pass in the current channel connection hops. The upgrade init
+	// step will verify that the proposed connection hops will not change.
+	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, channel.ConnectionHops, proposedMetadata); err != nil {
+		return errorsmod.Wrap(err, "invalid upgrade metadata")
+	}
+
+	// the interchain account address on the host chain
+	// must remain the same after the upgrade.
+	if currentMetadata.Address != proposedMetadata.Address {
+		return errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "address cannot be changed")
+	}
+
+	if currentMetadata.ControllerConnectionId != proposedMetadata.ControllerConnectionId {
+		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed controller connection ID must not change")
+	}
+
+	if currentMetadata.HostConnectionId != proposedMetadata.HostConnectionId {
+		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed host connection ID must not change")
 	}
 
 	return nil
