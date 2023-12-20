@@ -142,9 +142,14 @@ func (Keeper) OnChanCloseConfirm(
 }
 
 // OnChanUpgradeInit performs the upgrade init step of the channel upgrade handshake.
-func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, connectionHops []string, version string) (string, error) {
+func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
 	if strings.TrimSpace(version) == "" {
 		return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "version cannot be empty")
+	}
+
+	// support for unordered ICA channels is not implemented yet
+	if order != channeltypes.ORDERED {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
 	}
 
 	metadata, err := icatypes.MetadataFromVersion(version)
