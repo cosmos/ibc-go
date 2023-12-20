@@ -781,6 +781,13 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 			"success", func() {}, nil,
 		},
 		{
+			"success: nil underlying app",
+			func() {
+				isNilApp = true
+			},
+			nil,
+		},
+		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
 			}, types.ErrControllerSubModuleDisabled,
@@ -796,11 +803,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			}, ibcmock.MockApplicationCallbackError,
-		},
-		{
-			"nil underlying app", func() {
-				isNilApp = true
-			}, porttypes.ErrInvalidRoute,
 		},
 		{
 			"middleware disabled", func() {
@@ -877,6 +879,13 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 			"success", func() {}, nil,
 		},
 		{
+			"success: nil underlying app",
+			func() {
+				isNilApp = true
+			},
+			nil,
+		},
+		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
 			}, types.ErrControllerSubModuleDisabled,
@@ -892,11 +901,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 					return ibcmock.MockApplicationCallbackError
 				}
 			}, ibcmock.MockApplicationCallbackError,
-		},
-		{
-			"nil underlying app", func() {
-				isNilApp = true
-			}, porttypes.ErrInvalidRoute,
 		},
 		{
 			"middleware disabled", func() {
