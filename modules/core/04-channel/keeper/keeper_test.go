@@ -663,7 +663,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			nil,
 		},
 		{
-			"success: stale packet data partially pruned, update, prune again",
+			"success: stale packet data partially pruned, upgrade, prune again",
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
 				// This is _before_ the first upgrade.
