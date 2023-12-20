@@ -18,7 +18,7 @@ The sample code below shows the relevant integration points in `app.go` required
 import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
-
+  
   cmtos "github.com/cometbft/cometbft/libs/os"
 
   ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
@@ -70,22 +70,22 @@ func NewSimApp(
     authtypes.NewModuleAddress(govtypes.ModuleName).String(),
     wasmVM,
     app.GRPCQueryRouter(),
-  )
+  )  
   app.ModuleManager = module.NewManager(
     // SDK app modules
     ...
     ibcwasm.NewAppModule(app.WasmClientKeeper),
-  )
+  ) 
   app.ModuleManager.SetOrderBeginBlockers(
     ...
     ibcwasmtypes.ModuleName,
     ...
-  )
+  ) 
   app.ModuleManager.SetOrderEndBlockers(
     ...
     ibcwasmtypes.ModuleName,
     ...
-  )
+  ) 
   genesisModuleOrder := []string{
     ...
     ibcwasmtypes.ModuleName,
@@ -95,7 +95,7 @@ func NewSimApp(
   app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
   ...
 
-  // initialize BaseApp
+	// initialize BaseApp
   app.SetInitChainer(app.InitChainer)
   ...
 
@@ -145,7 +145,7 @@ The code to set this up would look something like this:
 import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
-
+  
   wasmvm "github.com/CosmWasm/wasmvm"
   ibcwasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
   ...
@@ -155,10 +155,10 @@ import (
 
 // instantiate the Wasm VM with the chosen parameters
 wasmer, err := wasmvm.NewVM(
-  dataDir,
-  availableCapabilities,
-  contractMemoryLimit, // default of 32
-  contractDebugMode,
+  dataDir, 
+  availableCapabilities, 
+  contractMemoryLimit,
+  contractDebugMode, 
   memoryCacheSize,
 )
 if err != nil {
@@ -238,7 +238,7 @@ wasmConfig := ibcwasmtypes.WasmConfig{
 app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithConfig(
   appCodec,
   runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
-  app.IBCKeeper.ClientKeeper,
+  app.IBCKeeper.ClientKeeper, 
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
   app.GRPCQueryRouter(),
@@ -276,7 +276,7 @@ You may leave any of the fields in the `QueryPlugins` object as `nil` if you do 
 Then, we pass the `QueryPlugins` object to the `WithQueryPlugins` option:
 
 ```go
-querierOption := ibcwasmkeeper.WithQueryPlugins(&queryPlugins)
+querierOption := ibcwasmtypes.WithQueryPlugins(&queryPlugins)
 ```
 
 Finally, we pass the option to the `NewKeeperWithConfig` or `NewKeeperWithVM` constructor function during [Keeper instantiation](#keeper-instantiation):
@@ -285,7 +285,7 @@ Finally, we pass the option to the `NewKeeperWithConfig` or `NewKeeperWithVM` co
 app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithConfig(
   appCodec,
   runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
-  app.IBCKeeper.ClientKeeper,
+  app.IBCKeeper.ClientKeeper, 
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmConfig,
   app.GRPCQueryRouter(),
