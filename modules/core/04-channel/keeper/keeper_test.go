@@ -552,7 +552,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 		// postPruneExpState is a helper function to verify the expected state after pruning. Argument expLeft
 		// denotes the expected amount of packet acks and receipts left after pruning. Argument expSequenceStart
 		// denotes the expected value of PruneSequenceStart.
-		postPruneExpState = func(expAcksLen, expReceiptsLen, expSequenceStart uint64) {
+		postPruneExpState = func(expAcksLen, expReceiptsLen, expPruningSequenceStart uint64) {
 			acks := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketAcks(suite.chainA.GetContext())
 			suite.Require().Len(acks, int(expAcksLen))
 
@@ -560,7 +560,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			suite.Require().Len(receipts, int(expReceiptsLen))
 
 			start := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			suite.Require().Equal(start, expSequenceStart)
+			suite.Require().Equal(start, expPruningSequenceStart)
 		}
 	)
 
