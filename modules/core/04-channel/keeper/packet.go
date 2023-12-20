@@ -132,15 +132,11 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s], but got %s", types.OPEN, types.FLUSHING, channel.State)
 	}
 
-	// In the case of the channel being in FLUSHING we need to ensure that the
+	// If counterpartyUpgrade is stored we need to ensure that the
 	// packet sequence is < counterparty next sequence send. This is a defensive
 	// check and if the counterparty is implemented correctly, this should never abort.
-	if channel.State == types.FLUSHING {
-		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
-		if !found {
-			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found: portID (%s), channelID (%s)", packet.GetDestPort(), packet.GetDestChannel())
-		}
-
+	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if found {
 		// only error if the counterparty next sequence send is set (> 0)
 		// this error should never be reached, as under normal circumstances the counterparty
 		// should not send any packets after the upgrade has been started.
@@ -148,7 +144,8 @@ func (k Keeper) RecvPacket(
 		if counterpartyNextSequenceSend != 0 && packet.GetSequence() >= counterpartyNextSequenceSend {
 			return errorsmod.Wrapf(
 				types.ErrInvalidPacket,
-				"failed to receive packet, cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d)", packet.GetSequence(), counterpartyNextSequenceSend,
+				"failed to receive packet, cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d). UNEXPECTED BEHAVIOUR ON COUNTERPARTY, PLEASE REPORT ISSUE TO RELEVANT CHAIN DEVELOPERS",
+				packet.GetSequence(), counterpartyNextSequenceSend,
 			)
 		}
 	}

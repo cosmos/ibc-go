@@ -340,7 +340,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			nil,
 		},
 		{
-			"success with channel in flushing state",
+			"success with counterpartyNextSequenceSend higher than packet sequence",
 			func() {
 				suite.coordinator.Setup(path)
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
@@ -379,7 +379,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			nil,
 		},
 		{
-			"failure while upgrading channel, counterparty upgrade not found",
+			"success with counterparty upgrade not found",
 			func() {
 				suite.coordinator.Setup(path)
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
@@ -391,7 +391,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channel.State = types.FLUSHING
 				path.EndpointB.SetChannel(channel)
 			},
-			types.ErrUpgradeNotFound,
+			nil,
 		},
 		{
 			"failure while upgrading channel, packet sequence ≥ counterparty next send sequence",
