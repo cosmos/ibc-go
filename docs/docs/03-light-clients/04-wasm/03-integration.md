@@ -21,7 +21,7 @@ import (
 
   cmtos "github.com/cometbft/cometbft/libs/os"
 
-  wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+  ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
   ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
   ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
   ...
@@ -32,7 +32,7 @@ import (
 // Register the AppModule for the 08-wasm module
 ModuleBasics = module.NewBasicManager(
   ...
-  wasm.AppModuleBasic{},
+  ibcwasm.AppModuleBasic{},
   ...
 )
 
@@ -74,7 +74,7 @@ func NewSimApp(
   app.ModuleManager = module.NewManager(
     // SDK app modules
     ...
-    wasm.NewAppModule(app.WasmClientKeeper),
+    ibcwasm.NewAppModule(app.WasmClientKeeper),
   )
   app.ModuleManager.SetOrderBeginBlockers(
     ...
