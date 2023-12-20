@@ -118,13 +118,7 @@ func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icaty
 		return icatypes.Metadata{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
-	metadata, err := icatypes.MetadataFromVersion(appVersion)
-	if err != nil {
-		// UnmarshalJSON errors are indeterminate and therefore are not wrapped and included in failed acks
-		return icatypes.Metadata{}, err
-	}
-
-	return metadata, nil
+	return icatypes.MetadataFromVersion(appVersion)
 }
 
 // GetActiveChannelID retrieves the active channelID from the store keyed by the provided connectionID and portID
