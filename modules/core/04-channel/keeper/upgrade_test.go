@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			types.NewUpgradeError(5, types.ErrInvalidUpgradeSequence),
 		},
 		{
-			// ChainA(Sequence: 0, ics20-2), ChainB(Sequence: 0, ics20-3)
+			// ChainA(Sequence: 0, mock-version-v2), ChainB(Sequence: 0, mock-version-v3)
 			// ChainA.INIT(Sequence: 1)
 			// ChainB.INIT(Sequence: 1)
 			// ChainA.TRY => error (incompatible versions)
@@ -278,7 +278,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			types.ErrIncompatibleCounterpartyUpgrade,
 		},
 		{
-			// ChainA(Sequence: 0, ics20-2), ChainB(Sequence: 4, ics20-3)
+			// ChainA(Sequence: 0, mock-version-v2), ChainB(Sequence: 4, mock-version-v3)
 			// ChainA.INIT(Sequence: 1)
 			// ChainB.INIT(Sequence: 5)
 			// ChainA.TRY => error (incompatible versions)
