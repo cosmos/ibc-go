@@ -1391,9 +1391,9 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 			suite.coordinator.Setup(path)
 
 			// Need to create a packet commitment on A so as to keep it from going to OPEN if no inflight packets exist.
-			sequenceA, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			packet := types.NewPacket(ibctesting.MockPacketData, sequenceA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
@@ -1405,7 +1405,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 			suite.Require().NoError(path.EndpointA.ChanUpgradeAck())
 			suite.Require().NoError(path.EndpointB.ChanUpgradeConfirm())
 
-			// Ack packet to delete packet commitments before calling WriteUpgradeOpenChannel
+			// Ack packet to delete packet commitment before calling WriteUpgradeOpenChannel
 			err = path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
 			suite.Require().NoError(err)
 
