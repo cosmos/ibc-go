@@ -691,7 +691,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 			},
-			types.NewUpgradeError(1, types.ErrInvalidUpgrade),
+			types.NewUpgradeError(1, types.ErrTimeoutElapsed),
 		},
 	}
 
@@ -988,7 +988,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 				err := path.EndpointB.UpdateClient()
 				suite.Require().NoError(err)
 			},
-			types.NewUpgradeError(1, types.ErrInvalidUpgrade),
+			types.NewUpgradeError(1, types.ErrTimeoutElapsed),
 		},
 	}
 
