@@ -676,26 +676,28 @@ func (k Keeper) HasPruningSequenceStart(ctx sdk.Context, portID, channelID strin
 //
 // The pruningSequence keeps track of the packet acknowledgement that can be pruned next. When the pruning sequence reaches
 // the last send sequence, pruning is complete.
-func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string, limit, pruningSequence uint64) uint64 {
-	// TODO(jim): Update to use last sequence send.
-	lastSequenceSend := uint64(0)
+func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string, limit, pruningSequenceStart uint64) (uint64, error) {
+	pruningSequenceEnd, found := k.GetPruningSequenceEnd(ctx, portID, channelID)
+	if !found {
+		return pruningSequenceStart, errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
 
-	limit = pruningSequence + limit
-	for ; pruningSequence < limit; pruningSequence++ {
+	limit = pruningSequenceStart + limit
+	for ; pruningSequenceStart < limit; pruningSequenceStart++ {
 		// break if the pruning sequence reaches the last send sequence
-		if pruningSequence > lastSequenceSend {
+		if pruningSequenceStart > pruningSequenceEnd {
 			break
 		}
 
-		if k.HasPacketAcknowledgement(ctx, portID, channelID, pruningSequence) {
-			k.deletePacketAcknowledgement(ctx, portID, channelID, pruningSequence)
+		if k.HasPacketAcknowledgement(ctx, portID, channelID, pruningSequenceStart) {
+			k.deletePacketAcknowledgement(ctx, portID, channelID, pruningSequenceStart)
 		}
 
 		// Note: packet ack at sequence `pruningSequence` does not imply packet receipt at sequence `pruningSequence` exists
-		if k.HasPacketReceipt(ctx, portID, channelID, pruningSequence) {
-			k.deletePacketReceipt(ctx, portID, channelID, pruningSequence)
+		if k.HasPacketReceipt(ctx, portID, channelID, pruningSequenceStart) {
+			k.deletePacketReceipt(ctx, portID, channelID, pruningSequenceStart)
 		}
 	}
 
-	return pruningSequence
+	return pruningSequenceStart, nil
 }

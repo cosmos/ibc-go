@@ -1135,12 +1135,17 @@ func (k Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.M
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.ChannelKeeper.HasPruningSequenceStart(ctx, msg.PortId, msg.ChannelId) {
-		return nil, errorsmod.Wrapf(channeltypes.ErrPruningSequenceNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
+		// indicates that a channel upgrade has not been performed
+		return nil, errorsmod.Wrapf(channeltypes.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
 	}
 
 	sequenceStart := k.ChannelKeeper.GetPruningSequenceStart(ctx, msg.PortId, msg.ChannelId)
 
-	sequenceStart = k.ChannelKeeper.PruneAcknowledgements(ctx, msg.PortId, msg.ChannelId, msg.Limit, sequenceStart)
+	// Get updated value for pruning sequence.
+	sequenceStart, err := k.ChannelKeeper.PruneAcknowledgements(ctx, msg.PortId, msg.ChannelId, msg.Limit, sequenceStart)
+	if err != nil {
+		return nil, err
+	}
 
 	// update pruning sequence in store
 	k.ChannelKeeper.SetPruningSequenceStart(ctx, msg.PortId, msg.ChannelId, sequenceStart)

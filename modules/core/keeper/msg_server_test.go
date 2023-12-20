@@ -2031,12 +2031,12 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			nil,
 		},
 		{
-			"failure: pruning sequence not found",
+			"failure: pruning sequence start not found",
 			func() {
 				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
 				store.Delete(host.PruningSequenceStartKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			channeltypes.ErrPruningSequenceNotFound,
+			channeltypes.ErrPruningSequenceStartNotFound,
 		},
 		// TODO(jim): Exercise this path
 		// {
