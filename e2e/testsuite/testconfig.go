@@ -27,6 +27,10 @@ import (
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
 const (
@@ -532,7 +536,7 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 		return defaultGovv1ModifyGenesis(version)
 	}
 
-	return defaultGovv1Beta1ModifyGenesis()
+	return defaultGovv1Beta1ModifyGenesis(version)
 }
 
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
@@ -554,8 +558,15 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 		if err != nil {
 			return nil, err
 		}
-
 		appState[govtypes.ModuleName] = govGenBz
+
+		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(version) {
+			ibcGenBz, err := modifyClientGenesisAppState(chainConfig, appState[ibcexported.ModuleName])
+			if err != nil {
+				return nil, err
+			}
+			appState[ibcexported.ModuleName] = ibcGenBz
+		}
 
 		appGenesis.AppState, err = json.Marshal(appState)
 		if err != nil {
@@ -581,7 +592,7 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 
 // defaultGovv1Beta1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // // are functional for e2e testing purposes.
-func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
+func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
 	const appStateKey = "app_state"
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
 		genesisDocMap := map[string]interface{}{}
@@ -609,6 +620,24 @@ func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, err
 		err = json.Unmarshal(govModuleGenesisBytes, &govModuleGenesisMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+		}
+
+		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(version) {
+			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+			}
+
+			ibcGenesisBytes, err := modifyClientGenesisAppState(chainConfig, ibcModuleBytes)
+			if err != nil {
+				return nil, err
+			}
+
+			ibcModuleGenesisMap := map[string]interface{}{}
+			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+			}
 		}
 
 		appStateMap[govtypes.ModuleName] = govModuleGenesisMap
@@ -672,4 +701,25 @@ func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) (
 	}
 
 	return govGenBz, nil
+}
+
+// modifyClientGenesisAppState takes the existing ibc app state and marshals it to a ibc GenesisState.
+func modifyClientGenesisAppState(chainConfig ibc.ChainConfig, ibcAppState []byte) ([]byte, error) {
+	cfg := testutil.MakeTestEncodingConfig()
+
+	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	ibcGenesisState := &ibctypes.GenesisState{}
+	if err := cdc.UnmarshalJSON(ibcAppState, ibcGenesisState); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis bytes into client genesis state: %w", err)
+	}
+
+	ibcGenesisState.ClientGenesis.Params.AllowedClients = append(ibcGenesisState.ClientGenesis.Params.AllowedClients, wasmtypes.Wasm)
+	ibcGenBz, err := cdc.MarshalJSON(ibcGenesisState)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	}
+
+	return ibcGenBz, nil
 }

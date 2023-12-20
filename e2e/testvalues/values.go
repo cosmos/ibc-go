@@ -91,3 +91,8 @@ var LocalhostClientFeatureReleases = semverutil.FeatureReleases{
 		"v7.1",
 	},
 }
+
+// AllowAllClientsWildcardFeatureReleases represents the releases the allow all clients wildcard was released in.
+var AllowAllClientsWildcardFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v9",
+}
