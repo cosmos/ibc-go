@@ -967,17 +967,16 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expError error
 	}{
 		{
-			"success", func() {}, nil,
+			"success",
+			func() {},
 		},
 		{
 			"success: nil app",
 			func() {
 				isNilApp = true
 			},
-			nil,
 		},
 		{
 			"middleware disabled", func() {
@@ -985,7 +984,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
 					return ibcmock.MockApplicationCallbackError
 				}
-			}, nil,
+			},
 		},
 	}
 
@@ -1026,12 +1025,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 				[]string{path.EndpointA.ConnectionID},
 				counterpartyVersion,
 			)
-
-			if tc.expError == nil {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-			}
 		})
 	}
 }
@@ -1045,17 +1038,15 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expError error
 	}{
 		{
-			"success", func() {}, nil,
+			"success", func() {},
 		},
 		{
 			"success: nil app",
 			func() {
 				isNilApp = true
 			},
-			nil,
 		},
 		{
 			"middleware disabled", func() {
@@ -1063,7 +1054,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
 					return ibcmock.MockApplicationCallbackError
 				}
-			}, nil,
+			},
 		},
 	}
 
@@ -1095,12 +1086,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
 			}
 
 			cbs.OnChanUpgradeRestore(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-			if tc.expError == nil {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-			}
 		})
 	}
 }
