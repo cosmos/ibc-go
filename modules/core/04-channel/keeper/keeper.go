@@ -671,21 +671,26 @@ func (k Keeper) HasPruningSequenceStart(ctx sdk.Context, portID, channelID strin
 	return store.Has(host.PruningSequenceStartKey(portID, channelID))
 }
 
-// PruneAcknowledgements prunes packet acknowledgements from the store that have a sequence number less than or equal to the last packet send.
+// PruneAcknowledgements prunes packet acknowledgements from the store that have a sequence number less than pruning sequence end.
 // The number of packet acknowledgements pruned is equal to limit. Pruning only occurs after a channel has been upgraded.
 //
 // The pruningSequence keeps track of the packet acknowledgement that can be pruned next. When the pruning sequence reaches
 // the last send sequence, pruning is complete.
-func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string, limit, pruningSequenceStart uint64) (uint64, error) {
+func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string, limit uint64) error {
+	if !k.HasPruningSequenceStart(ctx, portID, channelID) {
+		// indicates that a channel upgrade has not been performed
+		return errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+	pruningSequenceStart := k.GetPruningSequenceStart(ctx, portID, channelID)
+
 	pruningSequenceEnd, found := k.GetPruningSequenceEnd(ctx, portID, channelID)
 	if !found {
-		return pruningSequenceStart, errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return errorsmod.Wrapf(types.ErrPruningSequenceEndNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	limit = pruningSequenceStart + limit
 	for ; pruningSequenceStart < limit; pruningSequenceStart++ {
-		// break if the pruning sequence reaches the last send sequence
-		if pruningSequenceStart > pruningSequenceEnd {
+		if pruningSequenceStart >= pruningSequenceEnd {
 			break
 		}
 
@@ -699,5 +704,8 @@ func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string,
 		}
 	}
 
-	return pruningSequenceStart, nil
+	// Set pruning sequence start to the updated value
+	k.SetPruningSequenceStart(ctx, portID, channelID, pruningSequenceStart)
+
+	return nil
 }

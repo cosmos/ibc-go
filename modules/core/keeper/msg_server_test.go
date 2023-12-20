@@ -2018,7 +2018,9 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 }
 
 func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
-	var path *ibctesting.Path
+	var (
+		path *ibctesting.Path
+	)
 
 	testCases := []struct {
 		name     string
@@ -2031,19 +2033,13 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			nil,
 		},
 		{
-			"failure: pruning sequence start not found",
+			"failure: core keeper function fails, pruning sequence end not found",
 			func() {
 				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
-				store.Delete(host.PruningSequenceStartKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				store.Delete(host.PruningSequenceEndKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			channeltypes.ErrPruningSequenceStartNotFound,
+			channeltypes.ErrPruningSequenceEndNotFound,
 		},
-		// TODO(jim): Exercise this path
-		// {
-		//  	"failure: pruning fails",
-		//  	func() {},
-		//      nil,
-		// },
 	}
 
 	for _, tc := range testCases {
@@ -2054,9 +2050,27 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.Setup(path)
 
-			// TODO(jim): initiate full upgrade handshake when pruning seq PR is merged
-			//            for now, just manually set a dummy pruning sequence.
-			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 10)
+			// configure the channel upgrade version on testing endpoints
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeConfirm()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeOpen()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
 
 			msg := channeltypes.NewMsgPruneAcknowledgements(
 				path.EndpointA.ChannelConfig.PortID,
