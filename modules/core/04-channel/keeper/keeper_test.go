@@ -707,6 +707,27 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			nil,
 		},
 		{
+			"success: packets sent before upgrade are pruned, after upgrade are not",
+			func() {
+				// Send 5 packets from B -> A, creating 5 packet receipts and 5 packet acks on A.
+				suite.sendMockPackets(path.EndpointB, path.EndpointA, 5)
+			},
+			// keep default limit of 10
+			func() {},
+			func() {
+				// channel upgraded, send additional packets and try and prune.
+				suite.sendMockPackets(path.EndpointB, path.EndpointA, 12)
+
+				// attempt to prune 5 packets.
+				err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 5)
+				suite.Require().NoError(err)
+
+				// we _do not_ expect error, simply a fast return
+				postPruneExpState(12, 12, 6)
+			},
+			nil,
+		},
+		{
 			"failure: packet sequence start not set",
 			func() {},
 			func() {
