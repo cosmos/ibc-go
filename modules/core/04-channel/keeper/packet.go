@@ -142,6 +142,8 @@ func (k Keeper) RecvPacket(
 		}
 
 		// only error if the counterparty next sequence send is set (> 0)
+		// this error should never be reached, as under normal circumstances the counterparty
+		// should not send any packets after the upgrade has been started.
 		counterpartyNextSequenceSend := counterpartyUpgrade.NextSequenceSend
 		if counterpartyNextSequenceSend != 0 && packet.GetSequence() >= counterpartyNextSequenceSend {
 			return errorsmod.Wrapf(
