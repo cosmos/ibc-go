@@ -104,7 +104,8 @@ func (s *IBCWasmUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmo
 		allNodes = append(allNodes, node)
 	}
 
-	testutil.WaitForInSync(ctx, chain, allNodes...)
+	err = testutil.WaitForInSync(ctx, chain, allNodes...)
+	s.Require().NoError(err, "error waiting for node(s) to sync")
 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
