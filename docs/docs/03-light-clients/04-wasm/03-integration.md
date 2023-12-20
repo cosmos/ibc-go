@@ -226,7 +226,7 @@ import (
   "github.com/cosmos/cosmos-sdk/runtime"
 
   ibcwasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-  ibcibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
   ...
 )
 ...
@@ -261,13 +261,13 @@ Assuming that the keeper is not yet instantiated, the following sample code show
 We first construct a [`QueryPlugins`](https://github.com/cosmos/ibc-go/blob/57fcdb9a9a9db9b206f7df2f955866dc4e10fef4/modules/light-clients/08-wasm/types/querier.go#L78-L87) object with the desired query plugins:
 
 ```go
-queryPlugins := ibcibcwasmtypes.QueryPlugins {
+queryPlugins := ibcwasmtypes.QueryPlugins {
   Custom: MyCustomQueryPlugin(),
   // `myAcceptList` is a `[]string` containing the list of gRPC query paths that the chain wants to allow for the `08-wasm` module to query.
   // These queries must be registered in the chain's gRPC query router, be deterministic, and track their gas usage.
   // The `AcceptListStargateQuerier` function will return a query plugin that will only allow queries for the paths in the `myAcceptList`.
   // The query responses are encoded in protobuf unlike the implementation in `x/wasm`.
-  Stargate: ibcibcwasmtypes.AcceptListStargateQuerier(myAcceptList),
+  Stargate: ibcwasmtypes.AcceptListStargateQuerier(myAcceptList),
 }
 ```
 
@@ -349,7 +349,7 @@ func (app SimApp) RegisterUpgradeHandlers() {
   if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
     storeUpgrades := storetypes.StoreUpgrades{
       Added: []string{
-        ibcibcwasmtypes.ModuleName,
+        ibcwasmtypes.ModuleName,
       },
     }
 
