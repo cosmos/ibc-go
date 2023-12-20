@@ -33,7 +33,7 @@ v                     without deliberation
 
 ## QA scenarios
 
-<!-- Lists of manual QA tests that need be performed -->
+<!-- Lists of manual QA tests that need to be performed -->
 
 ## Automated e2e tests
 
