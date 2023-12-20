@@ -611,17 +611,17 @@ func (k Keeper) HasInflightPackets(ctx sdk.Context, portID, channelID string) bo
 	return iterator.Valid()
 }
 
-// SetCounterpartyNextSequenceSend sets the counterparty next send sequence to the store.
-func (k Keeper) SetCounterpartyNextSequenceSend(ctx sdk.Context, portID, channelID string, sequence uint64) {
+// SetPruningSequenceEnd sets the channel's pruning sequence end to the store.
+func (k Keeper) SetPruningSequenceEnd(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.CounterpartyNextSequenceSendKey(portID, channelID), bz)
+	store.Set(host.PruningSequenceEndKey(portID, channelID), bz)
 }
 
-// GetCounterpartyNextSequenceSend gets the counterparty next send sequence from the store.
-func (k Keeper) GetCounterpartyNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
+// GetPruningSequenceEnd gets a channel's pruning sequence end from the store.
+func (k Keeper) GetPruningSequenceEnd(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.CounterpartyNextSequenceSendKey(portID, channelID))
+	bz := store.Get(host.PruningSequenceEndKey(portID, channelID))
 	if len(bz) == 0 {
 		return 0, false
 	}
@@ -629,17 +629,17 @@ func (k Keeper) GetCounterpartyNextSequenceSend(ctx sdk.Context, portID, channel
 	return sdk.BigEndianToUint64(bz), true
 }
 
-// SetPruningSequence sets a channel's pruning sequence to the store.
-func (k Keeper) SetPruningSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
+// SetPruningSequenceStart sets a channel's pruning sequence start to the store.
+func (k Keeper) SetPruningSequenceStart(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.PruningSequenceKey(portID, channelID), bz)
+	store.Set(host.PruningSequenceStartKey(portID, channelID), bz)
 }
 
-// GetPruningSequence gets a channel's pruning sequence from the store.
-func (k Keeper) GetPruningSequence(ctx sdk.Context, portID, channelID string) uint64 {
+// GetPruningSequenceStart gets a channel's pruning sequence start from the store.
+func (k Keeper) GetPruningSequenceStart(ctx sdk.Context, portID, channelID string) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.PruningSequenceKey(portID, channelID))
+	bz := store.Get(host.PruningSequenceStartKey(portID, channelID))
 	if len(bz) == 0 {
 		return 0
 	}
@@ -647,10 +647,10 @@ func (k Keeper) GetPruningSequence(ctx sdk.Context, portID, channelID string) ui
 	return sdk.BigEndianToUint64(bz)
 }
 
-// HasPruningSequence returns true if the pruning sequence is set for the specified channel.
-func (k Keeper) HasPruningSequence(ctx sdk.Context, portID, channelID string) bool {
+// HasPruningSequenceStart returns true if the pruning sequence start is set for the specified channel.
+func (k Keeper) HasPruningSequenceStart(ctx sdk.Context, portID, channelID string) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(host.PruningSequenceKey(portID, channelID))
+	return store.Has(host.PruningSequenceStartKey(portID, channelID))
 }
 
 // PruneAcknowledgements prunes packet acknowledgements from the store that have a sequence number less than or equal to the pruning sequence.

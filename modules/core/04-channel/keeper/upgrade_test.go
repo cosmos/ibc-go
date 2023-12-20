@@ -1488,11 +1488,11 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(2), seq)
 
-				// Assert that pruning sequence has not been initialized.
-				suite.Require().False(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequence(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				// Assert that pruning sequence start has not been initialized.
+				suite.Require().False(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 
-				// Assert that CounterpartyNextSequenceSend has been set correctly
-				counterpartyNextSequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyNextSequenceSend(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// Assert that pruning sequence end has been set correctly
+				counterpartyNextSequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found)
 				suite.Require().Equal(uint64(0), counterpartyNextSequenceSend)
 			},
@@ -1514,13 +1514,13 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), seq)
 
-				// Assert that pruning sequence has been initialized (set to 1)
-				suite.Require().True(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequence(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				pruningSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequence(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// Assert that pruning sequence start has been initialized (set to 1)
+				suite.Require().True(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				pruningSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().Equal(uint64(1), pruningSeq)
 
-				// Assert that CounterpartyNextSequenceSend has been set correctly
-				counterpartySequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyNextSequenceSend(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// Assert that pruning sequence end has been set correctly
+				counterpartySequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(2), counterpartySequenceSend)
 			},
@@ -1547,11 +1547,11 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), seq)
 
-				// Assert that pruning sequence has not been initialized.
-				suite.Require().False(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequence(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				// Assert that pruning sequence start has not been initialized.
+				suite.Require().False(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 
-				// Assert that CounterpartyNextSequenceSend has been set correctly
-				counterpartyNextSequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyNextSequenceSend(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// Assert that pruning sequence end has been set correctly
+				counterpartyNextSequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found)
 				suite.Require().Equal(uint64(0), counterpartyNextSequenceSend)
 			},
@@ -1574,13 +1574,13 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(2), seq)
 
-				// Assert that pruning sequence has been initialized (set to 1)
-				suite.Require().True(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequence(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				pruningSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequence(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// Assert that pruning sequence start has been initialized (set to 1)
+				suite.Require().True(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				pruningSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().Equal(uint64(1), pruningSeq)
 
-				// Assert that CounterpartyNextSequenceSend has been set correctly
-				counterpartySequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyNextSequenceSend(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// Assert that pruning sequence end has been set correctly
+				counterpartySequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(2), counterpartySequenceSend)
 			},
