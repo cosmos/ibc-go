@@ -65,7 +65,7 @@ func NewSimApp(
   // can be shared.
   app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
     appCodec,
-    runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
+    keys[wasmtypes.StoreKey],
     app.IBCKeeper.ClientKeeper,
     authtypes.NewModuleAddress(govtypes.ModuleName).String(),
     wasmVM,
@@ -196,7 +196,7 @@ app.WasmKeeper = ibcwasmkeeper.NewKeeper(
 
 app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
   appCodec,
-  runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
+  keys[wasmtypes.StoreKey],
   app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmer, // pass the Wasm VM instance to `08-wasm` keeper constructor
@@ -296,7 +296,7 @@ app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithConfig(
 ```diff
 app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
   appCodec,
-  runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
+  keys[wasmtypes.StoreKey],
   app.IBCKeeper.ClientKeeper,
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
   wasmer, // pass the Wasm VM instance to `08-wasm` keeper constructor
