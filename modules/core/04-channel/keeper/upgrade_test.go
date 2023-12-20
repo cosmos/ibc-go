@@ -351,7 +351,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 
 				nextSequenceSend, found := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceSend(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(found)
-				suite.Require().Equal(nextSequenceSend-1, upgrade.LatestSequenceSend)
+				suite.Require().Equal(nextSequenceSend, upgrade.NextSequenceSend)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
 			}
@@ -752,7 +752,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			"fails due to proof verification failure, counterparty update has unexpected sequence",
 			func() {
 				// Decrementing LatestSequenceSend is sufficient to cause the proof to fail.
-				counterpartyUpgrade.LatestSequenceSend--
+				counterpartyUpgrade.NextSequenceSend--
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -909,13 +909,10 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 
 			if !tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
-				_, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(ok)
-			} else {
-				counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(ok)
-				suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 			}
+			counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(ok)
+			suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 		})
 	}
 }
@@ -1199,15 +1196,12 @@ func (suite *KeeperTestSuite) TestWriteUpgradeConfirm() {
 
 			if !tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
-				// Counterparty was set in UPGRADETRY but without timeout, latest sequence send set.
-				_, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(ok, "counterparty upgrade should not be present when there are no in flight packets")
 			} else {
 				suite.Require().Equal(types.FLUSHING, channel.State)
-				counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(ok, "counterparty upgrade should be present when there are in flight packets")
-				suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 			}
+			counterpartyUpgrade, ok := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(ok, "counterparty upgrade should be present")
+			suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 		})
 	}
 }
@@ -1405,8 +1399,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Ordering = types.ORDERED
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Ordering = types.ORDERED
 
 			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
 			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
@@ -1418,6 +1410,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 			suite.Require().NoError(err)
 
 			ctx := suite.chainA.GetContext()
+
 			tc.malleate()
 
 			if tc.expPanic {
@@ -1431,7 +1424,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 				// Assert that channel state has been updated
 				suite.Require().Equal(types.OPEN, channel.State)
 				suite.Require().Equal(mock.UpgradeVersion, channel.Version)
-				suite.Require().Equal(types.ORDERED, channel.Ordering)
 
 				// Assert that state stored for upgrade has been deleted
 				upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -1461,6 +1453,213 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel() {
 				// }
 				// ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name        string
+		malleate    func()
+		preUpgrade  func()
+		postUpgrade func()
+	}{
+		{
+			name: "success: ORDERED -> UNORDERED",
+			malleate: func() {
+				path.EndpointA.ChannelConfig.Order = types.ORDERED
+				path.EndpointB.ChannelConfig.Order = types.ORDERED
+
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Ordering = types.UNORDERED
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Ordering = types.UNORDERED
+			},
+			preUpgrade: func() {
+				ctx := suite.chainA.GetContext()
+
+				// assert that NextSeqAck is incremented to 2 because channel is still ordered
+				seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceAck(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(2), seq)
+
+				// assert that NextSeqRecv is incremented to 2 because channel is still ordered
+				seq, found = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(2), seq)
+
+				// Assert that pruning sequence start has not been initialized.
+				suite.Require().False(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+
+				// Assert that pruning sequence end has not been set
+				counterpartyNextSequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().False(found)
+				suite.Require().Equal(uint64(0), counterpartyNextSequenceSend)
+			},
+			postUpgrade: func() {
+				channel := path.EndpointA.GetChannel()
+				ctx := suite.chainA.GetContext()
+
+				// Assert that channel state has been updated
+				suite.Require().Equal(types.OPEN, channel.State)
+				suite.Require().Equal(types.UNORDERED, channel.Ordering)
+
+				// assert that NextSeqRecv is now 1, because channel is now UNORDERED
+				seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), seq)
+
+				// assert that NextSeqAck is now 1, because channel is now UNORDERED
+				seq, found = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceAck(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), seq)
+
+				// Assert that pruning sequence start has been initialized (set to 1)
+				suite.Require().True(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				pruningSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().Equal(uint64(1), pruningSeq)
+
+				// Assert that pruning sequence end has been set correctly
+				counterpartySequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(2), counterpartySequenceSend)
+			},
+		},
+		{
+			name: "success: UNORDERED -> ORDERED",
+			malleate: func() {
+				path.EndpointA.ChannelConfig.Order = types.UNORDERED
+				path.EndpointB.ChannelConfig.Order = types.UNORDERED
+
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Ordering = types.ORDERED
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Ordering = types.ORDERED
+			},
+			preUpgrade: func() {
+				ctx := suite.chainA.GetContext()
+
+				// assert that NextSeqRecv  is 1 because channel is UNORDERED
+				seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), seq)
+
+				// assert that NextSeqAck is 1 because channel is UNORDERED
+				seq, found = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceAck(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), seq)
+
+				// Assert that pruning sequence start has not been initialized.
+				suite.Require().False(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+
+				// Assert that pruning sequence end has not been set
+				counterpartyNextSequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().False(found)
+				suite.Require().Equal(uint64(0), counterpartyNextSequenceSend)
+			},
+			postUpgrade: func() {
+				channel := path.EndpointA.GetChannel()
+				ctx := suite.chainA.GetContext()
+
+				// Assert that channel state has been updated
+				suite.Require().Equal(types.OPEN, channel.State)
+				suite.Require().Equal(types.ORDERED, channel.Ordering)
+
+				// assert that NextSeqRecv is incremented to 2, because channel is now ORDERED
+				// NextSeqRecv updated in WriteUpgradeOpenChannel to latest sequence (one packet sent) + 1
+				seq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(2), seq)
+
+				// assert that NextSeqAck is incremented to 2 because channel is now ORDERED
+				seq, found = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceAck(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(2), seq)
+
+				// Assert that pruning sequence start has been initialized (set to 1)
+				suite.Require().True(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				pruningSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().Equal(uint64(1), pruningSeq)
+
+				// Assert that pruning sequence end has been set correctly
+				counterpartySequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(2), counterpartySequenceSend)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			tc.malleate()
+
+			suite.coordinator.Setup(path)
+
+			// Need to create a packet commitment on A so as to keep it from going to OPEN if no inflight packets exist.
+			sequenceA, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+			packetA := types.NewPacket(ibctesting.MockPacketData, sequenceA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointB.RecvPacket(packetA)
+			suite.Require().NoError(err)
+
+			// send second packet from B to A
+			sequenceB, err := path.EndpointB.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
+			packetB := types.NewPacket(ibctesting.MockPacketData, sequenceB, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+			err = path.EndpointA.RecvPacket(packetB)
+			suite.Require().NoError(err)
+
+			suite.Require().NoError(path.EndpointA.ChanUpgradeInit())
+			suite.Require().NoError(path.EndpointB.ChanUpgradeTry())
+			suite.Require().NoError(path.EndpointA.ChanUpgradeAck())
+			suite.Require().NoError(path.EndpointB.ChanUpgradeConfirm())
+
+			// Ack packets to delete packet commitments before calling WriteUpgradeOpenChannel
+			err = path.EndpointA.AcknowledgePacket(packetA, ibctesting.MockAcknowledgement)
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.AcknowledgePacket(packetB, ibctesting.MockAcknowledgement)
+			suite.Require().NoError(err)
+
+			// pre upgrade assertions
+			tc.preUpgrade()
+
+			tc.malleate()
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeOpenChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			// post upgrade assertions
+			tc.postUpgrade()
+
+			// Assert that state stored for upgrade has been deleted
+			upgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().Equal(types.Upgrade{}, upgrade)
+			suite.Require().False(found)
+
+			counterpartyUpgrade, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().Equal(types.Upgrade{}, counterpartyUpgrade)
+			suite.Require().False(found)
+
+			// events := ctx.EventManager().Events().ToABCIEvents()
+			// expEvents := ibctesting.EventsMap{
+			//	types.EventTypeChannelUpgradeOpen: {
+			//		types.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+			//		types.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+			//		types.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+			//		types.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+			//		types.AttributeKeyChannelState:          types.OPEN.String(),
+			//		types.AttributeKeyUpgradeConnectionHops: channel.ConnectionHops[0],
+			//		types.AttributeKeyUpgradeVersion:        channel.Version,
+			//		types.AttributeKeyUpgradeOrdering:       channel.Ordering.String(),
+			//		types.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
+			//	},
+			//	sdk.EventTypeMessage: {
+			//		sdk.AttributeKeyModule: types.AttributeValueCategory,
+			//	},
+			// }
+			// ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 		})
 	}
 }
@@ -2145,7 +2344,7 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 				suite.Require().True(ok)
 
 				suite.Require().Equal(types.FLUSHING, channel.State)
-				suite.Require().Equal(nextSequenceSend-1, upgrade.LatestSequenceSend)
+				suite.Require().Equal(nextSequenceSend, upgrade.NextSequenceSend)
 
 				expectedTimeoutTimestamp := types.DefaultTimeout.Timestamp + uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 				suite.Require().Equal(expectedTimeoutTimestamp, upgrade.Timeout.Timestamp)
