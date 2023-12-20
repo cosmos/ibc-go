@@ -62,11 +62,6 @@ func (iapd *InterchainAccountPacketData) UnmarshalJSON(bz []byte) error {
 	return ModuleCdc.UnmarshalJSON(bz, iapd)
 }
 
-// GetBytes returns the JSON marshalled interchain account CosmosTx.
-func (ct CosmosTx) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&ct))
-}
-
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (ct CosmosTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	for _, protoAny := range ct.Messages {
