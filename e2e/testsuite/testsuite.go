@@ -15,6 +15,8 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -135,13 +137,6 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 	s.startRelayerFn = func(relayer ibc.Relayer) {
 		err := relayer.StartRelayer(ctx, eRep, pathName)
 		s.Require().NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
-		s.T().Cleanup(func() {
-			if !s.T().Failed() {
-				if err := relayer.StopRelayer(ctx, eRep); err != nil {
-					s.T().Logf("error stopping relayer: %v", err)
-				}
-			}
-		})
 		// wait for relayer to start.
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 	}
@@ -302,13 +297,13 @@ func (s *E2ETestSuite) RestartRelayer(ctx context.Context, ibcrelayer ibc.Relaye
 // CreateUserOnChainA creates a user with the given amount of funds on chain A.
 func (s *E2ETestSuite) CreateUserOnChainA(ctx context.Context, amount int64) ibc.Wallet {
 	chainA, _ := s.GetChains()
-	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainA)[0]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chainA)[0]
 }
 
 // CreateUserOnChainB creates a user with the given amount of funds on chain B.
 func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc.Wallet {
 	_, chainB := s.GetChains()
-	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), amount, chainB)[0]
+	return interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chainB)[0]
 }
 
 // GetChainANativeBalance gets the balance of a given user on chain A.
@@ -377,9 +372,9 @@ func (s *E2ETestSuite) createChains(chainOptions ChainOptions) (ibc.Chain, ibc.C
 	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first
 	// this allows us to process the logs before the containers are removed.
 	t.Cleanup(func() {
-		debugModeEnabled := LoadConfig().DebugConfig.DumpLogs
+		dumpLogs := LoadConfig().DebugConfig.DumpLogs
 		chains := []string{chainOptions.ChainASpec.ChainConfig.Name, chainOptions.ChainBSpec.ChainConfig.Name}
-		diagnostics.Collect(t, s.DockerClient, debugModeEnabled, chains...)
+		diagnostics.Collect(t, s.DockerClient, dumpLogs, chains...)
 	})
 
 	chains, err := cf.Chains(t.Name())

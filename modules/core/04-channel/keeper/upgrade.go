@@ -99,44 +99,6 @@ func (k Keeper) ChanUpgradeTry(
 		)
 	}
 
-	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
-	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
-	proposedUpgradeFields := types.UpgradeFields{
-		Ordering:       counterpartyUpgradeFields.Ordering,
-		ConnectionHops: proposedConnectionHops,
-		Version:        counterpartyUpgradeFields.Version,
-	}
-
-	var (
-		err     error
-		upgrade types.Upgrade
-	)
-
-	// NOTE: if an upgrade exists (crossing hellos) then use existing upgrade fields
-	// otherwise, run the upgrade init sub-protocol
-	upgrade, found = k.GetUpgrade(ctx, portID, channelID)
-	if found {
-		proposedUpgradeFields = upgrade.Fields
-	} else {
-		// NOTE: OnChanUpgradeInit will not be executed by the application
-		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields)
-		if err != nil {
-			return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
-		}
-
-		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, upgrade.Fields.Version)
-
-		// if the counterparty sequence is greater than the current sequence, we fast-forward to the counterparty sequence.
-		if counterpartyUpgradeSequence > channel.UpgradeSequence {
-			channel.UpgradeSequence = counterpartyUpgradeSequence
-			k.SetChannel(ctx, portID, channelID, channel)
-		}
-	}
-
-	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgradeFields); err != nil {
-		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed upgrade compatibility check")
-	}
-
 	// construct expected counterparty channel from information in state
 	// only the counterpartyUpgradeSequence is provided by the relayer
 	counterpartyConnectionHops := []string{connection.GetCounterparty().GetConnectionID()}
@@ -161,8 +123,39 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty channel state")
 	}
 
+	var (
+		err             error
+		upgrade         types.Upgrade
+		isCrossingHello bool
+	)
+
+	upgrade, isCrossingHello = k.GetUpgrade(ctx, portID, channelID)
 	if counterpartyUpgradeSequence < channel.UpgradeSequence {
-		return channel, upgrade, types.NewUpgradeError(channel.UpgradeSequence-1, errorsmod.Wrapf(
+		// In this case, the counterparty upgrade is outdated. We want to force the counterparty
+		// to abort their upgrade and come back to sync with our own upgrade sequence.
+		var upgradeSequence uint64
+		if isCrossingHello {
+			// In the crossing hello case, we already have an upgrade but it is at a higher sequence than the counterparty.
+			// Thus, our upgrade should take priority. We force the counterparty to abort their upgrade by invalidating all counterparty
+			// upgrade attempts below our own sequence by setting errorReceipt to upgradeSequence - 1.
+			// The upgrade handshake may then proceed on the counterparty with our sequence
+			upgradeSequence = channel.UpgradeSequence - 1
+		} else {
+			// In the case, that we are in a non-crossing hello (i.e. upgrade does not exist on our side),
+			// the sequence on both sides should move to a fresh sequence on the next upgrade attempt.
+			// Thus, we write an error receipt with our own upgrade sequence which will cause the counterparty
+			// to cancel their upgrade and move to the same sequence. When a new upgrade attempt is started from either
+			// side, it will be a fresh sequence for both sides (i.e. channel.upgradeSequence + 1)
+			upgradeSequence = channel.UpgradeSequence
+		}
+
+		// NOTE: Two possible outcomes may occur in this scenario.
+		// The ChanUpgradeCancel datagram may reach the counterparty first, which will cause the counterparty to cancel. The counterparty
+		// may then receive a TRY with our channel upgrade sequence and correctly increment their sequence to become synced with our upgrade attempt.
+		// The ChanUpgradeTry message may arrive first, in this case, **IF** the upgrade fields are mutually compatible; the counterparty will simply
+		// fast forward their sequence to our own and continue the upgrade. The following ChanUpgradeCancel message will be rejected as it is below the current sequence.
+
+		return channel, upgrade, types.NewUpgradeError(upgradeSequence, errorsmod.Wrapf(
 			types.ErrInvalidUpgradeSequence, "counterparty upgrade sequence < current upgrade sequence (%d < %d)", counterpartyUpgradeSequence, channel.UpgradeSequence,
 		))
 	}
@@ -174,9 +167,41 @@ func (k Keeper) ChanUpgradeTry(
 		proofHeight, proofCounterpartyUpgrade,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
-		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}),
+		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
 	); err != nil {
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to verify counterparty upgrade")
+	}
+
+	// construct counterpartyChannel from existing information and provided counterpartyUpgradeSequence
+	// create upgrade fields from counterparty proposed upgrade and own verified connection hops
+	proposedUpgradeFields := types.UpgradeFields{
+		Ordering:       counterpartyUpgradeFields.Ordering,
+		ConnectionHops: proposedConnectionHops,
+		Version:        counterpartyUpgradeFields.Version,
+	}
+
+	// NOTE: if an upgrade exists (crossing hellos) then use existing upgrade fields
+	// otherwise, run the upgrade init sub-protocol
+	if isCrossingHello {
+		proposedUpgradeFields = upgrade.Fields
+	} else {
+		// NOTE: OnChanUpgradeInit will not be executed by the application
+		upgrade, err = k.ChanUpgradeInit(ctx, portID, channelID, proposedUpgradeFields)
+		if err != nil {
+			return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed to initialize upgrade")
+		}
+
+		channel, upgrade = k.WriteUpgradeInitChannel(ctx, portID, channelID, upgrade, upgrade.Fields.Version)
+	}
+
+	if err := k.checkForUpgradeCompatibility(ctx, proposedUpgradeFields, counterpartyUpgradeFields); err != nil {
+		return types.Channel{}, types.Upgrade{}, errorsmod.Wrap(err, "failed upgrade compatibility check")
+	}
+
+	// if the counterparty sequence is greater than the current sequence, we fast-forward to the counterparty sequence.
+	if counterpartyUpgradeSequence > channel.UpgradeSequence {
+		channel.UpgradeSequence = counterpartyUpgradeSequence
+		k.SetChannel(ctx, portID, channelID, channel)
 	}
 
 	if err := k.startFlushing(ctx, portID, channelID, &upgrade); err != nil {
@@ -302,8 +327,10 @@ func (k Keeper) ChanUpgradeAck(
 	}
 
 	timeout := counterpartyUpgrade.Timeout
-	if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(err, "counterparty upgrade timeout has passed"))
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+
+	if timeout.Elapsed(selfHeight, selfTimestamp) {
+		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "counterparty upgrade timeout elapsed"))
 	}
 
 	return nil
@@ -323,10 +350,6 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	if !k.HasInflightPackets(ctx, portID, channelID) {
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
-	} else {
-		// the counterparty upgrade is only required if the channel is still in the FLUSHING state.
-		// this gets read when timing out and acknowledging packets.
-		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -337,6 +360,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
+	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State.String())
 	return channel, upgrade
@@ -409,8 +433,10 @@ func (k Keeper) ChanUpgradeConfirm(
 	}
 
 	timeout := counterpartyUpgrade.Timeout
-	if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(err, "counterparty upgrade timeout has passed"))
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+
+	if timeout.Elapsed(selfHeight, selfTimestamp) {
+		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "counterparty upgrade timeout elapsed"))
 	}
 
 	return nil
@@ -432,13 +458,10 @@ func (k Keeper) WriteUpgradeConfirmChannel(ctx sdk.Context, portID, channelID st
 		previousState := channel.State
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
-
 		k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
-	} else {
-		// the counterparty upgrade is only required if the channel is still in the FLUSHING state.
-		// this gets read when timing out and acknowledging packets.
-		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
+
+	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	return channel
 }
 
@@ -537,6 +560,36 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
 		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Errorf("could not find counterparty upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	// next seq recv and ack is used for ordered channels to verify the packet has been received/acked in the correct order
+	// this is no longer necessary if the channel is UNORDERED and should be reset to 1
+	if channel.Ordering == types.ORDERED && upgrade.Fields.Ordering == types.UNORDERED {
+		k.SetNextSequenceRecv(ctx, portID, channelID, 1)
+		k.SetNextSequenceAck(ctx, portID, channelID, 1)
+	}
+
+	// next seq recv and ack should updated when moving from UNORDERED to ORDERED using the counterparty NextSequenceSend as set just after blocking new packet sends.
+	// we can be sure that the next packet we are set to receive will be the first packet the counterparty sends after reopening.
+	// we can be sure that our next acknowledgement will be our first packet sent after upgrade, as the counterparty processed all sent packets after flushing completes.
+	if channel.Ordering == types.UNORDERED && upgrade.Fields.Ordering == types.ORDERED {
+		k.SetNextSequenceRecv(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
+		k.SetNextSequenceAck(ctx, portID, channelID, upgrade.NextSequenceSend)
+	}
+
+	// set the counterparty next sequence send as pruning sequence end in order to have upper bound to prune to
+	k.SetPruningSequenceEnd(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
+
+	// First upgrade for this channel will set the pruning sequence to 1, the starting sequence for pruning.
+	// Subsequent upgrades will not modify the pruning sequence thereby allowing pruning to continue from the last
+	// pruned sequence.
+	if !k.HasPruningSequenceStart(ctx, portID, channelID) {
+		k.SetPruningSequenceStart(ctx, portID, channelID, 1)
 	}
 
 	// Switch channel fields to upgrade fields and set channel state to OPEN
@@ -769,6 +822,12 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 	channel.State = types.FLUSHING
 	k.SetChannel(ctx, portID, channelID, channel)
 
+	nextSequenceSend, found := k.GetNextSequenceSend(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	upgrade.NextSequenceSend = nextSequenceSend
 	upgrade.Timeout = k.getAbsoluteUpgradeTimeout(ctx)
 	k.SetUpgrade(ctx, portID, channelID, *upgrade)
 

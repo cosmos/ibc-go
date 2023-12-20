@@ -141,6 +141,11 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 		return "", errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
 	}
 
+	// support for unordered ICA channels is not implemented yet
+	if order != channeltypes.ORDERED {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
+	}
+
 	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
 		return "", err

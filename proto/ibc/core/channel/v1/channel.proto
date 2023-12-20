@@ -49,6 +49,9 @@ message IdentifiedChannel {
   string port_id = 6;
   // channel identifier
   string channel_id = 7;
+  // upgrade sequence indicates the latest upgrade attempt performed by this channel
+  // the value of 0 indicates the channel has never been upgraded
+  uint64 upgrade_sequence = 8;
 }
 
 // State defines if a channel is in one of the following states:
