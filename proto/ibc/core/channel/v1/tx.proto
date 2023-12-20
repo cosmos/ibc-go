@@ -459,5 +459,5 @@ message MsgPruneAcknowledgementsResponse {
   // Number of sequences pruned (might include both packet acknowledgements and packet receipts).
   uint64 pruned = 1;
   // Number of sequences left after pruning.
-  uint64 left  = 2;
+  uint64 left = 2;
 }
