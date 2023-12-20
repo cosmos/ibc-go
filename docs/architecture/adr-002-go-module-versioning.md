@@ -30,7 +30,7 @@ For example, changing the go package version from `v2` to `v3` bumps the import 
 If the Go module version is not incremented then attempting to go get a module @v3.0.0 without the suffix results in:
 `invalid version: module contains a go.mod file, so major version must be compatible: should be v0 or v1, not v3`
 
-Version validation was added in Go 1.13. This means is that in order to release a v3.0.0 git tag without a /v3 suffix on the module definition, the tag must explicitly **not** contain a go.mod file.
+Version validation was added in Go 1.13. This means that in order to release a v3.0.0 git tag without a /v3 suffix on the module definition, the tag must explicitly **not** contain a go.mod file.
 Not including a go.mod in our release is not a viable option.
 
 #### Attempting to import multiple go module versions for ibc-go
