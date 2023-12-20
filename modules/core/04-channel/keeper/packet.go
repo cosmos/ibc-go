@@ -141,7 +141,7 @@ func (k Keeper) RecvPacket(
 		// this error should never be reached, as under normal circumstances the counterparty
 		// should not send any packets after the upgrade has been started.
 		counterpartyNextSequenceSend := counterpartyUpgrade.NextSequenceSend
-		if counterpartyNextSequenceSend != 0 && packet.GetSequence() >= counterpartyNextSequenceSend {
+		if packet.GetSequence() >= counterpartyNextSequenceSend {
 			return errorsmod.Wrapf(
 				types.ErrInvalidPacket,
 				"failed to receive packet, cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d). UNEXPECTED BEHAVIOUR ON COUNTERPARTY, PLEASE REPORT ISSUE TO RELEVANT CHAIN DEVELOPERS",
