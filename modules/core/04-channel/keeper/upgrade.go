@@ -545,7 +545,7 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 		k.SetNextSequenceAck(ctx, portID, channelID, 1)
 	}
 
-	// next seq recv and ack should updated when moving from UNORDERED to ORDERED using the latest packet sequence sent before the upgrade
+	// next seq recv and ack should updated when moving from UNORDERED to ORDERED using the counterparty NextSequenceSend as set just after blocking new packet sends.
 	// we can be sure that the next packet we are set to receive will be the first packet the counterparty sends after reopening.
 	// we can be sure that our next acknowledgement will be our first packet sent after upgrade, as the counterparty processed all sent packets after flushing completes.
 	if channel.Ordering == types.UNORDERED && upgrade.Fields.Ordering == types.ORDERED {
