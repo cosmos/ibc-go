@@ -769,7 +769,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 	var (
 		path     *ibctesting.Path
 		isNilApp bool
-		order    channeltypes.Order
 		version  string
 	)
 
@@ -792,11 +791,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
 			}, types.ErrControllerSubModuleDisabled,
-		},
-		{
-			"unordered channels not supported", func() {
-				order = channeltypes.UNORDERED
-			}, channeltypes.ErrInvalidChannelOrdering,
 		},
 		{
 			"ICA OnChanUpgradeInit fails - invalid version", func() {
@@ -833,7 +827,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
 
-			order = channeltypes.ORDERED
 			metadata := icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
 
@@ -855,7 +848,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
-				order,
+				channeltypes.ORDERED,
 				[]string{path.EndpointA.ConnectionID},
 				version,
 			)

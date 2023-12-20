@@ -238,12 +238,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID str
 		return "", types.ErrControllerSubModuleDisabled
 	}
 
-	// support for unordered ICA channels is not implemented yet
-	if order != channeltypes.ORDERED {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
-	}
-
-	version, err := im.keeper.OnChanUpgradeInit(ctx, portID, channelID, connectionHops, version)
+	version, err := im.keeper.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, version)
 	if err != nil {
 		return "", err
 	}
