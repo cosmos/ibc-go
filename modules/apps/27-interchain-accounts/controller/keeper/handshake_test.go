@@ -481,6 +481,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 	var (
 		path     *ibctesting.Path
 		metadata icatypes.Metadata
+		order    channeltypes.Order
 	)
 
 	testCases := []struct {
@@ -530,6 +531,13 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			},
 			expError: connectiontypes.ErrConnectionNotFound,
 		},
+		{
+			name: "failure: invalid order",
+			malleate: func() {
+				order = channeltypes.UNORDERED
+			},
+			expError: channeltypes.ErrInvalidChannelOrdering,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -547,6 +555,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			currentMetadata, err := suite.chainA.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().NoError(err)
 
+			order = channeltypes.ORDERED
 			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
@@ -562,6 +571,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 				path.EndpointA.Chain.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
+				order,
 				[]string{path.EndpointA.ConnectionID},
 				version,
 			)
