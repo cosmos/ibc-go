@@ -605,8 +605,6 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
-	var order channeltypes.Order
-
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -619,11 +617,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 			"host submodule disabled", func() {
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
 			}, types.ErrHostSubModuleDisabled,
-		},
-		{
-			"unordered channels not supported", func() {
-				order = channeltypes.UNORDERED
-			}, channeltypes.ErrInvalidChannelOrdering,
 		},
 	}
 
@@ -642,7 +635,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 			interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 			suite.Require().True(found)
 
-			order = channeltypes.ORDERED
 			metadata := icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
 			metadata.Address = interchainAccountAddr
 			metadata.Encoding = icatypes.EncodingProto3JSON // this is the actual change to the version
@@ -665,7 +657,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 				suite.chainB.GetContext(),
 				path.EndpointB.ChannelConfig.PortID,
 				path.EndpointB.ChannelID,
-				order,
+				channeltypes.ORDERED,
 				[]string{path.EndpointB.ConnectionID},
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version,
 			)

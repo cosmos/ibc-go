@@ -54,7 +54,7 @@ func (iapd InterchainAccountPacketData) ValidateBasic() error {
 
 // GetBytes returns the JSON marshalled interchain account packet data.
 func (iapd InterchainAccountPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&iapd))
+	return ModuleCdc.MustMarshalJSON(&iapd)
 }
 
 // UnmarshalJSON unmarshals raw JSON bytes into an InterchainAccountPacketData.
