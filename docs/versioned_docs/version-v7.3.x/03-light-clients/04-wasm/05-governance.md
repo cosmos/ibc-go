@@ -29,9 +29,9 @@ import (
 // app.go
 app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
   appCodec,
-  runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
+  keys[wasmtypes.StoreKey],
   app.IBCKeeper.ClientKeeper,
- 	authtypes.NewModuleAddress(govtypes.ModuleName).String(), // authority
+ authtypes.NewModuleAddress(govtypes.ModuleName).String(), // authority
   wasmVM,
   app.GRPCQueryRouter(),
 )
