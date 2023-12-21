@@ -2016,3 +2016,77 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
+	var msg *channeltypes.MsgPruneAcknowledgements
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: core keeper function fails, pruning sequence end not found",
+			func() {
+				msg.PortId = "portidone"
+			},
+			channeltypes.ErrPruningSequenceEndNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version on testing endpoints
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeConfirm()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeOpen()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			msg = channeltypes.NewMsgPruneAcknowledgements(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				10,
+				suite.chainA.SenderAccount.GetAddress().String(),
+			)
+
+			tc.malleate()
+
+			resp, err := suite.chainA.App.GetIBCKeeper().PruneAcknowledgements(suite.chainA.GetContext(), msg)
+
+			if tc.expErr == nil {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(resp)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(resp)
+			}
+		})
+	}
+}
