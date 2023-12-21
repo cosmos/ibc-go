@@ -149,7 +149,7 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 			},
 		},
 		{
-			"success: src_callback has string valu",
+			"success: src_callback has string value",
 			types.InterchainAccountPacketData{
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),

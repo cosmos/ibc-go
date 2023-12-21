@@ -250,7 +250,6 @@ func (k Keeper) RecvPacket(
 		// incrementing nextSequenceRecv and storing under this chain's channelEnd identifiers
 		// Since this is the receiving chain, our channelEnd is packet's destination port and channel
 		k.SetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv)
-
 	}
 
 	// log that a packet has been received & executed
@@ -475,18 +474,16 @@ func (k Keeper) AcknowledgePacket(
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
+		// counterparty upgrade is written in the OnChanUpgradeAck step.
 		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-		if !found {
-			return errorsmod.Wrapf(types.ErrUpgradeNotFound, "counterparty upgrade not found for channel: %s", packet.GetSourceChannel())
-		}
+		if found {
+			timeout := counterpartyUpgrade.Timeout
+			selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
 
-		timeout := counterpartyUpgrade.Timeout
-		// if the timeout is valid then use it, otherwise it has not been set in the upgrade handshake yet.
-		if timeout.IsValid() {
-			if hasPassed, err := timeout.HasPassed(ctx); hasPassed {
+			if timeout.Elapsed(selfHeight, selfTimestamp) {
 				// packet flushing timeout has expired, abort the upgrade and return nil,
 				// committing an error receipt to state, restoring the channel and successfully acknowledging the packet.
-				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), err)
+				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
 				return nil
 			}
 
@@ -494,6 +491,7 @@ func (k Keeper) AcknowledgePacket(
 			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 				channel.State = types.FLUSHCOMPLETE
 				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+				emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 			}
 		}
 	}

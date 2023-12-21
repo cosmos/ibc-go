@@ -60,7 +60,7 @@ options specified in your config file.
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
 
-These environment variables allow us to run tests with arbitrary verions (from branches or released) of simd
+These environment variables allow us to run tests with arbitrary versions (from branches or released) of simd
 and the go relayer.
 
 Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd).

@@ -56,9 +56,9 @@ const (
 	defaultRlyTag = "latest"
 
 	// TODO: https://github.com/cosmos/ibc-go/issues/4965
-	defaultHyperspaceTag = "local"
+	defaultHyperspaceTag = "20231122v39"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "v1.7.0"
+	defaultHermesTag = "luca_joss-channel-upgrade-authority"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
@@ -443,6 +443,11 @@ func GetChainBTag() string {
 // Note: github actions passes a CI env value of true by default to all runners.
 func IsCI() bool {
 	return strings.ToLower(os.Getenv("CI")) == "true"
+}
+
+// IsFork returns true if the tests are running in fork mode, false is returned otherwise.
+func IsFork() bool {
+	return strings.ToLower(os.Getenv("FORK")) == "true"
 }
 
 // ChainOptions stores chain configurations for the chains that will be

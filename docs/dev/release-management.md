@@ -7,7 +7,7 @@ Pre-requisites for creating a release branch for a new major version:
 1. Bump [Go package version](https://github.com/cosmos/ibc-go/blob/main/go.mod#L3).
 2. Change all imports. For example: if the next major version is `v3`, then change all imports starting with `github.com/cosmos/ibc-go/v2` to `github.com/cosmos/ibc-go/v3`).
 
-Once the above pre-requisites are satified:
+Once the above pre-requisites are satisfied:
 
 1. Start on `main`.
 2. Create the release branch (`release/vX.XX.X`). For example: `release/v3.0.x`.

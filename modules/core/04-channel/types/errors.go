@@ -51,4 +51,7 @@ var (
 	ErrInvalidUpgradeTimeout           = errorsmod.Register(SubModuleName, 35, "upgrade timeout is invalid")
 	ErrPendingInflightPackets          = errorsmod.Register(SubModuleName, 36, "pending inflight packets exist")
 	ErrUpgradeTimeoutFailed            = errorsmod.Register(SubModuleName, 37, "upgrade timeout failed")
+	ErrInvalidPruningLimit             = errorsmod.Register(SubModuleName, 38, "invalid pruning limit")
+	ErrTimeoutNotReached               = errorsmod.Register(SubModuleName, 39, "timeout not reached")
+	ErrTimeoutElapsed                  = errorsmod.Register(SubModuleName, 40, "timeout elapsed")
 )

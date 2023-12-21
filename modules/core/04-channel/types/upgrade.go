@@ -12,10 +12,11 @@ import (
 )
 
 // NewUpgrade creates a new Upgrade instance.
-func NewUpgrade(upgradeFields UpgradeFields, timeout Timeout) Upgrade {
+func NewUpgrade(upgradeFields UpgradeFields, timeout Timeout, nextSequenceSend uint64) Upgrade {
 	return Upgrade{
-		Fields:  upgradeFields,
-		Timeout: timeout,
+		Fields:           upgradeFields,
+		Timeout:          timeout,
+		NextSequenceSend: nextSequenceSend,
 	}
 }
 

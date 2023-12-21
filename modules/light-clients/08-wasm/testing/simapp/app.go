@@ -102,6 +102,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+	cmtos "github.com/cometbft/cometbft/libs/os"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -446,7 +448,7 @@ func NewSimApp(
 	// Both x/wasm's Keeper and 08-wasm Keeper should share the same Wasm VM instance.
 	// - Instantiate the Wasm VM in app.go with the parameters of your choice.
 	// - Create an Option with this Wasm VM instance (see https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/options.go#L26-L32).
-	// - Pass the option to the x/wasm NewKeeper contructor function (https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/keeper_cgo.go#L36).
+	// - Pass the option to the x/wasm NewKeeper constructor function (https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/keeper_cgo.go#L36).
 	// - Pass a pointer to the Wasm VM instance to 08-wasm NewKeeperWithVM constructor function.
 	//
 	// 2. If the chain does not use x/wasm:
@@ -469,12 +471,12 @@ func NewSimApp(
 		// NOTE: mockVM is used for testing purposes only!
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
 			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, app.GRPCQueryRouter(),
 		)
 	} else {
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, app.GRPCQueryRouter(),
 		)
 	}
 
@@ -739,6 +741,10 @@ func NewSimApp(
 	}
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
+	// registerUpgradeHandlers is used for registering any on-chain upgrades.
+	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
+	app.registerUpgradeHandlers()
+
 	// add test gRPC service for testing gRPC queries in isolation
 	testpb.RegisterQueryServer(app.GRPCQueryRouter(), testpb.QueryImpl{})
 
@@ -814,6 +820,13 @@ func NewSimApp(
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			panic(fmt.Errorf("error loading last version: %w", err))
+		}
+
+		ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
+
+		// Initialize pinned codes in wasmvm as they are not persisted there
+		if err := wasmkeeper.InitializePinnedCodes(ctx); err != nil {
+			cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 	}
 

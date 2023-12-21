@@ -1,18 +1,133 @@
 package types_test
 
 import (
-	"errors"
-	fmt "fmt"
-
 	prefixstore "cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 var invalidPrefix = []byte("invalid/")
+
+func (suite *TypesTestSuite) TestGetChecksums() {
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expResult func(checksums []types.Checksum)
+	}{
+		{
+			"success: no contract stored.",
+			func() {},
+			func(checksums []types.Checksum) {
+				suite.Require().Len(checksums, 0)
+			},
+		},
+		{
+			"success: default mock vm contract stored.",
+			func() {
+				suite.SetupWasmWithMockVM()
+			},
+			func(checksums []types.Checksum) {
+				suite.Require().Len(checksums, 1)
+				expectedChecksum, err := types.CreateChecksum(wasmtesting.Code)
+				suite.Require().NoError(err)
+				suite.Require().Equal(expectedChecksum, checksums[0])
+			},
+		},
+		{
+			"success: non-empty checksums",
+			func() {
+				suite.SetupWasmWithMockVM()
+
+				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), types.Checksum("checksum"))
+				suite.Require().NoError(err)
+			},
+			func(checksums []types.Checksum) {
+				suite.Require().Len(checksums, 2)
+				suite.Require().Contains(checksums, types.Checksum("checksum"))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			tc.malleate()
+
+			checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
+			suite.Require().NoError(err)
+			tc.expResult(checksums)
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestAddChecksum() {
+	suite.SetupWasmWithMockVM()
+
+	checksums, err := types.GetAllChecksums(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	// default mock vm contract is stored
+	suite.Require().Len(checksums, 1)
+
+	checksum1 := types.Checksum("checksum1")
+	checksum2 := types.Checksum("checksum2")
+	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum1)
+	suite.Require().NoError(err)
+	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum2)
+	suite.Require().NoError(err)
+
+	// Test adding the same checksum twice
+	err = ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum1)
+	suite.Require().NoError(err)
+
+	checksums, err = types.GetAllChecksums(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	suite.Require().Len(checksums, 3)
+	suite.Require().Contains(checksums, checksum1)
+	suite.Require().Contains(checksums, checksum2)
+}
+
+func (suite *TypesTestSuite) TestHasChecksum() {
+	var checksum types.Checksum
+
+	testCases := []struct {
+		name       string
+		malleate   func()
+		exprResult bool
+	}{
+		{
+			"success: checksum exists",
+			func() {
+				checksum = types.Checksum("checksum")
+				err := ibcwasm.Checksums.Set(suite.chainA.GetContext(), checksum)
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"success: checksum does not exist",
+			func() {
+				checksum = types.Checksum("non-existent-checksum")
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			tc.malleate()
+
+			result := types.HasChecksum(suite.chainA.GetContext(), checksum)
+			suite.Require().Equal(tc.exprResult, result)
+		})
+	}
+}
 
 // TestMigrateClientWrappedStoreGetStore tests the getStore method of the migrateClientWrappedStore.
 func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
@@ -23,31 +138,26 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 		name     string
 		prefix   []byte
 		expStore storetypes.KVStore
-		expPanic error
 	}{
 		{
 			"success: subject store",
 			types.SubjectPrefix,
 			subjectStore,
-			nil,
 		},
 		{
 			"success: substitute store",
 			types.SubstitutePrefix,
 			substituteStore,
-			nil,
 		},
 		{
 			"failure: invalid prefix",
 			invalidPrefix,
 			nil,
-			fmt.Errorf("key must be prefixed with either \"%s\" or \"%s\"", types.SubjectPrefix, types.SubstitutePrefix),
 		},
 		{
 			"failure: invalid prefix contains both subject/ and substitute/",
 			append(types.SubjectPrefix, types.SubstitutePrefix...),
 			nil,
-			fmt.Errorf("key must be prefixed with either \"%s\" or \"%s\"", types.SubjectPrefix, types.SubstitutePrefix),
 		},
 	}
 
@@ -56,10 +166,15 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGetStore() {
 		suite.Run(tc.name, func() {
 			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
 
-			if tc.expPanic == nil {
-				suite.Require().Equal(tc.expStore, wrappedStore.GetStore(tc.prefix))
+			store, found := wrappedStore.GetStore(tc.prefix)
+
+			storeFound := tc.expStore != nil
+			if storeFound {
+				suite.Require().Equal(tc.expStore, store)
+				suite.Require().True(found)
 			} else {
-				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { wrappedStore.GetStore(tc.prefix) })
+				suite.Require().Nil(store)
+				suite.Require().False(found)
 			}
 		})
 	}
@@ -117,28 +232,24 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 		prefix   []byte
 		key      []byte
 		expStore storetypes.KVStore
-		expPanic error
 	}{
 		{
 			"success: subject store Get",
 			types.SubjectPrefix,
 			host.ClientStateKey(),
 			subjectStore,
-			nil,
 		},
 		{
 			"success: substitute store Get",
 			types.SubstitutePrefix,
 			host.ClientStateKey(),
 			substituteStore,
-			nil,
 		},
 		{
 			"failure: key not prefixed with subject/ or substitute/",
 			invalidPrefix,
 			host.ClientStateKey(),
 			nil,
-			fmt.Errorf("key must be prefixed with either \"%s\" or \"%s\"", types.SubjectPrefix, types.SubstitutePrefix),
 		},
 	}
 
@@ -150,12 +261,14 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
 
-			if tc.expPanic == nil {
+			storeFound := tc.expStore != nil
+			if storeFound {
 				expValue := tc.expStore.Get(tc.key)
 
 				suite.Require().Equal(expValue, wrappedStore.Get(prefixedKey))
 			} else {
-				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { wrappedStore.Get(prefixedKey) })
+				// expected value when store is not found is an empty byte slice
+				suite.Require().Equal([]byte(nil), wrappedStore.Get(prefixedKey))
 			}
 		})
 	}
@@ -163,48 +276,50 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreGet() {
 
 // TestMigrateClientWrappedStoreSet tests the Set method of the migrateClientWrappedStore.
 func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
-	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
-	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
-
 	testCases := []struct {
-		name     string
-		prefix   []byte
-		key      []byte
-		expStore storetypes.KVStore
-		expPanic error
+		name   string
+		prefix []byte
+		key    []byte
+		expSet bool
 	}{
 		{
 			"success: subject store Set",
 			types.SubjectPrefix,
 			host.ClientStateKey(),
-			subjectStore,
-			nil,
+			true,
 		},
 		{
 			"failure: cannot Set on substitute store",
 			types.SubstitutePrefix,
 			host.ClientStateKey(),
-			nil,
-			fmt.Errorf("writes only allowed on subject store; key must be prefixed with \"%s\"", types.SubjectPrefix),
+			false,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
+			// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
+			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
 
-			if tc.expPanic == nil {
-				wrappedStore.Set(prefixedKey, wasmtesting.MockClientStateBz)
+			wrappedStore.Set(prefixedKey, wasmtesting.MockClientStateBz)
 
-				expValue := tc.expStore.Get(tc.key)
+			if tc.expSet {
+				store, found := wrappedStore.GetStore(tc.prefix)
+				suite.Require().True(found)
+				suite.Require().Equal(subjectStore, store)
 
-				suite.Require().Equal(expValue, wasmtesting.MockClientStateBz)
+				value := store.Get(tc.key)
+
+				suite.Require().Equal(wasmtesting.MockClientStateBz, value)
 			} else {
-				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { wrappedStore.Set(prefixedKey, wasmtesting.MockClientStateBz) })
+				// Assert that no writes happened to subject or substitute store
+				suite.Require().NotEqual(wasmtesting.MockClientStateBz, subjectStore.Get(tc.key))
+				suite.Require().NotEqual(wasmtesting.MockClientStateBz, substituteStore.Get(tc.key))
 			}
 		})
 	}
@@ -212,46 +327,48 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreSet() {
 
 // TestMigrateClientWrappedStoreDelete tests the Delete method of the migrateClientWrappedStore.
 func (suite *TypesTestSuite) TestMigrateClientWrappedStoreDelete() {
-	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
-	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
-
 	testCases := []struct {
-		name     string
-		prefix   []byte
-		key      []byte
-		expStore storetypes.KVStore
-		expPanic error
+		name      string
+		prefix    []byte
+		key       []byte
+		expDelete bool
 	}{
 		{
 			"success: subject store Delete",
 			types.SubjectPrefix,
 			host.ClientStateKey(),
-			subjectStore,
-			nil,
+			true,
 		},
 		{
 			"failure: cannot Delete on substitute store",
 			types.SubstitutePrefix,
 			host.ClientStateKey(),
-			nil,
-			fmt.Errorf("writes only allowed on subject store; key must be prefixed with \"%s\"", types.SubjectPrefix),
+			false,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
+			// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
+			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 			wrappedStore := types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
 			prefixedKey = append(prefixedKey, tc.key...)
 
-			if tc.expPanic == nil {
-				wrappedStore.Delete(prefixedKey)
+			wrappedStore.Delete(prefixedKey)
 
-				suite.Require().False(tc.expStore.Has(tc.key))
+			if tc.expDelete {
+				store, found := wrappedStore.GetStore(tc.prefix)
+				suite.Require().True(found)
+				suite.Require().Equal(subjectStore, store)
+
+				suite.Require().False(store.Has(tc.key))
 			} else {
-				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { wrappedStore.Delete(prefixedKey) })
+				// Assert that no deletions happened to subject or substitute store
+				suite.Require().True(subjectStore.Has(tc.key))
+				suite.Require().True(substituteStore.Has(tc.key))
 			}
 		})
 	}
@@ -268,7 +385,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 		prefixEnd   []byte
 		start       []byte
 		end         []byte
-		expPanic    error
+		expValid    bool
 	}{
 		{
 			"success: subject store Iterate",
@@ -276,7 +393,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 			types.SubjectPrefix,
 			[]byte("start"),
 			[]byte("end"),
-			nil,
+			true,
 		},
 		{
 			"success: substitute store Iterate",
@@ -284,7 +401,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 			types.SubstitutePrefix,
 			[]byte("start"),
 			[]byte("end"),
-			nil,
+			true,
 		},
 		{
 			"failure: key not prefixed",
@@ -292,7 +409,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 			invalidPrefix,
 			[]byte("start"),
 			[]byte("end"),
-			fmt.Errorf("key must be prefixed with either \"%s\" or \"%s\"", types.SubjectPrefix, types.SubstitutePrefix),
+			false,
 		},
 		{
 			"failure: start and end keys not prefixed with same prefix",
@@ -300,7 +417,7 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 			types.SubstitutePrefix,
 			[]byte("start"),
 			[]byte("end"),
-			errors.New("start and end keys must be prefixed with the same prefix"),
+			false,
 		},
 	}
 
@@ -314,12 +431,62 @@ func (suite *TypesTestSuite) TestMigrateClientWrappedStoreIterators() {
 			prefixedKeyEnd := tc.prefixEnd
 			prefixedKeyEnd = append(prefixedKeyEnd, tc.end...)
 
-			if tc.expPanic == nil {
+			if tc.expValid {
 				suite.Require().NotNil(wrappedStore.Iterator(prefixedKeyStart, prefixedKeyEnd))
 				suite.Require().NotNil(wrappedStore.ReverseIterator(prefixedKeyStart, prefixedKeyEnd))
 			} else {
-				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { wrappedStore.Iterator(prefixedKeyStart, prefixedKeyEnd) })
-				suite.Require().PanicsWithError(tc.expPanic.Error(), func() { wrappedStore.ReverseIterator(prefixedKeyStart, prefixedKeyEnd) })
+				// Iterator returned should be Closed, calling `Valid` should return false
+				suite.Require().False(wrappedStore.Iterator(prefixedKeyStart, prefixedKeyEnd).Valid())
+				suite.Require().False(wrappedStore.ReverseIterator(prefixedKeyStart, prefixedKeyEnd).Valid())
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestNewMigrateClientWrappedStore() {
+	// calls suite.SetupWasmWithMockVM() and creates two clients with their respective stores
+	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPanic bool
+	}{
+		{
+			"success",
+			func() {},
+			false,
+		},
+		{
+			"failure: subject store is nil",
+			func() {
+				subjectStore = nil
+			},
+			true,
+		},
+		{
+			"failure: substitute store is nil",
+			func() {
+				substituteStore = nil
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			tc.malleate()
+
+			expPass := !tc.expPanic
+			if expPass {
+				suite.Require().NotPanics(func() {
+					types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+				})
+			} else {
+				suite.Require().Panics(func() {
+					types.NewMigrateProposalWrappedStore(subjectStore, substituteStore)
+				})
 			}
 		})
 	}
@@ -341,7 +508,8 @@ func (suite *TypesTestSuite) TestGetClientID() {
 		{
 			"success: clientID retrieved from migrateClientWrappedStore",
 			func() {
-				clientStore = types.NewMigrateProposalWrappedStore(clientStore, nil)
+				// substituteStore is ignored.
+				clientStore = types.NewMigrateProposalWrappedStore(clientStore, clientStore)
 			},
 			nil,
 		},

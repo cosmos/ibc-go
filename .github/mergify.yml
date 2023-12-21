@@ -42,38 +42,30 @@ pull_request_rules:
       backport:
         branches:
           - callbacks/release/v0.2.x+ibc-go-v7.3.x
-  - name: backport patches to v0.1.x wasm ibc-go v7.3.x branch
+  - name: backport patches to v0.2.x callbacks ibc-go v8.0.x branch
     conditions:
       - base=main
-      - label=backport-wasm-to-v0.1.x+ibc-go-v7.3.x
+      - label=backport-callbacks-to-v0.2.x+ibc-go-v8.0.x
     actions:
       backport:
         branches:
-          - 08-wasm/release/v0.1.x+ibc-go-v7.3.x
-  - name: backport patches to v0.1.x wasm ibc-go v8.0.x branch
+          - callbacks/release/v0.2.x+ibc-go-v8.0.x
+  - name: backport patches to v0.1.x wasm ibc-go v7.3.x & wasmvm 1.5.x branch
     conditions:
       - base=main
-      - label=backport-wasm-to-v0.1.x+ibc-go-v8.0.x
+      - label=backport-wasm-v0.1.x+ibc-go-v7.3.x-wasmvm-v1.5.x
     actions:
       backport:
         branches:
-          - 08-wasm/release/v0.1.x+ibc-go-v8.0.x
-  - name: backport patches to v6.1.x branch
+          - 08-wasm/release/v0.1.x+ibc-go-v7.3.x-wasmvm-v1.5.x
+  - name: backport patches to v0.1.x wasm ibc-go v8.0.x & wasmvm 1.5.x branch
     conditions:
       - base=main
-      - label=backport-to-v6.1.x
+      - label=backport-wasm-v0.1.x+ibc-go-v8.0.x-wasmvm-v1.5.x
     actions:
       backport:
         branches:
-          - release/v6.1.x
-  - name: backport patches to v6.2.x branch
-    conditions:
-      - base=main
-      - label=backport-to-v6.2.x
-    actions:
-      backport:
-        branches:
-          - release/v6.2.x
+          - 08-wasm/release/v0.1.x+ibc-go-v8.0.x-wasmvm-v1.5.x
   - name: backport patches to v7.2.x branch
     conditions:
       - base=main

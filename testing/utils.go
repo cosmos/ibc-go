@@ -7,6 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -58,4 +60,24 @@ func GenerateString(length uint) string {
 		bytes[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(bytes)
+}
+
+// UnmarshalMsgResponses parse out msg responses from a transaction result
+func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...codec.ProtoMarshaler) error {
+	var txMsgData sdk.TxMsgData
+	if err := cdc.Unmarshal(data, &txMsgData); err != nil {
+		return err
+	}
+
+	if len(msgs) != len(txMsgData.MsgResponses) {
+		return fmt.Errorf("expected %d message responses but got %d", len(msgs), len(txMsgData.MsgResponses))
+	}
+
+	for i, msg := range msgs {
+		if err := cdc.Unmarshal(txMsgData.MsgResponses[i].Value, msg); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

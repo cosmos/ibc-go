@@ -22,9 +22,6 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
-	// Wasm is used to indicate that the light client is a on-chain wasm program
-	Wasm string = "08-wasm"
-
 	// Localhost is the client type for the localhost client.
 	Localhost string = "09-localhost"
 
@@ -151,6 +148,9 @@ type ConsensusState interface {
 	ClientType() string // Consensus kind
 
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
+	//
+	// Deprecated: GetTimestamp is not used outside of the light client implementations,
+	// and therefore it doesn't need to be an interface function.
 	GetTimestamp() uint64
 
 	ValidateBasic() error

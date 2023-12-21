@@ -258,6 +258,19 @@ func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
 	return res.IncentivizedPackets, err
 }
 
+// QueryFeeEnabledChannel queries the fee-enabled status of a channel.
+func (s *E2ETestSuite) QueryFeeEnabledChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (bool, error) {
+	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
+	res, err := queryClient.FeeEnabledChannel(ctx, &feetypes.QueryFeeEnabledChannelRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+	if err != nil {
+		return false, err
+	}
+	return res.FeeEnabled, nil
+}
+
 // QueryCounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.
 func (s *E2ETestSuite) QueryCounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
 	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
@@ -424,4 +437,15 @@ func (s *E2ETestSuite) QueryWasmCode(ctx context.Context, chain ibc.Chain, check
 		return nil, err
 	}
 	return res.Data, nil
+}
+
+// QueryWasmChecksums queries the wasm code checksums stored within the 08-wasm module.
+func (s *E2ETestSuite) QueryWasmChecksums(ctx context.Context, chain ibc.Chain) ([]string, error) {
+	queryClient := s.GetChainGRCPClients(chain).WasmQueryClient
+	res, err := queryClient.Checksums(ctx, &wasmtypes.QueryChecksumsRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Checksums, nil
 }

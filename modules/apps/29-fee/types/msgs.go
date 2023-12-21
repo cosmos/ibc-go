@@ -46,10 +46,6 @@ func (msg MsgRegisterPayee) ValidateBasic() error {
 		return err
 	}
 
-	if msg.Relayer == msg.Payee {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "relayer address and payee must not be equal")
-	}
-
 	_, err := sdk.AccAddressFromBech32(msg.Relayer)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to create sdk.AccAddress from relayer address")
@@ -61,16 +57,6 @@ func (msg MsgRegisterPayee) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgRegisterPayee) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Relayer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{signer}
 }
 
 // NewMsgRegisterCounterpartyPayee creates a new instance of MsgRegisterCounterpartyPayee
@@ -109,16 +95,6 @@ func (msg MsgRegisterCounterpartyPayee) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgRegisterCounterpartyPayee) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Relayer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{signer}
-}
-
 // NewMsgPayPacketFee creates a new instance of MsgPayPacketFee
 func NewMsgPayPacketFee(fee Fee, sourcePortID, sourceChannelID, signer string, relayers []string) *MsgPayPacketFee {
 	return &MsgPayPacketFee{
@@ -155,15 +131,6 @@ func (msg MsgPayPacketFee) ValidateBasic() error {
 	return msg.Fee.Validate()
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgPayPacketFee) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}
-
 // NewMsgPayPacketAsync creates a new instance of MsgPayPacketFee
 func NewMsgPayPacketFeeAsync(packetID channeltypes.PacketId, packetFee PacketFee) *MsgPayPacketFeeAsync {
 	return &MsgPayPacketFeeAsync{
@@ -179,14 +146,4 @@ func (msg MsgPayPacketFeeAsync) ValidateBasic() error {
 	}
 
 	return msg.PacketFee.Validate()
-}
-
-// GetSigners implements sdk.Msg
-// The signer of the fee message must be the refund address
-func (msg MsgPayPacketFeeAsync) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.PacketFee.RefundAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
 }

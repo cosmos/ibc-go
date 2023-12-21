@@ -20,7 +20,7 @@ const (
 )
 
 // GetCmdQueryChannels defines the command to query all the channels ends
-// that this chain mantains.
+// that this chain maintains.
 func GetCmdQueryChannels() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "channels",
@@ -555,6 +555,31 @@ func GetCmdQueryUpgrade() *cobra.Command {
 		},
 	}
 	cmd.Flags().Bool(flags.FlagProve, false, "show proofs for the query results")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdChannelParams returns the command handler for ibc channel parameter querying.
+func GetCmdChannelParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "params",
+		Short:   "Query the current ibc channel parameters",
+		Long:    "Query the current ibc channel parameters",
+		Args:    cobra.NoArgs,
+		Example: fmt.Sprintf("%s query %s %s params", version.AppName, ibcexported.ModuleName, types.SubModuleName),
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, _ := queryClient.ChannelParams(cmd.Context(), &types.QueryChannelParamsRequest{})
+			return clientCtx.PrintProto(res.Params)
+		},
+	}
+
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
