@@ -167,6 +167,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 			},
 			func(res authz.AcceptResponse, err error) {
 				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, "not allowed packet data keys: [wasm]")
 			},
 		},
 		{
