@@ -5,20 +5,22 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/version"
+
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/spf13/cobra"
 )
 
-// NewPruneAcknowledgementsTxCmd returns the command to create a new MsgPruneAcknowledgements transaction*
+// NewPruneAcknowledgementsTxCmd returns the command to create a new MsgPruneAcknowledgements transaction
 func NewPruneAcknowledgementsTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "prune-acknowledgements [port] [channel] [limit]",
 		Short:   "Prune expired packet acknowledgements stored in IBC state",
-		Long:    strings.TrimSpace(`Prune expired packet acknowledgements stored in IBC state`),
+		Long:    strings.TrimSpace(`TODO(add long info):Prune expired packet acknowledgements stored in IBC state`),
 		Example: fmt.Sprintf("%s tx ibc prune-acknowledgements [port] [channel] [limit]", version.AppName),
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -26,12 +28,15 @@ func NewPruneAcknowledgementsTxCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			portID, channelID := args[0], args[1]
 			limit, err := strconv.ParseUint(args[2], 10, 64)
 			if err != nil {
 				return err
 			}
+
 			signer := clientCtx.GetFromAddress().String()
+
 			msg := types.NewMsgPruneAcknowledgements(portID, channelID, limit, signer)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
