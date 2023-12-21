@@ -84,6 +84,11 @@ func TestCodecTypeRegistration(t *testing.T) {
 			true,
 		},
 		{
+			"success: MsgPruneAcknowledgements",
+			sdk.MsgTypeURL(&types.MsgPruneAcknowledgements{}),
+			true,
+		},
+		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
 			false,
