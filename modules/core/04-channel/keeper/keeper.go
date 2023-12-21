@@ -680,8 +680,8 @@ func (k Keeper) PruneStalePacketState(ctx sdk.Context, portID, channelID string,
 	if !k.HasPruningSequenceStart(ctx, portID, channelID) {
 		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
-	pruningSequenceStart := k.GetPruningSequenceStart(ctx, portID, channelID)
 
+	pruningSequenceStart := k.GetPruningSequenceStart(ctx, portID, channelID)
 	pruningSequenceEnd, found := k.GetPruningSequenceEnd(ctx, portID, channelID)
 	if !found {
 		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceEndNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -690,7 +690,7 @@ func (k Keeper) PruneStalePacketState(ctx sdk.Context, portID, channelID string,
 	start := pruningSequenceStart
 	end := pruningSequenceStart + limit
 	for ; start < end; start++ {
-		// Stop pruning if pruningSequenceStart has reached pruningSequenceEnd, pruningSequenceEnd is
+		// stop pruning if pruningSequenceStart has reached pruningSequenceEnd, pruningSequenceEnd is
 		// set to be equal to the _next_ sequence to be sent by the counterparty.
 		if start >= pruningSequenceEnd {
 			break
@@ -700,17 +700,17 @@ func (k Keeper) PruneStalePacketState(ctx sdk.Context, portID, channelID string,
 			k.deletePacketAcknowledgement(ctx, portID, channelID, start)
 		}
 
-		// Note packet receipts are only relevant for unordered channels.
+		// NOTE: packet receipts are only relevant for unordered channels.
 		if k.HasPacketReceipt(ctx, portID, channelID, start) {
 			k.deletePacketReceipt(ctx, portID, channelID, start)
 		}
 	}
 
-	// Set pruning sequence start to the updated value
+	// set pruning sequence start to the updated value
 	k.SetPruningSequenceStart(ctx, portID, channelID, start)
 
-	pruned := start - pruningSequenceStart
-	left := pruningSequenceEnd - start
+	totalPruned := start - pruningSequenceStart
+	totalRemaining := pruningSequenceEnd - start
 
-	return pruned, left, nil
+	return totalPruned, totalRemaining, nil
 }

@@ -1094,6 +1094,21 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 	return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
 }
 
+// PruneStalePacketState defines a rpc handler method for MsgPruneStalePacketState.
+func (k Keeper) PruneStalePacketState(goCtx context.Context, msg *channeltypes.MsgPruneStalePacketState) (*channeltypes.MsgPruneStalePacketStateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	pruned, remaining, err := k.ChannelKeeper.PruneStalePacketState(ctx, msg.PortId, msg.ChannelId, msg.Limit)
+	if err != nil {
+		return nil, err
+	}
+
+	return &channeltypes.MsgPruneStalePacketStateResponse{
+		TotalPrunedSequences:    pruned,
+		TotalRemainingSequences: remaining,
+	}, nil
+}
+
 // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
 func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Signer {
@@ -1128,19 +1143,4 @@ func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Msg
 	k.ChannelKeeper.SetParams(ctx, msg.Params)
 
 	return &channeltypes.MsgUpdateParamsResponse{}, nil
-}
-
-// PruneStalePacketState defines a rpc handler method for MsgPruneStalePacketState.
-func (k Keeper) PruneStalePacketState(goCtx context.Context, msg *channeltypes.MsgPruneStalePacketState) (*channeltypes.MsgPruneStalePacketStateResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	pruned, remaining, err := k.ChannelKeeper.PruneStalePacketState(ctx, msg.PortId, msg.ChannelId, msg.Limit)
-	if err != nil {
-		return nil, err
-	}
-
-	return &channeltypes.MsgPruneStalePacketStateResponse{
-		PrunedSequences:    pruned,
-		RemainingSequences: remaining,
-	}, nil
 }
