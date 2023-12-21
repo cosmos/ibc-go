@@ -543,7 +543,7 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	})
 }
 
-func (suite *KeeperTestSuite) TestPruneStalePacketData() {
+func (suite *KeeperTestSuite) TestPruneStalePacketState() {
 	var (
 		path          *ibctesting.Path
 		limit         uint64
@@ -572,7 +572,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 		expError error
 	}{
 		{
-			"success: no packets sent, no stale packet data pruned",
+			"success: no packets sent, no stale packet state pruned",
 			func() {},
 			func() {},
 			func(pruned, left uint64) {
@@ -591,7 +591,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			nil,
 		},
 		{
-			"success: stale packet data pruned up to limit",
+			"success: stale packet state pruned up to limit",
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
 				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
@@ -611,7 +611,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			nil,
 		},
 		{
-			"success: stale packet partially pruned",
+			"success: stale packet state partially pruned",
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
 				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
@@ -631,7 +631,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			nil,
 		},
 		{
-			"success: stale packet data pruned, two upgrades",
+			"success: stale packet state pruned, two upgrades",
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
 				// This is _before_ the first upgrade.
@@ -663,15 +663,15 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 			nil,
 		},
 		{
-			"success: stale packet data partially pruned, upgrade, prune again",
+			"success: stale packet state partially pruned, upgrade, prune again",
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
 				// This is _before_ the first upgrade.
 				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
 			},
 			func() {
-				// Prune 5 packets on A.
-				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(
+				// Prune 5 on A.
+				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketState(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
@@ -740,7 +740,6 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 				// Send 5 packets from B -> A, creating 5 packet receipts and 5 packet acks on A.
 				suite.sendMockPackets(path.EndpointB, path.EndpointA, 5)
 			},
-			// keep default limit of 10
 			func() {},
 			func(pruned, left uint64) {
 				// We expect 5 to be pruned and 0 left.
@@ -750,8 +749,8 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 				// channel upgraded, send additional packets and try and prune.
 				suite.sendMockPackets(path.EndpointB, path.EndpointA, 12)
 
-				// attempt to prune 5 packets.
-				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(
+				// attempt to prune 5.
+				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketState(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
@@ -807,7 +806,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketData() {
 
 			tc.malleate()
 
-			pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketData(
+			pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketState(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,

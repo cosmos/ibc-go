@@ -671,12 +671,12 @@ func (k Keeper) HasPruningSequenceStart(ctx sdk.Context, portID, channelID strin
 	return store.Has(host.PruningSequenceStartKey(portID, channelID))
 }
 
-// PruneStalePacketData prunes packet acknowledgements and receipts that have a sequence number less than pruning sequence end.
+// PruneStalePacketState prunes packet acknowledgements and receipts that have a sequence number less than pruning sequence end.
 // The number of packet acks/receipts pruned is equal to limit. Pruning can only occur after a channel has been upgraded.
 //
 // Pruning sequence start keeps track of the packet ack/receipt that can be pruned next. When it reaches pruningSequenceEnd,
 // pruning is complete.
-func (k Keeper) PruneStalePacketData(ctx sdk.Context, portID, channelID string, limit uint64) (uint64, uint64, error) {
+func (k Keeper) PruneStalePacketState(ctx sdk.Context, portID, channelID string, limit uint64) (uint64, uint64, error) {
 	if !k.HasPruningSequenceStart(ctx, portID, channelID) {
 		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
