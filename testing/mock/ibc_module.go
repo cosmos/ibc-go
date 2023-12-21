@@ -19,6 +19,7 @@ import (
 var (
 	_ porttypes.IBCModule             = (*IBCModule)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
+	_ porttypes.UpgradableModule      = (*IBCModule)(nil)
 )
 
 // applicationCallbackError is a custom error type that will be unique for testing purposes.
@@ -174,6 +175,47 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 	}
 
 	return nil
+}
+
+// OnChanUpgradeInit implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+	if im.IBCApp.OnChanUpgradeInit != nil {
+		return im.IBCApp.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, version)
+	}
+
+	return version, nil
+}
+
+// OnChanUpgradeTry implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+	if im.IBCApp.OnChanUpgradeTry != nil {
+		return im.IBCApp.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
+	}
+
+	return counterpartyVersion, nil
+}
+
+// OnChanUpgradeAck implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+	if im.IBCApp.OnChanUpgradeAck != nil {
+		return im.IBCApp.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
+	}
+
+	return nil
+}
+
+// OnChanUpgradeOpen implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+	if im.IBCApp.OnChanUpgradeOpen != nil {
+		im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, version)
+	}
+}
+
+// OnChanUpgradeRestore implements the IBCModule interface
+func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
+	if im.IBCApp.OnChanUpgradeRestore != nil {
+		im.IBCApp.OnChanUpgradeRestore(ctx, portID, channelID)
+	}
 }
 
 // UnmarshalPacketData returns the MockPacketData. This function implements the optional
