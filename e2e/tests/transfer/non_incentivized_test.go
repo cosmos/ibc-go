@@ -32,8 +32,7 @@ func (s *NonIncentivizedTransferTestSuite) SetupTest() {
 	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
-	s.SetChainsIntoSuite(chainA, chainB)
-	s.SetRelayerIntoSuite(relayer)
+	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -45,11 +44,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
-
-	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-	s.Require().NoError(err)
-	chainAChannels := channelA[len(channelA)-1]
+	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	chainADenom := chainA.Config().Denom
 
@@ -72,7 +67,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 	chainBVersion := chainB.Config().Images[0].Version
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, chainAChannels.PortID, chainAChannels.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -96,10 +91,10 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 		s.StartRelayer(relayer)
 	})
 
-	chainBIBCToken := testsuite.GetIBCToken(chainADenom, chainAChannels.Counterparty.PortID, chainAChannels.Counterparty.ChannelID)
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, chainAChannels.PortID, chainAChannels.ChannelID, 1)
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
 		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
@@ -110,12 +105,12 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 
 	if testvalues.TokenMetadataFeatureReleases.IsSupported(chainBVersion) {
 		t.Run("metadata for IBC denomination exists on chainB", func(t *testing.T) {
-			s.AssertHumanReadableDenom(ctx, chainB, chainADenom, chainAChannels)
+			s.AssertHumanReadableDenom(ctx, chainB, chainADenom, channelA)
 		})
 	}
 
 	t.Run("non-native IBC token transfer from chainB to chainA, receiver is source of tokens", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, chainAChannels.Counterparty.PortID, chainAChannels.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBIBCToken.IBCDenom()), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -135,7 +130,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("packets are relayed", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainB, chainAChannels.Counterparty.PortID, chainAChannels.Counterparty.ChannelID, 1)
+		s.AssertPacketRelayed(ctx, chainB, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 		s.Require().NoError(err)
@@ -163,11 +158,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Timeout_Nonincentiviz
 	ctx := context.TODO()
 
 	chainA, _ := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
-
-	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-	s.Require().NoError(err)
-	chainAChannels := channelA[len(channelA)-1]
+	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
@@ -179,7 +170,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Timeout_Nonincentiviz
 	}
 
 	t.Run("IBC transfer packet timesout", func(t *testing.T) {
-		tx, err := chainA.SendIBCTransfer(ctx, chainAChannels.ChannelID, chainAWallet.KeyName(), chainBWalletAmount, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
+		tx, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainBWalletAmount, ibc.TransferOptions{Timeout: testvalues.ImmediatelyTimeout()})
 		s.Require().NoError(err)
 		s.Require().NoError(tx.Validate(), "source ibc transfer tx is invalid")
 		time.Sleep(time.Nanosecond * 1) // want it to timeout immediately

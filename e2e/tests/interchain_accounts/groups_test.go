@@ -71,7 +71,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
+	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	var (
 		groupPolicyAddr   string

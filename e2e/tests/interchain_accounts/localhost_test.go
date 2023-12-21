@@ -41,8 +41,7 @@ func (s *LocalhostInterchainAccountsTestSuite) SetupTest() {
 	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
-	s.SetChainsIntoSuite(chainA, chainB)
-	s.SetRelayerIntoSuite(relayer)
+	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
 }
 
 func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost() {

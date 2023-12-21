@@ -27,11 +27,7 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
-
-	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-	s.Require().NoError(err)
-	chainAChannels := channelA[len(channelA)-1]
+	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	chainADenom := chainA.Config().Denom
 
@@ -54,8 +50,8 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		transferAuth := transfertypes.TransferAuthorization{
 			Allocations: []transfertypes.Allocation{
 				{
-					SourcePort:    chainAChannels.PortID,
-					SourceChannel: chainAChannels.ChannelID,
+					SourcePort:    channelA.PortID,
+					SourceChannel: channelA.ChannelID,
 					SpendLimit:    sdk.NewCoins(sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.StartingTokenAmount))),
 					AllowList:     []string{receiverWalletAddress},
 				},
@@ -101,8 +97,8 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
 		transferMsg := transfertypes.MsgTransfer{
-			SourcePort:    chainAChannels.PortID,
-			SourceChannel: chainAChannels.ChannelID,
+			SourcePort:    channelA.PortID,
+			SourceChannel: channelA.ChannelID,
 			Token:         testvalues.DefaultTransferAmount(chainADenom),
 			Sender:        granterAddress,
 			Receiver:      receiverWalletAddress,
@@ -132,7 +128,7 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	s.Require().NoError(test.WaitForBlocks(context.TODO(), 10, chainB))
 
 	t.Run("verify receiver wallet amount", func(t *testing.T) {
-		chainBIBCToken := testsuite.GetIBCToken(chainADenom, chainAChannels.Counterparty.PortID, chainAChannels.Counterparty.ChannelID)
+		chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 		actualBalance, err := s.QueryBalance(ctx, chainB, receiverWalletAddress, chainBIBCToken.IBCDenom())
 
 		s.Require().NoError(err)
@@ -158,8 +154,8 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	t.Run("exec unauthorized MsgTransfer", func(t *testing.T) {
 		transferMsg := transfertypes.MsgTransfer{
-			SourcePort:    chainAChannels.PortID,
-			SourceChannel: chainAChannels.ChannelID,
+			SourcePort:    channelA.PortID,
+			SourceChannel: channelA.ChannelID,
 			Token:         testvalues.DefaultTransferAmount(chainADenom),
 			Sender:        granterAddress,
 			Receiver:      receiverWalletAddress,
@@ -188,11 +184,7 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
-
-	channelA, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-	s.Require().NoError(err)
-	chainAChannels := channelA[len(channelA)-1]
+	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
@@ -216,8 +208,8 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 		transferAuth := transfertypes.TransferAuthorization{
 			Allocations: []transfertypes.Allocation{
 				{
-					SourcePort:    chainAChannels.PortID,
-					SourceChannel: chainAChannels.ChannelID,
+					SourcePort:    channelA.PortID,
+					SourceChannel: channelA.ChannelID,
 					SpendLimit:    sdk.NewCoins(sdk.NewCoin(chainADenom, sdkmath.NewInt(spendLimit))),
 					AllowList:     []string{receiverWalletAddress},
 				},
@@ -246,8 +238,8 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
 			transferMsg := transfertypes.MsgTransfer{
-				SourcePort:    chainAChannels.PortID,
-				SourceChannel: chainAChannels.ChannelID,
+				SourcePort:    channelA.PortID,
+				SourceChannel: channelA.ChannelID,
 				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)},
 				Sender:        granterAddress,
 				Receiver:      receiverWalletAddress,
@@ -277,7 +269,7 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 		})
 
 		t.Run("verify receiver wallet amount", func(t *testing.T) {
-			chainBIBCToken := testsuite.GetIBCToken(chainADenom, chainAChannels.Counterparty.PortID, chainAChannels.Counterparty.ChannelID)
+			chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 			actualBalance, err := s.QueryBalance(ctx, chainB, receiverWalletAddress, chainBIBCToken.IBCDenom())
 
 			s.Require().NoError(err)
@@ -303,8 +295,8 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
 			transferMsg := transfertypes.MsgTransfer{
-				SourcePort:    chainAChannels.PortID,
-				SourceChannel: chainAChannels.ChannelID,
+				SourcePort:    channelA.PortID,
+				SourceChannel: channelA.ChannelID,
 				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)},
 				Sender:        granterAddress,
 				Receiver:      invalidWalletAddress,

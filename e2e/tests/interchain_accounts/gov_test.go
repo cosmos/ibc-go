@@ -30,7 +30,7 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
+	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case

@@ -51,7 +51,6 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println(string(ghBytes))
-
 }
 
 // getTestEntrypointToRun returns the specified test function to run if present, otherwise

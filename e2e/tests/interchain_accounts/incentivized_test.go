@@ -38,8 +38,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) SetupTest() {
 	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
-	s.SetChainsIntoSuite(chainA, chainB)
-	s.SetRelayerIntoSuite(relayer)
+	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
 }
 
 func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivized() {
@@ -47,7 +46,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
+	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	var (
 		chainADenom   = chainA.Config().Denom
@@ -223,7 +222,7 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_In
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
+	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	var (
 		chainADenom   = chainA.Config().Denom

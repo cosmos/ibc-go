@@ -56,8 +56,7 @@ func (s *ClientTestSuite) SetupTest() {
 	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
-	s.SetChainsIntoSuite(chainA, chainB)
-	s.SetRelayerIntoSuite(relayer)
+	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
 }
 
 // Status queries the current status of the client
@@ -88,7 +87,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
+	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
@@ -179,7 +178,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
+	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	var (
 		pathName           string
@@ -263,7 +262,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
+	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	var (
 		trustedHeight   clienttypes.Height
@@ -370,7 +369,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer := s.GetRelayerFromSuite()
+	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
 
 	chainAVersion := chainA.Config().Images[0].Version
 

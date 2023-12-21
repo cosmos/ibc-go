@@ -31,8 +31,7 @@ func (s *LocalhostTransferTestSuite) SetupTest() {
 	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
-	s.SetChainsIntoSuite(chainA, chainB)
-	s.SetRelayerIntoSuite(relayer)
+	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
 }
 
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth

@@ -35,9 +35,10 @@ type E2ETestSuite struct {
 	testifysuite.Suite
 
 	// chain and relayer for each test suite
-	chainA ibc.Chain
-	chainB ibc.Chain
-	rly    ibc.Relayer
+	chainA    ibc.Chain
+	chainB    ibc.Chain
+	rly       ibc.Relayer
+	channelsA []ibc.ChannelOutput
 
 	// proposalIDs keeps track of the active proposal ID for each chain.
 	proposalIDs    map[string]uint64
@@ -442,15 +443,15 @@ func getValidatorsAndFullNodes(chainIdx int) (int, int) {
 	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
 }
 
-func (s *E2ETestSuite) SetChainsIntoSuite(chainA, chainB ibc.Chain) {
+func (s *E2ETestSuite) SetChainsAndRelayerIntoSuite(chainA, chainB ibc.Chain, relayer ibc.Relayer) {
 	s.chainA = chainA
 	s.chainB = chainB
-}
-
-func (s *E2ETestSuite) SetRelayerIntoSuite(relayer ibc.Relayer) {
 	s.rly = relayer
 }
 
-func (s *E2ETestSuite) GetRelayerFromSuite() ibc.Relayer {
-	return s.rly
+func (s *E2ETestSuite) GetRelayerAndChannelAFromSuite(ctx context.Context) (ibc.Relayer, ibc.ChannelOutput) {
+	var err error
+	s.channelsA, err = s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
+	s.Require().NoError(err)
+	return s.rly, s.channelsA[len(s.channelsA)-1]
 }
