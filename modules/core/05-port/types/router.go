@@ -35,21 +35,22 @@ func (rtr Router) Sealed() bool {
 	return rtr.sealed
 }
 
-// AddRoute adds IBCModule for a given module name. It returns the Router
-// so AddRoute calls can be linked. It will panic if the Router is sealed.
-func (rtr *Router) AddRoute(module string, cbs IBCModule) (*Router, error) {
+// AddRoute adds IBCModule for a given module name.
+// It returns an error if the Router is sealed, the route contains
+// non-alphanumeric characters or the route is already registered.
+func (rtr *Router) AddRoute(module string, cbs IBCModule) error {
 	if rtr.sealed {
-		return nil, fmt.Errorf("router sealed; cannot register %s route callbacks", module)
+		return fmt.Errorf("router sealed; cannot register %s route callbacks", module)
 	}
 	if !sdk.IsAlphaNumeric(module) {
-		return nil, errors.New("route expressions can only contain alphanumeric characters")
+		return errors.New("route expressions can only contain alphanumeric characters")
 	}
 	if rtr.HasRoute(module) {
-		return nil, fmt.Errorf("route %s has already been registered", module)
+		return fmt.Errorf("route %s has already been registered", module)
 	}
 
 	rtr.routes[module] = cbs
-	return rtr, nil
+	return nil
 }
 
 // HasRoute returns true if the Router has a module registered or false otherwise.
