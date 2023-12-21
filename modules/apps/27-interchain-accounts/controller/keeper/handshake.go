@@ -200,11 +200,11 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, ord
 	}
 
 	if currentMetadata.ControllerConnectionId != proposedMetadata.ControllerConnectionId {
-		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed controller connection ID must not change")
+		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnection, "proposed controller connection ID must not change")
 	}
 
 	if currentMetadata.HostConnectionId != proposedMetadata.HostConnectionId {
-		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed host connection ID must not change")
+		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnection, "proposed host connection ID must not change")
 	}
 
 	return version, nil
@@ -258,11 +258,11 @@ func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpart
 	}
 
 	if currentMetadata.ControllerConnectionId != proposedMetadata.ControllerConnectionId {
-		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed controller connection ID must not change")
+		return errorsmod.Wrap(connectiontypes.ErrInvalidConnection, "proposed controller connection ID must not change")
 	}
 
 	if currentMetadata.HostConnectionId != proposedMetadata.HostConnectionId {
-		return errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed host connection ID must not change")
+		return errorsmod.Wrap(connectiontypes.ErrInvalidConnection, "proposed host connection ID must not change")
 	}
 
 	return nil
