@@ -432,7 +432,7 @@ func (k Keeper) ChanCloseConfirm(
 	proofInit []byte,
 	proofHeight exported.Height,
 ) error {
-	return ChanCloseConfirmWithCounterpartyUpgradeSequence(ctx, portID, channelID, chanCap, proofInit, proofHeight, 0)
+	return k.ChanCloseConfirmWithCounterpartyUpgradeSequence(ctx, portID, channelID, chanCap, proofInit, proofHeight, 0)
 }
 
 // ChanCloseConfirmWithCounterpartyUpgradeSequence is called by the counterparty module to
