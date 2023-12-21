@@ -464,7 +464,6 @@ func (msg MsgAcknowledgement) ValidateBasic() error {
 	return msg.Packet.ValidateBasic()
 }
 
-<<<<<<< HEAD
 // GetSigners implements sdk.Msg
 func (msg MsgAcknowledgement) GetSigners() []sdk.AccAddress {
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -472,7 +471,8 @@ func (msg MsgAcknowledgement) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
-=======
+}
+
 var _ sdk.Msg = &MsgChannelUpgradeInit{}
 
 // NewMsgChannelUpgradeInit constructs a new MsgChannelUpgradeInit
@@ -845,5 +845,4 @@ func (msg *MsgPruneAcknowledgements) ValidateBasic() error {
 	}
 
 	return nil
->>>>>>> 28f757a5 (feat: channel upgradability (#1613))
 }

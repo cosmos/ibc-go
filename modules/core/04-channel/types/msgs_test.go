@@ -14,35 +14,26 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-<<<<<<< HEAD
-=======
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
->>>>>>> 28f757a5 (feat: channel upgradability (#1613))
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 const (
-<<<<<<< HEAD
-	// valid constatns used for testing
-	portid   = "testportid"
-	chanid   = "channel-0"
-	cpportid = "testcpport"
-	cpchanid = "testcpchannel"
-=======
 	// valid constants used for testing
 	portid                      = "testportid"
 	chanid                      = "channel-0"
 	cpportid                    = "testcpport"
 	cpchanid                    = "testcpchannel"
 	counterpartyUpgradeSequence = 0
->>>>>>> 28f757a5 (feat: channel upgradability (#1613))
 
 	version = "1.0"
 
@@ -428,13 +419,6 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 }
 
 func (suite *TypesTestSuite) TestMsgRecvPacketGetSigners() {
-<<<<<<< HEAD
-	msg := types.NewMsgRecvPacket(packet, suite.proof, height, addr)
-	res := msg.GetSigners()
-
-	expected := "[7465737461646472313131313131313131313131]"
-	suite.Equal(expected, fmt.Sprintf("%v", res))
-=======
 	expSigner, err := sdk.AccAddressFromBech32(addr)
 	suite.Require().NoError(err)
 	msg := types.NewMsgRecvPacket(packet, suite.proof, height, addr)
@@ -444,7 +428,6 @@ func (suite *TypesTestSuite) TestMsgRecvPacketGetSigners() {
 
 	suite.Require().NoError(err)
 	suite.Require().Equal(expSigner.Bytes(), signers[0])
->>>>>>> 28f757a5 (feat: channel upgradability (#1613))
 }
 
 func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
