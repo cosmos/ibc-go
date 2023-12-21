@@ -194,12 +194,6 @@ func (k Keeper) SetPacketReceipt(ctx sdk.Context, portID, channelID string, sequ
 	store.Set(host.PacketReceiptKey(portID, channelID, sequence), []byte{byte(1)})
 }
 
-// HasPacketReceipt returns true if the packet receipt exists
-func (k Keeper) HasPacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) bool {
-	store := ctx.KVStore(k.storeKey)
-	return store.Has(host.PacketReceiptKey(portID, channelID, sequence))
-}
-
 // deletePacketReceipt deletes a packet receipt from the store
 func (k Keeper) deletePacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
@@ -696,14 +690,10 @@ func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string,
 			break
 		}
 
-		if k.HasPacketAcknowledgement(ctx, portID, channelID, start) {
-			k.deletePacketAcknowledgement(ctx, portID, channelID, start)
-		}
+		k.deletePacketAcknowledgement(ctx, portID, channelID, start)
 
 		// NOTE: packet receipts are only relevant for unordered channels.
-		if k.HasPacketReceipt(ctx, portID, channelID, start) {
-			k.deletePacketReceipt(ctx, portID, channelID, start)
-		}
+		k.deletePacketReceipt(ctx, portID, channelID, start)
 	}
 
 	// set pruning sequence start to the updated value
