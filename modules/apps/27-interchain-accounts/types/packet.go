@@ -19,7 +19,7 @@ var (
 )
 
 // MaxMemoCharLength defines the maximum length for the InterchainAccountPacketData memo field
-const MaxMemoCharLength = 256
+const MaxMemoCharLength = 32768
 
 var (
 	// DefaultRelativePacketTimeoutHeight is the default packet timeout height (in blocks) relative
@@ -60,11 +60,6 @@ func (iapd InterchainAccountPacketData) GetBytes() []byte {
 // UnmarshalJSON unmarshals raw JSON bytes into an InterchainAccountPacketData.
 func (iapd *InterchainAccountPacketData) UnmarshalJSON(bz []byte) error {
 	return ModuleCdc.UnmarshalJSON(bz, iapd)
-}
-
-// GetBytes returns the JSON marshalled interchain account CosmosTx.
-func (ct CosmosTx) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&ct))
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
