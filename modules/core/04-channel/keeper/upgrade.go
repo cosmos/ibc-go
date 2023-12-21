@@ -676,9 +676,10 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 	}
 
 	previousState := channel.State
-	err := types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout)
 
-	k.SetUpgradeErrorReceipt(ctx, portID, channelID, err.GetErrorReceipt())
+	channel = k.restoreChannel(ctx, portID, channelID, sequence, channel)
+	k.WriteErrorReceipt(ctx, portID, channelID, types.NewUpgradeError(sequence, types.ErrInvalidUpgrade))
+
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
 	EmitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
 }
@@ -794,8 +795,9 @@ func (k Keeper) WriteUpgradeTimeoutChannel(
 	if !found {
 		panic(fmt.Errorf("could not find existing upgrade when cancelling channel upgrade, channelID: %s, portID: %s", channelID, portID))
 	}
-	err := types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout)
-	k.SetUpgradeErrorReceipt(ctx, portID, channelID, err.GetErrorReceipt())
+
+	channel = k.restoreChannel(ctx, portID, channelID, channel.UpgradeSequence, channel)
+	k.WriteErrorReceipt(ctx, portID, channelID, types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout))
 
 	k.Logger(ctx).Info("channel state restored", "port-id", portID, "channel-id", channelID)
 
@@ -977,12 +979,14 @@ func (k Keeper) abortUpgrade(ctx sdk.Context, portID, channelID string, err erro
 
 	// the channel upgrade sequence has already been updated in ChannelUpgradeTry, so we can pass
 	// its updated value.
-	k.SetUpgradeErrorReceipt(ctx, portID, channelID, upgradeError.GetErrorReceipt())
+	k.restoreChannel(ctx, portID, channelID, channel.UpgradeSequence, channel)
+	k.WriteErrorReceipt(ctx, portID, channelID, upgradeError)
+
 	return nil
 }
 
 // restoreChannel will restore the channel state to its pre-upgrade state so that upgrade is aborted.
-func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, channel types.Channel, err *types.UpgradeError) types.Channel {
+func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgradeSequence uint64, channel types.Channel) types.Channel {
 	channel.State = types.OPEN
 	channel.UpgradeSequence = upgradeSequence
 
@@ -991,13 +995,11 @@ func (k Keeper) restoreChannel(ctx sdk.Context, portID, channelID string, upgrad
 	// delete state associated with upgrade which is no longer required.
 	k.deleteUpgradeInfo(ctx, portID, channelID)
 
-	k.SetUpgradeErrorReceipt(ctx, portID, channelID, err.GetErrorReceipt())
-
 	return channel
 }
 
-// writeErrorReceipt will write an error receipt from the provided UpgradeError.
-func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) {
+// WriteErrorReceipt will write an error receipt from the provided UpgradeError.
+func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
 		panic(errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID))
@@ -1010,6 +1012,6 @@ func (k Keeper) writeErrorReceipt(ctx sdk.Context, portID, channelID string, upg
 		panic(errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than existing error receipt sequence (%d)", errorReceiptToWrite.Sequence, existingErrorReceipt.Sequence))
 	}
 
-	k.SetUpgradeErrorReceipt(ctx, portID, channelID, errorReceiptToWrite)
+	k.setUpgradeErrorReceipt(ctx, portID, channelID, errorReceiptToWrite)
 	EmitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError)
 }

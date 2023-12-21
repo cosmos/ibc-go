@@ -30,7 +30,7 @@ func (k Keeper) SyncUpgradeSequence(ctx sdk.Context, portID, channelID string, c
 	return k.syncUpgradeSequence(ctx, portID, channelID, channel, counterpartyUpgradeSequence)
 }
 
-// WriteErrorReceipt is a wrapper around writeErrorReceipt to allow the function to be directly called in tests.
-func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upgradeError *types.UpgradeError) {
-	k.writeErrorReceipt(ctx, portID, channelID, upgradeError)
+// SetUpgradeErrorReceipt is a wrapper around setUpgradeErrorReceipt to allow the function to be directly called in tests.
+func (k Keeper) SetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt) {
+	k.setUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 }
