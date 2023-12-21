@@ -31,6 +31,9 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryUnreceivedAcks(),
 		GetCmdQueryNextSequenceReceive(),
 		GetCmdQueryNextSequenceSend(),
+		GetCmdQueryUpgradeError(),
+		GetCmdQueryUpgrade(),
+		GetCmdChannelParams(),
 	)
 
 	return queryCmd

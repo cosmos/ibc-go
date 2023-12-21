@@ -256,7 +256,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 		},
 		{
 			"invalid version fails to unmarshal metadata",
-			"invalid-version",
+			ibctesting.InvalidID,
 			func(suite *FeeTestSuite) {},
 			false,
 		},
@@ -1005,6 +1005,441 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			}
 
 			tc.expResult()
+		})
+	}
+}
+
+func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"success with downgraded version",
+			func() {
+				// create a new path using a fee enabled channel and downgrade it to disable fees
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+				mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+				path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+				path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+				path.EndpointA.ChannelConfig.Version = mockFeeVersion
+				path.EndpointB.ChannelConfig.Version = mockFeeVersion
+
+				upgradeVersion := ibcmock.Version
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+
+				suite.coordinator.Setup(path)
+			},
+			nil,
+		},
+		{
+			"invalid upgrade version",
+			func() {
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
+
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+					// intentionally force the error here so we can assert that a passthrough occurs when fees should not be enabled for this channel
+					return "", ibcmock.MockApplicationCallbackError
+				}
+			},
+			ibcmock.MockApplicationCallbackError,
+		},
+		{
+			"invalid fee version",
+			func() {
+				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: ibctesting.InvalidID, AppVersion: ibcmock.Version}))
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+			},
+			types.ErrInvalidVersion,
+		},
+		{
+			"underlying app callback returns error",
+			func() {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+					return "", ibcmock.MockApplicationCallbackError
+				}
+			},
+			ibcmock.MockApplicationCallbackError,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			// configure the initial path to create an unincentivized mock channel
+			path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointA.ChannelConfig.Version = ibcmock.Version
+			path.EndpointB.ChannelConfig.Version = ibcmock.Version
+
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version to enabled ics29 fee middleware
+			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+
+			tc.malleate()
+
+			err := path.EndpointA.ChanUpgradeInit()
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
+
+func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"success disable fees",
+			func() {
+				// create a new path using a fee enabled channel and downgrade it to disable fees
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+				mockFeeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+				path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+				path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+				path.EndpointA.ChannelConfig.Version = mockFeeVersion
+				path.EndpointB.ChannelConfig.Version = mockFeeVersion
+
+				upgradeVersion := ibcmock.Version
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+
+				suite.coordinator.Setup(path)
+				err := path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+			},
+			nil,
+		},
+		{
+			"invalid upgrade version",
+			func() {
+				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
+				counterpartyUpgrade.Fields.Version = ibctesting.InvalidID
+				path.EndpointA.SetChannelUpgrade(counterpartyUpgrade)
+
+				suite.coordinator.CommitBlock(suite.chainA)
+
+				// intentionally force the error here so we can assert that a passthrough occurs when fees should not be enabled for this channel
+				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeTry = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+					return "", ibcmock.MockApplicationCallbackError
+				}
+			},
+			ibcmock.MockApplicationCallbackError,
+		},
+		{
+			"invalid fee version",
+			func() {
+				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: ibctesting.InvalidID, AppVersion: ibcmock.Version}))
+
+				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
+				counterpartyUpgrade.Fields.Version = upgradeVersion
+				path.EndpointA.SetChannelUpgrade(counterpartyUpgrade)
+
+				suite.coordinator.CommitBlock(suite.chainA)
+			},
+			types.ErrInvalidVersion,
+		},
+		{
+			"underlying app callback returns error",
+			func() {
+				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeTry = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+					return "", ibcmock.MockApplicationCallbackError
+				}
+			},
+			ibcmock.MockApplicationCallbackError,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			// configure the initial path to create an unincentivized mock channel
+			path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointA.ChannelConfig.Version = ibcmock.Version
+			path.EndpointB.ChannelConfig.Version = ibcmock.Version
+
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version to enabled ics29 fee middleware
+			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			err = path.EndpointB.ChanUpgradeTry()
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
+
+func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"success with fee middleware disabled",
+			func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			},
+			nil,
+		},
+		{
+			"invalid upgrade version",
+			func() {
+				counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
+				counterpartyUpgrade.Fields.Version = ibctesting.InvalidID
+				path.EndpointB.SetChannelUpgrade(counterpartyUpgrade)
+
+				suite.coordinator.CommitBlock(suite.chainB)
+
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeAck = func(_ sdk.Context, _, _, _ string) error {
+					return types.ErrInvalidVersion
+				}
+			},
+			types.ErrInvalidVersion,
+		},
+		{
+			"invalid fee version",
+			func() {
+				upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: ibctesting.InvalidID, AppVersion: ibcmock.Version}))
+
+				counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
+				counterpartyUpgrade.Fields.Version = upgradeVersion
+				path.EndpointB.SetChannelUpgrade(counterpartyUpgrade)
+
+				suite.coordinator.CommitBlock(suite.chainB)
+			},
+			types.ErrInvalidVersion,
+		},
+		{
+			"underlying app callback returns error",
+			func() {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeAck = func(_ sdk.Context, _, _, _ string) error {
+					return ibcmock.MockApplicationCallbackError
+				}
+			},
+			ibcmock.MockApplicationCallbackError,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			// configure the initial path to create an unincentivized mock channel
+			path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointA.ChannelConfig.Version = ibcmock.Version
+			path.EndpointB.ChannelConfig.Version = ibcmock.Version
+
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version to enabled ics29 fee middleware
+			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+			suite.Require().NoError(err)
+
+			app, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			cbs, ok := app.(porttypes.UpgradableModule)
+			suite.Require().True(ok)
+
+			err = cbs.OnChanUpgradeAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyUpgrade.Fields.Version)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
+func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name          string
+		malleate      func()
+		expFeeEnabled bool
+	}{
+		{
+			"success: enable fees",
+			func() {
+				// Assert in callback that correct upgrade information is passed
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+					suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, portID)
+					suite.Require().Equal(path.EndpointA.ChannelID, channelID)
+					suite.Require().Equal(channeltypes.UNORDERED, order)
+					suite.Require().Equal([]string{path.EndpointA.ConnectionID}, connectionHops)
+					suite.Require().Equal(ibcmock.Version, version)
+				}
+			},
+			true,
+		},
+		{
+			"success: disable fees",
+			func() {
+				// create a new path using a fee enabled channel and downgrade it to disable fees
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+				mockFeeVersion := &types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}
+				mockFeeVersionBz := string(types.ModuleCdc.MustMarshalJSON(mockFeeVersion))
+				path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+				path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+				path.EndpointA.ChannelConfig.Version = mockFeeVersionBz
+				path.EndpointB.ChannelConfig.Version = mockFeeVersionBz
+
+				upgradeVersion := ibcmock.Version
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+
+				suite.coordinator.Setup(path)
+
+				// Assert in callback that correct version is passed
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+					suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, portID)
+					suite.Require().Equal(path.EndpointA.ChannelID, channelID)
+					suite.Require().Equal(channeltypes.UNORDERED, order)
+					suite.Require().Equal([]string{path.EndpointA.ConnectionID}, connectionHops)
+					suite.Require().Equal(mockFeeVersion.AppVersion, version)
+				}
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			// configure the initial path to create an unincentivized mock channel
+			path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+			path.EndpointA.ChannelConfig.Version = ibcmock.Version
+			path.EndpointB.ChannelConfig.Version = ibcmock.Version
+
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version to enabled ics29 fee middleware
+			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
+
+			tc.malleate()
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeConfirm()
+			suite.Require().NoError(err)
+
+			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
+			suite.Require().NoError(err)
+
+			app, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
+			suite.Require().True(ok)
+
+			cbs, ok := app.(porttypes.UpgradableModule)
+			suite.Require().True(ok)
+
+			upgrade := path.EndpointA.GetChannelUpgrade()
+			cbs.OnChanUpgradeOpen(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
+
+			isFeeEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			if tc.expFeeEnabled {
+				suite.Require().True(isFeeEnabled)
+			} else {
+				suite.Require().False(isFeeEnabled)
+			}
 		})
 	}
 }

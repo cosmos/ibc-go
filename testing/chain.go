@@ -344,6 +344,14 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
+	// increment acc sequence regardless of success or failure tx execution
+	defer func() {
+		err := chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
 	resp, err := simapp.SignAndDeliver(
 		chain.TB,
 		chain.TxConfig,
@@ -368,12 +376,6 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 
 	if txResult.Code != 0 {
 		return txResult, fmt.Errorf("%s/%d: %q", txResult.Codespace, txResult.Code, txResult.Log)
-	}
-
-	// increment sequence for successful transaction execution
-	err = chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
-	if err != nil {
-		return nil, err
 	}
 
 	chain.Coordinator.IncrementTime()
@@ -637,4 +639,11 @@ func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabili
 // to be used for testing. It returns the current IBC height + 100 blocks
 func (chain *TestChain) GetTimeoutHeight() clienttypes.Height {
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.ChainID), uint64(chain.GetContext().BlockHeight())+100)
+}
+
+// DeleteKey deletes the specified key from the ibc store.
+func (chain *TestChain) DeleteKey(key []byte) {
+	storeKey := chain.GetSimApp().GetKey(exported.StoreKey)
+	kvStore := chain.GetContext().KVStore(storeKey)
+	kvStore.Delete(key)
 }
