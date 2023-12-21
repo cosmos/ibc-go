@@ -106,6 +106,52 @@ type IBCModule interface {
 	) error
 }
 
+// UpgradableModule defines the callbacks required to perform a channel upgrade.
+type UpgradableModule interface {
+	// OnChanUpgradeInit initializes the channel upgrade handshake.
+	OnChanUpgradeInit(
+		ctx sdk.Context,
+		portID, channelID string,
+		order channeltypes.Order,
+		connectionHops []string,
+		version string,
+	) (string, error)
+
+	// OnChanUpgradeTry verifies the counterparty upgrade and sets the upgrade on TRY chain
+	OnChanUpgradeTry(
+		ctx sdk.Context,
+		portID, channelID string,
+		order channeltypes.Order,
+		connectionHops []string,
+		counterpartyVersion string,
+	) (string, error)
+
+	// OnChanUpgradeAck TODO
+	OnChanUpgradeAck(
+		ctx sdk.Context,
+		portID,
+		channelID,
+		counterpartyVersion string,
+	) error
+
+	// OnChanUpgradeOpen TODO
+	OnChanUpgradeOpen(
+		ctx sdk.Context,
+		portID,
+		channelID string,
+		order channeltypes.Order,
+		connectionHops []string,
+		version string,
+	)
+
+	// OnChanUpgradeRestore TODO
+	OnChanUpgradeRestore(
+		ctx sdk.Context,
+		portID,
+		channelID string,
+	)
+}
+
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
 type ICS4Wrapper interface {
 	SendPacket(

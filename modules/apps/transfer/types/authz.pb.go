@@ -36,6 +36,12 @@ type Allocation struct {
 	SpendLimit github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=spend_limit,json=spendLimit,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"spend_limit"`
 	// allow list of receivers, an empty allow list permits any receiver address
 	AllowList []string `protobuf:"bytes,4,rep,name=allow_list,json=allowList,proto3" json:"allow_list,omitempty"`
+<<<<<<< HEAD
+=======
+	// allow list of packet data keys, an empty list prohibits all packet data keys;
+	// a list only with "*" permits any packet data key
+	AllowedPacketData []string `protobuf:"bytes,5,rep,name=allowed_packet_data,json=allowedPacketData,proto3" json:"allowed_packet_data,omitempty"`
+>>>>>>> 28f757a5 (feat: channel upgradability (#1613))
 }
 
 func (m *Allocation) Reset()         { *m = Allocation{} }
