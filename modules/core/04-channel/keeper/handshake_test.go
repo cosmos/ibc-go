@@ -829,7 +829,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, ibctesting.FirstChannelID)
 			proof, proofHeight := suite.chainA.QueryProof(channelKey)
 
-			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
+			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirmWithCounterpartyUpgradeSequence(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, ibctesting.FirstChannelID, channelCap,
 				proof, malleateHeight(proofHeight, heightDiff), counterpartyUpgradeSequence,
 			)

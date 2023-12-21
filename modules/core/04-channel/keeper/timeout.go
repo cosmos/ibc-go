@@ -214,6 +214,28 @@ func (k Keeper) TimeoutOnClose(
 	nextSequenceRecv uint64,
 	counterpartyUpgradeSequence uint64,
 ) error {
+	proofHeight exported.Height,
+	TimeoutOnCloseWithCounterpartyUpgradeSequence(ctx, chanCap, packet, proof, proofClosed, proofHeight, nextSequenceRecv, counterpartyUpgradeSequence, 0)
+}
+
+// TimeoutOnCloseWithCounterpartyUpgradeSequence is called by a module in order 
+// to prove that the channel to which an unreceived packet was addressed has 
+// been closed, so the packet will never be received (even if the timeoutHeight 
+// has not yet been reached). The difference with TimeoutOnClose is that it
+// accepts an extra argument counterpartyUpgradeSequence that was needed for 
+// channel upgradability.
+//
+// This function will be removed in ibc-go v9.0.0 and the API of TimeoutOnClose will be updated.
+func (k Keeper) TimeoutOnCloseWithCounterpartyUpgradeSequence(
+	ctx sdk.Context,
+	chanCap *capabilitytypes.Capability,
+	packet exported.PacketI,
+	proof,
+	proofClosed []byte,
+	proofHeight exported.Height,
+	nextSequenceRecv uint64,
+	counterpartyUpgradeSequence uint64,
+) error {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())

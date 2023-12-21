@@ -431,6 +431,23 @@ func (k Keeper) ChanCloseConfirm(
 	chanCap *capabilitytypes.Capability,
 	proofInit []byte,
 	proofHeight exported.Height,
+) error {
+	return ChanCloseConfirmWithCounterpartyUpgradeSequence(ctx, portID, channelID, chanCap, proofInit, proofHeight, 0)
+}
+
+// ChanCloseConfirmWithCounterpartyUpgradeSequence is called by the counterparty module to
+// close their end of the channel, since the other end has been closed. The difference with
+// ChanCloseConfirm is that it accepts an extra argument counterpartyUpgradeSequence that was
+// needed for channel upgradability.
+//
+// This function will be removed in ibc-go v9.0.0 and the API of ChanCloseConfirm will be updated.
+func (k Keeper) ChanCloseConfirmWithCounterpartyUpgradeSequence(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	chanCap *capabilitytypes.Capability,
+	proofInit []byte,
+	proofHeight exported.Height,
 	counterpartyUpgradeSequence uint64,
 ) error {
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
