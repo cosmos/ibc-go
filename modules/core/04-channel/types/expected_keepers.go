@@ -73,6 +73,32 @@ type ConnectionKeeper interface {
 		channelID string,
 		nextSequenceRecv uint64,
 	) error
+	VerifyChannelUpgrade(
+		ctx sdk.Context,
+		connection exported.ConnectionI,
+		height exported.Height,
+		proof []byte,
+		portID,
+		channelID string,
+		upgrade Upgrade,
+	) error
+	VerifyChannelUpgradeError(
+		ctx sdk.Context,
+		connection exported.ConnectionI,
+		proofHeight exported.Height,
+		proofErrorReceipt []byte,
+		portID,
+		channelID string,
+		errorReceipt ErrorReceipt,
+	) error
+	VerifyChannelUpgradeErrorAbsence(
+		ctx sdk.Context,
+		connection exported.ConnectionI,
+		proofHeight exported.Height,
+		proofErrorReceiptAbsence []byte,
+		portID,
+		channelID string,
+	) error
 }
 
 // PortKeeper expected account IBC port keeper

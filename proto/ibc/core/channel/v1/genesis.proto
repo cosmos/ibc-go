@@ -18,6 +18,7 @@ message GenesisState {
   repeated PacketSequence    ack_sequences    = 7 [(gogoproto.nullable) = false];
   // the sequence for the next generated channel identifier
   uint64 next_channel_sequence = 8;
+  Params params                = 9 [(gogoproto.nullable) = false];
 }
 
 // PacketSequence defines the genesis type necessary to retrieve and store
