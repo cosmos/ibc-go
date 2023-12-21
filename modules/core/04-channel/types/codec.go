@@ -39,6 +39,18 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgAcknowledgement{},
 		&MsgTimeout{},
 		&MsgTimeoutOnClose{},
+<<<<<<< HEAD
+=======
+		&MsgChannelUpgradeInit{},
+		&MsgChannelUpgradeTry{},
+		&MsgChannelUpgradeAck{},
+		&MsgChannelUpgradeConfirm{},
+		&MsgChannelUpgradeOpen{},
+		&MsgChannelUpgradeTimeout{},
+		&MsgChannelUpgradeCancel{},
+		&MsgPruneAcknowledgements{},
+		&MsgUpdateParams{},
+>>>>>>> 947b15ed (fix: add MsgPruneAcknowledgements to codec registration (#5481))
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
