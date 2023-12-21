@@ -507,7 +507,7 @@ func (k Keeper) GetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string
 	return errorReceipt, true
 }
 
-// SetUpgradeErrorReceipt sets the provided error receipt in store using the port and channel identifiers.
+// setUpgradeErrorReceipt sets the provided error receipt in store using the port and channel identifiers.
 func (k Keeper) setUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&errorReceipt)
