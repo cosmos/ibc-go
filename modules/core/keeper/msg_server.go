@@ -1134,13 +1134,13 @@ func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Msg
 func (k Keeper) PruneStalePacketState(goCtx context.Context, msg *channeltypes.MsgPruneStalePacketState) (*channeltypes.MsgPruneStalePacketStateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	pruned, left, err := k.ChannelKeeper.PruneStalePacketState(ctx, msg.PortId, msg.ChannelId, msg.Limit)
+	pruned, remaining, err := k.ChannelKeeper.PruneStalePacketState(ctx, msg.PortId, msg.ChannelId, msg.Limit)
 	if err != nil {
 		return nil, err
 	}
 
 	return &channeltypes.MsgPruneStalePacketStateResponse{
-		Pruned: pruned,
-		Left:   left,
+		PrunedSequences:    pruned,
+		RemainingSequences: remaining,
 	}, nil
 }

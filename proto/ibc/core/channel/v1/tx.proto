@@ -457,7 +457,7 @@ message MsgPruneStalePacketState {
 // MsgPruneStalePacketStateResponse defines the response type for the PruneStalePacketState rpc.
 message MsgPruneStalePacketStateResponse {
   // Number of sequences pruned (might include both packet acknowledgements and packet receipts).
-  uint64 pruned = 1;
+  uint64 pruned_sequences = 1;
   // Number of sequences left after pruning.
-  uint64 left = 2;
+  uint64 remaining_sequences = 2;
 }

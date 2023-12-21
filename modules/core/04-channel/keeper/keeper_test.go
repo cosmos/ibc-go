@@ -617,16 +617,16 @@ func (suite *KeeperTestSuite) TestPruneStalePacketState() {
 				suite.sendMockPackets(path.EndpointB, path.EndpointA, 10)
 			},
 			func() {
-				// Prune only 5 packet acks.
-				limit = 5
+				// Prune only 6 packet acks.
+				limit = 6
 			},
 			func(pruned, left uint64) {
-				// We expect 5 to be left and sequenceStart == 6.
-				postPruneExpState(5, 5, 6)
+				// We expect 4 to be left and sequenceStart == 7.
+				postPruneExpState(4, 4, 7)
 
-				// We expect 5 to be pruned and 5 left.
-				suite.Require().Equal(uint64(5), pruned)
-				suite.Require().Equal(uint64(5), left)
+				// We expect 6 to be pruned and 4 left.
+				suite.Require().Equal(uint64(6), pruned)
+				suite.Require().Equal(uint64(4), left)
 			},
 			nil,
 		},
@@ -675,16 +675,16 @@ func (suite *KeeperTestSuite) TestPruneStalePacketState() {
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
-					5, // limit == 5
+					4, // limit == 4
 				)
 				suite.Require().NoError(err)
 
-				// We expect 5 to be pruned and 5 left.
-				suite.Require().Equal(uint64(5), pruned)
-				suite.Require().Equal(uint64(5), left)
+				// We expect 4 to be pruned and 6 left.
+				suite.Require().Equal(uint64(4), pruned)
+				suite.Require().Equal(uint64(6), left)
 
 				// Check state post-prune
-				postPruneExpState(5, 5, 6)
+				postPruneExpState(6, 6, 5)
 
 				// Previous upgrade is complete, send additional packets and do yet another upgrade.
 				// This is _after_ the first upgrade.
@@ -694,15 +694,15 @@ func (suite *KeeperTestSuite) TestPruneStalePacketState() {
 				upgradeFields = types.UpgradeFields{Version: fmt.Sprintf("%s-v3", ibcmock.Version)}
 				suite.UpgradeChannel(path, upgradeFields)
 
-				// A total of 15 stale acks/receipts exist on A. Prune 10 of them (default in test).
+				// A total of 16 stale acks/receipts exist on A. Prune 10 of them (default in test).
 			},
 			func(pruned, left uint64) {
-				// Expected state should be 5 acks/receipts left, sequenceStart == 16.
-				postPruneExpState(5, 5, 16)
+				// Expected state should be 6 acks/receipts left, sequenceStart == 15.
+				postPruneExpState(6, 6, 15)
 
-				// We expect 10 to be pruned and 5 left.
+				// We expect 10 to be pruned and 6 left.
 				suite.Require().Equal(uint64(10), pruned)
-				suite.Require().Equal(uint64(5), left)
+				suite.Require().Equal(uint64(6), left)
 			},
 			nil,
 		},
