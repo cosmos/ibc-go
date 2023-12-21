@@ -6,6 +6,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -581,7 +582,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			name: "failure: interchain account address changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.Address = "different-address"
+					metadata.Address = TestOwnerAddress // use valid address
 				})
 			},
 			expError: icatypes.ErrInvalidAccountAddress,
@@ -711,6 +712,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			expError: icatypes.ErrUnknownDataType,
 		},
 		{
+			name: "failure: channel not found",
+			malleate: func() {
+				// channelID is provided via the endpoint channelID
+				path.EndpointA.ChannelID = "invalid channel"
+			},
+			expError: ibcerrors.ErrNotFound, // GetChannel error is unreachable
+		},
+		{
 			name: "failure: failed controller metadata validation, invalid encoding",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
@@ -742,7 +751,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			name: "failure: interchain account address changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.Address = "different-address"
+					metadata.Address = TestOwnerAddress // use valid address
 				})
 			},
 			expError: icatypes.ErrInvalidAccountAddress,
