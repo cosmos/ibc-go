@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"slices"
 	"strconv"
 	"time"
 
@@ -34,11 +35,8 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 	}
 
-	if !channel.IsOpen() {
-		return 0, errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
-		)
+	if channel.State != types.OPEN {
+		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
 	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
@@ -130,11 +128,26 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if !channel.IsOpen() {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
-		)
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING}, channel.State) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s], but got %s", types.OPEN, types.FLUSHING, channel.State)
+	}
+
+	// If counterpartyUpgrade is stored we need to ensure that the
+	// packet sequence is < counterparty next sequence send. This is a defensive
+	// check and if the counterparty is implemented correctly, this should never abort.
+	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if found {
+		// only error if the counterparty next sequence send is set (> 0)
+		// this error should never be reached, as under normal circumstances the counterparty
+		// should not send any packets after the upgrade has been started.
+		counterpartyNextSequenceSend := counterpartyUpgrade.NextSequenceSend
+		if packet.GetSequence() >= counterpartyNextSequenceSend {
+			return errorsmod.Wrapf(
+				types.ErrInvalidPacket,
+				"failed to receive packet, cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d). UNEXPECTED BEHAVIOUR ON COUNTERPARTY, PLEASE REPORT ISSUE TO RELEVANT CHAIN DEVELOPERS",
+				packet.GetSequence(), counterpartyNextSequenceSend,
+			)
+		}
 	}
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
@@ -255,7 +268,6 @@ func (k Keeper) RecvPacket(
 		// incrementing nextSequenceRecv and storing under this chain's channelEnd identifiers
 		// Since this is the receiving chain, our channelEnd is packet's destination port and channel
 		k.SetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv)
-
 	}
 
 	// log that a packet has been received & executed
@@ -371,11 +383,8 @@ func (k Keeper) AcknowledgePacket(
 		)
 	}
 
-	if !channel.IsOpen() {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
-		)
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING}, channel.State) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "packets cannot be acknowledged on channel with state (%s)", channel.State)
 	}
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
@@ -480,6 +489,30 @@ func (k Keeper) AcknowledgePacket(
 
 	// emit an event marking that we have processed the acknowledgement
 	emitAcknowledgePacketEvent(ctx, packet, channel)
+
+	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
+	if channel.State == types.FLUSHING {
+		// counterparty upgrade is written in the OnChanUpgradeAck step.
+		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
+		if found {
+			timeout := counterpartyUpgrade.Timeout
+			selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+
+			if timeout.Elapsed(selfHeight, selfTimestamp) {
+				// packet flushing timeout has expired, abort the upgrade and return nil,
+				// committing an error receipt to state, restoring the channel and successfully acknowledging the packet.
+				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
+				return nil
+			}
+
+			// set the channel state to flush complete if all packets have been acknowledged/flushed.
+			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+				channel.State = types.FLUSHCOMPLETE
+				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+				emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			}
+		}
+	}
 
 	return nil
 }

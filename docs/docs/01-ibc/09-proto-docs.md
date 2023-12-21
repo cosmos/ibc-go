@@ -1,7 +1,7 @@
 ---
 title: Protobuf Documentation
 sidebar_label: Protobuf Documentation
-sidebar_position: 8
+sidebar_position: 9
 slug: /ibc/proto-docs
 ---
 

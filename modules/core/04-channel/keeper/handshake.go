@@ -431,6 +431,7 @@ func (k Keeper) ChanCloseConfirm(
 	chanCap *capabilitytypes.Capability,
 	proofInit []byte,
 	proofHeight exported.Height,
+	counterpartyUpgradeSequence uint64,
 ) error {
 	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
 		return errorsmod.Wrap(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)")
@@ -460,10 +461,14 @@ func (k Keeper) ChanCloseConfirm(
 	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
 
 	counterparty := types.NewCounterparty(portID, channelID)
-	expectedChannel := types.NewChannel(
-		types.CLOSED, channel.Ordering, counterparty,
-		counterpartyHops, channel.Version,
-	)
+	expectedChannel := types.Channel{
+		State:           types.CLOSED,
+		Ordering:        channel.Ordering,
+		Counterparty:    counterparty,
+		ConnectionHops:  counterpartyHops,
+		Version:         channel.Version,
+		UpgradeSequence: counterpartyUpgradeSequence,
+	}
 
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx, connectionEnd, proofHeight, proofInit,
