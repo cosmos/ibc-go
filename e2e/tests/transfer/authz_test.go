@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -21,7 +22,22 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
 
-func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
+func TestAuthzTransferTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(AuthzTransferTestSuite))
+}
+
+type AuthzTransferTestSuite struct {
+	testsuite.E2ETestSuite
+}
+
+func (s *AuthzTransferTestSuite) SetupTest() {
+	ctx := context.TODO()
+	chainA, chainB := s.GetChains()
+	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
+	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+}
+
+func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := s.T()
 
 	ctx := context.TODO()
@@ -179,7 +195,7 @@ func (s *TransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	})
 }
 
-func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
+func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -327,7 +343,7 @@ func (s *TransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 // extractTransferAuthorizationFromGrantAuthorization extracts a TransferAuthorization from the given
 // GrantAuthorization.
-func (s *TransferTestSuite) extractTransferAuthorizationFromGrantAuthorization(grantAuth *authz.GrantAuthorization) *transfertypes.TransferAuthorization {
+func (s *AuthzTransferTestSuite) extractTransferAuthorizationFromGrantAuthorization(grantAuth *authz.GrantAuthorization) *transfertypes.TransferAuthorization {
 	cfg := testsuite.EncodingConfig()
 	var authorization authz.Authorization
 	err := cfg.InterfaceRegistry.UnpackAny(grantAuth.Authorization, &authorization)

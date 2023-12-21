@@ -11,6 +11,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -25,7 +26,22 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func (s *InterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() {
+func TestGovInterchainAccountsTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(GovInterchainAccountsTestSuite))
+}
+
+type GovInterchainAccountsTestSuite struct {
+	testsuite.E2ETestSuite
+}
+
+func (s *GovInterchainAccountsTestSuite) SetupTest() {
+	ctx := context.TODO()
+	chainA, chainB := s.GetChains()
+	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
+	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+}
+
+func (s *GovInterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() {
 	t := s.T()
 	ctx := context.TODO()
 

@@ -22,7 +22,7 @@ import (
 )
 
 func TestIncentivized2TransferTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(IncentivizedTransferTestSuite))
+	testifysuite.Run(t, new(Incentivized2TransferTestSuite))
 }
 
 type Incentivized2TransferTestSuite struct {
