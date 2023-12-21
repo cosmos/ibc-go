@@ -162,3 +162,8 @@ func (k Keeper) UpgradeError(c context.Context, req *channeltypes.QueryUpgradeEr
 func (k Keeper) Upgrade(c context.Context, req *channeltypes.QueryUpgradeRequest) (*channeltypes.QueryUpgradeResponse, error) {
 	return k.ChannelKeeper.Upgrade(c, req)
 }
+
+// ChannelParams implements the IBC QueryServer interface
+func (k Keeper) ChannelParams(c context.Context, req *channeltypes.QueryChannelParamsRequest) (*channeltypes.QueryChannelParamsResponse, error) {
+	return k.ChannelKeeper.ChannelParams(c, req)
+}

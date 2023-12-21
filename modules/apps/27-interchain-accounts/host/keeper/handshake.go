@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -9,7 +10,9 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
@@ -126,4 +129,46 @@ func (Keeper) OnChanCloseConfirm(
 	channelID string,
 ) error {
 	return nil
+}
+
+// OnChanUpgradeTry performs the upgrade try step of the channel upgrade handshake.
+func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+	if portID != icatypes.HostPortID {
+		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.HostPortID, portID)
+	}
+
+	if strings.TrimSpace(counterpartyVersion) == "" {
+		return "", errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
+	}
+
+	// support for unordered ICA channels is not implemented yet
+	if order != channeltypes.ORDERED {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
+	}
+
+	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
+	if err != nil {
+		return "", err
+	}
+
+	currentMetadata, err := k.getAppMetadata(ctx, portID, channelID)
+	if err != nil {
+		return "", err
+	}
+
+	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
+		return "", errorsmod.Wrap(err, "invalid metadata")
+	}
+
+	// the interchain account address on the host chain
+	// must remain the same after the upgrade.
+	if currentMetadata.Address != metadata.Address {
+		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be changed")
+	}
+
+	if currentMetadata.HostConnectionId != connectionHops[0] {
+		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
+	}
+
+	return counterpartyVersion, nil
 }

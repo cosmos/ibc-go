@@ -19,7 +19,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -120,7 +120,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 	transfer := ibc.WalletAmount{
 		Address: polkadotUser.FormattedAddress(),
 		Denom:   cosmosChain.Config().Denom,
-		Amount:  math.NewInt(amountToSend),
+		Amount:  sdkmath.NewInt(amountToSend),
 	}
 
 	pathName := s.GetPathName(0)
@@ -162,7 +162,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		// verify token balance for cosmos user has decreased
 		balance, err := cosmosChain.GetBalance(ctx, cosmosUser.FormattedAddress(), cosmosChain.Config().Denom)
 		s.Require().NoError(err)
-		s.Require().Equal(balance, math.NewInt(fundAmount-amountToSend), "unexpected cosmos user balance after first tx")
+		s.Require().Equal(balance, sdkmath.NewInt(fundAmount-amountToSend), "unexpected cosmos user balance after first tx")
 		err = testutil.WaitForBlocks(ctx, 15, cosmosChain, polkadotChain)
 		s.Require().NoError(err)
 
@@ -178,13 +178,13 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		reflectTransfer := ibc.WalletAmount{
 			Address: cosmosUser.FormattedAddress(),
 			Denom:   "2", // stake
-			Amount:  math.NewInt(amountToReflect),
+			Amount:  sdkmath.NewInt(amountToReflect),
 		}
 		_, err := polkadotChain.SendIBCTransfer(ctx, "channel-0", polkadotUser.KeyName(), reflectTransfer, ibc.TransferOptions{})
 		s.Require().NoError(err)
 
 		// Send 1.88 "UNIT" from Alice to cosmosUser
-		amountUnits := math.NewInt(1_880_000_000_000)
+		amountUnits := sdkmath.NewInt(1_880_000_000_000)
 		unitTransfer := ibc.WalletAmount{
 			Address: cosmosUser.FormattedAddress(),
 			Denom:   "1", // UNIT
@@ -194,7 +194,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		s.Require().NoError(err)
 
 		// Wait for MsgRecvPacket on cosmos chain
-		finalStakeBal := math.NewInt(fundAmount - amountToSend + amountToReflect)
+		finalStakeBal := sdkmath.NewInt(fundAmount - amountToSend + amountToReflect)
 		err = cosmos.PollForBalance(ctx, cosmosChain, 20, ibc.WalletAmount{
 			Address: cosmosUser.FormattedAddress(),
 			Denom:   cosmosChain.Config().Denom,
@@ -220,12 +220,12 @@ func (s *GrandpaTestSuite) TestMsgTransfer_Succeeds_GrandpaContract() {
 		// Verify parachain user's final "unit" balance (will be less than expected due gas costs for stake tx)
 		parachainUserUnits, err := polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 1)
 		s.Require().NoError(err)
-		s.Require().True(parachainUserUnits.Amount.LTE(math.NewInt(fundAmount)), "parachain user's final unit amount not expected")
+		s.Require().True(parachainUserUnits.Amount.LTE(sdkmath.NewInt(fundAmount)), "parachain user's final unit amount not expected")
 
 		// Verify parachain user's final "stake" balance
 		parachainUserStake, err := polkadotChain.GetIbcBalance(ctx, string(polkadotUser.Address()), 2)
 		s.Require().NoError(err)
-		s.Require().True(parachainUserStake.Amount.Equal(math.NewInt(amountToSend-amountToReflect)), "parachain user's final stake amount not expected")
+		s.Require().True(parachainUserStake.Amount.Equal(sdkmath.NewInt(amountToSend-amountToReflect)), "parachain user's final stake amount not expected")
 	})
 }
 
@@ -277,7 +277,7 @@ func (s *GrandpaTestSuite) TestMsgTransfer_TimesOut_GrandpaContract() {
 	transfer := ibc.WalletAmount{
 		Address: polkadotUser.FormattedAddress(),
 		Denom:   cosmosChain.Config().Denom,
-		Amount:  math.NewInt(amountToSend),
+		Amount:  sdkmath.NewInt(amountToSend),
 	}
 
 	pathName := s.GetPathName(0)
@@ -518,8 +518,13 @@ func (s *GrandpaTestSuite) TestMsgMigrateContract_ContractError_GrandpaContract(
 	)
 
 	err = s.ExecuteGovV1Proposal(ctx, message, cosmosChain, cosmosWallet)
-	// This is the error string that is returned from the contract
-	s.Require().ErrorContains(err, "migration not supported")
+	s.Require().Error(err)
+
+	version := cosmosChain.Nodes()[0].Image.Version
+	if govV1FailedReasonFeatureReleases.IsSupported(version) {
+		// This is the error string that is returned from the contract
+		s.Require().ErrorContains(err, "migration not supported")
+	}
 }
 
 // TestRecoverClient_Succeeds_GrandpaContract features:
@@ -618,12 +623,19 @@ func (s *GrandpaTestSuite) TestRecoverClient_Succeeds_GrandpaContract() {
 	s.Require().NoError(err)
 	s.Require().Equal(ibcexported.Active.String(), status, "unexpected substitute client status")
 
-	// create and execute a client recovery proposal
-	authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
-	s.Require().NoError(err)
-	msgRecoverClient := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
-	s.Require().NotNil(msgRecoverClient)
-	s.ExecuteAndPassGovV1Proposal(ctx, msgRecoverClient, cosmosChain, cosmosUser)
+	version := cosmosChain.Nodes()[0].Image.Version
+	if govV1FeatureReleases.IsSupported(version) {
+		// create and execute a client recovery proposal
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, cosmosChain)
+		s.Require().NoError(err)
+
+		msgRecoverClient := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
+		s.Require().NotNil(msgRecoverClient)
+		s.ExecuteAndPassGovV1Proposal(ctx, msgRecoverClient, cosmosChain, cosmosUser)
+	} else {
+		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
+		s.ExecuteAndPassGovV1Beta1Proposal(ctx, cosmosChain, cosmosWallet, proposal)
+	}
 
 	// ensure subject client is active
 	status, err = s.clientStatus(ctx, cosmosChain, subjectClientID)
@@ -683,13 +695,13 @@ func (s *GrandpaTestSuite) clientStatus(ctx context.Context, chain ibc.Chain, cl
 }
 
 func (s *GrandpaTestSuite) fundUsers(ctx context.Context, fundAmount int64, polkadotChain ibc.Chain, cosmosChain ibc.Chain) (ibc.Wallet, ibc.Wallet) {
-	users := interchaintest.GetAndFundTestUsers(s.T(), ctx, "user", fundAmount, polkadotChain, cosmosChain)
+	users := interchaintest.GetAndFundTestUsers(s.T(), ctx, "user", sdkmath.NewInt(fundAmount), polkadotChain, cosmosChain)
 	polkadotUser, cosmosUser := users[0], users[1]
 	err := testutil.WaitForBlocks(ctx, 2, polkadotChain, cosmosChain) // Only waiting 1 block is flaky for parachain
 	s.Require().NoError(err, "cosmos or polkadot chain failed to make blocks")
 
 	// Check balances are correct
-	amount := math.NewInt(fundAmount)
+	amount := sdkmath.NewInt(fundAmount)
 	polkadotUserAmount, err := polkadotChain.GetBalance(ctx, polkadotUser.FormattedAddress(), polkadotChain.Config().Denom)
 	s.Require().NoError(err)
 	s.Require().True(polkadotUserAmount.Equal(amount), "Initial polkadot user amount not expected")
@@ -742,12 +754,12 @@ func (s *GrandpaTestSuite) GetGrandpaTestChains() (ibc.Chain, ibc.Chain) {
 			// TODO: https://github.com/cosmos/ibc-go/issues/4965
 			{
 				Repository: "ghcr.io/misko9/polkadot-node",
-				Version:    "local",
+				Version:    "v39",
 				UidGid:     "1000:1000",
 			},
 			{
 				Repository: "ghcr.io/misko9/parachain-node",
-				Version:    "latest",
+				Version:    "20231122v39",
 				UidGid:     "1000:1000",
 			},
 		}

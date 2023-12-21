@@ -890,6 +890,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 			upgrade = channeltypes.NewUpgrade(
 				channeltypes.NewUpgradeFields(channeltypes.UNORDERED, []string{path.EndpointA.ConnectionID}, "v1.0.0"),
 				channeltypes.NewTimeout(clienttypes.ZeroHeight(), 100000),
+				0,
 			)
 
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade)
