@@ -84,8 +84,48 @@ func TestCodecTypeRegistration(t *testing.T) {
 			true,
 		},
 		{
+			"success: MsgChannelUpgradeInit",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeInit{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeTry",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeTry{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeAck",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeAck{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeConfirm",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeConfirm{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeOpen",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeOpen{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeTimeout",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeTimeout{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeCancel",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeCancel{}),
+			true,
+		},
+		{
 			"success: MsgPruneAcknowledgements",
 			sdk.MsgTypeURL(&types.MsgPruneAcknowledgements{}),
+			true,
+		},
+		{
+			"success: MsgUpdateParams",
+			sdk.MsgTypeURL(&types.MsgUpdateParams{}),
 			true,
 		},
 		{
