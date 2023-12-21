@@ -13370,9 +13370,6 @@ paths:
 
                       A valid Timeout contains either one or both of a timestamp
                       and block height (sequence).
-                  next_sequence_send:
-                    type: string
-                    format: uint64
                 description: >-
                   Upgrade is a verifiable type which contains the relevant
                   information
@@ -13380,14 +13377,7 @@ paths:
                   for an attempted upgrade. It provides the proposed changes to
                   the channel
 
-                  end, the timeout for this upgrade attempt and the next packet
-                  sequence
-
-                  which allows the counterparty to efficiently know the highest
-                  sequence it has received.
-
-                  The next sequence send is used for pruning and upgrading from
-                  unordered to ordered channels.
+                  end and the timeout for this upgrade attempt.
               proof:
                 type: string
                 format: byte
@@ -20730,22 +20720,13 @@ definitions:
 
               A valid Timeout contains either one or both of a timestamp and
               block height (sequence).
-          next_sequence_send:
-            type: string
-            format: uint64
         description: >-
           Upgrade is a verifiable type which contains the relevant information
 
           for an attempted upgrade. It provides the proposed changes to the
           channel
 
-          end, the timeout for this upgrade attempt and the next packet sequence
-
-          which allows the counterparty to efficiently know the highest sequence
-          it has received.
-
-          The next sequence send is used for pruning and upgrading from
-          unordered to ordered channels.
+          end and the timeout for this upgrade attempt.
       proof:
         type: string
         format: byte
@@ -20925,21 +20906,10 @@ definitions:
 
           A valid Timeout contains either one or both of a timestamp and block
           height (sequence).
-      next_sequence_send:
-        type: string
-        format: uint64
-    description: >-
+    description: |-
       Upgrade is a verifiable type which contains the relevant information
-
       for an attempted upgrade. It provides the proposed changes to the channel
-
-      end, the timeout for this upgrade attempt and the next packet sequence
-
-      which allows the counterparty to efficiently know the highest sequence it
-      has received.
-
-      The next sequence send is used for pruning and upgrading from unordered to
-      ordered channels.
+      end and the timeout for this upgrade attempt.
   ibc.core.channel.v1.UpgradeFields:
     type: object
     properties:
