@@ -725,9 +725,9 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 	return msg.Params.Validate()
 }
 
-// NewMsgPruneAcknowledgements creates a new instance of MsgPruneAcknowledgements.
-func NewMsgPruneAcknowledgements(portID, channelID string, limit uint64, signer string) *MsgPruneAcknowledgements {
-	return &MsgPruneAcknowledgements{
+// NewMsgPruneStalePacketState creates a new instance of MsgPruneStalePacketState.
+func NewMsgPruneStalePacketState(portID, channelID string, limit uint64, signer string) *MsgPruneStalePacketState {
+	return &MsgPruneStalePacketState{
 		PortId:    portID,
 		ChannelId: channelID,
 		Limit:     limit,
@@ -735,8 +735,8 @@ func NewMsgPruneAcknowledgements(portID, channelID string, limit uint64, signer 
 	}
 }
 
-// ValidateBasic performs basic checks on a MsgPruneAcknowledgements.
-func (msg *MsgPruneAcknowledgements) ValidateBasic() error {
+// ValidateBasic performs basic checks on a MsgPruneStalePacketState.
+func (msg *MsgPruneStalePacketState) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
 		return errorsmod.Wrap(err, "invalid port ID")
 	}

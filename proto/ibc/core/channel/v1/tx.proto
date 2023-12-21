@@ -69,8 +69,8 @@ service Msg {
   // UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
   rpc UpdateChannelParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
-  // PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
-  rpc PruneAcknowledgements(MsgPruneAcknowledgements) returns (MsgPruneAcknowledgementsResponse);
+  // PruneStalePacketState defines a rpc handler method for MsgPruneStalePacketState.
+  rpc PruneStalePacketState(MsgPruneStalePacketState) returns (MsgPruneStalePacketStateResponse);
 }
 
 // ResponseResultType defines the possible outcomes of the execution of a message
@@ -443,8 +443,8 @@ message MsgUpdateParams {
 // MsgUpdateParamsResponse defines the MsgUpdateParams response type.
 message MsgUpdateParamsResponse {}
 
-// MsgPruneAcknowledgements defines the request type for the PruneAcknowledgements rpc.
-message MsgPruneAcknowledgements {
+// MsgPruneStalePacketState defines the request type for the PruneStalePacketState rpc.
+message MsgPruneStalePacketState {
   option (cosmos.msg.v1.signer)      = "signer";
   option (gogoproto.goproto_getters) = false;
 
@@ -454,8 +454,8 @@ message MsgPruneAcknowledgements {
   string signer     = 4;
 }
 
-// MsgPruneAcknowledgementsResponse defines the response type for the PruneAcknowledgements rpc.
-message MsgPruneAcknowledgementsResponse {
+// MsgPruneStalePacketStateResponse defines the response type for the PruneStalePacketState rpc.
+message MsgPruneStalePacketStateResponse {
   // Number of sequences pruned (might include both packet acknowledgements and packet receipts).
   uint64 pruned = 1;
   // Number of sequences left after pruning.

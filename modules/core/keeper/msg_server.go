@@ -1130,8 +1130,8 @@ func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Msg
 	return &channeltypes.MsgUpdateParamsResponse{}, nil
 }
 
-// PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
-func (k Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
+// PruneStalePacketState defines a rpc handler method for MsgPruneStalePacketState.
+func (k Keeper) PruneStalePacketState(goCtx context.Context, msg *channeltypes.MsgPruneStalePacketState) (*channeltypes.MsgPruneStalePacketStateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	pruned, left, err := k.ChannelKeeper.PruneStalePacketState(ctx, msg.PortId, msg.ChannelId, msg.Limit)
@@ -1139,7 +1139,7 @@ func (k Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.M
 		return nil, err
 	}
 
-	return &channeltypes.MsgPruneAcknowledgementsResponse{
+	return &channeltypes.MsgPruneStalePacketStateResponse{
 		Pruned: pruned,
 		Left:   left,
 	}, nil

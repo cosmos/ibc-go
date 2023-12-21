@@ -1194,8 +1194,8 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelGetSigners() {
 	suite.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
-func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsValidateBasic() {
-	var msg *types.MsgPruneAcknowledgements
+func (suite *TypesTestSuite) TestMsgPruneStalePacketStateValidateBasic() {
+	var msg *types.MsgPruneStalePacketState
 
 	testCases := []struct {
 		name     string
@@ -1240,7 +1240,7 @@ func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			msg = types.NewMsgPruneAcknowledgements(ibctesting.MockPort, ibctesting.FirstChannelID, 1, addr)
+			msg = types.NewMsgPruneStalePacketState(ibctesting.MockPort, ibctesting.FirstChannelID, 1, addr)
 
 			tc.malleate()
 			err := msg.ValidateBasic()
@@ -1255,11 +1255,11 @@ func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsValidateBasic() {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsGetSigners() {
+func (suite *TypesTestSuite) TestMsgPruneStalePacketStateGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
 	suite.Require().NoError(err)
 
-	msg := types.NewMsgPruneAcknowledgements(ibctesting.MockPort, ibctesting.FirstChannelID, 0, addr)
+	msg := types.NewMsgPruneStalePacketState(ibctesting.MockPort, ibctesting.FirstChannelID, 0, addr)
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
