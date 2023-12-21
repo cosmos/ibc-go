@@ -716,7 +716,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 		{
 			"fails due to proof verification failure, counterparty update has unexpected sequence",
 			func() {
-				// Decrementing LatestSequenceSend is sufficient to cause the proof to fail.
+				// Decrementing NextSequenceSend is sufficient to cause the proof to fail.
 				counterpartyUpgrade.NextSequenceSend--
 			},
 			commitmenttypes.ErrInvalidProof,
