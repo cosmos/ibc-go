@@ -486,7 +486,7 @@ func NewSimApp(
 
 	// The mock module is used for testing IBC
 	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
-  app.IBCMockModule = mockIBCModule
+	app.IBCMockModule = mockIBCModule
 	err := ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
 	if err != nil {
 		panic(err)
