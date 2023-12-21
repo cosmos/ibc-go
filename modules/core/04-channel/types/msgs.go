@@ -270,7 +270,26 @@ func (msg MsgChannelCloseInit) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgChannelCloseConfirm creates a new MsgChannelCloseConfirm instance
+// Breakage in v9.0.0 will allow for the counterparty upgrade sequence to be provided.
+// Please use NewMsgChannelCloseConfirmWithCounterpartyUpgradeSequence to provide the
+// counterparty upgrade sequence in this version.
 func NewMsgChannelCloseConfirm(
+	portID, channelID string, proofInit []byte, proofHeight clienttypes.Height,
+	signer string,
+) *MsgChannelCloseConfirm {
+	return &MsgChannelCloseConfirm{
+		PortId:                      portID,
+		ChannelId:                   channelID,
+		ProofInit:                   proofInit,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
+		CounterpartyUpgradeSequence: 0,
+	}
+}
+
+// NewMsgChannelCloseConfirmWithCounterpartyUpgradeSequence creates a new MsgChannelCloseConfirm instance
+// with a non-zero counterparty upgrade sequence.
+func NewMsgChannelCloseConfirmWithCounterpartyUpgradeSequence(
 	portID, channelID string, proofInit []byte, proofHeight clienttypes.Height,
 	signer string, counterpartyUpgradeSequence uint64,
 ) *MsgChannelCloseConfirm {
@@ -390,8 +409,30 @@ func (msg MsgTimeout) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-// NewMsgTimeoutOnClose constructs new MsgTimeoutOnClose
+// NewMsgTimeoutOnClose constructs a new MsgTimeoutOnClose.
+// The counterparty upgrade sequence is set to 0. Breakage in
+// v9.0.0 will allow the counterparty upgrade sequence to be provided.
+// Please use NewMsgTimeoutOnCloseWithCounterpartyUpgradeSequence in this version
+// to provide the counterparty upgrade sequence.
 func NewMsgTimeoutOnClose(
+	packet Packet, nextSequenceRecv uint64,
+	proofUnreceived, proofClose []byte,
+	proofHeight clienttypes.Height, signer string,
+) *MsgTimeoutOnClose {
+	return &MsgTimeoutOnClose{
+		Packet:                      packet,
+		NextSequenceRecv:            nextSequenceRecv,
+		ProofUnreceived:             proofUnreceived,
+		ProofClose:                  proofClose,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
+		CounterpartyUpgradeSequence: 0,
+	}
+}
+
+// NewMsgTimeoutOnCloseWithCounterpartyUpgradeSequence constructs a new MsgTimeoutOnClose
+// with the provided counterparty upgrade sequence.
+func NewMsgTimeoutOnCloseWithCounterpartyUpgradeSequence(
 	packet Packet, nextSequenceRecv uint64,
 	proofUnreceived, proofClose []byte,
 	proofHeight clienttypes.Height, signer string,

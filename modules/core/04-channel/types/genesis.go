@@ -41,8 +41,27 @@ func (ps PacketSequence) Validate() error {
 	return validateGenFields(ps.PortId, ps.ChannelId, ps.Sequence)
 }
 
-// NewGenesisState creates a GenesisState instance.
+// NewGenesisState creates a GenesisState instance. It uses the default params.
+// Breakage in v9.0.0 will allow the params to be provided. Please use
+// NewGenesisStateWithParams in this version if you want to provide custom params.
 func NewGenesisState(
+	channels []IdentifiedChannel, acks, receipts, commitments []PacketState,
+	sendSeqs, recvSeqs, ackSeqs []PacketSequence, nextChannelSequence uint64,
+) GenesisState {
+	return GenesisState{
+		Channels:            channels,
+		Acknowledgements:    acks,
+		Commitments:         commitments,
+		SendSequences:       sendSeqs,
+		RecvSequences:       recvSeqs,
+		AckSequences:        ackSeqs,
+		NextChannelSequence: nextChannelSequence,
+		Params:              DefaultParams(),
+	}
+}
+
+// NewGenesisStateWithParams creates a GenesisState instance.
+func NewGenesisStateWithParams(
 	channels []IdentifiedChannel, acks, receipts, commitments []PacketState,
 	sendSeqs, recvSeqs, ackSeqs []PacketSequence, nextChannelSequence uint64,
 	params Params,

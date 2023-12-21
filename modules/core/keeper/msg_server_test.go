@@ -718,7 +718,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proofClosed, _ := suite.chainB.QueryProof(channelKey)
 
-			msg := channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.chainA.SenderAccount.GetAddress().String(), counterpartyUpgradeSequence)
+			msg := channeltypes.NewMsgTimeoutOnCloseWithCounterpartyUpgradeSequence(packet, 1, proof, proofClosed, proofHeight, suite.chainA.SenderAccount.GetAddress().String(), counterpartyUpgradeSequence)
 
 			_, err := keeper.Keeper.TimeoutOnClose(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
 
