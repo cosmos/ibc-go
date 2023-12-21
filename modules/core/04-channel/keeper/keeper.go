@@ -666,7 +666,7 @@ func (k Keeper) HasPruningSequenceStart(ctx sdk.Context, portID, channelID strin
 }
 
 // PruneAcknowledgements prunes packet acknowledgements and receipts that have a sequence number less than pruning sequence end.
-// The number of packet acks/receipts pruned is equal to limit. Pruning can only occur after a channel has been upgraded.
+// The number of packet acks/receipts pruned is bounded by the limit. Pruning can only occur after a channel has been upgraded.
 //
 // Pruning sequence start keeps track of the packet ack/receipt that can be pruned next. When it reaches pruningSequenceEnd,
 // pruning is complete.
