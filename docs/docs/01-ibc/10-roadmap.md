@@ -1,7 +1,7 @@
 ---
 title: Roadmap
 sidebar_label: Roadmap
-sidebar_position: 9
+sidebar_position: 10
 slug: /ibc/roadmap
 ---
 

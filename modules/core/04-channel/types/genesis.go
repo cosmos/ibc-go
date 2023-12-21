@@ -45,6 +45,7 @@ func (ps PacketSequence) Validate() error {
 func NewGenesisState(
 	channels []IdentifiedChannel, acks, receipts, commitments []PacketState,
 	sendSeqs, recvSeqs, ackSeqs []PacketSequence, nextChannelSequence uint64,
+	params Params,
 ) GenesisState {
 	return GenesisState{
 		Channels:            channels,
@@ -54,6 +55,7 @@ func NewGenesisState(
 		RecvSequences:       recvSeqs,
 		AckSequences:        ackSeqs,
 		NextChannelSequence: nextChannelSequence,
+		Params:              params,
 	}
 }
 
@@ -68,6 +70,7 @@ func DefaultGenesisState() GenesisState {
 		RecvSequences:       []PacketSequence{},
 		AckSequences:        []PacketSequence{},
 		NextChannelSequence: 0,
+		Params:              DefaultParams(),
 	}
 }
 
