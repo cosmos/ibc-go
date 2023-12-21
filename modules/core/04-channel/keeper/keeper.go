@@ -194,6 +194,12 @@ func (k Keeper) SetPacketReceipt(ctx sdk.Context, portID, channelID string, sequ
 	store.Set(host.PacketReceiptKey(portID, channelID, sequence), []byte{byte(1)})
 }
 
+// deletePacketReceipt deletes a packet receipt from the store
+func (k Keeper) deletePacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.PacketReceiptKey(portID, channelID, sequence))
+}
+
 // GetPacketCommitment gets the packet commitment hash from the store
 func (k Keeper) GetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) []byte {
 	store := ctx.KVStore(k.storeKey)
@@ -238,6 +244,12 @@ func (k Keeper) GetPacketAcknowledgement(ctx sdk.Context, portID, channelID stri
 func (k Keeper) HasPacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(host.PacketAcknowledgementKey(portID, channelID, sequence))
+}
+
+// deletePacketAcknowledgement deletes the packet ack hash from the store
+func (k Keeper) deletePacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.PacketAcknowledgementKey(portID, channelID, sequence))
 }
 
 // IteratePacketSequence provides an iterator over all send, receive or ack sequences.
@@ -653,8 +665,42 @@ func (k Keeper) HasPruningSequenceStart(ctx sdk.Context, portID, channelID strin
 	return store.Has(host.PruningSequenceStartKey(portID, channelID))
 }
 
-// PruneAcknowledgements prunes packet acknowledgements from the store that have a sequence number less than or equal to the pruning sequence.
-// The number of packet acknowledgements pruned is equal to limit. Pruning only occurs after a channel has been upgraded.
-func (Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string, limit, pruningSequence uint64) error {
-	return nil
+// PruneAcknowledgements prunes packet acknowledgements and receipts that have a sequence number less than pruning sequence end.
+// The number of packet acks/receipts pruned is bounded by the limit. Pruning can only occur after a channel has been upgraded.
+//
+// Pruning sequence start keeps track of the packet ack/receipt that can be pruned next. When it reaches pruningSequenceEnd,
+// pruning is complete.
+func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string, limit uint64) (uint64, uint64, error) {
+	if !k.HasPruningSequenceStart(ctx, portID, channelID) {
+		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	pruningSequenceStart := k.GetPruningSequenceStart(ctx, portID, channelID)
+	pruningSequenceEnd, found := k.GetPruningSequenceEnd(ctx, portID, channelID)
+	if !found {
+		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceEndNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	start := pruningSequenceStart
+	end := pruningSequenceStart + limit
+	for ; start < end; start++ {
+		// stop pruning if pruningSequenceStart has reached pruningSequenceEnd, pruningSequenceEnd is
+		// set to be equal to the _next_ sequence to be sent by the counterparty.
+		if start >= pruningSequenceEnd {
+			break
+		}
+
+		k.deletePacketAcknowledgement(ctx, portID, channelID, start)
+
+		// NOTE: packet receipts are only relevant for unordered channels.
+		k.deletePacketReceipt(ctx, portID, channelID, start)
+	}
+
+	// set pruning sequence start to the updated value
+	k.SetPruningSequenceStart(ctx, portID, channelID, start)
+
+	totalPruned := start - pruningSequenceStart
+	totalRemaining := pruningSequenceEnd - start
+
+	return totalPruned, totalRemaining, nil
 }
