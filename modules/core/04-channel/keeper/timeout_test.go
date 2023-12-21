@@ -767,7 +767,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				proof, _ = suite.chainB.QueryProof(unorderedPacketKey)
 			}
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnClose(
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutOnCloseWithCounterpartyUpgradeSequence(
 				suite.chainA.GetContext(),
 				chanCap,
 				packet,
