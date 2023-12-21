@@ -2017,8 +2017,8 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestPruneStalePacketState() {
-	var msg *channeltypes.MsgPruneStalePacketState
+func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
+	var msg *channeltypes.MsgPruneAcknowledgements
 
 	testCases := []struct {
 		name     string
@@ -2069,7 +2069,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketState() {
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			msg = channeltypes.NewMsgPruneStalePacketState(
+			msg = channeltypes.NewMsgPruneAcknowledgements(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				10,
@@ -2078,7 +2078,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketState() {
 
 			tc.malleate()
 
-			resp, err := suite.chainA.App.GetIBCKeeper().PruneStalePacketState(suite.chainA.GetContext(), msg)
+			resp, err := suite.chainA.App.GetIBCKeeper().PruneAcknowledgements(suite.chainA.GetContext(), msg)
 
 			if tc.expErr == nil {
 				suite.Require().NoError(err)

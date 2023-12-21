@@ -543,7 +543,7 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	})
 }
 
-func (suite *KeeperTestSuite) TestPruneStalePacketState() {
+func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 	var (
 		path          *ibctesting.Path
 		limit         uint64
@@ -671,7 +671,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketState() {
 			},
 			func() {
 				// Prune 5 on A.
-				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketState(
+				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneAcknowledgements(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
@@ -750,7 +750,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketState() {
 				suite.sendMockPackets(path, 12)
 
 				// attempt to prune 5.
-				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketState(
+				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneAcknowledgements(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
@@ -806,7 +806,7 @@ func (suite *KeeperTestSuite) TestPruneStalePacketState() {
 
 			tc.malleate()
 
-			pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneStalePacketState(
+			pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneAcknowledgements(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
