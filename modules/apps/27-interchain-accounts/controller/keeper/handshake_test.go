@@ -479,6 +479,10 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 }
 
 func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
+	const (
+		invalidVersion = "invalid-version"
+	)
+
 	var (
 		path     *ibctesting.Path
 		metadata icatypes.Metadata
@@ -538,7 +542,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 		{
 			name: "failure: cannot decode version string",
 			malleate: func() {
-				version = "invalid-version"
+				version = invalidVersion
 			},
 			expError: icatypes.ErrUnknownDataType,
 		},
@@ -546,7 +550,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			name: "failure: cannot decode self version string",
 			malleate: func() {
 				ch := path.EndpointA.GetChannel()
-				ch.Version = "invalid-version"
+				ch.Version = invalidVersion
 				path.EndpointA.SetChannel(ch)
 			},
 			expError: icatypes.ErrUnknownDataType,
@@ -591,7 +595,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			name: "failure: controller connection ID has changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.ControllerConnectionId = "connection-1"
+					metadata.ControllerConnectionId = differentConnectionID
 				})
 			},
 			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the controller connection identifier are unreachable
@@ -600,7 +604,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			name: "failure: host connection ID has changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.HostConnectionId = "connection-1"
+					metadata.HostConnectionId = differentConnectionID
 				})
 			},
 			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the host connection identifier are unreachable
@@ -725,7 +729,6 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
 					metadata.Encoding = "invalid-encoding"
 				})
-
 			},
 			expError: icatypes.ErrInvalidCodec,
 		},
@@ -760,7 +763,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			name: "failure: controller connection ID has changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.ControllerConnectionId = "connection-1"
+					metadata.ControllerConnectionId = differentConnectionID
 				})
 			},
 			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the controller identifier are unreachable
@@ -769,7 +772,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			name: "failure: host connection ID has changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.HostConnectionId = "connection-1"
+					metadata.HostConnectionId = differentConnectionID
 				})
 			},
 			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the host identifier are unreachable
