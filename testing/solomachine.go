@@ -358,7 +358,6 @@ func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, portID, channelID st
 		proofInit,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
-		0, // use default value for channel that hasn't undergone an upgrade
 	)
 
 	res, err := chain.SendMsgs(msgChanCloseConfirm)
@@ -450,7 +449,6 @@ func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channelty
 		proofClosed,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
-		0, // use default value for channel that hasn't undergone an upgrade
 	)
 
 	res, err := chain.SendMsgs(msgTimeout)

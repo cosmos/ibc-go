@@ -561,7 +561,7 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
 	require.True(endpoint.Chain.TB, found)
 
-	timeoutOnCloseMsg := channeltypes.NewMsgTimeoutOnClose(
+	timeoutOnCloseMsg := channeltypes.NewMsgTimeoutOnCloseWithCounterpartyUpgradeSequence(
 		packet, nextSeqRecv,
 		proof, proofClosed, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String(),
 		endpoint.Counterparty.GetChannel().UpgradeSequence,
