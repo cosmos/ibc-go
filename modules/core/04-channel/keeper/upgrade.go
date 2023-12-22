@@ -350,10 +350,6 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	if !k.HasInflightPackets(ctx, portID, channelID) {
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
-	} else {
-		// the counterparty upgrade is only required if the channel is still in the FLUSHING state.
-		// this gets read when timing out and acknowledging packets.
-		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -364,6 +360,7 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
+	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State.String())
 	return channel, upgrade
@@ -461,13 +458,10 @@ func (k Keeper) WriteUpgradeConfirmChannel(ctx sdk.Context, portID, channelID st
 		previousState := channel.State
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
-
 		k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
-	} else {
-		// the counterparty upgrade is only required if the channel is still in the FLUSHING state.
-		// this gets read when timing out and acknowledging packets.
-		k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	}
+
+	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 	return channel
 }
 
@@ -566,6 +560,36 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
 	if !found {
 		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, portID, channelID)
+	if !found {
+		panic(fmt.Errorf("could not find counterparty upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
+	}
+
+	// next seq recv and ack is used for ordered channels to verify the packet has been received/acked in the correct order
+	// this is no longer necessary if the channel is UNORDERED and should be reset to 1
+	if channel.Ordering == types.ORDERED && upgrade.Fields.Ordering == types.UNORDERED {
+		k.SetNextSequenceRecv(ctx, portID, channelID, 1)
+		k.SetNextSequenceAck(ctx, portID, channelID, 1)
+	}
+
+	// next seq recv and ack should updated when moving from UNORDERED to ORDERED using the counterparty NextSequenceSend as set just after blocking new packet sends.
+	// we can be sure that the next packet we are set to receive will be the first packet the counterparty sends after reopening.
+	// we can be sure that our next acknowledgement will be our first packet sent after upgrade, as the counterparty processed all sent packets after flushing completes.
+	if channel.Ordering == types.UNORDERED && upgrade.Fields.Ordering == types.ORDERED {
+		k.SetNextSequenceRecv(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
+		k.SetNextSequenceAck(ctx, portID, channelID, upgrade.NextSequenceSend)
+	}
+
+	// set the counterparty next sequence send as pruning sequence end in order to have upper bound to prune to
+	k.SetPruningSequenceEnd(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
+
+	// First upgrade for this channel will set the pruning sequence to 1, the starting sequence for pruning.
+	// Subsequent upgrades will not modify the pruning sequence thereby allowing pruning to continue from the last
+	// pruned sequence.
+	if !k.HasPruningSequenceStart(ctx, portID, channelID) {
+		k.SetPruningSequenceStart(ctx, portID, channelID, 1)
 	}
 
 	// Switch channel fields to upgrade fields and set channel state to OPEN
@@ -803,7 +827,7 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 		return errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	upgrade.LatestSequenceSend = nextSequenceSend - 1
+	upgrade.NextSequenceSend = nextSequenceSend
 	upgrade.Timeout = k.getAbsoluteUpgradeTimeout(ctx)
 	k.SetUpgrade(ctx, portID, channelID, *upgrade)
 

@@ -1094,6 +1094,21 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 	return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
 }
 
+// PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
+func (k Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	pruned, remaining, err := k.ChannelKeeper.PruneAcknowledgements(ctx, msg.PortId, msg.ChannelId, msg.Limit)
+	if err != nil {
+		return nil, err
+	}
+
+	return &channeltypes.MsgPruneAcknowledgementsResponse{
+		TotalPrunedSequences:    pruned,
+		TotalRemainingSequences: remaining,
+	}, nil
+}
+
 // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
 func (k Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Signer {
@@ -1128,9 +1143,4 @@ func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Msg
 	k.ChannelKeeper.SetParams(ctx, msg.Params)
 
 	return &channeltypes.MsgUpdateParamsResponse{}, nil
-}
-
-// PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
-func (Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
-	return &channeltypes.MsgPruneAcknowledgementsResponse{}, nil
 }

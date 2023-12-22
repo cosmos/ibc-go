@@ -14,7 +14,6 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -125,7 +124,7 @@ func (s *ChannelTestSuite) createUpgradeFields(channel channeltypes.Channel) cha
 		FeeVersion: feetypes.Version,
 		AppVersion: transfertypes.Version,
 	}
-	versionBytes, err := types.ModuleCdc.MarshalJSON(&versionMetadata)
+	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)
 
 	return channeltypes.NewUpgradeFields(channel.Ordering, channel.ConnectionHops, string(versionBytes))

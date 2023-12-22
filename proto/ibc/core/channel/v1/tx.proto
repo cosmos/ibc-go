@@ -455,4 +455,9 @@ message MsgPruneAcknowledgements {
 }
 
 // MsgPruneAcknowledgementsResponse defines the response type for the PruneAcknowledgements rpc.
-message MsgPruneAcknowledgementsResponse {}
+message MsgPruneAcknowledgementsResponse {
+  // Number of sequences pruned (includes both packet acknowledgements and packet receipts where appropriate).
+  uint64 total_pruned_sequences = 1;
+  // Number of sequences left after pruning.
+  uint64 total_remaining_sequences = 2;
+}
