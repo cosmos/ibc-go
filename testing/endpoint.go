@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -11,6 +12,7 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -139,7 +141,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		header, err = endpoint.PopulateClientHeader(endpoint.Counterparty.Chain.LastHeader, endpoint.Chain.LastHeader.TrustedHeight)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -890,4 +892,43 @@ func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
 	}
 
 	return upgrade
+}
+
+func (endpoint *Endpoint) PopulateClientHeader(header *ibctm.Header, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
+	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
+	if trustedHeight.IsZero() {
+		trustedHeight = endpoint.GetClientState().GetLatestHeight().(clienttypes.Height)
+	}
+
+	var (
+		cmtTrustedVals *cmttypes.ValidatorSet
+		ok             bool
+	)
+
+	counterparty := endpoint.Counterparty.Chain
+	// Once we get TrustedHeight from client, we must query the validators from the counterparty chain
+	// If the LatestHeight == LastHeader.Height, then TrustedValidators are current validators
+	// If LatestHeight < LastHeader.Height, we can query the historical validator set from HistoricalInfo
+	if trustedHeight == counterparty.LastHeader.TrustedHeight {
+		cmtTrustedVals = counterparty.Vals
+	} else {
+		// NOTE: We need to get validators from counterparty at height: trustedHeight+1
+		// since the last trusted validators for a header at height h
+		// is the NextValidators at h+1 committed to in header h by
+		// NextValidatorsHash
+		cmtTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight + 1))
+		if !ok {
+			return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
+		}
+	}
+
+	trustedVals, err := cmtTrustedVals.ToProto()
+	if err != nil {
+		return nil, err
+	}
+
+	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
+	header.TrustedValidators = trustedVals
+
+	return header, nil
 }

@@ -160,7 +160,7 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, _ = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		header, _ = endpoint.PopulateClientHeader(endpoint.Counterparty.Chain.LastHeader, clienttypes.ZeroHeight())
 
 	default:
 	}

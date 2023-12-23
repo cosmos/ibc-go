@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -443,44 +442,6 @@ func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
 // GetPrefix returns the prefix for used by a chain in connection creation
 func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 	return commitmenttypes.NewMerklePrefix(chain.App.GetIBCKeeper().ConnectionKeeper.GetCommitmentPrefix().Bytes())
-}
-
-// ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
-// light client on the source chain.
-func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, clientID string) (*ibctm.Header, error) {
-	return chain.ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, clientID, clienttypes.ZeroHeight())
-}
-
-// ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
-// light client on the source chain.
-func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
-	header := counterparty.LastHeader
-	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
-	if trustedHeight.IsZero() {
-		trustedHeight = chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
-	}
-	var (
-		cmtTrustedVals *cmttypes.ValidatorSet
-		ok             bool
-	)
-
-	cmtTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
-	if !ok {
-		return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
-	}
-
-	// inject trusted fields into last header
-	// for now assume revision number is 0
-	header.TrustedHeight = trustedHeight
-
-	trustedVals, err := cmtTrustedVals.ToProto()
-	if err != nil {
-		return nil, err
-	}
-	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
-	header.TrustedValidators = trustedVals
-
-	return header, nil
 }
 
 // ExpireClient fast forwards the chain's block time by the provided amount of time which will
