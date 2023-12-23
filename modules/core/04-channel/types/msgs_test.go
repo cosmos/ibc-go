@@ -261,7 +261,6 @@ func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 			} else {
 				suite.Require().Error(err)
 				suite.Assert().Equal(err.Error(), tc.expErr)
-				// suite.Assert().Equal(err.Error(), tc.expErr)
 			}
 		})
 	}
@@ -287,23 +286,156 @@ func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 		name    string
 		msg     *types.MsgChannelOpenTry
 		expPass bool
+		expErr  string
 	}{
-		{"", types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), true},
-		{"too short port id", types.NewMsgChannelOpenTry(invalidShortPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"too long port id", types.NewMsgChannelOpenTry(invalidLongPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"port id contains non-alpha", types.NewMsgChannelOpenTry(invalidPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"", types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, "", suite.proof, height, addr), true},
-		{"invalid channel order", types.NewMsgChannelOpenTry(portid, version, types.Order(4), connHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"connection hops more than 1 ", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidConnHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"too short connection id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidShortConnHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"too long connection id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidLongConnHops, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"connection id contains non-alpha", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, []string{invalidConnection}, cpportid, cpchanid, version, suite.proof, height, addr), false},
-		{"", types.NewMsgChannelOpenTry(portid, "", types.UNORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr), true},
-		{"invalid counterparty port id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, invalidPort, cpchanid, version, suite.proof, height, addr), false},
-		{"invalid counterparty channel id", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, cpportid, invalidChannel, version, suite.proof, height, addr), false},
-		{"empty proof", types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, cpportid, cpchanid, version, emptyProof, height, addr), false},
-		{"channel not in TRYOPEN state", &types.MsgChannelOpenTry{portid, "", initChannel, version, suite.proof, height, addr}, false},
-		{"previous channel id is not empty", &types.MsgChannelOpenTry{portid, chanid, initChannel, version, suite.proof, height, addr}, false},
+		{
+			"",
+			types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr),
+			true,
+			"",
+		},
+		{
+			"too short port id",
+			types.NewMsgChannelOpenTry(invalidShortPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s has invalid length: %d, must be between %d-%d characters",
+					invalidShortPort, len(invalidShortPort), 2, host.DefaultMaxPortCharacterLength),
+				"invalid port ID",
+			).Error(),
+		},
+		{
+			"too long port id",
+			types.NewMsgChannelOpenTry(invalidLongPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s has invalid length: %d, must be between %d-%d characters",
+					invalidLongPort, len(invalidLongPort), 2, host.DefaultMaxPortCharacterLength),
+				"invalid port ID",
+			).Error(),
+		},
+		{
+			"port id contains non-alpha",
+			types.NewMsgChannelOpenTry(invalidPort, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidPort,
+				), "invalid port ID",
+			).Error(),
+		},
+		{
+			"",
+			types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, "", suite.proof, height, addr),
+			true,
+			"",
+		},
+		{
+			"invalid channel order",
+			types.NewMsgChannelOpenTry(portid, version, types.Order(4), connHops, cpportid, cpchanid, version, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(types.ErrInvalidChannelOrdering, types.Order(4).String()).Error(),
+		},
+		{
+			"connection hops more than 1 ",
+			types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidConnHops, cpportid, cpchanid, version, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				types.ErrTooManyConnectionHops,
+				"current IBC version only supports one connection hop",
+			).Error(),
+		},
+		{
+			"too short connection id",
+			types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidShortConnHops, cpportid, cpchanid, version, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s has invalid length: %d, must be between %d-%d characters", invalidShortConnection, len(invalidShortConnection), 10, host.DefaultMaxCharacterLength),
+				"invalid connection hop ID",
+			).Error(),
+		},
+		{
+			"too long connection id",
+			types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, invalidLongConnHops, cpportid, cpchanid, version, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s has invalid length: %d, must be between %d-%d characters", invalidLongConnection, len(invalidLongConnection), 10, host.DefaultMaxCharacterLength),
+				"invalid connection hop ID",
+			).Error(),
+		},
+		{
+			"connection id contains non-alpha",
+			types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, []string{invalidConnection}, cpportid, cpchanid, version, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidConnection,
+				), "invalid connection hop ID",
+			).Error(),
+		},
+		{
+			"",
+			types.NewMsgChannelOpenTry(portid, "", types.UNORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr),
+			true,
+			"",
+		},
+		{
+			"invalid counterparty port id",
+			types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, invalidPort, cpchanid, version, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidPort,
+				), "invalid counterparty port ID",
+			).Error(),
+		},
+		{
+			"invalid counterparty channel id",
+			types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, cpportid, invalidChannel, version, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidChannel,
+				), "invalid counterparty channel ID",
+			).Error(),
+		},
+		{
+			"empty proof",
+			types.NewMsgChannelOpenTry(portid, version, types.UNORDERED, connHops, cpportid, cpchanid, version, emptyProof, height, addr),
+			false,
+			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty init proof").Error(),
+		},
+		{
+			"channel not in TRYOPEN state",
+			&types.MsgChannelOpenTry{portid, "", initChannel, version, suite.proof, height, addr},
+			false,
+			errorsmod.Wrapf(types.ErrInvalidChannelState,
+				"channel state must be TRYOPEN in MsgChannelOpenTry. expected: %s, got: %s",
+				types.TRYOPEN, initChannel.State,
+			).Error(),
+		},
+		{
+			"previous channel id is not empty",
+			&types.MsgChannelOpenTry{portid, chanid, initChannel, version, suite.proof, height, addr},
+			false,
+			errorsmod.Wrap(types.ErrInvalidChannelIdentifier, "previous channel identifier must be empty, this field has been deprecated as crossing hellos are no longer supported").Error(),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -316,6 +448,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Assert().Equal(err.Error(), tc.expErr)
 			}
 		})
 	}
