@@ -7,6 +7,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	errorsmod "cosmossdk.io/errors"
 	log "cosmossdk.io/log"
 	"cosmossdk.io/store/iavl"
 	"cosmossdk.io/store/metrics"
@@ -122,19 +123,132 @@ func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 		name    string
 		msg     *types.MsgChannelOpenInit
 		expPass bool
+		expErr  string
 	}{
-		{"", types.NewMsgChannelOpenInit(portid, version, types.ORDERED, connHops, cpportid, addr), true},
-		{"too short port id", types.NewMsgChannelOpenInit(invalidShortPort, version, types.ORDERED, connHops, cpportid, addr), false},
-		{"too long port id", types.NewMsgChannelOpenInit(invalidLongPort, version, types.ORDERED, connHops, cpportid, addr), false},
-		{"port id contains non-alpha", types.NewMsgChannelOpenInit(invalidPort, version, types.ORDERED, connHops, cpportid, addr), false},
-		{"invalid channel order", types.NewMsgChannelOpenInit(portid, version, types.Order(3), connHops, cpportid, addr), false},
-		{"connection hops more than 1 ", types.NewMsgChannelOpenInit(portid, version, types.ORDERED, invalidConnHops, cpportid, addr), false},
-		{"too short connection id", types.NewMsgChannelOpenInit(portid, version, types.UNORDERED, invalidShortConnHops, cpportid, addr), false},
-		{"too long connection id", types.NewMsgChannelOpenInit(portid, version, types.UNORDERED, invalidLongConnHops, cpportid, addr), false},
-		{"connection id contains non-alpha", types.NewMsgChannelOpenInit(portid, version, types.UNORDERED, []string{invalidConnection}, cpportid, addr), false},
-		{"", types.NewMsgChannelOpenInit(portid, "", types.UNORDERED, connHops, cpportid, addr), true},
-		{"invalid counterparty port id", types.NewMsgChannelOpenInit(portid, version, types.UNORDERED, connHops, invalidPort, addr), false},
-		{"channel not in INIT state", &types.MsgChannelOpenInit{portid, tryOpenChannel, addr}, false},
+		{
+			"",
+			types.NewMsgChannelOpenInit(portid, version, types.ORDERED, connHops, cpportid, addr),
+			true,
+			"",
+		},
+		{
+			"too short port id",
+			types.NewMsgChannelOpenInit(invalidShortPort, version, types.ORDERED, connHops, cpportid, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s has invalid length: %d, must be between %d-%d characters",
+					invalidShortPort,
+					len(invalidShortPort),
+					2,
+					host.DefaultMaxPortCharacterLength,
+				), "invalid port ID").Error(),
+		},
+		{
+			"too long port id",
+			types.NewMsgChannelOpenInit(invalidLongPort, version, types.ORDERED, connHops, cpportid, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s has invalid length: %d, must be between %d-%d characters",
+					invalidLongPort,
+					len(invalidLongPort),
+					2,
+					host.DefaultMaxPortCharacterLength,
+				), "invalid port ID").Error(),
+		},
+		{
+			"port id contains non-alpha",
+			types.NewMsgChannelOpenInit(invalidPort, version, types.ORDERED, connHops, cpportid, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidPort,
+				), "invalid port ID").Error(),
+		},
+		{
+			"invalid channel order",
+			types.NewMsgChannelOpenInit(portid, version, types.Order(3),
+				connHops, cpportid, addr),
+			false,
+			errorsmod.Wrap(types.ErrInvalidChannelOrdering, types.Order(3).String()).Error(),
+		},
+		{
+			"connection hops more than 1 ",
+			types.NewMsgChannelOpenInit(portid, version, types.ORDERED, invalidConnHops, cpportid, addr),
+			false,
+			errorsmod.Wrap(
+				types.ErrTooManyConnectionHops,
+				"current IBC version only supports one connection hop",
+			).Error(),
+		},
+		{
+			"too short connection id",
+			types.NewMsgChannelOpenInit(portid, version, types.UNORDERED, invalidShortConnHops, cpportid, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s has invalid length: %d, must be between %d-%d characters",
+					invalidShortConnection, len(invalidShortConnection), 10, host.DefaultMaxCharacterLength),
+				"invalid connection hop ID",
+			).Error(),
+		},
+		{
+			"too long connection id",
+			types.NewMsgChannelOpenInit(portid, version, types.UNORDERED, invalidLongConnHops, cpportid, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s has invalid length: %d, must be between %d-%d characters",
+					invalidLongConnection, len(invalidLongConnection), 10, host.DefaultMaxCharacterLength),
+				"invalid connection hop ID",
+			).Error(),
+		},
+		{
+			"connection id contains non-alpha",
+			types.NewMsgChannelOpenInit(portid, version, types.UNORDERED, []string{invalidConnection}, cpportid, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidConnection,
+				), "invalid connection hop ID",
+			).Error(),
+		},
+		{
+			"",
+			types.NewMsgChannelOpenInit(portid, "", types.UNORDERED, connHops, cpportid, addr),
+			true,
+			"",
+		},
+		{
+			"invalid counterparty port id",
+			types.NewMsgChannelOpenInit(portid, version, types.UNORDERED, connHops, invalidPort, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidPort,
+				), "invalid counterparty port ID",
+			).Error(),
+		},
+		{
+			"channel not in INIT state",
+			&types.MsgChannelOpenInit{portid, tryOpenChannel, addr},
+			false,
+			errorsmod.Wrapf(types.ErrInvalidChannelState,
+				"channel state must be INIT in MsgChannelOpenInit. expected: %s, got: %s",
+				types.INIT, tryOpenChannel.State,
+			).Error(),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -146,6 +260,8 @@ func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Assert().Equal(err.Error(), tc.expErr)
+				// suite.Assert().Equal(err.Error(), tc.expErr)
 			}
 		})
 	}
