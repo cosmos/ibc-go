@@ -141,7 +141,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, err = endpoint.PopulateClientHeader(endpoint.Counterparty.Chain.LastHeader, endpoint.Chain.LastHeader.TrustedHeight)
+		header, err = endpoint.PopulateClientHeader(endpoint.Counterparty.Chain.LastHeader, clienttypes.ZeroHeight())
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -909,17 +909,9 @@ func (endpoint *Endpoint) PopulateClientHeader(header *ibctm.Header, trustedHeig
 	// Once we get TrustedHeight from client, we must query the validators from the counterparty chain
 	// If the LatestHeight == LastHeader.Height, then TrustedValidators are current validators
 	// If LatestHeight < LastHeader.Height, we can query the historical validator set from HistoricalInfo
-	if trustedHeight == counterparty.LastHeader.TrustedHeight {
-		cmtTrustedVals = counterparty.Vals
-	} else {
-		// NOTE: We need to get validators from counterparty at height: trustedHeight+1
-		// since the last trusted validators for a header at height h
-		// is the NextValidators at h+1 committed to in header h by
-		// NextValidatorsHash
-		cmtTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight + 1))
-		if !ok {
-			return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
-		}
+	cmtTrustedVals, ok = counterparty.GetValsAtHeight(int64(trustedHeight.RevisionHeight))
+	if !ok {
+		return nil, errorsmod.Wrapf(ibctm.ErrInvalidHeaderHeight, "could not retrieve trusted validators at trustedHeight: %d", trustedHeight)
 	}
 
 	trustedVals, err := cmtTrustedVals.ToProto()
@@ -927,6 +919,7 @@ func (endpoint *Endpoint) PopulateClientHeader(header *ibctm.Header, trustedHeig
 		return nil, err
 	}
 
+	header.TrustedHeight = trustedHeight
 	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
 	header.TrustedValidators = trustedVals
 
