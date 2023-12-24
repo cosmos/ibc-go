@@ -856,23 +856,23 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	}
 
 	app, ok := k.Router.GetRoute(module)
-	err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	if !ok {
+		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
 
 	cbs, ok := app.(porttypes.UpgradableModule)
-	err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
 	if !ok {
+		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade ack failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
 
 	err = k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
-	chanupgradefailed := errorsmod.Wrap(err, "channel upgrade ack failed")
 	if err != nil {
-		ctx.Logger().Error("channel upgrade ack failed", "error", chanupgradefailed)
+		errChanUpgradeFailed := errorsmod.Wrap(err, "channel upgrade ack failed")
+		ctx.Logger().Error("channel upgrade ack failed", "error", errChanUpgradeFailed)
 		if channeltypes.IsUpgradeError(err) {
 			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
 			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
@@ -883,7 +883,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		}
 
 		// NOTE: an error is returned to baseapp and transaction state is not committed.
-		return nil, chanupgradefailed
+		return nil, errChanUpgradeFailed
 	}
 
 	cacheCtx, writeFn := ctx.CacheContext()
@@ -917,15 +917,15 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 	}
 
 	app, ok := k.Router.GetRoute(module)
-	err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	if !ok {
+		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade confirm failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
 
 	cbs, ok := app.(porttypes.UpgradableModule)
-	err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
 	if !ok {
+		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade confirm failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
@@ -979,14 +979,15 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 	}
 
 	app, ok := k.Router.GetRoute(module)
-	err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	if !ok {
+		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade open failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
+
 	cbs, ok := app.(porttypes.UpgradableModule)
-	err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
 	if !ok {
+		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade open failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
@@ -1021,16 +1022,15 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 	}
 
 	app, ok := k.Router.GetRoute(module)
-	err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 	if !ok {
+		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade timeout failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
 
 	cbs, ok := app.(porttypes.UpgradableModule)
-	err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
-
 	if !ok {
+		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade timeout failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
@@ -1060,16 +1060,15 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 	}
 
 	app, ok := k.Router.GetRoute(module)
-	err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-
 	if !ok {
+		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "error", err)
 		return nil, err
 	}
 
 	cbs, ok := app.(porttypes.UpgradableModule)
-	err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
 	if !ok {
+		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
 		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, err)
 		return nil, err
 	}
