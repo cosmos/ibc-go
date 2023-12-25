@@ -1019,14 +1019,50 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 		name    string
 		msg     *types.MsgTimeoutOnClose
 		expPass bool
+		expErr  error
 	}{
-		{"success", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr, 0), true},
-		{"success, positive counterparty upgrade sequence", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr, 1), true},
-		{"seq 0", types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr, 0), false},
-		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr, 0), false},
-		{"empty proof", types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr, 0), false},
-		{"empty proof close", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr, 0), false},
-		{"invalid packet", types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr, 0), false},
+		{
+			"success",
+			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr, 0),
+			true,
+			nil,
+		},
+		{
+			"success, positive counterparty upgrade sequence",
+			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr, 1),
+			true,
+			nil,
+		},
+		{
+			"seq 0",
+			types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr, 0),
+			false,
+			errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "next sequence receive cannot be 0"),
+		},
+		{
+			"signer address is empty",
+			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr, 0),
+			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
+		},
+		{
+			"empty proof",
+			types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr, 0),
+			false,
+			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty unreceived proof"),
+		},
+		{
+			"empty proof close",
+			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr, 0),
+			false,
+			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of closed counterparty channel end"),
+		},
+		{
+			"invalid packet",
+			types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr, 0),
+			false,
+			errorsmod.Wrap(types.ErrInvalidPacket, "packet sequence cannot be 0"),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1039,6 +1075,7 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
@@ -1061,12 +1098,38 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 		name    string
 		msg     *types.MsgAcknowledgement
 		expPass bool
+		expErr  error
 	}{
-		{"success", types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, addr), true},
-		{"empty ack", types.NewMsgAcknowledgement(packet, nil, suite.proof, height, addr), false},
-		{"missing signer address", types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, emptyAddr), false},
-		{"cannot submit an empty proof", types.NewMsgAcknowledgement(packet, packet.GetData(), emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgAcknowledgement(invalidPacket, packet.GetData(), suite.proof, height, addr), false},
+		{
+			"success",
+			types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, addr),
+			true,
+			nil,
+		},
+		{
+			"empty ack",
+			types.NewMsgAcknowledgement(packet, nil, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(types.ErrInvalidAcknowledgement, "ack bytes cannot be empty"),
+		},
+		{
+			"missing signer address",
+			types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, emptyAddr),
+			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
+		},
+		{
+			"cannot submit an empty proof",
+			types.NewMsgAcknowledgement(packet, packet.GetData(), emptyProof, height, addr),
+			false,
+			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty acknowledgement proof"),
+		},
+		{
+			"invalid packet",
+			types.NewMsgAcknowledgement(invalidPacket, packet.GetData(), suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(types.ErrInvalidPacket, "packet sequence cannot be 0"),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1079,6 +1142,7 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
@@ -1103,11 +1167,13 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 		name     string
 		malleate func()
 		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
 			true,
+			nil,
 		},
 		{
 			"invalid port identifier",
@@ -1115,6 +1181,13 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 				msg.PortId = invalidPort
 			},
 			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidPort,
+				), "invalid port ID",
+			),
 		},
 		{
 			"invalid channel identifier",
@@ -1122,6 +1195,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 				msg.ChannelId = invalidChannel
 			},
 			false,
+			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"empty proposed upgrade channel version",
@@ -1129,6 +1203,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 				msg.Fields.Version = "  "
 			},
 			false,
+			errorsmod.Wrap(types.ErrInvalidChannelVersion, "version cannot be empty"),
 		},
 		{
 			"missing signer address",
@@ -1136,6 +1211,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 				msg.Signer = emptyAddr
 			},
 			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
 		},
 	}
 
@@ -1155,6 +1231,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
@@ -1183,11 +1260,13 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 		name     string
 		malleate func()
 		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
 			true,
+			nil,
 		},
 		{
 			"invalid port identifier",
@@ -1195,6 +1274,13 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				msg.PortId = invalidPort
 			},
 			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidPort,
+				), "invalid port ID",
+			),
 		},
 		{
 			"invalid channel identifier",
@@ -1202,6 +1288,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				msg.ChannelId = invalidChannel
 			},
 			false,
+			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"counterparty sequence cannot be zero",
@@ -1209,6 +1296,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				msg.CounterpartyUpgradeSequence = 0
 			},
 			false,
+			errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "counterparty sequence cannot be 0"),
 		},
 		{
 			"invalid connection hops",
@@ -1216,6 +1304,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				msg.ProposedUpgradeConnectionHops = []string{}
 			},
 			false,
+			errorsmod.Wrap(types.ErrInvalidUpgrade, "proposed connection hops cannot be empty"),
 		},
 		{
 			"invalid counterparty upgrade fields ordering",
@@ -1223,6 +1312,9 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				msg.CounterpartyUpgradeFields.Ordering = types.NONE
 			},
 			false,
+			errorsmod.Wrap(
+				errorsmod.Wrap(types.ErrInvalidChannelOrdering, types.NONE.String()), "error validating counterparty upgrade fields",
+			),
 		},
 		{
 			"cannot submit an empty channel proof",
@@ -1230,6 +1322,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				msg.ProofChannel = emptyProof
 			},
 			false,
+			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof"),
 		},
 		{
 			"cannot submit an empty upgrade proof",
@@ -1237,6 +1330,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				msg.ProofUpgrade = emptyProof
 			},
 			false,
+			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade proof"),
 		},
 		{
 			"missing signer address",
@@ -1244,6 +1338,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				msg.Signer = emptyAddr
 			},
 			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
 		},
 	}
 
@@ -1269,6 +1364,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
