@@ -242,7 +242,6 @@ func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-
 			err := tc.msg.ValidateBasic()
 
 			expPass := tc.expErr == nil
@@ -582,15 +581,74 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 		name    string
 		msg     *types.MsgChannelOpenConfirm
 		expPass bool
+		expErr  error
 	}{
-		{"", types.NewMsgChannelOpenConfirm(portid, chanid, suite.proof, height, addr), true},
-		{"too short port id", types.NewMsgChannelOpenConfirm(invalidShortPort, chanid, suite.proof, height, addr), false},
-		{"too long port id", types.NewMsgChannelOpenConfirm(invalidLongPort, chanid, suite.proof, height, addr), false},
-		{"port id contains non-alpha", types.NewMsgChannelOpenConfirm(invalidPort, chanid, suite.proof, height, addr), false},
-		{"too short channel id", types.NewMsgChannelOpenConfirm(portid, invalidShortChannel, suite.proof, height, addr), false},
-		{"too long channel id", types.NewMsgChannelOpenConfirm(portid, invalidLongChannel, suite.proof, height, addr), false},
-		{"channel id contains non-alpha", types.NewMsgChannelOpenConfirm(portid, invalidChannel, suite.proof, height, addr), false},
-		{"empty proof", types.NewMsgChannelOpenConfirm(portid, chanid, emptyProof, height, addr), false},
+		{
+			"success",
+			types.NewMsgChannelOpenConfirm(portid, chanid, suite.proof, height, addr),
+			true,
+			nil,
+		},
+		{
+			"too short port id",
+			types.NewMsgChannelOpenConfirm(invalidShortPort, chanid, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s has invalid length: %d, must be between %d-%d characters",
+					invalidShortPort, len(invalidShortPort), 2, host.DefaultMaxPortCharacterLength),
+				"invalid port ID",
+			),
+		},
+		{
+			"too long port id",
+			types.NewMsgChannelOpenConfirm(invalidLongPort, chanid, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s has invalid length: %d, must be between %d-%d characters",
+					invalidLongPort, len(invalidLongPort), 2, host.DefaultMaxPortCharacterLength),
+				"invalid port ID",
+			),
+		},
+		{
+			"port id contains non-alpha",
+			types.NewMsgChannelOpenConfirm(invalidPort, chanid, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidPort,
+				), "invalid port ID",
+			),
+		},
+		{
+			"too short channel id",
+			types.NewMsgChannelOpenConfirm(portid, invalidShortChannel, suite.proof, height, addr),
+			false,
+			types.ErrInvalidChannelIdentifier,
+		},
+		{
+			"too long channel id",
+			types.NewMsgChannelOpenConfirm(portid, invalidLongChannel, suite.proof, height, addr),
+			false,
+			types.ErrInvalidChannelIdentifier,
+		},
+		{
+			"channel id contains non-alpha",
+			types.NewMsgChannelOpenConfirm(portid, invalidChannel, suite.proof, height, addr),
+			false,
+			types.ErrInvalidChannelIdentifier,
+		},
+		{
+			"empty proof",
+			types.NewMsgChannelOpenConfirm(portid, chanid, emptyProof, height, addr),
+			false,
+			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty acknowledgement proof"),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -603,6 +661,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
