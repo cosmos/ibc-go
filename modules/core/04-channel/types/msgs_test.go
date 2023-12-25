@@ -952,12 +952,38 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 		name    string
 		msg     *types.MsgTimeout
 		expPass bool
+		expErr  error
 	}{
-		{"success", types.NewMsgTimeout(packet, 1, suite.proof, height, addr), true},
-		{"seq 0", types.NewMsgTimeout(packet, 0, suite.proof, height, addr), false},
-		{"missing signer address", types.NewMsgTimeout(packet, 1, suite.proof, height, emptyAddr), false},
-		{"cannot submit an empty proof", types.NewMsgTimeout(packet, 1, emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgTimeout(invalidPacket, 1, suite.proof, height, addr), false},
+		{
+			"success",
+			types.NewMsgTimeout(packet, 1, suite.proof, height, addr),
+			true,
+			nil,
+		},
+		{
+			"seq 0",
+			types.NewMsgTimeout(packet, 0, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "next sequence receive cannot be 0"),
+		},
+		{
+			"missing signer address",
+			types.NewMsgTimeout(packet, 1, suite.proof, height, emptyAddr),
+			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
+		},
+		{
+			"cannot submit an empty proof",
+			types.NewMsgTimeout(packet, 1, emptyProof, height, addr),
+			false,
+			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty unreceived proof"),
+		},
+		{
+			"invalid packet",
+			types.NewMsgTimeout(invalidPacket, 1, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(types.ErrInvalidPacket, "packet sequence cannot be 0"),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -970,6 +996,7 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
