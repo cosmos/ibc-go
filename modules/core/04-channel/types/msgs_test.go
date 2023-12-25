@@ -1828,11 +1828,13 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 		name     string
 		malleate func()
 		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
 			true,
+			nil,
 		},
 		{
 			"invalid port identifier",
@@ -1840,6 +1842,13 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 				msg.PortId = invalidPort
 			},
 			false,
+			errorsmod.Wrap(
+				errorsmod.Wrapf(
+					host.ErrInvalidID,
+					"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+					invalidPort,
+				), "invalid port ID",
+			),
 		},
 		{
 			"invalid channel identifier",
@@ -1847,6 +1856,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 				msg.ChannelId = invalidChannel
 			},
 			false,
+			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"can submit an empty proof",
@@ -1854,6 +1864,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 				msg.ProofErrorReceipt = emptyProof
 			},
 			true,
+			nil,
 		},
 		{
 			"missing signer address",
@@ -1861,6 +1872,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 				msg.Signer = emptyAddr
 			},
 			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
 		},
 	}
 
@@ -1876,6 +1888,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
