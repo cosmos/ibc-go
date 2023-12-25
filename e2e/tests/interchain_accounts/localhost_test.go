@@ -331,7 +331,8 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	})
 
 	t.Run("close interchain accounts host channel end", func(t *testing.T) {
-		msgCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(icatypes.HostPortID, msgChanOpenTryRes.ChannelId, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
+		// Pass in zero for counterpartyUpgradeSequence given that channel has not undergone any upgrades.
+		msgCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(icatypes.HostPortID, msgChanOpenTryRes.ChannelId, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(), 0)
 
 		txResp := s.BroadcastMessages(ctx, chainB, rlyWallet, msgCloseConfirm)
 		s.AssertTxSuccess(txResp)
