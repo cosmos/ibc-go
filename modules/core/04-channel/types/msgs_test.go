@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -890,11 +891,32 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		name    string
 		msg     *types.MsgRecvPacket
 		expPass bool
+		expErr  error
 	}{
-		{"success", types.NewMsgRecvPacket(packet, suite.proof, height, addr), true},
-		{"missing signer address", types.NewMsgRecvPacket(packet, suite.proof, height, emptyAddr), false},
-		{"proof contain empty proof", types.NewMsgRecvPacket(packet, emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgRecvPacket(invalidPacket, suite.proof, height, addr), false},
+		{
+			"success",
+			types.NewMsgRecvPacket(packet, suite.proof, height, addr),
+			true,
+			nil,
+		},
+		{
+			"missing signer address",
+			types.NewMsgRecvPacket(packet, suite.proof, height, emptyAddr),
+			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
+		},
+		{
+			"proof contain empty proof",
+			types.NewMsgRecvPacket(packet, emptyProof, height, addr),
+			false,
+			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty commitment proof"),
+		},
+		{
+			"invalid packet",
+			types.NewMsgRecvPacket(invalidPacket, suite.proof, height, addr),
+			false,
+			errorsmod.Wrap(types.ErrInvalidPacket, "packet sequence cannot be 0"),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -907,6 +929,7 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 				suite.NoError(err)
 			} else {
 				suite.Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
