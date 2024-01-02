@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+
 	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -15,6 +16,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -1241,6 +1244,61 @@ func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsValidateBasic() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			msg = types.NewMsgPruneAcknowledgements(ibctesting.MockPort, ibctesting.FirstChannelID, 1, addr)
+
+			tc.malleate()
+			err := msg.ValidateBasic()
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
+
+func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
+	var msg *types.MsgUpdateParams
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"invalid authority",
+			func() {
+				msg.Authority = "invalid-address"
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"invalid params: non zero height",
+			func() {
+				newHeight := clienttypes.NewHeight(1, 1000)
+				msg = types.NewMsgUpdateChannelParams(authtypes.NewModuleAddress(govtypes.ModuleName).String(), types.NewParams(types.NewTimeout(newHeight, uint64(100000))))
+			},
+			types.ErrInvalidTimeout,
+		},
+		{
+			"invalid params: zero timestamp",
+			func() {
+				msg = types.NewMsgUpdateChannelParams(authtypes.NewModuleAddress(govtypes.ModuleName).String(), types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), uint64(0))))
+			},
+			types.ErrInvalidTimeout,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			msg = types.NewMsgUpdateChannelParams(authtypes.NewModuleAddress(govtypes.ModuleName).String(), types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), uint64(100000))))
 
 			tc.malleate()
 			err := msg.ValidateBasic()
