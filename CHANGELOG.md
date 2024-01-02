@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (apps/transfer) [\#5280](https://github.com/cosmos/ibc-go/pull/5280) Add list of allowed packet data keys to `Allocation` of `TransferAuthorization`.
+
 ### Bug Fixes
 
 * (apps/27-interchain-accounts) [\#5343](https://github.com/cosmos/ibc-go/pull/5343) Add check if controller is enabled in `sendTx` before sending packet to host.
