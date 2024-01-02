@@ -95,7 +95,7 @@ It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenI
 
 ### Wire up the transfer stack and middleware in app.go
 
-In app.go, the existing transfer stack must be wrapped the fee middleware.
+In app.go, the existing transfer stack must be wrapped with the fee middleware.
 
 ```golang
 
@@ -147,6 +147,8 @@ ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 ```
 
 ### Submit a governance proposal to execute a MsgChanUpgradeInit message.
+
+Only an authority is able to initiate a channel upgrade by submitting a `MsgChanUpgradeInit` message.
 
 Execute a governance proposal specifying the relevant fields to perform a channel upgrade.
 
