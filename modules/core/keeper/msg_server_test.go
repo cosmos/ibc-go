@@ -2017,6 +2017,58 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 	}
 }
 
+// TestUpdateChannelParams tests the UpdateChannelParams rpc handler
+func (suite *KeeperTestSuite) TestUpdateChannelParams() {
+	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	testCases := []struct {
+		name     string
+		msg      *channeltypes.MsgUpdateParams
+		expError error
+	}{
+		{
+			"success: valid signer and default params",
+			channeltypes.NewMsgUpdateChannelParams(signer, channeltypes.DefaultParams()),
+			nil,
+		},
+		{
+			"failure: malformed signer",
+			channeltypes.NewMsgUpdateChannelParams(ibctesting.InvalidID, channeltypes.DefaultParams()),
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: whitespace signer",
+			channeltypes.NewMsgUpdateChannelParams("     ", channeltypes.DefaultParams()),
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: empty signer",
+			channeltypes.NewMsgUpdateChannelParams("", channeltypes.DefaultParams()),
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: unauthorized signer",
+			channeltypes.NewMsgUpdateChannelParams(ibctesting.TestAccAddress, channeltypes.DefaultParams()),
+			ibcerrors.ErrUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			_, err := keeper.Keeper.UpdateChannelParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				p := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetParams(suite.chainA.GetContext())
+				suite.Require().Equal(tc.msg.Params, p)
+			} else {
+				suite.Require().ErrorIs(tc.expError, err)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 	var msg *channeltypes.MsgPruneAcknowledgements
 
