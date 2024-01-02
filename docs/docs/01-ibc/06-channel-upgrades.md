@@ -90,3 +90,92 @@ the channel will move back to `OPEN` state keeping its original parameters.
 The application's `OnChanUpgradeRestore` callback method will be invoked.
 
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
+
+## Upgrade existing transfer stack to be fee enabled
+
+### Wire up the transfer stack and middleware in app.go
+
+In app.go, the existing transfer stack must be wrapped the fee middleware.
+
+```golang
+
+import (
+    // ... 
+    ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
+    ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+    transfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+    porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+    // ...
+)
+
+type App struct {
+	// ...
+	TransferKeeper        ibctransferkeeper.Keeper
+	IBCFeeKeeper          ibcfeekeeper.Keeper
+	// ..
+}
+
+// ...
+
+app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
+    appCodec, keys[ibcfeetypes.StoreKey],
+    app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
+    app.IBCKeeper.ChannelKeeper,
+    app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+)
+
+// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
+// since fee middleware will wrap the IBCKeeper for underlying application.
+app.TransferKeeper = ibctransferkeeper.NewKeeper(
+    appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
+    app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
+    app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
+    app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
+    authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+)
+
+
+ibcRouter := porttypes.NewRouter()
+
+// create IBC module from bottom to top of stack
+var transferStack porttypes.IBCModule
+transferStack = transfer.NewIBCModule(app.TransferKeeper)
+transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
+
+// Add transfer stack to IBC Router
+ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+```
+
+### Submit a governance proposal to execute a MsgChanUpgradeInit message.
+
+Execute a governance proposal specifying the relevant fields to perform a channel upgrade.
+
+Update the following json sample, and copy the contents into `proposal.json`.
+
+```json
+{
+  "messages": [
+    {
+      "@type": "/ibc.core.channel.v1.MsgChannelUpgradeInit",
+      "signer": "<gov-address>",
+      "port_id": "transfer",
+      "channel_id": "channel-...",
+      "fields": {
+        "order": "UNORDERED",
+        "connection_hops": [
+          "connection-..."
+        ],
+        "version": "{'fee_version':'ics29-1','app_version':'ics20-1'}"
+      }
+    }
+  ],
+  "metadata": "<metadata>",
+  "deposit": "10stake"
+}
+```
+
+### Submit the proposal
+
+```shell
+simd tx submit-proposal proposal.json --from <key_or_address>
+```
