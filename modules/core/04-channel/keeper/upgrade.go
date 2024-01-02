@@ -6,7 +6,6 @@ import (
 	"slices"
 
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -838,25 +837,6 @@ func (k Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrade
 func (k Keeper) getAbsoluteUpgradeTimeout(ctx sdk.Context) types.Timeout {
 	upgradeTimeout := k.GetParams(ctx).UpgradeTimeout
 	return types.NewTimeout(clienttypes.ZeroHeight(), uint64(ctx.BlockTime().UnixNano())+upgradeTimeout.Timestamp)
-}
-
-// syncUpgradeSequence ensures current upgrade handshake only continues if both channels are using the same upgrade sequence,
-// otherwise an upgrade error is returned so that an error receipt will be written so that the upgrade handshake may be attempted again with synchronized sequences.
-func (k Keeper) syncUpgradeSequence(ctx sdk.Context, portID, channelID string, channel types.Channel, counterpartyUpgradeSequence uint64) error {
-	// save the previous upgrade sequence for the error message
-	prevUpgradeSequence := channel.UpgradeSequence
-
-	if counterpartyUpgradeSequence != channel.UpgradeSequence {
-		// error on the higher sequence so that both chains synchronize on a fresh sequence
-		channel.UpgradeSequence = sdkmath.Max(counterpartyUpgradeSequence, channel.UpgradeSequence)
-		k.SetChannel(ctx, portID, channelID, channel)
-
-		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrapf(
-			types.ErrInvalidUpgradeSequence, "expected upgrade sequence (%d) to match counterparty upgrade sequence (%d)", prevUpgradeSequence, counterpartyUpgradeSequence),
-		)
-	}
-
-	return nil
 }
 
 // checkForUpgradeCompatibility checks performs stateful validation of self upgrade fields relative to counterparty upgrade.
