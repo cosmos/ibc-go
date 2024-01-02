@@ -70,7 +70,7 @@ A normal flow for upgrades:
 
 1. Governance proposal with `MsgChannelUpgradeInit` proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}` is submitted on chain A.
 2. Governance proposal passes and `MsgChannelUpgradeInit` executes successfully on chain A.
-3. Governance of chain B updates the list of allowed connections for channel upgrades, so that `channel-0` is allowed to be upgraded permissionlesly.
+3. Governance of chain B updates the list of allowed connections for channel upgrades, so that `channel-0` is allowed to be upgraded permissionlessly.
 4. Relayer submits `MsgChannelUpgradeTry` on chain B proposing to upgrade channel version to `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
 5. Execution of `MsgChannelUpgradeTry` succeeds on chain B. Chain B specifies a timeout for chain A before which all packets on its side should be flushed.
 6. Relayer starts flushing in-flight packets from chain B to chain A.
@@ -113,7 +113,7 @@ The crossing hello flow for upgrades happens when a governance proposal on both 
 
 Sample exception flows:
 
-- If two different relayers detect execution of `MsgChannelUpgradeInit` on both chain A and chain B and they submit `MsgChannelUpgradeTry` on the counterparty, then the handshake will finish `MsgChannelUpgradeOpen` after both chains execute `MsgChannelUpgradeAck` and all in-flight packets has been flushed (i.e. it is not needed to execute `MsgChannelUpgradeConfirm`).
+- If two different relayers detect execution of `MsgChannelUpgradeInit` on both chain A and chain B and they submit `MsgChannelUpgradeTry` on the counterparty, then the handshake will finish `MsgChannelUpgradeOpen` after both chains execute `MsgChannelUpgradeAck` and all in-flight packets have been flushed (i.e. it is not needed to execute `MsgChannelUpgradeConfirm`).
 
 # Functional requirements
 
