@@ -154,6 +154,8 @@ Update the following json sample, and copy the contents into `proposal.json`.
 
 ```json
 {
+  "title": "Channel upgrade init",
+  "summary": "Channel upgrade init",
   "messages": [
     {
       "@type": "/ibc.core.channel.v1.MsgChannelUpgradeInit",
@@ -161,11 +163,9 @@ Update the following json sample, and copy the contents into `proposal.json`.
       "port_id": "transfer",
       "channel_id": "channel-...",
       "fields": {
-        "order": "UNORDERED",
-        "connection_hops": [
-          "connection-..."
-        ],
-        "version": "{'fee_version':'ics29-1','app_version':'ics20-1'}"
+        "ordering": "ORDER_UNORDERED",
+        "connection_hops": ["connection-0"],
+        "version": "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}"
       }
     }
   ],
