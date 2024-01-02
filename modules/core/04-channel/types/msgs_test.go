@@ -3,8 +3,6 @@ package types_test
 import (
 	"fmt"
 	"testing"
-
-
 	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
