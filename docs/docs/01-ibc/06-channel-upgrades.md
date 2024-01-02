@@ -146,7 +146,7 @@ transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 ```
 
-### Submit a governance proposal to execute a MsgChanUpgradeInit message.
+### Submit a governance proposal to execute a MsgChanUpgradeInit message
 
 Only an authority is able to initiate a channel upgrade by submitting a `MsgChanUpgradeInit` message.
 
