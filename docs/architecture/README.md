@@ -25,7 +25,7 @@ If recorded decisions turned out to be lacking, convene a discussion, record the
 
 Note the context/background should be written in the present tense.
 
-To suggest an ADR, please make use of the [ADR template](@site/architecture/adr.template.md) provided.
+To suggest an ADR, please make use of the [ADR template](./adr.template.md) provided.
 
 ## Table of Contents
 
