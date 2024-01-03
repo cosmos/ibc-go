@@ -799,7 +799,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 		{
 			"failure: invalid counterparty upgrade sequence",
 			func() {
-				suite.coordinator.Setup(path)
+				path.Setup()
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 				// trigger upgradeInit on B which will bump the counterparty upgrade sequence.

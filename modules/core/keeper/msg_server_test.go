@@ -240,12 +240,12 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			suite.SetupTest()
 
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(subjectPath)
+			subjectPath.SetupClients()
 			subject := subjectPath.EndpointA.ClientID
 			subjectClientState := suite.chainA.GetClientState(subject)
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(substitutePath)
+			substitutePath.SetupClients()
 			substitute := substitutePath.EndpointA.ClientID
 
 			// update substitute twice
@@ -911,7 +911,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -990,7 +990,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1158,7 +1158,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1224,7 +1224,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			"success, pending in-flight packets on init chain",
 			func() {
 				path = ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1363,7 +1363,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1463,7 +1463,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1659,7 +1659,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1801,7 +1801,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1872,7 +1872,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 			validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 			plan := upgradetypes.Plan{
 				Name:   "upgrade IBC clients",
@@ -2045,7 +2045,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			suite.SetupTest()
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion

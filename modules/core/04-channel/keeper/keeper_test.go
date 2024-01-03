@@ -472,7 +472,7 @@ func (suite *KeeperTestSuite) TestSetPacketAcknowledgement() {
 
 func (suite *KeeperTestSuite) TestSetUpgradeErrorReceipt() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 	suite.coordinator.CreateChannels(path)
 
 	errorReceipt, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -793,7 +793,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// Defaults will be filled in for rest.
 			upgradeFields = types.UpgradeFields{Version: ibcmock.UpgradeVersion}

@@ -253,7 +253,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			"success ORDERED",
 			func() {
 				path.SetChannelOrdered()
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
@@ -278,7 +278,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			"channel not found",
 			func() {
 				// use wrong channel naming
-				suite.coordinator.Setup(path)
+				path.Setup()
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, ibctesting.InvalidID, ibctesting.InvalidID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			},
 			func(packetCommitment []byte, err error) {
@@ -294,7 +294,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			"incorrect capability ORDERED",
 			func() {
 				path.SetChannelOrdered()
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
@@ -317,7 +317,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		{
 			"set to flush complete with no inflight packets",
 			func() {
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
@@ -352,7 +352,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		{
 			"conterparty upgrade timeout is invalid",
 			func() {
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
@@ -378,7 +378,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		{
 			"conterparty upgrade timed out (abort)",
 			func() {
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
@@ -423,7 +423,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 		{
 			"conterparty upgrade has not timed out with in-flight packets",
 			func() {
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
@@ -471,7 +471,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			"ordered channel is closed and upgrade is aborted when timeout is executed",
 			func() {
 				path.SetChannelOrdered()
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
@@ -717,7 +717,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			"failure: invalid counterparty upgrade sequence",
 			func() {
 				ordered = false
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 

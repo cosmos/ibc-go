@@ -1038,7 +1038,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 			},
 			nil,
 		},
@@ -1088,7 +1088,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 			path.EndpointA.ChannelConfig.Version = ibcmock.Version
 			path.EndpointB.ChannelConfig.Version = ibcmock.Version
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version to enabled ics29 fee middleware
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
@@ -1139,7 +1139,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 				err := path.EndpointA.ChanUpgradeInit()
 				suite.Require().NoError(err)
 			},
@@ -1198,7 +1198,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 			path.EndpointA.ChannelConfig.Version = ibcmock.Version
 			path.EndpointB.ChannelConfig.Version = ibcmock.Version
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version to enabled ics29 fee middleware
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
@@ -1295,8 +1295,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 			path.EndpointA.ChannelConfig.Version = ibcmock.Version
 			path.EndpointB.ChannelConfig.Version = ibcmock.Version
 
-			suite.coordinator.Setup(path)
-
+			path.Setup()
 			// configure the channel upgrade version to enabled ics29 fee middleware
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
@@ -1373,7 +1372,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				// Assert in callback that correct version is passed
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
@@ -1401,7 +1400,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 			path.EndpointA.ChannelConfig.Version = ibcmock.Version
 			path.EndpointB.ChannelConfig.Version = ibcmock.Version
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version to enabled ics29 fee middleware
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))

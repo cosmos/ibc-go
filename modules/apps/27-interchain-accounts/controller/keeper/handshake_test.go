@@ -547,7 +547,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -686,7 +686,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)

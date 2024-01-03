@@ -740,7 +740,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			upgradeError = channeltypes.NewUpgradeError(1, channeltypes.ErrInvalidChannel)
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError.GetErrorReceipt())
@@ -814,7 +814,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceiptAbsence() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			suite.chainA.Coordinator.CommitBlock(suite.chainA)
 			suite.Require().NoError(path.EndpointB.UpdateClient())
@@ -885,7 +885,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			upgrade = channeltypes.NewUpgrade(
 				channeltypes.NewUpgradeFields(channeltypes.UNORDERED, []string{path.EndpointA.ConnectionID}, "v1.0.0"),

@@ -822,7 +822,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -920,7 +920,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -996,7 +996,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -1066,7 +1066,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)

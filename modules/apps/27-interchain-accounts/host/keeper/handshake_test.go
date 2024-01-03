@@ -517,7 +517,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
