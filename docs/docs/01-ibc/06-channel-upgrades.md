@@ -95,9 +95,9 @@ It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenI
 
 IBC application callbacks should be primarily used to validate data fields and do compatibility checks.
 
-`OnChanUpgradeInit` should validate the proposed version, order, and connection hops.
+`OnChanUpgradeInit` should validate the proposed version, order, and connection hops, and should return the application version to upgrade to.
 
-`OnChanUpgradeTry` should validate the proposed version (provided by the counterparty), order, and connection hops.
+`OnChanUpgradeTry` should validate the proposed version (provided by the counterparty), order, and connection hope. The desired upgrade version should be returned.
 
 `OnChanUpgradeAck` should validate the version proposed by the counterparty.
 
