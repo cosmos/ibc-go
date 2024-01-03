@@ -117,8 +117,7 @@ func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.Exec
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
-// fail if any error occurs. The clientID's, TestConnections, and TestChannels are returned
-// for both chains. The channels created are connected to the ibc-transfer application.
+// fail if any error occurs. The channels created are connected to the ibc-transfer application.
 func (path *Path) Setup() {
 	path.SetupConnections()
 
@@ -140,7 +139,7 @@ func (path *Path) SetupClients() {
 	}
 }
 
-// SetupClientConnections is a helper function to create clients and the appropriate
+// SetupConnections is a helper function to create clients and the appropriate
 // connections on both the source and counterparty chain. It assumes the caller does not
 // anticipate any errors.
 func (path *Path) SetupConnections() {
@@ -149,9 +148,8 @@ func (path *Path) SetupConnections() {
 	path.CreateConnections()
 }
 
-// CreateConnection constructs and executes connection handshake messages in order to create
-// OPEN channels on chainA and chainB. The connection information of for chainA and chainB
-// are returned within a TestConnection struct. The function expects the connections to be
+// CreateConnections constructs and executes connection handshake messages in order to create
+// OPEN connections on chainA and chainB. The function expects the connections to be
 // successfully opened otherwise testing will fail.
 func (path *Path) CreateConnections() {
 	err := path.EndpointA.ConnOpenInit()
