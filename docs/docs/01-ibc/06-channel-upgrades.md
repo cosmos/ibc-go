@@ -90,3 +90,21 @@ the channel will move back to `OPEN` state keeping its original parameters.
 The application's `OnChanUpgradeRestore` callback method will be invoked.
 
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
+
+## IBC App Recommendations
+
+IBC application callbacks should be primarily used to validate data fields and do compatibility checks.
+
+`OnChanUpgradeInit` should validate the proposed version, order, and connection hops, and should return the application version to upgrade to.
+
+`OnChanUpgradeTry` should validate the proposed version (provided by the counterparty), order, and connection hope. The desired upgrade version should be returned.
+
+`OnChanUpgradeAck` should validate the version proposed by the counterparty.
+
+`OnChanUpgradeOpen` should perform any logic associated with changing of the channel fields.
+
+`OnChanUpgradeRestore`  should perform any logic that needs to be executed when an upgrade attempt fails as is reverted.
+
+> IBC applications should not attempt to process any packet data under the new conditions until after `OnChanUpgradeOpen`
+> has been executed, as up until this point it is still possible for the upgrade handshake to fail and for the channel
+> to remain in the pre-upgraded state. 
