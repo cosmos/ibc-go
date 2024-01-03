@@ -2056,13 +2056,15 @@ func (suite *KeeperTestSuite) TestUpdateChannelParams() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			_, err := keeper.Keeper.UpdateChannelParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
+			resp, err := keeper.Keeper.UpdateChannelParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
+				suite.Require().NotNil(resp)
 				p := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetParams(suite.chainA.GetContext())
 				suite.Require().Equal(tc.msg.Params, p)
 			} else {
+				suite.Require().Nil(resp)
 				suite.Require().ErrorIs(tc.expError, err)
 			}
 		})

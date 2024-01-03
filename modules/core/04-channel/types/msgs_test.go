@@ -1283,14 +1283,14 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 				newHeight := clienttypes.NewHeight(1, 1000)
 				msg = types.NewMsgUpdateChannelParams(authtypes.NewModuleAddress(govtypes.ModuleName).String(), types.NewParams(types.NewTimeout(newHeight, uint64(100000))))
 			},
-			types.ErrInvalidTimeout,
+			types.ErrInvalidUpgradeTimeout,
 		},
 		{
 			"invalid params: zero timestamp",
 			func() {
 				msg = types.NewMsgUpdateChannelParams(authtypes.NewModuleAddress(govtypes.ModuleName).String(), types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), uint64(0))))
 			},
-			types.ErrInvalidTimeout,
+			types.ErrInvalidUpgradeTimeout,
 		},
 	}
 
