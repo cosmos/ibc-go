@@ -283,13 +283,13 @@ func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 			nil,
 		},
 		{
-			"success with empty counterpartyVersion",
-			types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, "", suite.proof, height, addr),
+			"success with empty channel version",
+			types.NewMsgChannelOpenTry(portid, "", types.UNORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr),
 			nil,
 		},
 		{
-			"success with empty channel version",
-			types.NewMsgChannelOpenTry(portid, "", types.UNORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr),
+			"success with empty counterparty version",
+			types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, "", suite.proof, height, addr),
 			nil,
 		},
 		{
