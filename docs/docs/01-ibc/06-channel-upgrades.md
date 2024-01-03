@@ -119,5 +119,5 @@ of acknowledgements and packet receipts to prune.
 Acknowledgements can be pruned via the cli with the `prune-acknowledgements` command.
 
 ```bash
-simd tx prune-acknowledgements [port] [channel] [limit]
+simd tx ibc channel prune-acknowledgements [port] [channel] [limit]
 ```
