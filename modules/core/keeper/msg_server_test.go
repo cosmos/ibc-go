@@ -2019,25 +2019,25 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 
 // TestUpdateChannelParams tests the UpdateChannelParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateChannelParams() {
-	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name     string
 		msg      *channeltypes.MsgUpdateParams
 		expError error
 	}{
 		{
-			"success: valid signer and default params",
-			channeltypes.NewMsgUpdateChannelParams(signer, channeltypes.DefaultParams()),
+			"success: valid authority and default params",
+			channeltypes.NewMsgUpdateChannelParams(authority, channeltypes.DefaultParams()),
 			nil,
 		},
 		{
-			"failure: malformed signer",
+			"failure: malformed authority address",
 			channeltypes.NewMsgUpdateChannelParams(ibctesting.InvalidID, channeltypes.DefaultParams()),
 			ibcerrors.ErrUnauthorized,
 		},
 		{
-			"failure: whitespace signer",
-			channeltypes.NewMsgUpdateChannelParams("     ", channeltypes.DefaultParams()),
+			"failure: empty authority address",
+			channeltypes.NewMsgUpdateChannelParams("", channeltypes.DefaultParams()),
 			ibcerrors.ErrUnauthorized,
 		},
 		{
@@ -2046,7 +2046,7 @@ func (suite *KeeperTestSuite) TestUpdateChannelParams() {
 			ibcerrors.ErrUnauthorized,
 		},
 		{
-			"failure: unauthorized signer",
+			"failure: unauthorized authority address",
 			channeltypes.NewMsgUpdateChannelParams(ibctesting.TestAccAddress, channeltypes.DefaultParams()),
 			ibcerrors.ErrUnauthorized,
 		},
