@@ -294,7 +294,7 @@ if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 }
 ```
 
-If the `txMsgData.Data` field is non nil, the host chain is using SDK version <= v0.45. 
+If the `txMsgData.Data` field is non nil, the host chain is using SDK version \<\= v0.45. 
 The auth module should interpret the `txMsgData.Data` as follows:
 
 ```go
