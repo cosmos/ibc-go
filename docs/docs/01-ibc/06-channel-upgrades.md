@@ -100,38 +100,38 @@ In app.go, the existing transfer stack must be wrapped with the fee middleware.
 ```golang
 
 import (
-    // ... 
-    ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
-    ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-    transfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-    porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-    // ...
+  // ... 
+  ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
+  ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+  transfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+  porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+  // ...
 )
 
 type App struct {
-	// ...
-	TransferKeeper        ibctransferkeeper.Keeper
-	IBCFeeKeeper          ibcfeekeeper.Keeper
-	// ..
+  // ...
+  TransferKeeper        ibctransferkeeper.Keeper
+  IBCFeeKeeper          ibcfeekeeper.Keeper
+  // ..
 }
 
 // ...
 
 app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
-    appCodec, keys[ibcfeetypes.StoreKey],
-    app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
-    app.IBCKeeper.ChannelKeeper,
-    app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+  appCodec, keys[ibcfeetypes.StoreKey],
+  app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
+  app.IBCKeeper.ChannelKeeper,
+  app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
 )
 
 // Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
 // since fee middleware will wrap the IBCKeeper for underlying application.
 app.TransferKeeper = ibctransferkeeper.NewKeeper(
-    appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-    app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
-    app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
-    app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
-    authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+  appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
+  app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
+  app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
+  app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
+  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 
 
