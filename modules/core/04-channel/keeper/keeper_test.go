@@ -594,7 +594,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			"success: stale packet state pruned up to limit",
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
-				suite.sendMockPackets(path, 10)
+				suite.sendMockPackets(path, 10, true)
 			},
 			func() {},
 			func(pruned, left uint64) {
@@ -614,7 +614,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			"success: stale packet state partially pruned",
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
-				suite.sendMockPackets(path, 10)
+				suite.sendMockPackets(path, 10, true)
 			},
 			func() {
 				// Prune only 6 packet acks.
@@ -634,7 +634,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			"success: stale packet state with a higher limit",
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
-				suite.sendMockPackets(path, 10)
+				suite.sendMockPackets(path, 10, true)
 			},
 			func() {
 				// Prune 13 packets acks > 10 packets sent.
@@ -655,12 +655,12 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
 				// This is _before_ the first upgrade.
-				suite.sendMockPackets(path, 10)
+				suite.sendMockPackets(path, 10, true)
 			},
 			func() {
 				// Previous upgrade is complete, send additional packets and do yet another upgrade.
 				// This is _after_ the first upgrade.
-				suite.sendMockPackets(path, 5)
+				suite.sendMockPackets(path, 5, true)
 
 				// Do another upgrade.
 				upgradeFields = types.UpgradeFields{Version: fmt.Sprintf("%s-v3", ibcmock.Version)}
@@ -687,7 +687,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
 				// This is _before_ the first upgrade.
-				suite.sendMockPackets(path, 10)
+				suite.sendMockPackets(path, 10, true)
 			},
 			func() {
 				// Prune 5 on A.
@@ -708,7 +708,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 
 				// Previous upgrade is complete, send additional packets and do yet another upgrade.
 				// This is _after_ the first upgrade.
-				suite.sendMockPackets(path, 10)
+				suite.sendMockPackets(path, 10, true)
 
 				// Do another upgrade.
 				upgradeFields = types.UpgradeFields{Version: fmt.Sprintf("%s-v3", ibcmock.Version)}
@@ -731,14 +731,14 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			func() {
 				// Send 5 packets from B -> A, creating 5 packet receipts and 5 packet acks on A.
 				// This is _before_ the first upgrade.
-				suite.sendMockPackets(path, 5)
+				suite.sendMockPackets(path, 5, true)
 
 				// Set Order for upgrade to Ordered.
 				upgradeFields = types.UpgradeFields{Version: fmt.Sprintf("%s-v2", ibcmock.Version), Ordering: types.ORDERED}
 			},
 			func() {
 				// Previous upgrade is complete, send additional packets now on ordered channel (only acks!)
-				suite.sendMockPackets(path, 10)
+				suite.sendMockPackets(path, 10, true)
 
 				// Do another upgrade (go back to Unordered)
 				upgradeFields = types.UpgradeFields{Version: fmt.Sprintf("%s-v3", ibcmock.Version), Ordering: types.UNORDERED}
@@ -758,7 +758,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			"success: packets sent before upgrade are pruned, after upgrade are not",
 			func() {
 				// Send 5 packets from B -> A, creating 5 packet receipts and 5 packet acks on A.
-				suite.sendMockPackets(path, 5)
+				suite.sendMockPackets(path, 5, true)
 			},
 			func() {},
 			func(pruned, left uint64) {
@@ -767,7 +767,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 				suite.Require().Equal(uint64(0), left)
 
 				// channel upgraded, send additional packets and try and prune.
-				suite.sendMockPackets(path, 12)
+				suite.sendMockPackets(path, 12, true)
 
 				// attempt to prune 5.
 				pruned, left, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.PruneAcknowledgements(
@@ -787,23 +787,25 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			nil,
 		},
 		{
-			"success: packets sent with 2 middle sequences doesn't have an ack stored",
+			"success: packets sent with 2 middle sequences that don't have an ack stored",
 			func() {
-				// Send 10 packets from B -> A with 2 packets middle was timeout
-				suite.sendMockPackets(path, 5)
-				suite.sendMockPacketsTimeout(path, 2)
-				suite.sendMockPackets(path, 5)
+				// Send 12 packets from B -> A with 2 packets that timeout
+				suite.sendMockPackets(path, 5, true)
+				suite.sendMockPackets(path, 2, false)
+				suite.sendMockPackets(path, 5, true)
 			},
 			func() {
 				limit = 7
 			},
 			func(pruned, left uint64) {
-				// After pruning 7 sequences we should be left with 3 acks and 3 receipts, 2 middle packets timeout wasn't effect
-				postPruneExpState(3, 3, 8)
+				// After pruning 7 sequences we should be left with 5 acks and 5 receipts,
+				// because the 2 packets that timeout are still counted as pruned, even though
+				// there was nothing to prune since both packets timed out
+				postPruneExpState(5, 5, 8)
 
-				// We expect 7 to be pruned and 3 left.
+				// We expect 7 to be pruned and 5 left.
 				suite.Require().Equal(uint64(7), pruned)
-				suite.Require().Equal(uint64(3), left)
+				suite.Require().Equal(uint64(5), left)
 			},
 			nil,
 		},
@@ -888,25 +890,32 @@ func (suite *KeeperTestSuite) UpgradeChannel(path *ibctesting.Path, upgradeField
 	suite.Require().NoError(err)
 }
 
-// sendMockPacket sends a packet from source to dest and acknowledges it on the source (completing the packet lifecycle).
+// sendMockPacket sends a packet from source to dest and acknowledges it on the source (completing the packet lifecycle)
+// if acknowledge is true. If acknowledge is false, then the packet will be sent, but timed out.
 // Question(jim): find a nicer home for this?
-func (suite *KeeperTestSuite) sendMockPackets(path *ibctesting.Path, numPackets int) {
+func (suite *KeeperTestSuite) sendMockPackets(path *ibctesting.Path, numPackets int, acknowledge bool) {
 	for i := 0; i < numPackets; i++ {
 
-		sequence, err := path.EndpointB.SendPacket(clienttypes.NewHeight(1, 1000), disabledTimeoutTimestamp, ibctesting.MockPacketData)
+		timeoutHeight := clienttypes.NewHeight(1, 1000)
+		timeoutTimestamp := disabledTimeoutTimestamp
+		if acknowledge == false {
+			timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().UnixNano())
+		}
+
+		sequence, err := path.EndpointB.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 		suite.Require().NoError(err)
 
-		packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(1, 1000), disabledTimeoutTimestamp)
-		err = path.RelayPacket(packet)
-		suite.Require().NoError(err)
-	}
-}
+		packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp)
 
-// sendMockPacket sends a packet from source to dest but face the timeout.
-func (suite *KeeperTestSuite) sendMockPacketsTimeout(path *ibctesting.Path, numPackets int) {
-	for i := 0; i < numPackets; i++ {
+		if acknowledge == true {
+			err = path.RelayPacket(packet)
+			suite.Require().NoError(err)
+		} else {
+			err = path.EndpointB.UpdateClient()
+			suite.Require().NoError(err)
 
-		_, err := path.EndpointB.SendPacket(clienttypes.NewHeight(1, 1000), 1, ibctesting.MockPacketData)
-		suite.Require().Error(err)
+			err = path.EndpointB.TimeoutPacket(packet)
+			suite.Require().NoError(err)
+		}
 	}
 }
