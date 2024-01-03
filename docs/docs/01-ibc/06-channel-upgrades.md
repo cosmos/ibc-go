@@ -11,7 +11,7 @@ slug: /ibc/channel-upgrades
 Learn how to upgrade existing IBC channels.
 :::
 
-Channel upgradability is an IBC-level protocol that allows chains to leverage new application and channel features without having to create new channels or perform a network-wide upgrade. 
+Channel upgradability is an IBC-level protocol that allows chains to leverage new application and channel features without having to create new channels or perform a network-wide upgrade.
 
 Prior to this feature, developers who wanted to update an application module or add a middleware to their application flow would need to create a new channel in order to use the updated application feature/middleware, resulting in a loss of the accumulated state/liquidity, token fungibility (as the channel ID is encoded in the IBC denom), and any other larger network effects of losing usage of the existing channel from relayers monitoring, etc.
 
@@ -25,20 +25,20 @@ Channel upgrades will be achieved using a handshake process that is designed to 
 
 ```go
 type Channel struct {
-  // current state of the channel end
-  State State `protobuf:"varint,1,opt,name=state,proto3,enum=ibc.core.channel.v1.State" json:"state,omitempty"`
-  // whether the channel is ordered or unordered
-  Ordering Order `protobuf:"varint,2,opt,name=ordering,proto3,enum=ibc.core.channel.v1.Order" json:"ordering,omitempty"`
-  // counterparty channel end
-  Counterparty Counterparty `protobuf:"bytes,3,opt,name=counterparty,proto3" json:"counterparty"`
-  // list of connection identifiers, in order, along which packets sent on
-  // this channel will travel
-  ConnectionHops []string `protobuf:"bytes,4,rep,name=connection_hops,json=connectionHops,proto3" json:"connection_hops,omitempty"`
-  // opaque channel version, which is agreed upon during the handshake
-  Version string `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
-  // upgrade sequence indicates the latest upgrade attempt performed by this channel
-  // the value of 0 indicates the channel has never been upgraded
-  UpgradeSequence uint64 `protobuf:"varint,6,opt,name=upgrade_sequence,json=upgradeSequence,proto3" json:"upgrade_sequence,omitempty"`
+// current state of the channel end
+State State `protobuf:"varint,1,opt,name=state,proto3,enum=ibc.core.channel.v1.State" json:"state,omitempty"`
+// whether the channel is ordered or unordered
+Ordering Order `protobuf:"varint,2,opt,name=ordering,proto3,enum=ibc.core.channel.v1.Order" json:"ordering,omitempty"`
+// counterparty channel end
+Counterparty Counterparty `protobuf:"bytes,3,opt,name=counterparty,proto3" json:"counterparty"`
+// list of connection identifiers, in order, along which packets sent on
+// this channel will travel
+ConnectionHops []string `protobuf:"bytes,4,rep,name=connection_hops,json=connectionHops,proto3" json:"connection_hops,omitempty"`
+// opaque channel version, which is agreed upon during the handshake
+Version string `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
+// upgrade sequence indicates the latest upgrade attempt performed by this channel
+// the value of 0 indicates the channel has never been upgraded
+UpgradeSequence uint64 `protobuf:"varint,6,opt,name=upgrade_sequence,json=upgradeSequence,proto3" json:"upgrade_sequence,omitempty"`
 }
 ```
 
@@ -48,14 +48,14 @@ On a high level, successful handshake process for channel upgrades works as foll
 
 1. The chain initiating the upgrade process will propose an upgrade.
 2. If the counterparty agrees with the proposal, it will block sends and begin flushing any in-flight packets on its channel end. This flushing process will be covered in more detail below.
-3. Upon successful completion of the previous step, the initiating chain will also block packet sends and begin flushing any in-flight packets on its channel end. 
-4. Once both channel ends have completed flushing packets within the upgrade timeout window, both channel ends can be opened and upgraded to the new channel fields. 
+3. Upon successful completion of the previous step, the initiating chain will also block packet sends and begin flushing any in-flight packets on its channel end.
+4. Once both channel ends have completed flushing packets within the upgrade timeout window, both channel ends can be opened and upgraded to the new channel fields.
 
 Each handshake step will be documented below in greater detail.
 
 ## Initializing a Channel Upgrade
 
-A channel upgrade is initialised by submitting the `ChanUpgradeInit` message, which can be submitted only by the chain itself upon governance authorization. This message should specify an appropriate timeout window for the upgrade. It is possible to upgrade the channel ordering, the channel connection hops, and the channel version. 
+A channel upgrade is initialised by submitting the `ChanUpgradeInit` message, which can be submitted only by the chain itself upon governance authorization. This message should specify an appropriate timeout window for the upgrade. It is possible to upgrade the channel ordering, the channel connection hops, and the channel version.
 
 As part of the handling of the `ChanUpgradeInit` message, the application's callbacks `OnChanUpgradeInit` will be triggered as well.
 
@@ -90,3 +90,21 @@ the channel will move back to `OPEN` state keeping its original parameters.
 The application's `OnChanUpgradeRestore` callback method will be invoked.
 
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
+
+## IBC App Recommendations
+
+IBC application callbacks should be primarily used to validate data fields and do compatibility checks.
+
+`OnChanUpgradeInit` should validate the proposed version, order, and connection hops.
+
+`OnChanUpgradeTry` should validate the proposed version (provided by the counterparty), order, and connection hops.
+
+`OnChanUpgradeAck` should validate the version proposed by the counterparty.
+
+`OnChanUpgradeOpen` should perform any logic associated with changing of the channel fields.
+
+`OnChanUpgradeRestore`  should perform any logic that needs to be executed when an upgrade attempt fails as is reverted.
+
+> IBC applications should not attempt to process any packet data under the new conditions until after `OnChanUpgradeOpen`
+> has been executed, as up until this point it is still possible for the upgrade handshake to fail and for the channel
+> to remain in the pre-upgraded state. 
