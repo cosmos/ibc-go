@@ -51,8 +51,8 @@ options specified in your config file.
 | Environment Variable | Description                               | Default Value |
 |----------------------|-------------------------------------------|---------------|
 | CHAIN_IMAGE          | The image that will be used for the chain | ibc-go-simd   |
-| CHAIN_A_TAG          | The tag used for chain B                  | latest        |
-| CHAIN_B_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_A_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_B_TAG          | The tag used for chain B                  | latest        |
 | CHAIN_BINARY         | The binary used in the container          | simd          |
 | RELAYER_TAG          | The tag used for the relayer              | main          |
 | RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes        |

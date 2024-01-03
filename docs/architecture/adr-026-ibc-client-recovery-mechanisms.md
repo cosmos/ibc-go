@@ -48,7 +48,7 @@ We elect not to deal with chains which have actually halted, which is necessaril
 1. Add a new governance proposal with `MsgRecoverClient`.
     1. Create a new Msg with two client identifiers (`string`) and a signer.
     1. The first client identifier is the proposed client to be updated. This client must be either frozen or expired.
-    1. The second client is a substitute client. It carries all the state for the client which may be updated. It must have identitical client and chain parameters to the client which may be updated (except for latest height, frozen height, and chain-id). It should be continually updated during the voting period.
+    1. The second client is a substitute client. It carries all the state for the client which may be updated. It must have identical client and chain parameters to the client which may be updated (except for latest height, frozen height, and chain-id). It should be continually updated during the voting period.
     1. If this governance proposal passes, the client on trial will be updated to the latest state of the substitute.
     1. The signer must be the authority set for the ibc module.
 
