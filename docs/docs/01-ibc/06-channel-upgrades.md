@@ -90,3 +90,34 @@ the channel will move back to `OPEN` state keeping its original parameters.
 The application's `OnChanUpgradeRestore` callback method will be invoked.
 
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
+
+## Pruning Acknowledgements
+
+Acknowledgements can be pruned by broadcasting the `MsgPruneAcknowledgements` message.
+
+> Note: It is only possible to prune acknowledgements after a channel has been upgraded, so pruning will fail
+> if the channel has not yet been upgraded.
+
+```protobuf
+// MsgPruneAcknowledgements defines the request type for the PruneAcknowledgements rpc.
+message MsgPruneAcknowledgements {
+  option (cosmos.msg.v1.signer)      = "signer";
+  option (gogoproto.goproto_getters) = false;
+
+  string port_id    = 1;
+  string channel_id = 2;
+  uint64 limit      = 3;
+  string signer     = 4;
+}
+```
+
+The `port_id` and `channel_id` specify the port and channel to act on, and the `limit` specifies the upper bound for the number
+of acknowledgements and packet receipts to prune.
+
+### CLI Usage
+
+Acknowledgements can be pruned via the cli with the `prune-acknowledgements` command.
+
+```bash
+simd tx prune-acknowledgements [port] [channel] [limit]
+```
