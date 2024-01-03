@@ -631,6 +631,26 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			nil,
 		},
 		{
+			"success: stale packet state with a higher limit",
+			func() {
+				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
+				suite.sendMockPackets(path, 10)
+			},
+			func() {
+				// Prune 13 packets acks > 10 packets sent.
+				limit = 13
+			},
+			func(pruned, left uint64) {
+				// We expect 0 to be left and sequenceStart == 11.
+				postPruneExpState(0, 0, 11)
+
+				// We expect 10 to be pruned and 0 left.
+				suite.Require().Equal(uint64(10), pruned)
+				suite.Require().Equal(uint64(0), left)
+			},
+			nil,
+		},
+		{
 			"success: stale packet state pruned, two upgrades",
 			func() {
 				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
@@ -767,6 +787,27 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			nil,
 		},
 		{
+			"success: packets sent with 2 middle sequences doesn't have an ack stored",
+			func() {
+				// Send 10 packets from B -> A with 2 packets middle was timeout
+				suite.sendMockPackets(path, 5)
+				suite.sendMockPacketsTimeout(path, 2)
+				suite.sendMockPackets(path, 5)
+			},
+			func() {
+				limit = 7
+			},
+			func(pruned, left uint64) {
+				// After pruning 7 sequences we should be left with 3 acks and 3 receipts, 2 middle packets timeout wasn't effect
+				postPruneExpState(3, 3, 8)
+
+				// We expect 7 to be pruned and 3 left.
+				suite.Require().Equal(uint64(7), pruned)
+				suite.Require().Equal(uint64(3), left)
+			},
+			nil,
+		},
+		{
 			"failure: packet sequence start not set",
 			func() {},
 			func() {
@@ -858,5 +899,14 @@ func (suite *KeeperTestSuite) sendMockPackets(path *ibctesting.Path, numPackets 
 		packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(1, 1000), disabledTimeoutTimestamp)
 		err = path.RelayPacket(packet)
 		suite.Require().NoError(err)
+	}
+}
+
+// sendMockPacket sends a packet from source to dest but face the timeout.
+func (suite *KeeperTestSuite) sendMockPacketsTimeout(path *ibctesting.Path, numPackets int) {
+	for i := 0; i < numPackets; i++ {
+
+		_, err := path.EndpointB.SendPacket(clienttypes.NewHeight(1, 1000), 1, ibctesting.MockPacketData)
+		suite.Require().Error(err)
 	}
 }
