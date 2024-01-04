@@ -559,7 +559,8 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			receipts := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAllPacketReceipts(suite.chainA.GetContext())
 			suite.Require().Len(receipts, int(expReceiptsLen))
 
-			start := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			start, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().True(found)
 			suite.Require().Equal(start, expPruningSequenceStart)
 		}
 	)
@@ -577,7 +578,8 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			func() {},
 			func(pruned, left uint64) {
 				// Assert that PruneSequenceStart and PruneSequenceEnd are both set to 1.
-				start := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				start, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
 				end, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceEnd(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 
