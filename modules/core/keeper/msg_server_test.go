@@ -2083,6 +2083,8 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(resp)
+				suite.Require().Equal(uint64(0), resp.TotalPrunedSequences)
+				suite.Require().Equal(uint64(0), resp.TotalRemainingSequences)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(resp)
