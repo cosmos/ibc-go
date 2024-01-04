@@ -25,8 +25,8 @@ This folder contains implementations for the IBC TAO (`core`), IBC applications 
 
 ### `light-clients`
 
-- `06-solomachine`: This package implement the types for the Solo Machine light client specified in [ICS 06](https://github.com/cosmos/ibc/tree/main/spec/client/ics-006-solo-machine-client).
-- `07-tendermint`: This package implement the types for the Tendermint consensus light client as specified in [ICS 07](https://github.com/cosmos/ibc/tree/main/spec/client/ics-007-tendermint-client).
+- `06-solomachine`: This package implements the types for the Solo Machine light client specified in [ICS 06](https://github.com/cosmos/ibc/tree/main/spec/client/ics-006-solo-machine-client).
+- `07-tendermint`: This package implements the types for the Tendermint consensus light client as specified in [ICS 07](https://github.com/cosmos/ibc/tree/main/spec/client/ics-007-tendermint-client).
 
 ## `proto`
 
