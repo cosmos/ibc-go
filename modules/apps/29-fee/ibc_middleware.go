@@ -332,27 +332,27 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 	ctx sdk.Context,
 	portID string,
 	channelID string,
-	order channeltypes.Order,
-	connectionHops []string,
-	upgradeVersion string,
+	proposedOrder channeltypes.Order,
+	proposedConnectionHops []string,
+	proposedVersion string,
 ) (string, error) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
 		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
 	}
 
-	versionMetadata, err := types.MetadataFromVersion(upgradeVersion)
+	versionMetadata, err := types.MetadataFromVersion(proposedVersion)
 	if err != nil {
 		// since it is valid for fee version to not be specified, the upgrade version may be for a middleware
 		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
-		return cbs.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, upgradeVersion)
+		return cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
-	appVersion, err := cbs.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, versionMetadata.AppVersion)
+	appVersion, err := cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, versionMetadata.AppVersion)
 	if err != nil {
 		return "", err
 	}
@@ -367,7 +367,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(
 }
 
 // OnChanUpgradeTry implement s the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
 		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
@@ -377,14 +377,14 @@ func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID stri
 	if err != nil {
 		// since it is valid for fee version to not be specified, the counterparty upgrade version may be for a middleware
 		// or application further down in the stack. Thus, passthrough to next middleware or application in callstack.
-		return cbs.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
+		return cbs.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
 	}
 
 	if versionMetadata.FeeVersion != types.Version {
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, versionMetadata.FeeVersion)
 	}
 
-	appVersion, err := cbs.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, versionMetadata.AppVersion)
+	appVersion, err := cbs.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, versionMetadata.AppVersion)
 	if err != nil {
 		return "", err
 	}
@@ -421,23 +421,23 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
 		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
 	}
 
-	versionMetadata, err := types.MetadataFromVersion(version)
+	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
 		// set fee disabled and passthrough to the next middleware or application in callstack.
 		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-		cbs.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, version)
+		cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
 		return
 	}
 
 	// set fee enabled and passthrough to the next middleware of application in callstack.
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-	cbs.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, versionMetadata.AppVersion)
+	cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, versionMetadata.AppVersion)
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface

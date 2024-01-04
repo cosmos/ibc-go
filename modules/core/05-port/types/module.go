@@ -112,17 +112,17 @@ type UpgradableModule interface {
 	OnChanUpgradeInit(
 		ctx sdk.Context,
 		portID, channelID string,
-		order channeltypes.Order,
-		connectionHops []string,
-		version string,
+		proposedOrder channeltypes.Order,
+		proposedConnectionHops []string,
+		proposedVersion string,
 	) (string, error)
 
 	// OnChanUpgradeTry verifies the counterparty upgrade and sets the upgrade on TRY chain
 	OnChanUpgradeTry(
 		ctx sdk.Context,
 		portID, channelID string,
-		order channeltypes.Order,
-		connectionHops []string,
+		proposedOrder channeltypes.Order,
+		proposedConnectionHops []string,
 		counterpartyVersion string,
 	) (string, error)
 
@@ -139,9 +139,9 @@ type UpgradableModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID string,
-		order channeltypes.Order,
-		connectionHops []string,
-		version string,
+		proposedOrder channeltypes.Order,
+		proposedConnectionHops []string,
+		counterpartyVersion string,
 	)
 
 	// OnChanUpgradeRestore TODO
