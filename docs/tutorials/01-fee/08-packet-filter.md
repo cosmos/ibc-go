@@ -34,7 +34,7 @@ Here is a full example of the `config.toml` file:
 https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/1ddac03efdf6d403126c3f5ad067fd708e2e410a/hermes/filtered_config.toml
 ```
 
-You can clone this using the following command:
+You can copy this using the following command:
 
 ```bash
 cp hermes/filtered_config.toml ~/.hermes/config.toml
@@ -61,10 +61,13 @@ npm run dev
 The last terminal will be used to run the relayer. First, we will create the client, connection, and channel between the two chains by running:
 
 ```bash title="Terminal 4"
-hermes create channel --channel-version '{"fee_version":"ics29-1","app_version":"ics20-1"}' --a-chain earth --b-chain mars --a-port transfer --b-port transfer --new-client-connection --yes
+hermes create channel --channel-version '{"fee_version":"ics29-1","app_version":"ics20-1"}' \
+--a-chain earth --b-chain mars \
+--a-port transfer --b-port transfer \
+--new-client-connection --yes
 ```
 
-Once this Now we can run the relayer with the following command:
+Once the operation above is completed, we can run the relayer with the following command:
 
 ```bash title="Terminal 4"
 hermes start
