@@ -15,6 +15,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+const (
+	differentConnectionID = "connection-100"
+)
+
 // open and close channel is a helper function for TestOnChanOpenTry for reopening accounts
 func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	err := path.EndpointB.ChanOpenTry()
@@ -433,6 +437,15 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 		counterpartyVersion string
 	)
 
+	// updateMetadata is a helper function which modifies the metadata stored in the channel version
+	// and marshals it into a string to pass to OnChanUpgradeTry as the counterpartyVersion string.
+	updateMetadata := func(modificationFn func(*icatypes.Metadata)) {
+		metadata, err := icatypes.MetadataFromVersion(path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version)
+		suite.Require().NoError(err)
+		modificationFn(&metadata)
+		counterpartyVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+	}
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -449,6 +462,21 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
 			},
 			expError: porttypes.ErrInvalidPort,
+		},
+		{
+			name: "failure: invalid order",
+			malleate: func() {
+				order = channeltypes.UNORDERED
+			},
+			expError: channeltypes.ErrInvalidChannelOrdering,
+		},
+		{
+			name: "failure: invalid proposed connectionHops",
+			malleate: func() {
+				// connection hops is provided via endpoint connectionID
+				path.EndpointB.ConnectionID = differentConnectionID
+			},
+			expError: channeltypes.ErrInvalidUpgrade,
 		},
 		{
 			name: "failure: empty counterparty version",
@@ -476,37 +504,47 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 		{
 			name: "failure: metadata encoding not supported",
 			malleate: func() {
-				metadata.Encoding = "invalid-encoding-format"
-				counterpartyVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Encoding = "invalid-encoding-format"
+				})
 			},
 			expError: icatypes.ErrInvalidCodec,
 		},
 		{
+			name: "failure: metadata tx type not supported",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.TxType = "invalid-tx-type"
+				})
+			},
+			expError: icatypes.ErrUnknownDataType,
+		},
+		{
 			name: "failure: interchain account address has changed",
 			malleate: func() {
-				channel := path.EndpointB.GetChannel()
-				metadata.Address = "invalid address"
-				channel.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-				path.EndpointB.SetChannel(channel)
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Address = TestOwnerAddress // use valid address
+				})
 			},
 			expError: icatypes.ErrInvalidAccountAddress,
 		},
 		{
-			name: "failure: invalid connection identifier",
+			name: "failure: controller connection ID has changed",
 			malleate: func() {
-				channel := path.EndpointB.GetChannel()
-				metadata.HostConnectionId = "invalid-connection-id"
-				channel.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-				path.EndpointB.SetChannel(channel)
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.ControllerConnectionId = differentConnectionID
+				})
 			},
-			expError: connectiontypes.ErrInvalidConnectionIdentifier,
+			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the controller connection identifier are unreachable
 		},
 		{
-			name: "failure: invalid order",
+			name: "failure: host connection ID has changed",
 			malleate: func() {
-				order = channeltypes.UNORDERED
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.HostConnectionId = differentConnectionID
+				})
 			},
-			expError: channeltypes.ErrInvalidChannelOrdering,
+			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the host connection identifier are unreachable
 		},
 	}
 
