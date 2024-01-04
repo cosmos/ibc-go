@@ -25,6 +25,12 @@ var (
 	_ sdk.Msg = (*MsgAcknowledgement)(nil)
 	_ sdk.Msg = (*MsgTimeout)(nil)
 	_ sdk.Msg = (*MsgTimeoutOnClose)(nil)
+<<<<<<< HEAD
+=======
+	_ sdk.Msg = (*MsgChannelUpgradeConfirm)(nil)
+	_ sdk.Msg = (*MsgChannelUpgradeTimeout)(nil)
+	_ sdk.Msg = (*MsgChannelUpgradeCancel)(nil)
+>>>>>>> b2368fa2 (Add missing channel upgrade tests (#5502))
 	_ sdk.Msg = (*MsgPruneAcknowledgements)(nil)
 
 	_ sdk.HasValidateBasic = (*MsgChannelOpenInit)(nil)
@@ -41,6 +47,11 @@ var (
 	_ sdk.HasValidateBasic = (*MsgChannelUpgradeTry)(nil)
 	_ sdk.HasValidateBasic = (*MsgChannelUpgradeAck)(nil)
 	_ sdk.HasValidateBasic = (*MsgChannelUpgradeConfirm)(nil)
+<<<<<<< HEAD
+=======
+	_ sdk.HasValidateBasic = (*MsgChannelUpgradeTimeout)(nil)
+	_ sdk.HasValidateBasic = (*MsgChannelUpgradeCancel)(nil)
+>>>>>>> b2368fa2 (Add missing channel upgrade tests (#5502))
 	_ sdk.HasValidateBasic = (*MsgPruneAcknowledgements)(nil)
 )
 
