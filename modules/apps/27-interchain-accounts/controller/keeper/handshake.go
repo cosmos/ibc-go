@@ -144,7 +144,7 @@ func (Keeper) OnChanCloseConfirm(
 // OnChanUpgradeInit performs the upgrade init step of the channel upgrade handshake.
 // The upgrade init callback must verify the proposed changes to the order, connectionHops, and version.
 // Within the version we have the tx type, encoding, interchain account address, host/controller connectionID's
-// and the interchain account version.
+// and the ICS27 protocol version.
 //
 // The following may be changed:
 // - tx type (must be supported)
@@ -154,7 +154,7 @@ func (Keeper) OnChanCloseConfirm(
 // - order
 // - connectionHops (and subsequently host/controller connectionIDs)
 // - interchain account address
-// - interchain account version
+// - ICS27 protocol version
 func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
 	// verify order has not changed
 	// support for unordered ICA channels is not implemented yet
@@ -187,7 +187,7 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, ord
 		return "", err
 	}
 
-	// ValidateControllerMetadata will ensure the interchain account version has not changed and that the
+	// ValidateControllerMetadata will ensure the ICS27 protocol version has not changed and that the
 	// tx type and encoding are supported
 	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, connectionHops, proposedMetadata); err != nil {
 		return "", errorsmod.Wrap(err, "invalid upgrade metadata")
@@ -213,7 +213,7 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, ord
 // OnChanUpgradeAck implements the ack setup of the channel upgrade handshake.
 // The upgrade ack callback must verify the proposed changes to the channel version.
 // Within the channel version we have the tx type, encoding, interchain account address, host/controller connectionID's
-// and the interchain account version.
+// and the ICS27 protocol version.
 //
 // The following may be changed:
 // - tx type (must be supported)
@@ -223,7 +223,7 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, ord
 // - controller connectionID
 // - host connectionID
 // - interchain account address
-// - interchain account version
+// - ICS27 protocol version
 func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 	if strings.TrimSpace(counterpartyVersion) == "" {
 		return errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
@@ -244,7 +244,7 @@ func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpart
 		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "failed to retrieve channel %s on port %s", channelID, portID)
 	}
 
-	// ValidateControllerMetadata will ensure the interchain account version has not changed and that the
+	// ValidateControllerMetadata will ensure the ICS27 protocol version has not changed and that the
 	// tx type and encoding are supported. Note, we pass in the current channel connection hops. The upgrade init
 	// step will verify that the proposed connection hops will not change.
 	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, channel.ConnectionHops, proposedMetadata); err != nil {
