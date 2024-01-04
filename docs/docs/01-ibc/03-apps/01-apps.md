@@ -7,7 +7,7 @@ slug: /ibc/apps/apps
 
 # IBC Applications
 
-Learn how to configure your application to use IBC and send data packets to other chains. {synopsis}
+Learn how to configure your application to use IBC and send data packets to other chains.
 
 This document serves as a guide for developers who want to write their own Inter-blockchain
 Communication Protocol (IBC) applications for custom use cases.
