@@ -2017,8 +2017,6 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 	}
 }
 
-<<<<<<< HEAD
-=======
 // TestUpdateChannelParams tests the UpdateChannelParams rpc handler
 func (suite *KeeperTestSuite) TestUpdateChannelParams() {
 	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
@@ -2073,7 +2071,6 @@ func (suite *KeeperTestSuite) TestUpdateChannelParams() {
 	}
 }
 
->>>>>>> b2368fa2 (Add missing channel upgrade tests (#5502))
 func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 	var msg *channeltypes.MsgPruneAcknowledgements
 
