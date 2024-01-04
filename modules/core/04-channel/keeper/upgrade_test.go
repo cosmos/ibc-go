@@ -1515,8 +1515,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
 				suite.Require().Equal(uint64(1), seq)
 
 				// Assert that pruning sequence start has been initialized (set to 1)
-				suite.Require().True(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				pruningSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				pruningSeq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), pruningSeq)
 
 				// Assert that pruning sequence end has been set correctly
@@ -1575,8 +1575,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
 				suite.Require().Equal(uint64(2), seq)
 
 				// Assert that pruning sequence start has been initialized (set to 1)
-				suite.Require().True(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				pruningSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				pruningSeq, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), pruningSeq)
 
 				// Assert that pruning sequence end has been set correctly
@@ -2681,64 +2681,6 @@ func (suite *KeeperTestSuite) TestCheckForUpgradeCompatibility() {
 			tc.malleate()
 
 			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.CheckForUpgradeCompatibility(suite.chainB.GetContext(), upgradeFields, counterpartyUpgradeFields)
-			if tc.expError != nil {
-				suite.Require().ErrorIs(err, tc.expError)
-			} else {
-				suite.Require().NoError(err)
-			}
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestSyncUpgradeSequence() {
-	var (
-		path                        *ibctesting.Path
-		counterpartyUpgradeSequence uint64
-	)
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {},
-			nil,
-		},
-		{
-			"upgrade sequence mismatch, endpointB channel upgrade sequence is ahead",
-			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.UpgradeSequence = 10
-				path.EndpointB.SetChannel(channel)
-			},
-			types.NewUpgradeError(10, types.ErrInvalidUpgradeSequence), // max sequence will be returned
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
-
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.ChanUpgradeInit()
-			suite.Require().NoError(err)
-
-			counterpartyUpgradeSequence = 1
-
-			tc.malleate()
-
-			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SyncUpgradeSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointB.GetChannel(), counterpartyUpgradeSequence)
 			if tc.expError != nil {
 				suite.Require().ErrorIs(err, tc.expError)
 			} else {
