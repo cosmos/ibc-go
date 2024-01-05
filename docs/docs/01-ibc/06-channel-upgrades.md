@@ -153,7 +153,7 @@ IBC application callbacks should be primarily used to validate data fields and d
 
 `OnChanUpgradeInit` should validate the proposed version, order, and connection hops, and should return the application version to upgrade to.
 
-`OnChanUpgradeTry` should validate the proposed version (provided by the counterparty), order, and connection hope. The desired upgrade version should be returned.
+`OnChanUpgradeTry` should validate the proposed version (provided by the counterparty), order, and connection hops. The desired upgrade version should be returned.
 
 `OnChanUpgradeAck` should validate the version proposed by the counterparty.
 
