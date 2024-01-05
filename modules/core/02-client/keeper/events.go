@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	gogotypes "github.com/cosmos/gogoproto/types"
+
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -13,11 +15,10 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/merkle"
 	cmbytes "github.com/cometbft/cometbft/libs/bytes"
-	gogotypes "github.com/cosmos/gogoproto/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 // emitCreateClientEvent emits a create client event
@@ -76,7 +77,7 @@ func cdcEncode(item interface{}) []byte {
 	return nil
 }
 
-func headerClientMsgToHashBz(clientMsg exported.ClientMessage, cdc codec.BinaryCodec) []byte {
+func headerClientMsgToHashBz(clientMsg exported.ClientMessage) []byte {
 	h := clientMsg.(*ibctmtypes.Header).Header
 	fmt.Println("valhash", h.ValidatorsHash)
 	if len(h.ValidatorsHash) == 0 {
@@ -117,9 +118,9 @@ func headerClientMsgToHashBz(clientMsg exported.ClientMessage, cdc codec.BinaryC
 }
 
 // emitUpdateClientEvent emits an update client event
-func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
+func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, _ codec.BinaryCodec, clientMsg exported.ClientMessage) {
 	// calculating header hash, reference https://github.com/cometbft/cometbft/blob/c88d5512350f6671c92051cf5ebbbe9841f644cb/types/block.go#L439C28
-	headerHashBz := headerClientMsgToHashBz(clientMsg, cdc)
+	headerHashBz := headerClientMsgToHashBz(clientMsg)
 	headerHashAttr := hex.EncodeToString(headerHashBz)
 
 	var consensusHeightAttr string
