@@ -494,6 +494,9 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	if ack == nil || ack.Success() {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
+	} else {
+		// Modify events in cached context to reflect unsuccessful acknowledgement
+		ctx.EventManager().EmitEvents(ConvertToErrorEvents(cacheCtx.EventManager().Events()))
 	}
 
 	// Set packet acknowledgement only if the acknowledgement is not nil.
