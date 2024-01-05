@@ -744,30 +744,19 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		msg    *types.MsgChannelCloseConfirm
 		expErr error
 	}{
-<<<<<<< HEAD
-		{"success", types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr), true},
-		{"success, positive counterparty upgrade sequence", types.NewMsgChannelCloseConfirmWithCounterpartyUpgradeSequence(portid, chanid, suite.proof, height, addr, 1), true},
-		{"too short port id", types.NewMsgChannelCloseConfirm(invalidShortPort, chanid, suite.proof, height, addr), false},
-		{"too long port id", types.NewMsgChannelCloseConfirm(invalidLongPort, chanid, suite.proof, height, addr), false},
-		{"port id contains non-alpha", types.NewMsgChannelCloseConfirm(invalidPort, chanid, suite.proof, height, addr), false},
-		{"too short channel id", types.NewMsgChannelCloseConfirm(portid, invalidShortChannel, suite.proof, height, addr), false},
-		{"too long channel id", types.NewMsgChannelCloseConfirm(portid, invalidLongChannel, suite.proof, height, addr), false},
-		{"channel id contains non-alpha", types.NewMsgChannelCloseConfirm(portid, invalidChannel, suite.proof, height, addr), false},
-		{"empty proof", types.NewMsgChannelCloseConfirm(portid, chanid, emptyProof, height, addr), false},
-=======
 		{
 			"success",
-			types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr, 0),
+			types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr),
 			nil,
 		},
 		{
 			"success, positive counterparty upgrade sequence",
-			types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr, 1),
+			types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr),
 			nil,
 		},
 		{
 			"too short port id",
-			types.NewMsgChannelCloseConfirm(invalidShortPort, chanid, suite.proof, height, addr, 0),
+			types.NewMsgChannelCloseConfirm(invalidShortPort, chanid, suite.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -778,7 +767,7 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		},
 		{
 			"too long port id",
-			types.NewMsgChannelCloseConfirm(invalidLongPort, chanid, suite.proof, height, addr, 0),
+			types.NewMsgChannelCloseConfirm(invalidLongPort, chanid, suite.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -789,7 +778,7 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		},
 		{
 			"port id contains non-alpha",
-			types.NewMsgChannelCloseConfirm(invalidPort, chanid, suite.proof, height, addr, 0),
+			types.NewMsgChannelCloseConfirm(invalidPort, chanid, suite.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -800,25 +789,24 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		},
 		{
 			"too short channel id",
-			types.NewMsgChannelCloseConfirm(portid, invalidShortChannel, suite.proof, height, addr, 0),
+			types.NewMsgChannelCloseConfirm(portid, invalidShortChannel, suite.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"too long channel id",
-			types.NewMsgChannelCloseConfirm(portid, invalidLongChannel, suite.proof, height, addr, 0),
+			types.NewMsgChannelCloseConfirm(portid, invalidLongChannel, suite.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"channel id contains non-alpha",
-			types.NewMsgChannelCloseConfirm(portid, invalidChannel, suite.proof, height, addr, 0),
+			types.NewMsgChannelCloseConfirm(portid, invalidChannel, suite.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"empty proof",
-			types.NewMsgChannelCloseConfirm(portid, chanid, emptyProof, height, addr, 0),
+			types.NewMsgChannelCloseConfirm(portid, chanid, emptyProof, height, addr),
 			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty init proof"),
 		},
->>>>>>> f51d0622 (Check for error returned in channel msg_tests (#5492))
 	}
 
 	for _, tc := range testCases {
@@ -975,51 +963,41 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 		msg    *types.MsgTimeoutOnClose
 		expErr error
 	}{
-<<<<<<< HEAD
-		{"success", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr), true},
-		{"success, positive counterparty upgrade sequence", types.NewMsgTimeoutOnCloseWithCounterpartyUpgradeSequence(packet, 1, suite.proof, suite.proof, height, addr, 1), true},
-		{"seq 0", types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr), false},
-		{"signer address is empty", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr), false},
-		{"empty proof", types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr), false},
-		{"empty proof close", types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr), false},
-=======
 		{
 			"success",
-			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr, 0),
+			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr),
 			nil,
 		},
 		{
 			"success, positive counterparty upgrade sequence",
-			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr, 1),
+			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr),
 			nil,
 		},
 		{
 			"seq 0",
-			types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr, 0),
+			types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr),
 			errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "next sequence receive cannot be 0"),
 		},
 		{
 			"signer address is empty",
-			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr, 0),
+			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr),
 			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
 		},
 		{
 			"empty proof",
-			types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr, 0),
+			types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr),
 			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty unreceived proof"),
 		},
 		{
 			"empty proof close",
-			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr, 0),
+			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr),
 			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of closed counterparty channel end"),
 		},
 		{
 			"invalid packet",
-			types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr, 0),
+			types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr),
 			errorsmod.Wrap(types.ErrInvalidPacket, "packet sequence cannot be 0"),
 		},
->>>>>>> f51d0622 (Check for error returned in channel msg_tests (#5492))
 	}
 
 	for _, tc := range testCases {
