@@ -3,6 +3,10 @@ slug: /
 sidebar_position: 0
 ---
 
+:::danger
+This version of ibc-go is not supported anymore. Please upgrade to the latest version.
+:::
+
 # IBC-Go Documentation
 
 Welcome to the IBC-Go documentation!

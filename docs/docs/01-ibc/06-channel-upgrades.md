@@ -67,39 +67,6 @@ The message signer for `MsgChanUpgradeInit` must be the address which has been d
 
 If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChanUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
 
-## Channel State and Packet Flushing
-
-`FLUSHING` and `FLUSHCOMPLETE` are additional states which have been added to enable the upgrade feature.
-
-This is found in the channel state on  `Channel`:
-
-```go
-type Channel struct {
-	// current state of the channel end
-	State State `protobuf:"varint,1,opt,name=state,proto3,enum=ibc.core.channel.v1.State" json:"state,omitempty"`
-	// whether the channel is ordered or unordered
-	Ordering Order `protobuf:"varint,2,opt,name=ordering,proto3,enum=ibc.core.channel.v1.Order" json:"ordering,omitempty"`
-	// counterparty channel end
-	Counterparty Counterparty `protobuf:"bytes,3,opt,name=counterparty,proto3" json:"counterparty"`
-	// list of connection identifiers, in order, along which packets sent on
-	// this channel will travel
-	ConnectionHops []string `protobuf:"bytes,4,rep,name=connection_hops,json=connectionHops,proto3" json:"connection_hops,omitempty"`
-	// opaque channel version, which is agreed upon during the handshake
-	Version string `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
-	// upgrade sequence indicates the latest upgrade attempt performed by this channel
-	// the value of 0 indicates the channel has never been upgraded
-	UpgradeSequence uint64 `protobuf:"varint,6,opt,name=upgrade_sequence,json=upgradeSequence,proto3" json:"upgrade_sequence,omitempty"`
-}
-```
-
-`startFlushing` is the specific method which is called in `ChanUpgradeTry` and `ChanUpgradeAck` to update the state on the channel end. This will set the timeout on the upgrade and update the channel state to `FLUSHING` which will block the upgrade from continuing until all in-flight packets have been flushed. 
-
-This will also set the upgrade timeout for the counterparty (i.e. the timeout before which the counterparty chain must move from `FLUSHING` to `FLUSHCOMPLETE`; if it doesn't then the chain will cancel the upgrade and write an error receipt). The timeout is a relative time duration in nanoseconds that can be changed with MsgUpdateParams and by default is 10 minutes.
-
-The state will change to `FLUSHCOMPLETE` once there are no in-flight packets left and the channel end is ready to move to `OPEN`. This flush state will also have an impact on how a channel ugrade can be cancelled, as detailed below.
-
-All other parameters will remain the same during the upgrade handshake until the upgrade handshake completes. When the channel is reset to `OPEN` on a successful upgrade handshake, the relevant fields on the channel end will be switched over to the `UpgradeFields` specified in the upgrade.
-
 ## Cancelling a Channel Upgrade
 
 Channel upgrade cancellation is performed by submitting a `MsgChannelUpgradeCancel` message.

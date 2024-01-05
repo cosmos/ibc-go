@@ -9,7 +9,7 @@ slug: /ibc/light-clients/wasm/overview
 
 ## Overview
 
-Learn about the `08-wasm` light client proxy module. {synopsis}
+Learn about the `08-wasm` light client proxy module. 
 
 ### Context
 
