@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -547,7 +546,7 @@ func cdcEncode(item interface{}) []byte {
 }
 
 func headerClientMsgToHashBz(clientMsg exported.ClientMessage) []byte {
-	h := clientMsg.(*ibctmtypes.Header).Header
+	h := clientMsg.(*ibctm.Header).Header
 	fmt.Println("valhash", h.ValidatorsHash)
 	if len(h.ValidatorsHash) == 0 {
 		return nil
