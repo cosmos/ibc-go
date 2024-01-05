@@ -18,6 +18,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/core/types"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -38,6 +39,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		packet channeltypes.Packet
 		path   *ibctesting.Path
 		async  bool // indicate no ack written
+		replay bool // indicate replay (no-op)
 	)
 
 	testCases := []struct {
@@ -126,6 +128,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 			// mock will panic if application callback is called twice on the same packet
 			path.SetChannelOrdered()
 			suite.coordinator.Setup(path)
+			replay = true
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -137,6 +140,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		{"successful no-op: UNORDERED - packet already received (replay)", func() {
 			// mock will panic if application callback is called twice on the same packet
 			suite.coordinator.Setup(path)
+			replay = true
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -153,6 +157,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			async = false     // reset
+			replay = false    // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -170,7 +175,10 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 			msg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
 
-			_, err := keeper.Keeper.RecvPacket(*suite.chainB.App.GetIBCKeeper(), suite.chainB.GetContext(), msg)
+			ctx := suite.chainB.GetContext()
+			_, err := keeper.Keeper.RecvPacket(*suite.chainB.App.GetIBCKeeper(), ctx, msg)
+
+			events := ctx.EventManager().Events()
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -183,8 +191,20 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 				_, exists := suite.chainB.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainB.GetContext(), ibcmock.GetMockRecvCanaryCapabilityName(packet))
 				if tc.expRevert {
 					suite.Require().False(exists, "capability exists in store even after callback reverted")
+
+					// context events should contain error events
+					suite.Require().Contains(events, types.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 				} else {
 					suite.Require().True(exists, "callback state not persisted when revert is false")
+
+					if replay {
+						// context should not contain application events
+						suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
+						suite.Require().NotContains(events, types.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+					} else {
+						// context events should contain application events
+						suite.Require().Contains(events, ibcmock.NewMockRecvPacketEvent())
+					}
 				}
 
 				// verify if ack was written
@@ -290,6 +310,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 	var (
 		packet channeltypes.Packet
 		path   *ibctesting.Path
+		replay bool // indicate replay (no-op)
 	)
 
 	testCases := []struct {
@@ -360,6 +381,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 		}, false},
 		{"successful no-op: ORDERED - packet already acknowledged (replay)", func() {
 			suite.coordinator.Setup(path)
+			replay = true
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -373,6 +395,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 		}, true},
 		{"successful no-op: UNORDERED - packet already acknowledged (replay)", func() {
 			suite.coordinator.Setup(path)
+			replay = true
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -391,6 +414,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			replay = false    // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -406,7 +430,10 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 
 			msg := channeltypes.NewMsgAcknowledgement(packet, ibcmock.MockAcknowledgement.Acknowledgement(), proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
-			_, err := keeper.Keeper.Acknowledgement(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+			ctx := suite.chainA.GetContext()
+			_, err := keeper.Keeper.Acknowledgement(*suite.chainA.App.GetIBCKeeper(), ctx, msg)
+
+			events := ctx.EventManager().Events()
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -418,6 +445,14 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 				// replay should not error as it is treated as a no-op
 				_, err := keeper.Keeper.Acknowledgement(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
+
+				if replay {
+					// context should not contain application events
+					suite.Require().NotContains(events, ibcmock.NewMockAckPacketEvent())
+				} else {
+					// context events should contain application events
+					suite.Require().Contains(events, ibcmock.NewMockAckPacketEvent())
+				}
 			} else {
 				suite.Require().Error(err)
 			}
@@ -435,6 +470,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 		packet    channeltypes.Packet
 		packetKey []byte
 		path      *ibctesting.Path
+		noop      bool // indicate no-op
 	)
 
 	testCases := []struct {
@@ -527,6 +563,8 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 		}, false},
 		{"successful no-op: UNORDERED - packet not sent", func() {
 			suite.coordinator.Setup(path)
+			noop = true
+
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 1), 0)
 			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		}, true},
@@ -537,6 +575,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			noop = false      // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -551,7 +590,10 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 
 			msg := channeltypes.NewMsgTimeout(packet, 1, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
-			_, err := keeper.Keeper.Timeout(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
+			ctx := suite.chainA.GetContext()
+			_, err := keeper.Keeper.Timeout(*suite.chainA.App.GetIBCKeeper(), ctx, msg)
+
+			events := ctx.EventManager().Events()
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -563,6 +605,14 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 				// verify packet commitment was deleted on source chain
 				has := suite.chainA.App.GetIBCKeeper().ChannelKeeper.HasPacketCommitment(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 				suite.Require().False(has)
+
+				if noop {
+					// context should not contain application events
+					suite.Require().NotContains(events, ibcmock.NewMockTimeoutPacketEvent())
+				} else {
+					// context should contain application events
+					suite.Require().Contains(events, ibcmock.NewMockTimeoutPacketEvent())
+				}
 
 			} else {
 				suite.Require().Error(err)
