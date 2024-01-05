@@ -75,22 +75,22 @@ These states may consist of:
 
 ```go
 const (
-	// Default State
-	UNINITIALIZED State = 0
-	// A channel has just started the opening handshake.
-	INIT State = 1
-	// A channel has acknowledged the handshake step on the counterparty chain.
-	TRYOPEN State = 2
-	// A channel has completed the handshake. Open channels are
-	// ready to send and receive packets.
-	OPEN State = 3
-	// A channel has been closed and can no longer be used to send or receive
-	// packets.
-	CLOSED State = 4
-	// A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
-	FLUSHING State = 5
-	// A channel has just completed flushing any in-flight packets.
-	FLUSHCOMPLETE State = 6
+  // Default State
+  UNINITIALIZED State = 0
+  // A channel has just started the opening handshake.
+  INIT State = 1
+  // A channel has acknowledged the handshake step on the counterparty chain.
+  TRYOPEN State = 2
+  // A channel has completed the handshake. Open channels are
+  // ready to send and receive packets.
+  OPEN State = 3
+  // A channel has been closed and can no longer be used to send or receive
+  // packets.
+  CLOSED State = 4
+  // A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+  FLUSHING State = 5
+  // A channel has just completed flushing any in-flight packets.
+  FLUSHCOMPLETE State = 6
 )
 ```
 
@@ -98,20 +98,20 @@ These are found in `State` on the `Channel` struct:
 
 ```go
 type Channel struct {
-	// current state of the channel end
-	State State `protobuf:"varint,1,opt,name=state,proto3,enum=ibc.core.channel.v1.State" json:"state,omitempty"`
-	// whether the channel is ordered or unordered
-	Ordering Order `protobuf:"varint,2,opt,name=ordering,proto3,enum=ibc.core.channel.v1.Order" json:"ordering,omitempty"`
-	// counterparty channel end
-	Counterparty Counterparty `protobuf:"bytes,3,opt,name=counterparty,proto3" json:"counterparty"`
-	// list of connection identifiers, in order, along which packets sent on
-	// this channel will travel
-	ConnectionHops []string `protobuf:"bytes,4,rep,name=connection_hops,json=connectionHops,proto3" json:"connection_hops,omitempty"`
-	// opaque channel version, which is agreed upon during the handshake
-	Version string `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
-	// upgrade sequence indicates the latest upgrade attempt performed by this channel
-	// the value of 0 indicates the channel has never been upgraded
-	UpgradeSequence uint64 `protobuf:"varint,6,opt,name=upgrade_sequence,json=upgradeSequence,proto3" json:"upgrade_sequence,omitempty"`
+  // current state of the channel end
+  State State `protobuf:"varint,1,opt,name=state,proto3,enum=ibc.core.channel.v1.State" json:"state,omitempty"`
+  // whether the channel is ordered or unordered
+  Ordering Order `protobuf:"varint,2,opt,name=ordering,proto3,enum=ibc.core.channel.v1.Order" json:"ordering,omitempty"`
+  // counterparty channel end
+  Counterparty Counterparty `protobuf:"bytes,3,opt,name=counterparty,proto3" json:"counterparty"`
+  // list of connection identifiers, in order, along which packets sent on
+  // this channel will travel
+  ConnectionHops []string `protobuf:"bytes,4,rep,name=connection_hops,json=connectionHops,proto3" json:"connection_hops,omitempty"`
+  // opaque channel version, which is agreed upon during the handshake
+  Version string `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
+  // upgrade sequence indicates the latest upgrade attempt performed by this channel
+  // the value of 0 indicates the channel has never been upgraded
+  UpgradeSequence uint64 `protobuf:"varint,6,opt,name=upgrade_sequence,json=upgradeSequence,proto3" json:"upgrade_sequence,omitempty"`
 }
 ```
 
@@ -146,3 +146,21 @@ the channel will move back to `OPEN` state keeping its original parameters.
 The application's `OnChanUpgradeRestore` callback method will be invoked.
 
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
+
+## IBC App Recommendations
+
+IBC application callbacks should be primarily used to validate data fields and do compatibility checks.
+
+`OnChanUpgradeInit` should validate the proposed version, order, and connection hops, and should return the application version to upgrade to.
+
+`OnChanUpgradeTry` should validate the proposed version (provided by the counterparty), order, and connection hops. The desired upgrade version should be returned.
+
+`OnChanUpgradeAck` should validate the version proposed by the counterparty.
+
+`OnChanUpgradeOpen` should perform any logic associated with changing of the channel fields.
+
+`OnChanUpgradeRestore`  should perform any logic that needs to be executed when an upgrade attempt fails as is reverted.
+
+> IBC applications should not attempt to process any packet data under the new conditions until after `OnChanUpgradeOpen`
+> has been executed, as up until this point it is still possible for the upgrade handshake to fail and for the channel
+> to remain in the pre-upgraded state. 
