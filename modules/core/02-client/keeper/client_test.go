@@ -1,16 +1,21 @@
 package keeper_test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	"github.com/cometbft/cometbft/crypto/merkle"
+	cmbytes "github.com/cometbft/cometbft/libs/bytes"
+	gogotypes "github.com/cosmos/gogoproto/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
@@ -501,6 +506,86 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	}
 }
 
+// cdcEncode returns nil if the input is nil, otherwise returns
+// proto.Marshal(<type>Value{Value: item}).
+func cdcEncode(item interface{}) []byte {
+	if item != nil {
+		switch item := item.(type) {
+		case string:
+			i := gogotypes.StringValue{
+				Value: item,
+			}
+			bz, err := i.Marshal()
+			if err != nil {
+				return nil
+			}
+			return bz
+		case int64:
+			i := gogotypes.Int64Value{
+				Value: item,
+			}
+			bz, err := i.Marshal()
+			if err != nil {
+				return nil
+			}
+			return bz
+		case cmbytes.HexBytes:
+			i := gogotypes.BytesValue{
+				Value: item,
+			}
+			bz, err := i.Marshal()
+			if err != nil {
+				return nil
+			}
+			return bz
+		default:
+			return nil
+		}
+	}
+
+	return nil
+}
+
+func headerClientMsgToHashBz(clientMsg exported.ClientMessage) []byte {
+	h := clientMsg.(*ibctmtypes.Header).Header
+	fmt.Println("valhash", h.ValidatorsHash)
+	if len(h.ValidatorsHash) == 0 {
+		return nil
+	}
+	hbz, err := h.Version.Marshal()
+	if err != nil {
+		return nil
+	}
+
+	pbt, err := gogotypes.StdTimeMarshal(h.Time)
+	if err != nil {
+		return nil
+	}
+
+	pbbi := h.LastBlockId
+	bzbi, err := pbbi.Marshal()
+	if err != nil {
+		return nil
+	}
+
+	return merkle.HashFromByteSlices([][]byte{
+		hbz,
+		cdcEncode(h.ChainID),
+		cdcEncode(h.Height),
+		pbt,
+		bzbi,
+		cdcEncode(h.LastCommitHash),
+		cdcEncode(h.DataHash),
+		cdcEncode(h.ValidatorsHash),
+		cdcEncode(h.NextValidatorsHash),
+		cdcEncode(h.ConsensusHash),
+		cdcEncode(h.AppHash),
+		cdcEncode(h.LastResultsHash),
+		cdcEncode(h.EvidenceHash),
+		cdcEncode(h.ProposerAddress),
+	})
+}
+
 func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
@@ -521,12 +606,15 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	suite.Require().Equal(clienttypes.EventTypeUpdateClient, updateEvent.Type)
 
 	// use a boolean to ensure the update event contains the header hash
-	var hasHeaderHash bool
+	hasHeaderHash := false
 	for _, attr := range updateEvent.Attributes {
 		if attr.Key == clienttypes.AttributeKeyHeaderHash {
 			hasHeaderHash = true
-			// TODO: calculate header hash and compare
-			// suite.Require().Equal(headerHash, attr.Value)
+
+			// encode header hash
+			encodeHeader := headerClientMsgToHashBz(header)
+			suite.Require().NoError(err)
+			suite.Require().Equal(hex.EncodeToString(encodeHeader), attr.Value)
 		}
 	}
 	suite.Require().True(hasHeaderHash)
