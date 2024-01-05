@@ -17,7 +17,7 @@ In this section, you can find all you need to install:
 
 - [Git](https://git-scm.com/)
 - [Go](https://go.dev/)
-- [Hermes v1.6.0](https://hermes.informal.systems/)
+- [Hermes v1.7.4](https://hermes.informal.systems/)
 - [Node.js v18](https://nodejs.org/en/)
 - [Ignite v0.27.1](https://docs.ignite.com/)
 - [Keplr](https://www.keplr.app/)
@@ -48,10 +48,10 @@ go version
 
 ## Hermes
 
-Install Hermes relayer version `v1.6.0` via cargo following the instructions on the [Hermes website](https://hermes.informal.systems/quick-start/installation.html#install-via-cargo) or by using the command below.
+Install Hermes relayer version `v1.7.4` via cargo following the instructions on the [Hermes website](https://hermes.informal.systems/quick-start/installation.html#install-via-cargo) or by using the command below.
 
 ```bash
-cargo install ibc-relayer-cli --version 1.6.0 --bin hermes --locked
+cargo install ibc-relayer-cli --version 1.7.4 --bin hermes --locked
 ```
 
 Test if Hermes is installed by running the following command:
