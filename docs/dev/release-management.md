@@ -7,7 +7,7 @@ Pre-requisites for creating a release branch for a new major version:
 1. Bump [Go package version](https://github.com/cosmos/ibc-go/blob/main/go.mod#L3).
 2. Change all imports. For example: if the next major version is `v3`, then change all imports starting with `github.com/cosmos/ibc-go/v2` to `github.com/cosmos/ibc-go/v3`).
 
-Once the above pre-requisites are satified:
+Once the above pre-requisites are satisfied:
 
 1. Start on `main`.
 2. Create the release branch (`release/vX.XX.X`). For example: `release/v3.0.x`.
@@ -31,7 +31,7 @@ In order to alleviate the burden for a single person to have to cherry-pick and 
 
 Current release is `v1.0.2`. We then maintain a (living) branch `release/v1.0.x`, given `x` as the next patch release number (currently `v1.0.3`) for the `v1.0` release series. As bugs are fixed and PRs are merged into `main`, if a contributor wishes the PR to be released into the `v1.0.x` point release, the contributor must:
 
-1. Add the `backport-to-v1.0x` label to the PR.
+1. Add the `backport-to-v1.0.x` label to the PR.
 2. Once the PR is merged, the Mergify GitHub application will automatically copy the changes into another branch and open a new PR against the desired `release/v1.0.x` branch.
 3. If the following has not been discussed in the original PR, then update the backport PR's description and ensure it contains the following information:
 

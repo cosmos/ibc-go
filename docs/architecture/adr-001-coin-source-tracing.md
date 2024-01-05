@@ -14,7 +14,7 @@ Accepted, Implemented
 The specification for IBC cross-chain fungible token transfers
 ([ICS20](https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer)), needs to
 be aware of the origin of any token denomination in order to relay a `Packet` which contains the sender
-and recipient addressed in the
+and recipient addresses in the
 [`FungibleTokenPacketData`](https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures).
 
 The Packet relay sending works based in 2 cases (per
@@ -26,7 +26,7 @@ to the receiving chain through IBC TAO logic. It is expected that the
 receiving chain will mint vouchers to the receiving address.
 
 2. Sender chain is acting as the sink zone. The coins (vouchers) are burned
-on the sender chain and then transferred to the receiving chain though IBC
+on the sender chain and then transferred to the receiving chain through IBC
 TAO logic. It is expected that the receiving chain, which had previously
 sent the original denomination, will unescrow the fungible token and send
 it to the receiving address.

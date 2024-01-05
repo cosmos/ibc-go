@@ -45,7 +45,7 @@ ctx.EventManager().EmitEvents(sdk.Events{
     sdk.NewAttribute(types.AttributeKeyHops, strings.Join(connectionHops, ",")),
     sdk.NewAttribute(types.AttributeKeyOrder, order.String()),
     sdk.NewAttribute(types.AttributeKeySrcPort, portID),
-    sdk.NewAttribute(types.AttributeKeySrcChannel, chanenlID),
+    sdk.NewAttribute(types.AttributeKeySrcChannel, channelID),
     sdk.NewAttribute(types.AttributeKeySrcVersion, version),
     sdk.NewAttribute(types.AttributeKeyDstPort, counterparty.GetPortID()),
     sdk.NewAttribute(types.AttributeKeyDstChannel, counterparty.GetChannelID()),

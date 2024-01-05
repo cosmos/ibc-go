@@ -8,8 +8,10 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const doesnotexist = "doesnotexist"
@@ -1700,4 +1702,196 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestQueryUpgradeError() {
+	var (
+		req        *types.QueryUpgradeErrorRequest
+		upgradeErr *types.UpgradeError
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
+		},
+		{
+			"invalid port ID",
+			func() {
+				req = &types.QueryUpgradeErrorRequest{
+					PortId:    "",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = &types.QueryUpgradeErrorRequest{
+					PortId:    "test-port-id",
+					ChannelId: "",
+				}
+			},
+			false,
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryUpgradeErrorRequest{
+					PortId:    "test-port-id",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
+		{
+			"success",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.Setup(path)
+				upgradeErr = types.NewUpgradeError(uint64(1), fmt.Errorf("test error"))
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeErr)
+
+				req = &types.QueryUpgradeErrorRequest{
+					PortId:    path.EndpointA.ChannelConfig.PortID,
+					ChannelId: path.EndpointA.ChannelID,
+				}
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+
+			ctx := suite.chainA.GetContext()
+			res, err := suite.chainA.QueryServer.UpgradeError(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(upgradeErr.GetErrorReceipt(), res.ErrorReceipt)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryUpgrade() {
+	var (
+		req             *types.QueryUpgradeRequest
+		expectedUpgrade types.Upgrade
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
+		},
+		{
+			"invalid port ID",
+			func() {
+				req = &types.QueryUpgradeRequest{
+					PortId:    "",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = &types.QueryUpgradeRequest{
+					PortId:    "test-port-id",
+					ChannelId: "",
+				}
+			},
+			false,
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryUpgradeRequest{
+					PortId:    "test-port-id",
+					ChannelId: "test-channel-id",
+				}
+			},
+			false,
+		},
+		{
+			"upgrade not found",
+			func() {
+				storeKey := suite.chainA.GetSimApp().GetKey(exported.StoreKey)
+				kvStore := suite.chainA.GetContext().KVStore(storeKey)
+				kvStore.Delete(host.ChannelUpgradeKey(req.PortId, req.ChannelId))
+			},
+			false,
+		},
+		{
+			"success",
+			func() {
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			expectedUpgrade = types.NewUpgrade(
+				types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.Version),
+				types.NewTimeout(clienttypes.ZeroHeight(), 1000000),
+				0,
+			)
+
+			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expectedUpgrade)
+
+			req = &types.QueryUpgradeRequest{
+				PortId:    path.EndpointA.ChannelConfig.PortID,
+				ChannelId: path.EndpointA.ChannelID,
+			}
+
+			tc.malleate()
+
+			ctx := suite.chainA.GetContext()
+			res, err := suite.chainA.QueryServer.Upgrade(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expectedUpgrade, res.Upgrade)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryChannelParams() {
+	ctx := suite.chainA.GetContext()
+	expParams := types.DefaultParams()
+	res, _ := suite.chainA.QueryServer.ChannelParams(ctx, &types.QueryChannelParamsRequest{})
+	suite.Require().Equal(&expParams, res.Params)
 }

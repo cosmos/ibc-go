@@ -47,9 +47,10 @@ func NewConnectionConfig() *ConnectionConfig {
 }
 
 type ChannelConfig struct {
-	PortID  string
-	Version string
-	Order   channeltypes.Order
+	PortID          string
+	Version         string
+	Order           channeltypes.Order
+	ProposedUpgrade channeltypes.Upgrade
 }
 
 func NewChannelConfig() *ChannelConfig {

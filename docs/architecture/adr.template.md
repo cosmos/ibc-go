@@ -1,14 +1,14 @@
-# ADR {ADR-NUMBER}: {TITLE}
+# ADR \{ADR-NUMBER\}: \{TITLE\}
 
 ## Changelog
 
-- {date}: {changelog}
+- \{date\}: \{changelog\}
 
 ## Status
 
 > A decision may be "proposed" if it hasn't been agreed upon yet, or "accepted" once it is agreed upon. If a later ADR changes or reverses a decision, it may be marked as "deprecated" or "superseded" with a reference to its replacement.
 
-{Deprecated|Proposed|Accepted}
+\{Deprecated|Proposed|Accepted\}
 
 ## Context
 
@@ -33,6 +33,6 @@ If the proposed change will be large, please also indicate a way to do the chang
 
 ## References
 
-> Are there any relevant PR comments, issues that led up to this, or articles referrenced for why we made the given design choice? If so link them here!
+> Are there any relevant PR comments, issues that led up to this, or articles referenced for why we made the given design choice? If so link them here!
 
-- {reference link}
+- \{reference link\}
