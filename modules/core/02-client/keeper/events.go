@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,6 +10,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cometbft/cometbft/crypto/merkle"
+	cmbytes "github.com/cometbft/cometbft/libs/bytes"
+	gogotypes "github.com/cosmos/gogoproto/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -30,8 +36,92 @@ func emitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 	})
 }
 
+// cdcEncode returns nil if the input is nil, otherwise returns
+// proto.Marshal(<type>Value{Value: item}).
+func cdcEncode(item interface{}) []byte {
+	if item != nil {
+		switch item := item.(type) {
+		case string:
+			i := gogotypes.StringValue{
+				Value: item,
+			}
+			bz, err := i.Marshal()
+			if err != nil {
+				return nil
+			}
+			return bz
+		case int64:
+			i := gogotypes.Int64Value{
+				Value: item,
+			}
+			bz, err := i.Marshal()
+			if err != nil {
+				return nil
+			}
+			return bz
+		case cmbytes.HexBytes:
+			i := gogotypes.BytesValue{
+				Value: item,
+			}
+			bz, err := i.Marshal()
+			if err != nil {
+				return nil
+			}
+			return bz
+		default:
+			return nil
+		}
+	}
+
+	return nil
+}
+
+func headerClientMsgToHashBz(clientMsg exported.ClientMessage, cdc codec.BinaryCodec) []byte {
+	h := clientMsg.(*ibctmtypes.Header).Header
+	fmt.Println("valhash", h.ValidatorsHash)
+	if len(h.ValidatorsHash) == 0 {
+		return nil
+	}
+	hbz, err := h.Version.Marshal()
+	if err != nil {
+		return nil
+	}
+
+	pbt, err := gogotypes.StdTimeMarshal(h.Time)
+	if err != nil {
+		return nil
+	}
+
+	pbbi := h.LastBlockId
+	bzbi, err := pbbi.Marshal()
+	if err != nil {
+		return nil
+	}
+
+	return merkle.HashFromByteSlices([][]byte{
+		hbz,
+		cdcEncode(h.ChainID),
+		cdcEncode(h.Height),
+		pbt,
+		bzbi,
+		cdcEncode(h.LastCommitHash),
+		cdcEncode(h.DataHash),
+		cdcEncode(h.ValidatorsHash),
+		cdcEncode(h.NextValidatorsHash),
+		cdcEncode(h.ConsensusHash),
+		cdcEncode(h.AppHash),
+		cdcEncode(h.LastResultsHash),
+		cdcEncode(h.EvidenceHash),
+		cdcEncode(h.ProposerAddress),
+	})
+}
+
 // emitUpdateClientEvent emits an update client event
-func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, _ codec.BinaryCodec, _ exported.ClientMessage) {
+func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
+	// calculating header hash, reference https://github.com/cometbft/cometbft/blob/c88d5512350f6671c92051cf5ebbbe9841f644cb/types/block.go#L439C28
+	headerHashBz := headerClientMsgToHashBz(clientMsg, cdc)
+	headerHashAttr := hex.EncodeToString(headerHashBz)
+
 	var consensusHeightAttr string
 	if len(consensusHeights) != 0 {
 		consensusHeightAttr = consensusHeights[0].String()
@@ -51,6 +141,7 @@ func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 			// Please use AttributeKeyConsensusHeights instead.
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
+			sdk.NewAttribute(types.AttributeKeyHeaderHash, headerHashAttr),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

@@ -519,6 +519,17 @@ func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	// first event type is "message", followed by 3 "tx" events in ante
 	updateEvent := result.Events[4]
 	suite.Require().Equal(clienttypes.EventTypeUpdateClient, updateEvent.Type)
+
+	// use a boolean to ensure the update event contains the header hash
+	var hasHeaderHash bool
+	for _, attr := range updateEvent.Attributes {
+		if attr.Key == clienttypes.AttributeKeyHeaderHash {
+			hasHeaderHash = true
+			// TODO: calculate header hash and compare
+			// suite.Require().Equal(headerHash, attr.Value)
+		}
+	}
+	suite.Require().True(hasHeaderHash)
 }
 
 func (suite *KeeperTestSuite) TestRecoverClient() {
