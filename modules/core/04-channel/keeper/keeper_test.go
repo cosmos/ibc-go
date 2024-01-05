@@ -479,12 +479,12 @@ func (suite *KeeperTestSuite) TestSetUpgradeErrorReceipt() {
 	suite.Require().False(found)
 	suite.Require().Empty(errorReceipt)
 
-	expErrorReceipt := types.NewUpgradeError(1, fmt.Errorf("testing")).GetErrorReceipt()
-	suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expErrorReceipt)
+	expError := types.NewUpgradeError(1, fmt.Errorf("testing"))
+	suite.chainA.App.GetIBCKeeper().ChannelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expError)
 
 	errorReceipt, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().True(found)
-	suite.Require().Equal(expErrorReceipt, errorReceipt)
+	suite.Require().Equal(expError.GetErrorReceipt(), errorReceipt)
 }
 
 // TestDefaultSetParams tests the default params set are what is expected
