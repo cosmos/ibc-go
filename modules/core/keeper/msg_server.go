@@ -1070,11 +1070,18 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 	// then we can restore immediately without any additional checks
 	isAuthority := k.GetAuthority() == msg.Signer
 	if isAuthority && channel.State != channeltypes.FLUSHCOMPLETE {
+		upgrade, found := k.ChannelKeeper.GetUpgrade(ctx, msg.PortId, msg.ChannelId)
+		if !found {
+			return nil, errorsmod.Wrapf(channeltypes.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
+		}
+
 		k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId, channel.UpgradeSequence)
 
 		cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 
 		ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
+
+		keeper.EmitChannelUpgradeCancelEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 		return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
 	}
