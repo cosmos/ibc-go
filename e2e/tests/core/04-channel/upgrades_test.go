@@ -118,6 +118,64 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 	})
 }
 
+// TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck tests upgrading a transfer channel to wire up fee middleware but fails on ACK because of timeout
+func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck() {
+	t := s.T()
+	ctx := context.TODO()
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	channelB := channelA.Counterparty
+	chainA, chainB := s.GetChains()
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
+		s.setUpgradeTimeoutParam(ctx, chainB, chainBWallet)
+	})
+
+	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
+		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+
+		s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.createUpgradeFields(chA))
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("verify channel A did not upgrade", func(t *testing.T) {
+		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+
+		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
+		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-v1")
+
+		errorReceipt, err := s.QueryUpgradeError(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(uint64(1), errorReceipt.Sequence)
+		s.Require().Contains(errorReceipt.Message, "restored channel to pre-upgrade state")
+	})
+
+	t.Run("verify channel B did not upgrade", func(t *testing.T) {
+		channel, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+
+		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
+		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-v1")
+
+		errorReceipt, err := s.QueryUpgradeError(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(uint64(1), errorReceipt.Sequence)
+		s.Require().Contains(errorReceipt.Message, "restored channel to pre-upgrade state")
+	})
+}
+
 // createUpgradeFields created the upgrade fields for channel
 func (s *ChannelTestSuite) createUpgradeFields(channel channeltypes.Channel) channeltypes.UpgradeFields {
 	versionMetadata := feetypes.Metadata{
@@ -128,6 +186,17 @@ func (s *ChannelTestSuite) createUpgradeFields(channel channeltypes.Channel) cha
 	s.Require().NoError(err)
 
 	return channeltypes.NewUpgradeFields(channel.Ordering, channel.ConnectionHops, string(versionBytes))
+}
+
+// setUpgradeTimeoutParam creates and submits a governance proposal to execute the message to update 04-channel params with a timeout of 1s
+func (s *ChannelTestSuite) setUpgradeTimeoutParam(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet) {
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
+	upgradeTimeout := channeltypes.NewTimeout(channeltypes.DefaultTimeout.Height, 1000000000)
+	msg := channeltypes.NewMsgUpdateChannelParams(govModuleAddress.String(), channeltypes.NewParams(upgradeTimeout))
+	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, wallet)
 }
 
 // initiateChannelUpgrade creates and submits a governance proposal to execute the message to initiate a channel upgrade
