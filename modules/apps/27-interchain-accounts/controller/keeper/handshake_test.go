@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
@@ -16,9 +18,10 @@ const (
 
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 	var (
-		channel  *channeltypes.Channel
-		path     *ibctesting.Path
-		chanCap  *capabilitytypes.Capability
+		channel *channeltypes.Channel
+		path    *ibctesting.Path
+		chanCap *capabilitytypes.Capability
+		// hostConnectionId string
 		metadata icatypes.Metadata
 	)
 
@@ -35,6 +38,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"success: previous active channel closed",
 			func() {
+				fmt.Println("")
+				fmt.Println("success: previous active channel closed")
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -47,6 +52,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				}
 
 				path.EndpointA.SetChannel(channel)
+
+				// hostConnectionId = path.EndpointB.ChannelID
 			},
 			true,
 		},
@@ -60,6 +67,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		{
 			"success: channel reopening",
 			func() {
+				fmt.Println("")
+				fmt.Println("success: channel reopening")
 				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
 

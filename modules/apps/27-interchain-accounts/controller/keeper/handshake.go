@@ -48,7 +48,12 @@ func (k Keeper) OnChanOpenInit(
 		metadata icatypes.Metadata
 	)
 	if strings.TrimSpace(version) == "" {
-		metadata = icatypes.NewDefaultMetadata(connectionHops[0])
+		connection, err := k.channelKeeper.GetConnection(ctx, connectionHops[0])
+		if err != nil {
+			return "", err
+		}
+
+		metadata = icatypes.NewDefaultMetadata(connectionHops[0], connection.GetCounterparty().GetConnectionID())
 	} else {
 		metadata, err = icatypes.MetadataFromVersion(version)
 		if err != nil {
