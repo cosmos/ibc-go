@@ -92,6 +92,18 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			}, true,
 		},
 		{
+			"success - metadata empty host connection id",
+			func() {
+				metadata.HostConnectionId = ""
+
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				path.EndpointA.ChannelConfig.Version = string(versionBytes)
+			},
+			true,
+		},
+		{
 			"reopening account fails - no existing account",
 			func() {
 				// create interchain account
