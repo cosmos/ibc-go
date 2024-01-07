@@ -54,8 +54,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				}
 
 				path.EndpointA.SetChannel(channel)
-
-				// hostConnectionId = path.EndpointB.ChannelID
 			},
 			true,
 		},

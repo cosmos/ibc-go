@@ -34,7 +34,7 @@ func NewMetadata(version, controllerConnectionID, hostConnectionID, accAddress, 
 
 // NewDefaultMetadata creates and returns a new ICS27 Metadata instance containing the default ICS27 Metadata values
 // with the provided controller and host connection identifiers
-func NewDefaultMetadata(controllerConnectionID string, hostConnectionID string) Metadata {
+func NewDefaultMetadata(controllerConnectionID, hostConnectionID string) Metadata {
 	metadata := Metadata{
 		ControllerConnectionId: controllerConnectionID,
 		HostConnectionId:       hostConnectionID,
