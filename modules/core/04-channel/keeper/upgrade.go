@@ -669,11 +669,6 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 		panic(fmt.Errorf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	_, found = k.GetUpgrade(ctx, portID, channelID)
-	if !found {
-		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
-	}
-
 	previousState := channel.State
 
 	channel = k.restoreChannel(ctx, portID, channelID, sequence, channel)
