@@ -984,13 +984,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 	cases := []struct {
 		name      string
 		malleate  func()
-		expResult func(res *channeltypes.MsgChannelUpgradeTryResponse, err error)
-		expEvents bool
+		expResult func(ctx sdk.Context, res *channeltypes.MsgChannelUpgradeTryResponse, err error)
 	}{
 		{
 			"success",
 			func() {},
-			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+			func(ctx sdk.Context, res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
@@ -998,8 +997,27 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				channel := path.EndpointB.GetChannel()
 				suite.Require().Equal(channeltypes.FLUSHING, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+
+				upgrade := path.EndpointB.GetChannelUpgrade()
+				events := ctx.EventManager().Events().ToABCIEvents()
+
+				expEvents := ibctesting.EventsMap{
+					channeltypes.EventTypeChannelUpgradeTry: {
+						channeltypes.AttributeKeyPortID:                path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:             path.EndpointB.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:       path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID:    path.EndpointA.ChannelID,
+						channeltypes.AttributeKeyUpgradeConnectionHops: upgrade.Fields.ConnectionHops[0],
+						channeltypes.AttributeKeyUpgradeVersion:        upgrade.Fields.Version,
+						channeltypes.AttributeKeyUpgradeOrdering:       upgrade.Fields.Ordering.String(),
+						channeltypes.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
+					},
+				}
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			},
-			true,
 		},
 		{
 			"module capability not found",
@@ -1007,13 +1025,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				msg.PortId = "invalid-port"
 				msg.ChannelId = "invalid-channel"
 			},
-			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+			func(_ sdk.Context, res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 
 				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
 			},
-			false,
 		},
 		{
 			"unsynchronized upgrade sequence writes upgrade error receipt",
@@ -1023,7 +1040,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 
 				path.EndpointB.SetChannel(channel)
 			},
-			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+			func(ctx sdk.Context, res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().NotNil(res)
@@ -1032,8 +1049,26 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				errorReceipt, found := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(99), errorReceipt.Sequence)
+
+				channel := path.EndpointB.GetChannel()
+				events := ctx.EventManager().Events().ToABCIEvents()
+
+				expEvents := ibctesting.EventsMap{
+					channeltypes.EventTypeChannelUpgradeError: {
+						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
+						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+						// need to manually insert this because the errorReceipt is a string constant as it is written into state
+						channeltypes.AttributeKeyUpgradeErrorReceipt: "counterparty upgrade sequence < current upgrade sequence (1 < 99): invalid upgrade sequence",
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
+					},
+				}
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			},
-			false,
 		},
 		{
 			"ibc application does not implement the UpgradeableModule interface",
@@ -1047,11 +1082,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
 			},
-			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+			func(_ sdk.Context, res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 			},
-			false,
 		},
 	}
 
@@ -1095,30 +1129,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 
 			ctx := suite.chainB.GetContext()
 			res, err := suite.chainB.GetSimApp().GetIBCKeeper().ChannelUpgradeTry(ctx, msg)
-			tc.expResult(res, err)
-
-			if tc.expEvents {
-				upgrade := path.EndpointB.GetChannelUpgrade()
-				channel := path.EndpointB.GetChannel()
-				events := ctx.EventManager().Events().ToABCIEvents()
-
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeTry: {
-						channeltypes.AttributeKeyPortID:                path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:             path.EndpointB.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:       path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID:    path.EndpointA.ChannelID,
-						channeltypes.AttributeKeyUpgradeConnectionHops: upgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyUpgradeVersion:        upgrade.Fields.Version,
-						channeltypes.AttributeKeyUpgradeOrdering:       upgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
-			}
+			tc.expResult(ctx, res, err)
 		})
 	}
 }
@@ -1132,13 +1143,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 	cases := []struct {
 		name      string
 		malleate  func()
-		expResult func(res *channeltypes.MsgChannelUpgradeAckResponse, err error)
-		expEvents bool
+		expResult func(ctx sdk.Context, res *channeltypes.MsgChannelUpgradeAckResponse, err error)
 	}{
 		{
 			"success, no pending in-flight packets",
 			func() {},
-			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(ctx sdk.Context, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
@@ -1146,8 +1156,27 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+
+				upgrade := path.EndpointA.GetChannelUpgrade()
+				events := ctx.EventManager().Events().ToABCIEvents()
+
+				expEvents := ibctesting.EventsMap{
+					channeltypes.EventTypeChannelUpgradeAck: {
+						channeltypes.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+						channeltypes.AttributeKeyUpgradeConnectionHops: upgrade.Fields.ConnectionHops[0],
+						channeltypes.AttributeKeyUpgradeVersion:        upgrade.Fields.Version,
+						channeltypes.AttributeKeyUpgradeOrdering:       upgrade.Fields.Ordering.String(),
+						channeltypes.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
+					},
+				}
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			},
-			true,
 		},
 		{
 			"success, pending in-flight packets",
@@ -1157,7 +1186,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				// Set a dummy packet commitment to simulate in-flight packets
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), portID, channelID, 1, []byte("hash"))
 			},
-			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(ctx sdk.Context, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
@@ -1165,8 +1194,27 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channeltypes.FLUSHING, channel.State)
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+
+				upgrade := path.EndpointA.GetChannelUpgrade()
+				events := ctx.EventManager().Events().ToABCIEvents()
+
+				expEvents := ibctesting.EventsMap{
+					channeltypes.EventTypeChannelUpgradeAck: {
+						channeltypes.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:             path.EndpointA.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
+						channeltypes.AttributeKeyUpgradeConnectionHops: upgrade.Fields.ConnectionHops[0],
+						channeltypes.AttributeKeyUpgradeVersion:        upgrade.Fields.Version,
+						channeltypes.AttributeKeyUpgradeOrdering:       upgrade.Fields.Ordering.String(),
+						channeltypes.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
+					},
+				}
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			},
-			true,
 		},
 		{
 			"module capability not found",
@@ -1174,13 +1222,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				msg.PortId = ibctesting.InvalidID
 				msg.ChannelId = ibctesting.InvalidID
 			},
-			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(_ sdk.Context, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 
 				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
 			},
-			false,
 		},
 		{
 			"core handler returns error and no upgrade error receipt is written",
@@ -1191,7 +1238,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 
 				path.EndpointA.SetChannel(channel)
 			},
-			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(_ sdk.Context, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 				suite.Require().ErrorIs(err, channeltypes.ErrInvalidChannelState)
@@ -1200,7 +1247,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().Empty(errorReceipt)
 				suite.Require().False(found)
 			},
-			false,
 		},
 		{
 			"core handler returns error and writes upgrade error receipt",
@@ -1211,7 +1257,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 
 				path.EndpointA.SetChannelUpgrade(upgrade)
 			},
-			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(ctx sdk.Context, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().NotNil(res)
@@ -1220,8 +1266,26 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
+
+				channel := path.EndpointB.GetChannel()
+				events := ctx.EventManager().Events().ToABCIEvents()
+				expEvents := ibctesting.EventsMap{
+					channeltypes.EventTypeChannelUpgradeError: {
+						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
+						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+						// need to manually insert this because the errorReceipt is a string constant as it is written into state
+						channeltypes.AttributeKeyUpgradeErrorReceipt: "expected upgrade ordering (ORDER_NONE_UNSPECIFIED) to match counterparty upgrade ordering (ORDER_UNORDERED): incompatible counterparty upgrade",
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
+					},
+				}
+
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			},
-			false,
 		},
 		{
 			"application callback returns error and error receipt is written",
@@ -1235,7 +1299,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 					return fmt.Errorf("mock app callback failed")
 				}
 			},
-			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(ctx sdk.Context, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().NotNil(res)
@@ -1248,8 +1312,26 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				// assert application state changes are not committed
 				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
 				suite.Require().False(store.Has([]byte("foo")))
+
+				channel := path.EndpointB.GetChannel()
+				events := ctx.EventManager().Events().ToABCIEvents()
+				expEvents := ibctesting.EventsMap{
+					channeltypes.EventTypeChannelUpgradeError: {
+						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
+						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+						// need to manually insert this because the errorReceipt is a string constant as it is written into state
+						channeltypes.AttributeKeyUpgradeErrorReceipt: "mock app callback failed",
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
+					},
+				}
+
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			},
-			false,
 		},
 		{
 			"ibc application does not implement the UpgradeableModule interface",
@@ -1263,11 +1345,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
 			},
-			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(_ sdk.Context, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 			},
-			false,
 		},
 	}
 
@@ -1310,30 +1391,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeAck(ctx, msg)
-			tc.expResult(res, err)
-
-			if tc.expEvents {
-				upgrade := path.EndpointA.GetChannelUpgrade()
-				channel := path.EndpointA.GetChannel()
-				events := ctx.EventManager().Events().ToABCIEvents()
-
-				expEvents := ibctesting.EventsMap{
-					channeltypes.EventTypeChannelUpgradeAck: {
-						channeltypes.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:             path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyUpgradeConnectionHops: upgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyUpgradeVersion:        upgrade.Fields.Version,
-						channeltypes.AttributeKeyUpgradeOrdering:       upgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
-					},
-					sdk.EventTypeMessage: {
-						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
-					},
-				}
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
-			}
+			tc.expResult(ctx, res, err)
 		})
 	}
 }
@@ -1345,10 +1403,11 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 	)
 
 	cases := []struct {
-		name      string
-		malleate  func()
-		expResult func(res *channeltypes.MsgChannelUpgradeConfirmResponse, err error)
-		expEvents bool
+		name               string
+		malleate           func()
+		expResult          func(res *channeltypes.MsgChannelUpgradeConfirmResponse, err error)
+		expSuccessEvent    bool
+		expErrReceiptEvent bool
 	}{
 		{
 			"success, no pending in-flight packets",
@@ -1363,6 +1422,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 			},
 			true,
+			false,
 		},
 		{
 			"success, pending in-flight packets on init chain",
@@ -1419,6 +1479,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 			},
 			true,
+			false,
 		},
 		{
 			"success, pending in-flight packets on try chain",
@@ -1436,6 +1497,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
 			},
 			true,
+			false,
 		},
 		{
 			"module capability not found",
@@ -1449,6 +1511,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 
 				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
 			},
+			false,
 			false,
 		},
 		{
@@ -1469,6 +1532,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().Empty(errorReceipt)
 				suite.Require().False(found)
 			},
+			false,
 			false,
 		},
 		{
@@ -1503,6 +1567,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
 			},
 			false,
+			true,
 		},
 		{
 			"ibc application does not implement the UpgradeableModule interface",
@@ -1520,6 +1585,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 			},
+			false,
 			false,
 		},
 	}
@@ -1570,7 +1636,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			res, err := suite.chainB.GetSimApp().GetIBCKeeper().ChannelUpgradeConfirm(ctx, msg)
 			tc.expResult(res, err)
 
-			if tc.expEvents {
+			if tc.expSuccessEvent {
 				channel := path.EndpointB.GetChannel()
 				events := ctx.EventManager().Events().ToABCIEvents()
 				var expEvents ibctesting.EventsMap
@@ -1623,6 +1689,28 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 							channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
 						},
 					}
+				}
+
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+			}
+
+			if tc.expErrReceiptEvent {
+				channel := path.EndpointB.GetChannel()
+				events := ctx.EventManager().Events().ToABCIEvents()
+
+				expEvents := ibctesting.EventsMap{
+					channeltypes.EventTypeChannelUpgradeError: {
+						channeltypes.AttributeKeyPortID:             path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:          path.EndpointB.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:    path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID: path.EndpointA.ChannelID,
+						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+						// need to manually insert this because the errorReceipt is a string constant as it is written into state
+						channeltypes.AttributeKeyUpgradeErrorReceipt: "counterparty upgrade timeout elapsed: current timestamp: 1578269010000000000, timeout timestamp 1578268995000000000: timeout elapsed",
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
+					},
 				}
 
 				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
@@ -2019,6 +2107,15 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 						channeltypes.AttributeKeyUpgradeOrdering:       proposedUpgrade.Fields.Ordering.String(),
 						channeltypes.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
 					},
+					channeltypes.EventTypeChannelUpgradeError: {
+						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
+						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+						// need to manually insert this because the errorReceipt is a string constant as it is written into state
+						channeltypes.AttributeKeyUpgradeErrorReceipt: "invalid upgrade",
+					},
 					sdk.EventTypeMessage: {
 						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
 					},
@@ -2071,6 +2168,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 				suite.Require().NotNil(res)
 				suite.Require().NoError(err)
+
+				errorReceipt, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(uint64(1), errorReceipt.Sequence)
 			},
 			true,
 		},
@@ -2189,7 +2290,15 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 						channeltypes.AttributeKeyUpgradeTimeout:        timeout.String(),
 						channeltypes.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
 					},
-
+					channeltypes.EventTypeChannelUpgradeError: {
+						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
+						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+						// need to manually insert this because the errorReceipt is a string constant as it is written into state
+						channeltypes.AttributeKeyUpgradeErrorReceipt: "upgrade timed-out",
+					},
 					sdk.EventTypeMessage: {
 						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
 					},
