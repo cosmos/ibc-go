@@ -927,6 +927,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 			},
+			false,
 		},
 	}
 
@@ -1050,6 +1051,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 			},
+			false,
 		},
 	}
 
@@ -1265,6 +1267,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 			},
+			false,
 		},
 	}
 
@@ -1517,6 +1520,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 			},
+			false,
 		},
 	}
 
@@ -1696,6 +1700,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 			},
+			false,
 		},
 	}
 
@@ -1940,6 +1945,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 			},
+			false,
 		},
 	}
 	for _, tc := range cases {
@@ -2127,6 +2133,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 			},
+			false,
 		},
 	}
 
