@@ -132,7 +132,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeout
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
+	t.Run("execute gov proposal to set upgrade timeout", func(t *testing.T) {
 		s.setUpgradeTimeoutParam(ctx, chainB, chainBWallet)
 	})
 
