@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -18,9 +17,10 @@ import (
 // NewPruneAcknowledgementsTxCmd returns the command to create a new MsgPruneAcknowledgements transaction
 func NewPruneAcknowledgementsTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "prune-acknowledgements [port] [channel] [limit]",
-		Short:   "Prune expired packet acknowledgements stored in IBC state",
-		Long:    strings.TrimSpace(`TODO(add long info):Prune expired packet acknowledgements stored in IBC state`),
+		Use:   "prune-acknowledgements [port] [channel] [limit]",
+		Short: "Prune expired packet acknowledgements stored in IBC state",
+		Long: `Prune expired packet acknowledgements and receipts stored in IBC state. Packet ackwnowledgements and 
+		receipts are considered expired if a channel has been upgraded and the start and end pruning sequences have been set.`,
 		Example: fmt.Sprintf("%s tx ibc prune-acknowledgements [port] [channel] [limit]", version.AppName),
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -36,8 +36,8 @@ func NewPruneAcknowledgementsTxCmd() *cobra.Command {
 			}
 
 			signer := clientCtx.GetFromAddress().String()
-
 			msg := types.NewMsgPruneAcknowledgements(portID, channelID, limit, signer)
+
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
