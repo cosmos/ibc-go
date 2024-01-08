@@ -20,7 +20,7 @@ func NewPruneAcknowledgementsTxCmd() *cobra.Command {
 		Use:   "prune-acknowledgements [port] [channel] [limit]",
 		Short: "Prune expired packet acknowledgements stored in IBC state",
 		Long: `Prune expired packet acknowledgements and receipts stored in IBC state. Packet ackwnowledgements and 
-		receipts are considered expired if a channel has been upgraded and the start and end pruning sequences have been set.`,
+		receipts are considered expired if a channel has been upgraded.`,
 		Example: fmt.Sprintf("%s tx ibc prune-acknowledgements [port] [channel] [limit]", version.AppName),
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
