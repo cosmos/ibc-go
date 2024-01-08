@@ -6,6 +6,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -478,11 +479,25 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 }
 
 func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
+	const (
+		invalidVersion = "invalid-version"
+	)
+
 	var (
 		path     *ibctesting.Path
 		metadata icatypes.Metadata
+		version  string
 		order    channeltypes.Order
 	)
+
+	// updateMetadata is a helper function which modifies the metadata stored in the channel version
+	// and marshals it into a string to pass to OnChanUpgradeInit as the version string.
+	updateMetadata := func(modificationFn func(*icatypes.Metadata)) {
+		metadata, err := icatypes.MetadataFromVersion(path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version)
+		suite.Require().NoError(err)
+		modificationFn(&metadata)
+		version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+	}
 
 	testCases := []struct {
 		name     string
@@ -495,48 +510,104 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			nil,
 		},
 		{
-			name: "failure: change ICA address",
-			malleate: func() {
-				metadata.Address = TestOwnerAddress
-			},
-			expError: icatypes.ErrInvalidAccountAddress,
-		},
-		{
-			name: "failure: change controller connection id",
-			malleate: func() {
-				metadata.ControllerConnectionId = differentConnectionID
-			},
-			expError: connectiontypes.ErrInvalidConnection,
-		},
-		{
-			name: "failure: change host connection id",
-			malleate: func() {
-				metadata.HostConnectionId = differentConnectionID
-			},
-			expError: connectiontypes.ErrInvalidConnection,
-		},
-		{
-			name: "failure: cannot decode version string",
-			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.Version = "invalid-metadata-string"
-				path.EndpointA.SetChannel(channel)
-			},
-			expError: icatypes.ErrUnknownDataType,
-		},
-		{
-			name: "failure: invalid connection hops",
-			malleate: func() {
-				path.EndpointA.ConnectionID = differentConnectionID
-			},
-			expError: connectiontypes.ErrConnectionNotFound,
-		},
-		{
 			name: "failure: invalid order",
 			malleate: func() {
 				order = channeltypes.UNORDERED
 			},
 			expError: channeltypes.ErrInvalidChannelOrdering,
+		},
+		{
+			name: "failure: connectionID not found",
+			malleate: func() {
+				// channelID is provided via the endpoint channelID
+				path.EndpointA.ChannelID = "invalid channel"
+			},
+			expError: channeltypes.ErrChannelNotFound,
+		},
+		{
+			name: "failure: invalid proposed connectionHops",
+			malleate: func() {
+				// connection hops is provided via endpoint connectionID
+				path.EndpointA.ConnectionID = differentConnectionID
+			},
+			expError: channeltypes.ErrInvalidUpgrade,
+		},
+		{
+			name: "failure: empty version",
+			malleate: func() {
+				version = ""
+			},
+			expError: icatypes.ErrInvalidVersion,
+		},
+		{
+			name: "failure: cannot decode version string",
+			malleate: func() {
+				version = invalidVersion
+			},
+			expError: icatypes.ErrUnknownDataType,
+		},
+		{
+			name: "failure: cannot decode self version string",
+			malleate: func() {
+				ch := path.EndpointA.GetChannel()
+				ch.Version = invalidVersion
+				path.EndpointA.SetChannel(ch)
+			},
+			expError: icatypes.ErrUnknownDataType,
+		},
+		{
+			name: "failure: failed controller metadata validation, invalid encoding",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Encoding = "invalid-encoding"
+				})
+			},
+			expError: icatypes.ErrInvalidCodec,
+		},
+		{
+			name: "failure: failed controller metadata validation, invalid tx type",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.TxType = "invalid-tx-type"
+				})
+			},
+			expError: icatypes.ErrUnknownDataType,
+		},
+		{
+			name: "failure: failed controller metadata validation, invalid interchain account version",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Version = "invalid-interchain-account-version"
+				})
+			},
+			expError: icatypes.ErrInvalidVersion,
+		},
+		{
+			name: "failure: interchain account address changed",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Address = TestOwnerAddress // use valid address
+				})
+			},
+			expError: icatypes.ErrInvalidAccountAddress,
+		},
+		{
+			name: "failure: controller connection ID has changed",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.ControllerConnectionId = differentConnectionID
+				})
+			},
+			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the controller connection identifier are unreachable
+		},
+		{
+			name: "failure: host connection ID has changed",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.HostConnectionId = differentConnectionID
+				})
+			},
+			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the host connection identifier are unreachable
 		},
 	}
 
@@ -563,9 +634,12 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			// this is the actual change to the version.
 			metadata.Encoding = icatypes.EncodingProto3JSON
 
-			tc.malleate() // malleate mutates test data
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
 
-			version := string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+			version = path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version
+
+			tc.malleate() // malleate mutates test data
 
 			upgradeVersion, err := path.EndpointA.Chain.GetSimApp().ICAControllerKeeper.OnChanUpgradeInit(
 				path.EndpointA.Chain.GetContext(),
@@ -642,7 +716,24 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			expError: icatypes.ErrUnknownDataType,
 		},
 		{
-			name: "failure: invalid tx type",
+			name: "failure: channel not found",
+			malleate: func() {
+				// channelID is provided via the endpoint channelID
+				path.EndpointA.ChannelID = "invalid channel"
+			},
+			expError: ibcerrors.ErrNotFound, // GetChannel error is unreachable
+		},
+		{
+			name: "failure: failed controller metadata validation, invalid encoding",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Encoding = "invalid-encoding"
+				})
+			},
+			expError: icatypes.ErrInvalidCodec,
+		},
+		{
+			name: "failure: failed controller metadata validation, invalid tx type",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
 					metadata.TxType = "invalid-tx-type"
@@ -651,10 +742,19 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			expError: icatypes.ErrUnknownDataType,
 		},
 		{
-			name: "failure: interchain account address has changed",
+			name: "failure: failed controller metadata validation, invalid interchain account version",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.Address = "different-address"
+					metadata.Version = "invalid-interchain-account-version"
+				})
+			},
+			expError: icatypes.ErrInvalidVersion,
+		},
+		{
+			name: "failure: interchain account address changed",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Address = TestOwnerAddress // use valid address
 				})
 			},
 			expError: icatypes.ErrInvalidAccountAddress,
@@ -663,19 +763,19 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			name: "failure: controller connection ID has changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.ControllerConnectionId = "different-connection-id"
+					metadata.ControllerConnectionId = differentConnectionID
 				})
 			},
-			expError: connectiontypes.ErrInvalidConnectionIdentifier,
+			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the controller identifier are unreachable
 		},
 		{
 			name: "failure: host connection ID has changed",
 			malleate: func() {
 				updateMetadata(func(metadata *icatypes.Metadata) {
-					metadata.HostConnectionId = "different-host-id"
+					metadata.HostConnectionId = differentConnectionID
 				})
 			},
-			expError: connectiontypes.ErrInvalidConnectionIdentifier,
+			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the host identifier are unreachable
 		},
 	}
 
