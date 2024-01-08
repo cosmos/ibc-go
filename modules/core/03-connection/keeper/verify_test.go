@@ -763,6 +763,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 		})
 	}
 }
+
 func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 	var (
 		path    *ibctesting.Path
