@@ -55,7 +55,16 @@ Each handshake step will be documented below in greater detail.
 
 ## Initializing a Channel Upgrade
 
-A channel upgrade is initialised by submitting the `MsgChannelUpgradeInit` message, which can be submitted only by the chain itself upon governance authorization. This message should specify an appropriate timeout window for the upgrade. It is possible to upgrade the channel ordering, the channel connection hops, and the channel version. 
+A channel upgrade is initialised by submitting the `MsgChannelUpgradeInit` message, which can be submitted only by the chain itself upon governance authorization. It is possible to upgrade the channel ordering, the channel connection hops, and the channel version, which can be found in the `UpgradeFields`. 
+
+```go
+type MsgChannelUpgradeInit struct {
+	PortId    string
+	ChannelId string
+	Fields    UpgradeFields
+	Signer    string
+}
+```
 
 As part of the handling of the `MsgChannelUpgradeInit` message, the application's callbacks `OnChanUpgradeInit` will be triggered as well.
 
@@ -149,9 +158,9 @@ It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenI
 
 ## Timing Out a Channel Upgrade
 
-Timing out an outstanding channel upgrade may be necessary during the flushing packet stage of the channel upgrade process. As stated above, with `ChanUpgradeTry` or `ChanUpgradeAck`, the channel state has been changed from `OPEN` to `FLUSHING`, so no new packets will be allowed to be sent over this channel while flushing. However, if flushing exceeds the time limit set in the `UpgradeTimeout` channel `Params`, the upgrade process will need to be timed out.
+Timing out an outstanding channel upgrade may be necessary during the flushing packet stage of the channel upgrade process. As stated above, with `ChanUpgradeTry` or `ChanUpgradeAck`, the channel state has been changed from `OPEN` to `FLUSHING`, so no new packets will be allowed to be sent over this channel while flushing. If upgrades cannot be performed in a timely manner (due to unforeseen flushing issues), upgrade timeouts allow the channel to avoid blocking packet sends indefinitely. If flushing exceeds the time limit set in the `UpgradeTimeout` channel `Params`, the upgrade process will need to be timed out to abort the upgrade attempt and resume normal channel processing.
 
-Timing out an outstanding upgrade is performed by first setting a timeout in the channel `Params` before submitting a `MsgChannelUpgradeTry` or `MsgChannelUpgradeAck` message (by default, 10 minutes): 
+Channel upgrades require setting a valid timeout value in the channel `Params` before submitting a `MsgChannelUpgradeTry` or `MsgChannelUpgradeAck` message (by default, 10 minutes): 
 
 ```go
 type Params struct {
@@ -180,7 +189,7 @@ type Upgrade struct {
 }
 ```
 
-If the timeout has been exceeded during flushing, a chain can then submit the `MsgChannelUpgradeTimeout` to timeout the channel upgrade process and restore the previous channel state:
+If the timeout has been exceeded during flushing, a chain can then submit the `MsgChannelUpgradeTimeout` to timeout the channel upgrade process:
 
 ```go
 type MsgChannelUpgradeTimeout struct {
@@ -192,6 +201,12 @@ type MsgChannelUpgradeTimeout struct {
 	Signer              string 
 }
 ```
+
+An `ErrorReceipt` will be written with the channel's current upgrade sequence, and the channel will move back to `OPEN` state keeping its original parameters.
+
+The application's `OnChanUpgradeRestore` callback method will also be invoked.
+
+Note that timing out a channel upgrade will end the upgrade process, and a new `MsgChannelUpgradeInit` will have to be submitted via governance in order to restart the upgrade process.
 
 ## IBC App Recommendations
 
