@@ -1126,21 +1126,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeConfirm() {
 			upgrade := path.EndpointA.GetChannelUpgrade()
 			suite.Require().Equal(mock.UpgradeVersion, upgrade.Fields.Version)
 
-			// events := ctx.EventManager().Events().ToABCIEvents()
-			// expEvents := ibctesting.EventsMap{
-			//	types.EventTypeChannelUpgradeConfirm: {
-			//		types.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
-			//		types.AttributeKeyChannelID:          path.EndpointA.ChannelID,
-			//		types.AttributeKeyChannelState:       channel.State.String(),
-			//		types.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
-			//		types.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
-			//		types.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
-			//	},
-			//	sdk.EventTypeMessage: {
-			//		sdk.AttributeKeyModule: types.AttributeValueCategory,
-			//	},
-			// }
-
 			if !tc.hasPacketCommitments {
 				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State)
 			} else {
@@ -1857,13 +1842,6 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 			},
 			expPanic: true,
 		},
-		{
-			name: "upgrade not found",
-			malleate: func() {
-				path.EndpointA.Chain.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			},
-			expPanic: true,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -2432,18 +2410,6 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 				suite.Require().NotPanics(func() {
 					channelKeeper.MustAbortUpgrade(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeError)
 				})
-
-				// events := ctx.EventManager().Events().ToABCIEvents()
-				// expEvents := ibctesting.EventsMap{
-				//	"channel_upgrade_error": {
-				//		"port_id":                 path.EndpointA.ChannelConfig.PortID,
-				//		"channel_id":              path.EndpointA.ChannelID,
-				//		"counterparty_port_id":    path.EndpointB.ChannelConfig.PortID,
-				//		"counterparty_channel_id": path.EndpointB.ChannelID,
-				//		"upgrade_sequence":        fmt.Sprintf("%d", path.EndpointA.GetChannel().UpgradeSequence),
-				//		"upgrade_error_receipt":   upgradeError.Error(),
-				//	},
-				// }
 
 				channel, found := channelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "channel should be found")

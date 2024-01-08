@@ -1091,7 +1091,7 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 		return nil, errorsmod.Wrap(err, "channel upgrade cancel failed")
 	}
 
-	// grab upgrade here since it will be deleted in WriteUpgradeCancelChannel
+	// get upgrade here since it will be deleted in WriteUpgradeCancelChannel
 	upgrade, found := k.ChannelKeeper.GetUpgrade(ctx, msg.PortId, msg.ChannelId)
 	if !found {
 		return nil, errorsmod.Wrapf(channeltypes.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
