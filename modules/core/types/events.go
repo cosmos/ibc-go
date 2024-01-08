@@ -7,7 +7,7 @@ import (
 const ErrorAttributeKeyPrefix = "ibccallbackerror-"
 
 // ConvertToErrorEvents converts all events to error events by appending the
-// error attribute suffix to each event's attribute key.
+// error attribute prefix to each event's attribute key.
 func ConvertToErrorEvents(events sdk.Events) sdk.Events {
 	if events == nil {
 		return nil
@@ -20,7 +20,7 @@ func ConvertToErrorEvents(events sdk.Events) sdk.Events {
 			newAttributes[j] = sdk.NewAttribute(ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
 		}
 
-		// no need to append the error attribute suffix to the event type because
+		// no need to append the error attribute prefix to the event type because
 		// the event type is not associated to a value that can be misinterpreted
 		newEvents[i] = sdk.NewEvent(event.Type, newAttributes...)
 	}
