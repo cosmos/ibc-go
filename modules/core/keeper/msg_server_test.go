@@ -13,6 +13,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -906,6 +907,27 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 			},
 			false,
 		},
+		{
+			"ibc application does not implement the UpgradeableModule interface",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+
+				suite.coordinator.Setup(path)
+
+				msg = channeltypes.NewMsgChannelUpgradeInit(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					path.EndpointA.GetProposedUpgrade().Fields,
+					path.EndpointA.Chain.GetSimApp().IBCKeeper.GetAuthority(),
+				)
+			},
+			func(res *channeltypes.MsgChannelUpgradeInitResponse, err error) {
+				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
+				suite.Require().Nil(res)
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -1011,6 +1033,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.Require().Equal(uint64(99), errorReceipt.Sequence)
 			},
 			false,
+		},
+		{
+			"ibc application does not implement the UpgradeableModule interface",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+
+				suite.coordinator.Setup(path)
+
+				msg.PortId = path.EndpointB.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointB.ChannelID
+			},
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
+				suite.Require().Nil(res)
+			},
 		},
 	}
 
@@ -1209,6 +1248,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().False(store.Has([]byte("foo")))
 			},
 			false,
+		},
+		{
+			"ibc application does not implement the UpgradeableModule interface",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+
+				suite.coordinator.Setup(path)
+
+				msg.PortId = path.EndpointB.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointB.ChannelID
+			},
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
+				suite.Require().Nil(res)
+			},
 		},
 	}
 
@@ -1445,6 +1501,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			},
 			false,
 		},
+		{
+			"ibc application does not implement the UpgradeableModule interface",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+
+				suite.coordinator.Setup(path)
+
+				msg.PortId = path.EndpointB.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointB.ChannelID
+			},
+			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
+				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
+				suite.Require().Nil(res)
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -1606,6 +1679,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				suite.Require().ErrorIs(err, channeltypes.ErrInvalidChannelState)
 			},
 			false,
+		},
+		{
+			"ibc application does not implement the UpgradeableModule interface",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+
+				suite.coordinator.Setup(path)
+
+				msg.PortId = path.EndpointB.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointB.ChannelID
+			},
+			func(res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
+				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
+				suite.Require().Nil(res)
+			},
 		},
 	}
 
@@ -1834,6 +1924,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			},
 			false,
 		},
+		{
+			"ibc application does not implement the UpgradeableModule interface",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+
+				suite.coordinator.Setup(path)
+
+				msg.PortId = path.EndpointB.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointB.ChannelID
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
+				suite.Require().Nil(res)
+			},
+		},
 	}
 	for _, tc := range cases {
 		tc := tc
@@ -2003,6 +2110,23 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().True(found, "channel upgrade should not be nil")
 			},
 			false,
+		},
+		{
+			"ibc application does not implement the UpgradeableModule interface",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
+
+				suite.coordinator.Setup(path)
+
+				msg.PortId = path.EndpointB.ChannelConfig.PortID
+				msg.ChannelId = path.EndpointB.ChannelID
+			},
+			func(res *channeltypes.MsgChannelUpgradeTimeoutResponse, err error) {
+				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
+				suite.Require().Nil(res)
+			},
 		},
 	}
 

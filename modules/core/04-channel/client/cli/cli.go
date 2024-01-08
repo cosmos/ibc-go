@@ -49,7 +49,9 @@ func NewTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	txCmd.AddCommand()
+	txCmd.AddCommand(
+		NewPruneAcknowledgementsTxCmd(),
+	)
 
 	return txCmd
 }
