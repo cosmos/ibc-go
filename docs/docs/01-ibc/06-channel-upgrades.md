@@ -55,9 +55,9 @@ Each handshake step will be documented below in greater detail.
 
 ## Initializing a Channel Upgrade
 
-A channel upgrade is initialised by submitting the `MsgChanUpgradeInit` message, which can be submitted only by the chain itself upon governance authorization. This message should specify an appropriate timeout window for the upgrade. It is possible to upgrade the channel ordering, the channel connection hops, and the channel version. 
+A channel upgrade is initialised by submitting the `MsgChannelUpgradeInit` message, which can be submitted only by the chain itself upon governance authorization. This message should specify an appropriate timeout window for the upgrade. It is possible to upgrade the channel ordering, the channel connection hops, and the channel version. 
 
-As part of the handling of the `MsgChanUpgradeInit` message, the application's callbacks `OnChanUpgradeInit` will be triggered as well.
+As part of the handling of the `MsgChannelUpgradeInit` message, the application's callbacks `OnChanUpgradeInit` will be triggered as well.
 
 After this message is handled successfully, the channel's upgrade sequence will be incremented. This upgrade sequence will serve as a nonce for the upgrade process to provide replay protection.
 
@@ -149,7 +149,7 @@ It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenI
 
 ## Timing Out a Channel Upgrade
 
-Timing out an outstanding channel upgrade may be necessary during the flushing packet stage of the channel upgrade process. As stated above, with `ChanUpgradeTry` or `ChanUpgradeAck`, the channel state has been changed from `OPEN` to `FLUSHING`, so no new packets will be allowed to be sent over this channel while flushing. However, if flushing exceeds the time limit set in the `UpgradeTimeout` channel param, the upgrade process will need to be timed out.
+Timing out an outstanding channel upgrade may be necessary during the flushing packet stage of the channel upgrade process. As stated above, with `ChanUpgradeTry` or `ChanUpgradeAck`, the channel state has been changed from `OPEN` to `FLUSHING`, so no new packets will be allowed to be sent over this channel while flushing. However, if flushing exceeds the time limit set in the `UpgradeTimeout` channel `Params`, the upgrade process will need to be timed out.
 
 Timing out an outstanding upgrade is performed by first setting a timeout in the channel `Params` before submitting a `MsgChannelUpgradeTry` or `MsgChannelUpgradeAck` message (by default, 10 minutes): 
 
