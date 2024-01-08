@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const ErrorAttributeKeySuffix = "-error"
+const ErrorAttributeKeyPrefix = "ibccallbackerror-"
 
 // ConvertToErrorEvents converts all events to error events by appending the
 // error attribute suffix to each event's attribute key.
@@ -17,7 +17,7 @@ func ConvertToErrorEvents(events sdk.Events) sdk.Events {
 	for i, event := range events {
 		newAttributes := make([]sdk.Attribute, len(event.Attributes))
 		for j, attribute := range event.Attributes {
-			newAttributes[j] = sdk.NewAttribute(attribute.Key+ErrorAttributeKeySuffix, attribute.Value)
+			newAttributes[j] = sdk.NewAttribute(ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
 		}
 
 		// no need to append the error attribute suffix to the event type because
