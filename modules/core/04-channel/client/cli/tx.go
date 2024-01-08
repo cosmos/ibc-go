@@ -23,6 +23,7 @@ const (
 	flagTitle       = "title"
 	flagJSON        = "json"
 	flagPortPattern = "port-pattern"
+	flagExpedited   = "expedited"
 )
 
 func newUpgradeChannelsCmd() *cobra.Command {
@@ -33,8 +34,8 @@ func newUpgradeChannelsCmd() *cobra.Command {
 		Args:    cobra.ExactArgs(2),
 		Example: fmt.Sprintf(`%s tx %s %s upgrade-channels 10stake "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}"`, version.AppName, ibcexported.ModuleName, types.SubModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			versionStr := args[0]
-			depositStr := args[1]
+			depositStr := args[0]
+			versionStr := args[1]
 
 			metadata, err := cmd.Flags().GetString(flagMetadata)
 			if err != nil {
@@ -56,7 +57,10 @@ func newUpgradeChannelsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
+			expidited, err := cmd.Flags().GetBool(flagExpedited)
+			if err != nil {
+				return err
+			}
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -87,7 +91,10 @@ func newUpgradeChannelsCmd() *cobra.Command {
 
 				msgUpgradeInit := types.NewMsgChannelUpgradeInit(ch.PortId, ch.ChannelId, types.NewUpgradeFields(ch.Ordering, ch.ConnectionHops, versionStr), clientCtx.GetFromAddress().String())
 				msgs = append(msgs, msgUpgradeInit)
+			}
 
+			if len(msgs) == 0 {
+				return fmt.Errorf("no channels would be upgraded with pattern %s", portPattern)
 			}
 
 			deposit, err := sdk.ParseCoinsNormalized(depositStr)
@@ -95,14 +102,18 @@ func newUpgradeChannelsCmd() *cobra.Command {
 				return err
 			}
 
-			msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, deposit, clientCtx.GetFromAddress().String(), metadata, title, summary, false)
+			msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, deposit, clientCtx.GetFromAddress().String(), metadata, title, summary, expidited)
 			if err != nil {
 				return fmt.Errorf("invalid message: %w", err)
 			}
 
 			dryRun, _ := cmd.Flags().GetBool(flags.FlagDryRun)
 			if displayJSON || dryRun {
-				return clientCtx.PrintProto(msgSubmitProposal)
+				out, err := clientCtx.Codec.MarshalJSON(msgSubmitProposal)
+				if err != nil {
+					return err
+				}
+				return clientCtx.PrintBytes(out)
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgSubmitProposal)
@@ -110,11 +121,12 @@ func newUpgradeChannelsCmd() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().String(flagSummary, "upgrading open channels", "The summary for the gov proposal which will upgrade existing open channels.")
-	cmd.Flags().String(flagTitle, "channel upgrades", "The title for the gov proposal which will upgrade existing open channels.")
+	cmd.Flags().String(flagSummary, "Upgrading open channels", "The summary for the gov proposal which will upgrade existing open channels.")
+	cmd.Flags().String(flagTitle, "Channel upgrades", "The title for the gov proposal which will upgrade existing open channels.")
 	cmd.Flags().String(flagMetadata, "", "Metadata for the gov proposal which will upgrade existing open channels.")
 	cmd.Flags().String(flagPortPattern, "transfer", "The pattern to use to match port ids.")
-	cmd.Flags().Bool(flagJSON, false, "specify true to output a proposal.json file instead of submitting a governance proposal.")
+	cmd.Flags().Bool(flagExpedited, false, "set the expedited value for the governance proposal.")
+	cmd.Flags().Bool(flagJSON, false, "specify true to output valid proposal.json contents, instead of submitting a governance proposal.")
 
 	return cmd
 }
