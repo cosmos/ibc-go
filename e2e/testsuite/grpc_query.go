@@ -214,6 +214,20 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 	return res.Commitment, nil
 }
 
+// QueryPacketAcknowledgements queries the packet acknowledgements on the given chain for the provided channel (optional) list of packet commitment sequences.
+func (s *E2ETestSuite) QueryPacketAcknowledgements(ctx context.Context, chain ibc.Chain, portID, channelID string, packetCommitmentSequences []uint64) ([]*channeltypes.PacketState, error) {
+	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
+	res, err := queryClient.PacketAcknowledgements(ctx, &channeltypes.QueryPacketAcknowledgementsRequest{
+		PortId:                    portID,
+		ChannelId:                 channelID,
+		PacketCommitmentSequences: packetCommitmentSequences,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.Acknowledgements, nil
+}
+
 // QueryTotalEscrowForDenom queries the total amount of tokens in escrow for a denom
 func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (sdk.Coin, error) {
 	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient

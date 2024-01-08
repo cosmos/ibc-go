@@ -133,6 +133,22 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 		s.Require().Equal(true, feeEnabled)
 	})
 
+	t.Run("prune packet acknowledgements", func(t *testing.T) {
+		// there should be one ack for the packet that we sent before the upgrade
+		acks, err := s.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
+		s.Require().NoError(err)
+		s.Require().Len(acks, 1)
+		s.Require().Equal(uint64(1), acks[0].Sequence)
+
+		pruneAcksTxResponse := s.PruneAcknowledgements(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, uint64(1))
+		s.AssertTxSuccess(pruneAcksTxResponse)
+
+		// after pruning there should not be any acks
+		acks, err = s.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
+		s.Require().NoError(err)
+		s.Require().Empty(acks)
+	})
+
 	t.Run("stop relayer", func(t *testing.T) {
 		s.StopRelayer(ctx, relayer)
 	})
@@ -170,23 +186,21 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 		s.Require().NoError(transferTxResp.Validate(), "chain-a ibc transfer tx is invalid")
 	})
 
-	t.Run("pay packet fee", func(t *testing.T) {
-		t.Run("no incentivized packets", func(t *testing.T) {
+	t.Run("incentivize packet", func(t *testing.T) {
+		t.Run("pay packet fee", func(t *testing.T) {
+			// before adding fees for the packet, there should not be incentivized packets
 			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
-		})
 
-		packetID := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
-		packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
+			packetID := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
+			packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
-		t.Run("incentivize packet", func(t *testing.T) {
 			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee)
 			s.AssertTxSuccess(payPacketFeeTxResp)
-		})
 
-		t.Run("there should be incentivized packets", func(t *testing.T) {
-			packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			// after adding fees for the packet, there should be incentivized packets
+			packets, err = s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
 			s.Require().Len(packets, 1)
 			actualFee := packets[0].PacketFees[0].Fee
@@ -196,7 +210,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
-		t.Run("balance should be lowered by sum of recv, ack and timeout", func(t *testing.T) {
+		t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
 			// The balance should be lowered by the sum of the recv, ack and timeout fees.
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
