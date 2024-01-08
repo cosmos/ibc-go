@@ -33,6 +33,13 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			"success", func() {}, true,
 		},
 		{
+			// connection hops is not used in the transfer application callback,
+			// it is already validated in the core OnChanUpgradeInit.
+			"success: invalid connection hops", func() {
+				path.EndpointA.ConnectionID = "invalid-connection-id"
+			}, true,
+		},
+		{
 			"empty version string", func() {
 				channel.Version = ""
 			}, true,
