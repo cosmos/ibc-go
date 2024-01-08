@@ -19,6 +19,7 @@ import (
 var (
 	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
+	_ porttypes.UpgradableModule      = (*IBCMiddleware)(nil)
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
@@ -426,8 +427,7 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
 	}
 
-	// discard the version metadata returned as upgrade fields have already been validated in previous handshake steps.
-	_, err := types.MetadataFromVersion(version)
+	versionMetadata, err := types.MetadataFromVersion(version)
 	if err != nil {
 		// set fee disabled and passthrough to the next middleware or application in callstack.
 		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
@@ -437,7 +437,7 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID str
 
 	// set fee enabled and passthrough to the next middleware of application in callstack.
 	im.keeper.SetFeeEnabled(ctx, portID, channelID)
-	cbs.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, version)
+	cbs.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, versionMetadata.AppVersion)
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface

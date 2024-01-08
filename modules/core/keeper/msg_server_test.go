@@ -578,9 +578,10 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 // 'TimeoutExecuted' can be found in the 04-channel/keeper/timeout_test.go.
 func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 	var (
-		packet    channeltypes.Packet
-		packetKey []byte
-		path      *ibctesting.Path
+		packet                      channeltypes.Packet
+		packetKey                   []byte
+		path                        *ibctesting.Path
+		counterpartyUpgradeSequence uint64
 	)
 
 	testCases := []struct {
@@ -717,7 +718,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			proofClosed, _ := suite.chainB.QueryProof(channelKey)
 
-			msg := channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+			msg := channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.chainA.SenderAccount.GetAddress().String(), counterpartyUpgradeSequence)
 
 			_, err := keeper.Keeper.TimeoutOnClose(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
 
@@ -1325,9 +1326,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 		{
 			"core handler returns error and writes upgrade error receipt",
 			func() {
-				// force an upgrade error by modifying the counterparty channel upgrade timeout to be no longer valid
+				// force an upgrade error by modifying the counterparty channel upgrade timeout to be elapsed
 				upgrade := path.EndpointA.GetChannelUpgrade()
-				upgrade.Timeout = channeltypes.NewTimeout(clienttypes.ZeroHeight(), 0)
+				upgrade.Timeout = channeltypes.NewTimeout(clienttypes.ZeroHeight(), uint64(path.EndpointB.Chain.CurrentHeader.Time.UnixNano()))
 
 				path.EndpointA.SetChannelUpgrade(upgrade)
 
@@ -1517,7 +1518,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 		expResult func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error)
 	}{
 		{
-			"success",
+			"success: keeper is not authority, valid error receipt so channnel changed to match error receipt seq",
 			func() {},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
 				suite.Require().NoError(err)
@@ -1527,6 +1528,92 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Channel state should be reverted back to open.
 				suite.Require().Equal(channeltypes.OPEN, channel.State)
 				// Upgrade sequence should be changed to match sequence on error receipt.
+				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
+			},
+		},
+		{
+			"success: keeper is authority & channel state in FLUSHING, so error receipt is ignored and channel is restored to initial upgrade sequence",
+			func() {
+				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.FLUSHING
+				channel.UpgradeSequence = uint64(3)
+				path.EndpointA.SetChannel(channel)
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				// Channel state should be reverted back to open.
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				// Upgrade sequence should be changed to match initial upgrade sequence.
+				suite.Require().Equal(uint64(3), channel.UpgradeSequence)
+			},
+		},
+		{
+			"success: keeper is authority & channel state in FLUSHING, can be cancelled even with invalid error receipt",
+			func() {
+				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+				msg.ProofErrorReceipt = []byte("invalid proof")
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.FLUSHING
+				channel.UpgradeSequence = uint64(1)
+				path.EndpointA.SetChannel(channel)
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				// Channel state should be reverted back to open.
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				// Upgrade sequence should be changed to match initial upgrade sequence.
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+			},
+		},
+		{
+			"success: keeper is authority & channel state in FLUSHING, can be cancelled even with empty error receipt",
+			func() {
+				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+				msg.ProofErrorReceipt = nil
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.FLUSHING
+				channel.UpgradeSequence = uint64(1)
+				path.EndpointA.SetChannel(channel)
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				// Channel state should be reverted back to open.
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				// Upgrade sequence should be changed to match initial upgrade sequence.
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+			},
+		},
+		{
+			"success: keeper is authority but channel state in FLUSHCOMPLETE, requires valid error receipt",
+			func() {
+				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.FLUSHCOMPLETE
+				channel.UpgradeSequence = uint64(1)
+				path.EndpointA.SetChannel(channel)
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				// Channel state should be reverted back to open.
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+				// Upgrade sequence should be changed to match error receipt sequence.
 				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
 			},
 		},
@@ -1663,7 +1750,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				suite.Require().False(found, "channel upgrade should be nil")
 
 				suite.Require().NotNil(res)
-				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
 			},
 		},
 		{
@@ -1926,6 +2012,80 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 				suite.Require().Equal(tc.msg.Params, p)
 			} else {
 				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
+	var msg *channeltypes.MsgPruneAcknowledgements
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"failure: core keeper function fails, pruning sequence end not found",
+			func() {
+				msg.PortId = "portidone"
+			},
+			channeltypes.ErrPruningSequenceEndNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.Setup(path)
+
+			// configure the channel upgrade version on testing endpoints
+			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
+
+			err := path.EndpointA.ChanUpgradeInit()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeTry()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeAck()
+			suite.Require().NoError(err)
+
+			err = path.EndpointB.ChanUpgradeConfirm()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.ChanUpgradeOpen()
+			suite.Require().NoError(err)
+
+			err = path.EndpointA.UpdateClient()
+			suite.Require().NoError(err)
+
+			msg = channeltypes.NewMsgPruneAcknowledgements(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				10,
+				suite.chainA.SenderAccount.GetAddress().String(),
+			)
+
+			tc.malleate()
+
+			resp, err := suite.chainA.App.GetIBCKeeper().PruneAcknowledgements(suite.chainA.GetContext(), msg)
+
+			if tc.expErr == nil {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(resp)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(resp)
 			}
 		})
 	}

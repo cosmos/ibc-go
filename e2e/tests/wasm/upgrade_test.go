@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	haltHeight         = uint64(350)
+	haltHeight         = uint64(325)
 	blocksAfterUpgrade = uint64(10)
 )
 
@@ -98,6 +98,14 @@ func (s *IBCWasmUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmo
 
 	err = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, chain)
 	s.Require().Error(err, "chain did not halt at halt height")
+
+	var allNodes []testutil.ChainHeighter
+	for _, node := range chain.Nodes() {
+		allNodes = append(allNodes, node)
+	}
+
+	err = testutil.WaitForInSync(ctx, chain, allNodes...)
+	s.Require().NoError(err, "error waiting for node(s) to sync")
 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
