@@ -7,7 +7,7 @@ slug: /ibc/light-clients/wasm/concepts
 
 # Concepts
 
-Learn about the differences between a proxy light client and a Wasm light client. {synopsis}
+Learn about the differences between a proxy light client and a Wasm light client. 
 
 ## Proxy light client
 

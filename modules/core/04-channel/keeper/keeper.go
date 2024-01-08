@@ -507,8 +507,8 @@ func (k Keeper) GetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string
 	return errorReceipt, true
 }
 
-// SetUpgradeErrorReceipt sets the provided error receipt in store using the port and channel identifiers.
-func (k Keeper) SetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt) {
+// setUpgradeErrorReceipt sets the provided error receipt in store using the port and channel identifiers.
+func (k Keeper) setUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&errorReceipt)
 	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
@@ -649,14 +649,14 @@ func (k Keeper) SetPruningSequenceStart(ctx sdk.Context, portID, channelID strin
 }
 
 // GetPruningSequenceStart gets a channel's pruning sequence start from the store.
-func (k Keeper) GetPruningSequenceStart(ctx sdk.Context, portID, channelID string) uint64 {
+func (k Keeper) GetPruningSequenceStart(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.PruningSequenceStartKey(portID, channelID))
 	if len(bz) == 0 {
-		return 0
+		return 0, false
 	}
 
-	return sdk.BigEndianToUint64(bz)
+	return sdk.BigEndianToUint64(bz), true
 }
 
 // HasPruningSequenceStart returns true if the pruning sequence start is set for the specified channel.
@@ -671,11 +671,10 @@ func (k Keeper) HasPruningSequenceStart(ctx sdk.Context, portID, channelID strin
 // Pruning sequence start keeps track of the packet ack/receipt that can be pruned next. When it reaches pruningSequenceEnd,
 // pruning is complete.
 func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string, limit uint64) (uint64, uint64, error) {
-	if !k.HasPruningSequenceStart(ctx, portID, channelID) {
+	pruningSequenceStart, found := k.GetPruningSequenceStart(ctx, portID, channelID)
+	if !found {
 		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
-
-	pruningSequenceStart := k.GetPruningSequenceStart(ctx, portID, channelID)
 	pruningSequenceEnd, found := k.GetPruningSequenceEnd(ctx, portID, channelID)
 	if !found {
 		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceEndNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
