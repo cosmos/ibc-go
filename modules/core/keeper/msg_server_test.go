@@ -2021,34 +2021,34 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 func (suite *KeeperTestSuite) TestUpdateChannelParams() {
 	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
-		name    string
-		msg     *channeltypes.MsgUpdateParams
-		expPass bool
+		name     string
+		msg      *channeltypes.MsgUpdateParams
+		expError error
 	}{
 		{
 			"success: valid authority and default params",
 			channeltypes.NewMsgUpdateChannelParams(authority, channeltypes.DefaultParams()),
-			true,
+			nil,
 		},
 		{
 			"failure: malformed authority address",
 			channeltypes.NewMsgUpdateChannelParams(ibctesting.InvalidID, channeltypes.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: empty authority address",
 			channeltypes.NewMsgUpdateChannelParams("", channeltypes.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
-			"failure: whitespace authority address",
-			channeltypes.NewMsgUpdateChannelParams("    ", channeltypes.DefaultParams()),
-			false,
+			"failure: empty signer",
+			channeltypes.NewMsgUpdateChannelParams("", channeltypes.DefaultParams()),
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: unauthorized authority address",
 			channeltypes.NewMsgUpdateChannelParams(ibctesting.TestAccAddress, channeltypes.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 	}
 
@@ -2056,18 +2056,16 @@ func (suite *KeeperTestSuite) TestUpdateChannelParams() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-
 			resp, err := keeper.Keeper.UpdateChannelParams(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), tc.msg)
-
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(resp)
-
 				p := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetParams(suite.chainA.GetContext())
 				suite.Require().Equal(tc.msg.Params, p)
 			} else {
-				suite.Require().Error(err)
 				suite.Require().Nil(resp)
+				suite.Require().ErrorIs(tc.expError, err)
 			}
 		})
 	}
@@ -2139,6 +2137,8 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(resp)
+				suite.Require().Equal(uint64(0), resp.TotalPrunedSequences)
+				suite.Require().Equal(uint64(0), resp.TotalRemainingSequences)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(resp)
