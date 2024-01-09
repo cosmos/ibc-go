@@ -165,7 +165,6 @@ IBC application callbacks should be primarily used to validate data fields and d
 > has been executed, as up until this point it is still possible for the upgrade handshake to fail and for the channel
 > to remain in the pre-upgraded state. 
 
-
 ## Upgrading channels with the CLI
 
 A new cli has been added which enables either
