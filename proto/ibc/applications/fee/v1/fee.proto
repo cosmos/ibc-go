@@ -26,7 +26,7 @@ message Fee {
     (amino.encoding)         = "legacy_coins"
   ];
 
-  // the packet timeout fee
+  // Deprecated: this field is unused, timeout_fee = recv_fee + ack_fee
   repeated cosmos.base.v1beta1.Coin timeout_fee = 3 [
     (gogoproto.nullable)     = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
@@ -40,7 +40,7 @@ message PacketFee {
 
   // fee encapsulates the recv, ack and timeout fees associated with an IBC packet
   Fee fee = 1 [(gogoproto.nullable) = false];
-  // the refund address for unspent fees
+  // the signer address, refunds are no longer supported
   string refund_address = 2;
   // optional list of relayers permitted to receive fees
   repeated string relayers = 3;
