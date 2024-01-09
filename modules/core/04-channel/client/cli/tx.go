@@ -2,26 +2,24 @@ package cli
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"regexp"
 	"slices"
 	"strings"
+
+	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 const (
-	flagMetadata    = "metadata"
-	flagSummary     = "summary"
-	flagTitle       = "title"
 	flagJSON        = "json"
 	flagPortPattern = "port-pattern"
 	flagExpedited   = "expedited"
@@ -34,23 +32,12 @@ func newUpgradeChannelsCmd() *cobra.Command {
 		Short: "Upgrade IBC channels",
 		Long: `Submit a governance proposal to upgrade all open channels whose port matches a specified pattern 
 (the default is transfer), optionally, specific an exact list of channel IDs with a comma separated list.`,
-		Args:    cobra.ExactArgs(2),
-		Example: fmt.Sprintf(`%s tx %s %s upgrade-channels 10stake "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}"`, version.AppName, ibcexported.ModuleName, types.SubModuleName),
+		Args:    cobra.ExactArgs(1),
+		Example: fmt.Sprintf(`%s tx %s %s upgrade-channels "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}" --deposit 10stake`, version.AppName, ibcexported.ModuleName, types.SubModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			depositStr := args[0]
-			versionStr := args[1]
+			versionStr := args[0]
 
-			metadata, err := cmd.Flags().GetString(flagMetadata)
-			if err != nil {
-				return err
-			}
-
-			summary, err := cmd.Flags().GetString(flagSummary)
-			if err != nil {
-				return err
-			}
-
-			title, err := cmd.Flags().GetString(flagTitle)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -70,16 +57,6 @@ func newUpgradeChannelsCmd() *cobra.Command {
 				return err
 			}
 
-			expidited, err := cmd.Flags().GetBool(flagExpedited)
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
 			queryClient := types.NewQueryClient(clientCtx)
 
 			resp, err := queryClient.Channels(cmd.Context(), &types.QueryChannelsRequest{})
@@ -87,7 +64,7 @@ func newUpgradeChannelsCmd() *cobra.Command {
 				return err
 			}
 
-			channelIDs := strings.Split(commaSeparatedChannelIDs, ",")
+			channelIDs := getChannelIDs(commaSeparatedChannelIDs)
 
 			var msgs []sdk.Msg
 			pattern := regexp.MustCompile(portPattern)
@@ -107,14 +84,13 @@ func newUpgradeChannelsCmd() *cobra.Command {
 				return fmt.Errorf("no channels would be upgraded with pattern %s", portPattern)
 			}
 
-			deposit, err := sdk.ParseCoinsNormalized(depositStr)
+			msgSubmitProposal, err := govcli.ReadGovPropFlags(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(msgs, deposit, clientCtx.GetFromAddress().String(), metadata, title, summary, expidited)
-			if err != nil {
-				return fmt.Errorf("invalid message: %w", err)
+			if err := msgSubmitProposal.SetMsgs(msgs); err != nil {
+				return err
 			}
 
 			dryRun, _ := cmd.Flags().GetBool(flags.FlagDryRun)
@@ -131,18 +107,24 @@ func newUpgradeChannelsCmd() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().String(flagSummary, "Upgrading open channels", "The summary for the gov proposal which will upgrade existing open channels.")
-	cmd.Flags().String(flagTitle, "Channel upgrades", "The title for the gov proposal which will upgrade existing open channels.")
-	cmd.Flags().String(flagMetadata, "", "Metadata for the gov proposal which will upgrade existing open channels.")
-	cmd.Flags().String(flagPortPattern, "transfer", "The pattern to use to match port ids.")
-	cmd.Flags().Bool(flagExpedited, false, "set the expedited value for the governance proposal.")
+	govcli.AddGovPropFlagsToCmd(cmd)
 	cmd.Flags().Bool(flagJSON, false, "specify true to output valid proposal.json contents, instead of submitting a governance proposal.")
+	cmd.Flags().String(flagPortPattern, "transfer", "The pattern to use to match port ids.")
 	cmd.Flags().String(flagChannelIDs, "", "a comma separated list of channel IDs to upgrade.")
+	cmd.Flags().Bool(flagExpedited, false, "set the expedited value for the governance proposal.")
 
 	return cmd
 }
 
-// channelShouldBeUpgraded returns a boolean indicated whether or not the given channel should be upgraded based
+// getChannelIDs returns a slice of channel IDs based on a comma separated string of channel IDs.
+func getChannelIDs(commaSeparatedList string) []string {
+	if strings.TrimSpace(commaSeparatedList) == "" {
+		return nil
+	}
+	return strings.Split(commaSeparatedList, ",")
+}
+
+// channelShouldBeUpgraded returns a boolean indicating whether or not the given channel should be upgraded based
 // on either the provided regex pattern or list of desired channel IDs.
 func channelShouldBeUpgraded(channel types.IdentifiedChannel, pattern *regexp.Regexp, channelIDs []string) bool {
 	// skip any channel that is not open
