@@ -1,4 +1,4 @@
-package types_test
+package keeper_test
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/core/types"
 )
 
@@ -98,7 +99,7 @@ func TestConvertToErrorEvents(t *testing.T) {
 
 			tc.malleate()
 
-			newEvents := types.ConvertToErrorEvents(events)
+			newEvents := keeper.ConvertToErrorEvents(events)
 			require.Equal(t, expEvents, newEvents)
 		})
 	}

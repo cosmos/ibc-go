@@ -496,7 +496,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 		writeFn()
 	} else {
 		// Modify events in cached context to reflect unsuccessful acknowledgement
-		ctx.EventManager().EmitEvents(coretypes.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
+		ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
 	}
 
 	// Set packet acknowledgement only if the acknowledgement is not nil.
@@ -1165,4 +1165,26 @@ func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Msg
 	k.ChannelKeeper.SetParams(ctx, msg.Params)
 
 	return &channeltypes.MsgUpdateParamsResponse{}, nil
+}
+
+// convertToErrorEvents converts all events to error events by appending the
+// error attribute prefix to each event's attribute key.
+func convertToErrorEvents(events sdk.Events) sdk.Events {
+	if events == nil {
+		return nil
+	}
+
+	newEvents := make(sdk.Events, len(events))
+	for i, event := range events {
+		newAttributes := make([]sdk.Attribute, len(event.Attributes))
+		for j, attribute := range event.Attributes {
+			newAttributes[j] = sdk.NewAttribute(coretypes.ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
+		}
+
+		// no need to append the error attribute prefix to the event type because
+		// the event type is not associated to a value that can be misinterpreted
+		newEvents[i] = sdk.NewEvent(event.Type, newAttributes...)
+	}
+
+	return newEvents
 }
