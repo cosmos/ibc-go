@@ -289,13 +289,6 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			},
 			false,
 		},
-		{
-			"timeout fee balance not found",
-			func() {
-				msg.Fee.TimeoutFee = invalidCoins
-			},
-			false,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -328,7 +321,14 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 				feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
 				suite.Require().True(found)
-				suite.Require().Equal(expFeesInEscrow, feesInEscrow.PacketFees)
+				suite.Require().Len(feesInEscrow.PacketFees, len(expFeesInEscrow))
+				for i := 0; i < len(expFeesInEscrow); i++ {
+					suite.Require().Equal(expFeesInEscrow[i].RefundAddress, feesInEscrow.PacketFees[i].RefundAddress)
+					suite.Require().Equal(expFeesInEscrow[i].Relayers, feesInEscrow.PacketFees[i].Relayers)
+					suite.RequireEqualOrEmpty(expFeesInEscrow[i].Fee.AckFee, feesInEscrow.PacketFees[i].Fee.AckFee)
+					suite.RequireEqualOrEmpty(expFeesInEscrow[i].Fee.RecvFee, feesInEscrow.PacketFees[i].Fee.RecvFee)
+					suite.RequireEqualOrEmpty(expFeesInEscrow[i].Fee.TimeoutFee, feesInEscrow.PacketFees[i].Fee.TimeoutFee)
+				}
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(expEscrowBalance.AmountOf(sdk.DefaultBondDenom), escrowBalance.Amount)
@@ -501,13 +501,6 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			},
 			false,
 		},
-		{
-			"timeout fee balance not found",
-			func() {
-				msg.PacketFee.Fee.TimeoutFee = invalidCoins
-			},
-			false,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -541,7 +534,14 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 
 				feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
 				suite.Require().True(found)
-				suite.Require().Equal(expFeesInEscrow, feesInEscrow.PacketFees)
+				suite.Require().Len(feesInEscrow.PacketFees, len(expFeesInEscrow))
+				for i := 0; i < len(expFeesInEscrow); i++ {
+					suite.Require().Equal(expFeesInEscrow[i].RefundAddress, feesInEscrow.PacketFees[i].RefundAddress)
+					suite.Require().Equal(expFeesInEscrow[i].Relayers, feesInEscrow.PacketFees[i].Relayers)
+					suite.RequireEqualOrEmpty(expFeesInEscrow[i].Fee.AckFee, feesInEscrow.PacketFees[i].Fee.AckFee)
+					suite.RequireEqualOrEmpty(expFeesInEscrow[i].Fee.RecvFee, feesInEscrow.PacketFees[i].Fee.RecvFee)
+					suite.RequireEqualOrEmpty(expFeesInEscrow[i].Fee.TimeoutFee, feesInEscrow.PacketFees[i].Fee.TimeoutFee)
+				}
 
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(expEscrowBalance.AmountOf(sdk.DefaultBondDenom), escrowBalance.Amount)

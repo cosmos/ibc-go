@@ -152,7 +152,15 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(types.NewIdentifiedPacketFees(packetID, []types.PacketFee{packetFee, packetFee, packetFee}), res.IncentivizedPacket)
+				expIdPacketFees := types.NewIdentifiedPacketFees(packetID, []types.PacketFee{packetFee, packetFee, packetFee})
+				suite.Require().Len(res.IncentivizedPacket.PacketFees, len(expIdPacketFees.PacketFees))
+				for i := 0; i < len(expIdPacketFees.PacketFees); i++ {
+					suite.Require().Equal(expIdPacketFees.PacketFees[i].RefundAddress, res.IncentivizedPacket.PacketFees[i].RefundAddress)
+					suite.Require().Equal(expIdPacketFees.PacketFees[i].Relayers, res.IncentivizedPacket.PacketFees[i].Relayers)
+					suite.RequireEqualOrEmpty(expIdPacketFees.PacketFees[i].Fee.AckFee, res.IncentivizedPacket.PacketFees[i].Fee.AckFee)
+					suite.RequireEqualOrEmpty(expIdPacketFees.PacketFees[i].Fee.RecvFee, res.IncentivizedPacket.PacketFees[i].Fee.RecvFee)
+					suite.RequireEqualOrEmpty(expIdPacketFees.PacketFees[i].Fee.TimeoutFee, res.IncentivizedPacket.PacketFees[i].Fee.TimeoutFee)
+				}
 			} else {
 				suite.Require().Error(err)
 			}

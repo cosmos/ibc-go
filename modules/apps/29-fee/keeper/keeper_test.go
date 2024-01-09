@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -21,7 +22,7 @@ import (
 var (
 	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}}
 	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(200)}}
-	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(300)}}
+	defaultTimeoutFee = sdk.Coins{}
 	invalidCoins      = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdkmath.NewInt(100)}}
 )
 
@@ -71,6 +72,14 @@ func lockFeeModule(chain *ibctesting.TestChain) {
 	storeKey := chain.GetSimApp().GetKey(types.ModuleName)
 	store := ctx.KVStore(storeKey)
 	store.Set(types.KeyLocked(), []byte{1})
+}
+
+func (suite *KeeperTestSuite) RequireEqualOrEmpty(expected, actual any) {
+	if isEmpty(expected) {
+		suite.Require().Empty(actual)
+	} else {
+		suite.Require().Equal(expected, actual)
+	}
 }
 
 func (suite *KeeperTestSuite) TestEscrowAccountHasBalance() {
@@ -201,7 +210,18 @@ func (suite *KeeperTestSuite) TestGetIdentifiedPacketFeesForChannel() {
 
 	identifiedFees := suite.chainA.GetSimApp().IBCFeeKeeper.GetIdentifiedPacketFeesForChannel(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 	suite.Require().Len(identifiedFees, len(expectedFees))
-	suite.Require().Equal(identifiedFees, expectedFees)
+	// This nested loop is necessary because the empty slice is not equal to nil slice after json marshalling and unmarshalling
+	for i := range identifiedFees {
+		suite.Require().Equal(expectedFees[i].PacketId, identifiedFees[i].PacketId)
+		suite.Require().Len(identifiedFees[i].PacketFees, len(expectedFees[i].PacketFees))
+		for j := range identifiedFees[i].PacketFees {
+			suite.Require().Equal(identifiedFees[i].PacketFees[j].Relayers, expectedFees[i].PacketFees[j].Relayers)
+			suite.Require().Equal(identifiedFees[i].PacketFees[j].RefundAddress, expectedFees[i].PacketFees[j].RefundAddress)
+			suite.RequireEqualOrEmpty(identifiedFees[i].PacketFees[j].Fee.AckFee, expectedFees[i].PacketFees[j].Fee.AckFee)
+			suite.RequireEqualOrEmpty(identifiedFees[i].PacketFees[j].Fee.RecvFee, expectedFees[i].PacketFees[j].Fee.RecvFee)
+			suite.RequireEqualOrEmpty(identifiedFees[i].PacketFees[j].Fee.TimeoutFee, expectedFees[i].PacketFees[j].Fee.TimeoutFee)
+		}
+	}
 }
 
 func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
@@ -231,7 +251,17 @@ func (suite *KeeperTestSuite) TestGetAllIdentifiedPacketFees() {
 
 	identifiedFees := suite.chainA.GetSimApp().IBCFeeKeeper.GetAllIdentifiedPacketFees(suite.chainA.GetContext())
 	suite.Require().Len(identifiedFees, len(expectedFees))
-	suite.Require().Equal(identifiedFees, expectedFees)
+	for i := range identifiedFees {
+		suite.Require().Equal(expectedFees[i].PacketId, identifiedFees[i].PacketId)
+		suite.Require().Len(identifiedFees[i].PacketFees, len(expectedFees[i].PacketFees))
+		for j := range identifiedFees[i].PacketFees {
+			suite.Require().Equal(identifiedFees[i].PacketFees[j].Relayers, expectedFees[i].PacketFees[j].Relayers)
+			suite.Require().Equal(identifiedFees[i].PacketFees[j].RefundAddress, expectedFees[i].PacketFees[j].RefundAddress)
+			suite.RequireEqualOrEmpty(identifiedFees[i].PacketFees[j].Fee.AckFee, expectedFees[i].PacketFees[j].Fee.AckFee)
+			suite.RequireEqualOrEmpty(identifiedFees[i].PacketFees[j].Fee.RecvFee, expectedFees[i].PacketFees[j].Fee.RecvFee)
+			suite.RequireEqualOrEmpty(identifiedFees[i].PacketFees[j].Fee.TimeoutFee, expectedFees[i].PacketFees[j].Fee.TimeoutFee)
+		}
+	}
 }
 
 func (suite *KeeperTestSuite) TestGetAllFeeEnabledChannels() {
@@ -319,4 +349,34 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	suite.Require().True(isFeeKeeper)
 	_, isChannelKeeper = ics4Wrapper.(channelkeeper.Keeper)
 	suite.Require().False(isChannelKeeper)
+}
+
+// isEmpty gets whether the specified object is considered empty or not.
+// copied from testify
+func isEmpty(object interface{}) bool {
+
+	// get nil case out of the way
+	if object == nil {
+		return true
+	}
+
+	objValue := reflect.ValueOf(object)
+
+	switch objValue.Kind() {
+	// collection types are empty when they have no element
+	case reflect.Chan, reflect.Map, reflect.Slice:
+		return objValue.Len() == 0
+	// pointers are empty if nil or if the value they point to is empty
+	case reflect.Ptr:
+		if objValue.IsNil() {
+			return true
+		}
+		deref := objValue.Elem().Interface()
+		return isEmpty(deref)
+	// for all other types, compare against the zero value
+	// array types are empty when they match their zero-initialized state
+	default:
+		zero := reflect.Zero(objValue.Type())
+		return reflect.DeepEqual(object, zero.Interface())
+	}
 }

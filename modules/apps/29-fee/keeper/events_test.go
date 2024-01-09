@@ -19,7 +19,6 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 	var (
 		expRecvFees    sdk.Coins
 		expAckFees     sdk.Coins
-		expTimeoutFees sdk.Coins
 	)
 
 	suite.coordinator.Setup(suite.path)
@@ -35,7 +34,6 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 
 	expRecvFees = expRecvFees.Add(fee.RecvFee...)
 	expAckFees = expAckFees.Add(fee.AckFee...)
-	expTimeoutFees = expTimeoutFees.Add(fee.TimeoutFee...)
 
 	result, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err)
@@ -56,7 +54,7 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 			suite.Require().Equal(expAckFees.String(), attr.Value)
 
 		case types.AttributeKeyTimeoutFee:
-			suite.Require().Equal(expTimeoutFees.String(), attr.Value)
+			suite.Require().Equal(expRecvFees.Add(expAckFees...).String(), attr.Value)
 		}
 	}
 
@@ -64,7 +62,6 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 	for i := 0; i < 3; i++ {
 		expRecvFees = expRecvFees.Add(fee.RecvFee...)
 		expAckFees = expAckFees.Add(fee.AckFee...)
-		expTimeoutFees = expTimeoutFees.Add(fee.TimeoutFee...)
 
 		result, err = suite.chainA.SendMsgs(msg)
 		suite.Require().NoError(err)
@@ -85,7 +82,7 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 			suite.Require().Equal(expAckFees.String(), attr.Value)
 
 		case types.AttributeKeyTimeoutFee:
-			suite.Require().Equal(expTimeoutFees.String(), attr.Value)
+			suite.Require().Equal(expRecvFees.Add(expAckFees...).String(), attr.Value)
 		}
 	}
 }
