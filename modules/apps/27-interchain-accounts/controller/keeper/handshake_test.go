@@ -806,6 +806,8 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			suite.Require().NoError(err)
 
 			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID)
+			// add host connection id to metadata
+			metadata.HostConnectionId = path.EndpointB.ConnectionID
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
 

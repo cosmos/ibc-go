@@ -169,9 +169,6 @@ func validateConnectionParams(metadata Metadata, controllerConnectionID, hostCon
 	}
 
 	if metadata.HostConnectionId != hostConnectionID {
-		if metadata.HostConnectionId == "" {
-			return nil
-		}
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnection, "expected %s, got %s", hostConnectionID, metadata.HostConnectionId)
 	}
 
