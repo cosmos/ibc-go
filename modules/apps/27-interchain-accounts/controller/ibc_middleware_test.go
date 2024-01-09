@@ -6,6 +6,8 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -960,22 +962,31 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 	var (
 		path                *ibctesting.Path
-		isNilApp            bool
 		counterpartyVersion string
 	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
+		expPanic func() error
 	}{
 		{
-			"success",
-			func() {},
+			"success", func() {}, nil,
 		},
 		{
-			"success: nil app",
+			"failure: upgrade route not found",
+			func() {},
+			func() error {
+				return errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+			},
+		},
+		{
+			"failure: connection not found",
 			func() {
-				isNilApp = true
+				path.EndpointA.ChannelID = "invalid-channel"
+			},
+			func() error {
+				return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", path.EndpointA.ChannelConfig.PortID, "invalid-channel")
 			},
 		},
 		{
@@ -985,6 +996,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 					return ibcmock.MockApplicationCallbackError
 				}
 			},
+			nil,
 		},
 	}
 
@@ -993,7 +1005,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
@@ -1013,39 +1024,59 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 			cbs, ok := app.(porttypes.UpgradableModule)
 			suite.Require().True(ok)
 
-			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+			if tc.expPanic != nil {
+				mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
+				mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
+				cbs = controller.NewIBCMiddleware(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
+				suite.Require().PanicsWithError(tc.expPanic().Error(), func() {
+					cbs.OnChanUpgradeOpen(
+						suite.chainA.GetContext(),
+						path.EndpointA.ChannelConfig.PortID,
+						path.EndpointA.ChannelID,
+						channeltypes.ORDERED,
+						[]string{path.EndpointA.ConnectionID},
+						counterpartyVersion,
+					)
+				})
+			} else {
+				cbs.OnChanUpgradeOpen(
+					suite.chainA.GetContext(),
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					channeltypes.ORDERED,
+					[]string{path.EndpointA.ConnectionID},
+					counterpartyVersion,
+				)
 			}
-
-			cbs.OnChanUpgradeOpen(
-				suite.chainA.GetContext(),
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				channeltypes.ORDERED,
-				[]string{path.EndpointA.ConnectionID},
-				counterpartyVersion,
-			)
 		})
 	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
-	var (
-		path     *ibctesting.Path
-		isNilApp bool
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
 		malleate func()
+		expPanic func() error
 	}{
 		{
-			"success", func() {},
+			"success", func() {}, nil,
 		},
 		{
-			"success: nil app",
+			"failure: upgrade route not found",
+			func() {},
+			func() error {
+				return errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
+			},
+		},
+		{
+			"failure: connection not found",
 			func() {
-				isNilApp = true
+				path.EndpointA.ChannelID = "invalid-channel"
+			},
+			func() error {
+				return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", path.EndpointA.ChannelConfig.PortID, "invalid-channel")
 			},
 		},
 		{
@@ -1055,6 +1086,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
 					return ibcmock.MockApplicationCallbackError
 				}
 			},
+			nil,
 		},
 	}
 
@@ -1063,7 +1095,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
@@ -1081,11 +1112,17 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
 			cbs, ok := app.(porttypes.UpgradableModule)
 			suite.Require().True(ok)
 
-			if isNilApp {
-				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
-			}
+			if tc.expPanic != nil {
+				mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
+				mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
+				cbs = controller.NewIBCMiddleware(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
 
-			cbs.OnChanUpgradeRestore(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().PanicsWithError(tc.expPanic().Error(), func() {
+					cbs.OnChanUpgradeRestore(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				})
+			} else {
+				cbs.OnChanUpgradeRestore(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			}
 		})
 	}
 }
