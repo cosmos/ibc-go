@@ -34,7 +34,7 @@ type Fee struct {
 	RecvFee github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=recv_fee,json=recvFee,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"recv_fee"`
 	// the packet acknowledgement fee
 	AckFee github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=ack_fee,json=ackFee,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"ack_fee"`
-	// the packet timeout fee
+	// Deprecated: this field is unused, timeout_fee = recv_fee + ack_fee
 	TimeoutFee github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=timeout_fee,json=timeoutFee,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"timeout_fee"`
 }
 
@@ -96,7 +96,7 @@ func (m *Fee) GetTimeoutFee() github_com_cosmos_cosmos_sdk_types.Coins {
 type PacketFee struct {
 	// fee encapsulates the recv, ack and timeout fees associated with an IBC packet
 	Fee Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee"`
-	// the refund address for unspent fees
+	// the signer address, refunds are no longer supported
 	RefundAddress string `protobuf:"bytes,2,opt,name=refund_address,json=refundAddress,proto3" json:"refund_address,omitempty"`
 	// optional list of relayers permitted to receive fees
 	Relayers []string `protobuf:"bytes,3,rep,name=relayers,proto3" json:"relayers,omitempty"`
