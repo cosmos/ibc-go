@@ -59,10 +59,10 @@ A channel upgrade is initialised by submitting the `MsgChannelUpgradeInit` messa
 
 ```go
 type MsgChannelUpgradeInit struct {
-	PortId    string
-	ChannelId string
-	Fields    UpgradeFields
-	Signer    string
+  PortId    string
+  ChannelId string
+  Fields    UpgradeFields
+  Signer    string
 }
 ```
 
@@ -164,7 +164,7 @@ Channel upgrades require setting a valid timeout value in the channel `Params` b
 
 ```go
 type Params struct {
-	UpgradeTimeout Timeout 
+  UpgradeTimeout Timeout 
 }
 ```
 
@@ -172,10 +172,10 @@ A valid Timeout contains either one or both of a timestamp and block height (seq
 
 ```go
 type Timeout struct {
-	// block height after which the packet or upgrade times out
-	Height types.Height
-	// block timestamp (in nanoseconds) after which the packet or upgrade times out
-	Timestamp uint64
+  // block height after which the packet or upgrade times out
+  Height types.Height
+  // block timestamp (in nanoseconds) after which the packet or upgrade times out
+  Timestamp uint64
 }
 ```
 
@@ -183,9 +183,9 @@ This timeout will then be set as a field on the `Upgrade` struct itself when flu
 
 ```go
 type Upgrade struct {
-	Fields           UpgradeFields 
-	Timeout          Timeout       
-	NextSequenceSend uint64        
+  Fields           UpgradeFields 
+  Timeout          Timeout       
+  NextSequenceSend uint64        
 }
 ```
 
@@ -193,12 +193,12 @@ If the timeout has been exceeded during flushing, a chain can then submit the `M
 
 ```go
 type MsgChannelUpgradeTimeout struct {
-	PortId              string    
-	ChannelId           string
-	CounterpartyChannel Channel 
-	ProofChannel        []byte
-	ProofHeight         types.Height
-	Signer              string 
+  PortId              string    
+  ChannelId           string
+  CounterpartyChannel Channel 
+  ProofChannel        []byte
+  ProofHeight         types.Height
+  Signer              string 
 }
 ```
 
