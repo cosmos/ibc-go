@@ -49,14 +49,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	// check fee
 	feesInEscrow, found := suite.chainA.GetSimApp().IBCFeeKeeper.GetFeesInEscrow(suite.chainA.GetContext(), packetID)
 	suite.Require().True(found)
-	suite.Require().Len(genesisState.IdentifiedFees[0].PacketFees, len(feesInEscrow.PacketFees))
-	for i := 0; i < len(genesisState.IdentifiedFees[0].PacketFees); i++ {
-		suite.Require().Equal(genesisState.IdentifiedFees[0].PacketFees[i].RefundAddress, feesInEscrow.PacketFees[i].RefundAddress)
-		suite.Require().Equal(genesisState.IdentifiedFees[0].PacketFees[i].Relayers, feesInEscrow.PacketFees[i].Relayers)
-		suite.RequireEqualOrEmpty(genesisState.IdentifiedFees[0].PacketFees[i].Fee.AckFee, feesInEscrow.PacketFees[i].Fee.AckFee)
-		suite.RequireEqualOrEmpty(genesisState.IdentifiedFees[0].PacketFees[i].Fee.RecvFee, feesInEscrow.PacketFees[i].Fee.RecvFee)
-		suite.RequireEqualOrEmpty(genesisState.IdentifiedFees[0].PacketFees[i].Fee.TimeoutFee, feesInEscrow.PacketFees[i].Fee.TimeoutFee)
-	}
+	suite.Require().Equal(genesisState.IdentifiedFees[0].PacketFees, feesInEscrow.PacketFees)
 
 	// check fee is enabled
 	isEnabled := suite.chainA.GetSimApp().IBCFeeKeeper.IsFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, ibctesting.FirstChannelID)
@@ -113,9 +106,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 
 	// check fee
 	suite.Require().Equal(packetID, genesisState.IdentifiedFees[0].PacketId)
-	suite.RequireEqualOrEmpty(fee.AckFee, genesisState.IdentifiedFees[0].PacketFees[0].Fee.AckFee)
-	suite.RequireEqualOrEmpty(fee.RecvFee, genesisState.IdentifiedFees[0].PacketFees[0].Fee.RecvFee)
-	suite.RequireEqualOrEmpty(fee.TimeoutFee, genesisState.IdentifiedFees[0].PacketFees[0].Fee.TimeoutFee)
+	suite.Require().Equal(fee, genesisState.IdentifiedFees[0].PacketFees[0].Fee)
 	suite.Require().Equal(refundAcc.String(), genesisState.IdentifiedFees[0].PacketFees[0].RefundAddress)
 	suite.Require().Equal([]string(nil), genesisState.IdentifiedFees[0].PacketFees[0].Relayers)
 
