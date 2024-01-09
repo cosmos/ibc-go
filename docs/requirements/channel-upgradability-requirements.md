@@ -129,7 +129,7 @@ Sample exception flows:
 
 | ID | Description | Verification | Status |
 | -- | ----------- | ------------ | ------ |
-| 1.01 | An on-chain parameter keeps a list of all connection IDs (e.g. [`connection-0`, `connection-1`]) for which channels are allowed to be upgraded for an upgrade proposed on a counterpary chain | TBD | `Drafted` |
+| 1.01 | An on-chain parameter keeps a list of all connection IDs (e.g. [`connection-0`, `connection-1`]) for which channels are allowed to be upgraded for an upgrade proposed on a counterparty chain | TBD | `Drafted` |
 | 1.02 | The on-chain parameter of connection IDs can only be updated by an authorized actor (e.g. governance) | TBD | `Drafted` |
 
 ### 2 - Initiation
@@ -138,7 +138,7 @@ Sample exception flows:
 | -- | ----------- | ------------ | ------ |
 | 2.01 | An upgrade initiated by an authorized actor (e.g. governance) is always allowed | TBD | `Drafted` |
 | 2.02 | A chain can configure a channel upgrade to be initiated automatically after a successful governance proposal | TBD | `Drafted` |
-| 2.03 | After permission is granted for channels in a given connection to be upgraded, any relayer can continue the upgrade proposed on a counterpary chain | TBD |`Drafted` |
+| 2.03 | After permission is granted for channels in a given connection to be upgraded, any relayer can continue the upgrade proposed on a counterparty chain | TBD |`Drafted` |
 | 2.04 | A channel upgrade will be initiated when both `ChannelEnd`s are in the `OPEN` state | TBD | `Drafted` |
 | 2.05 | In the case of a crossing hello, a channel upgrade can be initiated when the counterparty has also executed the `ChanUpgradeInit` datagram with compatible parameters in the case of a crossing hello | TBD | `Drafted` |
 
