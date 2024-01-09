@@ -189,7 +189,7 @@ It is also possible to explicitly list a comma separated string of channel IDs. 
 regular expression matching specified by `--port-pattern` (which defaults to `transfer`) still applies.
 
 For example the following command would generate the contents of a `proposal.json` file which would attempt to upgrade
-channels with a port ID of `transfer` and channelID of `channel-0`, `channel-1` or `channel-2`.
+channels with a port ID of `transfer` and a channelID of `channel-0`, `channel-1` or `channel-2`.
 
 ```bash
 simd tx ibc channel upgrade-channels "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}" \
