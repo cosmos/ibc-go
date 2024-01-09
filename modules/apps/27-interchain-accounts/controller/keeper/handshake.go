@@ -48,21 +48,21 @@ func (k Keeper) OnChanOpenInit(
 		metadata icatypes.Metadata
 	)
 	if strings.TrimSpace(version) == "" {
-		connection, err := k.channelKeeper.GetConnection(ctx, connectionHops[0])
+		_, err := k.channelKeeper.GetConnection(ctx, connectionHops[0])
 		if err != nil {
 			return "", err
 		}
 
-		metadata = icatypes.NewDefaultMetadata(connectionHops[0], connection.GetCounterparty().GetConnectionID())
+		metadata = icatypes.NewDefaultMetadata(connectionHops[0])
 	} else {
 		metadata, err = icatypes.MetadataFromVersion(version)
 		if err != nil {
 			return "", err
 		}
-	}
 
-	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
-		return "", err
+		if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
+			return "", err
+		}
 	}
 
 	activeChannelID, found := k.GetActiveChannelID(ctx, connectionHops[0], portID)

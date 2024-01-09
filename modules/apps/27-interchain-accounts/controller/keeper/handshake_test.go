@@ -16,10 +16,11 @@ const (
 
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 	var (
-		channel  *channeltypes.Channel
-		path     *ibctesting.Path
-		chanCap  *capabilitytypes.Capability
-		metadata icatypes.Metadata
+		channel               *channeltypes.Channel
+		path                  *ibctesting.Path
+		chanCap               *capabilitytypes.Capability
+		metadata              icatypes.Metadata
+		expectedVersionReturn string
 	)
 
 	testCases := []struct {
@@ -61,6 +62,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			"success: empty channel version returns default metadata JSON string",
 			func() {
 				channel.Version = ""
+				expectedVersionReturn = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID)
 			},
 			true,
 		},
@@ -257,6 +259,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
+			expectedVersionReturn = string(versionBytes)
+
 			counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.INIT,
@@ -277,7 +281,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(string(versionBytes), version)
+				suite.Require().Equal(expectedVersionReturn, version)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -634,7 +638,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			suite.Require().NoError(err)
 
 			order = channeltypes.ORDERED
-			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID)
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
 
@@ -801,7 +805,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			currentMetadata, err := suite.chainA.GetSimApp().ICAControllerKeeper.GetAppMetadata(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().NoError(err)
 
-			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID)
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
 
