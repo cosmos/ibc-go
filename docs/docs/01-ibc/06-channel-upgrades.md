@@ -172,7 +172,7 @@ A new cli has been added which enables either
     - generating a `proposal.json` file which contains the proposal contents to be edited/submitted at a later date.
 
 The following example, would submit a governance proposal with the specified deposit, title and summary which would
-contain a `MsgChanUpgradeInit` for all `OPEN` channels whose port matches the regular expression `transfer`.
+contain a `MsgChannelUpgradeInit` for all `OPEN` channels whose port matches the regular expression `transfer`.
 
 > Note: by adding the `--json` flag, the command would instead output the contents of the proposal which could be 
 > stored in a `proposal.json` file to be edited and submitted at a later date.
