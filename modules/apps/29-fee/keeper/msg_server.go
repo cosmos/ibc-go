@@ -94,7 +94,8 @@ func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) 
 		return nil, err
 	}
 
-	if err := k.bankKeeper.IsSendEnabledCoins(ctx, msg.Fee.Total()...); err != nil {
+	// timeout fees are ignored as it is deprecated
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, msg.Fee.RecvAndAck()...); err != nil {
 		return nil, err
 	}
 
@@ -139,7 +140,8 @@ func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacket
 		return nil, err
 	}
 
-	if err := k.bankKeeper.IsSendEnabledCoins(ctx, msg.PacketFee.Fee.Total()...); err != nil {
+	// timeout fees are ignored as it is deprecated
+	if err := k.bankKeeper.IsSendEnabledCoins(ctx, msg.PacketFee.Fee.RecvAndAck()...); err != nil {
 		return nil, err
 	}
 

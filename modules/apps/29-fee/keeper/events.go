@@ -23,7 +23,7 @@ func emitIncentivizedPacketEvent(ctx sdk.Context, packetID channeltypes.PacketId
 		if fee.Relayers == nil {
 			totalRecvFees = totalRecvFees.Add(fee.Fee.RecvFee...)
 			totalAckFees = totalAckFees.Add(fee.Fee.AckFee...)
-			totalTimeoutFees = totalTimeoutFees.Add(fee.Fee.TimeoutFee...)
+			totalTimeoutFees = totalTimeoutFees.Add(fee.Fee.RecvFee...).Add(fee.Fee.AckFee...)
 		}
 	}
 

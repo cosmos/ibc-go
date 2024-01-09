@@ -14,6 +14,9 @@ import (
 
 // escrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
 func (k Keeper) escrowPacketFee(ctx sdk.Context, packetID channeltypes.PacketId, packetFee types.PacketFee) error {
+	// timeout fees are deprecated and should be set to zero
+	packetFee.Fee.TimeoutFee = sdk.NewCoins()
+
 	// check if the refund address is valid
 	refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 	if err != nil {
@@ -135,16 +138,32 @@ func (k Keeper) DistributePacketFeesOnTimeout(ctx sdk.Context, timeoutRelayer sd
 	k.DeleteFeesInEscrow(ctx, packetID)
 }
 
-// distributePacketFeeOnTimeout pays the timeout fee to the timeout relayer and refunds the acknowledgement & receive fee.
+// distributePacketFeeOnTimeout pays the fee to the timeout relayer.
+//
+// If the timeout fee is not zero, then we use the legacy timeout fee logic
+// and pay the timeout fee to the timeout relayer, and refund the receive and ack fees to the refund address.
+// If the timeout fee is zero, then we pay the fee for recv and ack to the timeout relayer.
 func (k Keeper) distributePacketFeeOnTimeout(ctx sdk.Context, refundAddr, timeoutRelayer sdk.AccAddress, packetFee types.PacketFee) {
-	// refund receive fee for unused forward relaying
-	k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.RecvFee)
+	// If the timeout fee is not zero, then we use the legacy timeout fee logic
+	if !packetFee.Fee.TimeoutFee.IsZero() {
+		// refund receive fee for unused forward relaying
+		k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.RecvFee)
 
-	// refund ack fee for unused reverse relaying
-	k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.AckFee)
+		// refund ack fee for unused reverse relaying
+		k.distributeFee(ctx, refundAddr, refundAddr, packetFee.Fee.AckFee)
 
-	// distribute fee for timeout relaying
-	k.distributeFee(ctx, timeoutRelayer, refundAddr, packetFee.Fee.TimeoutFee)
+		// distribute fee for timeout relaying
+		k.distributeFee(ctx, timeoutRelayer, refundAddr, packetFee.Fee.TimeoutFee)
+
+		return
+	}
+	// If the timeout fee is zero, then we use the new timeout fee logic
+
+	// distribute fee for forward relaying to timeout relayer
+	k.distributeFee(ctx, timeoutRelayer, refundAddr, packetFee.Fee.RecvFee)
+
+	// distribute fee for reverse relaying to timeout relayer
+	k.distributeFee(ctx, timeoutRelayer, refundAddr, packetFee.Fee.AckFee)
 }
 
 // distributeFee will attempt to distribute the escrowed fee to the receiver address.

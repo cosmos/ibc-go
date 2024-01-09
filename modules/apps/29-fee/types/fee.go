@@ -59,12 +59,17 @@ func NewFee(recvFee, ackFee, timeoutFee sdk.Coins) Fee {
 	}
 }
 
-// Total returns the total amount for a given Fee
+// Total returns the total amount for a given Fee (recv + ack + timeout)
 func (f Fee) Total() sdk.Coins {
-	return f.RecvFee.Add(f.AckFee...).Add(f.TimeoutFee...)
+	return f.RecvAndAck().Add(f.TimeoutFee...)
 }
 
-// Validate asserts that each Fee is valid and all three Fees are not empty or zero
+// Total returns the total amount for recv + ack fees
+func (f Fee) RecvAndAck() sdk.Coins {
+	return f.RecvFee.Add(f.AckFee...)
+}
+
+// Validate asserts that each Fee is valid and, receive and ack fees are not empty or zero
 func (f Fee) Validate() error {
 	var errFees []string
 	if !f.AckFee.IsValid() {
@@ -73,16 +78,13 @@ func (f Fee) Validate() error {
 	if !f.RecvFee.IsValid() {
 		errFees = append(errFees, "recv fee invalid")
 	}
-	if !f.TimeoutFee.IsValid() {
-		errFees = append(errFees, "timeout fee invalid")
-	}
 
 	if len(errFees) > 0 {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, "contains invalid fees: %s", strings.Join(errFees, " , "))
 	}
 
-	// if all three fee's are zero or empty return an error
-	if f.AckFee.IsZero() && f.RecvFee.IsZero() && f.TimeoutFee.IsZero() {
+	// if both recv and ack fee's are zero or empty return an error
+	if f.AckFee.IsZero() && f.RecvFee.IsZero() {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "all fees are zero")
 	}
 
