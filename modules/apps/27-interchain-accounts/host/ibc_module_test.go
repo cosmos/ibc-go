@@ -635,7 +635,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 			interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 			suite.Require().True(found)
 
-			metadata := icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			metadata := icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID)
+			metadata.HostConnectionId = path.EndpointB.ConnectionID
 			metadata.Address = interchainAccountAddr
 			metadata.Encoding = icatypes.EncodingProto3JSON // this is the actual change to the version
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
