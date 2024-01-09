@@ -197,7 +197,7 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnection, "proposed controller connection ID must not change")
 	}
 
-	// these explicit checks on the controller connection identifier should be unreachable
+	// these explicit checks on the host connection identifier should be unreachable
 	if currentMetadata.HostConnectionId != connectionHops[0] {
 		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
 	}
