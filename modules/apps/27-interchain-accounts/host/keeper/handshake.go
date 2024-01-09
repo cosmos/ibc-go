@@ -166,12 +166,11 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 		return "", errorsmod.Wrapf(channeltypes.ErrInvalidUpgrade, "expected connection hops %s, got %s", []string{connectionID}, connectionHops)
 	}
 
-	// verify proposed version only modifies tx type or encoding
 	if strings.TrimSpace(counterpartyVersion) == "" {
 		return "", errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
 	}
 
-	counterpartyMetadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
+	proposedCounterpartyMetadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
 		return "", err
 	}
@@ -182,21 +181,23 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 	}
 
 	// ValidateHostMetadata will ensure the ICS27 protocol version has not changed and that the
-	// tx type and encoding are supported
-	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, counterpartyMetadata); err != nil {
+	// tx type and encoding are supported. It also validates the connection params against the counterparty metadata.
+	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, proposedCounterpartyMetadata); err != nil {
 		return "", errorsmod.Wrap(err, "invalid metadata")
 	}
 
 	// the interchain account address on the host chain
 	// must remain the same after the upgrade.
-	if currentMetadata.Address != counterpartyMetadata.Address {
+	if currentMetadata.Address != proposedCounterpartyMetadata.Address {
 		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be changed")
 	}
 
-	if currentMetadata.ControllerConnectionId != counterpartyMetadata.ControllerConnectionId {
+	// these explicit checks on the controller connection identifier should be unreachable
+	if currentMetadata.ControllerConnectionId != proposedCounterpartyMetadata.ControllerConnectionId {
 		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnection, "proposed controller connection ID must not change")
 	}
 
+	// these explicit checks on the controller connection identifier should be unreachable
 	if currentMetadata.HostConnectionId != connectionHops[0] {
 		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
 	}

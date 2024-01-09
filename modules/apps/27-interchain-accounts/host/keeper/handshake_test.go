@@ -169,6 +169,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				path.EndpointB.SetChannel(*channel)
 			}, false,
 		},
+
 		{
 			"invalid order - UNORDERED",
 			func() {
@@ -545,6 +546,13 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 				})
 			},
 			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the host connection identifier are unreachable
+		},
+		{
+			name: "failure: channel not found",
+			malleate: func() {
+				path.EndpointB.ChannelID = "invalid-channel-id"
+			},
+			expError: channeltypes.ErrChannelNotFound,
 		},
 	}
 

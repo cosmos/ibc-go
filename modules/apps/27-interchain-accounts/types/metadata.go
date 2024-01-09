@@ -78,7 +78,8 @@ func IsPreviousMetadataEqual(previousVersion string, metadata Metadata) bool {
 		previousMetadata.TxType == metadata.TxType)
 }
 
-// ValidateControllerMetadata performs validation of the provided ICS27 controller metadata parameters
+// ValidateControllerMetadata performs validation of the provided ICS27 controller metadata parameters as well
+// as the connection params against the provided metadata
 func ValidateControllerMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
 	if !isSupportedEncoding(metadata.Encoding) {
 		return errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", metadata.Encoding)
