@@ -532,7 +532,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			suite.Require().NoError(err)
 
 			order = channeltypes.ORDERED
-			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID)
+			metadata = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
 
