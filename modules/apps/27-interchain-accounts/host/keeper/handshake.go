@@ -43,12 +43,11 @@ func (k Keeper) OnChanOpenTry(
 		return "", err
 	}
 
+	// override the HostConnectionId metadata
+	metadata.HostConnectionId = connectionHops[0]
+
 	if err = icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
 		return "", err
-	}
-
-	if metadata.HostConnectionId == "" {
-		metadata.HostConnectionId = connectionHops[0]
 	}
 
 	activeChannelID, found := k.GetActiveChannelID(ctx, connectionHops[0], counterparty.PortId)

@@ -248,18 +248,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			false,
 		},
 		{
-			"invalid host connection ID",
-			func() {
-				metadata.HostConnectionId = "invalid-connnection-id"
-
-				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
-
-				path.EndpointA.ChannelConfig.Version = string(versionBytes)
-			},
-			false,
-		},
-		{
 			"invalid counterparty version",
 			func() {
 				metadata.Version = "invalid-version"
@@ -544,7 +532,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			suite.Require().NoError(err)
 
 			order = channeltypes.ORDERED
-			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
+			metadata = icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID)
 			// use the same address as the previous metadata.
 			metadata.Address = currentMetadata.Address
 
