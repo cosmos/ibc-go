@@ -169,7 +169,7 @@ IBC application callbacks should be primarily used to validate data fields and d
 
 A new cli has been added which enables either
     - submitting a governance proposal which contains a `MsgChanUpgradeInit` for every channel to be upgraded.
-    - generation a `proposal.json` file which contains the proposal contents to be edited/submitted at a later date.
+    - generating a `proposal.json` file which contains the proposal contents to be edited/submitted at a later date.
 
 The following example, would submit a governance proposal with the specified deposit, title and summary which would
 contain a `MsgChanUpgradeInit` for all `OPEN` channels whose port matches the regular expression `transfer`.
