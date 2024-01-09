@@ -64,7 +64,7 @@ func newUpgradeChannelsTxCmd() *cobra.Command {
 		Use:   "upgrade-channels",
 		Short: "Upgrade IBC channels",
 		Long: `Submit a governance proposal to upgrade all open channels whose port matches a specified pattern 
-(the default is transfer), optionally, specific an exact list of channel IDs with a comma separated list.`,
+(the default is transfer), optionally, an exact list of comma separated channel IDs may be specified.`,
 		Args:    cobra.ExactArgs(1),
 		Example: fmt.Sprintf(`%s tx %s %s upgrade-channels "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}" --deposit 10stake`, version.AppName, ibcexported.ModuleName, types.SubModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
