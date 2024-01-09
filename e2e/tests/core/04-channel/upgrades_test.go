@@ -154,7 +154,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeout
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
-		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-v1")
+		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-1")
 
 		errorReceipt, err := s.QueryUpgradeError(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
@@ -167,7 +167,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeout
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
-		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-v1")
+		s.Require().Equal(transfertypes.Version, channel.Version, "the channel version is not ics20-1")
 
 		errorReceipt, err := s.QueryUpgradeError(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
@@ -190,11 +190,12 @@ func (s *ChannelTestSuite) createUpgradeFields(channel channeltypes.Channel) cha
 
 // setUpgradeTimeoutParam creates and submits a governance proposal to execute the message to update 04-channel params with a timeout of 1s
 func (s *ChannelTestSuite) setUpgradeTimeoutParam(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet) {
+	const timeoutDelta = 1000000000 // use 1 second as relative timeout to force upgrade timeout on the counterparty
 	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
-	upgradeTimeout := channeltypes.NewTimeout(channeltypes.DefaultTimeout.Height, 1000000000)
+	upgradeTimeout := channeltypes.NewTimeout(channeltypes.DefaultTimeout.Height, timeoutDelta)
 	msg := channeltypes.NewMsgUpdateChannelParams(govModuleAddress.String(), channeltypes.NewParams(upgradeTimeout))
 	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, wallet)
 }
