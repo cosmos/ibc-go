@@ -50,7 +50,8 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	txCmd.AddCommand(
-		NewPruneAcknowledgementsTxCmd(),
+		newUpgradeChannelsTxCmd(),
+		newPruneAcknowledgementsTxCmd(),
 	)
 
 	return txCmd
