@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			"success: empty channel version returns default metadata JSON string",
 			func() {
 				channel.Version = ""
-				expectedVersionReturn = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, "")
+				expectedVersionReturn = icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID)
 			},
 			true,
 		},

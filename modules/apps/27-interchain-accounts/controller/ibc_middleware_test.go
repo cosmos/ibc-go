@@ -249,7 +249,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			)
 
 			if tc.expPass {
-				suite.Require().Equal(icatypes.NewDefaultMetadataString(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID), version)
+				suite.Require().Equal(TestVersion, version)
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)

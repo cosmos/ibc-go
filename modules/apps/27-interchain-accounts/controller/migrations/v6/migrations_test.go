@@ -17,6 +17,12 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
+var (
+	metadata        = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
+	versionBytes, _ = icatypes.ModuleCdc.MarshalJSON(&metadata)
+	version         = string(versionBytes)
+)
+
 type MigrationsTestSuite struct {
 	testifysuite.Suite
 
@@ -38,8 +44,8 @@ func (suite *MigrationsTestSuite) SetupTest() {
 	suite.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
 	suite.path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	suite.path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
-	suite.path.EndpointA.ChannelConfig.Version = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-	suite.path.EndpointB.ChannelConfig.Version = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+	suite.path.EndpointA.ChannelConfig.Version = version
+	suite.path.EndpointB.ChannelConfig.Version = version
 }
 
 func (suite *MigrationsTestSuite) SetupPath() error {

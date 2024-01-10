@@ -25,7 +25,9 @@ var (
 	defaultPortID, _ = icatypes.NewControllerPortID(defaultOwnerAddress)
 
 	// defaultICAVersion defines a reusable interchainaccounts version string for testing purposes
-	defaultICAVersion = icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+	metadata          = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
+	versionBytes, _   = icatypes.ModuleCdc.MarshalJSON(&metadata)
+	defaultICAVersion = string(versionBytes)
 )
 
 // NewIncentivizedICAPath creates and returns a new ibctesting path configured for a fee enabled interchain accounts channel
