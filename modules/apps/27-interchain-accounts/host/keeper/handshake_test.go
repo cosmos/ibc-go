@@ -303,6 +303,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 			suite.Require().NoError(err)
 
+			expectedMetadataReturn := metadata
+
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.TRYOPEN,
@@ -333,6 +335,12 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				// Check if account is created
 				interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), interchainAccAddr)
 				suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
+
+				expectedMetadataReturn.Address = storedAddr
+				expectedVersionBytes, err := icatypes.ModuleCdc.MarshalJSON(&expectedMetadataReturn)
+				suite.Require().NoError(err)
+
+				suite.Require().Equal(string(expectedVersionBytes), version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal("", version)
