@@ -63,9 +63,9 @@ After this message is handled successfully, the channel's upgrade sequence will 
 
 ### Governance gating on `ChanUpgradeInit`
 
-The message signer for `MsgChanUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
+The message signer for `MsgChannelUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
 
-If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChanUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
+If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChannelUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
 
 ## Channel State and Packet Flushing
 
@@ -164,3 +164,39 @@ IBC application callbacks should be primarily used to validate data fields and d
 > IBC applications should not attempt to process any packet data under the new conditions until after `OnChanUpgradeOpen`
 > has been executed, as up until this point it is still possible for the upgrade handshake to fail and for the channel
 > to remain in the pre-upgraded state. 
+
+## Upgrading channels with the CLI
+
+A new cli has been added which enables either
+    - submitting a governance proposal which contains a `MsgChannelUpgradeInit` for every channel to be upgraded.
+    - generating a `proposal.json` file which contains the proposal contents to be edited/submitted at a later date.
+
+The following example, would submit a governance proposal with the specified deposit, title and summary which would
+contain a `MsgChannelUpgradeInit` for all `OPEN` channels whose port matches the regular expression `transfer`.
+
+> Note: by adding the `--json` flag, the command would instead output the contents of the proposal which could be 
+> stored in a `proposal.json` file to be edited and submitted at a later date.
+
+```bash
+simd tx ibc channel upgrade-channels "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}" \
+  --deposit "10stake" \
+  --title "Channel Upgrades Governance Proposal" \
+  --summary "Upgrade all transfer channels to be fee enabled" \
+  --port-pattern "transfer"
+```
+
+It is also possible to explicitly list a comma separated string of channel IDs. It is important to note that the 
+regular expression matching specified by `--port-pattern` (which defaults to `transfer`) still applies.
+
+For example the following command would generate the contents of a `proposal.json` file which would attempt to upgrade
+channels with a port ID of `transfer` and a channelID of `channel-0`, `channel-1` or `channel-2`.
+
+```bash
+simd tx ibc channel upgrade-channels "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}" \
+  --deposit "10stake" \
+  --title "Channel Upgrades Governance Proposal" \
+  --summary "Upgrade all transfer channels to be fee enabled" \
+  --port-pattern "transfer" \
+  --channel-ids "channel-0,channel-1,channel-2" \
+  --json
+```
