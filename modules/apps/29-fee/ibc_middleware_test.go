@@ -24,7 +24,7 @@ import (
 var (
 	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}}
 	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(200)}}
-	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(300)}}
+	defaultTimeoutFee = sdk.Coins(nil)
 	smallAmount       = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(50)}}
 )
 
@@ -847,11 +847,11 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {
 				// retrieve the relayer acc balance and add the expected timeout fees
 				relayerAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom))
-				expPayeeAccBalance = relayerAccBalance.Add(packetFee.Fee.TimeoutFee...)
+				expPayeeAccBalance = relayerAccBalance.Add(packetFee.Fee.RecvFee...).Add(packetFee.Fee.AckFee...)
 
 				// retrieve the refund acc balance and add the expected recv and ack fees
 				refundAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
-				expRefundAccBalance = refundAccBalance.Add(packetFee.Fee.RecvFee...).Add(packetFee.Fee.AckFee...)
+				expRefundAccBalance = refundAccBalance
 			},
 			true,
 			func() {
@@ -879,11 +879,11 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 
 				// retrieve the relayer acc balance and add the expected timeout fees
 				payeeAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), payeeAddr, sdk.DefaultBondDenom))
-				expPayeeAccBalance = payeeAccBalance.Add(packetFee.Fee.TimeoutFee...)
+				expPayeeAccBalance = payeeAccBalance.Add(packetFee.Fee.RecvFee...).Add(packetFee.Fee.AckFee...)
 
 				// retrieve the refund acc balance and add the expected recv and ack fees
 				refundAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
-				expRefundAccBalance = refundAccBalance.Add(packetFee.Fee.RecvFee...).Add(packetFee.Fee.AckFee...)
+				expRefundAccBalance = refundAccBalance
 			},
 			true,
 			func() {
