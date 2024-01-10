@@ -872,7 +872,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 	cases := []struct {
 		name      string
 		malleate  func()
-		expResult func(events []abci.Event, res *channeltypes.MsgChannelUpgradeInitResponse, err error)
+		expResult func(res *channeltypes.MsgChannelUpgradeInitResponse, events []abci.Event, err error)
 	}{
 		{
 			"success",
@@ -884,7 +884,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 					path.EndpointA.Chain.GetSimApp().IBCKeeper.GetAuthority(),
 				)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeInitResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeInitResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(uint64(1), res.UpgradeSequence)
@@ -920,7 +920,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 					path.EndpointA.Chain.SenderAccount.String(),
 				)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeInitResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeInitResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().ErrorContains(err, ibcerrors.ErrUnauthorized.Error())
 				suite.Require().Nil(res)
@@ -944,7 +944,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 					path.EndpointA.Chain.GetSimApp().IBCKeeper.GetAuthority(),
 				)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeInitResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeInitResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 
@@ -970,7 +970,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeInit(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
-			tc.expResult(events, res, err)
+
+			tc.expResult(res, events, err)
 		})
 	}
 }
@@ -984,12 +985,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 	cases := []struct {
 		name      string
 		malleate  func()
-		expResult func(events []abci.Event, res *channeltypes.MsgChannelUpgradeTryResponse, err error)
+		expResult func(res *channeltypes.MsgChannelUpgradeTryResponse, events []abci.Event, err error)
 	}{
 		{
 			"success",
 			func() {},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
@@ -1024,7 +1025,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				msg.PortId = "invalid-port"
 				msg.ChannelId = "invalid-channel"
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 
@@ -1040,7 +1041,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 
 				path.EndpointB.SetChannel(channel)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().NotNil(res)
@@ -1081,7 +1082,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeTryResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 
@@ -1131,7 +1132,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			ctx := suite.chainB.GetContext()
 			res, err := suite.chainB.GetSimApp().GetIBCKeeper().ChannelUpgradeTry(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
-			tc.expResult(events, res, err)
+
+			tc.expResult(res, events, err)
 		})
 	}
 }
@@ -1145,12 +1147,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 	cases := []struct {
 		name      string
 		malleate  func()
-		expResult func(events []abci.Event, res *channeltypes.MsgChannelUpgradeAckResponse, err error)
+		expResult func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error)
 	}{
 		{
 			"success, no pending in-flight packets",
 			func() {},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
@@ -1187,7 +1189,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				// Set a dummy packet commitment to simulate in-flight packets
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), portID, channelID, 1, []byte("hash"))
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
@@ -1222,7 +1224,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				msg.PortId = ibctesting.InvalidID
 				msg.ChannelId = ibctesting.InvalidID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 
@@ -1239,7 +1241,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 
 				path.EndpointA.SetChannel(channel)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 				suite.Require().ErrorIs(err, channeltypes.ErrInvalidChannelState)
@@ -1260,7 +1262,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 
 				path.EndpointA.SetChannelUpgrade(upgrade)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().NotNil(res)
@@ -1301,7 +1303,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 					return fmt.Errorf("mock app callback failed")
 				}
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().NotNil(res)
@@ -1346,7 +1348,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeAckResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 				suite.Require().Empty(events)
@@ -1394,7 +1396,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeAck(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
-			tc.expResult(events, res, err)
+
+			tc.expResult(res, events, err)
 		})
 	}
 }
@@ -1408,12 +1411,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 	cases := []struct {
 		name      string
 		malleate  func()
-		expResult func(events []abci.Event, res *channeltypes.MsgChannelUpgradeConfirmResponse, err error)
+		expResult func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error)
 	}{
 		{
 			"success, no pending in-flight packets",
 			func() {},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
@@ -1491,7 +1494,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 					Signer:                   suite.chainA.SenderAccount.GetAddress().String(),
 				}
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
@@ -1524,7 +1527,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				portID, channelID := path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainB.GetContext(), portID, channelID, 1, []byte("hash"))
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(channeltypes.SUCCESS, res.Result)
@@ -1553,7 +1556,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				msg.PortId = ibctesting.InvalidID
 				msg.ChannelId = ibctesting.InvalidID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 
@@ -1570,7 +1573,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 
 				path.EndpointB.SetChannel(channel)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 				suite.Require().ErrorIs(err, channeltypes.ErrInvalidChannelState)
@@ -1603,7 +1606,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				msg.ProofUpgrade = proofUpgrade
 				msg.ProofHeight = proofHeight
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 
 				suite.Require().NotNil(res)
@@ -1645,7 +1648,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeConfirmResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 
@@ -1699,7 +1702,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			ctx := suite.chainB.GetContext()
 			res, err := suite.chainB.GetSimApp().GetIBCKeeper().ChannelUpgradeConfirm(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
-			tc.expResult(events, res, err)
+
+			tc.expResult(res, events, err)
 		})
 	}
 }
@@ -1713,12 +1717,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 	cases := []struct {
 		name      string
 		malleate  func()
-		expResult func(events []abci.Event, res *channeltypes.MsgChannelUpgradeOpenResponse, err error)
+		expResult func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error)
 	}{
 		{
 			"success",
 			func() {},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
@@ -1750,7 +1754,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				msg.PortId = ibctesting.InvalidID
 				msg.ChannelId = ibctesting.InvalidID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 
@@ -1765,7 +1769,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				channel.State = channeltypes.FLUSHING
 				path.EndpointA.SetChannel(channel)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 
@@ -1785,7 +1789,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeOpenResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 
@@ -1839,7 +1843,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeOpen(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
-			tc.expResult(events, res, err)
+
+			tc.expResult(res, events, err)
 		})
 	}
 }
@@ -1853,12 +1858,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 	cases := []struct {
 		name      string
 		malleate  func()
-		expResult func(events []abci.Event, res *channeltypes.MsgChannelUpgradeCancelResponse, err error)
+		expResult func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error)
 	}{
 		{
 			"success: keeper is not authority, valid error receipt so channnel changed to match error receipt seq",
 			func() {},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
@@ -1907,7 +1912,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				channel.UpgradeSequence = uint64(3)
 				path.EndpointA.SetChannel(channel)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
@@ -1957,7 +1962,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				channel.UpgradeSequence = uint64(1)
 				path.EndpointA.SetChannel(channel)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
@@ -2007,7 +2012,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				channel.UpgradeSequence = uint64(1)
 				path.EndpointA.SetChannel(channel)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
@@ -2056,7 +2061,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				channel.UpgradeSequence = uint64(1)
 				path.EndpointA.SetChannel(channel)
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
@@ -2100,7 +2105,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			func() {
 				msg.ChannelId = ibctesting.InvalidID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 
@@ -2120,7 +2125,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Force set to STATE_FLUSHCOMPLETE to check that state is not changed.
 				suite.Require().NoError(path.EndpointA.SetChannelState(channeltypes.FLUSHCOMPLETE))
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
 
@@ -2146,7 +2151,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeCancelResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 
@@ -2207,7 +2212,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeCancel(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
-			tc.expResult(events, res, err)
+
+			tc.expResult(res, events, err)
 		})
 	}
 }
@@ -2228,7 +2234,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 	cases := []struct {
 		name      string
 		malleate  func()
-		expResult func(events []abci.Event, res *channeltypes.MsgChannelUpgradeTimeoutResponse, err error)
+		expResult func(res *channeltypes.MsgChannelUpgradeTimeoutResponse, events []abci.Event, err error)
 	}{
 		{
 			"success",
@@ -2243,7 +2249,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				msg.ProofChannel = channelProof
 				msg.ProofHeight = proofHeight
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeTimeoutResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeTimeoutResponse, events []abci.Event, err error) {
 				channel := path.EndpointA.GetChannel()
 
 				suite.Require().Equalf(channeltypes.OPEN, channel.State, "channel state should be %s", channeltypes.OPEN.String())
@@ -2295,7 +2301,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			func() {
 				msg.ChannelId = ibctesting.InvalidID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeTimeoutResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeTimeoutResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
 
@@ -2321,7 +2327,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				msg.ProofHeight = proofHeight
 				msg.ProofChannel = []byte("invalid proof")
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeTimeoutResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeTimeoutResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, commitmenttypes.ErrInvalidProof)
 
@@ -2347,7 +2353,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
 			},
-			func(events []abci.Event, res *channeltypes.MsgChannelUpgradeTimeoutResponse, err error) {
+			func(res *channeltypes.MsgChannelUpgradeTimeoutResponse, events []abci.Event, err error) {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 
@@ -2388,7 +2394,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().GetIBCKeeper().ChannelUpgradeTimeout(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
-			tc.expResult(events, res, err)
+
+			tc.expResult(res, events, err)
 		})
 	}
 }
