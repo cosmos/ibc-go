@@ -77,7 +77,7 @@ func (k Keeper) OnChanOpenInit(
 		}
 
 		if channel.Ordering != order {
-			return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected channel with ordering %s, got %s", order, channel.Ordering)
+			return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "order cannot change when reopening a channel expected %s, got %s", channel.Ordering, order)
 		}
 
 		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
