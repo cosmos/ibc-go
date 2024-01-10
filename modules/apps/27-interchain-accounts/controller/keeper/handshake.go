@@ -31,10 +31,6 @@ func (k Keeper) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	if order != channeltypes.ORDERED {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
-	}
-
 	if !strings.HasPrefix(portID, icatypes.ControllerPortPrefix) {
 		return "", errorsmod.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.ControllerPortPrefix, portID)
 	}

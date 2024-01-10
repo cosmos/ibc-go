@@ -26,6 +26,13 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+// orderMapping is a mapping from channel ordering to the string representation of the ordering.
+// the representation can be different depending on the relayer implmentation.
+var orderMapping = map[channeltypes.Order][]string{
+	channeltypes.ORDERED:   {channeltypes.ORDERED.String(), "Ordered"},
+	channeltypes.UNORDERED: {channeltypes.UNORDERED.String(), "Unordered"},
+}
+
 func TestInterchainAccountsTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }
@@ -41,6 +48,14 @@ func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Cont
 }
 
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
+	s.testMsgSendTxSuccessfulTransfer(channeltypes.ORDERED)
+}
+
+func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_UnorderedChannel() {
+	s.testMsgSendTxSuccessfulTransfer(channeltypes.UNORDERED)
+}
+
+func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order channeltypes.Order) {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -78,6 +93,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), 2)
+		icaChannel := channels[0]
+		s.Require().Contains(orderMapping[order], icaChannel.Ordering)
 	})
 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
