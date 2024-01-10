@@ -74,7 +74,7 @@ After this message is handled successfully, the channel's upgrade sequence will 
 
 The message signer for `MsgChannelUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
 
-If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChannelUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
+If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChannelUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`. The `upgrade-channels` CLI command can be used to submit a proposal that initiates the upgrade of multiple channels; see section [Upgrading channels with the CLI](#upgrading-channels-with-the-cli) below for more information.
 
 ## Channel State and Packet Flushing
 
@@ -352,7 +352,6 @@ Update the following json sample, and copy the contents into `proposal.json`.
 ```shell
 simd tx submit-proposal proposal.json --from <key_or_address>
 ```
-
 
 ## Upgrading channels with the CLI
 
