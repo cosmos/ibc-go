@@ -962,6 +962,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 	var (
 		path                *ibctesting.Path
+		isNilApp            bool
 		counterpartyVersion string
 	)
 
@@ -972,6 +973,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 	}{
 		{
 			"success", func() {}, nil,
+		},
+		{
+			"success: nil app", func() {
+				isNilApp = true
+			}, nil,
 		},
 		{
 			"failure: upgrade route not found",
@@ -1005,6 +1011,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
@@ -1039,6 +1046,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 					)
 				})
 			} else {
+				if isNilApp {
+					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				}
+
 				cbs.OnChanUpgradeOpen(
 					suite.chainA.GetContext(),
 					path.EndpointA.ChannelConfig.PortID,
@@ -1053,7 +1064,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
-	var path *ibctesting.Path
+	var (
+		path     *ibctesting.Path
+		isNilApp bool
+	)
 
 	testCases := []struct {
 		name     string
@@ -1062,6 +1076,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
 	}{
 		{
 			"success", func() {}, nil,
+		},
+		{
+			"success: nil app", func() {
+				isNilApp = true
+			}, nil,
 		},
 		{
 			"failure: upgrade route not found",
@@ -1095,6 +1114,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupConnections(path)
@@ -1121,6 +1141,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeRestore() {
 					cbs.OnChanUpgradeRestore(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				})
 			} else {
+				if isNilApp {
+					cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
+				}
+
 				cbs.OnChanUpgradeRestore(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			}
 		})
