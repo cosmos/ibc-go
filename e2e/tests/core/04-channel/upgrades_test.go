@@ -55,6 +55,13 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
 	}
 
+	var (
+		transferTxResp                           ibc.Tx
+		payPacketFeeTxResp                       sdk.TxResponse
+		chainARelayerWallet, chainBRelayerWallet ibc.Wallet
+		testFee                                  = testvalues.DefaultFee(chainADenom)
+	)
+
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	// trying to create some inflight packets, although they might get relayed before the upgrade starts
@@ -153,13 +160,6 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 		s.StopRelayer(ctx, relayer)
 	})
 
-	var (
-		chainATx                                 ibc.Tx
-		payPacketFeeTxResp                       sdk.TxResponse
-		chainARelayerWallet, chainBRelayerWallet ibc.Wallet
-		testFee                                  = testvalues.DefaultFee(chainADenom)
-	)
-
 	t.Run("recover relayer wallets", func(t *testing.T) {
 		err := s.RecoverRelayerWallets(ctx, relayer)
 		s.Require().NoError(err)
@@ -193,7 +193,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 			s.Require().NoError(err)
 			s.Require().Empty(packets)
 
-			packetID := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, chainATx.Packet.Sequence)
+			packetID := channeltypes.NewPacketID(channelA.PortID, channelA.ChannelID, transferTxResp.Packet.Sequence)
 			packetFee := feetypes.NewPacketFee(testFee, chainAWallet.FormattedAddress(), nil)
 
 			payPacketFeeTxResp = s.PayPacketFeeAsync(ctx, chainA, chainAWallet, packetID, packetFee)
