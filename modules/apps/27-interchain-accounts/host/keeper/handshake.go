@@ -139,6 +139,7 @@ func (Keeper) OnChanCloseConfirm(
 // The following may be changed:
 // - tx type (must be supported)
 // - encoding (must be supported)
+// - order
 //
 // The following may not be changed:
 // - connectionHops (and subsequently host/controller connectionIDs)
