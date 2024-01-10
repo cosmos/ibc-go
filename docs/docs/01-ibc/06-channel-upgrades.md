@@ -165,7 +165,7 @@ IBC application callbacks should be primarily used to validate data fields and d
 > has been executed, as up until this point it is still possible for the upgrade handshake to fail and for the channel
 > to remain in the pre-upgraded state. 
 
-## Upgrade existing transfer stack to be fee enabled
+## Upgrade an existing transfer application stack to use 29-fee middleware
 
 ### Wire up the transfer stack and middleware in app.go
 
@@ -220,12 +220,12 @@ transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 ```
 
-### Submit a governance proposal to execute a MsgChanUpgradeInit message
+### Submit a governance proposal to execute a MsgChannelUpgradeInit message
 
 > This process can be performed with the new CLI that has been added
 > outlined [here](#upgrading-channels-with-the-cli).
 
-Only an authority is able to initiate a channel upgrade by submitting a `MsgChanUpgradeInit` message.
+Only the configured authority for the ibc module is able to initiate a channel upgrade by submitting a `MsgChannelUpgradeInit` message.
 
 Execute a governance proposal specifying the relevant fields to perform a channel upgrade.
 
@@ -252,6 +252,8 @@ Update the following json sample, and copy the contents into `proposal.json`.
   "deposit": "10stake"
 }
 ```
+
+> Note: ensure the correct fields.version is specified. This is the new version that the channels will be upgraded to.
 
 ### Submit the proposal
 
