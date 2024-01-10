@@ -63,9 +63,65 @@ After this message is handled successfully, the channel's upgrade sequence will 
 
 ### Governance gating on `ChanUpgradeInit`
 
-The message signer for `MsgChanUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
+The message signer for `MsgChannelUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
 
-If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChanUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
+If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChannelUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
+
+## Channel State and Packet Flushing
+
+`FLUSHING` and `FLUSHCOMPLETE` are additional channel states which have been added to enable the upgrade feature.
+
+These states may consist of: 
+
+```go
+const (
+  // Default State
+  UNINITIALIZED State = 0
+  // A channel has just started the opening handshake.
+  INIT State = 1
+  // A channel has acknowledged the handshake step on the counterparty chain.
+  TRYOPEN State = 2
+  // A channel has completed the handshake. Open channels are
+  // ready to send and receive packets.
+  OPEN State = 3
+  // A channel has been closed and can no longer be used to send or receive
+  // packets.
+  CLOSED State = 4
+  // A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets.
+  FLUSHING State = 5
+  // A channel has just completed flushing any in-flight packets.
+  FLUSHCOMPLETE State = 6
+)
+```
+
+These are found in `State` on the `Channel` struct:
+
+```go
+type Channel struct {
+  // current state of the channel end
+  State State `protobuf:"varint,1,opt,name=state,proto3,enum=ibc.core.channel.v1.State" json:"state,omitempty"`
+  // whether the channel is ordered or unordered
+  Ordering Order `protobuf:"varint,2,opt,name=ordering,proto3,enum=ibc.core.channel.v1.Order" json:"ordering,omitempty"`
+  // counterparty channel end
+  Counterparty Counterparty `protobuf:"bytes,3,opt,name=counterparty,proto3" json:"counterparty"`
+  // list of connection identifiers, in order, along which packets sent on
+  // this channel will travel
+  ConnectionHops []string `protobuf:"bytes,4,rep,name=connection_hops,json=connectionHops,proto3" json:"connection_hops,omitempty"`
+  // opaque channel version, which is agreed upon during the handshake
+  Version string `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
+  // upgrade sequence indicates the latest upgrade attempt performed by this channel
+  // the value of 0 indicates the channel has never been upgraded
+  UpgradeSequence uint64 `protobuf:"varint,6,opt,name=upgrade_sequence,json=upgradeSequence,proto3" json:"upgrade_sequence,omitempty"`
+}
+```
+
+`startFlushing` is the specific method which is called in `ChanUpgradeTry` and `ChanUpgradeAck` to update the state on the channel end. This will set the timeout on the upgrade and update the channel state to `FLUSHING` which will block the upgrade from continuing until all in-flight packets have been flushed. 
+
+This will also set the upgrade timeout for the counterparty (i.e. the timeout before which the counterparty chain must move from `FLUSHING` to `FLUSHCOMPLETE`; if it doesn't then the chain will cancel the upgrade and write an error receipt). The timeout is a relative time duration in nanoseconds that can be changed with `MsgUpdateParams` and by default is 10 minutes.
+
+The state will change to `FLUSHCOMPLETE` once there are no in-flight packets left and the channel end is ready to move to `OPEN`. This flush state will also have an impact on how a channel ugrade can be cancelled, as detailed below.
+
+All other parameters will remain the same during the upgrade handshake until the upgrade handshake completes. When the channel is reset to `OPEN` on a successful upgrade handshake, the relevant fields on the channel end will be switched over to the `UpgradeFields` specified in the upgrade.
 
 ## Cancelling a Channel Upgrade
 
@@ -90,3 +146,57 @@ the channel will move back to `OPEN` state keeping its original parameters.
 The application's `OnChanUpgradeRestore` callback method will be invoked.
 
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
+
+## IBC App Recommendations
+
+IBC application callbacks should be primarily used to validate data fields and do compatibility checks.
+
+`OnChanUpgradeInit` should validate the proposed version, order, and connection hops, and should return the application version to upgrade to.
+
+`OnChanUpgradeTry` should validate the proposed version (provided by the counterparty), order, and connection hops. The desired upgrade version should be returned.
+
+`OnChanUpgradeAck` should validate the version proposed by the counterparty.
+
+`OnChanUpgradeOpen` should perform any logic associated with changing of the channel fields.
+
+`OnChanUpgradeRestore`  should perform any logic that needs to be executed when an upgrade attempt fails as is reverted.
+
+> IBC applications should not attempt to process any packet data under the new conditions until after `OnChanUpgradeOpen`
+> has been executed, as up until this point it is still possible for the upgrade handshake to fail and for the channel
+> to remain in the pre-upgraded state. 
+
+## Upgrading channels with the CLI
+
+A new cli has been added which enables either
+    - submitting a governance proposal which contains a `MsgChannelUpgradeInit` for every channel to be upgraded.
+    - generating a `proposal.json` file which contains the proposal contents to be edited/submitted at a later date.
+
+The following example, would submit a governance proposal with the specified deposit, title and summary which would
+contain a `MsgChannelUpgradeInit` for all `OPEN` channels whose port matches the regular expression `transfer`.
+
+> Note: by adding the `--json` flag, the command would instead output the contents of the proposal which could be 
+> stored in a `proposal.json` file to be edited and submitted at a later date.
+
+```bash
+simd tx ibc channel upgrade-channels "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}" \
+  --deposit "10stake" \
+  --title "Channel Upgrades Governance Proposal" \
+  --summary "Upgrade all transfer channels to be fee enabled" \
+  --port-pattern "transfer"
+```
+
+It is also possible to explicitly list a comma separated string of channel IDs. It is important to note that the 
+regular expression matching specified by `--port-pattern` (which defaults to `transfer`) still applies.
+
+For example the following command would generate the contents of a `proposal.json` file which would attempt to upgrade
+channels with a port ID of `transfer` and a channelID of `channel-0`, `channel-1` or `channel-2`.
+
+```bash
+simd tx ibc channel upgrade-channels "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}" \
+  --deposit "10stake" \
+  --title "Channel Upgrades Governance Proposal" \
+  --summary "Upgrade all transfer channels to be fee enabled" \
+  --port-pattern "transfer" \
+  --channel-ids "channel-0,channel-1,channel-2" \
+  --json
+```
