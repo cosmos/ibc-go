@@ -158,17 +158,17 @@ func (IBCModule) OnTimeoutPacket(
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+func (IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
 	return "", errorsmod.Wrap(icatypes.ErrInvalidChannelFlow, "channel upgrade handshake must be initiated by controller chain")
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedORder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	if !im.keeper.GetParams(ctx).HostEnabled {
 		return "", types.ErrHostSubModuleDisabled
 	}
 
-	return im.keeper.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
+	return im.keeper.OnChanUpgradeTry(ctx, portID, channelID, proposedORder, proposedConnectionHops, counterpartyVersion)
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
@@ -177,7 +177,7 @@ func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpar
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, proposedVersion string) {
 }
 
 // OnChanUpgradeRestore implements the IBCModule interface

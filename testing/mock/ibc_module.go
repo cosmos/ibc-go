@@ -178,18 +178,18 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
 	if im.IBCApp.OnChanUpgradeInit != nil {
-		return im.IBCApp.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, version)
+		return im.IBCApp.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 	}
 
-	return version, nil
+	return proposedVersion, nil
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	if im.IBCApp.OnChanUpgradeTry != nil {
-		return im.IBCApp.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
+		return im.IBCApp.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
 	}
 
 	return counterpartyVersion, nil
@@ -205,9 +205,9 @@ func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counter
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, proposedVersion string) {
 	if im.IBCApp.OnChanUpgradeOpen != nil {
-		im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, version)
+		im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, proposedVersion)
 	}
 }
 

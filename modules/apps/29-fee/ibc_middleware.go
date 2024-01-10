@@ -421,17 +421,17 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, cou
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) {
+func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
 		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
 	}
 
-	versionMetadata, err := types.MetadataFromVersion(counterpartyVersion)
+	versionMetadata, err := types.MetadataFromVersion(proposedVersion)
 	if err != nil {
 		// set fee disabled and passthrough to the next middleware or application in callstack.
 		im.keeper.DeleteFeeEnabled(ctx, portID, channelID)
-		cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
+		cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 		return
 	}
 

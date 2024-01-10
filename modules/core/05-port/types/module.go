@@ -141,7 +141,7 @@ type UpgradableModule interface {
 		channelID string,
 		proposedOrder channeltypes.Order,
 		proposedConnectionHops []string,
-		counterpartyVersion string,
+		proposedVersion string,
 	)
 
 	// OnChanUpgradeRestore TODO
