@@ -17,8 +17,8 @@ import (
 
 func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 	var (
-		expRecvFees    sdk.Coins
-		expAckFees     sdk.Coins
+		expRecvFees sdk.Coins
+		expAckFees  sdk.Coins
 	)
 
 	suite.coordinator.Setup(suite.path)
