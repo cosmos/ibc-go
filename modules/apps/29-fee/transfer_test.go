@@ -23,8 +23,9 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	// set up coin & ics20 packet
 	coin := ibctesting.TestCoin
 	fee := types.Fee{
-		RecvFee:    defaultRecvFee,
-		AckFee:     defaultAckFee,
+		RecvFee: defaultRecvFee,
+		AckFee:  defaultAckFee,
+		// TimeoutFee is ignored since it is deprecated
 		TimeoutFee: defaultTimeoutFee,
 	}
 
@@ -65,7 +66,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	)
 
 	suite.Require().Equal(
-		fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
+		fee.AckFee, // ack fee paid
 		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance[0]))
 }
 
@@ -146,7 +147,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 
 				feeEscrowAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), feeEscrowAddr, sdk.DefaultBondDenom)
-				suite.Require().Equal(escrowBalance.Amount, fee.Total().AmountOf(sdk.DefaultBondDenom))
+				suite.Require().Equal(escrowBalance.Amount, fee.RecvAndAck().AmountOf(sdk.DefaultBondDenom))
 
 				packet, err := ibctesting.ParsePacketFromEvents(res.Events)
 				suite.Require().NoError(err)

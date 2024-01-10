@@ -108,6 +108,9 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 	expectedFee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	msgPayPacketFee := types.NewMsgPayPacketFee(expectedFee, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetAddress().String(), nil)
 
+	// This is because the timeout fee is deprecated
+	expectedFee = types.NewFee(defaultRecvFee, defaultAckFee, sdk.Coins(nil))
+
 	// fetch the account balance before fees are escrowed and assert the difference below
 	preEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
