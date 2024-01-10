@@ -55,9 +55,18 @@ Each handshake step will be documented below in greater detail.
 
 ## Initializing a Channel Upgrade
 
-A channel upgrade is initialised by submitting the `ChanUpgradeInit` message, which can be submitted only by the chain itself upon governance authorization. This message should specify an appropriate timeout window for the upgrade. It is possible to upgrade the channel ordering, the channel connection hops, and the channel version. 
+A channel upgrade is initialised by submitting the `MsgChannelUpgradeInit` message, which can be submitted only by the chain itself upon governance authorization. It is possible to upgrade the channel ordering, the channel connection hops, and the channel version, which can be found in the `UpgradeFields`. 
 
-As part of the handling of the `ChanUpgradeInit` message, the application's callbacks `OnChanUpgradeInit` will be triggered as well.
+```go
+type MsgChannelUpgradeInit struct {
+  PortId    string
+  ChannelId string
+  Fields    UpgradeFields
+  Signer    string
+}
+```
+
+As part of the handling of the `MsgChannelUpgradeInit` message, the application's `OnChanUpgradeInit` callback will be triggered as well.
 
 After this message is handled successfully, the channel's upgrade sequence will be incremented. This upgrade sequence will serve as a nonce for the upgrade process to provide replay protection.
 
@@ -65,7 +74,7 @@ After this message is handled successfully, the channel's upgrade sequence will 
 
 The message signer for `MsgChannelUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
 
-If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChannelUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
+If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChannelUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`. The `upgrade-channels` CLI command can be used to submit a proposal that initiates the upgrade of multiple channels; see section [Upgrading channels with the CLI](#upgrading-channels-with-the-cli) below for more information.
 
 ## Channel State and Packet Flushing
 
@@ -146,6 +155,58 @@ the channel will move back to `OPEN` state keeping its original parameters.
 The application's `OnChanUpgradeRestore` callback method will be invoked.
 
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
+
+## Timing Out a Channel Upgrade
+
+Timing out an outstanding channel upgrade may be necessary during the flushing packet stage of the channel upgrade process. As stated above, with `ChanUpgradeTry` or `ChanUpgradeAck`, the channel state has been changed from `OPEN` to `FLUSHING`, so no new packets will be allowed to be sent over this channel while flushing. If upgrades cannot be performed in a timely manner (due to unforeseen flushing issues), upgrade timeouts allow the channel to avoid blocking packet sends indefinitely. If flushing exceeds the time limit set in the `UpgradeTimeout` channel `Params`, the upgrade process will need to be timed out to abort the upgrade attempt and resume normal channel processing.
+
+Channel upgrades require setting a valid timeout value in the channel `Params` before submitting a `MsgChannelUpgradeTry` or `MsgChannelUpgradeAck` message (by default, 10 minutes): 
+
+```go
+type Params struct {
+  UpgradeTimeout Timeout 
+}
+```
+
+A valid Timeout contains either one or both of a timestamp and block height (sequence).
+
+```go
+type Timeout struct {
+  // block height after which the packet or upgrade times out
+  Height types.Height
+  // block timestamp (in nanoseconds) after which the packet or upgrade times out
+  Timestamp uint64
+}
+```
+
+This timeout will then be set as a field on the `Upgrade` struct itself when flushing is started.
+
+```go
+type Upgrade struct {
+  Fields           UpgradeFields 
+  Timeout          Timeout       
+  NextSequenceSend uint64        
+}
+```
+
+If the timeout has been exceeded during flushing, a chain can then submit the `MsgChannelUpgradeTimeout` to timeout the channel upgrade process:
+
+```go
+type MsgChannelUpgradeTimeout struct {
+  PortId              string    
+  ChannelId           string
+  CounterpartyChannel Channel 
+  ProofChannel        []byte
+  ProofHeight         types.Height
+  Signer              string 
+}
+```
+
+An `ErrorReceipt` will be written with the channel's current upgrade sequence, and the channel will move back to `OPEN` state keeping its original parameters.
+
+The application's `OnChanUpgradeRestore` callback method will also be invoked.
+
+Note that timing out a channel upgrade will end the upgrade process, and a new `MsgChannelUpgradeInit` will have to be submitted via governance in order to restart the upgrade process.
 
 ## Pruning Acknowledgements
 
@@ -291,7 +352,6 @@ Update the following json sample, and copy the contents into `proposal.json`.
 ```shell
 simd tx submit-proposal proposal.json --from <key_or_address>
 ```
-
 
 ## Upgrading channels with the CLI
 
