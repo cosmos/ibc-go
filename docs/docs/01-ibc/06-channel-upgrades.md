@@ -63,9 +63,9 @@ After this message is handled successfully, the channel's upgrade sequence will 
 
 ### Governance gating on `ChanUpgradeInit`
 
-The message signer for `MsgChanUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
+The message signer for `MsgChannelUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
 
-If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChanUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
+If chains want to initiate the upgrade of many channels, they will need to submit a governance proposal with multiple `MsgChannelUpgradeInit`  messages, one for each channel they would like to upgrade, again with message signer as the designated `authority` of the `IBCKeeper`
 
 ## Channel State and Packet Flushing
 
@@ -147,6 +147,37 @@ The application's `OnChanUpgradeRestore` callback method will be invoked.
 
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
 
+## Pruning Acknowledgements
+
+Acknowledgements can be pruned by broadcasting the `MsgPruneAcknowledgements` message.
+
+> Note: It is only possible to prune acknowledgements after a channel has been upgraded, so pruning will fail
+> if the channel has not yet been upgraded.
+
+```protobuf
+// MsgPruneAcknowledgements defines the request type for the PruneAcknowledgements rpc.
+message MsgPruneAcknowledgements {
+  option (cosmos.msg.v1.signer)      = "signer";
+  option (gogoproto.goproto_getters) = false;
+
+  string port_id    = 1;
+  string channel_id = 2;
+  uint64 limit      = 3;
+  string signer     = 4;
+}
+```
+
+The `port_id` and `channel_id` specify the port and channel to act on, and the `limit` specifies the upper bound for the number
+of acknowledgements and packet receipts to prune.
+
+### CLI Usage
+
+Acknowledgements can be pruned via the cli with the `prune-acknowledgements` command.
+
+```bash
+simd tx ibc channel prune-acknowledgements [port] [channel] [limit]
+```
+
 ## IBC App Recommendations
 
 IBC application callbacks should be primarily used to validate data fields and do compatibility checks.
@@ -164,3 +195,136 @@ IBC application callbacks should be primarily used to validate data fields and d
 > IBC applications should not attempt to process any packet data under the new conditions until after `OnChanUpgradeOpen`
 > has been executed, as up until this point it is still possible for the upgrade handshake to fail and for the channel
 > to remain in the pre-upgraded state. 
+
+## Upgrade an existing transfer application stack to use 29-fee middleware
+
+### Wire up the transfer stack and middleware in app.go
+
+In app.go, the existing transfer stack must be wrapped with the fee middleware.
+
+```golang
+
+import (
+  // ... 
+  ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
+  ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+  transfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+  porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+  // ...
+)
+
+type App struct {
+  // ...
+  TransferKeeper        ibctransferkeeper.Keeper
+  IBCFeeKeeper          ibcfeekeeper.Keeper
+  // ..
+}
+
+// ...
+
+app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
+  appCodec, keys[ibcfeetypes.StoreKey],
+  app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
+  app.IBCKeeper.ChannelKeeper,
+  app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+)
+
+// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
+// since fee middleware will wrap the IBCKeeper for underlying application.
+app.TransferKeeper = ibctransferkeeper.NewKeeper(
+  appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
+  app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
+  app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
+  app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
+  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+)
+
+
+ibcRouter := porttypes.NewRouter()
+
+// create IBC module from bottom to top of stack
+var transferStack porttypes.IBCModule
+transferStack = transfer.NewIBCModule(app.TransferKeeper)
+transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
+
+// Add transfer stack to IBC Router
+ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+```
+
+### Submit a governance proposal to execute a MsgChannelUpgradeInit message
+
+> This process can be performed with the new CLI that has been added
+> outlined [here](#upgrading-channels-with-the-cli).
+
+Only the configured authority for the ibc module is able to initiate a channel upgrade by submitting a `MsgChannelUpgradeInit` message.
+
+Execute a governance proposal specifying the relevant fields to perform a channel upgrade.
+
+Update the following json sample, and copy the contents into `proposal.json`.
+
+```json
+{
+  "title": "Channel upgrade init",
+  "summary": "Channel upgrade init",
+  "messages": [
+    {
+      "@type": "/ibc.core.channel.v1.MsgChannelUpgradeInit",
+      "signer": "<gov-address>",
+      "port_id": "transfer",
+      "channel_id": "channel-...",
+      "fields": {
+        "ordering": "ORDER_UNORDERED",
+        "connection_hops": ["connection-0"],
+        "version": "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}"
+      }
+    }
+  ],
+  "metadata": "<metadata>",
+  "deposit": "10stake"
+}
+```
+
+> Note: ensure the correct fields.version is specified. This is the new version that the channels will be upgraded to.
+
+### Submit the proposal
+
+```shell
+simd tx submit-proposal proposal.json --from <key_or_address>
+```
+
+
+## Upgrading channels with the CLI
+
+A new cli has been added which enables either
+    - submitting a governance proposal which contains a `MsgChannelUpgradeInit` for every channel to be upgraded.
+    - generating a `proposal.json` file which contains the proposal contents to be edited/submitted at a later date.
+
+The following example, would submit a governance proposal with the specified deposit, title and summary which would
+contain a `MsgChannelUpgradeInit` for all `OPEN` channels whose port matches the regular expression `transfer`.
+
+> Note: by adding the `--json` flag, the command would instead output the contents of the proposal which could be 
+> stored in a `proposal.json` file to be edited and submitted at a later date.
+
+```bash
+simd tx ibc channel upgrade-channels "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}" \
+  --deposit "10stake" \
+  --title "Channel Upgrades Governance Proposal" \
+  --summary "Upgrade all transfer channels to be fee enabled" \
+  --port-pattern "transfer"
+```
+
+It is also possible to explicitly list a comma separated string of channel IDs. It is important to note that the 
+regular expression matching specified by `--port-pattern` (which defaults to `transfer`) still applies.
+
+For example the following command would generate the contents of a `proposal.json` file which would attempt to upgrade
+channels with a port ID of `transfer` and a channelID of `channel-0`, `channel-1` or `channel-2`.
+
+```bash
+simd tx ibc channel upgrade-channels "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}" \
+  --deposit "10stake" \
+  --title "Channel Upgrades Governance Proposal" \
+  --summary "Upgrade all transfer channels to be fee enabled" \
+  --port-pattern "transfer" \
+  --channel-ids "channel-0,channel-1,channel-2" \
+  --json
+```
