@@ -66,7 +66,7 @@ type MsgChannelUpgradeInit struct {
 }
 ```
 
-As part of the handling of the `MsgChannelUpgradeInit` message, the application's callbacks `OnChanUpgradeInit` will be triggered as well.
+As part of the handling of the `MsgChannelUpgradeInit` message, the application's `OnChanUpgradeInit` callback will be triggered as well.
 
 After this message is handled successfully, the channel's upgrade sequence will be incremented. This upgrade sequence will serve as a nonce for the upgrade process to provide replay protection.
 
