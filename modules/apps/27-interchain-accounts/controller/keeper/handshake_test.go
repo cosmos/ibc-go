@@ -75,6 +75,24 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			true,
 		},
 		{
+			"failure: previous channel ordering is different",
+			func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				channel := channeltypes.Channel{
+					State:          channeltypes.CLOSED,
+					Ordering:       channeltypes.UNORDERED,
+					Counterparty:   counterparty,
+					ConnectionHops: []string{path.EndpointA.ConnectionID},
+					Version:        TestVersion,
+				}
+
+				path.EndpointA.SetChannel(channel)
+			},
+			false,
+		},
+		{
 			"invalid metadata -  previous metadata is different",
 			func() {
 				// set active channel to closed
