@@ -155,11 +155,6 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyFee, defaultAckFee.String()),
 		),
-		sdk.NewEvent(
-			types.EventTypeDistributeFee,
-			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
-			sdk.NewAttribute(types.AttributeKeyFee, defaultTimeoutFee.String()),
-		),
 	}.ToABCIEvents()
 
 	var indexSet map[string]struct{}

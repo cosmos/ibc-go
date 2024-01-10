@@ -124,22 +124,6 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				suite.Require().Equal(expectedRefundAccBal, balance)
 			},
 		},
-		{
-			"invalid refund address: no-op, timeout fee remains in escrow",
-			func() {
-				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
-				packetFees = []types.PacketFee{packetFee, packetFee}
-
-				packetFees[0].RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
-				packetFees[1].RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
-			},
-			func() {
-				// check if the module acc contains the timeoutFee
-				expectedModuleAccBal := sdk.NewCoin(sdk.DefaultBondDenom, defaultTimeoutFee.Add(defaultTimeoutFee...).AmountOf(sdk.DefaultBondDenom))
-				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
-				suite.Require().Equal(expectedModuleAccBal, balance)
-			},
-		},
 	}
 
 	for _, tc := range testCases {
@@ -155,7 +139,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
 
 			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-			fee = types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+			fee = types.NewFee(defaultRecvFee, defaultAckFee, sdk.Coins(nil))
 
 			tc.malleate()
 
@@ -269,7 +253,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 			refundAcc = suite.chainA.SenderAccount.GetAddress()
 
 			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
-			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+			fee := types.NewFee(defaultRecvFee, defaultAckFee, sdk.Coins(nil))
 
 			// escrow the packet fees & store the fees in state
 			packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})

@@ -189,8 +189,6 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"success with existing packet fees in escrow",
 			func() {
-				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
-
 				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 				feesInEscrow := types.NewPacketFees([]types.PacketFee{packetFee})
@@ -307,6 +305,8 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				nil,
 			)
 
+			fee.TimeoutFee = sdk.Coins(nil) // timeout fee is deprecated
+
 			expEscrowBalance = fee.Total()
 			expPacketFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 			expFeesInEscrow = []types.PacketFee{expPacketFee}
@@ -356,7 +356,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"success with existing packet fees in escrow",
 			func() {
-				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+				fee := types.NewFee(defaultRecvFee, defaultAckFee, sdk.Coins(nil))
 
 				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 				packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
@@ -514,9 +514,12 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 			fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			packetFee := types.NewPacketFee(fee, suite.chainA.SenderAccount.GetAddress().String(), nil)
 
-			expEscrowBalance = fee.Total()
-			expFeesInEscrow = []types.PacketFee{packetFee}
 			msg = types.NewMsgPayPacketFeeAsync(packetID, packetFee)
+
+			expEscrowBalance = fee.RecvAndAck()
+
+			packetFee.Fee.TimeoutFee = sdk.Coins(nil) // timeout fee is deprecated
+			expFeesInEscrow = []types.PacketFee{packetFee}
 
 			tc.malleate()
 

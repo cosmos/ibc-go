@@ -19,9 +19,10 @@ import (
 )
 
 var (
-	defaultRecvFee    = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}}
-	defaultAckFee     = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(200)}}
-	defaultTimeoutFee = sdk.Coins(nil)
+	defaultRecvFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(100)}}
+	defaultAckFee  = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(200)}}
+	// defaultTimeoutFee is ignored since it is deprecated
+	defaultTimeoutFee = sdk.Coins{sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdkmath.NewInt(300)}}
 	invalidCoins      = sdk.Coins{sdk.Coin{Denom: "invalidDenom", Amount: sdkmath.NewInt(100)}}
 )
 
