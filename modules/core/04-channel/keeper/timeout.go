@@ -68,10 +68,9 @@ func (k Keeper) TimeoutPacket(
 		return err
 	}
 
-	timeoutHeight := packet.GetTimeoutHeight()
-	if (timeoutHeight.IsZero() || proofHeight.LT(timeoutHeight)) &&
-		(packet.GetTimeoutTimestamp() == 0 || proofTimestamp < packet.GetTimeoutTimestamp()) {
-		return errorsmod.Wrap(types.ErrPacketTimeout, "packet timeout has not been reached for height or timestamp")
+	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	if !timeout.Elapsed(proofHeight.(clienttypes.Height), proofTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
 	}
 
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
