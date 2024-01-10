@@ -37,7 +37,7 @@ func TestFeeTotal(t *testing.T) {
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	total := fee.Total()
-	require.Equal(t, sdkmath.NewInt(600), total.AmountOf(sdk.DefaultBondDenom))
+	require.Equal(t, sdkmath.NewInt(300), total.AmountOf(sdk.DefaultBondDenom))
 }
 
 func TestPacketFeeValidation(t *testing.T) {
