@@ -113,6 +113,12 @@ func (im IBCModule) OnRecvPacket(
 	ack := channeltypes.NewResultAcknowledgement(txResponse)
 	if err != nil {
 		ack = channeltypes.NewErrorAcknowledgement(err)
+<<<<<<< HEAD
+=======
+		logger.Error(fmt.Sprintf("%s sequence %d", err.Error(), packet.Sequence))
+	} else {
+		logger.Info("successfully handled packet", "sequence", packet.Sequence)
+>>>>>>> 93f86fcd (fix: set packet seq in success log correctly (#5559))
 	}
 
 	// Emit an event indicating a successful or failed acknowledgement.

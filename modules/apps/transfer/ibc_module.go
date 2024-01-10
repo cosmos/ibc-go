@@ -190,6 +190,12 @@ func (im IBCModule) OnRecvPacket(
 		if err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err)
 			ackErr = err
+<<<<<<< HEAD
+=======
+			logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		} else {
+			logger.Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
+>>>>>>> 93f86fcd (fix: set packet seq in success log correctly (#5559))
 		}
 	}
 
