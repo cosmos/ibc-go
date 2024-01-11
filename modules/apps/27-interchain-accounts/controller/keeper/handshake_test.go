@@ -510,11 +510,11 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			nil,
 		},
 		{
-			name: "failure: invalid order",
+			name: "success: change order",
 			malleate: func() {
 				order = channeltypes.UNORDERED
 			},
-			expError: channeltypes.ErrInvalidChannelOrdering,
+			expError: nil,
 		},
 		{
 			name: "failure: connectionID not found",

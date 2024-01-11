@@ -149,19 +149,13 @@ func (Keeper) OnChanCloseConfirm(
 // The following may be changed:
 // - tx type (must be supported)
 // - encoding (must be supported)
+// - order
 //
 // The following may not be changed:
-// - order
 // - connectionHops (and subsequently host/controller connectionIDs)
 // - interchain account address
 // - ICS27 protocol version
 func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
-	// verify order has not changed
-	// support for unordered ICA channels is not implemented yet
-	if order != channeltypes.ORDERED {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
-	}
-
 	// verify connection hops has not changed
 	connectionID, err := k.GetConnectionID(ctx, portID, channelID)
 	if err != nil {
