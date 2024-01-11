@@ -2032,7 +2032,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				proofChannel, proofHeight = path.EndpointB.QueryProof(channelKey)
 			},
-			types.ErrInvalidUpgradeTimeout,
+			types.ErrTimeoutNotReached,
 		},
 		{
 			"counterparty channel state is not OPEN or FLUSHING (crossing hellos)",

@@ -560,7 +560,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), disabledTimeoutTimestamp)
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			},
-			types.ErrPacketTimeout,
+			types.ErrTimeoutElapsed,
 		},
 		{
 			"timeout timestamp passed",
@@ -570,7 +570,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, disabledTimeoutHeight, uint64(suite.chainB.GetContext().BlockTime().UnixNano()))
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			},
-			types.ErrPacketTimeout,
+			types.ErrTimeoutElapsed,
 		},
 		{
 			"next receive sequence is not found",
