@@ -170,11 +170,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 				}
 			}, true,
 		},
-		{
-			"ICA callback fails - invalid channel order", func() {
-				channel.Ordering = channeltypes.UNORDERED
-			}, false,
-		},
 	}
 
 	for _, tc := range testCases {

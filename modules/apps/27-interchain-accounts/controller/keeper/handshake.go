@@ -15,8 +15,7 @@ import (
 )
 
 // OnChanOpenInit performs basic validation of channel initialization.
-// The channel order must be ORDERED, the counterparty port identifier
-// must be the host chain representation as defined in the types package,
+// The counterparty port identifier must be the host chain representation as defined in the types package,
 // the channel version must be equal to the version in the types package,
 // there must not be an active channel for the specified port identifier,
 // and the interchain accounts module must be able to claim the channel
@@ -31,10 +30,6 @@ func (k Keeper) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	if order != channeltypes.ORDERED {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
-	}
-
 	if !strings.HasPrefix(portID, icatypes.ControllerPortPrefix) {
 		return "", errorsmod.Wrapf(icatypes.ErrInvalidControllerPort, "expected %s{owner-account-address}, got %s", icatypes.ControllerPortPrefix, portID)
 	}
