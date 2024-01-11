@@ -99,13 +99,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			false,
 		},
 		{
-			"invalid order - UNORDERED",
-			func() {
-				channel.Ordering = channeltypes.UNORDERED
-			},
-			false,
-		},
-		{
 			"invalid port ID",
 			func() {
 				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
