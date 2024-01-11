@@ -160,14 +160,10 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 			msg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
 
-<<<<<<< HEAD
-			_, err := keeper.Keeper.RecvPacket(*suite.chainB.App.GetIBCKeeper(), sdk.WrapSDKContext(suite.chainB.GetContext()), msg)
-=======
 			ctx := suite.chainB.GetContext()
-			_, err := keeper.Keeper.RecvPacket(*suite.chainB.App.GetIBCKeeper(), ctx, msg)
+			_, err := keeper.Keeper.RecvPacket(*suite.chainB.App.GetIBCKeeper(), sdk.WrapSDKContext(ctx), msg)
 
 			events := ctx.EventManager().Events()
->>>>>>> 2375109a (imp(core): allow huckleberry events with a prefix (#5541))
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -341,14 +337,10 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 
 			msg := channeltypes.NewMsgAcknowledgement(packet, ibcmock.MockAcknowledgement.Acknowledgement(), proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
-<<<<<<< HEAD
-			_, err := keeper.Keeper.Acknowledgement(*suite.chainA.App.GetIBCKeeper(), sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
-=======
 			ctx := suite.chainA.GetContext()
-			_, err := keeper.Keeper.Acknowledgement(*suite.chainA.App.GetIBCKeeper(), ctx, msg)
+			_, err := keeper.Keeper.Acknowledgement(*suite.chainA.App.GetIBCKeeper(), sdk.WrapSDKContext(ctx), msg)
 
 			events := ctx.EventManager().Events()
->>>>>>> 2375109a (imp(core): allow huckleberry events with a prefix (#5541))
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -503,14 +495,10 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 
 			msg := channeltypes.NewMsgTimeout(packet, 1, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
-<<<<<<< HEAD
-			_, err := keeper.Keeper.Timeout(*suite.chainA.App.GetIBCKeeper(), sdk.WrapSDKContext(suite.chainA.GetContext()), msg)
-=======
 			ctx := suite.chainA.GetContext()
-			_, err := keeper.Keeper.Timeout(*suite.chainA.App.GetIBCKeeper(), ctx, msg)
+			_, err := keeper.Keeper.Timeout(*suite.chainA.App.GetIBCKeeper(), sdk.WrapSDKContext(ctx), msg)
 
 			events := ctx.EventManager().Events()
->>>>>>> 2375109a (imp(core): allow huckleberry events with a prefix (#5541))
 
 			if tc.expPass {
 				suite.Require().NoError(err)
