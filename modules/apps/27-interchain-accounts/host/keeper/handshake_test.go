@@ -169,14 +169,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				path.EndpointB.SetChannel(*channel)
 			}, false,
 		},
-
-		{
-			"invalid order - UNORDERED",
-			func() {
-				channel.Ordering = channeltypes.UNORDERED
-			},
-			false,
-		},
 		{
 			"invalid port ID",
 			func() {
