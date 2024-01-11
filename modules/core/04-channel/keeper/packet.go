@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"slices"
 	"strconv"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -74,25 +73,16 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
 	}
 
-	// check if packet is timed out on the receiving chain
 	latestHeight := clientState.GetLatestHeight()
-	if !timeoutHeight.IsZero() && latestHeight.GTE(timeoutHeight) {
-		return 0, errorsmod.Wrapf(
-			types.ErrPacketTimeout,
-			"receiving chain block height >= packet timeout height (%s >= %s)", latestHeight, timeoutHeight,
-		)
-	}
-
 	latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
 	if err != nil {
 		return 0, err
 	}
 
-	if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
-		return 0, errorsmod.Wrapf(
-			types.ErrPacketTimeout,
-			"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)).UTC(), time.Unix(0, int64(packet.GetTimeoutTimestamp())).UTC(),
-		)
+	// check if packet is timed out on the receiving chain
+	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	if timeout.Elapsed(latestHeight.(clienttypes.Height), latestTimestamp) {
+		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight.(clienttypes.Height), latestTimestamp), "invalid packet timeout")
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)
@@ -189,22 +179,11 @@ func (k Keeper) RecvPacket(
 		)
 	}
 
-	// check if packet timeouted by comparing it with the latest height of the chain
-	selfHeight := clienttypes.GetSelfHeight(ctx)
-	timeoutHeight := packet.GetTimeoutHeight()
-	if !timeoutHeight.IsZero() && selfHeight.GTE(timeoutHeight) {
-		return errorsmod.Wrapf(
-			types.ErrPacketTimeout,
-			"block height >= packet timeout height (%s >= %s)", selfHeight, timeoutHeight,
-		)
-	}
-
-	// check if packet timeouted by comparing it with the latest timestamp of the chain
-	if packet.GetTimeoutTimestamp() != 0 && uint64(ctx.BlockTime().UnixNano()) >= packet.GetTimeoutTimestamp() {
-		return errorsmod.Wrapf(
-			types.ErrPacketTimeout,
-			"block timestamp >= packet timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(packet.GetTimeoutTimestamp())).UTC(),
-		)
+	// check if packet timed out by comparing it with the latest height of the chain
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	if timeout.Elapsed(selfHeight, selfTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)
