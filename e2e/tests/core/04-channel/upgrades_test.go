@@ -180,8 +180,9 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
 	})
 
+	var err error
 	t.Run("send IBC transfer from chain A to chain B", func(t *testing.T) {
-		transferTxResp, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainAwalletAmount, ibc.TransferOptions{})
+		transferTxResp, err = chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainAwalletAmount, ibc.TransferOptions{})
 		s.Require().NoError(err)
 		s.Require().NoError(transferTxResp.Validate(), "chain-a ibc transfer tx is invalid")
 	})
@@ -215,7 +216,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
 			s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - chainAwalletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
+			expected := testvalues.StartingTokenAmount - 2*chainAwalletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
 	})
