@@ -169,14 +169,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				path.EndpointB.SetChannel(*channel)
 			}, false,
 		},
-
-		{
-			"invalid order - UNORDERED",
-			func() {
-				channel.Ordering = channeltypes.UNORDERED
-			},
-			false,
-		},
 		{
 			"invalid port ID",
 			func() {
@@ -458,18 +450,18 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			nil,
 		},
 		{
+			name: "success: change order",
+			malleate: func() {
+				order = channeltypes.UNORDERED
+			},
+			expError: nil,
+		},
+		{
 			name: "failure: invalid port ID",
 			malleate: func() {
 				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
 			},
 			expError: porttypes.ErrInvalidPort,
-		},
-		{
-			name: "failure: invalid order",
-			malleate: func() {
-				order = channeltypes.UNORDERED
-			},
-			expError: channeltypes.ErrInvalidChannelOrdering,
 		},
 		{
 			name: "failure: invalid proposed connectionHops",

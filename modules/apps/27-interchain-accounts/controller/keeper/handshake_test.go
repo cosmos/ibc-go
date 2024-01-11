@@ -99,13 +99,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			false,
 		},
 		{
-			"invalid order - UNORDERED",
-			func() {
-				channel.Ordering = channeltypes.UNORDERED
-			},
-			false,
-		},
-		{
 			"invalid port ID",
 			func() {
 				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
@@ -510,11 +503,11 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			nil,
 		},
 		{
-			name: "failure: invalid order",
+			name: "success: change order",
 			malleate: func() {
 				order = channeltypes.UNORDERED
 			},
-			expError: channeltypes.ErrInvalidChannelOrdering,
+			expError: nil,
 		},
 		{
 			name: "failure: connectionID not found",
