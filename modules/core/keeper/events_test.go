@@ -42,7 +42,7 @@ func TestConvertToErrorEvents(t *testing.T) {
 					sdk.NewEvent("testevent"),
 				}
 				expEvents = sdk.Events{
-					sdk.NewEvent("testevent"),
+					sdk.NewEvent(types.ErrorAttributeKeyPrefix + "testevent"),
 				}
 			},
 		},
@@ -56,7 +56,7 @@ func TestConvertToErrorEvents(t *testing.T) {
 					),
 				}
 				expEvents = sdk.Events{
-					sdk.NewEvent("testevent",
+					sdk.NewEvent(types.ErrorAttributeKeyPrefix+"testevent",
 						sdk.NewAttribute(types.ErrorAttributeKeyPrefix+"key1", "value1"),
 						sdk.NewAttribute(types.ErrorAttributeKeyPrefix+"key2", "value2"),
 					),
@@ -77,11 +77,11 @@ func TestConvertToErrorEvents(t *testing.T) {
 					),
 				}
 				expEvents = sdk.Events{
-					sdk.NewEvent("testevent1",
+					sdk.NewEvent(types.ErrorAttributeKeyPrefix+"testevent1",
 						sdk.NewAttribute(types.ErrorAttributeKeyPrefix+"key1", "value1"),
 						sdk.NewAttribute(types.ErrorAttributeKeyPrefix+"key2", "value2"),
 					),
-					sdk.NewEvent("testevent2",
+					sdk.NewEvent(types.ErrorAttributeKeyPrefix+"testevent2",
 						sdk.NewAttribute(types.ErrorAttributeKeyPrefix+"key3", "value3"),
 						sdk.NewAttribute(types.ErrorAttributeKeyPrefix+"key4", "value4"),
 					),

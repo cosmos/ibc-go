@@ -190,6 +190,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 					// context events should contain error events
 					suite.Require().Contains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
 				} else {
 					suite.Require().True(exists, "callback state not persisted when revert is false")
 
