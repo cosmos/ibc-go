@@ -1192,8 +1192,6 @@ func convertToErrorEvents(events sdk.Events) sdk.Events {
 			newAttributes[j] = sdk.NewAttribute(coretypes.ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
 		}
 
-		// no need to append the error attribute prefix to the event type because
-		// the event type is not associated to a value that can be misinterpreted
 		newEvents[i] = sdk.NewEvent(coretypes.ErrorAttributeKeyPrefix+event.Type, newAttributes...)
 	}
 
