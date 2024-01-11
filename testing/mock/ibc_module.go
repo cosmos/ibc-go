@@ -136,6 +136,8 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 		panic(err)
 	}
 
+	ctx.EventManager().EmitEvent(NewMockRecvPacketEvent())
+
 	if bytes.Equal(MockPacketData, packet.GetData()) {
 		return MockAcknowledgement
 	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
@@ -158,6 +160,8 @@ func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes
 		panic(err)
 	}
 
+	ctx.EventManager().EmitEvent(NewMockAckPacketEvent())
+
 	return nil
 }
 
@@ -173,6 +177,8 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 		// must never occur
 		panic(err)
 	}
+
+	ctx.EventManager().EmitEvent(NewMockTimeoutPacketEvent())
 
 	return nil
 }
