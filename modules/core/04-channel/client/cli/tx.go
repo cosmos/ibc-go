@@ -61,7 +61,7 @@ func newPruneAcknowledgementsTxCmd() *cobra.Command {
 
 func newUpgradeChannelsTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "upgrade-channels",
+		Use:   "upgrade-channels [version]",
 		Short: "Upgrade IBC channels",
 		Long: `Submit a governance proposal to upgrade all open channels whose port matches a specified pattern 
 (the default is transfer), optionally, an exact list of comma separated channel IDs may be specified.`,
