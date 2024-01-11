@@ -493,6 +493,9 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	if ack == nil || ack.Success() {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
+	} else {
+		// Modify events in cached context to reflect unsuccessful acknowledgement
+		ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
 	}
 
 	// Set packet acknowledgement only if the acknowledgement is not nil.
@@ -756,3 +759,40 @@ func (k Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontyp
 
 	return &connectiontypes.MsgUpdateParamsResponse{}, nil
 }
+<<<<<<< HEAD
+=======
+
+// UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
+func (k Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.MsgUpdateParams) (*channeltypes.MsgUpdateParamsResponse, error) {
+	if k.GetAuthority() != msg.Authority {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.ChannelKeeper.SetParams(ctx, msg.Params)
+
+	return &channeltypes.MsgUpdateParamsResponse{}, nil
+}
+
+// convertToErrorEvents converts all events to error events by appending the
+// error attribute prefix to each event's attribute key.
+func convertToErrorEvents(events sdk.Events) sdk.Events {
+	if events == nil {
+		return nil
+	}
+
+	newEvents := make(sdk.Events, len(events))
+	for i, event := range events {
+		newAttributes := make([]sdk.Attribute, len(event.Attributes))
+		for j, attribute := range event.Attributes {
+			newAttributes[j] = sdk.NewAttribute(coretypes.ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
+		}
+
+		// no need to append the error attribute prefix to the event type because
+		// the event type is not associated to a value that can be misinterpreted
+		newEvents[i] = sdk.NewEvent(coretypes.ErrorAttributeKeyPrefix+event.Type, newAttributes...)
+	}
+
+	return newEvents
+}
+>>>>>>> 2375109a (imp(core): allow huckleberry events with a prefix (#5541))
