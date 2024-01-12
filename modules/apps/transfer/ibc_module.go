@@ -197,7 +197,7 @@ func (im IBCModule) OnRecvPacket(
 			ackErr = err
 			logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		} else {
-			logger.Info("successfully handled ICS-20 packet sequence: %d", packet.Sequence)
+			logger.Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
 		}
 	}
 
