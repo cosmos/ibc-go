@@ -956,7 +956,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 		{
 			"invalid counterparty channel state",
 			func() {
-				counterpartyChannelState = types.FLUSHING
+				counterpartyChannelState = types.CLOSED
 			},
 			types.ErrInvalidCounterparty,
 		},
