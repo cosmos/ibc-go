@@ -758,9 +758,9 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			proof, proofHeight := suite.chainB.QueryProof(packetKey)
 
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			proofClosed, _ := suite.chainB.QueryProof(channelKey)
+			closedProof, _ := suite.chainB.QueryProof(channelKey)
 
-			msg := channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.chainA.SenderAccount.GetAddress().String(), counterpartyUpgradeSequence)
+			msg := channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, closedProof, proofHeight, suite.chainA.SenderAccount.GetAddress().String(), counterpartyUpgradeSequence)
 
 			_, err := keeper.Keeper.TimeoutOnClose(*suite.chainA.App.GetIBCKeeper(), suite.chainA.GetContext(), msg)
 
@@ -1152,7 +1152,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			counterpartyUpgrade, found := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(found)
 
-			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+			channelProof, upgradeProof, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeTry{
 				PortId:                        path.EndpointB.ChannelConfig.PortID,
@@ -1160,8 +1160,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				ProposedUpgradeConnectionHops: []string{ibctesting.FirstConnectionID},
 				CounterpartyUpgradeSequence:   counterpartySequence,
 				CounterpartyUpgradeFields:     counterpartyUpgrade.Fields,
-				ProofChannel:                  proofChannel,
-				ProofUpgrade:                  proofUpgrade,
+				ProofChannel:                  channelProof,
+				ProofUpgrade:                  upgradeProof,
 				ProofHeight:                   proofHeight,
 				Signer:                        suite.chainB.SenderAccount.GetAddress().String(),
 			}
@@ -1418,14 +1418,14 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 
 			counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
 
-			proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+			channelProof, upgradeProof, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeAck{
 				PortId:              path.EndpointA.ChannelConfig.PortID,
 				ChannelId:           path.EndpointA.ChannelID,
 				CounterpartyUpgrade: counterpartyUpgrade,
-				ProofChannel:        proofChannel,
-				ProofUpgrade:        proofUpgrade,
+				ProofChannel:        channelProof,
+				ProofUpgrade:        upgradeProof,
 				ProofHeight:         proofHeight,
 				Signer:              suite.chainA.SenderAccount.GetAddress().String(),
 			}
@@ -1520,15 +1520,15 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				counterpartyChannelState := path.EndpointA.GetChannel().State
 				counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
 
-				proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+				channelProof, upgradeProof, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 				msg = &channeltypes.MsgChannelUpgradeConfirm{
 					PortId:                   path.EndpointB.ChannelConfig.PortID,
 					ChannelId:                path.EndpointB.ChannelID,
 					CounterpartyChannelState: counterpartyChannelState,
 					CounterpartyUpgrade:      counterpartyUpgrade,
-					ProofChannel:             proofChannel,
-					ProofUpgrade:             proofUpgrade,
+					ProofChannel:             channelProof,
+					ProofUpgrade:             upgradeProof,
 					ProofHeight:              proofHeight,
 					Signer:                   suite.chainA.SenderAccount.GetAddress().String(),
 				}
@@ -1638,11 +1638,11 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				err := path.EndpointB.UpdateClient()
 				suite.Require().NoError(err)
 
-				proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+				channelProof, upgradeProof, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 				msg.CounterpartyUpgrade = upgrade
-				msg.ProofChannel = proofChannel
-				msg.ProofUpgrade = proofUpgrade
+				msg.ProofChannel = channelProof
+				msg.ProofUpgrade = upgradeProof
 				msg.ProofHeight = proofHeight
 			},
 			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
@@ -1723,15 +1723,15 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			counterpartyChannelState := path.EndpointA.GetChannel().State
 			counterpartyUpgrade := path.EndpointA.GetChannelUpgrade()
 
-			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+			channelProof, upgradeProof, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			msg = &channeltypes.MsgChannelUpgradeConfirm{
 				PortId:                   path.EndpointB.ChannelConfig.PortID,
 				ChannelId:                path.EndpointB.ChannelID,
 				CounterpartyChannelState: counterpartyChannelState,
 				CounterpartyUpgrade:      counterpartyUpgrade,
-				ProofChannel:             proofChannel,
-				ProofUpgrade:             proofUpgrade,
+				ProofChannel:             channelProof,
+				ProofUpgrade:             upgradeProof,
 				ProofHeight:              proofHeight,
 				Signer:                   suite.chainA.SenderAccount.GetAddress().String(),
 			}
@@ -1866,13 +1866,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 
 			counterpartyChannel := path.EndpointB.GetChannel()
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proofChannel, proofHeight := path.EndpointB.QueryProof(channelKey)
+			channelProof, proofHeight := path.EndpointB.QueryProof(channelKey)
 
 			msg = &channeltypes.MsgChannelUpgradeOpen{
 				PortId:                   path.EndpointA.ChannelConfig.PortID,
 				ChannelId:                path.EndpointA.ChannelID,
 				CounterpartyChannelState: counterpartyChannel.State,
-				ProofChannel:             proofChannel,
+				ProofChannel:             channelProof,
 				ProofHeight:              proofHeight,
 				Signer:                   suite.chainA.SenderAccount.GetAddress().String(),
 			}

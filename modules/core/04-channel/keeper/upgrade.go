@@ -74,8 +74,8 @@ func (k Keeper) ChanUpgradeTry(
 	proposedConnectionHops []string,
 	counterpartyUpgradeFields types.UpgradeFields,
 	counterpartyUpgradeSequence uint64,
-	proofCounterpartyChannel,
-	proofCounterpartyUpgrade []byte,
+	counterpartyChannelProof,
+	counterpartyUpgradeProof []byte,
 	proofHeight clienttypes.Height,
 ) (types.Channel, types.Upgrade, error) {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -114,7 +114,7 @@ func (k Keeper) ChanUpgradeTry(
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
 		connection,
-		proofHeight, proofCounterpartyChannel,
+		proofHeight, counterpartyChannelProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
@@ -163,7 +163,7 @@ func (k Keeper) ChanUpgradeTry(
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
 		connection,
-		proofHeight, proofCounterpartyUpgrade,
+		proofHeight, counterpartyUpgradeProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		types.NewUpgrade(counterpartyUpgradeFields, types.Timeout{}, 0),
@@ -245,8 +245,8 @@ func (k Keeper) ChanUpgradeAck(
 	portID,
 	channelID string,
 	counterpartyUpgrade types.Upgrade,
-	proofChannel,
-	proofUpgrade []byte,
+	channelProof,
+	upgradeProof []byte,
 	proofHeight clienttypes.Height,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -281,7 +281,7 @@ func (k Keeper) ChanUpgradeAck(
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
 		connection,
-		proofHeight, proofChannel,
+		proofHeight, channelProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
@@ -293,7 +293,7 @@ func (k Keeper) ChanUpgradeAck(
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
 		connection,
-		proofHeight, proofUpgrade,
+		proofHeight, upgradeProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyUpgrade,
@@ -373,8 +373,8 @@ func (k Keeper) ChanUpgradeConfirm(
 	channelID string,
 	counterpartyChannelState types.State,
 	counterpartyUpgrade types.Upgrade,
-	proofChannel,
-	proofUpgrade []byte,
+	channelProof,
+	upgradeProof []byte,
 	proofHeight clienttypes.Height,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -412,7 +412,7 @@ func (k Keeper) ChanUpgradeConfirm(
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
 		connection,
-		proofHeight, proofChannel,
+		proofHeight, channelProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
@@ -423,7 +423,7 @@ func (k Keeper) ChanUpgradeConfirm(
 	if err := k.connectionKeeper.VerifyChannelUpgrade(
 		ctx,
 		connection,
-		proofHeight, proofUpgrade,
+		proofHeight, upgradeProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyUpgrade,
@@ -472,7 +472,7 @@ func (k Keeper) ChanUpgradeOpen(
 	portID,
 	channelID string,
 	counterpartyChannelState types.State,
-	proofCounterpartyChannel []byte,
+	counterpartyChannelProof []byte,
 	proofHeight clienttypes.Height,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -536,7 +536,7 @@ func (k Keeper) ChanUpgradeOpen(
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
 		connection,
-		proofHeight, proofCounterpartyChannel,
+		proofHeight, counterpartyChannelProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
@@ -683,7 +683,7 @@ func (k Keeper) ChanUpgradeTimeout(
 	ctx sdk.Context,
 	portID, channelID string,
 	counterpartyChannel types.Channel,
-	proofCounterpartyChannel []byte,
+	counterpartyChannelProof []byte,
 	proofHeight exported.Height,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -756,7 +756,7 @@ func (k Keeper) ChanUpgradeTimeout(
 	if err := k.connectionKeeper.VerifyChannelState(
 		ctx,
 		connection,
-		proofHeight, proofCounterpartyChannel,
+		proofHeight, counterpartyChannelProof,
 		channel.Counterparty.PortId,
 		channel.Counterparty.ChannelId,
 		counterpartyChannel,
