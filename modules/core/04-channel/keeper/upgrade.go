@@ -722,11 +722,8 @@ func (k Keeper) ChanUpgradeTimeout(
 
 	// proof must be from a height after timeout has elapsed. Either timeoutHeight or timeoutTimestamp must be defined.
 	// if timeoutHeight is defined and proof is from before timeout height, abort transaction
-	timeoutHeight := upgrade.Timeout.Height
-	timeoutTimeStamp := upgrade.Timeout.Timestamp
-	if (timeoutHeight.IsZero() || proofHeight.LT(timeoutHeight)) &&
-		(timeoutTimeStamp == 0 || proofTimestamp < timeoutTimeStamp) {
-		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "upgrade timeout has not been reached for height or timestamp")
+	if !upgrade.Timeout.Elapsed(proofHeight.(clienttypes.Height), proofTimestamp) {
+		return errorsmod.Wrap(upgrade.Timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "upgrade timeout not reached")
 	}
 
 	// counterparty channel must be proved to still be in OPEN state or FLUSHING state.
