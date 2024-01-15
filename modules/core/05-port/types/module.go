@@ -116,9 +116,9 @@ type UpgradableModule interface {
 	OnChanUpgradeInit(
 		ctx sdk.Context,
 		portID, channelID string,
-		order channeltypes.Order,
-		connectionHops []string,
-		version string,
+		proposedOrder channeltypes.Order,
+		proposedConnectionHops []string,
+		proposedVersion string,
 	) (string, error)
 
 	// OnChanUpgradeTry enables additional custom logic to be executed in the ChannelUpgradeTry step of the
@@ -127,8 +127,8 @@ type UpgradableModule interface {
 	OnChanUpgradeTry(
 		ctx sdk.Context,
 		portID, channelID string,
-		order channeltypes.Order,
-		connectionHops []string,
+		proposedOrder channeltypes.Order,
+		proposedConnectionHops []string,
 		counterpartyVersion string,
 	) (string, error)
 
@@ -148,9 +148,9 @@ type UpgradableModule interface {
 		ctx sdk.Context,
 		portID,
 		channelID string,
-		order channeltypes.Order,
-		connectionHops []string,
-		version string,
+		proposedOrder channeltypes.Order,
+		proposedConnectionHops []string,
+		proposedVersion string,
 	)
 
 	// OnChanUpgradeRestore enables additional custom logic to be executed when any of the following occur:
