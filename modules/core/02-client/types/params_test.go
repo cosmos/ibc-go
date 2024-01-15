@@ -38,11 +38,8 @@ func TestValidateParams(t *testing.T) {
 		{"default params", DefaultParams(), true},
 		{"custom params", NewParams(exported.Tendermint), true},
 		{"blank client", NewParams(" "), false},
-<<<<<<< HEAD
-=======
 		{"duplicate clients", NewParams(exported.Tendermint, exported.Tendermint), false},
 		{"allow all clients plus valid client", NewParams(AllowAllClients, exported.Tendermint), false},
->>>>>>> d5949b1a (feat(statemachine)!: Add allow all client wildcard to AllowedClients param (#5429))
 	}
 
 	for _, tc := range testCases {

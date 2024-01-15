@@ -43,10 +43,6 @@ func (p Params) IsAllowedClient(clientType string) bool {
 	return slices.Contains(p.AllowedClients, clientType)
 }
 
-<<<<<<< HEAD
-// validateClients checks that the given clients are not blank.
-func validateClients(clients []string) error {
-=======
 // validateClients checks that the given clients are not blank and there are no duplicates.
 // If AllowAllClients wildcard (*) is used, then there should no other client types in the allow list
 func validateClients(clients []string) error {
@@ -55,7 +51,6 @@ func validateClients(clients []string) error {
 	}
 
 	foundClients := make(map[string]bool, len(clients))
->>>>>>> d5949b1a (feat(statemachine)!: Add allow all client wildcard to AllowedClients param (#5429))
 	for i, clientType := range clients {
 		if strings.TrimSpace(clientType) == "" {
 			return fmt.Errorf("client type %d cannot be blank", i)
