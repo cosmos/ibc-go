@@ -50,12 +50,3 @@ func (endpoint *WasmEndpoint) CreateClient() error {
 
 	return nil
 }
-
-// AllowWasmClients adds 08-wasm to the list of allowed clients
-func AllowWasmClients(chain *ibctesting.TestChain) {
-	ctx := chain.GetContext()
-	clientKeeper := chain.App.GetIBCKeeper().ClientKeeper
-	params := clientKeeper.GetParams(ctx)
-	params.AllowedClients = append(params.AllowedClients, types.Wasm)
-	clientKeeper.SetParams(ctx, params)
-}
