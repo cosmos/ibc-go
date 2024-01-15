@@ -65,7 +65,7 @@ For example, if the current major release series is v1 and was released on Janua
 
 Only the following major release series have a stable release status. All missing minor release versions have been discontinued.
 
-We reserve the right to drop support for releases if they are deemed unused (for example, because the Cosmos SDK version they depend on is not used or has been deprecated).
+We reserve the right to drop support for releases if they are deemed unused (for example, because the Cosmos SDK version they depend on is not used or has been deprecated). Likewise, we also reserve the right to drop support for pre v1.0 versions of modules if we deem them unnecessary to maintain (we are only looking to give support for stable major releases).
 
 ### ibc-go 
 
