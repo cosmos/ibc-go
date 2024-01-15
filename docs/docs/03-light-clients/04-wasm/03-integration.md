@@ -307,7 +307,7 @@ app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
 
 ## Updating `AllowedClients`
 
-If the chain's 02-client submodule parameter `AllowedClients` contains the single wildcard `"*"` element, then it is not necessary to do anything in order to allow the creation of `08-wasm`` clients. However, if the parameter contains a list of client types (e.g. `["06-solomachine", "07-tendermint"]`), then in order to use the `08-wasm` module chains must update the [`AllowedClients` parameter](https://github.com/cosmos/ibc-go/blob/v8.0.0/proto/ibc/core/client/v1/client.proto#L64) of core IBC. This can be configured directly in the application upgrade handler with the sample code below:
+If the chain's 02-client submodule parameter `AllowedClients` contains the single wildcard `"*"` element, then it is not necessary to do anything in order to allow the creation of `08-wasm` clients. However, if the parameter contains a list of client types (e.g. `["06-solomachine", "07-tendermint"]`), then in order to use the `08-wasm` module chains must update the [`AllowedClients` parameter](https://github.com/cosmos/ibc-go/blob/v8.0.0/proto/ibc/core/client/v1/client.proto#L64) of core IBC. This can be configured directly in the application upgrade handler with the sample code below:
 
 ```go
 import (

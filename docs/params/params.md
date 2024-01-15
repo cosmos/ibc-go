@@ -22,5 +22,3 @@ A client type that is not registered on this list will fail upon creation or on 
 Note that, since the client type is an arbitrary string, chains must not register two light clients
 which return the same value for the `ClientType()` function, otherwise the allow list check can be
 bypassed.
-
-
