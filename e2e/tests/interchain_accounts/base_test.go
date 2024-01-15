@@ -74,7 +74,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, order)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)

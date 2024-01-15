@@ -31,6 +31,7 @@ func NewMsgRegisterInterchainAccount(connectionID, owner, version string, order 
 		ConnectionId: connectionID,
 		Owner:        owner,
 		Version:      version,
+		Order:        order,
 	}
 }
 
