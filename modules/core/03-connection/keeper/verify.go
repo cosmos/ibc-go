@@ -370,8 +370,8 @@ func (k Keeper) VerifyNextSequenceRecv(
 func (k Keeper) VerifyChannelUpgradeError(
 	ctx sdk.Context,
 	connection exported.ConnectionI,
-	proofHeight exported.Height,
-	errorReceiptProof []byte,
+	height exported.Height,
+	proof []byte,
 	portID,
 	channelID string,
 	errorReceipt channeltypes.ErrorReceipt,
@@ -398,9 +398,9 @@ func (k Keeper) VerifyChannelUpgradeError(
 	}
 
 	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, proofHeight,
+		ctx, clientStore, k.cdc, height,
 		0, 0, // skip delay period checks for non-packet processing verification
-		errorReceiptProof, merklePath, bz,
+		proof, merklePath, bz,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed upgrade error receipt verification for client (%s)", clientID)
 	}
