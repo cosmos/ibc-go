@@ -93,8 +93,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				suite.Require().Equal(expectedForwardAccBal, balance)
 
 				// check if the refund amount is correct
-				refundCoins := fee.Total().Sub(defaultRecvFee[0]).Sub(defaultAckFee[0])
-				refundCoins = refundCoins.Add(refundCoins...)
+				refundCoins := fee.Total().Sub(defaultRecvFee[0]).Sub(defaultAckFee[0]).MulInt(sdkmath.NewInt(2))
 				expectedRefundAccBal := refundAccBal.Add(refundCoins[0])
 				balance = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 				suite.Require().Equal(expectedRefundAccBal, balance)
@@ -121,8 +120,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			},
 			func() {
 				// check if the refund acc has been refunded the correct amount
-				refundCoins := fee.Total().Sub(defaultRecvFee[0]).Sub(defaultAckFee[0])
-				refundCoins = refundCoins.Add(refundCoins...)
+				refundCoins := fee.Total().Sub(defaultRecvFee[0]).Sub(defaultAckFee[0]).MulInt(sdkmath.NewInt(2))
 				expectedRefundAccBal := refundAccBal.Add(refundCoins[0])
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 				suite.Require().Equal(expectedRefundAccBal, balance)
@@ -207,8 +205,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 			},
 			func() {
 				// check if the module acc contains the timeoutFee
-				refundCoins := fee.Total().Sub(defaultRecvFee[0]).Sub(defaultAckFee[0])
-				refundCoins = refundCoins.Add(refundCoins...)
+				refundCoins := fee.Total().Sub(defaultRecvFee[0]).Sub(defaultAckFee[0]).MulInt(sdkmath.NewInt(2))
 				expectedModuleAccBal := sdk.NewCoin(sdk.DefaultBondDenom, refundCoins.AmountOf(sdk.DefaultBondDenom))
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
 				suite.Require().Equal(expectedModuleAccBal, balance)
@@ -300,8 +297,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 				suite.Require().Equal(expectedTimeoutAccBal, balance)
 
 				// check if the refund amount is correct
-				refundCoins := fee.Total().Sub(defaultTimeoutFee[0])
-				refundCoins = refundCoins.Add(refundCoins...)
+				refundCoins := fee.Total().Sub(defaultTimeoutFee[0]).MulInt(sdkmath.NewInt(2))
 				expectedRefundAccBal := refundAccBal.Add(refundCoins[0])
 				balance = suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 				suite.Require().Equal(expectedRefundAccBal, balance)
@@ -353,8 +349,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 			},
 			func() {
 				// check if the module acc contains the correct amount of fees
-				refundCoins := fee.Total().Sub(defaultTimeoutFee[0])
-				refundCoins = refundCoins.Add(refundCoins...)
+				refundCoins := fee.Total().Sub(defaultTimeoutFee[0]).MulInt(sdkmath.NewInt(2))
 
 				expectedModuleAccBal := refundCoins[0]
 				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.GetSimApp().IBCFeeKeeper.GetFeeModuleAddress(), sdk.DefaultBondDenom)
