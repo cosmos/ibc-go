@@ -76,7 +76,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 
 		transferTxResp, err = chainB.SendIBCTransfer(ctx, channelB.ChannelID, chainBWallet.KeyName(), chainBwalletAmount, ibc.TransferOptions{})
 		s.Require().NoError(err)
-		s.Require().NoError(transferTxResp.Validate(), "chain-a ibc transfer tx is invalid")
+		s.Require().NoError(transferTxResp.Validate(), "chain-b ibc transfer tx is invalid")
 	})
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
@@ -186,7 +186,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 		s.StartRelayer(relayer)
 	})
 
-	t.Run("send incentivizes packet", func(t *testing.T) {
+	t.Run("send incentivized transfer packet", func(t *testing.T) {
 		// before adding fees for the packet, there should not be incentivized packets
 		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
@@ -220,8 +220,8 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 		s.Require().NoError(err)
 
 		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		// walletA has done to IBC transfers of value testvalues.IBCTransferAmount since the start of the test.
-		expected := testvalues.StartingTokenAmount - 2*testvalues.IBCTransferAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+		// walletA has done two IBC transfers of value testvalues.IBCTransferAmount since the start of the test.
+		expected := testvalues.StartingTokenAmount - (2 * testvalues.IBCTransferAmount) - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
 
