@@ -46,6 +46,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (core/02-client) [\#5429](https://github.com/cosmos/ibc-go/pull/5429) Add wildcard `"*"` to allow all clients in `AllowedClients` param. 
+
 ### Features
 
 * (apps/transfer) [\#5280](https://github.com/cosmos/ibc-go/pull/5280) Add list of allowed packet data keys to `Allocation` of `TransferAuthorization`.
