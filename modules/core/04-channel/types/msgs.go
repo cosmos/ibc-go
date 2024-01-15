@@ -329,14 +329,14 @@ func (msg MsgTimeout) ValidateBasic() error {
 // NewMsgTimeoutOnClose constructs new MsgTimeoutOnClose
 func NewMsgTimeoutOnClose(
 	packet Packet, nextSequenceRecv uint64,
-	proofUnreceived, closeProof []byte,
+	unreceivedProof, closeProof []byte,
 	proofHeight clienttypes.Height, signer string,
 	counterpartyUpgradeSequence uint64,
 ) *MsgTimeoutOnClose {
 	return &MsgTimeoutOnClose{
 		Packet:                      packet,
 		NextSequenceRecv:            nextSequenceRecv,
-		ProofUnreceived:             proofUnreceived,
+		ProofUnreceived:             unreceivedProof,
 		ProofClose:                  closeProof,
 		ProofHeight:                 proofHeight,
 		Signer:                      signer,

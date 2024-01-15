@@ -86,7 +86,7 @@ type ConnectionKeeper interface {
 		ctx sdk.Context,
 		connection exported.ConnectionI,
 		proofHeight exported.Height,
-		proofErrorReceipt []byte,
+		errorReceiptProof []byte,
 		portID,
 		channelID string,
 		errorReceipt ErrorReceipt,

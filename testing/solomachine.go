@@ -425,11 +425,11 @@ func (solo *Solomachine) AcknowledgePacket(chain *TestChain, packet channeltypes
 
 // TimeoutPacket creates a unreceived packet proof and broadcasts a MsgTimeout.
 func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Packet) {
-	proofUnreceived := solo.GenerateReceiptAbsenceProof(packet)
+	unreceivedProof := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeout(
 		packet,
 		1, // nextSequenceRecv is unused for UNORDERED channels
-		proofUnreceived,
+		unreceivedProof,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
 	)
@@ -442,11 +442,11 @@ func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Pac
 // TimeoutPacket creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
 func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channeltypes.Packet, channelID string) {
 	closedProof := solo.GenerateChanClosedProof(transfertypes.PortID, transfertypes.Version, channelID)
-	proofUnreceived := solo.GenerateReceiptAbsenceProof(packet)
+	unreceivedProof := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeoutOnClose(
 		packet,
 		1, // nextSequenceRecv is unused for UNORDERED channels
-		proofUnreceived,
+		unreceivedProof,
 		closedProof,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
