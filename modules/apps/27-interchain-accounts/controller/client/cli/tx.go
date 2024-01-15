@@ -14,6 +14,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 const (
@@ -46,13 +47,14 @@ the associated capability.`),
 				return err
 			}
 
-			msg := types.NewMsgRegisterInterchainAccount(connectionID, owner, version)
+			msg := types.NewMsgRegisterInterchainAccount(connectionID, owner, version, channeltypes.ORDERED)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
 	cmd.Flags().String(flagVersion, "", "Controller chain channel version")
+
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
