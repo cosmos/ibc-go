@@ -640,7 +640,8 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			"success: some refunds",
 			func() {
 				// set timeout_fee > recv_fee + ack_fee
-				packetFee.Fee.TimeoutFee = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(400)))
+				packetFee.Fee.TimeoutFee = packetFee.Fee.Total().Add(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))...)
+
 				escrowAmount = packetFee.Fee.Total()
 
 				// retrieve the relayer acc balance and add the expected recv and ack fees

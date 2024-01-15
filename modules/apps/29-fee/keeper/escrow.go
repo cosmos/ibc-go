@@ -97,7 +97,7 @@ func (k Keeper) distributePacketFeeOnAcknowledgement(ctx sdk.Context, refundAddr
 	// distribute fee for reverse relaying
 	k.distributeFee(ctx, reverseRelayer, refundAddr, packetFee.Fee.AckFee)
 
-	// refund unused fees
+	// refund unused amount from the escrowed fee
 	refundCoins := packetFee.Fee.Total().Sub(packetFee.Fee.RecvFee...).Sub(packetFee.Fee.AckFee...)
 	k.distributeFee(ctx, refundAddr, refundAddr, refundCoins)
 }
@@ -141,7 +141,7 @@ func (k Keeper) distributePacketFeeOnTimeout(ctx sdk.Context, refundAddr, timeou
 	// distribute fee for timeout relaying
 	k.distributeFee(ctx, timeoutRelayer, refundAddr, packetFee.Fee.TimeoutFee)
 
-	// refund unused fees
+	// refund unused amount from the escrowed fee
 	refundCoins := packetFee.Fee.Total().Sub(packetFee.Fee.TimeoutFee...)
 	k.distributeFee(ctx, refundAddr, refundAddr, refundCoins)
 }
