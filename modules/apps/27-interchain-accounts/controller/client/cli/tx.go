@@ -19,7 +19,9 @@ import (
 
 const (
 	// The controller chain channel version
-	flagVersion               = "version"
+	flagVersion = "version"
+	// The channel ordering
+	flagOrdering              = "ordering"
 	flagRelativePacketTimeout = "relative-packet-timeout"
 )
 
@@ -47,14 +49,23 @@ the associated capability.`),
 				return err
 			}
 
-			msg := types.NewMsgRegisterInterchainAccount(connectionID, owner, version, channeltypes.ORDERED)
+			orderString, err := cmd.Flags().GetString(flagOrdering)
+			if err != nil {
+				return err
+			}
+			order, err := getOrder(orderString)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRegisterInterchainAccount(connectionID, owner, version, order)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
 	cmd.Flags().String(flagVersion, "", "Controller chain channel version")
-
+	cmd.Flags().String(flagOrdering, "ORDER_ORDERED", "Channel ordering")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -108,4 +119,13 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+// getOrder returns the channel ordering from the provided string
+func getOrder(orderString string) (channeltypes.Order, error) {
+	order, found := channeltypes.Order_value[strings.ToUpper(orderString)]
+	if !found {
+		return channeltypes.NONE, fmt.Errorf("invalid channel ordering: %s", orderString)
+	}
+	return channeltypes.Order(order), nil
 }
