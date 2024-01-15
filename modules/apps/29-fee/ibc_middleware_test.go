@@ -867,7 +867,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		expResult func()
 	}{
 		{
-			"success",
+			"success: no refund",
 			func() {
 				// expect zero refunds
 				refundAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
@@ -888,10 +888,11 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			},
 		},
 		{
-			"success: expect some refunds",
+			"success: refund (recv_fee + ack_fee) - timeout_fee",
 			func() {
 				// set recv_fee + ack_fee > timeout_fee
-				packetFee.Fee.RecvFee = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(400)))
+				packetFee.Fee.RecvFee = packetFee.Fee.Total().Add(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)))...)
+
 				escrowAmount = packetFee.Fee.Total()
 
 				// retrieve the refund acc balance and add the expected recv and ack fees
