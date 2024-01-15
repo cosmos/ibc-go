@@ -131,3 +131,5 @@ where `proposal.json` contains:
   "deposit": "100stake"
 }
 ```
+
+If the `AllowedClients` list contains a single element that is equal to the wildcard `"*"`, then all client types are allowed and it is thus not necessary to submit a governance proposal to update the parameter.
