@@ -55,6 +55,10 @@ func validateClients(clients []string) error {
 		if strings.TrimSpace(clientType) == "" {
 			return fmt.Errorf("client type %d cannot be blank", i)
 		}
+		if foundClients[clientType] {
+			return fmt.Errorf("duplicate client type: %s", clientType)
+		}
+		foundClients[clientType] = true
 	}
 
 	return nil
