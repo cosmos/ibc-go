@@ -59,8 +59,9 @@ func NewFee(recvFee, ackFee, timeoutFee sdk.Coins) Fee {
 	}
 }
 
-// Total returns the total amount for a given Fee
-// The total amount is the Max(TimeoutFee, AckFee + RecvFee)
+// Total returns the total amount for a given Fee.
+// The total amount is the Max(RecvFee + AckFee, TimeoutFee),
+// This is because either the packet is received and acknowledged or it timeouts
 func (f Fee) Total() sdk.Coins {
 	// maximum returns the denomwise maximum of two sets of coins
 	return f.RecvFee.Add(f.AckFee...).Max(f.TimeoutFee)
