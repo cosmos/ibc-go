@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
@@ -25,7 +26,7 @@ var (
 )
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
-func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRegisterInterchainAccount {
+func NewMsgRegisterInterchainAccount(connectionID, owner, version string, order channeltypes.Order) *MsgRegisterInterchainAccount {
 	return &MsgRegisterInterchainAccount{
 		ConnectionId: connectionID,
 		Owner:        owner,
