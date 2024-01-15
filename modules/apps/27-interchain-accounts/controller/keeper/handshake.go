@@ -67,8 +67,8 @@ func (k Keeper) OnChanOpenInit(
 			panic(fmt.Errorf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
-		if channel.State == channeltypes.OPEN {
-			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
+		if channel.State != channeltypes.CLOSED {
+			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s must be %s", activeChannelID, portID, channeltypes.CLOSED)
 		}
 
 		if channel.Ordering != order {
