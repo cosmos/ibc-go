@@ -18,7 +18,7 @@ const (
 	AttributeKeyTimeout        = "timeout"
 
 	// upgrade specific keys
-	AttributeKeyUpgradeSequence = "sequence"
+	AttributeKeyUpgradeSequence = "upgrade_sequence"
 	AttributeKeyErrorReceipt    = "error_receipt"
 
 	AttributeCounterpartyPortID    = "counterparty_port_id"
