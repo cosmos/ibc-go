@@ -132,7 +132,7 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestChannelUpgrade_ICAChann
 		s.StopRelayer(ctx, relayer)
 	})
 
-	t.Run("submit tx message with bank transfer message times out", func(t *testing.T) {
+	t.Run("submit tx message with bank transfer message that times out", func(t *testing.T) {
 		t.Run("fund interchain account wallet", func(t *testing.T) {
 			// fund the host account account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
@@ -182,8 +182,15 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestChannelUpgrade_ICAChann
 		s.StartRelayer(relayer)
 	})
 
-	t.Run("verify channel is closed due to timeout on ordered channel", func(t *testing.T) {
+	t.Run("verify channel A is closed due to timeout on ordered channel", func(t *testing.T) {
 		channel, err := s.QueryChannel(ctx, chainA, controllerPortID, channelID)
+		s.Require().NoError(err)
+
+		s.Require().Equal(channeltypes.CLOSED, channel.State, "the channel was not in an expected state")
+	})
+
+	t.Run("verify channel B is closed due to timeout on ordered channel", func(t *testing.T) {
+		channel, err := s.QueryChannel(ctx, chainB, hostPortID, channelID)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.CLOSED, channel.State, "the channel was not in an expected state")
