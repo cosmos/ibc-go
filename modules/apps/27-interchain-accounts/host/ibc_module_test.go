@@ -189,7 +189,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.TRYOPEN,
-				Ordering:       channeltypes.ORDERED,
+				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointB.ConnectionID},
 				Version:        path.EndpointB.ChannelConfig.Version,
