@@ -50,18 +50,13 @@ func (k Keeper) OnChanOpenTry(
 			panic(fmt.Errorf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
-		if channel.IsOpen() {
-			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
+		if channel.State != channeltypes.CLOSED {
+			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s must be %s", activeChannelID, portID, channeltypes.CLOSED)
 		}
 
-		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
-		if !found {
-			panic(fmt.Errorf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
-		}
-
-		if !icatypes.IsPreviousMetadataEqual(appVersion, metadata) {
-			return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
-		}
+		// if a channel is being reopened, we allow the controller to propose new fields
+		// which are not exactly the same as the previous. The provided address will
+		// be overwritten with the correct one before the metadata is returned.
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
