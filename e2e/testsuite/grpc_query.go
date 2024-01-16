@@ -214,6 +214,19 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 	return res.Commitment, nil
 }
 
+// QueryUpgradeError queries the upgrade error on the given chain for the provided channel.
+func (s *E2ETestSuite) QueryUpgradeError(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.ErrorReceipt, error) {
+	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
+	res, err := queryClient.UpgradeError(ctx, &channeltypes.QueryUpgradeErrorRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+	if err != nil {
+		return channeltypes.ErrorReceipt{}, err
+	}
+	return res.ErrorReceipt, nil
+}
+
 // QueryTotalEscrowForDenom queries the total amount of tokens in escrow for a denom
 func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (sdk.Coin, error) {
 	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
