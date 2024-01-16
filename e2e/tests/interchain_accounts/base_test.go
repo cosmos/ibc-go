@@ -523,7 +523,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgr
 
 	t.Run("verify channel A upgraded and is now unordered", func(t *testing.T) {
 		var channel channeltypes.Channel
-		waitErr := test.WaitForCondition(time.Minute*10, time.Second*5, func() (bool, error) {
+		waitErr := test.WaitForCondition(time.Minute*2, time.Second*5, func() (bool, error) {
 			channel, err = s.QueryChannel(ctx, chainA, portID, initialChannelID)
 			if err != nil {
 				return false, err
