@@ -27,7 +27,6 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v8/testing/mock"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
@@ -85,7 +84,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.cdc = app.AppCodec()
 	suite.ctx = app.BaseApp.NewContext(isCheckTx)
 	suite.keeper = &app.IBCKeeper.ClientKeeper
-	suite.privVal = ibctestingmock.NewPV()
+	suite.privVal = cmttypes.NewMockPV()
 	pubKey, err := suite.privVal.GetPubKey()
 	suite.Require().NoError(err)
 
@@ -100,7 +99,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	var validators stakingtypes.Validators
 	for i := 1; i < 11; i++ {
-		privVal := ibctestingmock.NewPV()
+		privVal := cmttypes.NewMockPV()
 		tmPk, err := privVal.GetPubKey()
 		suite.Require().NoError(err)
 		pk, err := cryptocodec.FromCmtPubKeyInterface(tmPk)

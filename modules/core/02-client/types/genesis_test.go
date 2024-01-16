@@ -12,7 +12,6 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const (
@@ -45,7 +44,7 @@ func (suite *TypesTestSuite) TestMarshalGenesisState() {
 }
 
 func (suite *TypesTestSuite) TestValidateGenesis() {
-	privVal := ibctestingmock.NewPV()
+	privVal := cmttypes.NewMockPV()
 	pubKey, err := privVal.GetPubKey()
 	suite.Require().NoError(err)
 
