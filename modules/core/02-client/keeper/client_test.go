@@ -437,8 +437,6 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			},
 			expPass: false,
 		},
-<<<<<<< HEAD
-=======
 		{
 			name: "unsuccessful upgrade: upgraded height is not greater than current height",
 			setup: func() {
@@ -468,7 +466,6 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			},
 			expPass: false,
 		},
->>>>>>> 9184de36 (chore: rename `proofXyz` -> `xyzProof` (#5599))
 	}
 
 	for _, tc := range testCases {

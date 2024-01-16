@@ -282,14 +282,13 @@ func (msg MsgChannelCloseInit) GetSigners() []sdk.AccAddress {
 // Please use NewMsgChannelCloseConfirmWithCounterpartyUpgradeSequence to provide the
 // counterparty upgrade sequence in this version.
 func NewMsgChannelCloseConfirm(
-<<<<<<< HEAD
-	portID, channelID string, proofInit []byte, proofHeight clienttypes.Height,
+	portID, channelID string, initProof []byte, proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelCloseConfirm {
 	return &MsgChannelCloseConfirm{
 		PortId:                      portID,
 		ChannelId:                   channelID,
-		ProofInit:                   proofInit,
+		ProofInit:                   initProof,
 		ProofHeight:                 proofHeight,
 		Signer:                      signer,
 		CounterpartyUpgradeSequence: 0,
@@ -299,10 +298,7 @@ func NewMsgChannelCloseConfirm(
 // NewMsgChannelCloseConfirmWithCounterpartyUpgradeSequence creates a new MsgChannelCloseConfirm instance
 // with a non-zero counterparty upgrade sequence.
 func NewMsgChannelCloseConfirmWithCounterpartyUpgradeSequence(
-	portID, channelID string, proofInit []byte, proofHeight clienttypes.Height,
-=======
 	portID, channelID string, initProof []byte, proofHeight clienttypes.Height,
->>>>>>> 9184de36 (chore: rename `proofXyz` -> `xyzProof` (#5599))
 	signer string, counterpartyUpgradeSequence uint64,
 ) *MsgChannelCloseConfirm {
 	return &MsgChannelCloseConfirm{
@@ -434,8 +430,8 @@ func NewMsgTimeoutOnClose(
 	return &MsgTimeoutOnClose{
 		Packet:                      packet,
 		NextSequenceRecv:            nextSequenceRecv,
-		ProofUnreceived:             proofUnreceived,
-		ProofClose:                  proofClose,
+		ProofUnreceived:             unreceivedProof,
+		ProofClose:                  closeProof,
 		ProofHeight:                 proofHeight,
 		Signer:                      signer,
 		CounterpartyUpgradeSequence: 0,
@@ -446,7 +442,7 @@ func NewMsgTimeoutOnClose(
 // with the provided counterparty upgrade sequence.
 func NewMsgTimeoutOnCloseWithCounterpartyUpgradeSequence(
 	packet Packet, nextSequenceRecv uint64,
-	proofUnreceived, proofClose []byte,
+	unreceivedProof, closeProof []byte,
 	proofHeight clienttypes.Height, signer string,
 	counterpartyUpgradeSequence uint64,
 ) *MsgTimeoutOnClose {

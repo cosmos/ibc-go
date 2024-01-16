@@ -212,7 +212,7 @@ func (k Keeper) TimeoutOnClose(
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
 ) error {
-	return k.TimeoutOnCloseWithCounterpartyUpgradeSequence(ctx, chanCap, packet, proof, proofClosed, proofHeight, nextSequenceRecv, 0)
+	return k.TimeoutOnCloseWithCounterpartyUpgradeSequence(ctx, chanCap, packet, proof, closedProof, proofHeight, nextSequenceRecv, 0)
 }
 
 // TimeoutOnCloseWithCounterpartyUpgradeSequence is called by a module in order
@@ -228,7 +228,7 @@ func (k Keeper) TimeoutOnCloseWithCounterpartyUpgradeSequence(
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	proof,
-	proofClosed []byte,
+	closedProof []byte,
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
 	counterpartyUpgradeSequence uint64,
