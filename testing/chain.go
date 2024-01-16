@@ -279,9 +279,9 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 
 	consensusHeight := clientState.GetLatestHeight().(clienttypes.Height)
 	consensusKey := host.FullConsensusStateKey(clientID, consensusHeight)
-	proofConsensus, _ := chain.QueryProof(consensusKey)
+	consensusProof, _ := chain.QueryProof(consensusKey)
 
-	return proofConsensus, consensusHeight
+	return consensusProof, consensusHeight
 }
 
 // NextBlock sets the last header to the current header and increments the current header to be

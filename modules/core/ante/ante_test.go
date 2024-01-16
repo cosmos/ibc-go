@@ -145,9 +145,13 @@ func (suite *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Ms
 	proof, proofHeight := suite.chainA.QueryProof(packetKey)
 
 	channelKey := host.ChannelKey(packet.GetDestPort(), packet.GetDestChannel())
-	proofClosed, _ := suite.chainA.QueryProof(channelKey)
+	closedProof, _ := suite.chainA.QueryProof(channelKey)
 
+<<<<<<< HEAD
 	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, proofClosed, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+=======
+	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, closedProof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String(), 0)
+>>>>>>> 9184de36 (chore: rename `proofXyz` -> `xyzProof` (#5599))
 }
 
 func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {

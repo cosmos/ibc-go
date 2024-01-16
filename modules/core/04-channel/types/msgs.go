@@ -103,7 +103,7 @@ func (msg MsgChannelOpenInit) GetSigners() []sdk.AccAddress {
 func NewMsgChannelOpenTry(
 	portID, version string, channelOrder Order, connectionHops []string,
 	counterpartyPortID, counterpartyChannelID, counterpartyVersion string,
-	proofInit []byte, proofHeight clienttypes.Height, signer string,
+	initProof []byte, proofHeight clienttypes.Height, signer string,
 ) *MsgChannelOpenTry {
 	counterparty := NewCounterparty(counterpartyPortID, counterpartyChannelID)
 	channel := NewChannel(TRYOPEN, channelOrder, counterparty, connectionHops, version)
@@ -111,7 +111,7 @@ func NewMsgChannelOpenTry(
 		PortId:              portID,
 		Channel:             channel,
 		CounterpartyVersion: counterpartyVersion,
-		ProofInit:           proofInit,
+		ProofInit:           initProof,
 		ProofHeight:         proofHeight,
 		Signer:              signer,
 	}
@@ -157,7 +157,7 @@ func (msg MsgChannelOpenTry) GetSigners() []sdk.AccAddress {
 
 // NewMsgChannelOpenAck creates a new MsgChannelOpenAck instance
 func NewMsgChannelOpenAck(
-	portID, channelID, counterpartyChannelID string, cpv string, proofTry []byte, proofHeight clienttypes.Height,
+	portID, channelID, counterpartyChannelID string, cpv string, tryProof []byte, proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelOpenAck {
 	return &MsgChannelOpenAck{
@@ -165,7 +165,7 @@ func NewMsgChannelOpenAck(
 		ChannelId:             channelID,
 		CounterpartyChannelId: counterpartyChannelID,
 		CounterpartyVersion:   cpv,
-		ProofTry:              proofTry,
+		ProofTry:              tryProof,
 		ProofHeight:           proofHeight,
 		Signer:                signer,
 	}
@@ -203,13 +203,13 @@ func (msg MsgChannelOpenAck) GetSigners() []sdk.AccAddress {
 
 // NewMsgChannelOpenConfirm creates a new MsgChannelOpenConfirm instance
 func NewMsgChannelOpenConfirm(
-	portID, channelID string, proofAck []byte, proofHeight clienttypes.Height,
+	portID, channelID string, ackProof []byte, proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelOpenConfirm {
 	return &MsgChannelOpenConfirm{
 		PortId:      portID,
 		ChannelId:   channelID,
-		ProofAck:    proofAck,
+		ProofAck:    ackProof,
 		ProofHeight: proofHeight,
 		Signer:      signer,
 	}
@@ -282,6 +282,7 @@ func (msg MsgChannelCloseInit) GetSigners() []sdk.AccAddress {
 // Please use NewMsgChannelCloseConfirmWithCounterpartyUpgradeSequence to provide the
 // counterparty upgrade sequence in this version.
 func NewMsgChannelCloseConfirm(
+<<<<<<< HEAD
 	portID, channelID string, proofInit []byte, proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelCloseConfirm {
@@ -299,12 +300,15 @@ func NewMsgChannelCloseConfirm(
 // with a non-zero counterparty upgrade sequence.
 func NewMsgChannelCloseConfirmWithCounterpartyUpgradeSequence(
 	portID, channelID string, proofInit []byte, proofHeight clienttypes.Height,
+=======
+	portID, channelID string, initProof []byte, proofHeight clienttypes.Height,
+>>>>>>> 9184de36 (chore: rename `proofXyz` -> `xyzProof` (#5599))
 	signer string, counterpartyUpgradeSequence uint64,
 ) *MsgChannelCloseConfirm {
 	return &MsgChannelCloseConfirm{
 		PortId:                      portID,
 		ChannelId:                   channelID,
-		ProofInit:                   proofInit,
+		ProofInit:                   initProof,
 		ProofHeight:                 proofHeight,
 		Signer:                      signer,
 		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
@@ -340,12 +344,12 @@ func (msg MsgChannelCloseConfirm) GetSigners() []sdk.AccAddress {
 
 // NewMsgRecvPacket constructs new MsgRecvPacket
 func NewMsgRecvPacket(
-	packet Packet, proofCommitment []byte, proofHeight clienttypes.Height,
+	packet Packet, commitmentProof []byte, proofHeight clienttypes.Height,
 	signer string,
 ) *MsgRecvPacket {
 	return &MsgRecvPacket{
 		Packet:          packet,
-		ProofCommitment: proofCommitment,
+		ProofCommitment: commitmentProof,
 		ProofHeight:     proofHeight,
 		Signer:          signer,
 	}
@@ -381,13 +385,13 @@ func (msg MsgRecvPacket) GetSigners() []sdk.AccAddress {
 
 // NewMsgTimeout constructs new MsgTimeout
 func NewMsgTimeout(
-	packet Packet, nextSequenceRecv uint64, proofUnreceived []byte,
+	packet Packet, nextSequenceRecv uint64, unreceivedProof []byte,
 	proofHeight clienttypes.Height, signer string,
 ) *MsgTimeout {
 	return &MsgTimeout{
 		Packet:           packet,
 		NextSequenceRecv: nextSequenceRecv,
-		ProofUnreceived:  proofUnreceived,
+		ProofUnreceived:  unreceivedProof,
 		ProofHeight:      proofHeight,
 		Signer:           signer,
 	}
@@ -424,7 +428,7 @@ func (msg MsgTimeout) GetSigners() []sdk.AccAddress {
 // to provide the counterparty upgrade sequence.
 func NewMsgTimeoutOnClose(
 	packet Packet, nextSequenceRecv uint64,
-	proofUnreceived, proofClose []byte,
+	unreceivedProof, closeProof []byte,
 	proofHeight clienttypes.Height, signer string,
 ) *MsgTimeoutOnClose {
 	return &MsgTimeoutOnClose{
@@ -449,8 +453,8 @@ func NewMsgTimeoutOnCloseWithCounterpartyUpgradeSequence(
 	return &MsgTimeoutOnClose{
 		Packet:                      packet,
 		NextSequenceRecv:            nextSequenceRecv,
-		ProofUnreceived:             proofUnreceived,
-		ProofClose:                  proofClose,
+		ProofUnreceived:             unreceivedProof,
+		ProofClose:                  closeProof,
 		ProofHeight:                 proofHeight,
 		Signer:                      signer,
 		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
@@ -487,14 +491,14 @@ func (msg MsgTimeoutOnClose) GetSigners() []sdk.AccAddress {
 // NewMsgAcknowledgement constructs a new MsgAcknowledgement
 func NewMsgAcknowledgement(
 	packet Packet,
-	ack, proofAcked []byte,
+	ack, ackedProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgAcknowledgement {
 	return &MsgAcknowledgement{
 		Packet:          packet,
 		Acknowledgement: ack,
-		ProofAcked:      proofAcked,
+		ProofAcked:      ackedProof,
 		ProofHeight:     proofHeight,
 		Signer:          signer,
 	}
@@ -568,8 +572,8 @@ func NewMsgChannelUpgradeTry(
 	proposedConnectionHops []string,
 	counterpartyUpgradeFields UpgradeFields,
 	counterpartyUpgradeSequence uint64,
-	proofChannel []byte,
-	proofUpgrade []byte,
+	channelProof []byte,
+	upgradeProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeTry {
@@ -579,8 +583,8 @@ func NewMsgChannelUpgradeTry(
 		ProposedUpgradeConnectionHops: proposedConnectionHops,
 		CounterpartyUpgradeFields:     counterpartyUpgradeFields,
 		CounterpartyUpgradeSequence:   counterpartyUpgradeSequence,
-		ProofChannel:                  proofChannel,
-		ProofUpgrade:                  proofUpgrade,
+		ProofChannel:                  channelProof,
+		ProofUpgrade:                  upgradeProof,
 		ProofHeight:                   proofHeight,
 		Signer:                        signer,
 	}
@@ -628,13 +632,13 @@ var _ sdk.Msg = &MsgChannelUpgradeAck{}
 
 // NewMsgChannelUpgradeAck constructs a new MsgChannelUpgradeAck
 // nolint:interfacer
-func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyUpgrade Upgrade, proofChannel, proofUpgrade []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
+func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyUpgrade Upgrade, channelProof, upgradeProof []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
 	return &MsgChannelUpgradeAck{
 		PortId:              portID,
 		ChannelId:           channelID,
 		CounterpartyUpgrade: counterpartyUpgrade,
-		ProofChannel:        proofChannel,
-		ProofUpgrade:        proofUpgrade,
+		ProofChannel:        channelProof,
+		ProofUpgrade:        upgradeProof,
 		ProofHeight:         proofHeight,
 		Signer:              signer,
 	}
@@ -669,8 +673,8 @@ func NewMsgChannelUpgradeConfirm(
 	channelID string,
 	counterpartyChannelState State,
 	counterpartyUpgrade Upgrade,
-	proofChannel,
-	proofUpgrade []byte,
+	channelProof,
+	upgradeProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeConfirm {
@@ -679,8 +683,8 @@ func NewMsgChannelUpgradeConfirm(
 		ChannelId:                channelID,
 		CounterpartyChannelState: counterpartyChannelState,
 		CounterpartyUpgrade:      counterpartyUpgrade,
-		ProofChannel:             proofChannel,
-		ProofUpgrade:             proofUpgrade,
+		ProofChannel:             channelProof,
+		ProofUpgrade:             upgradeProof,
 		ProofHeight:              proofHeight,
 		Signer:                   signer,
 	}
@@ -724,7 +728,7 @@ func NewMsgChannelUpgradeOpen(
 	portID,
 	channelID string,
 	counterpartyChannelState State,
-	proofChannel []byte,
+	channelProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeOpen {
@@ -732,7 +736,7 @@ func NewMsgChannelUpgradeOpen(
 		PortId:                   portID,
 		ChannelId:                channelID,
 		CounterpartyChannelState: counterpartyChannelState,
-		ProofChannel:             proofChannel,
+		ProofChannel:             channelProof,
 		ProofHeight:              proofHeight,
 		Signer:                   signer,
 	}
@@ -771,7 +775,7 @@ var _ sdk.Msg = &MsgChannelUpgradeTimeout{}
 func NewMsgChannelUpgradeTimeout(
 	portID, channelID string,
 	counterpartyChannel Channel,
-	proofChannel []byte,
+	channelProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeTimeout {
@@ -779,7 +783,7 @@ func NewMsgChannelUpgradeTimeout(
 		PortId:              portID,
 		ChannelId:           channelID,
 		CounterpartyChannel: counterpartyChannel,
-		ProofChannel:        proofChannel,
+		ProofChannel:        channelProof,
 		ProofHeight:         proofHeight,
 		Signer:              signer,
 	}
@@ -818,7 +822,7 @@ var _ sdk.Msg = &MsgChannelUpgradeCancel{}
 func NewMsgChannelUpgradeCancel(
 	portID, channelID string,
 	errorReceipt ErrorReceipt,
-	proofErrReceipt []byte,
+	errorReceiptProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeCancel {
@@ -826,7 +830,7 @@ func NewMsgChannelUpgradeCancel(
 		PortId:            portID,
 		ChannelId:         channelID,
 		ErrorReceipt:      errorReceipt,
-		ProofErrorReceipt: proofErrReceipt,
+		ProofErrorReceipt: errorReceiptProof,
 		ProofHeight:       proofHeight,
 		Signer:            signer,
 	}
