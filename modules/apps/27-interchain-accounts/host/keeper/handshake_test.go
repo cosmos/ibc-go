@@ -262,7 +262,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			false,
 		},
 		{
-			"active channel already set",
+			"active channel already set (OPEN state)",
 			func() {
 				// create a new channel and set it in state
 				ch := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointA.ConnectionID}, ibctesting.DefaultChannelVersion)
@@ -271,6 +271,23 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				// set the active channelID in state
 				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			}, false,
+		},
+		{
+			"channel is already active (FLUSHING state)",
+			func() {
+				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				channel := channeltypes.Channel{
+					State:          channeltypes.FLUSHING,
+					Ordering:       channeltypes.ORDERED,
+					Counterparty:   counterparty,
+					ConnectionHops: []string{path.EndpointB.ConnectionID},
+					Version:        TestVersion,
+				}
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
+			},
+			false,
 		},
 	}
 

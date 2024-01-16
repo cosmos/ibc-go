@@ -50,8 +50,8 @@ func (k Keeper) OnChanOpenTry(
 			panic(fmt.Errorf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
-		if channel.IsOpen() {
-			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
+		if channel.State != channeltypes.CLOSED {
+			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s must be %s", activeChannelID, portID, channeltypes.CLOSED)
 		}
 
 		// if a channel is being reopened, we allow the controller to propose new fields
