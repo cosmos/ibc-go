@@ -48,12 +48,6 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
-	chainAwalletAmount := ibc.WalletAmount{
-		Address: chainBWallet.FormattedAddress(), // destination address
-		Denom:   chainADenom,
-		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
-	}
-
 	var (
 		chainARelayerWallet, chainBRelayerWallet ibc.Wallet
 		relayerAStartingBalance                  int64
@@ -64,17 +58,23 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 
 	// trying to create some inflight packets, although they might get relayed before the upgrade starts
 	t.Run("create inflight transfer packets between chain A and chain B", func(t *testing.T) {
-		transferTxResp, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainAwalletAmount, ibc.TransferOptions{})
+		chainBWalletAmount := ibc.WalletAmount{
+			Address: chainBWallet.FormattedAddress(), // destination address
+			Denom:   chainADenom,
+			Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
+		}
+
+		transferTxResp, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainBWalletAmount, ibc.TransferOptions{})
 		s.Require().NoError(err)
 		s.Require().NoError(transferTxResp.Validate(), "chain-a ibc transfer tx is invalid")
 
-		chainBwalletAmount := ibc.WalletAmount{
+		chainAwalletAmount := ibc.WalletAmount{
 			Address: chainAWallet.FormattedAddress(), // destination address
 			Denom:   chainBDenom,
 			Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
 		}
 
-		transferTxResp, err = chainB.SendIBCTransfer(ctx, channelB.ChannelID, chainBWallet.KeyName(), chainBwalletAmount, ibc.TransferOptions{})
+		transferTxResp, err = chainB.SendIBCTransfer(ctx, channelB.ChannelID, chainBWallet.KeyName(), chainAwalletAmount, ibc.TransferOptions{})
 		s.Require().NoError(err)
 		s.Require().NoError(transferTxResp.Validate(), "chain-b ibc transfer tx is invalid")
 	})
