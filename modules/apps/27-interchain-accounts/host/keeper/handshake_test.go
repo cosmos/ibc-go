@@ -98,10 +98,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 		{
 			"success - previous metadata is different",
 			func() {
-				// create a new channel and set it in state
-				ch := channeltypes.NewChannel(channeltypes.CLOSED, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
-				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, ch)
-
 				// set the active channelID in state
 				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
@@ -112,6 +108,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 				suite.Require().NoError(err)
 
+				channel.State = channeltypes.CLOSED
 				channel.Version = string(versionBytes)
 
 				path.EndpointB.SetChannel(*channel)
