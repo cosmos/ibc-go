@@ -14,12 +14,15 @@ import (
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 const (
 	// The controller chain channel version
-	flagVersion               = "version"
+	flagVersion = "version"
+	// The channel ordering
+	flagOrdering              = "ordering"
 	flagRelativePacketTimeout = "relative-packet-timeout"
 )
 
@@ -30,8 +33,8 @@ func newRegisterInterchainAccountCmd() *cobra.Command {
 		Long: strings.TrimSpace(`Register an account on the counterparty chain via the 
 connection id from the source chain. Connection identifier should be for the source chain 
 and the interchain account will be created on the counterparty chain. Callers are expected to 
-provide the appropriate application version string via {version} flag. Generates a new 
-port identifier using the provided owner string, binds to the port identifier and claims 
+provide the appropriate application version string via {version} flag and the desired ordering
+via the {ordering} flag. Generates a new port identifier using the provided owner string, binds to the port identifier and claims 
 the associated capability.`),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -47,13 +50,23 @@ the associated capability.`),
 				return err
 			}
 
-			msg := types.NewMsgRegisterInterchainAccount(connectionID, owner, version, channeltypes.ORDERED)
+			orderString, err := cmd.Flags().GetString(flagOrdering)
+			if err != nil {
+				return err
+			}
+			order, err := parseOrder(orderString)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRegisterInterchainAccount(connectionID, owner, version, order)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
 	cmd.Flags().String(flagVersion, "", "Controller chain channel version")
+	cmd.Flags().String(flagOrdering, "ORDER_ORDERED", fmt.Sprintf("Channel ordering, can be one of: %s", strings.Join(connectiontypes.SupportedOrderings, ", ")))
 
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -108,4 +121,13 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+// parseOrder returns the channel ordering from the provided string
+func parseOrder(orderString string) (channeltypes.Order, error) {
+	order, found := channeltypes.Order_value[strings.ToUpper(orderString)]
+	if !found {
+		return channeltypes.NONE, fmt.Errorf("invalid channel ordering: %s", orderString)
+	}
+	return channeltypes.Order(order), nil
 }
