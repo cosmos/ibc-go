@@ -208,7 +208,7 @@ func (k Keeper) TimeoutOnClose(
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	proof,
-	proofClosed []byte,
+	closedProof []byte,
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
 	counterpartyUpgradeSequence uint64,
@@ -277,7 +277,7 @@ func (k Keeper) TimeoutOnClose(
 
 	// check that the opposing channel end has closed
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofClosed,
+		ctx, connectionEnd, proofHeight, closedProof,
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
 		expectedChannel,
 	); err != nil {

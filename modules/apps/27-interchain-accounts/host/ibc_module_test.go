@@ -257,10 +257,10 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
 
 	// query proof from ChainA
 	channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-	proofTry, proofHeight := path.EndpointA.Chain.QueryProof(channelKey)
+	tryProof, proofHeight := path.EndpointA.Chain.QueryProof(channelKey)
 
 	// use chainB (host) for ChanOpenAck
-	msg := channeltypes.NewMsgChannelOpenAck(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelID, TestVersion, proofTry, proofHeight, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenAck(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelID, TestVersion, tryProof, proofHeight, icatypes.ModuleName)
 	handler := suite.chainB.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err = handler(suite.chainB.GetContext(), msg)
 

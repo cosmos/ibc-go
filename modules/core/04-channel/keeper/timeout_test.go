@@ -759,7 +759,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			unorderedPacketKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			orderedPacketKey := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 
-			proofClosed, proofHeight := suite.chainB.QueryProof(channelKey)
+			closedProof, proofHeight := suite.chainB.QueryProof(channelKey)
 
 			if ordered {
 				proof, _ = suite.chainB.QueryProof(orderedPacketKey)
@@ -772,7 +772,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				chanCap,
 				packet,
 				proof,
-				proofClosed,
+				closedProof,
 				proofHeight,
 				nextSeqRecv,
 				counterpartyUpgradeSequence,
