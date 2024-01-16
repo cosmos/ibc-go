@@ -15,11 +15,12 @@ const (
 	AttributeKeyVersion        = "version"
 	AttributeKeyConnectionHops = "connection_hops"
 	AttributeKeyOrdering       = "ordering"
-	AttributeKeyTimeout        = "timeout"
 
 	// upgrade specific keys
-	AttributeKeyUpgradeSequence = "upgrade_sequence"
-	AttributeKeyErrorReceipt    = "error_receipt"
+	AttributeKeyUpgradeTimeoutHeight    = "timeout_height"
+	AttributeKeyUpgradeTimeoutTimestamp = "timeout_timestamp"
+	AttributeKeyUpgradeSequence         = "upgrade_sequence"
+	AttributeKeyErrorReceipt            = "error_receipt"
 
 	AttributeCounterpartyPortID    = "counterparty_port_id"
 	AttributeCounterpartyChannelID = "counterparty_channel_id"

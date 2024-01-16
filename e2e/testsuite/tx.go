@@ -285,3 +285,15 @@ func (s *E2ETestSuite) PayPacketFeeAsync(
 	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
+
+// PruneAcknowledgements broadcasts a MsgPruneAcknowledgements message.
+func (s *E2ETestSuite) PruneAcknowledgements(
+	ctx context.Context,
+	chain ibc.Chain,
+	user ibc.Wallet,
+	portID, channelID string,
+	limit uint64,
+) sdk.TxResponse {
+	msg := channeltypes.NewMsgPruneAcknowledgements(portID, channelID, limit, user.FormattedAddress())
+	return s.BroadcastMessages(ctx, chain, user, msg)
+}

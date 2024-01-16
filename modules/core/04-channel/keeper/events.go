@@ -387,7 +387,8 @@ func EmitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID st
 			sdk.NewAttribute(types.AttributeKeyConnectionHops, upgrade.Fields.ConnectionHops[0]),
 			sdk.NewAttribute(types.AttributeKeyVersion, upgrade.Fields.Version),
 			sdk.NewAttribute(types.AttributeKeyOrdering, upgrade.Fields.Ordering.String()),
-			sdk.NewAttribute(types.AttributeKeyTimeout, upgrade.Timeout.String()),
+			sdk.NewAttribute(types.AttributeKeyUpgradeTimeoutHeight, upgrade.Timeout.Height.String()),
+			sdk.NewAttribute(types.AttributeKeyUpgradeTimeoutTimestamp, fmt.Sprintf("%d", upgrade.Timeout.Timestamp)),
 			sdk.NewAttribute(types.AttributeKeyUpgradeSequence, fmt.Sprintf("%d", currentChannel.UpgradeSequence)),
 		),
 		sdk.NewEvent(
