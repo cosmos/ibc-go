@@ -105,7 +105,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				// set the active channelID in state
 				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
-				// set the previous encoding to be proto3json. And then set the new encoding to be protobuf.
+				// set the previous encoding to be proto3json.
+				// the new encoding is set to be protobuf in the test below.
 				metadata.Encoding = icatypes.EncodingProto3JSON
 
 				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
