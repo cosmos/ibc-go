@@ -669,18 +669,12 @@ func (k Keeper) WriteUpgradeCancelChannel(ctx sdk.Context, portID, channelID str
 		panic(fmt.Errorf("could not find existing channel when updating channel state, channelID: %s, portID: %s", channelID, portID))
 	}
 
-	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
-	if !found {
-		panic(fmt.Errorf("could not find upgrade when updating channel state, channelID: %s, portID: %s", channelID, portID))
-	}
-
 	previousState := channel.State
 
 	channel = k.restoreChannel(ctx, portID, channelID, sequence, channel)
 	k.WriteErrorReceipt(ctx, portID, channelID, types.NewUpgradeError(sequence, types.ErrInvalidUpgrade))
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN.String())
-	EmitChannelUpgradeCancelEvent(ctx, portID, channelID, channel, upgrade)
 }
 
 // ChanUpgradeTimeout times out an outstanding upgrade.
@@ -728,11 +722,8 @@ func (k Keeper) ChanUpgradeTimeout(
 
 	// proof must be from a height after timeout has elapsed. Either timeoutHeight or timeoutTimestamp must be defined.
 	// if timeoutHeight is defined and proof is from before timeout height, abort transaction
-	timeoutHeight := upgrade.Timeout.Height
-	timeoutTimeStamp := upgrade.Timeout.Timestamp
-	if (timeoutHeight.IsZero() || proofHeight.LT(timeoutHeight)) &&
-		(timeoutTimeStamp == 0 || proofTimestamp < timeoutTimeStamp) {
-		return errorsmod.Wrap(types.ErrInvalidUpgradeTimeout, "upgrade timeout has not been reached for height or timestamp")
+	if !upgrade.Timeout.Elapsed(proofHeight.(clienttypes.Height), proofTimestamp) {
+		return errorsmod.Wrap(upgrade.Timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "upgrade timeout not reached")
 	}
 
 	// counterparty channel must be proved to still be in OPEN state or FLUSHING state.
