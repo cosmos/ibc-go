@@ -14,6 +14,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
@@ -53,7 +54,7 @@ the associated capability.`),
 			if err != nil {
 				return err
 			}
-			order, err := getOrder(orderString)
+			order, err := parseOrder(orderString)
 			if err != nil {
 				return err
 			}
@@ -65,7 +66,7 @@ the associated capability.`),
 	}
 
 	cmd.Flags().String(flagVersion, "", "Controller chain channel version")
-	cmd.Flags().String(flagOrdering, "ORDER_ORDERED", "Channel ordering")
+	cmd.Flags().String(flagOrdering, "ORDER_ORDERED", fmt.Sprintf("Channel ordering, can be one of: %s", strings.Join(connectiontypes.SupportedOrderings, ", ")))
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -121,8 +122,8 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 	return cmd
 }
 
-// getOrder returns the channel ordering from the provided string
-func getOrder(orderString string) (channeltypes.Order, error) {
+// parseOrder returns the channel ordering from the provided string
+func parseOrder(orderString string) (channeltypes.Order, error) {
 	order, found := channeltypes.Order_value[strings.ToUpper(orderString)]
 	if !found {
 		return channeltypes.NONE, fmt.Errorf("invalid channel ordering: %s", orderString)
