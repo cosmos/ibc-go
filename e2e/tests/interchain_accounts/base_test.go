@@ -27,7 +27,7 @@ import (
 )
 
 // orderMapping is a mapping from channel ordering to the string representation of the ordering.
-// the representation can be different depending on the relayer implmentation.
+// the representation can be different depending on the relayer implementation.
 var orderMapping = map[channeltypes.Order][]string{
 	channeltypes.ORDERED:   {channeltypes.ORDERED.String(), "Ordered"},
 	channeltypes.UNORDERED: {channeltypes.UNORDERED.String(), "Unordered"},
