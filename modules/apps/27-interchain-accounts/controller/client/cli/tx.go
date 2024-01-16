@@ -50,11 +50,7 @@ the associated capability.`),
 				return err
 			}
 
-			orderString, err := cmd.Flags().GetString(flagOrdering)
-			if err != nil {
-				return err
-			}
-			order, err := parseOrder(orderString)
+			order, err := parseOrder(cmd)
 			if err != nil {
 				return err
 			}
@@ -66,7 +62,7 @@ the associated capability.`),
 	}
 
 	cmd.Flags().String(flagVersion, "", "Controller chain channel version")
-	cmd.Flags().String(flagOrdering, "ORDER_ORDERED", fmt.Sprintf("Channel ordering, can be one of: %s", strings.Join(connectiontypes.SupportedOrderings, ", ")))
+	cmd.Flags().String(flagOrdering, channeltypes.ORDERED.String(), fmt.Sprintf("Channel ordering, can be one of: %s", strings.Join(connectiontypes.SupportedOrderings, ", ")))
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -122,11 +118,17 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 	return cmd
 }
 
-// parseOrder returns the channel ordering from the provided string
-func parseOrder(orderString string) (channeltypes.Order, error) {
+// parseOrder gets the channel ordering from the flags.
+func parseOrder(cmd *cobra.Command) (channeltypes.Order, error) {
+	orderString, err := cmd.Flags().GetString(flagOrdering)
+	if err != nil {
+		return channeltypes.NONE, err
+	}
+
 	order, found := channeltypes.Order_value[strings.ToUpper(orderString)]
 	if !found {
 		return channeltypes.NONE, fmt.Errorf("invalid channel ordering: %s", orderString)
 	}
+
 	return channeltypes.Order(order), nil
 }
