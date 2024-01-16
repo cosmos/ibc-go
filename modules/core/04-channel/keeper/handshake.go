@@ -111,7 +111,7 @@ func (k Keeper) ChanOpenTry(
 	portCap *capabilitytypes.Capability,
 	counterparty types.Counterparty,
 	counterpartyVersion string,
-	proofInit []byte,
+	initProof []byte,
 	proofHeight exported.Height,
 ) (string, *capabilitytypes.Capability, error) {
 	// connection hops only supports a single connection
@@ -166,7 +166,7 @@ func (k Keeper) ChanOpenTry(
 	)
 
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofInit,
+		ctx, connectionEnd, proofHeight, initProof,
 		counterparty.PortId, counterparty.ChannelId, expectedChannel,
 	); err != nil {
 		return "", nil, err
@@ -221,7 +221,7 @@ func (k Keeper) ChanOpenAck(
 	chanCap *capabilitytypes.Capability,
 	counterpartyVersion,
 	counterpartyChannelID string,
-	proofTry []byte,
+	tryProof []byte,
 	proofHeight exported.Height,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -259,7 +259,7 @@ func (k Keeper) ChanOpenAck(
 	)
 
 	return k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofTry,
+		ctx, connectionEnd, proofHeight, tryProof,
 		channel.Counterparty.PortId, counterpartyChannelID,
 		expectedChannel)
 }
@@ -297,7 +297,7 @@ func (k Keeper) ChanOpenConfirm(
 	portID,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	proofAck []byte,
+	ackProof []byte,
 	proofHeight exported.Height,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
@@ -337,7 +337,7 @@ func (k Keeper) ChanOpenConfirm(
 	)
 
 	return k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofAck,
+		ctx, connectionEnd, proofHeight, ackProof,
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
 		expectedChannel)
 }
@@ -429,10 +429,10 @@ func (k Keeper) ChanCloseConfirm(
 	portID,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	proofInit []byte,
+	initProof []byte,
 	proofHeight exported.Height,
 ) error {
-	return k.ChanCloseConfirmWithCounterpartyUpgradeSequence(ctx, portID, channelID, chanCap, proofInit, proofHeight, 0)
+	return k.ChanCloseConfirmWithCounterpartyUpgradeSequence(ctx, portID, channelID, chanCap, initProof, proofHeight, 0)
 }
 
 // ChanCloseConfirmWithCounterpartyUpgradeSequence is called by the counterparty module to
@@ -446,7 +446,7 @@ func (k Keeper) ChanCloseConfirmWithCounterpartyUpgradeSequence(
 	portID,
 	channelID string,
 	chanCap *capabilitytypes.Capability,
-	proofInit []byte,
+	initProof []byte,
 	proofHeight exported.Height,
 	counterpartyUpgradeSequence uint64,
 ) error {
@@ -488,7 +488,7 @@ func (k Keeper) ChanCloseConfirmWithCounterpartyUpgradeSequence(
 	}
 
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofInit,
+		ctx, connectionEnd, proofHeight, initProof,
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
 		expectedChannel,
 	); err != nil {
