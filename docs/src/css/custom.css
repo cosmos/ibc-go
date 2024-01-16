@@ -8,6 +8,12 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+/* Github Style Themed Images */
+[data-theme='light'] img[src$='#gh-dark-mode-only'],
+[data-theme='dark'] img[src$='#gh-light-mode-only'] {
+  display: none;
+}
+
 /* You can override the default Infima variables here. */
 :root {
   --ifm-color-primary: #5064fb;
