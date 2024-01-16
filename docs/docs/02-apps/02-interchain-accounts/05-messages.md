@@ -17,6 +17,7 @@ type MsgRegisterInterchainAccount struct {
   Owner        string
   ConnectionID string
   Version      string
+  Order        channeltypes.Order
 }
 ```
 
