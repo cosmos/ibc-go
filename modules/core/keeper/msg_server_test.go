@@ -2309,15 +2309,16 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 				timeout := channeltypes.NewTimeout(clienttypes.ZeroHeight(), 1)
 				expEvents := ibctesting.EventsMap{
 					channeltypes.EventTypeChannelUpgradeTimeout: {
-						channeltypes.AttributeKeyPortID:                path.EndpointA.ChannelConfig.PortID,
-						channeltypes.AttributeKeyChannelID:             path.EndpointA.ChannelID,
-						channeltypes.AttributeCounterpartyPortID:       path.EndpointB.ChannelConfig.PortID,
-						channeltypes.AttributeCounterpartyChannelID:    path.EndpointB.ChannelID,
-						channeltypes.AttributeKeyUpgradeConnectionHops: proposedUpgrade.Fields.ConnectionHops[0],
-						channeltypes.AttributeKeyUpgradeVersion:        proposedUpgrade.Fields.Version,
-						channeltypes.AttributeKeyUpgradeOrdering:       proposedUpgrade.Fields.Ordering.String(),
-						channeltypes.AttributeKeyUpgradeTimeout:        timeout.String(),
-						channeltypes.AttributeKeyUpgradeSequence:       fmt.Sprintf("%d", channel.UpgradeSequence),
+						channeltypes.AttributeKeyPortID:                  path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:               path.EndpointA.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:         path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID:      path.EndpointB.ChannelID,
+						channeltypes.AttributeKeyUpgradeConnectionHops:   proposedUpgrade.Fields.ConnectionHops[0],
+						channeltypes.AttributeKeyUpgradeVersion:          proposedUpgrade.Fields.Version,
+						channeltypes.AttributeKeyUpgradeOrdering:         proposedUpgrade.Fields.Ordering.String(),
+						channeltypes.AttributeKeyUpgradeTimeoutHeight:    timeout.Height.String(),
+						channeltypes.AttributeKeyUpgradeTimeoutTimestamp: fmt.Sprintf("%d", timeout.Timestamp),
+						channeltypes.AttributeKeyUpgradeSequence:         fmt.Sprintf("%d", channel.UpgradeSequence),
 					},
 					channeltypes.EventTypeChannelUpgradeError: {
 						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
