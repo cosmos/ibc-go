@@ -53,6 +53,10 @@ func (k Keeper) OnChanOpenTry(
 		if channel.IsOpen() {
 			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
 		}
+
+		// if a channel is being reopened, we allow the controller to propose new fields
+		// which are not exactly the same as the previous. The provided address will
+		// be overwritten with the correct one before the metadata is returned.
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
