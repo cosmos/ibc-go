@@ -122,10 +122,10 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 
 func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 	var (
-		upgradedClient         exported.ClientState
-		upgradedConsState      exported.ConsensusState
-		proofUpgradedClient    []byte
-		proofUpgradedConsState []byte
+		upgradedClient              exported.ClientState
+		upgradedConsState           exported.ConsensusState
+		upgradedClientProof         []byte
+		upgradedConsensusStateProof []byte
 	)
 
 	testCases := []struct {
@@ -150,8 +150,8 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 					// verify payload values
 					suite.Require().Equal(expectedUpgradedClient.Data, payload.VerifyUpgradeAndUpdateState.UpgradeClientState)
 					suite.Require().Equal(expectedUpgradedConsensus.Data, payload.VerifyUpgradeAndUpdateState.UpgradeConsensusState)
-					suite.Require().Equal(proofUpgradedClient, payload.VerifyUpgradeAndUpdateState.ProofUpgradeClient)
-					suite.Require().Equal(proofUpgradedConsState, payload.VerifyUpgradeAndUpdateState.ProofUpgradeConsensusState)
+					suite.Require().Equal(upgradedClientProof, payload.VerifyUpgradeAndUpdateState.ProofUpgradeClient)
+					suite.Require().Equal(upgradedConsensusStateProof, payload.VerifyUpgradeAndUpdateState.ProofUpgradeConsensusState)
 
 					// verify other Sudo fields are nil
 					suite.Require().Nil(payload.UpdateState)
@@ -223,8 +223,8 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), defaultWasmClientID)
 
-			proofUpgradedClient = wasmtesting.MockUpgradedClientStateProofBz
-			proofUpgradedConsState = wasmtesting.MockUpgradedConsensusStateProofBz
+			upgradedClientProof = wasmtesting.MockUpgradedClientStateProofBz
+			upgradedConsensusStateProof = wasmtesting.MockUpgradedConsensusStateProofBz
 
 			err = clientState.VerifyUpgradeAndUpdateState(
 				suite.chainA.GetContext(),
@@ -232,8 +232,8 @@ func (suite *TypesTestSuite) TestVerifyUpgradeAndUpdateState() {
 				clientStore,
 				upgradedClient,
 				upgradedConsState,
-				proofUpgradedClient,
-				proofUpgradedConsState,
+				upgradedClientProof,
+				upgradedConsensusStateProof,
 			)
 
 			expPass := tc.expErr == nil

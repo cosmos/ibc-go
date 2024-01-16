@@ -280,10 +280,10 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	suite.Require().NoError(err)
 
 	channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-	proofInit, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
+	initProof, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
 	// use chainA (controller) for ChanOpenTry
-	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, proofInit, proofHeight, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenTry(path.EndpointA.ChannelConfig.PortID, TestVersion, channeltypes.ORDERED, []string{path.EndpointA.ConnectionID}, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, TestVersion, initProof, proofHeight, icatypes.ModuleName)
 	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err = handler(suite.chainA.GetContext(), msg)
 
@@ -427,10 +427,10 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 
 	// query proof from ChainB
 	channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-	proofAck, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
+	ackProof, proofHeight := path.EndpointB.Chain.QueryProof(channelKey)
 
 	// use chainA (controller) for ChanOpenConfirm
-	msg := channeltypes.NewMsgChannelOpenConfirm(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, proofAck, proofHeight, icatypes.ModuleName)
+	msg := channeltypes.NewMsgChannelOpenConfirm(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ackProof, proofHeight, icatypes.ModuleName)
 	handler := suite.chainA.GetSimApp().MsgServiceRouter().Handler(msg)
 	_, err = handler(suite.chainA.GetContext(), msg)
 
