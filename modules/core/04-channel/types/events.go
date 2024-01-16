@@ -12,7 +12,7 @@ const (
 	AttributeKeyPortID         = "port_id"
 	AttributeKeyChannelID      = "channel_id"
 	AttributeKeyChannelState   = "channel_state"
-	AttributeKeyVersion        = "version"
+	AttributeVersion           = "version"
 	AttributeKeyConnectionHops = "connection_hops"
 	AttributeKeyOrdering       = "ordering"
 
