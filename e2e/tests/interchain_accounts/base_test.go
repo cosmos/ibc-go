@@ -434,7 +434,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgr
 		var err error
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
+		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 		portID, err = icatypes.NewControllerPortID(controllerAddress)
 		s.Require().NoError(err)
@@ -508,6 +508,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgr
 
 	channel, err := s.QueryChannel(ctx, chainA, portID, initialChannelID)
 	s.Require().NoError(err)
+
 	// upgrade the channel ordering to UNORDERED
 	upgradeFields := channeltypes.NewUpgradeFields(channeltypes.UNORDERED, channel.ConnectionHops, channel.Version)
 
