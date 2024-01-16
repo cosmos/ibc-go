@@ -141,7 +141,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		expPass  bool
 	}{
 		{
-			"success", func() {}, true,
+			"success w/ ORDERED channel", func() {}, true,
+		},
+		{
+			"success w/ UNORDERED channel", func() {
+				channel.Ordering = channeltypes.UNORDERED
+			}, true,
 		},
 		{
 			"account address generation is block dependent", func() {
@@ -189,7 +194,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channel = &channeltypes.Channel{
 				State:          channeltypes.TRYOPEN,
-				Ordering:       channeltypes.UNORDERED,
+				Ordering:       channeltypes.ORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointB.ConnectionID},
 				Version:        path.EndpointB.ChannelConfig.Version,
