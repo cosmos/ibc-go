@@ -701,7 +701,9 @@ func NewMsgChannelUpgradeCancel(
 	}
 }
 
-// ValidateBasic implements sdk.Msg
+// ValidateBasic implements sdk.Msg. No checks are done for ErrorReceipt and ProofErrorReceipt
+// since they are not required if the current channel state is not in FLUSHCOMPLETE and the signer
+// is the designated authority (e.g. the governance module).
 func (msg MsgChannelUpgradeCancel) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
 		return errorsmod.Wrap(err, "invalid port ID")
