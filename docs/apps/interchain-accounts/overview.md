@@ -30,4 +30,17 @@ SDK modules on a chain are assumed to be trustworthy. For example, there are no 
 
 The implementation of ICS-27 in ibc-go uses this assumption in its security considerations.
 
+<<<<<<< HEAD:docs/apps/interchain-accounts/overview.md
 The implementation assumes other IBC application modules will not bind to ports within the ICS-27 namespace. 
+=======
+The implementation assumes other IBC application modules will not bind to ports within the ICS-27 namespace.
+
+## Channel Closure
+
+The provided interchain account host and controller implementations do not support `ChanCloseInit`. However, they do support `ChanCloseConfirm`.
+This means that the host and controller modules cannot close channels, but they will confirm channel closures initiated by other implementations of ICS-27.
+
+In the event of a channel closing (due to a packet timeout in an ordered channel, for example), the interchain account associated with that channel can become accessible again if a new channel is created with a (JSON-formatted) version string that encodes the exact same `Metadata` information of the previous channel. The channel can be reopened using either [`MsgRegisterInterchainAccount`](./05-messages.md#msgregisterinterchainaccount) or `MsgChannelOpenInit`. If `MsgRegisterInterchainAccount` is used, then it is possible to leave the `version` field of the message empty, since it will be filled in by the controller submodule. If `MsgChannelOpenInit` is used, then the `version` field must be provided with the correct JSON-encoded `Metadata` string. See section [Understanding Active Channels](./09-active-channels.md#understanding-active-channels) for more information.
+
+When reopening a channel with the default controller submodule, the ordering of the channel cannot be changed. In order to change the ordering of the channel, the channel has to go through a [channel upgrade handshake](../../01-ibc/06-channel-upgrades.md) or reopen the channel with a custom controller implementation.
+>>>>>>> 61748221 (feat(ica): allow unordered ica channels (#5633)):docs/docs/02-apps/02-interchain-accounts/01-overview.md

@@ -71,7 +71,11 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 
 		msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
 
+<<<<<<< HEAD
 		tc.malleate()
+=======
+			msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", channeltypes.ORDERED)
+>>>>>>> 61748221 (feat(ica): allow unordered ica channels (#5633))
 
 		ctx := suite.chainA.GetContext()
 		msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
