@@ -425,6 +425,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 }
 
+/*
+TOOD: uncomment when hermes works with upgrades, https://github.com/cosmos/ibc-go/issues/5644
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgradingOrdertoUnordered() {
 	t := s.T()
 	ctx := context.TODO()
@@ -550,3 +552,4 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgr
 		s.Require().NoErrorf(waitErr, "channel was not upgraded: expected %s got %s", channeltypes.UNORDERED, channel.Ordering)
 	})
 }
+*/
