@@ -25,13 +25,25 @@ var (
 	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 )
 
-// NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
-func NewMsgRegisterInterchainAccount(connectionID, owner, version string, order channeltypes.Order) *MsgRegisterInterchainAccount {
+// NewMsgRegisterInterchainAccountWithOrder creates a new instance of MsgRegisterInterchainAccount.
+func NewMsgRegisterInterchainAccountWithOrder(connectionID, owner, version string, order channeltypes.Order) *MsgRegisterInterchainAccount {
 	return &MsgRegisterInterchainAccount{
 		ConnectionId: connectionID,
 		Owner:        owner,
 		Version:      version,
 		Order:        order,
+	}
+}
+
+// NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount.
+// It uses channeltypes.ORDERED as the default order. Breakage in v9.0.0 will allow the ordering to provided
+// directly. Use NewMsgRegisterInterchainAccountWithOrder to provide the ordering in previous versions.
+func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRegisterInterchainAccount {
+	return &MsgRegisterInterchainAccount{
+		ConnectionId: connectionID,
+		Owner:        owner,
+		Version:      version,
+		Order:        channeltypes.ORDERED,
 	}
 }
 

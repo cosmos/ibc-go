@@ -24,7 +24,6 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -154,7 +153,7 @@ func (s *CallbacksTestSuite) SetupICATest() string {
 // RegisterInterchainAccount submits a MsgRegisterInterchainAccount and updates the controller endpoint with the
 // channel created.
 func (s *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
-	msgRegister := icacontrollertypes.NewMsgRegisterInterchainAccount(s.path.EndpointA.ConnectionID, owner, s.path.EndpointA.ChannelConfig.Version, channeltypes.ORDERED)
+	msgRegister := icacontrollertypes.NewMsgRegisterInterchainAccount(s.path.EndpointA.ConnectionID, owner, s.path.EndpointA.ChannelConfig.Version)
 
 	res, err := s.chainA.SendMsgs(msgRegister)
 	s.Require().NotEmpty(res)

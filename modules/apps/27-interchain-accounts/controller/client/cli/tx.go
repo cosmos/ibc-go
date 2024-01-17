@@ -55,7 +55,7 @@ the associated capability.`),
 				return err
 			}
 
-			msg := types.NewMsgRegisterInterchainAccount(connectionID, owner, version, order)
+			msg := types.NewMsgRegisterInterchainAccountWithOrder(connectionID, owner, version, order)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
