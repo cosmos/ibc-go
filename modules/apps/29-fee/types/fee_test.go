@@ -34,10 +34,95 @@ var (
 const invalidAddress = "invalid-address"
 
 func TestFeeTotal(t *testing.T) {
-	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+	var fee types.Fee
 
-	total := fee.Total()
-	require.Equal(t, sdkmath.NewInt(600), total.AmountOf(sdk.DefaultBondDenom))
+	testCases := []struct {
+		name     string
+		malleate func()
+		expTotal sdk.Coins
+	}{
+		{
+			"success",
+			func() {},
+			sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(300))),
+		},
+		{
+			"success: empty fees",
+			func() {
+				fee = types.NewFee(sdk.NewCoins(), sdk.NewCoins(), sdk.NewCoins())
+			},
+			sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(0))),
+		},
+		{
+			"success: multiple denoms",
+			func() {
+				fee = types.NewFee(
+					sdk.NewCoins(
+						defaultRecvFee[0],
+						sdk.NewCoin("denom", sdkmath.NewInt(300)),
+					),
+					sdk.NewCoins(
+						defaultAckFee[0],
+						sdk.NewCoin("denom", sdkmath.NewInt(200)),
+					),
+					sdk.NewCoins(
+						defaultTimeoutFee[0],
+						sdk.NewCoin("denom", sdkmath.NewInt(100)),
+					),
+				)
+			},
+			sdk.NewCoins(
+				sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(300)),
+				sdk.NewCoin("denom", sdkmath.NewInt(500)),
+			),
+		},
+		{
+			"success: many denoms",
+			func() {
+				fee = types.NewFee(
+					sdk.NewCoins(
+						defaultRecvFee[0],
+						sdk.NewCoin("denom", sdkmath.NewInt(200)),
+						sdk.NewCoin("denom4", sdkmath.NewInt(100)),
+						sdk.NewCoin("denom5", sdkmath.NewInt(300)),
+					),
+					sdk.NewCoins(
+						defaultAckFee[0],
+						sdk.NewCoin("denom", sdkmath.NewInt(200)),
+						sdk.NewCoin("denom2", sdkmath.NewInt(100)),
+						sdk.NewCoin("denom3", sdkmath.NewInt(300)),
+						sdk.NewCoin("denom4", sdkmath.NewInt(100)),
+					),
+					sdk.NewCoins(
+						defaultTimeoutFee[0],
+						sdk.NewCoin("denom", sdkmath.NewInt(100)),
+						sdk.NewCoin("denom2", sdkmath.NewInt(200)),
+						sdk.NewCoin("denom5", sdkmath.NewInt(300)),
+					),
+				)
+			},
+			sdk.NewCoins(
+				sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(300)),
+				sdk.NewCoin("denom", sdkmath.NewInt(400)),
+				sdk.NewCoin("denom2", sdkmath.NewInt(200)),
+				sdk.NewCoin("denom3", sdkmath.NewInt(300)),
+				sdk.NewCoin("denom4", sdkmath.NewInt(200)),
+				sdk.NewCoin("denom5", sdkmath.NewInt(300)),
+			),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
+			fee = types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
+
+			tc.malleate() // malleate mutates test data
+
+			require.Equal(t, tc.expTotal, fee.Total())
+		})
+	}
 }
 
 func TestPacketFeeValidation(t *testing.T) {
