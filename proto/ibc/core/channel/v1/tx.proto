@@ -391,7 +391,7 @@ message MsgChannelUpgradeOpen {
   uint64                    counterparty_upgrade_sequence = 4;
   bytes                     proof_channel                 = 5;
   ibc.core.client.v1.Height proof_height                  = 6 [(gogoproto.nullable) = false];
-  string                    signer                        = 8;
+  string                    signer                        = 7;
 }
 
 // MsgChannelUpgradeOpenResponse defines the MsgChannelUpgradeOpen response type
