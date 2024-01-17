@@ -161,7 +161,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 		sdk.NewEvent(
 			types.EventTypeDistributeFee,
 			sdk.NewAttribute(types.AttributeKeyReceiver, suite.chainA.SenderAccount.GetAddress().String()),
-			sdk.NewAttribute(types.AttributeKeyFee, defaultTimeoutFee.String()),
+			sdk.NewAttribute(types.AttributeKeyFee, sdk.NewCoins().String()),
 		),
 	}.ToABCIEvents()
 

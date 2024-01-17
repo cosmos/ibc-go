@@ -265,8 +265,9 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 			sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
 		)
 
+		refundCoins := fee.Total().Sub(fee.RecvFee...).Sub(fee.AckFee...)
 		s.Require().Equal(
-			fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
+			fee.AckFee.Add(refundCoins...), // ack fee paid, and refund processed
 			sdk.NewCoins(
 				GetSimApp(s.chainA).BankKeeper.GetBalance(
 					s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(),
