@@ -115,15 +115,15 @@ func (s *CallbacksTestSuite) SetupICATest() string {
 
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	// ICAVersion defines a interchain accounts version string
-	icaVersion := icatypes.NewDefaultMetadataString(s.path.EndpointA.ConnectionID, s.path.EndpointB.ConnectionID)
+	icaVersion := icatypes.NewMetadata(icatypes.Version, s.path.EndpointA.ConnectionID, s.path.EndpointB.ConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
 	icaControllerPortID, err := icatypes.NewControllerPortID(icaOwner)
 	s.Require().NoError(err)
 
 	s.path.SetChannelOrdered()
 	s.path.EndpointA.ChannelConfig.PortID = icaControllerPortID
 	s.path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
-	s.path.EndpointA.ChannelConfig.Version = icaVersion
-	s.path.EndpointB.ChannelConfig.Version = icaVersion
+	s.path.EndpointA.ChannelConfig.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&icaVersion))
+	s.path.EndpointB.ChannelConfig.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&icaVersion))
 
 	s.RegisterInterchainAccount(icaOwner)
 	// open chan init must be skipped. So we cannot use .CreateChannels()
