@@ -76,6 +76,40 @@ func TestFeeTotal(t *testing.T) {
 				sdk.NewCoin("denom", sdkmath.NewInt(500)),
 			),
 		},
+		{
+			"success: many denoms",
+			func() {
+				fee = types.NewFee(
+					sdk.NewCoins(
+						defaultRecvFee[0],
+						sdk.NewCoin("denom", sdkmath.NewInt(200)),
+						sdk.NewCoin("denom4", sdkmath.NewInt(100)),
+						sdk.NewCoin("denom5", sdkmath.NewInt(300)),
+					),
+					sdk.NewCoins(
+						defaultAckFee[0],
+						sdk.NewCoin("denom", sdkmath.NewInt(200)),
+						sdk.NewCoin("denom2", sdkmath.NewInt(100)),
+						sdk.NewCoin("denom3", sdkmath.NewInt(300)),
+						sdk.NewCoin("denom4", sdkmath.NewInt(100)),
+					),
+					sdk.NewCoins(
+						defaultTimeoutFee[0],
+						sdk.NewCoin("denom", sdkmath.NewInt(100)),
+						sdk.NewCoin("denom2", sdkmath.NewInt(200)),
+						sdk.NewCoin("denom5", sdkmath.NewInt(300)),
+					),
+				)
+			},
+			sdk.NewCoins(
+				sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(300)),
+				sdk.NewCoin("denom", sdkmath.NewInt(400)),
+				sdk.NewCoin("denom2", sdkmath.NewInt(200)),
+				sdk.NewCoin("denom3", sdkmath.NewInt(300)),
+				sdk.NewCoin("denom4", sdkmath.NewInt(200)),
+				sdk.NewCoin("denom5", sdkmath.NewInt(300)),
+			),
+		},
 	}
 
 	for _, tc := range testCases {
