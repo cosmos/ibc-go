@@ -155,12 +155,6 @@ func (Keeper) OnChanCloseConfirm(
 // - interchain account address
 // - ICS27 protocol version
 func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedversion string) (string, error) {
-	// verify order has not changed
-	// support for unordered ICA channels is not implemented yet
-	if proposedOrder != channeltypes.ORDERED {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, proposedOrder)
-	}
-
 	// verify connection hops has not changed
 	connectionID, err := k.GetConnectionID(ctx, portID, channelID)
 	if err != nil {
