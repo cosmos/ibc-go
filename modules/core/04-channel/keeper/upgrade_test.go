@@ -312,7 +312,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			// ensure clients are up to date to receive valid proofs
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 
-			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+			channelProof, upgradeProof, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			_, upgrade, err := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeTry(
 				suite.chainB.GetContext(),
@@ -321,8 +321,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				proposedUpgrade.Fields.ConnectionHops,
 				counterpartyUpgrade.Fields,
 				path.EndpointA.GetChannel().UpgradeSequence,
-				proofChannel,
-				proofUpgrade,
+				channelProof,
+				upgradeProof,
 				proofHeight,
 			)
 
@@ -777,11 +777,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 
 			tc.malleate()
 
-			proofChannel, proofUpgrade, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
+			channelProof, upgradeProof, proofHeight := path.EndpointB.QueryChannelUpgradeProof()
 
 			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeAck(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyUpgrade,
-				proofChannel, proofUpgrade, proofHeight,
+				channelProof, upgradeProof, proofHeight,
 			)
 
 			expPass := tc.expError == nil
@@ -1052,11 +1052,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 
 			tc.malleate()
 
-			proofChannel, proofUpgrade, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
+			channelProof, upgradeProof, proofHeight := path.EndpointA.QueryChannelUpgradeProof()
 
 			err = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeConfirm(
 				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, counterpartyChannelState, counterpartyUpgrade,
-				proofChannel, proofUpgrade, proofHeight,
+				channelProof, upgradeProof, proofHeight,
 			)
 
 			expPass := tc.expError == nil
@@ -1269,11 +1269,11 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 			tc.malleate()
 
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proofChannel, proofHeight := path.EndpointB.QueryProof(channelKey)
+			channelProof, proofHeight := path.EndpointB.QueryProof(channelKey)
 
 			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeOpen(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-				path.EndpointB.GetChannel().State, proofChannel, proofHeight,
+				path.EndpointB.GetChannel().State, channelProof, proofHeight,
 			)
 
 			if tc.expError == nil {
@@ -1910,7 +1910,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 	var (
 		path         *ibctesting.Path
-		proofChannel []byte
+		channelProof []byte
 		proofHeight  exported.Height
 	)
 
@@ -1932,7 +1932,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				timeoutUpgrade()
 
 				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				proofChannel, proofHeight = path.EndpointB.QueryProof(channelKey)
+				channelProof, proofHeight = path.EndpointB.QueryProof(channelKey)
 			},
 			nil,
 		},
@@ -1995,7 +1995,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
 				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				proofChannel, proofHeight = path.EndpointB.QueryProof(channelKey)
+				channelProof, proofHeight = path.EndpointB.QueryProof(channelKey)
 
 				// modify state so the proof becomes invalid.
 				channel.State = types.FLUSHING
@@ -2016,7 +2016,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
 				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				proofChannel, proofHeight = path.EndpointB.QueryProof(channelKey)
+				channelProof, proofHeight = path.EndpointB.QueryProof(channelKey)
 			},
 			types.ErrInvalidUpgradeSequence,
 		},
@@ -2030,9 +2030,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				suite.Require().NoError(path.EndpointB.UpdateClient())
 
 				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				proofChannel, proofHeight = path.EndpointB.QueryProof(channelKey)
+				channelProof, proofHeight = path.EndpointB.QueryProof(channelKey)
 			},
-			types.ErrInvalidUpgradeTimeout,
+			types.ErrTimeoutNotReached,
 		},
 		{
 			"counterparty channel state is not OPEN or FLUSHING (crossing hellos)",
@@ -2046,7 +2046,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
 				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				proofChannel, proofHeight = path.EndpointB.QueryProof(channelKey)
+				channelProof, proofHeight = path.EndpointB.QueryProof(channelKey)
 			},
 			types.ErrInvalidCounterparty,
 		},
@@ -2067,7 +2067,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				suite.Require().NoError(path.EndpointB.UpdateClient())
 
 				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				proofChannel, proofHeight = path.EndpointB.QueryProof(channelKey)
+				channelProof, proofHeight = path.EndpointB.QueryProof(channelKey)
 			},
 			connectiontypes.ErrConnectionNotFound,
 		},
@@ -2082,7 +2082,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 
 				channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				proofChannel, proofHeight = path.EndpointB.QueryProof(channelKey)
+				channelProof, proofHeight = path.EndpointB.QueryProof(channelKey)
 			},
 			types.ErrUpgradeTimeoutFailed,
 		},
@@ -2105,7 +2105,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 			suite.Require().NoError(path.EndpointA.ChanUpgradeAck())
 
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proofChannel, proofHeight = path.EndpointB.QueryProof(channelKey)
+			channelProof, proofHeight = path.EndpointB.QueryProof(channelKey)
 
 			tc.malleate()
 
@@ -2114,7 +2114,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				path.EndpointB.GetChannel(),
-				proofChannel,
+				channelProof,
 				proofHeight,
 			)
 

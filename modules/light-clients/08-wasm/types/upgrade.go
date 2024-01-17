@@ -19,8 +19,8 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	clientStore storetypes.KVStore,
 	upgradedClient exported.ClientState,
 	upgradedConsState exported.ConsensusState,
-	proofUpgradeClient,
-	proofUpgradeConsState []byte,
+	upgradeClientProof,
+	upgradeConsensusStateProof []byte,
 ) error {
 	wasmUpgradeClientState, ok := upgradedClient.(*ClientState)
 	if !ok {
@@ -38,8 +38,8 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		VerifyUpgradeAndUpdateState: &VerifyUpgradeAndUpdateStateMsg{
 			UpgradeClientState:         wasmUpgradeClientState.Data,
 			UpgradeConsensusState:      wasmUpgradeConsState.Data,
-			ProofUpgradeClient:         proofUpgradeClient,
-			ProofUpgradeConsensusState: proofUpgradeConsState,
+			ProofUpgradeClient:         upgradeClientProof,
+			ProofUpgradeConsensusState: upgradeConsensusStateProof,
 		},
 	}
 

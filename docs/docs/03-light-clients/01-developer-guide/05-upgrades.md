@@ -24,8 +24,8 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
   store sdk.KVStore,
   newClient ClientState,
   newConsState ConsensusState,
-  proofUpgradeClient,
-  proofUpgradeConsState []byte,
+  upgradeClientProof,
+  upgradeConsensusStateProof []byte,
 ) error
 ```
 

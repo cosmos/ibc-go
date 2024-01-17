@@ -136,7 +136,13 @@ func (Keeper) OnChanCloseConfirm(
 // - connectionHops (and subsequently host/controller connectionIDs)
 // - interchain account address
 // - ICS27 protocol version
-func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
+	// verify order has not changed
+	// support for unordered ICA channels is not implemented yet
+	if proposedOrder != channeltypes.ORDERED {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, proposedOrder)
+	}
+
 	if portID != icatypes.HostPortID {
 		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
@@ -147,8 +153,8 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 		return "", err
 	}
 
-	if len(connectionHops) != 1 || connectionHops[0] != connectionID {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidUpgrade, "expected connection hops %s, got %s", []string{connectionID}, connectionHops)
+	if len(proposedConnectionHops) != 1 || proposedConnectionHops[0] != connectionID {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidUpgrade, "expected connection hops %s, got %s", []string{connectionID}, proposedConnectionHops)
 	}
 
 	if strings.TrimSpace(counterpartyVersion) == "" {
@@ -167,7 +173,7 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 
 	// ValidateHostMetadata will ensure the ICS27 protocol version has not changed and that the
 	// tx type and encoding are supported. It also validates the connection params against the counterparty metadata.
-	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, proposedCounterpartyMetadata); err != nil {
+	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, proposedConnectionHops, proposedCounterpartyMetadata); err != nil {
 		return "", errorsmod.Wrap(err, "invalid metadata")
 	}
 
@@ -183,7 +189,7 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 	}
 
 	// these explicit checks on the host connection identifier should be unreachable
-	if currentMetadata.HostConnectionId != connectionHops[0] {
+	if currentMetadata.HostConnectionId != proposedConnectionHops[0] {
 		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
 	}
 

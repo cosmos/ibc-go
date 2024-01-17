@@ -154,23 +154,29 @@ func (Keeper) OnChanCloseConfirm(
 // - connectionHops (and subsequently host/controller connectionIDs)
 // - interchain account address
 // - ICS27 protocol version
-func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedversion string) (string, error) {
+	// verify order has not changed
+	// support for unordered ICA channels is not implemented yet
+	if proposedOrder != channeltypes.ORDERED {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, proposedOrder)
+	}
+
 	// verify connection hops has not changed
 	connectionID, err := k.GetConnectionID(ctx, portID, channelID)
 	if err != nil {
 		return "", err
 	}
 
-	if len(connectionHops) != 1 || connectionHops[0] != connectionID {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidUpgrade, "expected connection hops %s, got %s", []string{connectionID}, connectionHops)
+	if len(proposedConnectionHops) != 1 || proposedConnectionHops[0] != connectionID {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidUpgrade, "expected connection hops %s, got %s", []string{connectionID}, proposedConnectionHops)
 	}
 
 	// verify proposed version only modifies tx type or encoding
-	if strings.TrimSpace(version) == "" {
+	if strings.TrimSpace(proposedversion) == "" {
 		return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "version cannot be empty")
 	}
 
-	proposedMetadata, err := icatypes.MetadataFromVersion(version)
+	proposedMetadata, err := icatypes.MetadataFromVersion(proposedversion)
 	if err != nil {
 		return "", err
 	}
@@ -182,7 +188,7 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, ord
 
 	// ValidateControllerMetadata will ensure the ICS27 protocol version has not changed and that the
 	// tx type and encoding are supported
-	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, connectionHops, proposedMetadata); err != nil {
+	if err := icatypes.ValidateControllerMetadata(ctx, k.channelKeeper, proposedConnectionHops, proposedMetadata); err != nil {
 		return "", errorsmod.Wrap(err, "invalid upgrade metadata")
 	}
 
@@ -200,7 +206,7 @@ func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, ord
 		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnection, "proposed host connection ID must not change")
 	}
 
-	return version, nil
+	return proposedversion, nil
 }
 
 // OnChanUpgradeAck implements the ack setup of the channel upgrade handshake.
