@@ -89,7 +89,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 
 	t.Run("ics27: broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
-		version := interchainaccounts.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+		version := interchainaccounts.DefaultTestMetadataVersionString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
