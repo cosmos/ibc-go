@@ -17,7 +17,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -426,7 +425,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 }
 
 /*
-TOOD: uncomment when hermes works with upgrades, https://github.com/cosmos/ibc-go/issues/5644
+TODO: uncomment when hermes works with upgrades, https://github.com/cosmos/ibc-go/issues/5644
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgradingOrdertoUnordered() {
 	t := s.T()
 	ctx := context.TODO()
