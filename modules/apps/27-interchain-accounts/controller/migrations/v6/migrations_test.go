@@ -17,12 +17,6 @@ import (
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-var (
-	metadata        = icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
-	versionBytes, _ = icatypes.ModuleCdc.MarshalJSON(&metadata)
-	version         = string(versionBytes)
-)
-
 type MigrationsTestSuite struct {
 	testifysuite.Suite
 
@@ -34,6 +28,10 @@ type MigrationsTestSuite struct {
 }
 
 func (suite *MigrationsTestSuite) SetupTest() {
+	metadata := icatypes.NewMetadata(icatypes.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, "", icatypes.EncodingProtobuf, icatypes.TxTypeSDKMultiMsg)
+	versionBytes, _ := icatypes.ModuleCdc.MarshalJSON(&metadata)
+	version := string(versionBytes)
+
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))

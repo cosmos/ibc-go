@@ -93,7 +93,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 
 	t.Run("ensure that broadcasting a MsgRegisterInterchainAccount fails", func(t *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
-		version := DefaultTestMetadataVersionString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+		version := NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
