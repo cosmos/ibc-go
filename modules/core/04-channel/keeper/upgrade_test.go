@@ -1201,7 +1201,15 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 			},
 			nil,
 		},
-
+		{
+			"success: counterparty upgrade sequence is incorrect",
+			func() {
+				counterpartyCh := path.EndpointB.GetChannel()
+				counterpartyCh.UpgradeSequence--
+				path.EndpointB.SetChannel(counterpartyCh)
+			},
+			types.ErrInvalidUpgradeSequence,
+		},
 		{
 			"channel not found",
 			func() {
