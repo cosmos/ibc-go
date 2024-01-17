@@ -21,7 +21,7 @@ func NewMigrator(keeper Keeper) Migrator {
 }
 
 // Migrate1to2 migrates ibc-fee module from ConsensusVersion 1 to 2
-// by refunding leftover fees to the sender.
+// by refunding leftover fees to the refund address.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	store := ctx.KVStore(m.keeper.storeKey)
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.FeesInEscrowPrefix))
@@ -33,7 +33,6 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		for _, packetFee := range feesInEscrow.PacketFees {
 			refundCoins := legacyTotal(packetFee.Fee).Sub(packetFee.Fee.Total()...)
 
-			// parse refundAcc address
 			refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 			if err != nil {
 				return err
@@ -47,7 +46,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 }
 
 // legacyTotal returns the legacy total amount for a given Fee
-// The total amount is the TimeoutFee + AckFee + RecvFee
+// The total amount is the RecvFee + AckFee + TimeoutFee
 func legacyTotal(f types.Fee) sdk.Coins {
 	return f.RecvFee.Add(f.AckFee...).Add(f.TimeoutFee...)
 }
