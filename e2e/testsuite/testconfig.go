@@ -29,6 +29,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctypes "github.com/cosmos/ibc-go/v8/modules/core/types"
 )
@@ -568,6 +569,14 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 			appState[ibcexported.ModuleName] = ibcGenBz
 		}
 
+		if !testvalues.ChannelParamsFeatureReleases.IsSupported(version) {
+			ibcGenBz, err := modifyChannelGenesisAppState(chainConfig, appState[ibcexported.ModuleName])
+			if err != nil {
+				return nil, err
+			}
+			appState[ibcexported.ModuleName] = ibcGenBz
+		}
+
 		appGenesis.AppState, err = json.Marshal(appState)
 		if err != nil {
 			return nil, err
@@ -720,6 +729,24 @@ func modifyClientGenesisAppState(chainConfig ibc.ChainConfig, ibcAppState []byte
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
 	}
+
+	return ibcGenBz, nil
+}
+
+// modifyChannelGenesisAppState takes the existing ibc app state and marshals it to a ibc GenesisState.
+func modifyChannelGenesisAppState(chainConfig ibc.ChainConfig, ibcAppState []byte) ([]byte, error) {
+	cfg := testutil.MakeTestEncodingConfig()
+
+	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	ibcGenesisState := &ibctypes.GenesisState{}
+	if err := cdc.UnmarshalJSON(ibcAppState, ibcGenesisState); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis bytes into client genesis state: %w", err)
+	}
+
+	ibcGenesisState.ChannelGenesis.Params = channeltypes.Params{}
+	ibcGenBz := MustProtoMarshalJSON(ibcGenesisState)
 
 	return ibcGenBz, nil
 }

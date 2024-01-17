@@ -99,3 +99,10 @@ var AllowAllClientsWildcardFeatureReleases = semverutil.FeatureReleases{
 		"v8.1",
 	},
 }
+
+var ChannelParamsFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v9",
+	MinorVersions: []string{
+		"v8.1",
+	},
+}
