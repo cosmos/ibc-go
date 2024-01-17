@@ -194,12 +194,6 @@ func (k Keeper) SetPacketReceipt(ctx sdk.Context, portID, channelID string, sequ
 	store.Set(host.PacketReceiptKey(portID, channelID, sequence), []byte{byte(1)})
 }
 
-// deletePacketReceipt deletes a packet receipt from the store
-func (k Keeper) deletePacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(host.PacketReceiptKey(portID, channelID, sequence))
-}
-
 // GetPacketCommitment gets the packet commitment hash from the store
 func (k Keeper) GetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) []byte {
 	store := ctx.KVStore(k.storeKey)
@@ -690,9 +684,6 @@ func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string,
 		}
 
 		k.deletePacketAcknowledgement(ctx, portID, channelID, start)
-
-		// NOTE: packet receipts are only relevant for unordered channels.
-		k.deletePacketReceipt(ctx, portID, channelID, start)
 	}
 
 	// set pruning sequence start to the updated value

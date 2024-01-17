@@ -604,7 +604,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 				suite.Require().True(found)
 
 				// We expect nothing to be left and sequenceStart == sequenceEnd.
-				postPruneExpState(0, 0, sequenceEnd)
+				postPruneExpState(0, 10, sequenceEnd)
 
 				// We expect 10 to be pruned and 0 left.
 				suite.Require().Equal(uint64(10), pruned)
@@ -624,7 +624,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			},
 			func(pruned, left uint64) {
 				// We expect 4 to be left and sequenceStart == 7.
-				postPruneExpState(4, 4, 7)
+				postPruneExpState(4, 10, 7)
 
 				// We expect 6 to be pruned and 4 left.
 				suite.Require().Equal(uint64(6), pruned)
@@ -644,7 +644,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			},
 			func(pruned, left uint64) {
 				// We expect 0 to be left and sequenceStart == 11.
-				postPruneExpState(0, 0, 11)
+				postPruneExpState(0, 10, 11)
 
 				// We expect 10 to be pruned and 0 left.
 				suite.Require().Equal(uint64(10), pruned)
@@ -676,7 +676,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 				suite.Require().True(found)
 
 				// We expect nothing to be left and sequenceStart == sequenceEnd.
-				postPruneExpState(0, 0, sequenceEnd)
+				postPruneExpState(0, 15, sequenceEnd)
 
 				// We expect 15 to be pruned and 0 left.
 				suite.Require().Equal(uint64(15), pruned)
@@ -706,7 +706,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 				suite.Require().Equal(uint64(6), left)
 
 				// Check state post-prune
-				postPruneExpState(6, 6, 5)
+				postPruneExpState(6, 10, 5)
 
 				// Previous upgrade is complete, send additional packets and do yet another upgrade.
 				// This is _after_ the first upgrade.
@@ -720,7 +720,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			},
 			func(pruned, left uint64) {
 				// Expected state should be 6 acks/receipts left, sequenceStart == 15.
-				postPruneExpState(6, 6, 15)
+				postPruneExpState(6, 20, 15)
 
 				// We expect 10 to be pruned and 6 left.
 				suite.Require().Equal(uint64(10), pruned)
@@ -747,8 +747,8 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 				suite.UpgradeChannel(path, upgradeFields)
 			},
 			func(pruned, left uint64) {
-				// After pruning 10 sequences we should be left with 5 acks and zero receipts.
-				postPruneExpState(5, 0, 11)
+				// After pruning 10 sequences we should be left with 5 acks and 5 receipts.
+				postPruneExpState(5, 5, 11)
 
 				// We expect 10 to be pruned and 5 left.
 				suite.Require().Equal(uint64(10), pruned)
@@ -784,7 +784,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 				suite.Require().Equal(uint64(0), left)
 
 				// we _do not_ expect error, simply a fast return
-				postPruneExpState(12, 12, 6)
+				postPruneExpState(12, 17, 6)
 			},
 			nil,
 		},
@@ -800,10 +800,10 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 				limit = 7
 			},
 			func(pruned, left uint64) {
-				// After pruning 7 sequences we should be left with 5 acks and 5 receipts,
+				// After pruning 7 sequences we should be left with 5 acks and 7 receipts,
 				// because the 2 packets that timeout are still counted as pruned, even though
 				// there was nothing to prune since both packets timed out
-				postPruneExpState(5, 5, 8)
+				postPruneExpState(5, 10, 8)
 
 				// We expect 7 to be pruned and 5 left.
 				suite.Require().Equal(uint64(7), pruned)
