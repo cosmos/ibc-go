@@ -16,17 +16,13 @@ func NewMigrator(keeper Keeper) Migrator {
 	return Migrator{keeper: keeper}
 }
 
-// MigrateParams migrates params to the specified channel params.
-func (m Migrator) MigrateParams(ctx sdk.Context, params channeltypes.Params) error {
-	m.keeper.SetParams(ctx, params)
+// MigrateParams migrates params to the default channel params.
+func (m Migrator) MigrateParams(ctx sdk.Context) error {
+	params := channeltypes.DefaultParams()
 	if err := params.Validate(); err != nil {
 		return err
 	}
+	m.keeper.SetParams(ctx, params)
 	m.keeper.Logger(ctx).Info("successfully migrated channel params")
 	return nil
-}
-
-// MigrateDefaultParams migrates params to the default channel params.
-func (m Migrator) MigrateDefaultParams(ctx sdk.Context) error {
-	return m.MigrateParams(ctx, channeltypes.DefaultParams())
 }

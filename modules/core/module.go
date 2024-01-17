@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -155,6 +156,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 		return connectionMigrator.MigrateParams(ctx)
 	}); err != nil {
+		panic(err)
+	}
+
+	channelMigrator := channelkeeper.NewMigrator(am.keeper.ChannelKeeper)
+	err := cfg.RegisterMigration(exported.ModuleName, 5, channelMigrator.MigrateParams)
+	if err != nil {
 		panic(err)
 	}
 }
