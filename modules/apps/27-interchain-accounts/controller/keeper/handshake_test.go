@@ -25,12 +25,12 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"success: previous active channel closed",
@@ -48,14 +48,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 
 				path.EndpointA.SetChannel(channel)
 			},
-			true,
+			nil,
 		},
 		{
 			"success: empty channel version returns default metadata JSON string",
 			func() {
 				channel.Version = ""
 			},
-			true,
+			nil,
 		},
 		{
 			"success: channel reopening",
@@ -72,7 +72,25 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				path.EndpointA.ChannelID = ""
 				path.EndpointB.ChannelID = ""
 			},
-			true,
+			nil,
+		},
+		{
+			"failure: different ordering from previous channel",
+			func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				channel := channeltypes.Channel{
+					State:          channeltypes.CLOSED,
+					Ordering:       channeltypes.UNORDERED,
+					Counterparty:   counterparty,
+					ConnectionHops: []string{path.EndpointA.ConnectionID},
+					Version:        TestVersion,
+				}
+
+				path.EndpointA.SetChannel(channel)
+			},
+			channeltypes.ErrInvalidChannelOrdering,
 		},
 		{
 			"invalid metadata -  previous metadata is different",
@@ -96,21 +114,14 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				}
 				path.EndpointA.SetChannel(closedChannel)
 			},
-			false,
-		},
-		{
-			"invalid order - UNORDERED",
-			func() {
-				channel.Ordering = channeltypes.UNORDERED
-			},
-			false,
+			icatypes.ErrInvalidVersion,
 		},
 		{
 			"invalid port ID",
 			func() {
 				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 			},
-			false,
+			icatypes.ErrInvalidControllerPort,
 		},
 		{
 			"invalid counterparty port ID",
@@ -118,7 +129,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				path.EndpointA.SetChannel(*channel)
 				channel.Counterparty.PortId = "invalid-port-id"
 			},
-			false,
+			icatypes.ErrInvalidHostPort,
 		},
 		{
 			"invalid metadata bytestring",
@@ -126,7 +137,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				path.EndpointA.SetChannel(*channel)
 				channel.Version = "invalid-metadata-bytestring"
 			},
-			false,
+			icatypes.ErrUnknownDataType,
 		},
 		{
 			"unsupported encoding format",
@@ -139,7 +150,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				channel.Version = string(versionBytes)
 				path.EndpointA.SetChannel(*channel)
 			},
-			false,
+			icatypes.ErrInvalidCodec,
 		},
 		{
 			"unsupported transaction type",
@@ -152,7 +163,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				channel.Version = string(versionBytes)
 				path.EndpointA.SetChannel(*channel)
 			},
-			false,
+			icatypes.ErrUnknownDataType,
 		},
 		{
 			"connection not found",
@@ -160,7 +171,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				channel.ConnectionHops = []string{"invalid-connnection-id"}
 				path.EndpointA.SetChannel(*channel)
 			},
-			false,
+			connectiontypes.ErrConnectionNotFound,
 		},
 		{
 			"connection not found with default empty channel version",
@@ -168,7 +179,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				channel.ConnectionHops = []string{"connection-10"}
 				channel.Version = ""
 			},
-			false,
+			connectiontypes.ErrConnectionNotFound,
 		},
 		{
 			"invalid controller connection ID",
@@ -181,7 +192,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				channel.Version = string(versionBytes)
 				path.EndpointA.SetChannel(*channel)
 			},
-			false,
+			connectiontypes.ErrInvalidConnection,
 		},
 		{
 			"invalid host connection ID",
@@ -194,7 +205,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				channel.Version = string(versionBytes)
 				path.EndpointA.SetChannel(*channel)
 			},
-			false,
+			connectiontypes.ErrInvalidConnection,
 		},
 		{
 			"invalid version",
@@ -207,10 +218,10 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				channel.Version = string(versionBytes)
 				path.EndpointA.SetChannel(*channel)
 			},
-			false,
+			icatypes.ErrInvalidVersion,
 		},
 		{
-			"channel is already active",
+			"channel is already active (OPEN state)",
 			func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
@@ -224,7 +235,24 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				}
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 			},
-			false,
+			icatypes.ErrActiveChannelAlreadySet,
+		},
+		{
+			"channel is already active (FLUSHING state)",
+			func() {
+				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				channel := channeltypes.Channel{
+					State:          channeltypes.FLUSHING,
+					Ordering:       channeltypes.ORDERED,
+					Counterparty:   counterparty,
+					ConnectionHops: []string{path.EndpointA.ConnectionID},
+					Version:        TestVersion,
+				}
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+			},
+			icatypes.ErrActiveChannelAlreadySet,
 		},
 	}
 
@@ -268,11 +296,13 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
 			)
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(string(versionBytes), version)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
@@ -510,11 +540,11 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			nil,
 		},
 		{
-			name: "failure: invalid order",
+			name: "success: change order",
 			malleate: func() {
 				order = channeltypes.UNORDERED
 			},
-			expError: channeltypes.ErrInvalidChannelOrdering,
+			expError: nil,
 		},
 		{
 			name: "failure: connectionID not found",

@@ -30,10 +30,6 @@ func (k Keeper) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	if order != channeltypes.ORDERED {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
-	}
-
 	if portID != icatypes.HostPortID {
 		return "", errorsmod.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
@@ -54,18 +50,13 @@ func (k Keeper) OnChanOpenTry(
 			panic(fmt.Errorf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
-		if channel.IsOpen() {
-			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
+		if channel.State != channeltypes.CLOSED {
+			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s must be %s", activeChannelID, portID, channeltypes.CLOSED)
 		}
 
-		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
-		if !found {
-			panic(fmt.Errorf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
-		}
-
-		if !icatypes.IsPreviousMetadataEqual(appVersion, metadata) {
-			return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
-		}
+		// if a channel is being reopened, we allow the controller to propose new fields
+		// which are not exactly the same as the previous. The provided address will
+		// be overwritten with the correct one before the metadata is returned.
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
@@ -139,19 +130,13 @@ func (Keeper) OnChanCloseConfirm(
 // The following may be changed:
 // - tx type (must be supported)
 // - encoding (must be supported)
+// - order
 //
 // The following may not be changed:
-// - order
 // - connectionHops (and subsequently host/controller connectionIDs)
 // - interchain account address
 // - ICS27 protocol version
 func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	// verify order has not changed
-	// support for unordered ICA channels is not implemented yet
-	if proposedOrder != channeltypes.ORDERED {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, proposedOrder)
-	}
-
 	if portID != icatypes.HostPortID {
 		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
