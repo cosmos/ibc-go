@@ -562,7 +562,7 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 		appState[govtypes.ModuleName] = govGenBz
 
 		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(version) {
-			ibcGenBz, err := modifyClientGenesisAppState(chainConfig, appState[ibcexported.ModuleName])
+			ibcGenBz, err := modifyClientGenesisAppState(appState[ibcexported.ModuleName])
 			if err != nil {
 				return nil, err
 			}
@@ -637,7 +637,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
 			}
 
-			ibcGenesisBytes, err := modifyClientGenesisAppState(chainConfig, ibcModuleBytes)
+			ibcGenesisBytes, err := modifyClientGenesisAppState(ibcModuleBytes)
 			if err != nil {
 				return nil, err
 			}
@@ -712,8 +712,8 @@ func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) (
 	return govGenBz, nil
 }
 
-// modifyClientGenesisAppState takes the existing ibc app state and marshals it to a ibc GenesisState.
-func modifyClientGenesisAppState(chainConfig ibc.ChainConfig, ibcAppState []byte) ([]byte, error) {
+// modifyClientGenesisAppState takes the existing ibc app state and marshals it to an ibc GenesisState.
+func modifyClientGenesisAppState(ibcAppState []byte) ([]byte, error) {
 	cfg := testutil.MakeTestEncodingConfig()
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
