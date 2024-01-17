@@ -235,6 +235,9 @@ var xxx_messageInfo_MsgChannelOpenTryResponse proto.InternalMessageInfo
 
 // MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge
 // the change of channel state to TRYOPEN on Chain B.
+// WARNING: a channel upgrade MUST NOT initialize an upgrade for this channel
+// in the same block as executing this message otherwise the counterparty will
+// be incapable of opening.
 type MsgChannelOpenAck struct {
 	PortId                string       `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
 	ChannelId             string       `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
@@ -878,6 +881,8 @@ func (m *MsgAcknowledgementResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgAcknowledgementResponse proto.InternalMessageInfo
 
 // MsgChannelUpgradeInit defines the request type for the ChannelUpgradeInit rpc
+// WARNING: Initializing a channel upgrade in the same block as opening the channel
+// may result in the counterparty being incapable of opening.
 type MsgChannelUpgradeInit struct {
 	PortId    string        `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
 	ChannelId string        `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`

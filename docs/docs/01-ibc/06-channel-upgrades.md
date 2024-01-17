@@ -70,6 +70,10 @@ As part of the handling of the `MsgChannelUpgradeInit` message, the application'
 
 After this message is handled successfully, the channel's upgrade sequence will be incremented. This upgrade sequence will serve as a nonce for the upgrade process to provide replay protection.
 
+::: warning
+Initiating an upgrade in the same block as opening a channel may potentially prevent the counterparty channel from also opening. 
+:::
+
 ### Governance gating on `ChanUpgradeInit`
 
 The message signer for `MsgChannelUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
