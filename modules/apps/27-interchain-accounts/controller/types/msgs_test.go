@@ -99,16 +99,8 @@ func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
 	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
 	require.NoError(t, err)
 
-<<<<<<< HEAD
-	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
-	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
-=======
 	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", channeltypes.ORDERED)
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
-	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
-	require.NoError(t, err)
-	require.Equal(t, expSigner.Bytes(), signers[0])
->>>>>>> 61748221 (feat(ica): allow unordered ica channels (#5633))
+	require.Equal(t, []sdk.AccAddress{expSigner}, msg.GetSigners())
 }
 
 func TestMsgSendTxValidateBasic(t *testing.T) {
