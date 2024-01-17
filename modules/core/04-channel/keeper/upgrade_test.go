@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
+	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestChanUpgradeInit() {
@@ -1188,6 +1189,21 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 			nil,
 		},
 		{
+			"success: counterparty initiated new upgrade after opening",
+			func() {
+				// create reason to upgrade
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion + "additional upgrade"
+
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+			},
+			nil,
+		},
+
+		{
 			"channel not found",
 			func() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.InvalidID
@@ -1273,7 +1289,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 
 			err = suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeOpen(
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-				path.EndpointB.GetChannel().State, channelProof, proofHeight,
+				path.EndpointB.GetChannel().State, path.EndpointB.GetChannel().UpgradeSequence, channelProof, proofHeight,
 			)
 
 			if tc.expError == nil {

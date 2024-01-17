@@ -379,13 +379,14 @@ message MsgChannelUpgradeConfirmResponse {
 message MsgChannelUpgradeOpen {
   option (cosmos.msg.v1.signer) = "signer";
 
-  option (gogoproto.goproto_getters)                   = false;
-  string                    port_id                    = 1;
-  string                    channel_id                 = 2;
-  State                     counterparty_channel_state = 3;
-  bytes                     proof_channel              = 4;
-  ibc.core.client.v1.Height proof_height               = 5 [(gogoproto.nullable) = false];
-  string                    signer                     = 6;
+  option (gogoproto.goproto_getters)                      = false;
+  string                    port_id                       = 1;
+  string                    channel_id                    = 2;
+  State                     counterparty_channel_state    = 3;
+  uint64                    counterparty_upgrade_sequence = 4;
+  bytes                     proof_channel                 = 5;
+  ibc.core.client.v1.Height proof_height                  = 6 [(gogoproto.nullable) = false];
+  string                    signer                        = 8;
 }
 
 // MsgChannelUpgradeOpenResponse defines the MsgChannelUpgradeOpen response type
