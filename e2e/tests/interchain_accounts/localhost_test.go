@@ -59,7 +59,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
-	version := NewDefaultMetadataString(exported.LocalhostConnectionID, exported.LocalhostConnectionID)
+	version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID)
 	controllerPortID, err := icatypes.NewControllerPortID(userAWallet.FormattedAddress())
 	s.Require().NoError(err)
 
@@ -214,7 +214,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
-	version := NewDefaultMetadataString(exported.LocalhostConnectionID, exported.LocalhostConnectionID)
+	version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID)
 	controllerPortID, err := icatypes.NewControllerPortID(userAWallet.FormattedAddress())
 	s.Require().NoError(err)
 
