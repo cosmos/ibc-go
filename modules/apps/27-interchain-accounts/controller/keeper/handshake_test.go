@@ -38,7 +38,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			func() {
 				path.EndpointB.ConnectionID = ""
 			},
-			true,
+			nil,
 		},
 		{
 			"success: previous active channel closed",
