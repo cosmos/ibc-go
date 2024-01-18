@@ -1073,7 +1073,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 						suite.chainA.GetContext(),
 						path.EndpointA.ChannelConfig.PortID,
 						path.EndpointA.ChannelID,
-						channeltypes.ORDERED,
+						channelOrder,
 						[]string{path.EndpointA.ConnectionID},
 						counterpartyVersion,
 					)
