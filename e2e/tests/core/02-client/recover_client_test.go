@@ -30,10 +30,8 @@ type RecoverClientTestSuite struct {
 }
 
 func (s *RecoverClientTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 // Status queries the current status of the client
@@ -52,10 +50,11 @@ func (s *RecoverClientTestSuite) Status(ctx context.Context, chain ibc.Chain, cl
 // TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
 func (s *RecoverClientTestSuite) TestRecoverClient_Succeeds() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, _ := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	var (
 		pathName           string

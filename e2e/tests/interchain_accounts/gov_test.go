@@ -35,10 +35,8 @@ type GovInterchainAccountsTestSuite struct {
 }
 
 func (s *GovInterchainAccountsTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 func (s *GovInterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() {
@@ -46,7 +44,7 @@ func (s *GovInterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() 
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, _ := s.SetupRelayer(ctx, nil, chainA, chainB)
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case

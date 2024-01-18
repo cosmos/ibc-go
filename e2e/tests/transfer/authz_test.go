@@ -31,10 +31,8 @@ type AuthzTransferTestSuite struct {
 }
 
 func (s *AuthzTransferTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
@@ -43,7 +41,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 
@@ -200,7 +198,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom

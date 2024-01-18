@@ -29,10 +29,8 @@ type NonIncentivizedTransferTestSuite struct {
 }
 
 func (s *NonIncentivizedTransferTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -44,7 +42,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, nil, chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 
@@ -157,8 +155,8 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Timeout_Nonincentiviz
 
 	ctx := context.TODO()
 
-	chainA, _ := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	chainA, chainB := s.GetChains()
+	relayer, channelA := s.SetupRelayer(ctx, nil, chainA, chainB)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)

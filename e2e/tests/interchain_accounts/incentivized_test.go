@@ -26,27 +26,25 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func TestIncentivizeInterchainAccountsTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(IncentivizeInterchainAccountsTestSuite))
+func TestIncentivizedInterchainAccountsTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(IncentivizedInterchainAccountsTestSuite))
 }
 
-type IncentivizeInterchainAccountsTestSuite struct {
+type IncentivizedInterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *IncentivizeInterchainAccountsTestSuite) SetupTest() {
-	ctx := context.TODO()
+func (s *IncentivizedInterchainAccountsTestSuite) SetupTest() {
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
-func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivized() {
+func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, _ := s.SetupRelayer(ctx, nil, chainA, chainB)
 
 	var (
 		chainADenom   = chainA.Config().Denom
@@ -217,12 +215,12 @@ func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSen
 	})
 }
 
-func (s *IncentivizeInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_Incentivized() {
+func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_Incentivized() {
 	t := s.T()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, _ := s.SetupRelayer(ctx, nil, chainA, chainB)
 
 	var (
 		chainADenom   = chainA.Config().Denom

@@ -66,10 +66,8 @@ type GroupsInterchainAccountsTestSuite struct {
 }
 
 func (s *GroupsInterchainAccountsTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 func (s *InterchainAccountsTestSuite) QueryGroupPolicyAddress(ctx context.Context, chain ibc.Chain) string {
@@ -84,10 +82,11 @@ func (s *InterchainAccountsTestSuite) QueryGroupPolicyAddress(ctx context.Contex
 
 func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, _ := s.SetupRelayer(ctx, nil, chainA, chainB)
 
 	var (
 		groupPolicyAddr   string

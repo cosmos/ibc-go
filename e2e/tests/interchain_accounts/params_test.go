@@ -29,10 +29,8 @@ type ParamsInterchainAccountsTestSuite struct {
 }
 
 func (s *ParamsInterchainAccountsTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 // QueryControllerParams queries the params for the controller
@@ -58,8 +56,8 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, _ := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
+	chainA, chainB := s.GetChains()
+	relayer, _ := s.SetupRelayer(ctx, nil, chainA, chainB)
 
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -143,7 +141,7 @@ func (s *ParamsInterchainAccountsTestSuite) TestHostEnabledParam() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, _ := s.SetupRelayer(ctx, nil, chainA, chainB)
 
 	chainBVersion := chainB.Config().Images[0].Version
 

@@ -28,10 +28,8 @@ type TransferTestSuite struct {
 }
 
 func (s *TransferTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 // QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
@@ -50,7 +48,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 
@@ -100,7 +98,7 @@ func (s *TransferTestSuite) TestSendEnabledParam() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	_, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	_, channelA := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 
@@ -161,7 +159,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
@@ -286,7 +284,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 

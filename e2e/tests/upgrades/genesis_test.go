@@ -36,7 +36,6 @@ type GenesisTestSuite struct {
 }
 
 func (s *GenesisTestSuite) SetupTest() {
-	ctx := context.TODO()
 	configFileOverrides := make(map[string]any)
 	appTomlOverrides := make(test.Toml)
 
@@ -48,8 +47,7 @@ func (s *GenesisTestSuite) SetupTest() {
 
 	// create chains with specified chain configuration options
 	chainA, chainB := s.GetChains(chainOpts)
-	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 func (s *GenesisTestSuite) TestIBCGenesis() {
@@ -58,7 +56,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	ctx := context.Background()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, nil, chainA, chainB)
 	var (
 		chainADenom    = chainA.Config().Denom
 		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB

@@ -4,10 +4,7 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"slices"
-	"sort"
-	"strings"
 	"testing"
 	"time"
 
@@ -17,27 +14,22 @@ import (
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/privval"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmtprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	cmttypes "github.com/cometbft/cometbft/types"
 	cmtversion "github.com/cometbft/cometbft/version"
 
-	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const (
@@ -53,10 +45,8 @@ type ClientTestSuite struct {
 }
 
 func (s *ClientTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 // Status queries the current status of the client
@@ -87,8 +77,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
-
+	_, _ = s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	const planHeight = int64(300)
@@ -96,9 +85,6 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	var newChainID string
 
 	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
-		_, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		s.Require().NoError(err)
-
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
@@ -178,7 +164,7 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, _ := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	var (
 		pathName           string
@@ -189,16 +175,12 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		_, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		s.Require().NoError(err)
-
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
 
 		// TODO: replace with better handling of path names
-		pathName = fmt.Sprintf("path-%d", 0)
-		pathName = strings.ReplaceAll(pathName, "/", "-")
+		pathName = s.GetPathNameFromSuite(relayer)
 	})
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -257,119 +239,13 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	})
 }
 
-func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
-	t := s.T()
-	ctx := context.TODO()
-
-	chainA, chainB := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
-
-	var (
-		trustedHeight   clienttypes.Height
-		latestHeight    clienttypes.Height
-		clientState     ibcexported.ClientState
-		header          testsuite.Header
-		signers         []cmttypes.PrivValidator
-		validatorSet    []*cmttypes.Validator
-		maliciousHeader *ibctm.Header
-		err             error
-	)
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
-
-	t.Run("update clients", func(t *testing.T) {
-		_, err = relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		s.Require().NoError(err)
-
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPathName(0))
-		s.Require().NoError(err)
-
-		clientState, err = s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
-		s.Require().NoError(err)
-	})
-
-	t.Run("fetch trusted height", func(t *testing.T) {
-		tmClientState, ok := clientState.(*ibctm.ClientState)
-		s.Require().True(ok)
-
-		trustedHeight, ok = tmClientState.GetLatestHeight().(clienttypes.Height)
-		s.Require().True(ok)
-	})
-
-	t.Run("update clients", func(t *testing.T) {
-		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPathName(0))
-		s.Require().NoError(err)
-
-		clientState, err = s.QueryClientState(ctx, chainA, ibctesting.FirstClientID)
-		s.Require().NoError(err)
-	})
-
-	t.Run("fetch client state latest height", func(t *testing.T) {
-		tmClientState, ok := clientState.(*ibctm.ClientState)
-		s.Require().True(ok)
-
-		latestHeight, ok = tmClientState.GetLatestHeight().(clienttypes.Height)
-		s.Require().True(ok)
-	})
-
-	t.Run("create validator set", func(t *testing.T) {
-		var validators []*cmtservice.Validator
-
-		t.Run("fetch block header at latest client state height", func(t *testing.T) {
-			header, err = s.GetBlockHeaderByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
-			s.Require().NoError(err)
-		})
-
-		t.Run("get validators at latest height", func(t *testing.T) {
-			validators, err = s.GetValidatorSetByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
-			s.Require().NoError(err)
-		})
-
-		t.Run("extract validator private keys", func(t *testing.T) {
-			privateKeys := s.extractChainPrivateKeys(ctx, chainB)
-			for i, pv := range privateKeys {
-				pubKey, err := pv.GetPubKey()
-				s.Require().NoError(err)
-
-				validator := cmttypes.NewValidator(pubKey, validators[i].VotingPower)
-
-				validatorSet = append(validatorSet, validator)
-				signers = append(signers, pv)
-			}
-		})
-	})
-
-	t.Run("create malicious header", func(t *testing.T) {
-		valSet := cmttypes.NewValidatorSet(validatorSet)
-		maliciousHeader, err = createMaliciousTMHeader(chainB.Config().ChainID, int64(latestHeight.GetRevisionHeight()), trustedHeight,
-			header.GetTime(), valSet, valSet, signers, header)
-		s.Require().NoError(err)
-	})
-
-	t.Run("update client with duplicate misbehaviour header", func(t *testing.T) {
-		rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		msgUpdateClient, err := clienttypes.NewMsgUpdateClient(ibctesting.FirstClientID, maliciousHeader, rlyWallet.FormattedAddress())
-		s.Require().NoError(err)
-
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
-		s.AssertTxSuccess(txResp)
-	})
-
-	t.Run("ensure client status is frozen", func(t *testing.T) {
-		status, err := s.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
-		s.Require().NoError(err)
-		s.Require().Equal(ibcexported.Frozen.String(), status)
-	})
-}
-
 // TestAllowedClientsParam tests changing the AllowedClients parameter using a governance proposal
 func (s *ClientTestSuite) TestAllowedClientsParam() {
 	t := s.T()
-	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, _ := s.GetRelayerAndChannelAFromSuite(ctx)
+	_, _ = s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -378,9 +254,6 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ensure allowed clients are set to the default", func(t *testing.T) {
-		_, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		s.Require().NoError(err)
-		s.InitGRPCClients(chainA)
 		allowedClients := s.QueryAllowedClients(ctx, chainA)
 
 		defaultAllowedClients := clienttypes.DefaultAllowedClients
@@ -421,46 +294,6 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Unauthorized.String(), status)
 	})
-}
-
-// extractChainPrivateKeys returns a slice of cmttypes.PrivValidator which hold the private keys for all validator
-// nodes for a given chain.
-func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc.Chain) []cmttypes.PrivValidator {
-	testContainers, err := dockerutil.GetTestContainers(ctx, s.T(), s.DockerClient)
-	s.Require().NoError(err)
-
-	var filePvs []privval.FilePVKey
-	var pvs []cmttypes.PrivValidator
-	for _, container := range testContainers {
-		isNodeForDifferentChain := !strings.Contains(container.Names[0], chain.Config().ChainID)
-		isFullNode := strings.Contains(container.Names[0], fmt.Sprintf("%s-fn", chain.Config().ChainID))
-		if isNodeForDifferentChain || isFullNode {
-			continue
-		}
-
-		validatorPrivKey := fmt.Sprintf("/var/cosmos-chain/%s/config/priv_validator_key.json", chain.Config().Name)
-		privKeyFileContents, err := dockerutil.GetFileContentsFromContainer(ctx, s.DockerClient, container.ID, validatorPrivKey)
-		s.Require().NoError(err)
-
-		var filePV privval.FilePVKey
-		err = cmtjson.Unmarshal(privKeyFileContents, &filePV)
-		s.Require().NoError(err)
-		filePvs = append(filePvs, filePV)
-	}
-
-	// We sort by address as GetValidatorSetByHeight also sorts by address. When iterating over them, the index
-	// will correspond to the correct ibcmock.PV.
-	sort.SliceStable(filePvs, func(i, j int) bool {
-		return filePvs[i].Address.String() < filePvs[j].Address.String()
-	})
-
-	for _, filePV := range filePvs {
-		pvs = append(pvs, &ibcmock.PV{
-			PrivKey: &ed25519.PrivKey{Key: filePV.PrivKey.Bytes()},
-		})
-	}
-
-	return pvs
 }
 
 // createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.

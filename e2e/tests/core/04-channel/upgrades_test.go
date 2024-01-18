@@ -27,14 +27,19 @@ type ChannelTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+func (s *ChannelTestSuite) SetupTest() {
+	chainA, chainB := s.GetChains()
+	s.SetChainsIntoSuite(chainA, chainB)
+}
+
 // TestChannelUpgrade_WithFeeMiddleware_Succeeds tests upgrading a transfer channel to wire up fee middleware
 func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
-	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
+	relayer, channelA := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
+	channelB := channelA.Counterparty
 
 	chainADenom := chainA.Config().Denom
 	chainBDenom := chainB.Config().Denom

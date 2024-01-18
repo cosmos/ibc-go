@@ -38,10 +38,8 @@ type LocalhostInterchainAccountsTestSuite struct {
 }
 
 func (s *LocalhostInterchainAccountsTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, nil, chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainA, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost() {

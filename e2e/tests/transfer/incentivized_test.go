@@ -31,10 +31,8 @@ type IncentivizedTransferTestSuite struct {
 }
 
 func (s *IncentivizedTransferTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
@@ -43,7 +41,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -164,7 +162,7 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -274,7 +272,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -394,7 +392,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -538,7 +536,7 @@ func (s *Incentivized2TransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAcco
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
 
 	var (
 		chainADenom        = chainA.Config().Denom

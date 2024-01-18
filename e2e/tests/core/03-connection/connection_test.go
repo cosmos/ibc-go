@@ -33,10 +33,8 @@ type ConnectionTestSuite struct {
 }
 
 func (s *ConnectionTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 // QueryMaxExpectedTimePerBlockParam queries the on-chain max expected time per block param for 03-connection
@@ -70,7 +68,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	relayer, channelA := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	chainAVersion := chainA.Config().Images[0].Version
 

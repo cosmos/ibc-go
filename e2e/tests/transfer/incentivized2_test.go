@@ -28,10 +28,8 @@ type Incentivized2TransferTestSuite struct {
 }
 
 func (s *Incentivized2TransferTestSuite) SetupTest() {
-	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
-	relayer := s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
-	s.SetChainsAndRelayerIntoSuite(chainA, chainB, relayer)
+	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 func (s *Incentivized2TransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress() {
@@ -39,8 +37,8 @@ func (s *Incentivized2TransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCo
 
 	ctx := context.TODO()
 
-	chainA, _ := s.GetChains()
-	relayer, channelA := s.GetRelayerAndChannelAFromSuite(ctx)
+	chainA, chainB := s.GetChains()
+	relayer, channelA := s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
 
 	var (
 		chainADenom        = chainA.Config().Denom

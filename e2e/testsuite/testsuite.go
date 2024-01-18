@@ -37,10 +37,9 @@ type E2ETestSuite struct {
 	testifysuite.Suite
 
 	// chain and relayer for each test suite
-	chainA    ibc.Chain
-	chainB    ibc.Chain
-	rly       ibc.Relayer
-	channelsA []ibc.ChannelOutput
+	chainA   ibc.Chain
+	chainB   ibc.Chain
+	pathName map[ibc.Relayer]string
 
 	// proposalIDs keeps track of the active proposal ID for each chain.
 	proposalIDs    map[string]uint64
@@ -54,6 +53,7 @@ type E2ETestSuite struct {
 
 	// pathNameIndex is the latest index to be used for generating paths
 	pathNameIndex int64
+	relayerBuilt  bool
 }
 
 var (
@@ -109,18 +109,50 @@ func (s *E2ETestSuite) SetupChainsRelayerAndChannel(ctx context.Context, channel
 	return r, chainAChannels[len(chainAChannels)-1]
 }
 
-func (s *E2ETestSuite) SetupRelayer(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainA ibc.Chain, chainB ibc.Chain) ibc.Relayer {
-	if s.rly == nil {
-		s.rly = s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
+func (s *E2ETestSuite) SetupRelayer(ctx context.Context, channelOpts func(*ibc.CreateChannelOptions), chainA ibc.Chain, chainB ibc.Chain) (ibc.Relayer, ibc.ChannelOutput) {
+	var rly ibc.Relayer
+	if !s.relayerBuilt {
+		s.relayerBuilt = true
+		s.pathName = make(map[ibc.Relayer]string)
+		rly = s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
+	} else {
+		pathName := s.generatePathName()
+		channelOptions := ibc.DefaultChannelOpts()
+		if channelOpts != nil {
+			channelOpts(&channelOptions)
+		}
+		eRep := s.GetRelayerExecReporter()
+		rly = relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
+		ic := interchaintest.NewInterchain().
+			AddChain(chainA).
+			AddChain(chainB).
+			AddRelayer(rly, pathName).
+			AddLink(interchaintest.InterchainLink{
+				Chain1:            chainA,
+				Chain2:            chainB,
+				Relayer:           rly,
+				Path:              pathName,
+				CreateChannelOpts: channelOptions,
+			})
+		err := ic.BuildRelayer(ctx, eRep)
+		s.Require().NoError(err)
+		s.startRelayerFn = func(relayer ibc.Relayer) {
+			err := relayer.StartRelayer(ctx, eRep, pathName)
+			s.Require().NoError(err, fmt.Sprintf("failed to start relayer: %s", err))
+			// wait for relayer to start.
+			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+		}
+		s.pathName[rly] = pathName
 	}
 	s.InitGRPCClients(chainA)
 	s.InitGRPCClients(chainB)
-	return s.rly
+	chainAChannels, err := rly.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
+	s.Require().NoError(err)
+	return rly, chainAChannels[len(chainAChannels)-1]
 }
 
 func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.Chain, channelOpts func(*ibc.CreateChannelOptions), buildOptions ...func(options *interchaintest.InterchainBuildOptions)) ibc.Relayer {
 	r := relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network)
-
 	pathName := s.generatePathName()
 
 	channelOptions := ibc.DefaultChannelOpts()
@@ -159,7 +191,7 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 		// wait for relayer to start.
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 	}
-
+	s.pathName[r] = pathName
 	return r
 }
 
@@ -445,15 +477,11 @@ func getValidatorsAndFullNodes(chainIdx int) (int, int) {
 	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
 }
 
-func (s *E2ETestSuite) SetChainsAndRelayerIntoSuite(chainA, chainB ibc.Chain, relayer ibc.Relayer) {
+func (s *E2ETestSuite) SetChainsIntoSuite(chainA, chainB ibc.Chain) {
 	s.chainA = chainA
 	s.chainB = chainB
-	s.rly = relayer
 }
 
-func (s *E2ETestSuite) GetRelayerAndChannelAFromSuite(ctx context.Context) (ibc.Relayer, ibc.ChannelOutput) {
-	var err error
-	s.channelsA, err = s.rly.GetChannels(ctx, s.GetRelayerExecReporter(), s.chainA.Config().ChainID)
-	s.Require().NoError(err)
-	return s.rly, s.channelsA[len(s.channelsA)-1]
+func (s *E2ETestSuite) GetPathNameFromSuite(r ibc.Relayer) string {
+	return s.pathName[r]
 }
