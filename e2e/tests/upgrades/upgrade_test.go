@@ -617,7 +617,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	t := s.T()
 
 	ctx := context.Background()
-	_, channelA := s.SetupChainsRelayerAndChannel(ctx, func(opts *ibc.CreateChannelOptions) {
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, func(opts *ibc.CreateChannelOptions) {
 		opts.Version = "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}"
 		opts.DestPortName = "transfer"
 		opts.SourcePortName = "transfer"
@@ -689,38 +689,60 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), proposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
-	// t.Run("start relayer", func(t *testing.T) {
-	// 	s.StartRelayer(relayer)
-	// })
+	t.Run("29-fee migration partially refunds escrowed tokens", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
 
-	// chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+		testFee := testvalues.DefaultFee(chainADenom)
+		legacyTotal := testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
+		refundCoins := legacyTotal.Sub(testFee.Total()...) // Total() returns the denomwise max of (recvFee + ackFee, timeoutFee)
 
-	// t.Run("packet is relayed", func(t *testing.T) {
-	// 	s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - legacyTotal.AmountOf(chainADenom).Int64() + refundCoins.AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, actualBalance)
 
-	// 	actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
-	// 	s.Require().NoError(err)
+		// query incentivised packets and assert calculated values are correct
+		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Len(packets, 1)
+		actualFee := packets[0].PacketFees[0].Fee
 
-	// 	expected := testvalues.IBCTransferAmount
-	// 	s.Require().Equal(expected, actualBalance.Int64())
-	// })
+		s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
+		s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
+		s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
+	})
 
-	// s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
 
-	// t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
-	// 	transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-	// 	s.AssertTxSuccess(transferTxResp)
-	// })
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 
-	// t.Run("packets are relayed", func(t *testing.T) {
-	// 	s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+	t.Run("packet is relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 
-	// 	actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
-	// 	s.Require().NoError(err)
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
 
-	// 	expected := testvalues.IBCTransferAmount * 2
-	// 	s.Require().Equal(expected, actualBalance.Int64())
-	// })
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance.Int64())
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
+
+	t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+		s.AssertTxSuccess(transferTxResp)
+	})
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+
+		actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount * 2
+		s.Require().Equal(expected, actualBalance.Int64())
+	})
 }
 
 // ClientState queries the current ClientState by clientID
