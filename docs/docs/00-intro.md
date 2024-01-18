@@ -19,7 +19,7 @@ IBC can be used to build a wide range of cross-chain applications that include t
 
 The following diagram shows how IBC works at a high level:
 
-![IBC overview - two connected chains](./images/ibcoverview.png)
+![Light Mode IBC Overview](./images/ibcoverview-light.svg#gh-light-mode-only)![Dark Mode IBC Overview](./images/ibcoverview-dark.svg#gh-dark-mode-only)
 
 The transport layer (TAO) provides the necessary infrastructure to establish secure connections and authenticate data packets between chains. The application layer builds on top of the transport layer and defines exactly how data packets should be packaged and interpreted by the sending and receiving chains.
 

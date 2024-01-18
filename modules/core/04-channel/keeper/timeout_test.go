@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 		}, false},
 		{"timeout", func() {
-			expError = types.ErrPacketTimeout
+			expError = types.ErrTimeoutNotReached
 			suite.coordinator.Setup(path)
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -192,9 +192,9 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		}, false},
 	}
 
-	for i, tc := range testCases {
+	for _, tc := range testCases {
 		tc := tc
-		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
+		suite.Run(tc.msg, func() {
 			var (
 				proof       []byte
 				proofHeight exported.Height
@@ -759,7 +759,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 			unorderedPacketKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			orderedPacketKey := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 
-			proofClosed, proofHeight := suite.chainB.QueryProof(channelKey)
+			closedProof, proofHeight := suite.chainB.QueryProof(channelKey)
 
 			if ordered {
 				proof, _ = suite.chainB.QueryProof(orderedPacketKey)
@@ -772,7 +772,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				chanCap,
 				packet,
 				proof,
-				proofClosed,
+				closedProof,
 				proofHeight,
 				nextSeqRecv,
 				counterpartyUpgradeSequence,
