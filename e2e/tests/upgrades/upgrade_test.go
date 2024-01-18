@@ -723,6 +723,105 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	// })
 }
 
+func (s *UpgradeTestSuite) TestV7ToV8_1ChainUpgrade_ChannelUpgrades() {
+	t := s.T()
+	testCfg := testsuite.LoadConfig()
+
+	ctx := context.Background()
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, nil)
+
+	chainA, chainB := s.GetChains()
+
+	chainADenom := chainA.Config().Denom
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.FormattedAddress()
+
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.FormattedAddress()
+
+	_ = relayer
+	_ = channelA
+	_ = chainAAddress
+	_ = chainBAddress
+	_ = chainADenom
+	//
+	//s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+	//
+	//t.Run("transfer native tokens from chainA to chainB", func(t *testing.T) {
+	//	transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+	//	s.AssertTxSuccess(transferTxResp)
+	//})
+	//
+	//t.Run("tokens are escrowed", func(t *testing.T) {
+	//	actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+	//	s.Require().NoError(err)
+	//
+	//	expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+	//	s.Require().Equal(expected, actualBalance)
+	//})
+	//
+	//t.Run("start relayer", func(t *testing.T) {
+	//	s.StartRelayer(relayer)
+	//})
+
+	//chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+	//
+	//t.Run("packet is relayed", func(t *testing.T) {
+	//	s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+	//
+	//	actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+	//	s.Require().NoError(err)
+	//
+	//	expected := testvalues.IBCTransferAmount
+	//	s.Require().Equal(expected, actualBalance.Int64())
+	//})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("upgrade chains", func(t *testing.T) {
+		t.Run("chain A", func(t *testing.T) {
+			govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+			s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		})
+	})
+
+	t.Run("query params", func(t *testing.T) {
+		t.Run("on chain A", func(t *testing.T) {
+			channelParams, err := s.GetChainGRCPClients(chainA).ChannelQueryClient.ChannelParams(ctx, &channeltypes.QueryChannelParamsRequest{})
+			s.Require().NoError(err)
+
+			upgradeTimeout := channelParams.Params.UpgradeTimeout
+			s.Require().Equal(clienttypes.ZeroHeight(), upgradeTimeout.Height)
+			s.Require().Equal(uint64(time.Minute*10), upgradeTimeout.Timestamp)
+		})
+
+		t.Run("on chain B", func(t *testing.T) {
+			channelParams, err := s.GetChainGRCPClients(chainB).ChannelQueryClient.ChannelParams(ctx, &channeltypes.QueryChannelParamsRequest{})
+			s.Require().NoError(err)
+
+			upgradeTimeout := channelParams.Params.UpgradeTimeout
+			s.Require().Equal(clienttypes.ZeroHeight(), upgradeTimeout.Height)
+			s.Require().Equal(uint64(time.Minute*10), upgradeTimeout.Timestamp)
+		})
+	})
+
+	//t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {
+	//	transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
+	//	s.AssertTxSuccess(transferTxResp)
+	//})
+	//
+	//t.Run("packets are relayed", func(t *testing.T) {
+	//	s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+	//
+	//	actualBalance, err := chainB.GetBalance(ctx, chainBAddress, chainBIBCToken.IBCDenom())
+	//	s.Require().NoError(err)
+	//
+	//	expected := testvalues.IBCTransferAmount * 2
+	//	s.Require().Equal(expected, actualBalance.Int64())
+	//})
+}
+
 // ClientState queries the current ClientState by clientID
 func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, clientID string) (*clienttypes.QueryClientStateResponse, error) {
 	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
