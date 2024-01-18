@@ -141,7 +141,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		expPass  bool
 	}{
 		{
-			"success", func() {}, true,
+			"success w/ ORDERED channel", func() {}, true,
+		},
+		{
+			"success w/ UNORDERED channel", func() {
+				channel.Ordering = channeltypes.UNORDERED
+			}, true,
 		},
 		{
 			"account address generation is block dependent", func() {
@@ -169,11 +174,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 					return "", fmt.Errorf("mock ica auth fails")
 				}
 			}, true,
-		},
-		{
-			"ICA callback fails - invalid channel order", func() {
-				channel.Ordering = channeltypes.UNORDERED
-			}, false,
 		},
 	}
 
