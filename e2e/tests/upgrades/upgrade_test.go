@@ -634,14 +634,6 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	// Send Transfers with relayer off
-	// Send PayPacketFeeAsync
-	// Query the fees are stored for the values
-	// Run the upgrade handler
-	// Query the fees are user wallet for the values
-	// Start relayer
-	// Query fees again?
-
 	t.Run("transfer native tokens from chainA to chainB", func(t *testing.T) {
 		txResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(txResp)
