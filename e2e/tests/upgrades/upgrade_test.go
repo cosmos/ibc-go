@@ -709,6 +709,12 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 		s.Require().True(actualFee.RecvFee.Equal(testFee.RecvFee))
 		s.Require().True(actualFee.AckFee.Equal(testFee.AckFee))
 		s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
+
+		escrowBalance, err := s.QueryBalance(ctx, chainA, authtypes.NewModuleAddress(feetypes.ModuleName).String(), chainADenom)
+		s.Require().NoError(err)
+
+		expected = testFee.Total().AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, escrowBalance.Int64())
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
