@@ -30,10 +30,6 @@ func (k Keeper) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	if order != channeltypes.ORDERED {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
-	}
-
 	if portID != icatypes.HostPortID {
 		return "", errorsmod.Wrapf(icatypes.ErrInvalidHostPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}
@@ -57,18 +53,13 @@ func (k Keeper) OnChanOpenTry(
 			panic(fmt.Errorf("active channel mapping set for %s but channel does not exist in channel store", activeChannelID))
 		}
 
-		if channel.IsOpen() {
-			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s is already OPEN", activeChannelID, portID)
+		if channel.State != channeltypes.CLOSED {
+			return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s must be %s", activeChannelID, portID, channeltypes.CLOSED)
 		}
 
-		appVersion, found := k.GetAppVersion(ctx, portID, activeChannelID)
-		if !found {
-			panic(fmt.Errorf("active channel mapping set for %s, but channel does not exist in channel store", activeChannelID))
-		}
-
-		if !icatypes.IsPreviousMetadataEqual(appVersion, metadata) {
-			return "", errorsmod.Wrap(icatypes.ErrInvalidVersion, "previous active channel metadata does not match provided version")
-		}
+		// if a channel is being reopened, we allow the controller to propose new fields
+		// which are not exactly the same as the previous. The provided address will
+		// be overwritten with the correct one before the metadata is returned.
 	}
 
 	// On the host chain the capability may only be claimed during the OnChanOpenTry
@@ -135,21 +126,39 @@ func (Keeper) OnChanCloseConfirm(
 }
 
 // OnChanUpgradeTry performs the upgrade try step of the channel upgrade handshake.
-func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+// The upgrade try callback must verify the proposed changes to the order, connectionHops, and version.
+// Within the version we have the tx type, encoding, interchain account address, host/controller connectionID's
+// and the ICS27 protocol version.
+//
+// The following may be changed:
+// - tx type (must be supported)
+// - encoding (must be supported)
+// - order
+//
+// The following may not be changed:
+// - connectionHops (and subsequently host/controller connectionIDs)
+// - interchain account address
+// - ICS27 protocol version
+func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	if portID != icatypes.HostPortID {
 		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.HostPortID, portID)
+	}
+
+	// verify connection hops has not changed
+	connectionID, err := k.getConnectionID(ctx, portID, channelID)
+	if err != nil {
+		return "", err
+	}
+
+	if len(proposedConnectionHops) != 1 || proposedConnectionHops[0] != connectionID {
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidUpgrade, "expected connection hops %s, got %s", []string{connectionID}, proposedConnectionHops)
 	}
 
 	if strings.TrimSpace(counterpartyVersion) == "" {
 		return "", errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
 	}
 
-	// support for unordered ICA channels is not implemented yet
-	if order != channeltypes.ORDERED {
-		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelOrdering, "expected %s channel, got %s", channeltypes.ORDERED, order)
-	}
-
-	metadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
+	proposedCounterpartyMetadata, err := icatypes.MetadataFromVersion(counterpartyVersion)
 	if err != nil {
 		return "", err
 	}
@@ -159,17 +168,25 @@ func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, orde
 		return "", err
 	}
 
-	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, connectionHops, metadata); err != nil {
+	// ValidateHostMetadata will ensure the ICS27 protocol version has not changed and that the
+	// tx type and encoding are supported. It also validates the connection params against the counterparty metadata.
+	if err := icatypes.ValidateHostMetadata(ctx, k.channelKeeper, proposedConnectionHops, proposedCounterpartyMetadata); err != nil {
 		return "", errorsmod.Wrap(err, "invalid metadata")
 	}
 
 	// the interchain account address on the host chain
 	// must remain the same after the upgrade.
-	if currentMetadata.Address != metadata.Address {
+	if currentMetadata.Address != proposedCounterpartyMetadata.Address {
 		return "", errorsmod.Wrap(icatypes.ErrInvalidAccountAddress, "interchain account address cannot be changed")
 	}
 
-	if currentMetadata.HostConnectionId != connectionHops[0] {
+	// these explicit checks on the controller connection identifier should be unreachable
+	if currentMetadata.ControllerConnectionId != proposedCounterpartyMetadata.ControllerConnectionId {
+		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnection, "proposed controller connection ID must not change")
+	}
+
+	// these explicit checks on the host connection identifier should be unreachable
+	if currentMetadata.HostConnectionId != proposedConnectionHops[0] {
 		return "", errorsmod.Wrap(connectiontypes.ErrInvalidConnectionIdentifier, "proposed connection hop must not change")
 	}
 

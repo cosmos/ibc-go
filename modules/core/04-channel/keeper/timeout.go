@@ -68,10 +68,9 @@ func (k Keeper) TimeoutPacket(
 		return err
 	}
 
-	timeoutHeight := packet.GetTimeoutHeight()
-	if (timeoutHeight.IsZero() || proofHeight.LT(timeoutHeight)) &&
-		(packet.GetTimeoutTimestamp() == 0 || proofTimestamp < packet.GetTimeoutTimestamp()) {
-		return errorsmod.Wrap(types.ErrPacketTimeout, "packet timeout has not been reached for height or timestamp")
+	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	if !timeout.Elapsed(proofHeight.(clienttypes.Height), proofTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
 	}
 
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -178,7 +177,7 @@ func (k Keeper) TimeoutExecuted(
 		// the upgrade is aborted and the channel is set to CLOSED.
 		if channel.State == types.FLUSHING {
 			// an error receipt is written to state and the channel is restored to OPEN
-			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), types.ErrPacketTimeout)
+			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), errorsmod.Wrap(types.ErrTimeoutElapsed, "packet timeout elapsed on ORDERED channel"))
 		}
 
 		channel.State = types.CLOSED
@@ -209,7 +208,7 @@ func (k Keeper) TimeoutOnClose(
 	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	proof,
-	proofClosed []byte,
+	closedProof []byte,
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
 	counterpartyUpgradeSequence uint64,
@@ -278,7 +277,7 @@ func (k Keeper) TimeoutOnClose(
 
 	// check that the opposing channel end has closed
 	if err := k.connectionKeeper.VerifyChannelState(
-		ctx, connectionEnd, proofHeight, proofClosed,
+		ctx, connectionEnd, proofHeight, closedProof,
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
 		expectedChannel,
 	); err != nil {
