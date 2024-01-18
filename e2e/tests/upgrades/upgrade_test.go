@@ -19,6 +19,7 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	e2erelayer "github.com/cosmos/ibc-go/e2e/relayer"
@@ -61,8 +62,12 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
 	}
 
-	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion), "upgrade chain E2E test", plan)
-	s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
+	msgSoftwareUpgrade := &upgradetypes.MsgSoftwareUpgrade{
+		Plan:      plan,
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	}
+
+	s.ExecuteAndPassGovV1Proposal(ctx, msgSoftwareUpgrade, chain, wallet)
 
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height before upgrade")
@@ -610,7 +615,6 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 
 func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	t := s.T()
-	// testCfg := testsuite.LoadConfig()
 
 	ctx := context.Background()
 	_, channelA := s.SetupChainsRelayerAndChannel(ctx, func(opts *ibc.CreateChannelOptions) {
@@ -679,10 +683,11 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 		})
 	})
 
-	// t.Run("upgrade chain", func(t *testing.T) {
-	// 	proposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	// 	s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), proposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
-	// })
+	t.Run("upgrade chain", func(t *testing.T) {
+		testCfg := testsuite.LoadConfig()
+		proposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), proposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+	})
 
 	// t.Run("start relayer", func(t *testing.T) {
 	// 	s.StartRelayer(relayer)
