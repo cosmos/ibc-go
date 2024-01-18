@@ -703,7 +703,7 @@ func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) (
 	return govGenBz, nil
 }
 
-// modifyClientGenesisAppState takes the existing ibc app state and marshals it to a ibc GenesisState.
+// modifyClientGenesisAppState takes the existing ibc app state and marshals it to an ibc GenesisState.
 func modifyClientGenesisAppState(ibcAppState []byte) ([]byte, error) {
 	cfg := testutil.MakeTestEncodingConfig()
 
