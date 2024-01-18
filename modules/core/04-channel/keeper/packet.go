@@ -197,6 +197,11 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
 	}
 
+	counterpartyNextSequenceSend, _ := k.GetCounterpartyNextSequenceSend(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if packet.GetSequence() < counterpartyNextSequenceSend {
+		return errorsmod.Wrap(types.ErrInvalidPacket, "packet has already been processed")
+	}
+
 	switch channel.Ordering {
 	case types.UNORDERED:
 		// check if the packet receipt has been received already for unordered channels

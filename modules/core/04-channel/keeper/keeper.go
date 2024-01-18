@@ -200,6 +200,24 @@ func (k Keeper) deletePacketReceipt(ctx sdk.Context, portID, channelID string, s
 	store.Delete(host.PacketReceiptKey(portID, channelID, sequence))
 }
 
+// SetPruningSequenceStart sets a channel's pruning sequence start to the store.
+func (k Keeper) SetCounterpartyNextSequenceSend(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := sdk.Uint64ToBigEndian(sequence)
+	store.Set(host.CounterpartyNextSequenceSendKey(portID, channelID), bz)
+}
+
+// GetPruningSequenceStart gets a channel's pruning sequence start from the store.
+func (k Keeper) GetCounterpartyNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.PruningSequenceStartKey(portID, channelID))
+	if len(bz) == 0 {
+		return 0, false
+	}
+
+	return sdk.BigEndianToUint64(bz), true
+}
+
 // GetPacketCommitment gets the packet commitment hash from the store
 func (k Keeper) GetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) []byte {
 	store := ctx.KVStore(k.storeKey)

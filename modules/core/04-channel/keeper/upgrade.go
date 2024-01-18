@@ -581,6 +581,8 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 		k.SetNextSequenceAck(ctx, portID, channelID, upgrade.NextSequenceSend)
 	}
 
+	k.SetCounterpartyNextSequenceSend(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
+
 	// set the counterparty next sequence send as pruning sequence end in order to have upper bound to prune to
 	k.SetPruningSequenceEnd(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
 

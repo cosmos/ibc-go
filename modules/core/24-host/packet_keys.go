@@ -3,15 +3,16 @@ package host
 import "fmt"
 
 const (
-	KeySequencePrefix         = "sequences"
-	KeyNextSeqSendPrefix      = "nextSequenceSend"
-	KeyNextSeqRecvPrefix      = "nextSequenceRecv"
-	KeyNextSeqAckPrefix       = "nextSequenceAck"
-	KeyPacketCommitmentPrefix = "commitments"
-	KeyPacketAckPrefix        = "acks"
-	KeyPacketReceiptPrefix    = "receipts"
-	KeyPruningSequenceStart   = "pruningSequenceStart"
-	KeyPruningSequenceEnd     = "pruningSequenceEnd"
+	KeySequencePrefix                     = "sequences"
+	KeyNextSeqSendPrefix                  = "nextSequenceSend"
+	KeyNextSeqRecvPrefix                  = "nextSequenceRecv"
+	KeyNextSeqAckPrefix                   = "nextSequenceAck"
+	KeyPacketCommitmentPrefix             = "commitments"
+	KeyPacketAckPrefix                    = "acks"
+	KeyPacketReceiptPrefix                = "receipts"
+	KeyCounterpartyNextSequenceSendPrefix = "counterpartyNextSequenceSend"
+	KeyPruningSequenceStart               = "pruningSequenceStart"
+	KeyPruningSequenceEnd                 = "pruningSequenceEnd"
 )
 
 // ICS04
@@ -91,6 +92,17 @@ func PacketReceiptPath(portID, channelID string, sequence uint64) string {
 // receipt is stored
 func PacketReceiptKey(portID, channelID string, sequence uint64) []byte {
 	return []byte(PacketReceiptPath(portID, channelID, sequence))
+}
+
+// PacketReceiptPath defines the packet receipt store path
+func CounterpartyNextSequenceSendPath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s", KeyCounterpartyNextSequenceSendPrefix, channelPath(portID, channelID))
+}
+
+// PacketReceiptKey returns the store key of under which a packet
+// receipt is stored
+func CounterpartyNextSequenceSendKey(portID, channelID string) []byte {
+	return []byte(CounterpartyNextSequenceSendPath(portID, channelID))
 }
 
 // PruningSequenceStartPath defines the path under which the pruning sequence starting value is stored
