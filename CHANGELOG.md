@@ -51,6 +51,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 * (apps/transfer) [\#5280](https://github.com/cosmos/ibc-go/pull/5280) Add list of allowed packet data keys to `Allocation` of `TransferAuthorization`.
+* (apps/27-interchain-accounts) [\#5633](https://github.com/cosmos/ibc-go/pull/5633) Allow setting new and upgrading existing ICA (ordered) channels to use unordered ordering.
 
 ### Bug Fixes
 
