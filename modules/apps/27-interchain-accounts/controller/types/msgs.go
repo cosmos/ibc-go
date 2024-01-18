@@ -36,7 +36,7 @@ func NewMsgRegisterInterchainAccountWithOrder(connectionID, owner, version strin
 }
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount.
-// It uses channeltypes.ORDERED as the default order. Breakage in v9.0.0 will allow the ordering to provided
+// It uses channeltypes.ORDERED as the default order. Breakage in v9.0.0 will allow the ordering to be provided
 // directly. Use NewMsgRegisterInterchainAccountWithOrder to provide the ordering in previous versions.
 func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRegisterInterchainAccount {
 	return &MsgRegisterInterchainAccount{
