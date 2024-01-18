@@ -516,7 +516,7 @@ func (k Keeper) ChanUpgradeOpen(
 		// in the unlikely case a new upgrade is initiated after it reopens,
 		// then the upgrade sequence will be greater than our upgrade sequence.
 		if counterpartyUpgradeSequence < channel.UpgradeSequence {
-			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "counterparty upgrade sequence must be greater than or equal to our upgrade sequence, expected: %d, got %d", channel.UpgradeSequence, counterpartyUpgradeSequence)
+			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "counterparty channel upgrade sequence (%d) must be greater than or equal to current upgrade sequence (%d)", counterpartyUpgradeSequence, channel.UpgradeSequence)
 		}
 
 		counterpartyChannel = types.Channel{
