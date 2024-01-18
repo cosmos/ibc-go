@@ -626,9 +626,21 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades AND channel is not in FLUSHCOMPLETE")
 	}
 
-	// the error receipt should also have a sequence greater than or equal to the current upgrade sequence.
-	if errorReceipt.Sequence < channel.UpgradeSequence {
-		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
+	// the error receipt should also have a sequence greater than or equal to the current upgrade sequence,
+	// except when the channel state if FLUSHCOMPLETE, in which case the sequences must match. This is required
+	// to guarantee that this channel end does not cancel the upgrade in case the counterparty has completed
+	// the upgrade and moved to OPEN, initiated a new upgrade (and thus incremented the upgrade sequence) and
+	// cancelled, all in the same block. Otherwise, the channel would open, but one end would have upgraded and
+	// the other not.
+	// DO NOT DELETE: this acts as protection against replay attacks.
+	if channel.State == types.FLUSHCOMPLETE {
+		if errorReceipt.Sequence != channel.UpgradeSequence {
+			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
+		}
+	} else {
+		if errorReceipt.Sequence < channel.UpgradeSequence {
+			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
+		}
 	}
 
 	// get underlying connection for proof verification
