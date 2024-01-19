@@ -1590,6 +1590,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
 
+				// the error receipt upgrade sequence and the channel upgrade sequence must match
 				errorReceipt.Sequence = path.EndpointA.GetChannel().UpgradeSequence
 
 				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
