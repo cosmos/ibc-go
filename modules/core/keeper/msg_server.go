@@ -873,8 +873,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 
 	err = k.ChannelKeeper.ChanUpgradeAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade, msg.ProofChannel, msg.ProofUpgrade, msg.ProofHeight)
 	if err != nil {
-		errChanUpgradeFailed := errorsmod.Wrap(err, "channel upgrade ack failed")
-		ctx.Logger().Error("channel upgrade ack failed", "error", errChanUpgradeFailed)
+		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel upgrade ack failed"))
 		if channeltypes.IsUpgradeError(err) {
 			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
 			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
@@ -885,7 +884,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		}
 
 		// NOTE: an error is returned to baseapp and transaction state is not committed.
-		return nil, errChanUpgradeFailed
+		return nil, errorsmod.Wrap(err, "channel upgrade ack failed")
 	}
 
 	cacheCtx, writeFn := ctx.CacheContext()
