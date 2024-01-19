@@ -687,6 +687,19 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			},
 			true,
 		},
+		{
+			"success: channel flushing",
+			func() {
+				suite.coordinator.Setup(path)
+				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				ack = ibcmock.MockAcknowledgement
+
+				err := path.EndpointB.SetChannelState(types.FLUSHING)
+				suite.Require().NoError(err)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			},
+			true,
+		},
 		{"channel not found", func() {
 			// use wrong channel naming
 			suite.coordinator.Setup(path)
