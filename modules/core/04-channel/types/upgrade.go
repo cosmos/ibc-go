@@ -121,6 +121,14 @@ func (u *UpgradeError) GetErrorReceipt() ErrorReceipt {
 
 // IsUpgradeError returns true if err is of type UpgradeError, otherwise false.
 func IsUpgradeError(err error) bool {
-	_, ok := err.(*UpgradeError)
-	return ok
+	for {
+		_, ok := err.(*UpgradeError)
+		if ok {
+			return true
+		}
+
+		if err = errors.Unwrap(err); err == nil {
+			return false
+		}
+	}
 }
