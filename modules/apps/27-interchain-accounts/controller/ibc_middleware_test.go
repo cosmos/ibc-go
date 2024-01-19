@@ -161,11 +161,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			}, false,
 		},
 		{
-			"ICA OnChanOpenInit fails - UNORDERED channel", func() {
-				channel.Ordering = channeltypes.UNORDERED
-			}, false,
-		},
-		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string, chanCap *capabilitytypes.Capability,
@@ -767,9 +762,10 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 	var (
-		path     *ibctesting.Path
-		isNilApp bool
-		version  string
+		path         *ibctesting.Path
+		isNilApp     bool
+		version      string
+		channelOrder channeltypes.Order
 	)
 
 	testCases := []struct {
@@ -778,7 +774,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		expError error
 	}{
 		{
-			"success", func() {}, nil,
+			"success w/ ORDERED channel", func() {}, nil,
+		},
+		{
+			"success w/ UNORDERED channel", func() {
+				channelOrder = channeltypes.UNORDERED
+			}, nil,
 		},
 		{
 			"success: nil underlying app",
@@ -844,11 +845,13 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
 			}
 
+			channelOrder = channeltypes.ORDERED
+
 			version, err = cbs.OnChanUpgradeInit(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
-				channeltypes.ORDERED,
+				channelOrder,
 				[]string{path.EndpointA.ConnectionID},
 				version,
 			)
@@ -989,6 +992,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 		path                *ibctesting.Path
 		isNilApp            bool
 		counterpartyVersion string
+		channelOrder        channeltypes.Order
 	)
 
 	testCases := []struct {
@@ -996,8 +1000,12 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 		malleate func()
 	}{
 		{
-			"success",
-			func() {},
+			"success w/ ORDERED channel", func() {},
+		},
+		{
+			"success w/ UNORDERED channel", func() {
+				channelOrder = channeltypes.UNORDERED
+			},
 		},
 		{
 			"success: nil app",
@@ -1044,11 +1052,13 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 				cbs = controller.NewIBCMiddleware(nil, suite.chainA.GetSimApp().ICAControllerKeeper)
 			}
 
+			channelOrder = channeltypes.ORDERED
+
 			cbs.OnChanUpgradeOpen(
 				suite.chainA.GetContext(),
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
-				channeltypes.ORDERED,
+				channelOrder,
 				[]string{path.EndpointA.ConnectionID},
 				counterpartyVersion,
 			)
