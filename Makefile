@@ -323,7 +323,7 @@ lint:
 	@echo "--> Running linter"
 	@./scripts/go-lint-all.sh --timeout=15m
 
-#? lint: Run golangci-lint and fix
+#? lint-fix: Run golangci-lint and fix
 lint-fix:
 	@echo "--> Running linter"
 	@./scripts/go-lint-all.sh --fix
