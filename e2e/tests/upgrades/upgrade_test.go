@@ -5,9 +5,10 @@ package upgrades
 import (
 	"context"
 	"fmt"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"testing"
 	"time"
+
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/cosmos/gogoproto/proto"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
@@ -724,7 +725,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	// })
 }
 
-func (s *UpgradeTestSuite) TestV7ToV8_1ChainUpgrade_ChannelUpgrades() {
+func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 	t := s.T()
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
@@ -959,7 +960,6 @@ func (s *UpgradeTestSuite) TestV7ToV8_1ChainUpgrade_ChannelUpgrades() {
 		expected := relayerAStartingBalance + testFee.AckFee.AmountOf(chainADenom).Int64() + testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
-
 }
 
 // ClientState queries the current ClientState by clientID
