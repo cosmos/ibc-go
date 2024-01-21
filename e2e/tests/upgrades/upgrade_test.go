@@ -62,12 +62,17 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
 	}
 
-	msgSoftwareUpgrade := &upgradetypes.MsgSoftwareUpgrade{
-		Plan:      plan,
-		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	}
+	if testvalues.GovV1MessagesFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
+		msgSoftwareUpgrade := &upgradetypes.MsgSoftwareUpgrade{
+			Plan:      plan,
+			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		}
 
-	s.ExecuteAndPassGovV1Proposal(ctx, msgSoftwareUpgrade, chain, wallet)
+		s.ExecuteAndPassGovV1Proposal(ctx, msgSoftwareUpgrade, chain, wallet)
+	} else {
+		upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion), "upgrade chain E2E test", plan)
+		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
+	}
 
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height before upgrade")
@@ -617,11 +622,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	t := s.T()
 
 	ctx := context.Background()
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, func(opts *ibc.CreateChannelOptions) {
-		opts.Version = "{\"fee_version\":\"ics29-1\",\"app_version\":\"ics20-1\"}"
-		opts.DestPortName = "transfer"
-		opts.SourcePortName = "transfer"
-	})
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
