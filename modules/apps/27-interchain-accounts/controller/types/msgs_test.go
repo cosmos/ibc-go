@@ -75,7 +75,7 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 		{
 			"order is not valid",
 			func() {
-				msg.Order = channeltypes.NONE
+				msg.Ordering = channeltypes.NONE
 			},
 			false,
 		},
