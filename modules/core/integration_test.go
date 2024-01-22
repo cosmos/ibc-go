@@ -53,6 +53,7 @@ func (suite *IBCTestSuite) TestReplayProtectionAfterReceivePruning() {
 			disabledTimeoutTimestamp := uint64(0)
 			timeoutHeight := clienttypes.NewHeight(1, 110)
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+			suite.Require().NoError(err)
 			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 
 			// save receive proof for replay submission
