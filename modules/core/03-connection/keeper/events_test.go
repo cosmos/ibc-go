@@ -2,7 +2,9 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -89,7 +91,7 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
 	counterpartyClient, clientProof, consensusProof, consensusHeight, tryProof, proofHeight := path.EndpointA.QueryConnectionHandshakeProof()
 
 	msg := types.NewMsgConnectionOpenAck(
-		path.EndpointA.ConnectionID, path.EndpointA.Counterparty.ConnectionID, counterpartyClient, // testing doesn't use flexible selection
+		path.EndpointA.ConnectionID, path.EndpointA.Counterparty.ConnectionID, counterpartyClient,
 		tryProof, clientProof, consensusProof,
 		proofHeight, consensusHeight,
 		ibctesting.ConnectionVersion,
@@ -108,6 +110,46 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
 			sdk.NewAttribute(types.AttributeKeyClientID, path.EndpointA.ClientID),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, path.EndpointB.ClientID),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, path.EndpointB.ConnectionID),
+		),
+	}.ToABCIEvents()
+
+	var indexSet map[string]struct{}
+	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
+	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
+}
+
+func (suite *KeeperTestSuite) TestMsgConnectionOpenConfirmEvents() {
+	suite.SetupTest()
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path)
+
+	suite.Require().NoError(path.EndpointA.ConnOpenInit())
+	suite.Require().NoError(path.EndpointB.ConnOpenTry())
+	suite.Require().NoError(path.EndpointA.ConnOpenAck())
+
+	suite.Require().NoError(path.EndpointB.UpdateClient())
+
+	connectionKey := host.ConnectionKey(path.EndpointB.Counterparty.ConnectionID)
+	proof, height := path.EndpointB.Counterparty.Chain.QueryProof(connectionKey)
+
+	msg := types.NewMsgConnectionOpenConfirm(
+		path.EndpointB.ConnectionID,
+		proof, height,
+		path.EndpointB.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	res, err := path.EndpointB.Chain.SendMsgs(msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
+
+	events := res.Events
+	expectedEvents := sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeConnectionOpenConfirm,
+			sdk.NewAttribute(types.AttributeKeyConnectionID, ibctesting.FirstConnectionID),
+			sdk.NewAttribute(types.AttributeKeyClientID, path.EndpointB.ClientID),
+			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, path.EndpointA.ClientID),
+			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, path.EndpointA.ConnectionID),
 		),
 	}.ToABCIEvents()
 
