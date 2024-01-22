@@ -185,7 +185,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	// update chain
 	baseapp.SetChainID(newChainID)(endpoint.Chain.App.GetBaseApp())
 	endpoint.Chain.ChainID = newChainID
-	endpoint.Chain.CurrentHeader.ChainID = newChainID
+	endpoint.Chain.ProposedHeader.ChainID = newChainID
 	endpoint.Chain.NextBlock() // commit changes
 
 	// update counterparty client manually
