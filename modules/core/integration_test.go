@@ -11,7 +11,8 @@ import (
 // If packet receipts are pruned, it may be possible to double spend via a
 // replay attack by resubmitting the same proof used to process the original receive.
 // Core IBC performs an additional check to ensure that any packet being received
-// MUST NOT be in the range of packet receipts which are allowed to be pruned.
+// MUST NOT be in the range of packet receipts which are allowed to be pruned thus
+// adding replay protection for upgraded channels.
 // This test has been added to ensure we have replay protection after
 // pruning stale state upon the successful completion of a channel upgrade.
 func (suite *IBCTestSuite) TestReplayProtectionAfterReceivePruning() {
