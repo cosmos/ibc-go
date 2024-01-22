@@ -42,17 +42,17 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 			},
 		},
 		{
-			"invalid connection id",
-			false,
-			func() {
-				msg.ConnectionId = "connection-100"
-			},
-		},
-		{
 			"non-empty owner address is valid",
 			true,
 			func() {
 				msg.Owner = "<invalid-owner>"
+			},
+		},
+		{
+			"invalid connection id",
+			false,
+			func() {
+				msg.ConnectionId = "connection-100"
 			},
 		},
 		{
@@ -100,6 +100,8 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 				suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
 				suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
 
+				path.EndpointA.ChannelConfig.PortID = res.PortId
+				path.EndpointA.ChannelID = res.ChannelId
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channeltypes.ORDERED, channel.Ordering)
 			} else {
