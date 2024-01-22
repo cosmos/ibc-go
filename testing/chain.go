@@ -57,7 +57,7 @@ type TestChain struct {
 	App            TestingApp
 	ChainID        string
 	LastHeader     *ibctm.Header   // header for last block height committed
-	ProposedHeader cmtproto.Header // header for current block height
+	ProposedHeader cmtproto.Header // proposed (uncommitted) header for current block height
 	QueryServer    types.QueryServer
 	TxConfig       client.TxConfig
 	Codec          codec.Codec
