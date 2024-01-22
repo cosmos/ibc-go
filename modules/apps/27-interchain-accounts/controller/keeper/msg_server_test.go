@@ -99,6 +99,9 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 				suite.Require().Len(events, 2)
 				suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
 				suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
+
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(channeltypes.ORDERED, channel.Ordering)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
