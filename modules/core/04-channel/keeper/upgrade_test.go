@@ -1582,9 +1582,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "success with flush complete state",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHCOMPLETE
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.SetChannelState(types.FLUSHCOMPLETE)
 
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -1607,9 +1605,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "upgrade cannot be cancelled in FLUSHCOMPLETE with invalid error receipt",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHCOMPLETE
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.SetChannelState(types.FLUSHCOMPLETE)
 
 				errorReceiptProof = nil
 			},
@@ -1652,9 +1648,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "error receipt sequence greater than channel upgrade sequence when channel in FLUSHCOMPLETE",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHCOMPLETE
-				path.EndpointA.SetChannel(channel)
+				path.EndpointA.SetChannelState(types.FLUSHCOMPLETE)
 			},
 			expError: types.ErrInvalidUpgradeSequence,
 		},
