@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			clientState := path.EndpointA.GetClientState()
 			trustedHeight := clientState.GetLatestHeight().(clienttypes.Height)
 
-			currHeight := suite.chainB.CurrentHeader.Height
+			currHeight := suite.chainB.ProposedHeader.Height
 			fillHeight := clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), uint64(currHeight))
 
 			// commit a couple blocks to allow client to fill in gaps
