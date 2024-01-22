@@ -36,3 +36,43 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenInitEvents() {
 	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
 	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
 }
+
+func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
+	suite.SetupTest()
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path)
+
+	suite.Require().NoError(path.EndpointA.ConnOpenInit())
+
+	err := path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	counterpartyClient, clientProof, consensusProof, consensusHeight, initProof, proofHeight := path.EndpointB.QueryConnectionHandshakeProof()
+
+	msg := types.NewMsgConnectionOpenTry(
+		path.EndpointB.ClientID, path.EndpointB.Counterparty.ConnectionID, path.EndpointB.Counterparty.ClientID,
+		counterpartyClient, path.EndpointB.Counterparty.Chain.GetPrefix(), []*types.Version{ibctesting.ConnectionVersion}, path.EndpointB.ConnectionConfig.DelayPeriod,
+		initProof, clientProof, consensusProof,
+		proofHeight, consensusHeight,
+		path.EndpointB.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	res, err := path.EndpointB.Chain.SendMsgs(msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
+
+	events := res.Events
+	expectedEvents := sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeConnectionOpenTry,
+			sdk.NewAttribute(types.AttributeKeyConnectionID, ibctesting.FirstConnectionID),
+			sdk.NewAttribute(types.AttributeKeyClientID, path.EndpointB.ClientID),
+			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, path.EndpointA.ClientID),
+			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, path.EndpointA.ConnectionID),
+		),
+	}.ToABCIEvents()
+
+	var indexSet map[string]struct{}
+	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
+	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
+}
