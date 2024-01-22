@@ -94,7 +94,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.M
 
 // createTimeoutMessage creates an Timeout message for a packet sent from chain B to chain A.
 func (suite *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
-	height := suite.chainA.LastHeader.GetHeight()
+	height := suite.chainA.LatestCommittedHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
 
 	sequence, err := suite.path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
@@ -123,7 +123,7 @@ func (suite *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
 
 // createTimeoutOnCloseMessage creates an TimeoutOnClose message for a packet sent from chain B to chain A.
 func (suite *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Msg {
-	height := suite.chainA.LastHeader.GetHeight()
+	height := suite.chainA.LatestCommittedHeader.GetHeight()
 	timeoutHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
 
 	sequence, err := suite.path.EndpointB.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
