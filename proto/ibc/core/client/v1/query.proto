@@ -67,6 +67,11 @@ service Query {
 message QueryClientStateRequest {
   // client state unique identifier
   string client_id = 1;
+  // the height at which to query
+  ibc.core.client.v1.Height height = 2;
+  // latest_height overrides the height field and queries the latest stored
+  // ClientState
+  bool latest_height = 3;
 }
 
 // QueryClientStateResponse is the response type for the Query/ClientState RPC
@@ -99,8 +104,7 @@ message QueryClientStatesResponse {
 }
 
 // QueryConsensusStateRequest is the request type for the Query/ConsensusState
-// RPC method. Besides the consensus state, it includes a proof and the height
-// from which the proof was retrieved.
+// RPC method.
 message QueryConsensusStateRequest {
   // client identifier
   string client_id = 1;
@@ -114,7 +118,8 @@ message QueryConsensusStateRequest {
 }
 
 // QueryConsensusStateResponse is the response type for the Query/ConsensusState
-// RPC method
+// RPC method. Besides the consensus state, it includes a proof and the height
+// from which the proof was retrieved.
 message QueryConsensusStateResponse {
   // consensus state associated with the client identifier at the given height
   google.protobuf.Any consensus_state = 1;
@@ -186,7 +191,13 @@ message QueryClientParamsResponse {
 
 // QueryUpgradedClientStateRequest is the request type for the
 // Query/UpgradedClientState RPC method
-message QueryUpgradedClientStateRequest {}
+message QueryUpgradedClientStateRequest {
+  // the height at which to query
+  ibc.core.client.v1.Height height = 1;
+  // latest_height overrides the height field and queries the latest stored
+  // UpgradedClientState
+  bool latest_height = 2;
+}
 
 // QueryUpgradedClientStateResponse is the response type for the
 // Query/UpgradedClientState RPC method.
@@ -197,7 +208,13 @@ message QueryUpgradedClientStateResponse {
 
 // QueryUpgradedConsensusStateRequest is the request type for the
 // Query/UpgradedConsensusState RPC method
-message QueryUpgradedConsensusStateRequest {}
+message QueryUpgradedConsensusStateRequest {
+  // the height at which to query
+  ibc.core.client.v1.Height height = 1;
+  // latest_height overrides the height field and queries the latest stored
+  // UpgradedClientState
+  bool latest_height = 2;
+}
 
 // QueryUpgradedConsensusStateResponse is the response type for the
 // Query/UpgradedConsensusState RPC method.
