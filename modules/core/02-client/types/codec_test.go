@@ -80,7 +80,7 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 		},
 		{
 			"tendermint consensus",
-			suite.chainA.LastHeader.ConsensusState(),
+			suite.chainA.LatestCommittedHeader.ConsensusState(),
 			true,
 		},
 		{
@@ -129,7 +129,7 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 		},
 		{
 			"tendermint header",
-			suite.chainA.LastHeader,
+			suite.chainA.LatestCommittedHeader,
 			true,
 		},
 		{
