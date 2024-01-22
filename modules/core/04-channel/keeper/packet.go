@@ -197,14 +197,20 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
 	}
 
-	counterpartyNextSequenceSend, _ := k.GetCounterpartyNextSequenceSend(ctx, packet.GetDestPort(), packet.GetDestChannel())
-	if packet.GetSequence() < counterpartyNextSequenceSend {
-		return errorsmod.Wrap(types.ErrInvalidPacket, "packet has already been processed")
+	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
+	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
+	// upgrade all packets under the recvStartSequence will have been processed and thus should be
+	// rejected.
+	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if packet.GetSequence() < recvStartSequence {
+		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
 	}
 
 	switch channel.Ordering {
 	case types.UNORDERED:
-		// check if the packet receipt has been received already for unordered channels
+		// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
+		// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
+		// by the increase of the recvStartSequence.
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
 			emitRecvPacketEvent(ctx, packet, channel)
@@ -217,7 +223,7 @@ func (k Keeper) RecvPacket(
 		// All verification complete, update state
 		// For unordered channels we must set the receipt so it can be verified on the other side.
 		// This receipt does not contain any data, since the packet has not yet been processed,
-		// it's just a single store key set to an empty string to indicate that the packet has been received
+		// it's just a single store key set to a single byte to indicate that the packet has been received
 		k.SetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 	case types.ORDERED:
@@ -238,6 +244,8 @@ func (k Keeper) RecvPacket(
 			return types.ErrNoOpMsg
 		}
 
+		// REPLAY PROTECTION: Ordered channels require packets to be received in a strict order.
+		// Any out of order or previously received packets are rejected.
 		if packet.GetSequence() != nextSequenceRecv {
 			return errorsmod.Wrapf(
 				types.ErrPacketSequenceOutOfOrder,

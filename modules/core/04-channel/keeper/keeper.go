@@ -200,24 +200,6 @@ func (k Keeper) deletePacketReceipt(ctx sdk.Context, portID, channelID string, s
 	store.Delete(host.PacketReceiptKey(portID, channelID, sequence))
 }
 
-// SetPruningSequenceStart sets a channel's pruning sequence start to the store.
-func (k Keeper) SetCounterpartyNextSequenceSend(ctx sdk.Context, portID, channelID string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.CounterpartyNextSequenceSendKey(portID, channelID), bz)
-}
-
-// GetPruningSequenceStart gets a channel's pruning sequence start from the store.
-func (k Keeper) GetCounterpartyNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.PruningSequenceStartKey(portID, channelID))
-	if len(bz) == 0 {
-		return 0, false
-	}
-
-	return sdk.BigEndianToUint64(bz), true
-}
-
 // GetPacketCommitment gets the packet commitment hash from the store
 func (k Keeper) GetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) []byte {
 	store := ctx.KVStore(k.storeKey)
@@ -641,17 +623,17 @@ func (k Keeper) HasInflightPackets(ctx sdk.Context, portID, channelID string) bo
 	return iterator.Valid()
 }
 
-// SetPruningSequenceEnd sets the channel's pruning sequence end to the store.
-func (k Keeper) SetPruningSequenceEnd(ctx sdk.Context, portID, channelID string, sequence uint64) {
+// SetRecvStartSequence sets the channel's pruning sequence end to the store.
+func (k Keeper) SetRecvStartSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.PruningSequenceEndKey(portID, channelID), bz)
+	store.Set(host.RecvStartSequenceKey(portID, channelID), bz)
 }
 
-// GetPruningSequenceEnd gets a channel's pruning sequence end from the store.
-func (k Keeper) GetPruningSequenceEnd(ctx sdk.Context, portID, channelID string) (uint64, bool) {
+// GetRecvStartSequence gets a channel's pruning sequence end from the store.
+func (k Keeper) GetRecvStartSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.PruningSequenceEndKey(portID, channelID))
+	bz := store.Get(host.RecvStartSequenceKey(portID, channelID))
 	if len(bz) == 0 {
 		return 0, false
 	}
@@ -693,9 +675,9 @@ func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string,
 	if !found {
 		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
-	pruningSequenceEnd, found := k.GetPruningSequenceEnd(ctx, portID, channelID)
+	pruningSequenceEnd, found := k.GetRecvStartSequence(ctx, portID, channelID)
 	if !found {
-		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceEndNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return 0, 0, errorsmod.Wrapf(types.ErrRecvStartSequenceNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	start := pruningSequenceStart
