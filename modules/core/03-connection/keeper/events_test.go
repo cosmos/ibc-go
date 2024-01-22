@@ -44,8 +44,7 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
 
 	suite.Require().NoError(path.EndpointA.ConnOpenInit())
 
-	err := path.EndpointB.UpdateClient()
-	suite.Require().NoError(err)
+	suite.Require().NoError(path.EndpointB.UpdateClient())
 
 	counterpartyClient, clientProof, consensusProof, consensusHeight, initProof, proofHeight := path.EndpointB.QueryConnectionHandshakeProof()
 
@@ -69,6 +68,46 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
 			sdk.NewAttribute(types.AttributeKeyClientID, path.EndpointB.ClientID),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, path.EndpointA.ClientID),
 			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, path.EndpointA.ConnectionID),
+		),
+	}.ToABCIEvents()
+
+	var indexSet map[string]struct{}
+	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
+	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
+}
+
+func (suite *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
+	suite.SetupTest()
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path)
+
+	suite.Require().NoError(path.EndpointA.ConnOpenInit())
+	suite.Require().NoError(path.EndpointB.ConnOpenTry())
+
+	suite.Require().NoError(path.EndpointA.UpdateClient())
+
+	counterpartyClient, clientProof, consensusProof, consensusHeight, tryProof, proofHeight := path.EndpointA.QueryConnectionHandshakeProof()
+
+	msg := types.NewMsgConnectionOpenAck(
+		path.EndpointA.ConnectionID, path.EndpointA.Counterparty.ConnectionID, counterpartyClient, // testing doesn't use flexible selection
+		tryProof, clientProof, consensusProof,
+		proofHeight, consensusHeight,
+		ibctesting.ConnectionVersion,
+		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+	)
+
+	res, err := path.EndpointA.Chain.SendMsgs(msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
+
+	events := res.Events
+	expectedEvents := sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeConnectionOpenAck,
+			sdk.NewAttribute(types.AttributeKeyConnectionID, ibctesting.FirstConnectionID),
+			sdk.NewAttribute(types.AttributeKeyClientID, path.EndpointA.ClientID),
+			sdk.NewAttribute(types.AttributeKeyCounterpartyClientID, path.EndpointB.ClientID),
+			sdk.NewAttribute(types.AttributeKeyCounterpartyConnectionID, path.EndpointB.ConnectionID),
 		),
 	}.ToABCIEvents()
 
