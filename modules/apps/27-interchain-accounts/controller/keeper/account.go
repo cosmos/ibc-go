@@ -51,7 +51,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 
 // registerInterchainAccount registers an interchain account, returning the channel id of the MsgChannelOpenInitResponse
 // and an error if one occurred.
-func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID, version string, order channeltypes.Order) (string, error) {
+func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID, version string, ordering channeltypes.Order) (string, error) {
 	// if there is an active channel for this portID / connectionID return an error
 	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionID, portID)
 	if found {
@@ -69,7 +69,7 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 		}
 	}
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, version, order, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
+	msg := channeltypes.NewMsgChannelOpenInit(portID, version, ordering, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
 	handler := k.msgRouter.Handler(msg)
 	res, err := handler(ctx, msg)
 	if err != nil {

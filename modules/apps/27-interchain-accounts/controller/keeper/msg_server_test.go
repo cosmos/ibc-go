@@ -38,7 +38,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 			"success: ordering falls back to ORDERED if not specified",
 			true,
 			func() {
-				msg.Order = channeltypes.NONE
+				msg.Ordering = channeltypes.NONE
 			},
 		},
 		{

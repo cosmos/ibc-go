@@ -42,10 +42,10 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 
 	// use ORDER_ORDERED as default in case msg's ordering is NONE
 	var order channeltypes.Order
-	if msg.Order == channeltypes.NONE {
+	if msg.Ordering == channeltypes.NONE {
 		order = channeltypes.ORDERED
 	} else {
-		order = msg.Order
+		order = msg.Ordering
 	}
 
 	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version, order)
