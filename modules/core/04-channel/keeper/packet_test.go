@@ -328,9 +328,9 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				// setup uses an UNORDERED channel
 				suite.coordinator.Setup(path)
-				channel := path.EndpointA.GetChannel()
+				channel := path.EndpointB.GetChannel()
 				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				path.EndpointB.SetChannel(channel)
 
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
@@ -344,9 +344,9 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				// setup uses an UNORDERED channel
 				suite.coordinator.Setup(path)
-				channel := path.EndpointA.GetChannel()
+				channel := path.EndpointB.GetChannel()
 				channel.State = types.FLUSHCOMPLETE
-				path.EndpointA.SetChannel(channel)
+				path.EndpointB.SetChannel(channel)
 
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
@@ -426,21 +426,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				path.EndpointB.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 			},
 			types.ErrInvalidPacket,
-		},
-		{
-			"failure while upgrading channel, channel in flush complete state",
-			func() {
-				suite.coordinator.Setup(path)
-				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-
-				channel := path.EndpointB.GetChannel()
-				channel.State = types.FLUSHCOMPLETE
-				path.EndpointB.SetChannel(channel)
-			},
-			types.ErrInvalidChannelState,
 		},
 		{
 			"packet already relayed ORDERED channel (no-op)",
