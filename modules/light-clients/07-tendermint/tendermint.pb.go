@@ -38,7 +38,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type ClientState struct {
 	ChainId    string   `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
 	TrustLevel Fraction `protobuf:"bytes,2,opt,name=trust_level,json=trustLevel,proto3" json:"trust_level"`
-	// duration of the period since the LastestTimestamp during which the
+	// duration of the period since the LatestTimestamp during which the
 	// submitted headers are valid for upgrade
 	TrustingPeriod time.Duration `protobuf:"bytes,3,opt,name=trusting_period,json=trustingPeriod,proto3,stdduration" json:"trusting_period"`
 	// duration of the staking unbonding period

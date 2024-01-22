@@ -11,7 +11,7 @@
 
 ## Abstract
 
-In the Cosmos SDK light clients are current hardcoded in Go. This makes upgrading existing IBC light clients or
+In the Cosmos SDK light clients are currently hardcoded in Go. This makes upgrading existing IBC light clients or
 adding support for new light client a multi step process involving on-chain governance which is time-consuming.
 
 To remedy this, we are proposing a Wasm VM to host light client bytecode, which allows easier upgrading of

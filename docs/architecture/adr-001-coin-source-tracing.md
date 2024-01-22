@@ -14,7 +14,7 @@ Accepted, Implemented
 The specification for IBC cross-chain fungible token transfers
 ([ICS20](https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer)), needs to
 be aware of the origin of any token denomination in order to relay a `Packet` which contains the sender
-and recipient addressed in the
+and recipient addresses in the
 [`FungibleTokenPacketData`](https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures).
 
 The Packet relay sending works based in 2 cases (per

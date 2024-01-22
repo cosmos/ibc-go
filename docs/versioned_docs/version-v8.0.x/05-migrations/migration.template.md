@@ -1,4 +1,4 @@
-# Migrating from <old-version> to <new-version>
+# Migrating from \<old-version\> to \<new-version\>
 
 This guide provides instructions for migrating to a new version of ibc-go.
 

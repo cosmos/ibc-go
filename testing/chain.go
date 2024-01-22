@@ -53,14 +53,14 @@ type SenderAccount struct {
 type TestChain struct {
 	testing.TB
 
-	Coordinator   *Coordinator
-	App           TestingApp
-	ChainID       string
-	LastHeader    *ibctm.Header   // header for last block height committed
-	CurrentHeader cmtproto.Header // header for current block height
-	QueryServer   types.QueryServer
-	TxConfig      client.TxConfig
-	Codec         codec.Codec
+	Coordinator    *Coordinator
+	App            TestingApp
+	ChainID        string
+	LastHeader     *ibctm.Header   // header for last block height committed
+	ProposedHeader cmtproto.Header // proposed (uncommitted) header for current block height
+	QueryServer    types.QueryServer
+	TxConfig       client.TxConfig
+	Codec          codec.Codec
 
 	Vals     *cmttypes.ValidatorSet
 	NextVals *cmttypes.ValidatorSet
@@ -145,7 +145,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		Coordinator:    coord,
 		ChainID:        chainID,
 		App:            app,
-		CurrentHeader:  header,
+		ProposedHeader: header,
 		QueryServer:    app.GetIBCKeeper(),
 		TxConfig:       txConfig,
 		Codec:          app.AppCodec(),
@@ -192,7 +192,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (chain *TestChain) GetContext() sdk.Context {
-	return chain.App.GetBaseApp().NewUncachedContext(false, chain.CurrentHeader)
+	return chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
 }
 
 // GetSimApp returns the SimApp to allow usage ofnon-interface fields.
@@ -279,9 +279,9 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 
 	consensusHeight := clientState.GetLatestHeight().(clienttypes.Height)
 	consensusKey := host.FullConsensusStateKey(clientID, consensusHeight)
-	proofConsensus, _ := chain.QueryProof(consensusKey)
+	consensusProof, _ := chain.QueryProof(consensusKey)
 
-	return proofConsensus, consensusHeight
+	return consensusProof, consensusHeight
 }
 
 // NextBlock sets the last header to the current header and increments the current header to be
@@ -292,8 +292,8 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
 	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{
-		Height:             chain.CurrentHeader.Height,
-		Time:               chain.CurrentHeader.GetTime(),
+		Height:             chain.ProposedHeader.Height,
+		Time:               chain.ProposedHeader.GetTime(),
 		NextValidatorsHash: chain.NextVals.Hash(),
 	})
 	require.NoError(chain.TB, err)
@@ -314,16 +314,16 @@ func (chain *TestChain) commitBlock(res *abci.ResponseFinalizeBlock) {
 	chain.NextVals = ApplyValSetChanges(chain, chain.Vals, res.ValidatorUpdates)
 
 	// increment the current header
-	chain.CurrentHeader = cmtproto.Header{
+	chain.ProposedHeader = cmtproto.Header{
 		ChainID: chain.ChainID,
 		Height:  chain.App.LastBlockHeight() + 1,
 		AppHash: chain.App.LastCommitID().Hash,
 		// NOTE: the time is increased by the coordinator to maintain time synchrony amongst
 		// chains.
-		Time:               chain.CurrentHeader.Time,
+		Time:               chain.ProposedHeader.Time,
 		ValidatorsHash:     chain.Vals.Hash(),
 		NextValidatorsHash: chain.NextVals.Hash(),
-		ProposerAddress:    chain.CurrentHeader.ProposerAddress,
+		ProposerAddress:    chain.ProposedHeader.ProposerAddress,
 	}
 }
 
@@ -361,7 +361,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 		[]uint64{chain.SenderAccount.GetAccountNumber()},
 		[]uint64{chain.SenderAccount.GetSequence()},
 		true,
-		chain.CurrentHeader.GetTime(),
+		chain.ProposedHeader.GetTime(),
 		chain.NextVals.Hash(),
 		chain.SenderPrivKey,
 	)
@@ -494,9 +494,9 @@ func (chain *TestChain) ExpireClient(amount time.Duration) {
 func (chain *TestChain) CurrentTMClientHeader() *ibctm.Header {
 	return chain.CreateTMClientHeader(
 		chain.ChainID,
-		chain.CurrentHeader.Height,
+		chain.ProposedHeader.Height,
 		clienttypes.Height{},
-		chain.CurrentHeader.Time,
+		chain.ProposedHeader.Time,
 		chain.Vals,
 		chain.NextVals,
 		nil,
@@ -524,7 +524,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		ValidatorsHash:     cmtValSet.Hash(),
 		NextValidatorsHash: nextVals.Hash(),
 		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
-		AppHash:            chain.CurrentHeader.AppHash,
+		AppHash:            chain.ProposedHeader.AppHash,
 		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
 		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
 		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck

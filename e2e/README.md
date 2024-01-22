@@ -51,8 +51,8 @@ options specified in your config file.
 | Environment Variable | Description                               | Default Value |
 |----------------------|-------------------------------------------|---------------|
 | CHAIN_IMAGE          | The image that will be used for the chain | ibc-go-simd   |
-| CHAIN_A_TAG          | The tag used for chain B                  | latest        |
-| CHAIN_B_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_A_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_B_TAG          | The tag used for chain B                  | latest        |
 | CHAIN_BINARY         | The binary used in the container          | simd          |
 | RELAYER_TAG          | The tag used for the relayer              | main          |
 | RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes        |
@@ -161,9 +161,9 @@ chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 t.Run("broadcast multi message transaction", func(t *testing.T){
-  payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
-  transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
-  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
+  msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
+  msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
+  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 
   s.AssertValidTxResponse(resp)
   s.Require().NoError(err)
