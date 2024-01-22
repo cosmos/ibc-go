@@ -35,10 +35,10 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 			func() {},
 		},
 		{
-			"invalid connection id",
-			false,
+			"success: ordering falls back to ORDERED if not specified",
+			true,
 			func() {
-				msg.ConnectionId = "connection-100"
+				msg.Ordering = channeltypes.NONE
 			},
 		},
 		{
@@ -46,6 +46,13 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 			true,
 			func() {
 				msg.Owner = "<invalid-owner>"
+			},
+		},
+		{
+			"invalid connection id",
+			false,
+			func() {
+				msg.ConnectionId = "connection-100"
 			},
 		},
 		{
@@ -92,6 +99,11 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 				suite.Require().Len(events, 2)
 				suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
 				suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
+
+				path.EndpointA.ChannelConfig.PortID = res.PortId
+				path.EndpointA.ChannelID = res.ChannelId
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(channeltypes.ORDERED, channel.Ordering)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
