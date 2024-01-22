@@ -195,7 +195,7 @@ func (suite *TypesTestSuite) TestIsUpgradeError() {
 			true,
 		},
 		{
-			"true with Errof wrapped upgrade error",
+			"true with Errorf wrapped upgrade error",
 			func() {
 				err = fmt.Errorf("%w", types.NewUpgradeError(1, types.ErrInvalidChannel))
 			},

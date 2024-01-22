@@ -628,7 +628,7 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 	}
 
 	// the error receipt should also have a sequence greater than or equal to the current upgrade sequence,
-	// except when the channel state if FLUSHCOMPLETE, in which case the sequences must match. This is required
+	// except when the channel state is FLUSHCOMPLETE, in which case the sequences must match. This is required
 	// to guarantee that this channel end does not cancel the upgrade in case the counterparty has completed
 	// the upgrade and moved to OPEN, initiated a new upgrade (and thus incremented the upgrade sequence) and
 	// cancelled, all in the same block. Otherwise, the channel would open, but one end would have upgraded and
