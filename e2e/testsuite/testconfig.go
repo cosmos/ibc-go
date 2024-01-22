@@ -568,6 +568,14 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 			appState[ibcexported.ModuleName] = ibcGenBz
 		}
 
+		if !testvalues.ChannelParamsFeatureReleases.IsSupported(version) {
+			ibcGenBz, err := modifyChannelGenesisAppState(appState[ibcexported.ModuleName])
+			if err != nil {
+				return nil, err
+			}
+			appState[ibcexported.ModuleName] = ibcGenBz
+		}
+
 		appGenesis.AppState, err = json.Marshal(appState)
 		if err != nil {
 			return nil, err
@@ -722,4 +730,19 @@ func modifyClientGenesisAppState(ibcAppState []byte) ([]byte, error) {
 	}
 
 	return ibcGenBz, nil
+}
+
+// modifyChannelGenesisAppState takes the existing ibc app state, unmarshals it to a map and removes the `params` entry from ibc channel genesis.
+// It marshals and returns the ibc GenesisState JSON map as bytes.
+func modifyChannelGenesisAppState(ibcAppState []byte) ([]byte, error) {
+	var ibcGenesisMap map[string]interface{}
+	if err := json.Unmarshal(ibcAppState, &ibcGenesisMap); err != nil {
+		return nil, err
+	}
+
+	// be ashamed, be very ashamed
+	channelGenesis := ibcGenesisMap["channel_genesis"].(map[string]interface{})
+	delete(channelGenesis, "params")
+
+	return json.Marshal(ibcGenesisMap)
 }
