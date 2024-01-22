@@ -379,9 +379,5 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 			expected := relayerAStartingBalance + testFee.AckFee.AmountOf(chainADenom).Int64() + testFee.RecvFee.AmountOf(chainADenom).Int64()
 			s.Require().Equal(expected, actualBalance)
 		})
-
-		t.Run("stop relayer", func(t *testing.T) {
-			s.StopRelayer(ctx, relayer)
-		})
 	})
 }

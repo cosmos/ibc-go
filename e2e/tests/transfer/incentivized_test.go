@@ -150,15 +150,11 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 		expected := testvalues.StartingTokenAmount - walletAmount.Amount.Int64() - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
-	})
 }
 
 func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender() {
 	t := s.T()
-
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -260,15 +256,11 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		expected := relayerAStartingBalance + testFee.AckFee.AmountOf(chainADenom).Int64() + testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
-	})
 }
 
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOut() {
 	t := s.T()
-
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -380,15 +372,11 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 		expected := testvalues.StartingTokenAmount - testFee.TimeoutFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance)
 	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
-	})
 }
 
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders_Succeeds() {
 	t := s.T()
-
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -524,15 +512,11 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncMultipleSenders
 		expected2 := testvalues.StartingTokenAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected2, actualBalance2)
 	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
-	})
 }
 
-func (s *Incentivized2TransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
+func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccount() {
 	t := s.T()
-
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -640,10 +624,6 @@ func (s *Incentivized2TransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAcco
 		// the address was invalid so the amount sent should be unescrowed.
 		expected := testvalues.StartingTokenAmount - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
 		s.Require().Equal(expected, actualBalance, "the amount sent and timeout fee should have been refunded as there was an invalid receiver address provided")
-	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
 	})
 }
 

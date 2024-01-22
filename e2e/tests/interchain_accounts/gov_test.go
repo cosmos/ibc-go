@@ -128,9 +128,5 @@ func (s *GovInterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() 
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 			s.Require().Equal(expected, balance.Int64())
 		})
-
-		t.Run("stop relayer", func(t *testing.T) {
-			s.StopRelayer(ctx, relayer)
-		})
 	})
 }

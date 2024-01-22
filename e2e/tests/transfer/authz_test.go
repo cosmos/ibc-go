@@ -37,7 +37,6 @@ func (s *AuthzTransferTestSuite) SetupTest() {
 
 func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := s.T()
-
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -187,14 +186,11 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
 		s.AssertTxFailure(resp, authz.ErrNoAuthorizationFound)
 	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
-	})
 }
 
 func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -332,10 +328,6 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				s.AssertTxFailure(resp, sdkerrors.ErrInvalidAddress)
 			}
 		})
-	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
 	})
 }
 

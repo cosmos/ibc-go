@@ -140,10 +140,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 			expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 			s.Require().Equal(expected, balance.Int64())
 		})
-
-		t.Run("stop relayer", func(t *testing.T) {
-			s.StopRelayer(ctx, relayer)
-		})
 	})
 }
 
@@ -238,10 +234,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 			expected := testvalues.StartingTokenAmount
 			s.Require().Equal(expected, balance.Int64())
-		})
-
-		t.Run("stop relayer", func(t *testing.T) {
-			s.StopRelayer(ctx, relayer)
 		})
 	})
 }
@@ -427,9 +419,5 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance.Int64())
-	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
 	})
 }

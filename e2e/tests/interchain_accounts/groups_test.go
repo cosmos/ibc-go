@@ -216,8 +216,4 @@ func (s *InterchainAccountsTestSuite) TestInterchainAccountsGroupsIntegration() 
 		expected = testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, balance.Int64())
 	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
-	})
 }

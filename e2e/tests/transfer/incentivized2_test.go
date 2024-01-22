@@ -129,8 +129,4 @@ func (s *Incentivized2TransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCo
 			s.Require().Equal(expected, actualBalance)
 		})
 	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
-	})
 }

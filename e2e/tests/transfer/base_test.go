@@ -44,7 +44,6 @@ func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.C
 // that the tokens on the sending chain are unescrowed.
 func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t := s.T()
-
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -94,7 +93,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 // TestSendEnabledParam tests changing ics20 SendEnabled parameter
 func (s *TransferTestSuite) TestSendEnabledParam() {
 	t := s.T()
-
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -265,10 +264,6 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount // only first send marked
 			s.Require().Equal(expected, actualBalance)
 		})
-
-		t.Run("stop relayer", func(t *testing.T) {
-			s.StopRelayer(ctx, relayer)
-		})
 	})
 }
 
@@ -281,6 +276,7 @@ func (s *TransferTestSuite) TestReceiveEnabledParam() {
 // memo should fail in that chain
 func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -321,9 +317,5 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
-	})
-
-	t.Run("stop relayer", func(t *testing.T) {
-		s.StopRelayer(ctx, relayer)
 	})
 }
