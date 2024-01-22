@@ -584,7 +584,7 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 	// Set the counterparty next sequence send as the recv start sequence.
 	// This will be the upper bound for pruning and it will allow for replay
 	// protection of historical packets.
-	k.SetRecvStartSequence(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
+	k.setRecvStartSequence(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
 
 	// First upgrade for this channel will set the pruning sequence to 1, the starting sequence for pruning.
 	// Subsequent upgrades will not modify the pruning sequence thereby allowing pruning to continue from the last

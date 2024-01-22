@@ -623,14 +623,17 @@ func (k Keeper) HasInflightPackets(ctx sdk.Context, portID, channelID string) bo
 	return iterator.Valid()
 }
 
-// SetRecvStartSequence sets the channel's recv start sequence to the store.
-func (k Keeper) SetRecvStartSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
+// setRecvStartSequence sets the channel's recv start sequence to the store.
+func (k Keeper) setRecvStartSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := sdk.Uint64ToBigEndian(sequence)
 	store.Set(host.RecvStartSequenceKey(portID, channelID), bz)
 }
 
 // GetRecvStartSequence gets a channel's recv start sequence from the store.
+// The recv start sequence will be set to the counterparty's next sequence send
+// upon a successful channel upgrade. It will be used for replay protection of
+// historical packets and as the upper bound for pruning stale packet receives.
 func (k Keeper) GetRecvStartSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.RecvStartSequenceKey(portID, channelID))
