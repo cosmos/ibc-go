@@ -623,14 +623,14 @@ func (k Keeper) HasInflightPackets(ctx sdk.Context, portID, channelID string) bo
 	return iterator.Valid()
 }
 
-// SetRecvStartSequence sets the channel's pruning sequence end to the store.
+// SetRecvStartSequence sets the channel's recv start sequence to the store.
 func (k Keeper) SetRecvStartSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := sdk.Uint64ToBigEndian(sequence)
 	store.Set(host.RecvStartSequenceKey(portID, channelID), bz)
 }
 
-// GetRecvStartSequence gets a channel's pruning sequence end from the store.
+// GetRecvStartSequence gets a channel's recv start sequence from the store.
 func (k Keeper) GetRecvStartSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.RecvStartSequenceKey(portID, channelID))
