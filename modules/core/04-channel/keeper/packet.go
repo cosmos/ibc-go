@@ -118,8 +118,8 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING}, channel.State) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s], but got %s", types.OPEN, types.FLUSHING, channel.State)
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
 	}
 
 	// If counterpartyUpgrade is stored we need to ensure that the
@@ -300,11 +300,8 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if !channel.IsOpen() {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
-		)
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s, %s], got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
 	}
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel
