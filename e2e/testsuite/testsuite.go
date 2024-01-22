@@ -19,6 +19,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
+	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
@@ -396,6 +397,22 @@ func (*E2ETestSuite) TransferChannelOptions() func(options *ibc.CreateChannelOpt
 		opts.Version = transfertypes.Version
 		opts.SourcePortName = transfertypes.PortID
 		opts.DestPortName = transfertypes.PortID
+	}
+}
+
+// FeeMiddlewareChannelOptions configures both of the chains to have fee middleware enabled.
+func (s *E2ETestSuite) FeeMiddlewareChannelOptions() func(options *ibc.CreateChannelOptions) {
+	versionMetadata := feetypes.Metadata{
+		FeeVersion: feetypes.Version,
+		AppVersion: transfertypes.Version,
+	}
+	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
+	s.Require().NoError(err)
+
+	return func(opts *ibc.CreateChannelOptions) {
+		opts.Version = string(versionBytes)
+		opts.DestPortName = transfertypes.PortID
+		opts.SourcePortName = transfertypes.PortID
 	}
 }
 
