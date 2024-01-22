@@ -104,7 +104,7 @@ include contrib/devtools/Makefile
 
 BUILD_TARGETS := build install
 
-#? Run scripts/go-mod-tidy-all.sh
+#? tidy-all: Run go mod tidy for all modules
 tidy-all:
 	./scripts/go-mod-tidy-all.sh
 
@@ -126,7 +126,7 @@ $(BUILDDIR)/:
 #? distclean: Run `make clean`
 distclean: clean 
 
-#? clean: Clean some auto generated directory
+#? clean: Clean some auto generated directories
 clean:
 	rm -rf \
     $(BUILDDIR)/ \
@@ -154,12 +154,12 @@ python-install-deps:
 ###                              Documentation                              ###
 ###############################################################################
 
-#? godocs: Generate go doc
+#? godocs: Generate go documentation
 godocs:
 	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/cosmos/cosmos-sdk/types"
 	godoc -http=:6060
 
-#? build-docs: Build docs
+#? build-docs: Build documentation
 build-docs:
 	@cd docs && npm ci && npm run build
 
@@ -225,7 +225,7 @@ $(CHECK_TEST_TARGETS): EXTRA_ARGS=-run=none
 $(CHECK_TEST_TARGETS): run-tests
 
 ARGS += -tags "$(test_tags)"
-#? run-tests: Run scripts/go-test-all.py
+#? run-tests: Runs the go test command for all modules
 run-tests: 
 	@ARGS="$(ARGS)" TEST_PACKAGES=$(TEST_PACKAGES) EXTRA_ARGS="$(EXTRA_ARGS)" python3 ./scripts/go-test-all.py
 
@@ -318,12 +318,12 @@ setup-pre-commit:
 	@echo "Installing pre-commit hook..."
 	@ln -sf ../../scripts/hooks/pre-commit.sh .git/hooks/pre-commit
 
-#? lint: Run golangci-lint
+#? lint: Run golangci-lint on all modules
 lint:
 	@echo "--> Running linter"
 	@./scripts/go-lint-all.sh --timeout=15m
 
-#? lint-fix: Run golangci-lint and fix
+#? lint-fix: Run golangci-lint and fix issues on all modules
 lint-fix:
 	@echo "--> Running linter"
 	@./scripts/go-lint-all.sh --fix
@@ -334,11 +334,11 @@ format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w
 .PHONY: format
 
-#? docs-lint: Lint markdown docs file
+#? docs-lint: Lint markdown documentation files
 docs-lint:
 	markdownlint-cli2 "**.md"
 
-#? docs-lint-fix: Lint markdown docs file and fix
+#? docs-lint-fix: Lint markdown documentation files and fix
 docs-lint-fix:
 	markdownlint-cli2-fix "**.md"
 
@@ -356,7 +356,7 @@ protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
-#? proto-all: Run make proto-format proto-lint proto-gen
+#? proto-all: Format, lint and generate Protobuf files
 proto-all: proto-format proto-lint proto-gen
 
 #? proto-gen: Generate Protobuf files
@@ -369,19 +369,19 @@ proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
 	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
 
-#? proto-format: Format proto file
+#? proto-format: Format Protobuf files
 proto-format:
 	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
 
-#? proto-lint: Lint proto file
+#? proto-lint: Lint Protobuf files
 proto-lint:
 	@$(protoImage) buf lint --error-format=json
 
-#? proto-check-breaking: Check proto file is breaking
+#? proto-check-breaking: Check if Protobuf file contains breaking changes
 proto-check-breaking:
 	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
 
-#? proto-update-deps: Update protobuf dependencies
+#? proto-update-deps: Update Protobuf dependencies
 proto-update-deps:
 	@echo "Updating Protobuf dependencies"
 	$(DOCKER) run --rm -v $(CURDIR)/proto:/workspace --workdir /workspace $(protoImageName) buf mod update
@@ -389,7 +389,7 @@ proto-update-deps:
 .PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking proto-update-deps
 
 
-#? help: Get more info on make commands.
+#? help: Get more info on make commands
 help: Makefile
 	@echo " Choose a command run in "$(PROJECT_NAME)":"
 	@sed -n 's/^#?//p' $< | column -t -s ':' |  sort | sed -e 's/^/ /'
