@@ -50,12 +50,12 @@ the associated capability.`),
 				return err
 			}
 
-			order, err := parseOrdering(cmd)
+			ordering, err := parseOrdering(cmd)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgRegisterInterchainAccountWithOrder(connectionID, owner, version, order)
+			msg := types.NewMsgRegisterInterchainAccountWithOrdering(connectionID, owner, version, ordering)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

@@ -25,13 +25,8 @@ var (
 	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 )
 
-<<<<<<< HEAD
-// NewMsgRegisterInterchainAccountWithOrder creates a new instance of MsgRegisterInterchainAccount.
-func NewMsgRegisterInterchainAccountWithOrder(connectionID, owner, version string, order channeltypes.Order) *MsgRegisterInterchainAccount {
-=======
-// NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
-func NewMsgRegisterInterchainAccount(connectionID, owner, version string, ordering channeltypes.Order) *MsgRegisterInterchainAccount {
->>>>>>> 61e3eb59 (Rename Order to Ordering for MsgRegisterInterchainAccount. (#5674))
+// NewMsgRegisterInterchainAccountWithOrdering creates a new instance of MsgRegisterInterchainAccount.
+func NewMsgRegisterInterchainAccountWithOrdering(connectionID, owner, version string, ordering channeltypes.Order) *MsgRegisterInterchainAccount {
 	return &MsgRegisterInterchainAccount{
 		ConnectionId: connectionID,
 		Owner:        owner,
@@ -41,14 +36,14 @@ func NewMsgRegisterInterchainAccount(connectionID, owner, version string, orderi
 }
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount.
-// It uses channeltypes.ORDERED as the default order. Breakage in v9.0.0 will allow the ordering to be provided
+// It uses channeltypes.ORDERED as the default ordering. Breakage in v9.0.0 will allow the ordering to be provided
 // directly. Use NewMsgRegisterInterchainAccountWithOrder to provide the ordering in previous versions.
 func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRegisterInterchainAccount {
 	return &MsgRegisterInterchainAccount{
 		ConnectionId: connectionID,
 		Owner:        owner,
 		Version:      version,
-		Order:        channeltypes.ORDERED,
+		Ordering:     channeltypes.ORDERED,
 	}
 }
 
