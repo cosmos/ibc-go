@@ -31,7 +31,7 @@ message MsgRegisterInterchainAccount {
   string                    owner         = 1;
   string                    connection_id = 2;
   string                    version       = 3;
-  ibc.core.channel.v1.Order order         = 4;
+  ibc.core.channel.v1.Order ordering      = 4;
 }
 
 // MsgRegisterInterchainAccountResponse defines the response for Msg/RegisterAccount

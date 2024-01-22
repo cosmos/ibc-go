@@ -53,14 +53,14 @@ type SenderAccount struct {
 type TestChain struct {
 	testing.TB
 
-	Coordinator    *Coordinator
-	App            TestingApp
-	ChainID        string
-	LastHeader     *ibctm.Header   // header for last block height committed
-	ProposedHeader cmtproto.Header // proposed (uncommitted) header for current block height
-	QueryServer    types.QueryServer
-	TxConfig       client.TxConfig
-	Codec          codec.Codec
+	Coordinator           *Coordinator
+	App                   TestingApp
+	ChainID               string
+	LatestCommittedHeader *ibctm.Header   // header for last block height committed
+	ProposedHeader        cmtproto.Header // proposed (uncommitted) header for current block height
+	QueryServer           types.QueryServer
+	TxConfig              client.TxConfig
+	Codec                 codec.Codec
 
 	Vals     *cmttypes.ValidatorSet
 	NextVals *cmttypes.ValidatorSet
@@ -306,7 +306,7 @@ func (chain *TestChain) commitBlock(res *abci.ResponseFinalizeBlock) {
 
 	// set the last header to the current header
 	// use nil trusted fields
-	chain.LastHeader = chain.CurrentTMClientHeader()
+	chain.LatestCommittedHeader = chain.CurrentTMClientHeader()
 
 	// val set changes returned from previous block get applied to the next validators
 	// of this block. See tendermint spec for details.
@@ -454,7 +454,7 @@ func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, c
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
 // light client on the source chain.
 func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, clientID string, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
-	header := counterparty.LastHeader
+	header := counterparty.LatestCommittedHeader
 	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
 	if trustedHeight.IsZero() {
 		trustedHeight = chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
