@@ -35,6 +35,13 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 			func() {},
 		},
 		{
+			"success: ordering falls back to ORDERED if not specified",
+			true,
+			func() {
+				msg.Order = channeltypes.NONE
+			},
+		},
+		{
 			"invalid connection id",
 			false,
 			func() {
