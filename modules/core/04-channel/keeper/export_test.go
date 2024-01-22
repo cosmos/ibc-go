@@ -29,3 +29,8 @@ func (k Keeper) CheckForUpgradeCompatibility(ctx sdk.Context, upgradeFields, cou
 func (k Keeper) SetUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string, errorReceipt types.ErrorReceipt) {
 	k.setUpgradeErrorReceipt(ctx, portID, channelID, errorReceipt)
 }
+
+// SetRecvStartSequence is a wrapper around setRecvStartSequence to allow the function to be directly called in tests.
+func (k Keeper) SetRecvStartSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
+	k.setRecvStartSequence(ctx, portID, channelID, sequence)
+}
