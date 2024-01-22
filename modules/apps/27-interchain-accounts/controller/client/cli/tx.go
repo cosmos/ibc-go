@@ -50,7 +50,7 @@ the associated capability.`),
 				return err
 			}
 
-			order, err := parseOrder(cmd)
+			order, err := parseOrdering(cmd)
 			if err != nil {
 				return err
 			}
@@ -118,8 +118,8 @@ appropriate relative timeoutTimestamp must be provided with flag {relative-packe
 	return cmd
 }
 
-// parseOrder gets the channel ordering from the flags.
-func parseOrder(cmd *cobra.Command) (channeltypes.Order, error) {
+// parseOrdering gets the channel ordering from the flags.
+func parseOrdering(cmd *cobra.Command) (channeltypes.Order, error) {
 	orderString, err := cmd.Flags().GetString(flagOrdering)
 	if err != nil {
 		return channeltypes.NONE, err
