@@ -53,14 +53,14 @@ type SenderAccount struct {
 type TestChain struct {
 	testing.TB
 
-	Coordinator    *Coordinator
-	App            TestingApp
-	ChainID        string
-	LatestCommittedHeader     *ibctm.Header   // header for last block height committed
-	ProposedHeader cmtproto.Header // proposed (uncommitted) header for current block height
-	QueryServer    types.QueryServer
-	TxConfig       client.TxConfig
-	Codec          codec.Codec
+	Coordinator           *Coordinator
+	App                   TestingApp
+	ChainID               string
+	LatestCommittedHeader *ibctm.Header   // header for last block height committed
+	ProposedHeader        cmtproto.Header // proposed (uncommitted) header for current block height
+	QueryServer           types.QueryServer
+	TxConfig              client.TxConfig
+	Codec                 codec.Codec
 
 	Vals     *cmttypes.ValidatorSet
 	NextVals *cmttypes.ValidatorSet
