@@ -1427,8 +1427,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
 				// Assert that pruning sequence start has not been initialized.
 				suite.Require().False(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 
-				// Assert that pruning sequence end has not been set
-				counterpartyNextSequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// Assert that recv start sequence has not been set
+				counterpartyNextSequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetRecvStartSequence(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found)
 				suite.Require().Equal(uint64(0), counterpartyNextSequenceSend)
 			},
@@ -1456,8 +1456,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), pruningSeq)
 
-				// Assert that pruning sequence end has been set correctly
-				counterpartySequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// Assert that the recv start sequence has been set correctly
+				counterpartySequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetRecvStartSequence(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(2), counterpartySequenceSend)
 			},
@@ -1487,8 +1487,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
 				// Assert that pruning sequence start has not been initialized.
 				suite.Require().False(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.HasPruningSequenceStart(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 
-				// Assert that pruning sequence end has not been set
-				counterpartyNextSequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// Assert that recv start sequence has not been set
+				counterpartyNextSequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetRecvStartSequence(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().False(found)
 				suite.Require().Equal(uint64(0), counterpartyNextSequenceSend)
 			},
@@ -1517,8 +1517,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeOpenChannel_Ordering() {
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(1), pruningSeq)
 
-				// Assert that pruning sequence end has been set correctly
-				counterpartySequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPruningSequenceEnd(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				// Assert that the recv start sequence has been set correctly
+				counterpartySequenceSend, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetRecvStartSequence(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 				suite.Require().Equal(uint64(2), counterpartySequenceSend)
 			},
@@ -1597,28 +1597,61 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		expError error
 	}{
 		{
-			name:     "success with flush complete state",
-			malleate: func() {},
+			name: "success with flushing state",
+			malleate: func() {
+			},
 			expError: nil,
 		},
 		{
-			name: "success with flushing state",
+			name: "success with flush complete state",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				err := path.EndpointA.SetChannelState(types.FLUSHCOMPLETE)
+				suite.Require().NoError(err)
+
+				var ok bool
+				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				suite.Require().True(ok)
+
+				// the error receipt upgrade sequence and the channel upgrade sequence must match
+				errorReceipt.Sequence = path.EndpointA.GetChannel().UpgradeSequence
+
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+
+				suite.coordinator.CommitBlock(suite.chainB)
+
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+
+				upgradeErrorReceiptKey := host.ChannelUpgradeErrorKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				errorReceiptProof, proofHeight = suite.chainB.QueryProof(upgradeErrorReceiptKey)
 			},
 			expError: nil,
 		},
 		{
 			name: "upgrade cannot be cancelled in FLUSHCOMPLETE with invalid error receipt",
 			malleate: func() {
+				err := path.EndpointA.SetChannelState(types.FLUSHCOMPLETE)
+				suite.Require().NoError(err)
+
 				errorReceiptProof = nil
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
 		{
-			name: "upgrade cannot be cancelled in FLUSHCOMPLETE with error receipt sequence less than channel upgrade sequence",
+			name: "channel not found",
+			malleate: func() {
+				path.EndpointA.Chain.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			expError: types.ErrChannelNotFound,
+		},
+		{
+			name: "upgrade not found",
+			malleate: func() {
+				path.EndpointA.Chain.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+			},
+			expError: types.ErrUpgradeNotFound,
+		},
+		{
+			name: "error receipt sequence less than channel upgrade sequence",
 			malleate: func() {
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -1638,22 +1671,20 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			expError: types.ErrInvalidUpgradeSequence,
 		},
 		{
-			name: "channel not found",
+			name: "error receipt sequence greater than channel upgrade sequence when channel in FLUSHCOMPLETE",
 			malleate: func() {
-				path.EndpointA.Chain.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				err := path.EndpointA.SetChannelState(types.FLUSHCOMPLETE)
+				suite.Require().NoError(err)
 			},
-			expError: types.ErrChannelNotFound,
+			expError: types.ErrInvalidUpgradeSequence,
 		},
 		{
-			name: "upgrade not found",
+			name: "error receipt sequence smaller than channel upgrade sequence when channel in FLUSHCOMPLETE",
 			malleate: func() {
-				path.EndpointA.Chain.DeleteKey(host.ChannelUpgradeKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-			},
-			expError: types.ErrUpgradeNotFound,
-		},
-		{
-			name: "error receipt sequence less than channel upgrade sequence",
-			malleate: func() {
+				channel := path.EndpointA.GetChannel()
+				channel.State = types.FLUSHCOMPLETE
+				path.EndpointA.SetChannel(channel)
+
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 				suite.Require().True(ok)
@@ -1755,7 +1786,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			suite.Require().True(ok)
 
 			channel = path.EndpointA.GetChannel()
-			channel.State = types.FLUSHCOMPLETE
+			channel.State = types.FLUSHING
 			path.EndpointA.SetChannel(channel)
 
 			tc.malleate()

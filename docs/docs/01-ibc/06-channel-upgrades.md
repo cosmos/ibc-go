@@ -245,7 +245,8 @@ simd tx ibc channel prune-acknowledgements [port] [channel] [limit]
 
 ## IBC App Recommendations
 
-IBC application callbacks should be primarily used to validate data fields and do compatibility checks.
+IBC application callbacks should be primarily used to validate data fields and do compatibility checks. Application developers
+should be aware that callbacks will be invoked before any core ibc state changes are written.
 
 `OnChanUpgradeInit` should validate the proposed version, order, and connection hops, and should return the application version to upgrade to.
 

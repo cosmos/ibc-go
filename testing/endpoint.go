@@ -96,11 +96,11 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
 		require.True(endpoint.Chain.TB, ok)
 
-		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
+		height := endpoint.Counterparty.Chain.LatestCommittedHeader.GetHeight().(clienttypes.Height)
 		clientState = ibctm.NewClientState(
 			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
 			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
-		consensusState = endpoint.Counterparty.Chain.LastHeader.ConsensusState()
+		consensusState = endpoint.Counterparty.Chain.LatestCommittedHeader.ConsensusState()
 	case exported.Solomachine:
 		// TODO
 		//		solo := NewSolomachine(endpoint.Chain.TB, endpoint.Chain.Codec, clientID, "", 1)
@@ -185,7 +185,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	// update chain
 	baseapp.SetChainID(newChainID)(endpoint.Chain.App.GetBaseApp())
 	endpoint.Chain.ChainID = newChainID
-	endpoint.Chain.CurrentHeader.ChainID = newChainID
+	endpoint.Chain.ProposedHeader.ChainID = newChainID
 	endpoint.Chain.NextBlock() // commit changes
 
 	// update counterparty client manually
@@ -195,9 +195,9 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	endpoint.Counterparty.SetClientState(clientState)
 
 	tmConsensusState := &ibctm.ConsensusState{
-		Timestamp:          endpoint.Chain.LastHeader.GetTime(),
-		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LastHeader.Header.GetAppHash()),
-		NextValidatorsHash: endpoint.Chain.LastHeader.Header.NextValidatorsHash,
+		Timestamp:          endpoint.Chain.LatestCommittedHeader.GetTime(),
+		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LatestCommittedHeader.Header.GetAppHash()),
+		NextValidatorsHash: endpoint.Chain.LatestCommittedHeader.Header.NextValidatorsHash,
 	}
 	endpoint.Counterparty.SetConsensusState(tmConsensusState, clientState.GetLatestHeight())
 
