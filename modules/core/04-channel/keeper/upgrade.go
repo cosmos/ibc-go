@@ -83,7 +83,7 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !channel.IsOpen() {
+	if channel.State != types.OPEN {
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
@@ -310,7 +310,7 @@ func (k Keeper) ChanUpgradeAck(
 	// in the crossing hello case, we do not modify version that our TRY call returned and instead enforce
 	// that both TRY calls returned the same version. It is possible that this will fail in the OnChanUpgradeAck
 	// callback if the version is invalid.
-	if channel.IsOpen() {
+	if channel.State == types.OPEN {
 		upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 	}
 
@@ -319,7 +319,7 @@ func (k Keeper) ChanUpgradeAck(
 		return types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
-	if channel.IsOpen() {
+	if channel.State == types.OPEN {
 		if err := k.startFlushing(ctx, portID, channelID, &upgrade); err != nil {
 			return err
 		}

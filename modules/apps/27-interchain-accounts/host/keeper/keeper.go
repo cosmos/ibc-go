@@ -152,7 +152,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 
-	if found && channel.IsOpen() {
+	if found && channel.State == channeltypes.OPEN {
 		return channelID, true
 	}
 
