@@ -573,7 +573,8 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 					icatypes.EventTypePacket,
 					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 					sdk.NewAttribute(icatypes.AttributeKeyControllerChannelID, packet.GetDestChannel()),
-					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", false)),
+					sdk.NewAttribute(icatypes.AttributeKeyAckError, "cannot receive packet on controller chain: invalid message sent to channel end"),
 				),
 			}.ToABCIEvents()
 
@@ -582,26 +583,6 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 		})
 	}
 }
-
-//
-//func EmitAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, ack exported.Acknowledgement, err error) {
-//	attributes := []sdk.Attribute{
-//		sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
-//		sdk.NewAttribute(icatypes.AttributeKeyControllerChannelID, packet.GetDestChannel()),
-//		sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
-//	}
-//
-//	if err != nil {
-//		attributes = append(attributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, err.Error()))
-//	}
-//
-//	ctx.EventManager().EmitEvent(
-//		sdk.NewEvent(
-//			icatypes.EventTypePacket,
-//			attributes...,
-//		),
-//	)
-//}
 
 func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	var (
