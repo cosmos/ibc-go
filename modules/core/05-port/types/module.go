@@ -112,7 +112,8 @@ type IBCModule interface {
 type UpgradableModule interface {
 	// OnChanUpgradeInit enables additional custom logic to be executed when the channel upgrade is initialized.
 	// It must validate the proposed version, order, and connection hops.
-	// Note: in the case of crossing hellos, this callback may be executed on both chains.
+	// NOTE: in the case of crossing hellos, this callback may be executed on both chains.
+	// NOTE: Any IBC application state changes made in this callback handler are not committed.
 	OnChanUpgradeInit(
 		ctx sdk.Context,
 		portID, channelID string,
@@ -124,6 +125,7 @@ type UpgradableModule interface {
 	// OnChanUpgradeTry enables additional custom logic to be executed in the ChannelUpgradeTry step of the
 	// channel upgrade handshake. It must validate the proposed version (provided by the counterparty), order,
 	// and connection hops.
+	// NOTE: Any IBC application state changes made in this callback handler are not committed.
 	OnChanUpgradeTry(
 		ctx sdk.Context,
 		portID, channelID string,
@@ -134,6 +136,7 @@ type UpgradableModule interface {
 
 	// OnChanUpgradeAck enables additional custom logic to be executed in the ChannelUpgradeAck step of the
 	// channel upgrade handshake. It must validate the version proposed by the counterparty.
+	// NOTE: Any IBC application state changes made in this callback handler are not committed.
 	OnChanUpgradeAck(
 		ctx sdk.Context,
 		portID,
