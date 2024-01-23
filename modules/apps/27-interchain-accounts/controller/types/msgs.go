@@ -26,12 +26,12 @@ var (
 )
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
-func NewMsgRegisterInterchainAccount(connectionID, owner, version string, order channeltypes.Order) *MsgRegisterInterchainAccount {
+func NewMsgRegisterInterchainAccount(connectionID, owner, version string, ordering channeltypes.Order) *MsgRegisterInterchainAccount {
 	return &MsgRegisterInterchainAccount{
 		ConnectionId: connectionID,
 		Owner:        owner,
 		Version:      version,
-		Order:        order,
+		Ordering:     ordering,
 	}
 }
 
