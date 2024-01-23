@@ -1822,7 +1822,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
 						channeltypes.AttributeKeyChannelState:       channeltypes.OPEN.String(),
 						channeltypes.AttributeKeyConnectionHops:     channel.ConnectionHops[0],
-						channeltypes.AttributeKeyVersion:            channel.Version,
+						channeltypes.AttributeVersion:               channel.Version,
 						channeltypes.AttributeKeyOrdering:           channel.Ordering.String(),
 						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
 					},
