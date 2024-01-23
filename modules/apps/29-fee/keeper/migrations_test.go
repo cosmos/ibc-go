@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,15 +21,17 @@ func (suite *KeeperTestSuite) TestLegacyTotal() {
 
 func (suite *KeeperTestSuite) TestMigrate1to2() {
 	var (
-		fee              types.Fee
+		packetFee        types.PacketFee
+		packetFees       []types.PacketFee
 		packetID         channeltypes.PacketId
 		packetID2        channeltypes.PacketId
 		moduleAcc        sdk.AccAddress
 		refundAcc        sdk.AccAddress
 		initRefundAccBal sdk.Coins
 		initModuleAccBal sdk.Coins
-		packetFees       []types.PacketFee
 	)
+
+	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 	testCases := []struct {
 		name     string
@@ -54,7 +57,6 @@ func (suite *KeeperTestSuite) TestMigrate1to2() {
 		{
 			"success: one fee in escrow",
 			func() {
-				packetFee := types.NewPacketFee(fee, refundAcc.String(), []string(nil))
 				packetFees = []types.PacketFee{packetFee}
 			},
 			func(err error) {
@@ -66,9 +68,10 @@ func (suite *KeeperTestSuite) TestMigrate1to2() {
 				}
 				suite.Require().Equal(expPacketFees, suite.chainA.GetSimApp().IBCFeeKeeper.GetAllIdentifiedPacketFees(suite.chainA.GetContext()))
 
-				unusedFee := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(300))
+				unusedFee := keeper.LegacyTotal(fee).Sub(packetFee.Fee.Total()...)[0]
 				// refund account balance should increase
 				refundAccBal := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
+
 				suite.Require().Equal(initRefundAccBal.Add(unusedFee)[0], refundAccBal)
 
 				// module account balance should decrease
@@ -79,20 +82,19 @@ func (suite *KeeperTestSuite) TestMigrate1to2() {
 		{
 			"success: many fees with multiple denoms in escrow",
 			func() {
-				packetFee1 := types.NewPacketFee(fee, refundAcc.String(), []string(nil))
-
-				// mint some tokens to the refund account
+				// mint second denom tokens to the refund account
 				denom2 := "denom"
 				err := suite.chainA.GetSimApp().MintKeeper.MintCoins(suite.chainA.GetContext(), sdk.NewCoins(sdk.NewCoin(denom2, sdkmath.NewInt(1000))))
 				suite.Require().NoError(err)
 				err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), minttypes.ModuleName, refundAcc, sdk.NewCoins(sdk.NewCoin(denom2, sdkmath.NewInt(1000))))
 				suite.Require().NoError(err)
 
+				// assemble second denom type packet
 				defaultFee2 := sdk.NewCoins(sdk.NewCoin(denom2, sdkmath.NewInt(100)))
 				fee2 := types.NewFee(defaultFee2, defaultFee2, defaultFee2)
 				packetFee2 := types.NewPacketFee(fee2, refundAcc.String(), []string(nil))
 
-				packetFees = []types.PacketFee{packetFee1, packetFee2, packetFee1}
+				packetFees = []types.PacketFee{packetFee, packetFee2, packetFee}
 			},
 			func(err error) {
 				denom2 := "denom"
@@ -121,23 +123,14 @@ func (suite *KeeperTestSuite) TestMigrate1to2() {
 		{
 			"success: more than one packet",
 			func() {
-				packetFee := types.NewPacketFee(fee, refundAcc.String(), []string(nil))
 				packetFees = []types.PacketFee{packetFee}
-
-				feesToModule := sdk.NewCoins()
-				for _, packetFee := range packetFees {
-					feesToModule = feesToModule.Add(keeper.LegacyTotal(packetFee.Fee)...)
-				}
 
 				// add second packet to have escrowed fees
 				packetID2 = channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 2)
-
-				if !feesToModule.IsZero() {
-					// escrow the packet fee for the second packet & store the fee in state
-					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID2, types.NewPacketFees(packetFees))
-					err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, feesToModule)
-					suite.Require().NoError(err)
-				}
+				// escrow the packet fee for the second packet & store the fee in state
+				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), packetID2, types.NewPacketFees(packetFees))
+				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, keeper.LegacyTotal(packetFee.Fee))
+				suite.Require().NoError(err)
 			},
 			func(err error) {
 				suite.Require().NoError(err)
@@ -150,7 +143,7 @@ func (suite *KeeperTestSuite) TestMigrate1to2() {
 				suite.Require().Equal(expPacketFees, suite.chainA.GetSimApp().IBCFeeKeeper.GetAllIdentifiedPacketFees(suite.chainA.GetContext()))
 
 				// 300 for each packet
-				unusedFee := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(600))
+				unusedFee := keeper.LegacyTotal(fee).Sub(packetFee.Fee.Total()...).MulInt(math.NewInt(2))[0]
 				// refund account balance should increase
 				refundAccBal := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 				suite.Require().Equal(initRefundAccBal.Add(unusedFee)[0], refundAccBal)
@@ -163,7 +156,7 @@ func (suite *KeeperTestSuite) TestMigrate1to2() {
 		{
 			"failure: invalid refund address",
 			func() {
-				packetFee := types.NewPacketFee(fee, "invalid", []string{})
+				packetFee = types.NewPacketFee(fee, "invalid", []string{})
 				packetFees = []types.PacketFee{packetFee}
 			},
 			func(err error) {
@@ -178,8 +171,8 @@ func (suite *KeeperTestSuite) TestMigrate1to2() {
 		suite.SetupTest()
 		suite.coordinator.Setup(suite.path)
 
-		fee = types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 		refundAcc = suite.chainA.SenderAccount.GetAddress()
+		packetFee = types.NewPacketFee(fee, refundAcc.String(), []string(nil))
 		moduleAcc = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
 		packetID = channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 		packetFees = nil
