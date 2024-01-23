@@ -10,7 +10,6 @@ import (
 )
 
 var (
-	_ exported.ChannelI             = (*Channel)(nil)
 	_ exported.CounterpartyChannelI = (*Counterparty)(nil)
 )
 
