@@ -30,5 +30,5 @@ function lint_and_add_modified_go_files() {
   done
 }
 
-#check_golangci_lint_version
+check_golangci_lint_version
 lint_and_add_modified_go_files
