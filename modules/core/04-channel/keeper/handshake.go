@@ -387,7 +387,7 @@ func (k Keeper) ChanCloseInit(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if channel.IsClosed() {
+	if channel.State == types.CLOSED {
 		return errorsmod.Wrap(types.ErrInvalidChannelState, "channel is already CLOSED")
 	}
 
@@ -444,7 +444,7 @@ func (k Keeper) ChanCloseConfirm(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if channel.IsClosed() {
+	if channel.State == types.CLOSED {
 		return errorsmod.Wrap(types.ErrInvalidChannelState, "channel is already CLOSED")
 	}
 
