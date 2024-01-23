@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -143,7 +142,7 @@ func (suite *KeeperTestSuite) TestMigrate1to2() {
 				suite.Require().Equal(expPacketFees, suite.chainA.GetSimApp().IBCFeeKeeper.GetAllIdentifiedPacketFees(suite.chainA.GetContext()))
 
 				// 300 for each packet
-				unusedFee := keeper.LegacyTotal(fee).Sub(packetFee.Fee.Total()...).MulInt(math.NewInt(2))[0]
+				unusedFee := keeper.LegacyTotal(fee).Sub(packetFee.Fee.Total()...).MulInt(sdkmath.NewInt(2))[0]
 				// refund account balance should increase
 				refundAccBal := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAcc, sdk.DefaultBondDenom)
 				suite.Require().Equal(initRefundAccBal.Add(unusedFee)[0], refundAccBal)
