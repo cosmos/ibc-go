@@ -23,7 +23,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
@@ -1007,7 +1006,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 					store.Set([]byte("test-key"), []byte("test-value"))
 
 					ctx.EventManager().EmitEvent(sdk.NewEvent("test-event", sdk.NewAttribute("k", "v")))
-					return mock.UpgradeVersion, nil
+					return ibcmock.UpgradeVersion, nil
 				}
 			},
 			func(res *channeltypes.MsgChannelUpgradeInitResponse, events []abci.Event, err error) {
@@ -1173,7 +1172,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 					store.Set([]byte("test-key"), []byte("test-value"))
 
 					ctx.EventManager().EmitEvent(sdk.NewEvent("test-event", sdk.NewAttribute("k", "v")))
-					return mock.UpgradeVersion, nil
+					return ibcmock.UpgradeVersion, nil
 				}
 			},
 			func(res *channeltypes.MsgChannelUpgradeTryResponse, events []abci.Event, err error) {
