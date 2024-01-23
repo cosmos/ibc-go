@@ -564,11 +564,44 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				0,
 			)
 
-			ack := cbs.OnRecvPacket(suite.chainA.GetContext(), packet, nil)
+			ctx := suite.chainA.GetContext()
+			ack := cbs.OnRecvPacket(ctx, packet, nil)
 			suite.Require().Equal(tc.expPass, ack.Success())
+
+			expectedEvents := sdk.Events{
+				sdk.NewEvent(
+					icatypes.EventTypePacket,
+					sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+					sdk.NewAttribute(icatypes.AttributeKeyControllerChannelID, packet.GetDestChannel()),
+					sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+				),
+			}.ToABCIEvents()
+
+			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 		})
 	}
 }
+
+//
+//func EmitAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, ack exported.Acknowledgement, err error) {
+//	attributes := []sdk.Attribute{
+//		sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+//		sdk.NewAttribute(icatypes.AttributeKeyControllerChannelID, packet.GetDestChannel()),
+//		sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+//	}
+//
+//	if err != nil {
+//		attributes = append(attributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, err.Error()))
+//	}
+//
+//	ctx.EventManager().EmitEvent(
+//		sdk.NewEvent(
+//			icatypes.EventTypePacket,
+//			attributes...,
+//		),
+//	)
+//}
 
 func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	var (
