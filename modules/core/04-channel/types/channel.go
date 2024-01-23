@@ -1,6 +1,8 @@
 package types
 
 import (
+	"slices"
+
 	errorsmod "cosmossdk.io/errors"
 
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -68,7 +70,7 @@ func (ch Channel) ValidateBasic() error {
 	if ch.State == UNINITIALIZED {
 		return ErrInvalidChannelState
 	}
-	if !(ch.Ordering == ORDERED || ch.Ordering == UNORDERED) {
+	if !slices.Contains([]Order{ORDERED, UNORDERED}, ch.Ordering) {
 		return errorsmod.Wrap(ErrInvalidChannelOrdering, ch.Ordering.String())
 	}
 	if len(ch.ConnectionHops) != 1 {
