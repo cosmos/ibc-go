@@ -347,8 +347,10 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	}
 
 	if !k.HasInflightPackets(ctx, portID, channelID) {
+		previousState := channel.State
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
+		k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -361,7 +363,6 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State.String())
 	return channel, upgrade
 }
 
@@ -581,8 +582,10 @@ func (k Keeper) WriteUpgradeOpenChannel(ctx sdk.Context, portID, channelID strin
 		k.SetNextSequenceAck(ctx, portID, channelID, upgrade.NextSequenceSend)
 	}
 
-	// set the counterparty next sequence send as pruning sequence end in order to have upper bound to prune to
-	k.SetPruningSequenceEnd(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
+	// Set the counterparty next sequence send as the recv start sequence.
+	// This will be the upper bound for pruning and it will allow for replay
+	// protection of historical packets.
+	k.setRecvStartSequence(ctx, portID, channelID, counterpartyUpgrade.NextSequenceSend)
 
 	// First upgrade for this channel will set the pruning sequence to 1, the starting sequence for pruning.
 	// Subsequent upgrades will not modify the pruning sequence thereby allowing pruning to continue from the last
@@ -626,7 +629,17 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades AND channel is not in FLUSHCOMPLETE")
 	}
 
-	// the error receipt should also have a sequence greater than or equal to the current upgrade sequence.
+	// REPLAY PROTECTION: The error receipt MUST have a sequence greater than or equal to the current upgrade sequence,
+	// except when the channel state is FLUSHCOMPLETE, in which case the sequences MUST match. This is required
+	// to guarantee that when a counterparty successfully completes an upgrade and moves to OPEN, this channel
+	// cannot cancel its upgrade.  Without this strict sequence check, it would be possible for the counterparty
+	// to complete its upgrade, move to OPEN, initiate a new upgrade (and thus increment the upgrade sequence) and
+	// then cancel the new upgrade, all in the same block. This results in a valid error receipt being written at channel.UpgradeSequence + 1.
+	// The desired behaviour in this circumstance is for this channel to complete its current upgrade despite proof
+	// of an error receipt at a greater upgrade sequence
+	if channel.State == types.FLUSHCOMPLETE && errorReceipt.Sequence != channel.UpgradeSequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be equal to current upgrade sequence (%d) when the channel is in FLUSHCOMPLETE", errorReceipt.Sequence, channel.UpgradeSequence)
+	}
 	if errorReceipt.Sequence < channel.UpgradeSequence {
 		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
 	}

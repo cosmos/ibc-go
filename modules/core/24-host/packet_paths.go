@@ -11,7 +11,7 @@ const (
 	KeyPacketAckPrefix        = "acks"
 	KeyPacketReceiptPrefix    = "receipts"
 	KeyPruningSequenceStart   = "pruningSequenceStart"
-	KeyPruningSequenceEnd     = "pruningSequenceEnd"
+	KeyRecvStartSequence      = "recvStartSequence"
 )
 
 // ICS04
@@ -62,9 +62,9 @@ func PruningSequenceStartPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s", KeyPruningSequenceStart, channelPath(portID, channelID))
 }
 
-// PruningSequenceEndPath defines the path under which the pruning sequence end is stored
-func PruningSequenceEndPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyPruningSequenceEnd, channelPath(portID, channelID))
+// RecvStartSequencePath defines the path under which the recv start sequence is stored
+func RecvStartSequencePath(portID, channelID string) string {
+	return fmt.Sprintf("%s/%s", KeyRecvStartSequence, channelPath(portID, channelID))
 }
 
 func sequencePath(sequence uint64) string {

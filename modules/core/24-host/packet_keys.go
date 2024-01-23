@@ -41,7 +41,7 @@ func PruningSequenceStartKey(portID, channelID string) []byte {
 	return []byte(PruningSequenceStartPath(portID, channelID))
 }
 
-// PruningSequenceEndKey returns the store key for the pruning sequence end of a particular channel
-func PruningSequenceEndKey(portID, channelID string) []byte {
-	return []byte(PruningSequenceEndPath(portID, channelID))
+// RecvStartSequenceKey returns the store key for the recv start sequence of a particular channel
+func RecvStartSequenceKey(portID, channelID string) []byte {
+	return []byte(RecvStartSequencePath(portID, channelID))
 }
