@@ -473,6 +473,7 @@ func (k Keeper) ChanUpgradeOpen(
 	portID,
 	channelID string,
 	counterpartyChannelState types.State,
+	counterpartyUpgradeSequence uint64,
 	channelProof []byte,
 	proofHeight clienttypes.Height,
 ) error {
@@ -511,13 +512,21 @@ func (k Keeper) ChanUpgradeOpen(
 			return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(upgradeConnection.GetState()).String())
 		}
 
+		// The counterparty upgrade sequence must be greater than or equal to
+		// the channel upgrade sequence. It should normally be equivalent, but
+		// in the unlikely case a new upgrade is initiated after it reopens,
+		// then the upgrade sequence will be greater than our upgrade sequence.
+		if counterpartyUpgradeSequence < channel.UpgradeSequence {
+			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "counterparty channel upgrade sequence (%d) must be greater than or equal to current upgrade sequence (%d)", counterpartyUpgradeSequence, channel.UpgradeSequence)
+		}
+
 		counterpartyChannel = types.Channel{
 			State:           types.OPEN,
 			Ordering:        upgrade.Fields.Ordering,
 			ConnectionHops:  []string{upgradeConnection.GetCounterparty().GetConnectionID()},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         upgrade.Fields.Version,
-			UpgradeSequence: channel.UpgradeSequence,
+			UpgradeSequence: counterpartyUpgradeSequence,
 		}
 
 	case types.FLUSHCOMPLETE:
