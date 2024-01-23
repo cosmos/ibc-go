@@ -2711,7 +2711,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			func() {
 				msg.PortId = "portidone"
 			},
-			channeltypes.ErrPruningSequenceEndNotFound,
+			channeltypes.ErrRecvStartSequenceNotFound,
 		},
 	}
 
