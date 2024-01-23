@@ -769,8 +769,9 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "channel upgrade init failed")
 	}
 
+	cacheCtx, _ := ctx.CacheContext() // NOTE: the writeFn is discarded and application state changes are not committed.
 	upgradeVersion, err := cbs.OnChanUpgradeInit(
-		ctx,
+		cacheCtx,
 		msg.PortId,
 		msg.ChannelId,
 		upgrade.Fields.Ordering,
@@ -829,7 +830,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel upgrade try failed")
 	}
 
-	upgradeVersion, err := cbs.OnChanUpgradeTry(ctx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
+	cacheCtx, _ := ctx.CacheContext() // NOTE: the writeFn is discarded and application state changes are not committed.
+	upgradeVersion, err := cbs.OnChanUpgradeTry(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrapf(err, "channel upgrade try callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
@@ -886,7 +888,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel upgrade ack failed")
 	}
 
-	cacheCtx, writeFn := ctx.CacheContext()
+	cacheCtx, _ := ctx.CacheContext() // NOTE: the writeFn is discarded and application state changes are not committed.
 	err = cbs.OnChanUpgradeAck(cacheCtx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade.Fields.Version)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
@@ -894,8 +896,6 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 
 		return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.FAILURE}, nil
 	}
-
-	writeFn()
 
 	channel, upgrade := k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade)
 
