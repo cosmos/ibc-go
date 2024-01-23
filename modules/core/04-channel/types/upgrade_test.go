@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"errors"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -186,9 +187,39 @@ func (suite *TypesTestSuite) TestIsUpgradeError() {
 			true,
 		},
 		{
+			"true with wrapped upgrade err",
+			func() {
+				upgradeError := types.NewUpgradeError(1, types.ErrInvalidChannel)
+				err = errorsmod.Wrap(upgradeError, "wrapped upgrade error")
+			},
+			true,
+		},
+		{
+			"true with Errorf wrapped upgrade error",
+			func() {
+				err = fmt.Errorf("%w", types.NewUpgradeError(1, types.ErrInvalidChannel))
+			},
+			true,
+		},
+		{
+			"true with nested Errorf wrapped upgrade error",
+			func() {
+				err = fmt.Errorf("%w", fmt.Errorf("%w", fmt.Errorf("%w", types.NewUpgradeError(1, types.ErrInvalidChannel))))
+			},
+			true,
+		},
+		{
 			"false with non upgrade error",
 			func() {
 				err = errors.New("error")
+			},
+			false,
+		},
+		{
+			"false with wrapped non upgrade error",
+			func() {
+				randomErr := errors.New("error")
+				err = errorsmod.Wrap(randomErr, "wrapped random error")
 			},
 			false,
 		},
