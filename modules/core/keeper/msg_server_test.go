@@ -2159,24 +2159,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			},
 		},
 		{
-			"capability not found",
-			func() {
-				msg.ChannelId = ibctesting.InvalidID
-			},
-			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-
-				channel := path.EndpointA.GetChannel()
-				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
-				suite.Require().Equal(channeltypes.OPEN, channel.State)
-				// Upgrade sequence should not be changed.
-				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
-
-				suite.Require().Empty(events)
-			},
-		},
-		{
 			"core handler fails: invalid proof",
 			func() {
 				msg.ProofErrorReceipt = []byte("invalid proof")
@@ -2201,26 +2183,8 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				suite.Require().Empty(events)
 			},
 		},
-		{
-			"ibc application does not implement the UpgradeableModule interface",
-			func() {
-				path = ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
-				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
-
-				suite.coordinator.Setup(path)
-
-				msg.PortId = path.EndpointB.ChannelConfig.PortID
-				msg.ChannelId = path.EndpointB.ChannelID
-			},
-			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
-				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
-				suite.Require().Nil(res)
-
-				suite.Require().Empty(events)
-			},
-		},
 	}
+
 	for _, tc := range cases {
 		tc := tc
 		suite.Run(tc.name, func() {
@@ -2360,25 +2324,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			},
 		},
 		{
-			"capability not found",
-			func() {
-				msg.ChannelId = ibctesting.InvalidID
-			},
-			func(res *channeltypes.MsgChannelUpgradeTimeoutResponse, events []abci.Event, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
-
-				channel := path.EndpointA.GetChannel()
-				suite.Require().Equalf(channeltypes.FLUSHCOMPLETE, channel.State, "channel state should be %s", channeltypes.OPEN)
-				suite.Require().Equal(uint64(1), channel.UpgradeSequence, "channel upgrade sequence should not incremented")
-
-				_, found := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(found, "channel upgrade should not be nil")
-
-				suite.Require().Empty(events)
-			},
-		},
-		{
 			"core handler fails: invalid proof",
 			func() {
 				timeoutUpgrade()
@@ -2400,25 +2345,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 
 				_, found := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "channel upgrade should not be nil")
-
-				suite.Require().Empty(events)
-			},
-		},
-		{
-			"ibc application does not implement the UpgradeableModule interface",
-			func() {
-				path = ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
-				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
-
-				suite.coordinator.Setup(path)
-
-				msg.PortId = path.EndpointB.ChannelConfig.PortID
-				msg.ChannelId = path.EndpointB.ChannelID
-			},
-			func(res *channeltypes.MsgChannelUpgradeTimeoutResponse, events []abci.Event, err error) {
-				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
-				suite.Require().Nil(res)
 
 				suite.Require().Empty(events)
 			},

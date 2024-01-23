@@ -152,17 +152,6 @@ type UpgradableModule interface {
 		proposedConnectionHops []string,
 		proposedVersion string,
 	)
-
-	// OnChanUpgradeRestore enables additional custom logic to be executed when any of the following occur:
-	//    - the channel upgrade is aborted.
-	//    - the channel upgrade is cancelled.
-	//    - the channel upgrade times out.
-	// Any logic set due to an upgrade attempt should be reverted in this callback.
-	OnChanUpgradeRestore(
-		ctx sdk.Context,
-		portID,
-		channelID string,
-	)
 }
 
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
