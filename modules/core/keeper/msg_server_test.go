@@ -23,6 +23,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
@@ -990,6 +991,41 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 				suite.Require().Empty(events)
 			},
 		},
+		{
+			"ibc application does not commit state changes in callback",
+			func() {
+				msg = channeltypes.NewMsgChannelUpgradeInit(
+					path.EndpointA.ChannelConfig.PortID,
+					path.EndpointA.ChannelID,
+					path.EndpointA.GetProposedUpgrade().Fields,
+					path.EndpointA.Chain.GetSimApp().IBCKeeper.GetAuthority(),
+				)
+
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeInit = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
+					store := ctx.KVStore(storeKey)
+					store.Set([]byte("test-key"), []byte("test-value"))
+
+					ctx.EventManager().EmitEvent(sdk.NewEvent("test-event", sdk.NewAttribute("k", "v")))
+					return mock.UpgradeVersion, nil
+				}
+			},
+			func(res *channeltypes.MsgChannelUpgradeInitResponse, events []abci.Event, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(uint64(1), res.UpgradeSequence)
+
+				storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
+				store := suite.chainA.GetContext().KVStore(storeKey)
+				suite.Require().Nil(store.Get([]byte("test-key")))
+
+				for _, event := range events {
+					if event.GetType() == "test-event" {
+						suite.Fail("expected application callback events to be discarded")
+					}
+				}
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -1126,6 +1162,34 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.Require().Nil(res)
 
 				suite.Require().Empty(events)
+			},
+		},
+		{
+			"ibc application does not commit state changes in callback",
+			func() {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
+					store := ctx.KVStore(storeKey)
+					store.Set([]byte("test-key"), []byte("test-value"))
+
+					ctx.EventManager().EmitEvent(sdk.NewEvent("test-event", sdk.NewAttribute("k", "v")))
+					return mock.UpgradeVersion, nil
+				}
+			},
+			func(res *channeltypes.MsgChannelUpgradeTryResponse, events []abci.Event, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(uint64(1), res.UpgradeSequence)
+
+				storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
+				store := suite.chainA.GetContext().KVStore(storeKey)
+				suite.Require().Nil(store.Get([]byte("test-key")))
+
+				for _, event := range events {
+					if event.GetType() == "test-event" {
+						suite.Fail("expected application callback events to be discarded")
+					}
+				}
 			},
 		},
 	}
@@ -1391,6 +1455,33 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().ErrorIs(err, porttypes.ErrInvalidRoute)
 				suite.Require().Nil(res)
 				suite.Require().Empty(events)
+			},
+		},
+		{
+			"ibc application does not commit state changes in callback",
+			func() {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
+					store := ctx.KVStore(storeKey)
+					store.Set([]byte("test-key"), []byte("test-value"))
+
+					ctx.EventManager().EmitEvent(sdk.NewEvent("test-event", sdk.NewAttribute("k", "v")))
+					return nil
+				}
+			},
+			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
+				store := suite.chainA.GetContext().KVStore(storeKey)
+				suite.Require().Nil(store.Get([]byte("test-key")))
+
+				for _, event := range events {
+					if event.GetType() == "test-event" {
+						suite.Fail("expected application callback events to be discarded")
+					}
+				}
 			},
 		},
 	}
