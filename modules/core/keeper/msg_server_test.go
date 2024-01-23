@@ -2111,7 +2111,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 
 				channel := path.EndpointA.GetChannel()
 				channel.State = channeltypes.FLUSHCOMPLETE
-				channel.UpgradeSequence = uint64(1)
+				channel.UpgradeSequence = uint64(2) // When in FLUSHCOMPLETE the sequence of the error receipt and the channel must match
 				path.EndpointA.SetChannel(channel)
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
@@ -2121,7 +2121,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				channel := path.EndpointA.GetChannel()
 				// Channel state should be reverted back to open.
 				suite.Require().Equal(channeltypes.OPEN, channel.State)
-				// Upgrade sequence should be changed to match error receipt sequence.
+				// Upgrade sequence should not be changed.
 				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
 
 				// we need to find the event values from the proposed upgrade as the actual upgrade has been deleted.
@@ -2154,6 +2154,25 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			},
 		},
 		{
+			"failure: keeper is authority and channel state in FLUSHCOMPLETE, but error receipt and channel upgrade sequences do not match",
+			func() {
+				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+
+				suite.Require().NoError(path.EndpointA.SetChannelState(channeltypes.FLUSHCOMPLETE))
+			},
+			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+				suite.Require().ErrorIs(err, channeltypes.ErrInvalidUpgradeSequence)
+
+				channel := path.EndpointA.GetChannel()
+				// Channel state should not be reverted back to open.
+				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.State)
+				// Upgrade sequence should not be changed.
+				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+			},
+		},
+		{
 			"capability not found",
 			func() {
 				msg.ChannelId = ibctesting.InvalidID
@@ -2175,8 +2194,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			"core handler fails: invalid proof",
 			func() {
 				msg.ProofErrorReceipt = []byte("invalid proof")
+
 				// Force set to STATE_FLUSHCOMPLETE to check that state is not changed.
-				suite.Require().NoError(path.EndpointA.SetChannelState(channeltypes.FLUSHCOMPLETE))
+				channel := path.EndpointA.GetChannel()
+				channel.State = channeltypes.FLUSHCOMPLETE
+				channel.UpgradeSequence = uint64(2) // When in FLUSHCOMPLETE the sequence of the error receipt and the channel must match
+				path.EndpointA.SetChannel(channel)
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
@@ -2187,7 +2210,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 				// Channel state should not be changed.
 				suite.Require().Equal(channeltypes.FLUSHCOMPLETE, channel.State)
 				// Upgrade sequence should not be changed.
-				suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+				suite.Require().Equal(uint64(2), channel.UpgradeSequence)
 
 				suite.Require().Empty(events)
 			},
