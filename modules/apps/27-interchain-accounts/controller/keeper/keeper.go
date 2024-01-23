@@ -150,7 +150,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 
-	if found && channel.IsOpen() {
+	if found && channel.State == channeltypes.OPEN {
 		return channelID, true
 	}
 
@@ -165,7 +165,7 @@ func (k Keeper) IsActiveChannelClosed(ctx sdk.Context, connectionID, portID stri
 	}
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	return found && channel.IsClosed()
+	return found && channel.State == channeltypes.CLOSED
 }
 
 // GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated connection and port identifiers
