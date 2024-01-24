@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) TestSetChannel() {
 	// create client and connections on both chains
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	// check for channel to be created on chainA
 	found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.HasChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -72,7 +72,7 @@ func (suite *KeeperTestSuite) TestSetChannel() {
 func (suite *KeeperTestSuite) TestGetAppVersion() {
 	// create client and connections on both chains
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	version, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetAppVersion(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().False(found)
@@ -171,7 +171,7 @@ func containsAll(expected, actual []types.IdentifiedChannel) bool {
 // and tests their retrieval. 2 channels are on connA0 and 1 channel is on connA1
 func (suite KeeperTestSuite) TestGetAllChannels() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path.Setup()
 	// channel0 on first connection on chainA
 	counterparty0 := types.Counterparty{
 		PortId:    path.EndpointB.ChannelConfig.PortID,
@@ -193,7 +193,7 @@ func (suite KeeperTestSuite) TestGetAllChannels() { //nolint:govet // this is a 
 	}
 
 	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path2)
+	path2.SetupConnections()
 
 	// path2 creates a second channel on chainA
 	err := path2.EndpointA.ChanOpenInit()
@@ -235,7 +235,7 @@ func (suite KeeperTestSuite) TestGetAllChannels() { //nolint:govet // this is a 
 // tests their retrieval.
 func (suite KeeperTestSuite) TestGetAllSequences() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path.Setup()
 
 	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path1.SetChannelOrdered()
@@ -277,7 +277,7 @@ func (suite KeeperTestSuite) TestGetAllSequences() { //nolint:govet // this is a
 // channels on chain A and tests their retrieval.
 func (suite KeeperTestSuite) TestGetAllPacketState() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path.Setup()
 
 	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path1.EndpointA.ClientID = path.EndpointA.ClientID
@@ -351,7 +351,7 @@ func (suite KeeperTestSuite) TestGetAllPacketState() { //nolint:govet // this is
 // TestSetSequence verifies that the keeper correctly sets the sequence counters.
 func (suite *KeeperTestSuite) TestSetSequence() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path.Setup()
 
 	ctxA := suite.chainA.GetContext()
 	one := uint64(1)
@@ -395,7 +395,7 @@ func (suite *KeeperTestSuite) TestSetSequence() {
 // with the value maxSeq + 1 is set on a different channel.
 func (suite *KeeperTestSuite) TestGetAllPacketCommitmentsAtChannel() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path.Setup()
 
 	// create second channel
 	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -452,7 +452,7 @@ func (suite *KeeperTestSuite) TestGetAllPacketCommitmentsAtChannel() {
 // set in the keeper.
 func (suite *KeeperTestSuite) TestSetPacketAcknowledgement() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path.Setup()
 
 	ctxA := suite.chainA.GetContext()
 	seq := uint64(10)
@@ -472,7 +472,7 @@ func (suite *KeeperTestSuite) TestSetPacketAcknowledgement() {
 
 func (suite *KeeperTestSuite) TestSetUpgradeErrorReceipt() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 	suite.coordinator.CreateChannels(path)
 
 	errorReceipt, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -838,7 +838,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// Defaults will be filled in for rest.
 			upgradeFields = types.UpgradeFields{Version: ibcmock.UpgradeVersion}

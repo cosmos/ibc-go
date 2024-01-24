@@ -156,7 +156,7 @@ func (k Keeper) VerifyChannelState(
 	proof []byte,
 	portID,
 	channelID string,
-	channel exported.ChannelI,
+	channel channeltypes.Channel,
 ) error {
 	clientID := connection.GetClientID()
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
@@ -174,12 +174,7 @@ func (k Keeper) VerifyChannelState(
 		return err
 	}
 
-	channelEnd, ok := channel.(channeltypes.Channel)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid channel type %T", channel)
-	}
-
-	bz, err := k.cdc.Marshal(&channelEnd)
+	bz, err := k.cdc.Marshal(&channel)
 	if err != nil {
 		return err
 	}

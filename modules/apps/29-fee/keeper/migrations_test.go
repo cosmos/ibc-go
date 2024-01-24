@@ -168,7 +168,7 @@ func (suite *KeeperTestSuite) TestMigrate1to2() {
 		tc := tc
 
 		suite.SetupTest()
-		suite.coordinator.Setup(suite.path)
+		suite.path.Setup()
 
 		refundAcc = suite.chainA.SenderAccount.GetAddress()
 		packetFee = types.NewPacketFee(fee, refundAcc.String(), []string(nil))
