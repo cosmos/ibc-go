@@ -770,6 +770,7 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 	}
 
 	// NOTE: a cached context is used to discard ibc application state changes and events.
+	// IBC applications must flush in-flight packets using the pre-upgrade channel parameters.
 	cacheCtx, _ := ctx.CacheContext()
 	upgradeVersion, err := cbs.OnChanUpgradeInit(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 	if err != nil {
@@ -825,6 +826,7 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 	}
 
 	// NOTE: a cached context is used to discard ibc application state changes and events.
+	// IBC applications must flush in-flight packets using the pre-upgrade channel parameters.
 	cacheCtx, _ := ctx.CacheContext()
 	upgradeVersion, err := cbs.OnChanUpgradeTry(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 	if err != nil {
@@ -884,6 +886,7 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	}
 
 	// NOTE: a cached context is used to discard ibc application state changes and events.
+	// IBC applications must flush in-flight packets using the pre-upgrade channel parameters.
 	cacheCtx, _ := ctx.CacheContext()
 	err = cbs.OnChanUpgradeAck(cacheCtx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade.Fields.Version)
 	if err != nil {
