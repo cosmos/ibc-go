@@ -139,7 +139,7 @@ All other parameters will remain the same during the upgrade handshake until the
 :::warning
 
 Due to the addition of new channel states, packets can still be received and processed in both `FLUSHING` and `FLUSHCOMPLETE` states.
-Packets can also be acknowledged in the  `FLUSHING` state. Acknowledging will **not** be possible when the channel is in the `FLUSHCOMPLETE` state, since all packets sent from that channel end have been flushed.
+Packets can also be acknowledged in the `FLUSHING` state. Acknowledging will **not** be possible when the channel is in the `FLUSHCOMPLETE` state, since all packets sent from that channel end have been flushed.
 Application developers should consider these new states when implementing application logic that relies on the channel state.
 It is still only possible to send packets when the channel is in the `OPEN` state, but sending is disallowed when the channel enters `FLUSHING` and `FLUSHCOMPLETE`. When the channel reopens, sending will be possible again.
 
