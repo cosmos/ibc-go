@@ -159,18 +159,33 @@ func (suite *TypesTestSuite) TestGetErrorReceipt() {
 	suite.Require().Equal(upgradeError2.GetErrorReceipt().Message, upgradeError.GetErrorReceipt().Message)
 }
 
-// TestUpgradeErrorUnwrap tests that the underlying error is not modified when Unwrap is called.
+// TestUpgradeErrorUnwrap tests that the underlying error is returned by Unwrap.
 func (suite *TypesTestSuite) TestUpgradeErrorUnwrap() {
-	baseUnderlyingError := errorsmod.Wrap(types.ErrInvalidChannel, "base error")
-	wrappedErr := errorsmod.Wrap(baseUnderlyingError, "wrapped error")
-	upgradeError := types.NewUpgradeError(1, wrappedErr)
+	testCases := []struct {
+		msg          string
+		upgradeError *types.UpgradeError
+		expError     error
+	}{
+		{
+			msg:          "no underlying error",
+			upgradeError: types.NewUpgradeError(1, nil),
+			expError:     nil,
+		},
+		{
+			msg:          "underlying error",
+			upgradeError: types.NewUpgradeError(1, types.ErrInvalidUpgrade),
+			expError:     types.ErrInvalidUpgrade,
+		},
+	}
 
-	originalUpgradeError := upgradeError.Error()
-	unWrapped := errors.Unwrap(upgradeError)
-	postUnwrapUpgradeError := upgradeError.Error()
-
-	suite.Require().Equal(types.ErrInvalidChannel, unWrapped, "unwrapped error was not equal to base underlying error")
-	suite.Require().Equal(originalUpgradeError, postUnwrapUpgradeError, "original error was modified when unwrapped")
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.msg, func() {
+			upgradeError := tc.upgradeError
+			err := upgradeError.Unwrap()
+			suite.Require().Equal(tc.expError, err)
+		})
+	}
 }
 
 func (suite *TypesTestSuite) TestIsUpgradeError() {
