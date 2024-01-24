@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 
@@ -808,6 +809,28 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 				// We expect 7 to be pruned and 5 left.
 				suite.Require().Equal(uint64(7), pruned)
 				suite.Require().Equal(uint64(5), left)
+			},
+			nil,
+		},
+		{
+			"success: limit wraps around due to uint64 overflow",
+			func() {
+				// Send 10 packets from B -> A, creating 10 packet receipts and 10 packet acks on A.
+				suite.sendMockPackets(path, 10, true)
+			},
+			func() {
+				limit = math.MaxUint64
+			},
+			func(pruned, left uint64) {
+				// Nothing should be pruned, by passing in a limit of math.MaxUint64, overflow occurs
+				// when initializing end to pruningSequenceStart + limit. This results in end always being
+				// equal to start - 1 and thereby not entering the for loop.
+				// We expect 10 acks, 10 receipts and pruningSequenceStart == 1 (loop not entered).
+				postPruneExpState(10, 10, 1)
+
+				// We expect 0 to be pruned and 10 left.
+				suite.Require().Equal(uint64(0), pruned)
+				suite.Require().Equal(uint64(10), left)
 			},
 			nil,
 		},
