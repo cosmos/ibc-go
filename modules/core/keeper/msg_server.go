@@ -769,15 +769,9 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "channel upgrade init failed")
 	}
 
-	cacheCtx, _ := ctx.CacheContext() // NOTE: the writeFn is discarded and application state changes are not committed.
-	upgradeVersion, err := cbs.OnChanUpgradeInit(
-		cacheCtx,
-		msg.PortId,
-		msg.ChannelId,
-		upgrade.Fields.Ordering,
-		upgrade.Fields.ConnectionHops,
-		upgrade.Fields.Version,
-	)
+	// NOTE: a cached context is used to discard ibc application state changes and events.
+	cacheCtx, _ := ctx.CacheContext()
+	upgradeVersion, err := cbs.OnChanUpgradeInit(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrapf(err, "channel upgrade init callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
@@ -830,7 +824,8 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel upgrade try failed")
 	}
 
-	cacheCtx, _ := ctx.CacheContext() // NOTE: the writeFn is discarded and application state changes are not committed.
+	// NOTE: a cached context is used to discard ibc application state changes and events.
+	cacheCtx, _ := ctx.CacheContext()
 	upgradeVersion, err := cbs.OnChanUpgradeTry(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
@@ -888,7 +883,8 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel upgrade ack failed")
 	}
 
-	cacheCtx, _ := ctx.CacheContext() // NOTE: the writeFn is discarded and application state changes are not committed.
+	// NOTE: a cached context is used to discard ibc application state changes and events.
+	cacheCtx, _ := ctx.CacheContext()
 	err = cbs.OnChanUpgradeAck(cacheCtx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade.Fields.Version)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
