@@ -9,9 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-var (
-	_ exported.CounterpartyChannelI = (*Counterparty)(nil)
-)
+var _ exported.CounterpartyChannelI = (*Counterparty)(nil)
 
 // NewChannel creates a new Channel instance
 func NewChannel(
