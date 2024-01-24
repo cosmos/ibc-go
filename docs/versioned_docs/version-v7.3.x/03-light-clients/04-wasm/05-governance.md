@@ -7,7 +7,7 @@ slug: /ibc/light-clients/wasm/governance
 
 # Governance
 
-Learn how to upload Wasm light client byte code on a chain, and how to migrate an existing Wasm light client contract. {synopsis}
+Learn how to upload Wasm light client byte code on a chain, and how to migrate an existing Wasm light client contract. 
 
 ## Setting an authority
 

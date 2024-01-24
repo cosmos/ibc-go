@@ -59,7 +59,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 			suite.SetupTest()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 			clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			height = clientState.GetLatestHeight()
 
@@ -95,7 +95,7 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.UpdateTime()
 
-	expectedTime := suite.chainA.CurrentHeader.Time
+	expectedTime := suite.chainA.ProposedHeader.Time
 
 	// Verify ProcessedTime on CreateClient
 	err := path.EndpointA.CreateClient()
@@ -111,7 +111,7 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 
 	suite.coordinator.UpdateTime()
 	// coordinator increments time before updating client
-	expectedTime = suite.chainA.CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+	expectedTime = suite.chainA.ProposedHeader.Time.Add(ibctesting.TimeIncrement)
 
 	// Verify ProcessedTime on UpdateClient
 	err = path.EndpointA.UpdateClient()

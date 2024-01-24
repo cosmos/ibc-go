@@ -1,8 +1,9 @@
 package types
 
 import (
-	"fmt"
 	"time"
+
+	errorsmod "cosmossdk.io/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
@@ -27,10 +28,10 @@ func DefaultParams() Params {
 // Validate the params.
 func (p Params) Validate() error {
 	if !p.UpgradeTimeout.Height.IsZero() {
-		return fmt.Errorf("upgrade timeout height must be zero. got : %v", p.UpgradeTimeout.Height)
+		return errorsmod.Wrapf(ErrInvalidUpgradeTimeout, "upgrade timeout height must be zero. got : %v", p.UpgradeTimeout.Height)
 	}
 	if p.UpgradeTimeout.Timestamp == 0 {
-		return fmt.Errorf("upgrade timeout timestamp invalid: %v", p.UpgradeTimeout.Timestamp)
+		return errorsmod.Wrapf(ErrInvalidUpgradeTimeout, "upgrade timeout timestamp invalid: %v", p.UpgradeTimeout.Timestamp)
 	}
 	return nil
 }

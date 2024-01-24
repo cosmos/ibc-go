@@ -35,6 +35,7 @@ type MsgPayPacketFee struct{
 ```
 
 The `Fee` message contained in this synchronous fee payment method configures different fees which will be paid out for `MsgRecvPacket`, `MsgAcknowledgement`, and `MsgTimeout`/`MsgTimeoutOnClose`.
+The amount of fees escrowed in total is the denomwise maxiumum of `RecvFee + AckFee` and `TimeoutFee`. This is because we do not know whether the packet will be successfully received and acknowledged or whether it will timeout.
 
 ```go
 type Fee struct {
@@ -83,8 +84,9 @@ Following diagram takes a look at the packet flow for an incentivized token tran
 
 ![feeflow.png](./images/feeflow.png)
 
-- In the case of a successful transaction, `RecvFee` will be paid out to the designated counterparty payee address which has been registered on the receiver chain and sent back with the `MsgAcknowledgement`, `AckFee` will be paid out to the relayer address which has submitted the `MsgAcknowledgement` on the sending chain (or the registered payee in case one has been registered for the relayer address), and `TimeoutFee` will be reimbursed to the account which escrowed the fee.
-- In case of a timeout transaction, `RecvFee` and `AckFee` will be reimbursed. The `TimeoutFee` will be paid to the `Timeout Relayer` (who submits the timeout message to the source chain).
+- In the case of a successful transaction, `RecvFee` will be paid out to the designated counterparty payee address which has been registered on the receiver chain and sent back with the `MsgAcknowledgement`, `AckFee` will be paid out to the relayer address which has submitted the `MsgAcknowledgement` on the sending chain (or the registered payee in case one has been registered for the relayer address), and the remaining fees (if any) will be reimbursed to the account which escrowed the fee. (The reimbursed amount equals `EscrowedAmount - (RecvFee + AckFee)`).
+
+- In case of a timeout transaction, the `TimeoutFee` will be paid to the `Timeout Relayer` (who submits the timeout message to the source chain), and the remaining fees (if any) will be reimbursed to the account which escrowed the fee. (The reimbursed amount equals `EscrowedAmount - (TimeoutFee)`).
 
 > Please note that fee payments are built on the assumption that sender chains are the source of incentives — the chain that sends the packets is the same chain where fee payments will occur -- please see the [Fee distribution section](04-fee-distribution.md) to understand the flow for registering payee and counterparty payee (fee receiving) addresses.
 

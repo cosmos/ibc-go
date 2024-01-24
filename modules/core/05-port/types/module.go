@@ -107,26 +107,36 @@ type IBCModule interface {
 }
 
 // UpgradableModule defines the callbacks required to perform a channel upgrade.
+// Note: applications must ensure that state related to packet processing remains unmodified until the OnChanUpgradeOpen callback is executed.
+// This guarantees that in-flight packets are correctly flushed using the existing channel parameters.
 type UpgradableModule interface {
-	// OnChanUpgradeInit initializes the channel upgrade handshake.
+	// OnChanUpgradeInit enables additional custom logic to be executed when the channel upgrade is initialized.
+	// It must validate the proposed version, order, and connection hops.
+	// NOTE: in the case of crossing hellos, this callback may be executed on both chains.
+	// NOTE: Any IBC application state changes made in this callback handler are not committed.
 	OnChanUpgradeInit(
 		ctx sdk.Context,
 		portID, channelID string,
-		order channeltypes.Order,
-		connectionHops []string,
-		version string,
+		proposedOrder channeltypes.Order,
+		proposedConnectionHops []string,
+		proposedVersion string,
 	) (string, error)
 
-	// OnChanUpgradeTry verifies the counterparty upgrade and sets the upgrade on TRY chain
+	// OnChanUpgradeTry enables additional custom logic to be executed in the ChannelUpgradeTry step of the
+	// channel upgrade handshake. It must validate the proposed version (provided by the counterparty), order,
+	// and connection hops.
+	// NOTE: Any IBC application state changes made in this callback handler are not committed.
 	OnChanUpgradeTry(
 		ctx sdk.Context,
 		portID, channelID string,
-		order channeltypes.Order,
-		connectionHops []string,
+		proposedOrder channeltypes.Order,
+		proposedConnectionHops []string,
 		counterpartyVersion string,
 	) (string, error)
 
-	// OnChanUpgradeAck TODO
+	// OnChanUpgradeAck enables additional custom logic to be executed in the ChannelUpgradeAck step of the
+	// channel upgrade handshake. It must validate the version proposed by the counterparty.
+	// NOTE: Any IBC application state changes made in this callback handler are not committed.
 	OnChanUpgradeAck(
 		ctx sdk.Context,
 		portID,
@@ -134,21 +144,16 @@ type UpgradableModule interface {
 		counterpartyVersion string,
 	) error
 
-	// OnChanUpgradeOpen TODO
+	// OnChanUpgradeOpen enables additional custom logic to be executed when the channel upgrade has successfully completed, and the channel
+	// has returned to the OPEN state. Any logic associated with changing of the channel fields should be performed
+	// in this callback.
 	OnChanUpgradeOpen(
 		ctx sdk.Context,
 		portID,
 		channelID string,
-		order channeltypes.Order,
-		connectionHops []string,
-		version string,
-	)
-
-	// OnChanUpgradeRestore TODO
-	OnChanUpgradeRestore(
-		ctx sdk.Context,
-		portID,
-		channelID string,
+		proposedOrder channeltypes.Order,
+		proposedConnectionHops []string,
+		proposedVersion string,
 	)
 }
 

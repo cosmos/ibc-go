@@ -18,7 +18,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	suite.coordinator.Setup(path)
+	path.Setup()
 
 	// set up coin & ics20 packet
 	coin := ibctesting.TestCoin
@@ -65,7 +65,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	)
 
 	suite.Require().Equal(
-		fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
+		fee.AckFee, // ack fee paid, no refund needed since timeout_fee = recv_fee + ack_fee
 		sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)).Sub(originalChainASenderAccountBalance[0]))
 }
 
@@ -97,7 +97,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 			path.EndpointA.ChannelConfig.Version = transfertypes.Version
 			path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade to upgrade to an incentivized fee enabled transfer channel
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))

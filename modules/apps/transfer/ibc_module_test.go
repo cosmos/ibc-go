@@ -33,6 +33,13 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			"success", func() {}, true,
 		},
 		{
+			// connection hops is not used in the transfer application callback,
+			// it is already validated in the core OnChanUpgradeInit.
+			"success: invalid connection hops", func() {
+				path.EndpointA.ConnectionID = "invalid-connection-id"
+			}, true,
+		},
+		{
 			"empty version string", func() {
 				channel.Version = ""
 			}, true,
@@ -71,7 +78,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			counterparty = channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -157,7 +164,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
 			counterparty = channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -221,7 +228,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			suite.SetupTest() // reset
 
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			counterpartyVersion = types.Version
 
@@ -289,11 +296,11 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 			suite.SetupTest()
 
 			path = NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
 			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(upgradePath)
+			upgradePath.SetupConnections()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
@@ -353,11 +360,11 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			suite.SetupTest()
 
 			path = NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
 			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(upgradePath)
+			upgradePath.SetupConnections()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
@@ -423,11 +430,11 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 			suite.SetupTest()
 
 			path = NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade to modify the underlying connection
 			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(upgradePath)
+			upgradePath.SetupConnections()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
