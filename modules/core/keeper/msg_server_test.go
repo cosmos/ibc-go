@@ -1402,7 +1402,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			},
 			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
 				suite.Require().Equal(channeltypes.FAILURE, res.Result)
-				suite.Require().Equal(uint64(1), path.EndpointA.GetChannel().UpgradeSequence, "application callback upgrade sequence is not used")
+				suite.Require().Equal(uint64(1), path.EndpointA.GetChannel().UpgradeSequence, "application callback upgrade sequence should not be used")
 			},
 		},
 	}
