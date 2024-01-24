@@ -1456,8 +1456,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.Require().Empty(events)
 			},
 		},
-<<<<<<< HEAD
-=======
 		{
 			"application callback returns an upgrade error",
 			func() {
@@ -1497,7 +1495,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				}
 			},
 		},
->>>>>>> 9faaff5f (chore: remove `OnChanUpgradeRestore` callbacks and discard state changes on app upgrade callbacks (#5696))
 	}
 
 	for _, tc := range cases {
