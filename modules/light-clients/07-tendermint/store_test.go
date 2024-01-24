@@ -59,7 +59,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 			suite.SetupTest()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 			clientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			height = clientState.GetLatestHeight()
 

@@ -199,7 +199,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			// mock init interchain account
 			portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
@@ -264,7 +264,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -365,7 +365,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -404,7 +404,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -449,7 +449,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 // OnChanCloseInit on controller (chainA)
 func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -496,7 +496,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -542,7 +542,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			suite.SetupTest() // reset
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -628,7 +628,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -723,7 +723,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -825,7 +825,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -872,7 +872,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -952,7 +952,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -1047,7 +1047,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 			isNilApp = false
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -1122,14 +1122,14 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 
 			// Setup a new path from A(controller) -> B(host)
 			pathAToB = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(pathAToB)
+			pathAToB.SetupConnections()
 
 			err := SetupICAPath(pathAToB, TestOwnerAddress)
 			suite.Require().NoError(err)
 
 			// Setup a new path from C(controller) -> B(host)
 			pathCToB = NewICAPath(suite.chainC, suite.chainB)
-			suite.coordinator.SetupConnections(pathCToB)
+			pathCToB.SetupConnections()
 
 			// NOTE: Here the version metadata is overridden to include to the next host connection sequence (i.e. chainB's connection to chainC)
 			// SetupICAPath() will set endpoint.ChannelConfig.Version to TestVersion
@@ -1167,7 +1167,7 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 
 func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -1186,7 +1186,7 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 
 func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsGoAPICaller() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	// initiate a channel handshake such that channel.State == INIT
 	err := RegisterInterchainAccount(path.EndpointA, suite.chainA.SenderAccount.GetAddress().String())
@@ -1203,7 +1203,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsGoAPICall
 
 func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServerCaller() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	// initiate a channel handshake such that channel.State == INIT
 	msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
@@ -1220,7 +1220,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServer
 
 func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, suite.chainA.SenderAccount.GetAddress().String())
 	suite.Require().NoError(err)
@@ -1263,7 +1263,7 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 
 func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 

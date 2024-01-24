@@ -50,7 +50,7 @@ func (suite *KeeperTestSuite) TestAssertChannelCapabilityMigrations() {
 			suite.SetupTest()
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, ibctesting.TestAccAddress)
 			suite.Require().NoError(err)
