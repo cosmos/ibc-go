@@ -162,7 +162,8 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 
 		tc.malleate()
 
-		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyPayee(suite.chainA.GetContext(), msg)
+		ctx := suite.chainA.GetContext()
+		res, err := suite.chainA.GetSimApp().IBCFeeKeeper.RegisterCounterpartyPayee(ctx, msg)
 
 		if tc.expPass {
 			suite.Require().NoError(err)
@@ -176,6 +177,19 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 
 			suite.Require().True(found)
 			suite.Require().Equal(expCounterpartyPayee, counterpartyPayee)
+
+			expectedEvents := sdk.Events{
+				sdk.NewEvent(
+					types.EventTypeRegisterCounterpartyPayee,
+					sdk.NewAttribute(types.AttributeKeyRelayer, suite.chainA.SenderAccount.GetAddress().String()),
+					sdk.NewAttribute(types.AttributeKeyCounterpartyPayee, counterpartyPayee),
+					sdk.NewAttribute(types.AttributeKeyChannelID, ibctesting.FirstChannelID),
+				),
+			}.ToABCIEvents()
+
+			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
+			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+
 		} else {
 			suite.Require().Error(err)
 		}
