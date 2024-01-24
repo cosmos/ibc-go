@@ -161,6 +161,7 @@ func (path *Path) CreateConnections() {
 	if err != nil {
 		panic(err)
 	}
+
 	err = path.EndpointA.ConnOpenAck()
 	if err != nil {
 		panic(err)
@@ -201,6 +202,7 @@ func (path *Path) CreateChannels() {
 	if err != nil {
 		panic(err)
 	}
+
 	// ensure counterparty is up to date
 	err = path.EndpointA.UpdateClient()
 	if err != nil {
