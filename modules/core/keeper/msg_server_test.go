@@ -1003,9 +1003,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeInit = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
 					store := ctx.KVStore(storeKey)
-					store.Set([]byte("test-key"), []byte("test-value"))
+					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					ctx.EventManager().EmitEvent(sdk.NewEvent("test-event", sdk.NewAttribute("k", "v")))
+					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return ibcmock.UpgradeVersion, nil
 				}
 			},
@@ -1016,10 +1016,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 
 				storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
 				store := suite.chainA.GetContext().KVStore(storeKey)
-				suite.Require().Nil(store.Get([]byte("test-key")))
+				suite.Require().Nil(store.Get(ibcmock.TestKey))
 
 				for _, event := range events {
-					if event.GetType() == "test-event" {
+					if event.GetType() == ibcmock.MockEventType {
 						suite.Fail("expected application callback events to be discarded")
 					}
 				}
@@ -1169,9 +1169,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
 					store := ctx.KVStore(storeKey)
-					store.Set([]byte("test-key"), []byte("test-value"))
+					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					ctx.EventManager().EmitEvent(sdk.NewEvent("test-event", sdk.NewAttribute("k", "v")))
+					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return ibcmock.UpgradeVersion, nil
 				}
 			},
@@ -1182,10 +1182,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 
 				storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
 				store := suite.chainA.GetContext().KVStore(storeKey)
-				suite.Require().Nil(store.Get([]byte("test-key")))
+				suite.Require().Nil(store.Get(ibcmock.TestKey))
 
 				for _, event := range events {
-					if event.GetType() == "test-event" {
+					if event.GetType() == ibcmock.MockEventType {
 						suite.Fail("expected application callback events to be discarded")
 					}
 				}
@@ -1462,9 +1462,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
 					store := ctx.KVStore(storeKey)
-					store.Set([]byte("test-key"), []byte("test-value"))
+					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					ctx.EventManager().EmitEvent(sdk.NewEvent("test-event", sdk.NewAttribute("k", "v")))
+					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return nil
 				}
 			},
@@ -1474,10 +1474,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 
 				storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
 				store := suite.chainA.GetContext().KVStore(storeKey)
-				suite.Require().Nil(store.Get([]byte("test-key")))
+				suite.Require().Nil(store.Get(ibcmock.TestKey))
 
 				for _, event := range events {
-					if event.GetType() == "test-event" {
+					if event.GetType() == ibcmock.MockEventType {
 						suite.Fail("expected application callback events to be discarded")
 					}
 				}
