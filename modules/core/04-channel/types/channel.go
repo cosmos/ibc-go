@@ -34,11 +34,6 @@ func (ch Channel) GetOrdering() int32 {
 	return int32(ch.Ordering)
 }
 
-// GetCounterparty implements Channel interface.
-func (ch Channel) GetCounterparty() exported.CounterpartyChannelI {
-	return ch.Counterparty
-}
-
 // GetConnectionHops implements Channel interface.
 func (ch Channel) GetConnectionHops() []string {
 	return ch.ConnectionHops
