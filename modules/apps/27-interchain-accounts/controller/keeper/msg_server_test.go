@@ -74,7 +74,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 			suite.SetupTest()
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", channeltypes.ORDERED)
 
@@ -158,7 +158,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 
 			owner := TestOwnerAddress
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, owner)
 			suite.Require().NoError(err)

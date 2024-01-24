@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 			owner = TestOwnerAddress // must be explicitly changed
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			tc.malleate() // malleate mutates test data
 
@@ -90,10 +90,10 @@ func (suite *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
 	owner := TestOwnerAddress
 
 	pathAToB := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(pathAToB)
+	pathAToB.SetupConnections()
 
 	pathAToC := NewICAPath(suite.chainA, suite.chainC)
-	suite.coordinator.SetupConnections(pathAToC)
+	pathAToC.SetupConnections()
 
 	// build ICS27 metadata with connection identifiers for path A->B
 	metadata := &icatypes.Metadata{

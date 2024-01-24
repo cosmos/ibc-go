@@ -18,7 +18,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	suite.coordinator.Setup(path)
+	path.Setup()
 
 	// set up coin & ics20 packet
 	coin := ibctesting.TestCoin
@@ -97,7 +97,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 			path.EndpointA.ChannelConfig.Version = transfertypes.Version
 			path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade to upgrade to an incentivized fee enabled transfer channel
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))

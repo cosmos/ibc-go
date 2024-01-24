@@ -45,7 +45,7 @@ func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 
 	for i := 0; i < numTMClients; i++ {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 
 		paths[i] = path
 	}

@@ -190,7 +190,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			func() {
 				denom = sdk.DefaultBondDenom
 				extraPath := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-				suite.coordinator.Setup(extraPath)
+				extraPath.Setup()
 
 				escrowAddress1 := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				escrowAddress2 := transfertypes.GetEscrowAddress(extraPath.EndpointA.ChannelConfig.PortID, extraPath.EndpointA.ChannelID)
@@ -227,7 +227,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			suite.SetupTest() // reset
 
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			tc.malleate() // explicitly fund escrow account
 
