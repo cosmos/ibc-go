@@ -498,7 +498,10 @@ func NewSimApp(
 	// an upgrade is tried on the channel.
 	mockBlockUpgradeIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.MockBlockUpgrade, scopedIBCMockBlockUpgradeKeeper))
 	mockBlockUpgradeMw := ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockBlockUpgradeIBCModule.IBCApp)
-	ibcRouter.AddRoute(ibcmock.MockBlockUpgrade, mockBlockUpgradeMw)
+	err = ibcRouter.AddRoute(ibcmock.MockBlockUpgrade, mockBlockUpgradeMw)
+	if err != nil {
+		panic(err)
+	}
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
