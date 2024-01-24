@@ -433,7 +433,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 			suite.SetupTest()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
