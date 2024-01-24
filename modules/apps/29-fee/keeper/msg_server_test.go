@@ -1,8 +1,12 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
+
+	"fmt"
+
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -232,7 +236,6 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 				expFeesInEscrow = append(expFeesInEscrow, packetFee)
 
 				eventFee = types.NewFee(defaultRecvFee.Add(escrowFee.RecvFee...), defaultAckFee.Add(escrowFee.AckFee...), defaultTimeoutFee.Add(escrowFee.TimeoutFee...))
-
 			},
 			true,
 		},
