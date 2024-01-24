@@ -117,7 +117,7 @@ func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.Exec
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
-// fail if any error occurs. The channels created are connected to the ibc-transfer application.
+// fail if any error occurs.
 func (path *Path) Setup() {
 	path.SetupConnections()
 
