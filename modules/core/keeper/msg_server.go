@@ -769,14 +769,10 @@ func (k Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgC
 		return nil, errorsmod.Wrap(err, "channel upgrade init failed")
 	}
 
-	upgradeVersion, err := cbs.OnChanUpgradeInit(
-		ctx,
-		msg.PortId,
-		msg.ChannelId,
-		upgrade.Fields.Ordering,
-		upgrade.Fields.ConnectionHops,
-		upgrade.Fields.Version,
-	)
+	// NOTE: a cached context is used to discard ibc application state changes and events.
+	// IBC applications must flush in-flight packets using the pre-upgrade channel parameters.
+	cacheCtx, _ := ctx.CacheContext()
+	upgradeVersion, err := cbs.OnChanUpgradeInit(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade init callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrapf(err, "channel upgrade init callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
@@ -829,7 +825,10 @@ func (k Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel upgrade try failed")
 	}
 
-	upgradeVersion, err := cbs.OnChanUpgradeTry(ctx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
+	// NOTE: a cached context is used to discard ibc application state changes and events.
+	// IBC applications must flush in-flight packets using the pre-upgrade channel parameters.
+	cacheCtx, _ := ctx.CacheContext()
+	upgradeVersion, err := cbs.OnChanUpgradeTry(cacheCtx, msg.PortId, msg.ChannelId, upgrade.Fields.Ordering, upgrade.Fields.ConnectionHops, upgrade.Fields.Version)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade try callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 		return nil, errorsmod.Wrapf(err, "channel upgrade try callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
@@ -875,7 +874,6 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack failed", "error", errorsmod.Wrap(err, "channel upgrade ack failed"))
 		if channeltypes.IsUpgradeError(err) {
-			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
@@ -887,17 +885,24 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 		return nil, errorsmod.Wrap(err, "channel upgrade ack failed")
 	}
 
-	cacheCtx, writeFn := ctx.CacheContext()
+	// NOTE: a cached context is used to discard ibc application state changes and events.
+	// IBC applications must flush in-flight packets using the pre-upgrade channel parameters.
+	cacheCtx, _ := ctx.CacheContext()
 	err = cbs.OnChanUpgradeAck(cacheCtx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade.Fields.Version)
 	if err != nil {
 		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
+<<<<<<< HEAD
 		cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 		k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
+=======
+
+		// explicitly wrap the application callback in an upgrade error with the correct upgrade sequence.
+		// this prevents any errors caused from the application returning an UpgradeError with an incorrect sequence.
+		k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, channeltypes.NewUpgradeError(channel.UpgradeSequence, err))
+>>>>>>> 9faaff5f (chore: remove `OnChanUpgradeRestore` callbacks and discard state changes on app upgrade callbacks (#5696))
 
 		return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.FAILURE}, nil
 	}
-
-	writeFn()
 
 	channel, upgrade := k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade)
 
@@ -935,7 +940,6 @@ func (k Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.M
 	if err != nil {
 		ctx.Logger().Error("channel upgrade confirm failed", "error", errorsmod.Wrap(err, "channel upgrade confirm failed"))
 		if channeltypes.IsUpgradeError(err) {
-			cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 			k.ChannelKeeper.MustAbortUpgrade(ctx, msg.PortId, msg.ChannelId, err)
 
 			// NOTE: a FAILURE result is returned to the client and an error receipt is written to state.
@@ -1015,32 +1019,11 @@ func (k Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgC
 // ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
 func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTimeout) (*channeltypes.MsgChannelUpgradeTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
-	if err != nil {
-		ctx.Logger().Error("channel upgrade timeout failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
 
-	app, ok := k.Router.GetRoute(module)
-	if !ok {
-		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-		ctx.Logger().Error("channel upgrade timeout failed", "port-id", msg.PortId, "error", err)
-		return nil, err
-	}
-
-	cbs, ok := app.(porttypes.UpgradableModule)
-	if !ok {
-		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
-		ctx.Logger().Error("channel upgrade timeout failed", "port-id", msg.PortId, "error", err)
-		return nil, err
-	}
-
-	err = k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.ProofChannel, msg.ProofHeight)
-	if err != nil {
+	if err := k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.ProofChannel, msg.ProofHeight); err != nil {
 		return nil, errorsmod.Wrapf(err, "could not timeout upgrade for channel: %s", msg.ChannelId)
 	}
 
-	cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 	channel, upgrade := k.ChannelKeeper.WriteUpgradeTimeoutChannel(ctx, msg.PortId, msg.ChannelId)
 
 	ctx.Logger().Info("channel upgrade timeout callback succeeded: portID %s, channelID %s", msg.PortId, msg.ChannelId)
@@ -1052,25 +1035,6 @@ func (k Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.M
 // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
 func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeCancel) (*channeltypes.MsgChannelUpgradeCancelResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	module, _, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
-	if err != nil {
-		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
-
-	app, ok := k.Router.GetRoute(module)
-	if !ok {
-		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, "error", err)
-		return nil, err
-	}
-
-	cbs, ok := app.(porttypes.UpgradableModule)
-	if !ok {
-		err = errorsmod.Wrapf(porttypes.ErrInvalidRoute, "upgrade route not found to module: %s", module)
-		ctx.Logger().Error("channel upgrade cancel failed", "port-id", msg.PortId, err)
-		return nil, err
-	}
 
 	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
 	if !found {
@@ -1086,7 +1050,6 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 			return nil, errorsmod.Wrapf(channeltypes.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
 		}
 
-		cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 		k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId, channel.UpgradeSequence)
 
 		ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
@@ -1107,7 +1070,6 @@ func (k Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.Ms
 		return nil, errorsmod.Wrapf(channeltypes.ErrUpgradeNotFound, "failed to retrieve channel upgrade: port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
 	}
 
-	cbs.OnChanUpgradeRestore(ctx, msg.PortId, msg.ChannelId)
 	k.ChannelKeeper.WriteUpgradeCancelChannel(ctx, msg.PortId, msg.ChannelId, msg.ErrorReceipt.Sequence)
 
 	ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
