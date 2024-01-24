@@ -607,7 +607,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 // OnChanUpgradeInit callback returns error on host chains
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -702,7 +702,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 // OnChanUpgradeAck callback returns error on host chains
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)

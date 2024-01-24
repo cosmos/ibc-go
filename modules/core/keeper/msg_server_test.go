@@ -973,7 +973,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				msg = channeltypes.NewMsgChannelUpgradeInit(
 					path.EndpointA.ChannelConfig.PortID,
@@ -1150,7 +1150,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
@@ -1444,7 +1444,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
@@ -1783,7 +1783,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
@@ -1970,7 +1970,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID

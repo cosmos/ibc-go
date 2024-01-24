@@ -327,7 +327,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			"success UNORDERED channel in FLUSHING",
 			func() {
 				// setup uses an UNORDERED channel
-				suite.coordinator.Setup(path)
+				path.Setup()
 				channel := path.EndpointB.GetChannel()
 				channel.State = types.FLUSHING
 				path.EndpointB.SetChannel(channel)
@@ -343,7 +343,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			"success UNORDERED channel in FLUSHCOMPLETE",
 			func() {
 				// setup uses an UNORDERED channel
-				suite.coordinator.Setup(path)
+				path.Setup()
 				channel := path.EndpointB.GetChannel()
 				channel.State = types.FLUSHCOMPLETE
 				path.EndpointB.SetChannel(channel)
@@ -624,7 +624,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"packet already received",
 			func() {
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
@@ -722,7 +722,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		{
 			"success: channel flushing",
 			func() {
-				suite.coordinator.Setup(path)
+				path.Setup()
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.MockAcknowledgement
 
@@ -735,7 +735,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		{
 			"success: channel flush complete",
 			func() {
-				suite.coordinator.Setup(path)
+				path.Setup()
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.MockAcknowledgement
 
