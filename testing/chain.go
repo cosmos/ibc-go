@@ -512,7 +512,7 @@ func CommitHeader(proposedHeader cmttypes.Header, valSet *cmttypes.ValidatorSet,
 	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
 	voteSet := cmttypes.NewVoteSet(proposedHeader.ChainID, proposedHeader.Height, 1, cmtproto.PrecommitType, valSet)
 
-	// MakeCommit expects a signer array in the same order as the validator array.
+	// MakeExtCommit expects a signer array in the same order as the validator array.
 	// Thus we iterate over the ordered validator set and construct a signer array
 	// from the signer map in the same order.
 	signerArr := make([]cmttypes.PrivValidator, len(valSet.Validators))
