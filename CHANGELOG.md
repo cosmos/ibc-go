@@ -48,7 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* (core/02-client) [\#5429](https://github.com/cosmos/ibc-go/pull/5429) Add wildcard `"*"` to allow all clients in `AllowedClients` param. 
+* (core/02-client) [\#5429](https://github.com/cosmos/ibc-go/pull/5429) Add wildcard `"*"` to allow all clients in `AllowedClients` param.
+* (core) [\#5541](https://github.com/cosmos/ibc-go/pull/5541) Enable emission of events on erroneous IBC application callbacks by appending a prefix to all event type and attribute keys.
 
 ### Features
 
