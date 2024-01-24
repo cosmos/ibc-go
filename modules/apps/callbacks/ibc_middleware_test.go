@@ -205,7 +205,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 
 			default:
 				sendPacket()
-				s.Require().ErrorIs(tc.expValue.(error), err)
+				s.Require().ErrorIs(err, tc.expValue.(error))
 				s.Require().Equal(uint64(0), seq)
 			}
 
@@ -344,7 +344,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 
 			default:
 				err := onAcknowledgementPacket()
-				s.Require().ErrorIs(tc.expError, err)
+				s.Require().ErrorIs(err, tc.expError)
 			}
 
 			sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
@@ -499,7 +499,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().Nil(err)
 			case error:
 				err := onTimeoutPacket()
-				s.Require().ErrorIs(expValue, err)
+				s.Require().ErrorIs(err, expValue)
 			default:
 				s.Require().PanicsWithValue(tc.expValue, func() {
 					_ = onTimeoutPacket()
@@ -792,7 +792,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				}
 
 			} else {
-				s.Require().ErrorIs(tc.expError, err)
+				s.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
@@ -933,7 +933,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 				s.Require().PanicsWithValue(tc.expValue, processCallback)
 			default:
 				processCallback()
-				s.Require().ErrorIs(tc.expValue.(error), err)
+				s.Require().ErrorIs(err, tc.expValue.(error))
 			}
 
 			s.Require().Equal(expGasConsumed, ctx.GasMeter().GasConsumed())
@@ -992,7 +992,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseInit() {
 	controllerStack := icaControllerStack.(porttypes.Middleware)
 	err := controllerStack.OnChanCloseInit(s.chainA.GetContext(), s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// we just check that this call is passed down to the icacontroller to return an error
-	s.Require().ErrorIs(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"), err)
+	s.Require().ErrorIs(err, errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "user cannot close channel"))
 }
 
 func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
