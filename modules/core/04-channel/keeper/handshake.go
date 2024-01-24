@@ -336,6 +336,8 @@ func (k Keeper) ChanOpenConfirm(
 		counterpartyHops, channel.Version,
 	)
 
+	// NOTE: If the counterparty has initialized an upgrade in the same block as performing the
+	// ACK handshake step, this channel end will be incapable of opening.
 	return k.connectionKeeper.VerifyChannelState(
 		ctx, connectionEnd, proofHeight, ackProof,
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
