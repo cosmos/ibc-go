@@ -139,6 +139,7 @@ All other parameters will remain the same during the upgrade handshake until the
 > NOTE: due to the addition of new channel states, packets can still be received and processed in both `FLUSHING` and `FLUSHCOMPLETE` states.
 > Packets can also be acknowledged in the  `FLUSHING` state. Application developers should consider these new states
 > when implementing application logic that relies on the channel state.
+> It is still only possible to send packets when the channel is in the `OPEN` state.
 
 ## Cancelling a Channel Upgrade
 
