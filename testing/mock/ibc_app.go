@@ -117,12 +117,6 @@ type IBCApp struct {
 		connectionHops []string,
 		version string,
 	)
-
-	OnChanUpgradeRestore func(
-		ctx sdk.Context,
-		portID,
-		channelID string,
-	)
 }
 
 // NewIBCApp returns a IBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.

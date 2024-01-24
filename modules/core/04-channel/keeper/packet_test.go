@@ -324,6 +324,38 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			nil,
 		},
 		{
+			"success UNORDERED channel in FLUSHING",
+			func() {
+				// setup uses an UNORDERED channel
+				suite.coordinator.Setup(path)
+				channel := path.EndpointB.GetChannel()
+				channel.State = types.FLUSHING
+				path.EndpointB.SetChannel(channel)
+
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			},
+			nil,
+		},
+		{
+			"success UNORDERED channel in FLUSHCOMPLETE",
+			func() {
+				// setup uses an UNORDERED channel
+				suite.coordinator.Setup(path)
+				channel := path.EndpointB.GetChannel()
+				channel.State = types.FLUSHCOMPLETE
+				path.EndpointB.SetChannel(channel)
+
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			},
+			nil,
+		},
+		{
 			"success with out of order packet: UNORDERED channel",
 			func() {
 				// setup uses an UNORDERED channel
@@ -394,21 +426,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				path.EndpointB.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 			},
 			types.ErrInvalidPacket,
-		},
-		{
-			"failure while upgrading channel, channel in flush complete state",
-			func() {
-				suite.coordinator.Setup(path)
-				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-
-				channel := path.EndpointB.GetChannel()
-				channel.State = types.FLUSHCOMPLETE
-				path.EndpointB.SetChannel(channel)
-			},
-			types.ErrInvalidChannelState,
 		},
 		{
 			"packet already relayed ORDERED channel (no-op)",
@@ -562,7 +579,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.GetSelfHeight(suite.chainB.GetContext()), disabledTimeoutTimestamp)
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			},
-			types.ErrPacketTimeout,
+			types.ErrTimeoutElapsed,
 		},
 		{
 			"timeout timestamp passed",
@@ -572,7 +589,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, disabledTimeoutHeight, uint64(suite.chainB.GetContext().BlockTime().UnixNano()))
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			},
-			types.ErrPacketTimeout,
+			types.ErrTimeoutElapsed,
 		},
 		{
 			"next receive sequence is not found",
@@ -603,6 +620,21 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				suite.Require().NoError(err)
 			},
 			types.ErrSequenceReceiveNotFound,
+		},
+		{
+			"packet already received",
+			func() {
+				suite.coordinator.Setup(path)
+
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				// set recv seq start to indicate packet was processed in previous upgrade
+				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetRecvStartSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence+1)
+			},
+			types.ErrPacketReceived,
 		},
 		{
 			"receipt already stored",
@@ -683,6 +715,32 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				suite.coordinator.Setup(path)
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.MockAcknowledgement
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			},
+			true,
+		},
+		{
+			"success: channel flushing",
+			func() {
+				suite.coordinator.Setup(path)
+				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				ack = ibcmock.MockAcknowledgement
+
+				err := path.EndpointB.SetChannelState(types.FLUSHING)
+				suite.Require().NoError(err)
+				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+			},
+			true,
+		},
+		{
+			"success: channel flush complete",
+			func() {
+				suite.coordinator.Setup(path)
+				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+				ack = ibcmock.MockAcknowledgement
+
+				err := path.EndpointB.SetChannelState(types.FLUSHCOMPLETE)
+				suite.Require().NoError(err)
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			},
 			true,

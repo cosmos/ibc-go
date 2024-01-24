@@ -21,13 +21,13 @@ Provide a way to programmatically create accounts on a destination blockchain (c
 
 ## Use cases
 
-### Injective <> Band Chain
+### Injective x Band Chain
 
 Currently, Injective sends an IBC transaction to Band Chain via their custom IBC oracle module, which is a data request. When this IBC packet is executed on Band Chain, validators on Band Chain fetch prices for 10 different markets. A random selection of validators will post this selection on-chain. Once a minimum quorum has been reached, an IBC packet is sent to Injective with the prices of markets. The roundtrip latency of this flow is around 30 seconds when things go well (no packet timeouts or delays in validation).
 
 However, Injective wants to minimise as much as possible the latency between real world price updates and price updates on Injective. They can simplify this two-transaction flow to a single transaction using Interchain Accounts: Injective opens an interchain account on Band Chain, which would be able to pay for a continuous set of update transactions and maintain a standing request for the prices of marke. This would simplify the transaction flow to a single transaction, and introduce a simple flow to update the standing request if necessary.
 
-### Umee <> Cosmos Hub
+### Umee x Cosmos Hub
 
 Users on the Hub would send their ATOM to Umee. In return, the user gets equivalent amount of meTokens (this token would be a form of a liquid staking token), which could then be staked on the Hub, in some other liquidity pool, etc, in addition to other business logic which Umee could perform on behalf of the users in return for the ATOM.
 

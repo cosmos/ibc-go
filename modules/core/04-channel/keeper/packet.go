@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"slices"
 	"strconv"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -74,25 +73,16 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
 	}
 
-	// check if packet is timed out on the receiving chain
 	latestHeight := clientState.GetLatestHeight()
-	if !timeoutHeight.IsZero() && latestHeight.GTE(timeoutHeight) {
-		return 0, errorsmod.Wrapf(
-			types.ErrPacketTimeout,
-			"receiving chain block height >= packet timeout height (%s >= %s)", latestHeight, timeoutHeight,
-		)
-	}
-
 	latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
 	if err != nil {
 		return 0, err
 	}
 
-	if packet.GetTimeoutTimestamp() != 0 && latestTimestamp >= packet.GetTimeoutTimestamp() {
-		return 0, errorsmod.Wrapf(
-			types.ErrPacketTimeout,
-			"receiving chain block timestamp >= packet timeout timestamp (%s >= %s)", time.Unix(0, int64(latestTimestamp)).UTC(), time.Unix(0, int64(packet.GetTimeoutTimestamp())).UTC(),
-		)
+	// check if packet is timed out on the receiving chain
+	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	if timeout.Elapsed(latestHeight.(clienttypes.Height), latestTimestamp) {
+		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight.(clienttypes.Height), latestTimestamp), "invalid packet timeout")
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)
@@ -128,25 +118,20 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING}, channel.State) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s], but got %s", types.OPEN, types.FLUSHING, channel.State)
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
 	}
 
 	// If counterpartyUpgrade is stored we need to ensure that the
-	// packet sequence is < counterparty next sequence send. This is a defensive
-	// check and if the counterparty is implemented correctly, this should never abort.
+	// packet sequence is < counterparty next sequence send. If the
+	// counterparty is implemented correctly, this may only occur
+	// when we are in FLUSHCOMPLETE and the counterparty has already
+	// completed the channel upgrade.
 	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if found {
-		// only error if the counterparty next sequence send is set (> 0)
-		// this error should never be reached, as under normal circumstances the counterparty
-		// should not send any packets after the upgrade has been started.
 		counterpartyNextSequenceSend := counterpartyUpgrade.NextSequenceSend
 		if packet.GetSequence() >= counterpartyNextSequenceSend {
-			return errorsmod.Wrapf(
-				types.ErrInvalidPacket,
-				"failed to receive packet, cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d). UNEXPECTED BEHAVIOUR ON COUNTERPARTY, PLEASE REPORT ISSUE TO RELEVANT CHAIN DEVELOPERS",
-				packet.GetSequence(), counterpartyNextSequenceSend,
-			)
+			return errorsmod.Wrapf(types.ErrInvalidPacket, "cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d).", packet.GetSequence(), counterpartyNextSequenceSend)
 		}
 	}
 
@@ -189,22 +174,11 @@ func (k Keeper) RecvPacket(
 		)
 	}
 
-	// check if packet timeouted by comparing it with the latest height of the chain
-	selfHeight := clienttypes.GetSelfHeight(ctx)
-	timeoutHeight := packet.GetTimeoutHeight()
-	if !timeoutHeight.IsZero() && selfHeight.GTE(timeoutHeight) {
-		return errorsmod.Wrapf(
-			types.ErrPacketTimeout,
-			"block height >= packet timeout height (%s >= %s)", selfHeight, timeoutHeight,
-		)
-	}
-
-	// check if packet timeouted by comparing it with the latest timestamp of the chain
-	if packet.GetTimeoutTimestamp() != 0 && uint64(ctx.BlockTime().UnixNano()) >= packet.GetTimeoutTimestamp() {
-		return errorsmod.Wrapf(
-			types.ErrPacketTimeout,
-			"block timestamp >= packet timeout timestamp (%s >= %s)", ctx.BlockTime(), time.Unix(0, int64(packet.GetTimeoutTimestamp())).UTC(),
-		)
+	// check if packet timed out by comparing it with the latest height of the chain
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	if timeout.Elapsed(selfHeight, selfTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)
@@ -218,9 +192,20 @@ func (k Keeper) RecvPacket(
 		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
 	}
 
+	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
+	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
+	// upgrade all packets under the recvStartSequence will have been processed and thus should be
+	// rejected.
+	recvStartSequence, _ := k.GetRecvStartSequence(ctx, packet.GetDestPort(), packet.GetDestChannel())
+	if packet.GetSequence() < recvStartSequence {
+		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
+	}
+
 	switch channel.Ordering {
 	case types.UNORDERED:
-		// check if the packet receipt has been received already for unordered channels
+		// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
+		// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
+		// by the increase of the recvStartSequence.
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
 			emitRecvPacketEvent(ctx, packet, channel)
@@ -233,7 +218,7 @@ func (k Keeper) RecvPacket(
 		// All verification complete, update state
 		// For unordered channels we must set the receipt so it can be verified on the other side.
 		// This receipt does not contain any data, since the packet has not yet been processed,
-		// it's just a single store key set to an empty string to indicate that the packet has been received
+		// it's just a single store key set to a single byte to indicate that the packet has been received
 		k.SetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 	case types.ORDERED:
@@ -254,6 +239,8 @@ func (k Keeper) RecvPacket(
 			return types.ErrNoOpMsg
 		}
 
+		// REPLAY PROTECTION: Ordered channels require packets to be received in a strict order.
+		// Any out of order or previously received packets are rejected.
 		if packet.GetSequence() != nextSequenceRecv {
 			return errorsmod.Wrapf(
 				types.ErrPacketSequenceOutOfOrder,
@@ -308,11 +295,8 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if !channel.IsOpen() {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelState,
-			"channel state is not OPEN (got %s)", channel.State.String(),
-		)
+	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s, %s], got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
 	}
 
 	// Authenticate capability to ensure caller has authority to receive packet on this channel

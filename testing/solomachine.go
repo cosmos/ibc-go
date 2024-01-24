@@ -286,18 +286,18 @@ func (solo *Solomachine) ConnOpenInit(chain *TestChain, clientID string) string 
 // ConnOpenAck performs the connection open ack handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ConnOpenAck(chain *TestChain, clientID, connectionID string) {
-	proofTry := solo.GenerateConnOpenTryProof(clientID, connectionID)
+	tryProof := solo.GenerateConnOpenTryProof(clientID, connectionID)
 
-	clientState := ibctm.NewClientState(chain.ChainID, DefaultTrustLevel, TrustingPeriod, UnbondingPeriod, MaxClockDrift, chain.LastHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), UpgradePath)
-	proofClient := solo.GenerateClientStateProof(clientState)
+	clientState := ibctm.NewClientState(chain.ChainID, DefaultTrustLevel, TrustingPeriod, UnbondingPeriod, MaxClockDrift, chain.LatestCommittedHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), UpgradePath)
+	clientProof := solo.GenerateClientStateProof(clientState)
 
-	consensusState := chain.LastHeader.ConsensusState()
-	consensusHeight := chain.LastHeader.GetHeight()
-	proofConsensus := solo.GenerateConsensusStateProof(consensusState, consensusHeight)
+	consensusState := chain.LatestCommittedHeader.ConsensusState()
+	consensusHeight := chain.LatestCommittedHeader.GetHeight()
+	consensusProof := solo.GenerateConsensusStateProof(consensusState, consensusHeight)
 
 	msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
 		connectionID, connectionIDSolomachine, clientState,
-		proofTry, proofClient, proofConsensus,
+		tryProof, clientProof, consensusProof,
 		clienttypes.ZeroHeight(), clientState.GetLatestHeight().(clienttypes.Height),
 		ConnectionVersion,
 		chain.SenderAccount.GetAddress().String(),
@@ -332,13 +332,13 @@ func (solo *Solomachine) ChanOpenInit(chain *TestChain, connectionID string) str
 // ChanOpenAck performs the channel open ack handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
-	proofTry := solo.GenerateChanOpenTryProof(transfertypes.PortID, transfertypes.Version, channelID)
+	tryProof := solo.GenerateChanOpenTryProof(transfertypes.PortID, transfertypes.Version, channelID)
 	msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 		transfertypes.PortID,
 		channelID,
 		channelIDSolomachine,
 		transfertypes.Version,
-		proofTry,
+		tryProof,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
 	)
@@ -351,11 +351,11 @@ func (solo *Solomachine) ChanOpenAck(chain *TestChain, channelID string) {
 // ChanCloseConfirm performs the channel close confirm handshake step on the tendermint chain for the associated
 // solo machine client.
 func (solo *Solomachine) ChanCloseConfirm(chain *TestChain, portID, channelID string) {
-	proofInit := solo.GenerateChanClosedProof(portID, transfertypes.Version, channelID)
+	initProof := solo.GenerateChanClosedProof(portID, transfertypes.Version, channelID)
 	msgChanCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(
 		portID,
 		channelID,
-		proofInit,
+		initProof,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
 		0, // use default value for channel that hasn't undergone an upgrade
@@ -409,11 +409,11 @@ func (solo *Solomachine) RecvPacket(chain *TestChain, packet channeltypes.Packet
 
 // AcknowledgePacket creates an acknowledgement proof and broadcasts a MsgAcknowledgement.
 func (solo *Solomachine) AcknowledgePacket(chain *TestChain, packet channeltypes.Packet) {
-	proofAck := solo.GenerateAcknowledgementProof(packet)
+	ackProof := solo.GenerateAcknowledgementProof(packet)
 	transferAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 	msgAcknowledgement := channeltypes.NewMsgAcknowledgement(
 		packet, transferAck,
-		proofAck,
+		ackProof,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
 	)
@@ -425,11 +425,11 @@ func (solo *Solomachine) AcknowledgePacket(chain *TestChain, packet channeltypes
 
 // TimeoutPacket creates a unreceived packet proof and broadcasts a MsgTimeout.
 func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Packet) {
-	proofUnreceived := solo.GenerateReceiptAbsenceProof(packet)
+	unreceivedProof := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeout(
 		packet,
 		1, // nextSequenceRecv is unused for UNORDERED channels
-		proofUnreceived,
+		unreceivedProof,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
 	)
@@ -441,13 +441,13 @@ func (solo *Solomachine) TimeoutPacket(chain *TestChain, packet channeltypes.Pac
 
 // TimeoutPacket creates a channel closed and unreceived packet proof and broadcasts a MsgTimeoutOnClose.
 func (solo *Solomachine) TimeoutPacketOnClose(chain *TestChain, packet channeltypes.Packet, channelID string) {
-	proofClosed := solo.GenerateChanClosedProof(transfertypes.PortID, transfertypes.Version, channelID)
-	proofUnreceived := solo.GenerateReceiptAbsenceProof(packet)
+	closedProof := solo.GenerateChanClosedProof(transfertypes.PortID, transfertypes.Version, channelID)
+	unreceivedProof := solo.GenerateReceiptAbsenceProof(packet)
 	msgTimeout := channeltypes.NewMsgTimeoutOnClose(
 		packet,
 		1, // nextSequenceRecv is unused for UNORDERED channels
-		proofUnreceived,
-		proofClosed,
+		unreceivedProof,
+		closedProof,
 		clienttypes.ZeroHeight(),
 		chain.SenderAccount.GetAddress().String(),
 		0, // use default value for channel that hasn't undergone an upgrade

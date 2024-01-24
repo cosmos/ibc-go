@@ -50,6 +50,11 @@ var (
 )
 
 var (
+	TestKey   = []byte("test-key")
+	TestValue = []byte("test-value")
+)
+
+var (
 	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
 	_ appmodule.AppModule   = (*AppModule)(nil)
 

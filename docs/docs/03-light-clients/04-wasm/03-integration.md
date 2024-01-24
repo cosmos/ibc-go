@@ -7,7 +7,7 @@ slug: /ibc/light-clients/wasm/integration
 
 # Integration
 
-Learn how to integrate the `08-wasm` module in a chain binary and about the recommended approaches depending on whether the [`x/wasm` module](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) is already used in the chain. The following document only applies for Cosmos SDK chains. {synopsis}
+Learn how to integrate the `08-wasm` module in a chain binary and about the recommended approaches depending on whether the [`x/wasm` module](https://github.com/CosmWasm/wasmd/tree/main/x/wasm) is already used in the chain. The following document only applies for Cosmos SDK chains. 
 
 ## `app.go` setup
 
@@ -307,7 +307,7 @@ app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
 
 ## Updating `AllowedClients`
 
-In order to use the `08-wasm` module chains must update the [`AllowedClients` parameter in the 02-client submodule](https://github.com/cosmos/ibc-go/blob/v8.0.0/proto/ibc/core/client/v1/client.proto#L64) of core IBC. This can be configured directly in the application upgrade handler with the sample code below:
+If the chain's 02-client submodule parameter `AllowedClients` contains the single wildcard `"*"` element, then it is not necessary to do anything in order to allow the creation of `08-wasm` clients. However, if the parameter contains a list of client types (e.g. `["06-solomachine", "07-tendermint"]`), then in order to use the `08-wasm` module chains must update the [`AllowedClients` parameter](https://github.com/cosmos/ibc-go/blob/v8.0.0/proto/ibc/core/client/v1/client.proto#L64) of core IBC. This can be configured directly in the application upgrade handler with the sample code below:
 
 ```go
 import (
