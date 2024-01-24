@@ -3,11 +3,13 @@ package keeper_test
 import (
 	"fmt"
 
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -626,8 +628,9 @@ func (suite *KeeperTestSuite) TestQueryUpgradedClientStates() {
 				)
 				suite.Require().NoError(err)
 
-				_, err = suite.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(suite.chainA.GetContext(), msg)
+				resp, err := suite.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
+				suite.Require().NotNil(resp)
 
 				expClientState = clientState.(*ibctm.ClientState)
 			},
@@ -650,17 +653,20 @@ func (suite *KeeperTestSuite) TestQueryUpgradedClientStates() {
 		{
 			"no upgraded client set in store",
 			func() {
-				suite.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(suite.chainA.GetContext(), upgradePlan)
+				err := suite.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(suite.chainA.GetContext(), upgradePlan)
+				suite.Require().NoError(err)
 			},
 			status.Error(codes.NotFound, "upgraded client not found"),
 		},
 		{
 			"invalid upgraded client state",
 			func() {
-				suite.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(suite.chainA.GetContext(), upgradePlan)
+				err := suite.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(suite.chainA.GetContext(), upgradePlan)
+				suite.Require().NoError(err)
 
 				bz := []byte{1, 2, 3}
-				suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), upgradePlan.Height, bz)
+				err = suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), upgradePlan.Height, bz)
+				suite.Require().NoError(err)
 			},
 			status.Error(codes.Internal, "proto: Any: illegal tag 0 (wire type 1)"),
 		},
