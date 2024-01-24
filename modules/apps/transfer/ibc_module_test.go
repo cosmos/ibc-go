@@ -98,7 +98,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 
 			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
 			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
-				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.GetVersion(),
+				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.Version,
 			)
 
 			if tc.expPass {

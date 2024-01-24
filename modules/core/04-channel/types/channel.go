@@ -44,11 +44,6 @@ func (ch Channel) GetConnectionHops() []string {
 	return ch.ConnectionHops
 }
 
-// GetVersion implements Channel interface.
-func (ch Channel) GetVersion() string {
-	return ch.Version
-}
-
 // IsOpen returns true if the channel state is OPEN
 func (ch Channel) IsOpen() bool {
 	return ch.State == OPEN
