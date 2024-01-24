@@ -29,11 +29,6 @@ func NewChannel(
 	}
 }
 
-// GetOrdering implements Channel interface.
-func (ch Channel) GetOrdering() int32 {
-	return int32(ch.Ordering)
-}
-
 // GetConnectionHops implements Channel interface.
 func (ch Channel) GetConnectionHops() []string {
 	return ch.ConnectionHops
