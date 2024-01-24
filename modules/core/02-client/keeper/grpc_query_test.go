@@ -595,7 +595,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryUpgradedClientStates() {
+func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
 	var (
 		req            *types.QueryUpgradedClientStateRequest
 		path           *ibctesting.Path
