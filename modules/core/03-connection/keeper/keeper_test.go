@@ -131,14 +131,14 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupConnections()
 			connection = path.EndpointA.GetConnection()
-			height = suite.chainB.LastHeader.GetHeight()
+			height = suite.chainB.LatestCommittedHeader.GetHeight()
 		}, true},
 		{"client state not found", func() {}, false},
 		{"consensus state not found", func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupConnections()
 			connection = path.EndpointA.GetConnection()
-			height = suite.chainB.LastHeader.GetHeight().Increment()
+			height = suite.chainB.LatestCommittedHeader.GetHeight().Increment()
 		}, false},
 	}
 
@@ -154,7 +154,7 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				suite.Require().EqualValues(uint64(suite.chainB.LastHeader.GetTime().UnixNano()), actualTimestamp)
+				suite.Require().EqualValues(uint64(suite.chainB.LatestCommittedHeader.GetTime().UnixNano()), actualTimestamp)
 			} else {
 				suite.Require().Error(err)
 			}

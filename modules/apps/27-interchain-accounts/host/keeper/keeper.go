@@ -16,6 +16,7 @@ import (
 	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -84,6 +85,15 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
 }
 
+// getConnectionID returns the connection id for the given port and channelIDs.
+func (k Keeper) getConnectionID(ctx sdk.Context, portID, channelID string) (string, error) {
+	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return "", errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+	return channel.ConnectionHops[0], nil
+}
+
 // setPort sets the provided portID in state.
 func (k Keeper) setPort(ctx sdk.Context, portID string) {
 	store := ctx.KVStore(k.storeKey)
@@ -142,7 +152,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 
-	if found && channel.IsOpen() {
+	if found && channel.State == channeltypes.OPEN {
 		return channelID, true
 	}
 

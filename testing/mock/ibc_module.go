@@ -136,6 +136,8 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 		panic(err)
 	}
 
+	ctx.EventManager().EmitEvent(NewMockRecvPacketEvent())
+
 	if bytes.Equal(MockPacketData, packet.GetData()) {
 		return MockAcknowledgement
 	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
@@ -158,6 +160,8 @@ func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes
 		panic(err)
 	}
 
+	ctx.EventManager().EmitEvent(NewMockAckPacketEvent())
+
 	return nil
 }
 
@@ -174,22 +178,24 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet,
 		panic(err)
 	}
 
+	ctx.EventManager().EmitEvent(NewMockTimeoutPacketEvent())
+
 	return nil
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
 	if im.IBCApp.OnChanUpgradeInit != nil {
-		return im.IBCApp.OnChanUpgradeInit(ctx, portID, channelID, order, connectionHops, version)
+		return im.IBCApp.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 	}
 
-	return version, nil
+	return proposedVersion, nil
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	if im.IBCApp.OnChanUpgradeTry != nil {
-		return im.IBCApp.OnChanUpgradeTry(ctx, portID, channelID, order, connectionHops, counterpartyVersion)
+		return im.IBCApp.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
 	}
 
 	return counterpartyVersion, nil
@@ -205,16 +211,9 @@ func (im IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counter
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
 	if im.IBCApp.OnChanUpgradeOpen != nil {
-		im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID, order, connectionHops, version)
-	}
-}
-
-// OnChanUpgradeRestore implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
-	if im.IBCApp.OnChanUpgradeRestore != nil {
-		im.IBCApp.OnChanUpgradeRestore(ctx, portID, channelID)
+		im.IBCApp.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 	}
 }
 

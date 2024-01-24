@@ -32,7 +32,7 @@ type IBCMiddleware struct {
   keeper keeper.Keeper
 }
 
-// NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
+// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
 func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
   return IBCMiddleware{
     app:    app,

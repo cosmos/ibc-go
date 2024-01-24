@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 			path := NewICAPath(suite.chainA, suite.chainB)
 			path.SetupConnections()
 
-			msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "")
+			msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", channeltypes.ORDERED)
 
 			tc.malleate()
 

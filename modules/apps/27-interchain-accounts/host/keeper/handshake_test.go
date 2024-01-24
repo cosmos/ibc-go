@@ -15,6 +15,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
+const (
+	differentConnectionID = "connection-100"
+)
+
 // open and close channel is a helper function for TestOnChanOpenTry for reopening accounts
 func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	err := path.EndpointB.ChanOpenTry()
@@ -92,6 +96,25 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			}, true,
 		},
 		{
+			"success - previous metadata is different",
+			func() {
+				// set the active channelID in state
+				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				// set the previous encoding to be proto3json.
+				// the new encoding is set to be protobuf in the test below.
+				metadata.Encoding = icatypes.EncodingProto3JSON
+
+				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
+				suite.Require().NoError(err)
+
+				channel.State = channeltypes.CLOSED
+				channel.Version = string(versionBytes)
+
+				path.EndpointB.SetChannel(*channel)
+			}, true,
+		},
+		{
 			"reopening account fails - no existing account",
 			func() {
 				// create interchain account
@@ -141,34 +164,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				err := suite.chainB.GetSimApp().BankKeeper.SendCoins(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), interchainAccAddr, sdk.Coins{sdk.NewCoin("stake", sdkmath.NewInt(1))})
 				suite.Require().NoError(err)
 				suite.Require().True(suite.chainB.GetSimApp().AccountKeeper.HasAccount(suite.chainB.GetContext(), interchainAccAddr))
-			},
-			false,
-		},
-		{
-			"invalid metadata - previous metadata is different",
-			func() {
-				// create a new channel and set it in state
-				ch := channeltypes.NewChannel(channeltypes.CLOSED, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointA.ConnectionID}, TestVersion)
-				suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, ch)
-
-				// set the active channelID in state
-				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
-
-				// attempt to downgrade version by reinitializing channel with version 1, but setting channel to version 2
-				metadata.Version = "ics27-2"
-
-				versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
-				suite.Require().NoError(err)
-
-				channel.Version = string(versionBytes)
-
-				path.EndpointB.SetChannel(*channel)
-			}, false,
-		},
-		{
-			"invalid order - UNORDERED",
-			func() {
-				channel.Ordering = channeltypes.UNORDERED
 			},
 			false,
 		},
@@ -264,7 +259,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			false,
 		},
 		{
-			"active channel already set",
+			"active channel already set (OPEN state)",
 			func() {
 				// create a new channel and set it in state
 				ch := channeltypes.NewChannel(channeltypes.OPEN, channeltypes.ORDERED, channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), []string{path.EndpointA.ConnectionID}, ibctesting.DefaultChannelVersion)
@@ -273,6 +268,23 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				// set the active channelID in state
 				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			}, false,
+		},
+		{
+			"channel is already active (FLUSHING state)",
+			func() {
+				suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointB.ChannelID)
+
+				counterparty := channeltypes.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				channel := channeltypes.Channel{
+					State:          channeltypes.FLUSHING,
+					Ordering:       channeltypes.ORDERED,
+					Counterparty:   counterparty,
+					ConnectionHops: []string{path.EndpointB.ConnectionID},
+					Version:        TestVersion,
+				}
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
+			},
+			false,
 		},
 	}
 
@@ -433,6 +445,15 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 		counterpartyVersion string
 	)
 
+	// updateMetadata is a helper function which modifies the metadata stored in the channel version
+	// and marshals it into a string to pass to OnChanUpgradeTry as the counterpartyVersion string.
+	updateMetadata := func(modificationFn func(*icatypes.Metadata)) {
+		metadata, err := icatypes.MetadataFromVersion(path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version)
+		suite.Require().NoError(err)
+		modificationFn(&metadata)
+		counterpartyVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+	}
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -444,11 +465,26 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 			nil,
 		},
 		{
+			name: "success: change order",
+			malleate: func() {
+				order = channeltypes.UNORDERED
+			},
+			expError: nil,
+		},
+		{
 			name: "failure: invalid port ID",
 			malleate: func() {
 				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
 			},
 			expError: porttypes.ErrInvalidPort,
+		},
+		{
+			name: "failure: invalid proposed connectionHops",
+			malleate: func() {
+				// connection hops is provided via endpoint connectionID
+				path.EndpointB.ConnectionID = differentConnectionID
+			},
+			expError: channeltypes.ErrInvalidUpgrade,
 		},
 		{
 			name: "failure: empty counterparty version",
@@ -476,37 +512,54 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 		{
 			name: "failure: metadata encoding not supported",
 			malleate: func() {
-				metadata.Encoding = "invalid-encoding-format"
-				counterpartyVersion = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Encoding = "invalid-encoding-format"
+				})
 			},
 			expError: icatypes.ErrInvalidCodec,
 		},
 		{
+			name: "failure: metadata tx type not supported",
+			malleate: func() {
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.TxType = "invalid-tx-type"
+				})
+			},
+			expError: icatypes.ErrUnknownDataType,
+		},
+		{
 			name: "failure: interchain account address has changed",
 			malleate: func() {
-				channel := path.EndpointB.GetChannel()
-				metadata.Address = "invalid address"
-				channel.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-				path.EndpointB.SetChannel(channel)
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.Address = TestOwnerAddress // use valid address
+				})
 			},
 			expError: icatypes.ErrInvalidAccountAddress,
 		},
 		{
-			name: "failure: invalid connection identifier",
+			name: "failure: controller connection ID has changed",
 			malleate: func() {
-				channel := path.EndpointB.GetChannel()
-				metadata.HostConnectionId = "invalid-connection-id"
-				channel.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-				path.EndpointB.SetChannel(channel)
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.ControllerConnectionId = differentConnectionID
+				})
 			},
-			expError: connectiontypes.ErrInvalidConnectionIdentifier,
+			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the controller connection identifier are unreachable
 		},
 		{
-			name: "failure: invalid order",
+			name: "failure: host connection ID has changed",
 			malleate: func() {
-				order = channeltypes.UNORDERED
+				updateMetadata(func(metadata *icatypes.Metadata) {
+					metadata.HostConnectionId = differentConnectionID
+				})
 			},
-			expError: channeltypes.ErrInvalidChannelOrdering,
+			expError: connectiontypes.ErrInvalidConnection, // the explicit checks on the host connection identifier are unreachable
+		},
+		{
+			name: "failure: channel not found",
+			malleate: func() {
+				path.EndpointB.ChannelID = "invalid-channel-id"
+			},
+			expError: channeltypes.ErrChannelNotFound,
 		},
 	}
 
