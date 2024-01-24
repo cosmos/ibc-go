@@ -136,6 +136,10 @@ The state will change to `FLUSHCOMPLETE` once there are no in-flight packets lef
 
 All other parameters will remain the same during the upgrade handshake until the upgrade handshake completes. When the channel is reset to `OPEN` on a successful upgrade handshake, the relevant fields on the channel end will be switched over to the `UpgradeFields` specified in the upgrade.
 
+> NOTE: due to the addition of new channel states, packets can still be received and processed in both `FLUSHING` and `FLUSHCOMPLETE` states.
+> Packets can also be acknowledged in the  `FLUSHING` state. Application developers should consider these new states
+> when implementing application logic that relies on the channel state.
+
 ## Cancelling a Channel Upgrade
 
 Channel upgrade cancellation is performed by submitting a `MsgChannelUpgradeCancel` message.
