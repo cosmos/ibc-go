@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 	}{
 		{"success: ORDERED", func() {
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 		}, true, false, false, false},
 		{"success: UNORDERED", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		}, true, false, false, false},
 		{"success: UNORDERED out of order packet", func() {
 			// setup uses an UNORDERED channel
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// attempts to receive packet with sequence 10 without receiving packet with sequence 1
 			for i := uint64(1); i < 10; i++ {
@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 			}
 		}, true, false, false, false},
 		{"success: OnRecvPacket callback returns revert=true", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockFailPacketData)
 			suite.Require().NoError(err)
@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		}, true, true, false, false},
 		{"success: ORDERED - async acknowledgement", func() {
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibcmock.MockAsyncPacketData)
 			suite.Require().NoError(err)
@@ -97,7 +97,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 			packet = channeltypes.NewPacket(ibcmock.MockAsyncPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 		}, true, false, true, false},
 		{"success: UNORDERED - async acknowledgement", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibcmock.MockAsyncPacketData)
 			suite.Require().NoError(err)
@@ -106,7 +106,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		}, true, false, true, false},
 		{"failure: ORDERED out of order packet", func() {
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// attempts to receive packet with sequence 10 without receiving packet with sequence 1
 			for i := uint64(1); i < 10; i++ {
@@ -121,13 +121,13 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 			suite.Require().NotNil(packet)
 		}, false, false, false, false},
 		{"packet not sent", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 		}, false, false, false, false},
 		{"successful no-op: ORDERED - packet already received (replay)", func() {
 			// mock will panic if application callback is called twice on the same packet
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -138,7 +138,7 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		}, true, false, false, true},
 		{"successful no-op: UNORDERED - packet already received (replay)", func() {
 			// mock will panic if application callback is called twice on the same packet
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -257,12 +257,12 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			suite.SetupTest()
 
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(subjectPath)
+			subjectPath.SetupClients()
 			subject := subjectPath.EndpointA.ClientID
 			subjectClientState := suite.chainA.GetClientState(subject)
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(substitutePath)
+			substitutePath.SetupClients()
 			substitute := substitutePath.EndpointA.ClientID
 
 			// update substitute twice
@@ -317,7 +317,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 	}{
 		{"success: ORDERED", func() {
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -327,7 +327,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 			suite.Require().NoError(err)
 		}, true, false},
 		{"success: UNORDERED", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -338,7 +338,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 		}, true, false},
 		{"success: UNORDERED acknowledge out of order packet", func() {
 			// setup uses an UNORDERED channel
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// attempts to acknowledge ack with sequence 10 without acknowledging ack with sequence 1 (removing packet commitment)
 			for i := uint64(1); i < 10; i++ {
@@ -352,7 +352,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 		}, true, false},
 		{"failure: ORDERED acknowledge out of order packet", func() {
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// attempts to acknowledge ack with sequence 10 without acknowledging ack with sequence 1 (removing packet commitment
 			for i := uint64(1); i < 10; i++ {
@@ -369,7 +369,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 			suite.Require().NotNil(packet)
 		}, false, false},
 		{"packet not received", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -377,7 +377,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 		}, false, false},
 		{"successful no-op: ORDERED - packet already acknowledged (replay)", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -390,7 +390,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 			suite.Require().NoError(err)
 		}, true, true},
 		{"successful no-op: UNORDERED - packet already acknowledged (replay)", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
@@ -474,7 +474,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 	}{
 		{"success: ORDERED", func() {
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
@@ -491,7 +491,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 			packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 		}, true, false},
 		{"success: UNORDERED", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
@@ -509,7 +509,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 		}, true, false},
 		{"success: UNORDERED timeout out of order packet", func() {
 			// setup uses an UNORDERED channel
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// attempts to timeout the last packet sent without timing out the first packet
 			// packet sequences begin at 1
@@ -530,7 +530,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 		}, true, false},
 		{"success: ORDERED timeout out of order packet", func() {
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// attempts to timeout the last packet sent without timing out the first packet
 			// packet sequences begin at 1
@@ -556,8 +556,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 			packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 		}, false, false},
 		{"successful no-op: UNORDERED - packet not sent", func() {
-			suite.coordinator.Setup(path)
-
+			path.Setup()
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 1), 0)
 			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		}, true, true},
@@ -633,7 +632,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 	}{
 		{"success: ORDERED", func() {
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// create packet commitment
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
@@ -651,7 +650,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			suite.Require().NoError(err)
 		}, true},
 		{"success: UNORDERED", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// create packet commitment
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
@@ -670,7 +669,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 		}, true},
 		{"success: UNORDERED timeout out of order packet", func() {
 			// setup uses an UNORDERED channel
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// attempts to timeout the last packet sent without timing out the first packet
 			// packet sequences begin at 1
@@ -693,7 +692,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 		}, true},
 		{"success: ORDERED timeout out of order packet", func() {
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// attempts to timeout the last packet sent without timing out the first packet
 			// packet sequences begin at 1
@@ -721,7 +720,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 		}, false},
 		{"successful no-op: UNORDERED - packet not sent", func() {
-			suite.coordinator.Setup(path)
+			path.Setup()
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 1), 0)
 			packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
@@ -731,7 +730,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 		}, true},
 		{"ORDERED: channel not closed", func() {
 			path.SetChannelOrdered()
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// create packet commitment
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
@@ -875,7 +874,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	for _, tc := range cases {
 		tc := tc
 		path = ibctesting.NewPath(suite.chainA, suite.chainB)
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 
 		var err error
 		clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
@@ -974,7 +973,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				msg = channeltypes.NewMsgChannelUpgradeInit(
 					path.EndpointA.ChannelConfig.PortID,
@@ -1033,7 +1032,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1151,7 +1150,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
@@ -1199,7 +1198,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1445,7 +1444,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
@@ -1503,7 +1502,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1598,7 +1597,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			"success, pending in-flight packets on init chain",
 			func() {
 				path = ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1784,7 +1783,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
@@ -1804,7 +1803,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -1971,7 +1970,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 				path.EndpointA.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 				path.EndpointB.ChannelConfig.PortID = ibcmock.MockBlockUpgrade
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				msg.PortId = path.EndpointB.ChannelConfig.PortID
 				msg.ChannelId = path.EndpointB.ChannelID
@@ -1991,7 +1990,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -2340,7 +2339,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -2506,7 +2505,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTimeout() {
 			suite.SetupTest()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
@@ -2578,7 +2577,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 			validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 			plan := upgradetypes.Plan{
 				Name:   "upgrade IBC clients",
@@ -2805,7 +2804,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			suite.SetupTest()
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version on testing endpoints
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion
