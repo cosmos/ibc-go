@@ -83,7 +83,7 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !channel.IsOpen() {
+	if channel.State != types.OPEN {
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
@@ -310,7 +310,7 @@ func (k Keeper) ChanUpgradeAck(
 	// in the crossing hello case, we do not modify version that our TRY call returned and instead enforce
 	// that both TRY calls returned the same version. It is possible that this will fail in the OnChanUpgradeAck
 	// callback if the version is invalid.
-	if channel.IsOpen() {
+	if channel.State == types.OPEN {
 		upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 	}
 
@@ -319,7 +319,7 @@ func (k Keeper) ChanUpgradeAck(
 		return types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
-	if channel.IsOpen() {
+	if channel.State == types.OPEN {
 		if err := k.startFlushing(ctx, portID, channelID, &upgrade); err != nil {
 			return err
 		}
@@ -347,8 +347,10 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	}
 
 	if !k.HasInflightPackets(ctx, portID, channelID) {
+		previousState := channel.State
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
+		k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -361,7 +363,6 @@ func (k Keeper) WriteUpgradeAckChannel(ctx sdk.Context, portID, channelID string
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State.String())
 	return channel, upgrade
 }
 
@@ -472,6 +473,7 @@ func (k Keeper) ChanUpgradeOpen(
 	portID,
 	channelID string,
 	counterpartyChannelState types.State,
+	counterpartyUpgradeSequence uint64,
 	channelProof []byte,
 	proofHeight clienttypes.Height,
 ) error {
@@ -510,13 +512,21 @@ func (k Keeper) ChanUpgradeOpen(
 			return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(upgradeConnection.GetState()).String())
 		}
 
+		// The counterparty upgrade sequence must be greater than or equal to
+		// the channel upgrade sequence. It should normally be equivalent, but
+		// in the unlikely case a new upgrade is initiated after it reopens,
+		// then the upgrade sequence will be greater than our upgrade sequence.
+		if counterpartyUpgradeSequence < channel.UpgradeSequence {
+			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "counterparty channel upgrade sequence (%d) must be greater than or equal to current upgrade sequence (%d)", counterpartyUpgradeSequence, channel.UpgradeSequence)
+		}
+
 		counterpartyChannel = types.Channel{
 			State:           types.OPEN,
 			Ordering:        upgrade.Fields.Ordering,
 			ConnectionHops:  []string{upgradeConnection.GetCounterparty().GetConnectionID()},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         upgrade.Fields.Version,
-			UpgradeSequence: channel.UpgradeSequence,
+			UpgradeSequence: counterpartyUpgradeSequence,
 		}
 
 	case types.FLUSHCOMPLETE:
@@ -628,7 +638,17 @@ func (k Keeper) ChanUpgradeCancel(ctx sdk.Context, portID, channelID string, err
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty error receipt proof unless the sender is authorized to cancel upgrades AND channel is not in FLUSHCOMPLETE")
 	}
 
-	// the error receipt should also have a sequence greater than or equal to the current upgrade sequence.
+	// REPLAY PROTECTION: The error receipt MUST have a sequence greater than or equal to the current upgrade sequence,
+	// except when the channel state is FLUSHCOMPLETE, in which case the sequences MUST match. This is required
+	// to guarantee that when a counterparty successfully completes an upgrade and moves to OPEN, this channel
+	// cannot cancel its upgrade.  Without this strict sequence check, it would be possible for the counterparty
+	// to complete its upgrade, move to OPEN, initiate a new upgrade (and thus increment the upgrade sequence) and
+	// then cancel the new upgrade, all in the same block. This results in a valid error receipt being written at channel.UpgradeSequence + 1.
+	// The desired behaviour in this circumstance is for this channel to complete its current upgrade despite proof
+	// of an error receipt at a greater upgrade sequence
+	if channel.State == types.FLUSHCOMPLETE && errorReceipt.Sequence != channel.UpgradeSequence {
+		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be equal to current upgrade sequence (%d) when the channel is in FLUSHCOMPLETE", errorReceipt.Sequence, channel.UpgradeSequence)
+	}
 	if errorReceipt.Sequence < channel.UpgradeSequence {
 		return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "error receipt sequence (%d) must be greater than or equal to current upgrade sequence (%d)", errorReceipt.Sequence, channel.UpgradeSequence)
 	}
