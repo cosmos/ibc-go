@@ -1802,6 +1802,52 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			},
 		},
 		{
+			"success with counterparty at greater upgrade sequence",
+			func() {
+				// create reason to upgrade
+				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibcmock.UpgradeVersion + "additional upgrade"
+
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+
+				err = path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				counterpartyChannel := path.EndpointB.GetChannel()
+				channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
+				channelProof, proofHeight := path.EndpointB.QueryProof(channelKey)
+
+				msg.ProofChannel = channelProof
+				msg.ProofHeight = proofHeight
+				msg.CounterpartyUpgradeSequence = counterpartyChannel.UpgradeSequence
+			},
+			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(channeltypes.OPEN, channel.State)
+
+				expEvents := ibctesting.EventsMap{
+					channeltypes.EventTypeChannelUpgradeOpen: {
+						channeltypes.AttributeKeyPortID:             path.EndpointA.ChannelConfig.PortID,
+						channeltypes.AttributeKeyChannelID:          path.EndpointA.ChannelID,
+						channeltypes.AttributeCounterpartyPortID:    path.EndpointB.ChannelConfig.PortID,
+						channeltypes.AttributeCounterpartyChannelID: path.EndpointB.ChannelID,
+						channeltypes.AttributeKeyChannelState:       channeltypes.OPEN.String(),
+						channeltypes.AttributeKeyConnectionHops:     channel.ConnectionHops[0],
+						channeltypes.AttributeKeyVersion:            channel.Version,
+						channeltypes.AttributeKeyOrdering:           channel.Ordering.String(),
+						channeltypes.AttributeKeyUpgradeSequence:    fmt.Sprintf("%d", channel.UpgradeSequence),
+					},
+					sdk.EventTypeMessage: {
+						sdk.AttributeKeyModule: channeltypes.AttributeValueCategory,
+					},
+				}
+				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+			},
+		},
+		{
 			"module capability not found",
 			func() {
 				msg.PortId = ibctesting.InvalidID
@@ -1879,16 +1925,17 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 			suite.Require().NoError(err)
 
 			counterpartyChannel := path.EndpointB.GetChannel()
-			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			channelProof, proofHeight := path.EndpointB.QueryProof(channelKey)
 
 			msg = &channeltypes.MsgChannelUpgradeOpen{
-				PortId:                   path.EndpointA.ChannelConfig.PortID,
-				ChannelId:                path.EndpointA.ChannelID,
-				CounterpartyChannelState: counterpartyChannel.State,
-				ProofChannel:             channelProof,
-				ProofHeight:              proofHeight,
-				Signer:                   suite.chainA.SenderAccount.GetAddress().String(),
+				PortId:                      path.EndpointA.ChannelConfig.PortID,
+				ChannelId:                   path.EndpointA.ChannelID,
+				CounterpartyChannelState:    counterpartyChannel.State,
+				CounterpartyUpgradeSequence: counterpartyChannel.UpgradeSequence,
+				ProofChannel:                channelProof,
+				ProofHeight:                 proofHeight,
+				Signer:                      suite.chainA.SenderAccount.GetAddress().String(),
 			}
 
 			tc.malleate()
