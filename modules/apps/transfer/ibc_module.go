@@ -347,9 +347,6 @@ func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpar
 func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
 }
 
-// OnChanUpgradeRestore implements the IBCModule interface
-func (IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {}
-
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
