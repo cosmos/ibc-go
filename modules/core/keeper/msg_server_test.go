@@ -2771,7 +2771,7 @@ func (suite *KeeperTestSuite) TestUpdateChannelParams() {
 				suite.Require().Equal(tc.msg.Params, p)
 			} else {
 				suite.Require().Nil(resp)
-				suite.Require().ErrorIs(tc.expError, err)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
