@@ -336,6 +336,8 @@ func (k Keeper) ChanOpenConfirm(
 		counterpartyHops, channel.Version,
 	)
 
+	// NOTE: If the counterparty has initialized an upgrade in the same block as performing the
+	// ACK handshake step, this channel end will be incapable of opening.
 	return k.connectionKeeper.VerifyChannelState(
 		ctx, connectionEnd, proofHeight, ackProof,
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
@@ -385,7 +387,7 @@ func (k Keeper) ChanCloseInit(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if channel.IsClosed() {
+	if channel.State == types.CLOSED {
 		return errorsmod.Wrap(types.ErrInvalidChannelState, "channel is already CLOSED")
 	}
 
@@ -459,7 +461,7 @@ func (k Keeper) ChanCloseConfirmWithCounterpartyUpgradeSequence(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if channel.IsClosed() {
+	if channel.State == types.CLOSED {
 		return errorsmod.Wrap(types.ErrInvalidChannelState, "channel is already CLOSED")
 	}
 

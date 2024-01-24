@@ -709,6 +709,7 @@ func (endpoint *Endpoint) ChanUpgradeOpen() error {
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
 		endpoint.Counterparty.GetChannel().State,
+		endpoint.Counterparty.GetChannel().UpgradeSequence,
 		channelProof,
 		height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
