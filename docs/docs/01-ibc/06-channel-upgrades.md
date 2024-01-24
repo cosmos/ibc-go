@@ -136,13 +136,12 @@ The state will change to `FLUSHCOMPLETE` once there are no in-flight packets lef
 
 All other parameters will remain the same during the upgrade handshake until the upgrade handshake completes. When the channel is reset to `OPEN` on a successful upgrade handshake, the relevant fields on the channel end will be switched over to the `UpgradeFields` specified in the upgrade.
 
-:::note
+:::warning
 
 Due to the addition of new channel states, packets can still be received and processed in both `FLUSHING` and `FLUSHCOMPLETE` states.
-Packets can also be acknowledged in the  `FLUSHING` state. Acknowledging will **not** be possible when the channel is in the `FLUSHCOMPLETE` state.
+Packets can also be acknowledged in the  `FLUSHING` state. Acknowledging will **not** be possible when the channel is in the `FLUSHCOMPLETE` state, since all packets sent from that channel end have been flushed.
 Application developers should consider these new states when implementing application logic that relies on the channel state.
-It is still only possible to send packets when the channel is in the `OPEN` state.
-Should we explicitly add that acknowledging will not be possible in `FLUSHCOMPLETE`, since all the packets sent from that channel end should have been flushed?
+It is still only possible to send packets when the channel is in the `OPEN` state, but sending is disallowed when the channel enters `FLUSHING` and `FLUSHCOMPLETE`. When the channel reopens, sending will be possible again.
 
 :::
 
