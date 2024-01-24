@@ -11,12 +11,12 @@ import (
 )
 
 func (suite *TendermintTestSuite) TestGetHeight() {
-	header := suite.chainA.LastHeader
+	header := suite.chainA.LatestCommittedHeader
 	suite.Require().NotEqual(uint64(0), header.GetHeight())
 }
 
 func (suite *TendermintTestSuite) TestGetTime() {
-	header := suite.chainA.LastHeader
+	header := suite.chainA.LatestCommittedHeader
 	suite.Require().NotEqual(time.Time{}, header.GetTime())
 }
 
@@ -38,7 +38,7 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 			header.SignedHeader.Commit.Height = -1
 		}, false},
 		{"signed header failed tendermint ValidateBasic", func() {
-			header = suite.chainA.LastHeader
+			header = suite.chainA.LatestCommittedHeader
 			header.SignedHeader.Commit = nil
 		}, false},
 		{"trusted height is equal to header height", func() {
@@ -52,7 +52,7 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 		}, false},
 		{"header validator hash does not equal hash of validator set", func() {
 			// use chainB's randomly generated validator set
-			header.ValidatorSet = suite.chainB.LastHeader.ValidatorSet
+			header.ValidatorSet = suite.chainB.LatestCommittedHeader.ValidatorSet
 		}, false},
 	}
 
@@ -64,7 +64,7 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			header = suite.chainA.LastHeader // must be explicitly changed in malleate
+			header = suite.chainA.LatestCommittedHeader // must be explicitly changed in malleate
 
 			tc.malleate()
 

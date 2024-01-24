@@ -166,14 +166,6 @@ func (ClientState) VerifyConnectionState(
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
-// VerifyChannelState panics!
-func (ClientState) VerifyChannelState(
-	storetypes.KVStore, codec.BinaryCodec, exported.Height, exported.Prefix,
-	[]byte, string, string, exported.ChannelI,
-) error {
-	panic(errors.New("legacy solo machine is deprecated"))
-}
-
 // VerifyPacketCommitment panics!
 func (ClientState) VerifyPacketCommitment(
 	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,

@@ -59,5 +59,5 @@ var (
 	ErrTimeoutNotReached               = errorsmod.Register(SubModuleName, 39, "timeout not reached")
 	ErrTimeoutElapsed                  = errorsmod.Register(SubModuleName, 40, "timeout elapsed")
 	ErrPruningSequenceStartNotFound    = errorsmod.Register(SubModuleName, 41, "pruning sequence start not found")
-	ErrPruningSequenceEndNotFound      = errorsmod.Register(SubModuleName, 42, "pruning sequence end not found")
+	ErrRecvStartSequenceNotFound       = errorsmod.Register(SubModuleName, 42, "recv start sequence not found")
 )

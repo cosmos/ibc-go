@@ -580,7 +580,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 				// Assert that PruneSequenceStart and PruneSequenceEnd are both set to 1.
 				start, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceStart(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
-				end, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceEnd(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				end, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetRecvStartSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 
 				suite.Require().Equal(uint64(1), start)
@@ -600,7 +600,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			},
 			func() {},
 			func(pruned, left uint64) {
-				sequenceEnd, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceEnd(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				sequenceEnd, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetRecvStartSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 
 				// We expect nothing to be left and sequenceStart == sequenceEnd.
@@ -672,7 +672,7 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 				limit = 15
 			},
 			func(pruned, left uint64) {
-				sequenceEnd, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPruningSequenceEnd(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				sequenceEnd, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetRecvStartSequence(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found)
 
 				// We expect nothing to be left and sequenceStart == sequenceEnd.
@@ -825,10 +825,10 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 			func() {},
 			func() {
 				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(exported.StoreKey))
-				store.Delete(host.PruningSequenceEndKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
+				store.Delete(host.RecvStartSequenceKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
 			func(_, _ uint64) {},
-			types.ErrPruningSequenceEndNotFound,
+			types.ErrRecvStartSequenceNotFound,
 		},
 	}
 

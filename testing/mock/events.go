@@ -3,6 +3,7 @@ package mock
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 const (
+	MockEventType              = "mock-event-type"
 	MockEventTypeRecvPacket    = "mock-recv-packet"
 	MockEventTypeAckPacket     = "mock-ack-packet"
 	MockEventTypeTimeoutPacket = "mock-timeout"
