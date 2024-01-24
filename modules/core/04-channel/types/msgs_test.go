@@ -1576,6 +1576,14 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 			errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", types.FLUSHCOMPLETE, types.OPEN, types.CLOSED),
 		},
 		{
+			"invalid counterparty upgrade seqeuence",
+			func() {
+				msg.CounterpartyUpgradeSequence = 0
+			},
+			errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "counterparty upgrade sequence must be non-zero"),
+		},
+
+		{
 			"cannot submit an empty channel proof",
 			func() {
 				msg.ProofChannel = emptyProof
@@ -1596,7 +1604,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 		suite.Run(tc.name, func() {
 			msg = types.NewMsgChannelUpgradeOpen(
 				ibctesting.MockPort, ibctesting.FirstChannelID,
-				types.FLUSHCOMPLETE, suite.proof,
+				types.FLUSHCOMPLETE, 1, suite.proof,
 				height, addr,
 			)
 
