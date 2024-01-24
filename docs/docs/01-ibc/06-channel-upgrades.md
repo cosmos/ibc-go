@@ -70,6 +70,10 @@ As part of the handling of the `MsgChannelUpgradeInit` message, the application'
 
 After this message is handled successfully, the channel's upgrade sequence will be incremented. This upgrade sequence will serve as a nonce for the upgrade process to provide replay protection.
 
+::: warning
+Initiating an upgrade in the same block as opening a channel may potentially prevent the counterparty channel from also opening. 
+:::
+
 ### Governance gating on `ChanUpgradeInit`
 
 The message signer for `MsgChannelUpgradeInit` must be the address which has been designated as the `authority` of the `IBCKeeper`. If this proposal passes, the counterparty's channel will upgrade by default.
@@ -241,7 +245,8 @@ simd tx ibc channel prune-acknowledgements [port] [channel] [limit]
 
 ## IBC App Recommendations
 
-IBC application callbacks should be primarily used to validate data fields and do compatibility checks.
+IBC application callbacks should be primarily used to validate data fields and do compatibility checks. Application developers
+should be aware that callbacks will be invoked before any core ibc state changes are written.
 
 `OnChanUpgradeInit` should validate the proposed version, order, and connection hops, and should return the application version to upgrade to.
 
