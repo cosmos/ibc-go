@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-The IBC module was originally developed in the Cosmos SDK and released during with the Stargate release series (v0.42).
+The IBC module was originally developed in the Cosmos SDK and released during the Stargate release series (v0.42).
 It was subsequently migrated to its own repository, ibc-go.
 The first official release on ibc-go was v1.0.0.
 v1.0.0 was decided to be used instead of v0.1.0 primarily for the following reasons:
@@ -74,7 +74,7 @@ This prevents the Go module version from being incremented with breaking changes
 It also requires all extended functions to live in the same Go module, disrupting the existing code structure.
 
 The version that implements this change will still be incompatible with previous versions, but future versions could be imported together without namespace collisions.
-For example, lets say this solution is implemented in v3. Then
+For example, let's say this solution is implemented in v3. Then
 
 `github.com/cosmos/ibc-go/v2` cannot be imported with any other ibc-go version
 

@@ -24,11 +24,11 @@ ignite chain serve --reset-once
 
 Once it is running quit by pressing `q`. This blockchain comes with Cosmos SDK `v0.47.3` and IBC-Go `v7.1.0`. We can update Cosmos SDK to its latest patch version and update IBC-Go to its latest minor version by running these two commands.
 
-<CodeBlock className="language-bash" title=<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/tree/88e2fa73c833523cba2122d4b2a41eb8e3b8d86e">View Source</a>>
+<CodeBlock className="language-bash" title={<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/tree/88e2fa73c833523cba2122d4b2a41eb8e3b8d86e">View Source</a>}>
 go get github.com/cosmos/cosmos-sdk@v0.47.5 && go mod tidy
 </CodeBlock>
 
-<CodeBlock className="language-bash" title=<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/tree/2e2c2a3b8e13fd5e23c3b59894438494af6fc32a">View Source</a>>
+<CodeBlock className="language-bash" title={<a href="https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/tree/2e2c2a3b8e13fd5e23c3b59894438494af6fc32a">View Source</a>}>
 go get github.com/cosmos/ibc-go/v7@v7.3.0 && go mod tidy
 </CodeBlock>
 

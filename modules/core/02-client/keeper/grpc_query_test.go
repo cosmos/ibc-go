@@ -164,7 +164,6 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()

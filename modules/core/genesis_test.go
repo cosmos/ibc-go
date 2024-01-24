@@ -57,7 +57,7 @@ func TestIBCTestSuite(t *testing.T) {
 }
 
 func (suite *IBCTestSuite) TestValidateGenesis() {
-	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)), suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
+	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.ProposedHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.ProposedHeader.Height-1)), suite.chainA.ProposedHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
 	testCases := []struct {
 		name     string
@@ -142,6 +142,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 						channeltypes.NewPacketSequence(port2, channel2, 1),
 					},
 					0,
+					channeltypes.Params{UpgradeTimeout: channeltypes.DefaultTimeout},
 				),
 			},
 			expPass: true,
@@ -217,7 +218,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 }
 
 func (suite *IBCTestSuite) TestInitGenesis() {
-	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)), suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
+	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.ProposedHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.ProposedHeader.Height-1)), suite.chainA.ProposedHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
 	testCases := []struct {
 		name     string
@@ -300,6 +301,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 						channeltypes.NewPacketSequence(port2, channel2, 1),
 					},
 					0,
+					channeltypes.Params{UpgradeTimeout: channeltypes.DefaultTimeout},
 				),
 			},
 		},

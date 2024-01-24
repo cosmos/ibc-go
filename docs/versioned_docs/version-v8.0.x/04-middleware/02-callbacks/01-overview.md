@@ -7,7 +7,7 @@ slug: /middleware/callbacks/overview
 
 # Overview
 
-Learn about what the Callbacks Middleware is, and how to build custom modules that utilize the Callbacks Middleware functionality {synopsis}
+Learn about what the Callbacks Middleware is, and how to build custom modules that utilize the Callbacks Middleware functionality 
 
 ## What is the Callbacks Middleware?
 

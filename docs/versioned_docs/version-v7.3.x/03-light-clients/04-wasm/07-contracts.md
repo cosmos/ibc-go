@@ -7,7 +7,7 @@ slug: /ibc/light-clients/wasm/contracts
 
 # Contracts
 
-Learn about the expected behaviour of Wasm light client contracts and the between with `08-wasm`. {synopsis}
+Learn about the expected behaviour of Wasm light client contracts and the between with `08-wasm`. 
 
 ## API
 
