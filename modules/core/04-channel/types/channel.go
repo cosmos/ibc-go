@@ -29,11 +29,6 @@ func NewChannel(
 	}
 }
 
-// GetConnectionHops implements Channel interface.
-func (ch Channel) GetConnectionHops() []string {
-	return ch.ConnectionHops
-}
-
 // IsOpen returns true if the channel state is OPEN
 func (ch Channel) IsOpen() bool {
 	return ch.State == OPEN

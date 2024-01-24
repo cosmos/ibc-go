@@ -97,7 +97,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			tc.malleate() // explicitly change fields in channel and testChannel
 
 			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
-			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.Version,
 			)
 
@@ -188,7 +188,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, counterpartyVersion,
 			)
 
