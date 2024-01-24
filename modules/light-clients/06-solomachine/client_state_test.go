@@ -246,7 +246,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: connection state verification",
 				func() {
-					suite.coordinator.SetupConnections(testingPath)
+					testingPath.SetupConnections()
 
 					connectionEnd, found := suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetConnection(suite.chainA.GetContext(), ibctesting.FirstConnectionID)
 					suite.Require().True(found)
@@ -285,7 +285,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: channel state verification",
 				func() {
-					suite.coordinator.SetupConnections(testingPath)
+					testingPath.SetupConnections()
 					suite.coordinator.CreateMockChannels(testingPath)
 
 					channelEnd, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetChannel(suite.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
@@ -325,7 +325,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 			{
 				"success: next sequence recv verification",
 				func() {
-					suite.coordinator.SetupConnections(testingPath)
+					testingPath.SetupConnections()
 					suite.coordinator.CreateMockChannels(testingPath)
 
 					nextSeqRecv, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextSequenceRecv(suite.chainA.GetContext(), ibctesting.MockPort, ibctesting.FirstChannelID)
@@ -836,7 +836,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 
 func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 	tmPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(tmPath)
+	tmPath.SetupClients()
 	// Single setup for all test cases.
 	suite.SetupTest()
 

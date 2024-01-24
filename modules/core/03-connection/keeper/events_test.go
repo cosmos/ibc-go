@@ -11,7 +11,7 @@ import (
 func (suite *KeeperTestSuite) TestMsgConnectionOpenInitEvents() {
 	suite.SetupTest()
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	msg := types.NewMsgConnectionOpenInit(
 		path.EndpointA.ClientID,
@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenInitEvents() {
 func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
 	suite.SetupTest()
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	suite.Require().NoError(path.EndpointA.ConnOpenInit())
 
@@ -81,7 +81,7 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
 func (suite *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
 	suite.SetupTest()
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	suite.Require().NoError(path.EndpointA.ConnOpenInit())
 	suite.Require().NoError(path.EndpointB.ConnOpenTry())
@@ -121,7 +121,7 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
 func (suite *KeeperTestSuite) TestMsgConnectionOpenConfirmEvents() {
 	suite.SetupTest()
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	suite.Require().NoError(path.EndpointA.ConnOpenInit())
 	suite.Require().NoError(path.EndpointB.ConnOpenTry())

@@ -311,7 +311,7 @@ func (suite KeeperTestSuite) TestGetConsensusState() { //nolint:govet // this is
 // and a consensus state at the update height.
 func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // this is a test, we are okay with copying locks
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	clientState := path.EndpointA.GetClientState()
 	expConsensusHeight0 := clientState.GetLatestHeight()
@@ -335,7 +335,7 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() { //nolint:govet // thi
 
 	// create second client on chainA
 	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path2)
+	path2.SetupClients()
 	clientState = path2.EndpointA.GetClientState()
 
 	expConsensusHeight2 := clientState.GetLatestHeight()
@@ -377,7 +377,7 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 
 	// create tendermint clients
 	for i, path := range paths {
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 		expTMClientIDs[i] = path.EndpointA.ClientID
 	}
 
@@ -530,7 +530,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 			oldPlan.Height = 0 // reset
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 			upgradedClientState = suite.chainA.GetClientState(path.EndpointA.ClientID).ZeroCustomFields().(*ibctm.ClientState)
 
 			// use height 1000 to distinguish from old plan
