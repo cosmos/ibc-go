@@ -890,6 +890,11 @@ func (k Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgCh
 	cacheCtx, _ := ctx.CacheContext()
 	err = cbs.OnChanUpgradeAck(cacheCtx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade.Fields.Version)
 	if err != nil {
+		channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
+		if !found {
+			return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "channel not found for port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
+		}
+
 		ctx.Logger().Error("channel upgrade ack callback failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", err.Error())
 
 		// explicitly wrap the application callback in an upgrade error with the correct upgrade sequence.
