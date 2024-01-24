@@ -217,13 +217,6 @@ func (im IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string,
 	}
 }
 
-// OnChanUpgradeRestore implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeRestore(ctx sdk.Context, portID, channelID string) {
-	if im.IBCApp.OnChanUpgradeRestore != nil {
-		im.IBCApp.OnChanUpgradeRestore(ctx, portID, channelID)
-	}
-}
-
 // UnmarshalPacketData returns the MockPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
