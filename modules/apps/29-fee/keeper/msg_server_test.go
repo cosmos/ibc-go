@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 		tc := tc
 
 		suite.SetupTest()
-		suite.coordinator.Setup(suite.path)
+		suite.path.Setup()
 
 		msg = types.NewMsgRegisterPayee(
 			suite.path.EndpointA.ChannelConfig.PortID,
@@ -136,7 +136,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterpartyPayee() {
 		tc := tc
 
 		suite.SetupTest()
-		suite.coordinator.Setup(suite.path) // setup channel
+		suite.path.Setup() // setup channel
 
 		expCounterpartyPayee = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress().String()
 		msg = types.NewMsgRegisterCounterpartyPayee(
@@ -303,7 +303,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path) // setup channel
+			suite.path.Setup() // setup channel
 
 			fee = types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 			msg = types.NewMsgPayPacketFee(
@@ -515,7 +515,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path) // setup channel
+			suite.path.Setup() // setup channel
 
 			timeoutHeight := clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), 100)
 
