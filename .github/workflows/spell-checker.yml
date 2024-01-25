@@ -22,4 +22,4 @@ jobs:
           body: |
             This PR fixes typos in the codebase.
             Please, review it and merge if everything is fine.
-            If there is proto changes, please, run `make proto-gen` and commit changes.
+            If there are proto changes, please, run `make proto-all` and commit changes.
