@@ -119,7 +119,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 func (suite *InterchainAccountsTestSuite) TestChanOpenInit() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	// use chainB (host) for ChanOpenInit
 	msg := channeltypes.NewMsgChannelOpenInit(path.EndpointB.ChannelConfig.PortID, icatypes.Version, channeltypes.ORDERED, []string{path.EndpointB.ConnectionID}, path.EndpointA.ChannelConfig.PortID, icatypes.ModuleName)
@@ -184,7 +184,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -214,7 +214,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			version, err := cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
 			)
 
@@ -237,7 +237,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 func (suite *InterchainAccountsTestSuite) TestChanOpenAck() {
 	suite.SetupTest() // reset
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -299,7 +299,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := RegisterInterchainAccount(path.EndpointA, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -332,7 +332,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 // OnChanCloseInit on host (chainB)
 func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -370,7 +370,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -432,7 +432,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 			suite.SetupTest() // reset
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
 
@@ -516,7 +516,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 			suite.SetupTest() // reset
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -569,7 +569,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 			suite.SetupTest() // reset
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -607,7 +607,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 // OnChanUpgradeInit callback returns error on host chains
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -654,7 +654,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 			suite.SetupTest() // reset
 
 			path := NewICAPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)
@@ -702,7 +702,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 // OnChanUpgradeAck callback returns error on host chains
 func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -755,7 +755,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	path.EndpointA.ChannelConfig.Version = feeICAVersion
 	path.EndpointB.ChannelConfig.Version = feeICAVersion
 
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
@@ -816,7 +816,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	// open a new channel on the same port
 	path.EndpointA.ChannelID = ""
 	path.EndpointB.ChannelID = ""
-	suite.coordinator.CreateChannels(path)
+	path.CreateChannels()
 
 	//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
 	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
@@ -841,7 +841,7 @@ func (suite *InterchainAccountsTestSuite) assertBalance(addr sdk.AccAddress, exp
 
 func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 	path := NewICAPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path)
+	path.SetupConnections()
 	err := SetupICAPath(path, TestOwnerAddress)
 	suite.Require().NoError(err)
 

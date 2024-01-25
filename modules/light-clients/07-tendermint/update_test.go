@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 func (suite *TendermintTestSuite) TestVerifyHeader() {
@@ -23,7 +22,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 	)
 
 	// Setup different validators and signers for testing different types of updates
-	altPrivVal := ibctestingmock.NewPV()
+	altPrivVal := cmttypes.NewMockPV()
 	altPubKey, err := altPrivVal.GetPubKey()
 	suite.Require().NoError(err)
 
@@ -523,7 +522,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	// create path and setup clients
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	// get the first height as it will be pruned first.
 	var pruneHeight exported.Height
