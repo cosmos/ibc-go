@@ -648,6 +648,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			nil,
 		},
 		{
+			"failure if initializing chain reinitializes before ACK",
+			func() {
+				
+			}
+		}
+		{
 			"channel not found",
 			func() {
 				path.EndpointA.ChannelID = ibctesting.InvalidID
