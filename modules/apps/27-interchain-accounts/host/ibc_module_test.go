@@ -816,7 +816,7 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	// open a new channel on the same port
 	path.EndpointA.ChannelID = ""
 	path.EndpointB.ChannelID = ""
-	suite.coordinator.CreateChannels(path)
+	path.CreateChannels()
 
 	//nolint: staticcheck // SA1019: ibctesting.FirstConnectionID is deprecated: use path.EndpointA.ConnectionID instead. (staticcheck)
 	_, err = suite.chainA.GetSimApp().ICAControllerKeeper.SendTx(suite.chainA.GetContext(), nil, ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, icaPacketData, ^uint64(0))
