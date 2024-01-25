@@ -110,7 +110,7 @@ func (coord *Coordinator) CreateMockChannels(path *Path) {
 	path.EndpointA.ChannelConfig.PortID = MockPort
 	path.EndpointB.ChannelConfig.PortID = MockPort
 
-	coord.CreateChannels(path)
+	path.CreateChannels()
 }
 
 // CreateTransferChannels constructs and executes channel handshake messages to create OPEN
@@ -120,7 +120,7 @@ func (coord *Coordinator) CreateTransferChannels(path *Path) {
 	path.EndpointA.ChannelConfig.PortID = TransferPort
 	path.EndpointB.ChannelConfig.PortID = TransferPort
 
-	coord.CreateChannels(path)
+	path.CreateChannels()
 }
 
 // CreateChannel constructs and executes channel handshake messages in order to create
