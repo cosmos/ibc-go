@@ -148,11 +148,12 @@ func (k Keeper) ChanUpgradeTry(
 		// Since our channel upgrade sequence was incremented in the previous step, the counterparty will be forced to abort their upgrade
 		// and we will be able to proceed with our own upgrade.
 		// The upgrade handshake may then proceed on the counterparty with our sequence
-		// In the case, that we are in a non-crossing hello (i.e. upgrade does not exist on our side),
+		// In the non-crossing hello (i.e. upgrade does not exist on our side),
 		// the sequence on both sides should move to a fresh sequence on the next upgrade attempt.
 		// Thus, we write an error receipt with our own upgrade sequence which will cause the counterparty
 		// to cancel their upgrade and move to the same sequence. When a new upgrade attempt is started from either
-		// side, it will be a fresh sequence for both sides (i.e. channel.upgradeSequence + 1)
+		// side, it will be a fresh sequence for both sides (i.e. channel.upgradeSequence + 1). 
+		// Note that expectedUpgradeSequence - 1 == channel.UpgradeSequence in the non-crossing hello case.
 
 		// NOTE: Two possible outcomes may occur in this scenario.
 		// The ChanUpgradeCancel datagram may reach the counterparty first, which will cause the counterparty to cancel. The counterparty
