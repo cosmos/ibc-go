@@ -22,7 +22,7 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 		expTimeoutFees sdk.Coins
 	)
 
-	suite.coordinator.Setup(suite.path)
+	suite.path.Setup()
 
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	msg := types.NewMsgPayPacketFee(
@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 	path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	suite.coordinator.Setup(path)
+	path.Setup()
 
 	// send a new MsgPayPacketFee and MsgTransfer to chainA
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)

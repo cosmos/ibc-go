@@ -260,7 +260,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			tc.malleate()
 
@@ -472,7 +472,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	for _, tc := range testCases {
 		tc := tc
 		path = ibctesting.NewPath(suite.chainA, suite.chainB)
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 
 		clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 		revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
@@ -505,7 +505,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 func (suite *KeeperTestSuite) TestUpdateClientEventEmission() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	header, err := suite.chainA.ConstructUpdateTMClientHeader(suite.chainB, path.EndpointA.ClientID)
 	suite.Require().NoError(err)
@@ -632,12 +632,12 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			suite.SetupTest() // reset
 
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(subjectPath)
+			subjectPath.SetupClients()
 			subject = subjectPath.EndpointA.ClientID
 			subjectClientState = suite.chainA.GetClientState(subject)
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(substitutePath)
+			substitutePath.SetupClients()
 			substitute = substitutePath.EndpointA.ClientID
 
 			// update substitute twice
