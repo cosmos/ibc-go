@@ -781,7 +781,7 @@ func (k Keeper) ChanUpgradeTimeout(
 	// the counterpartyChannel is in FLUSHING. This is not required because
 	// we prove that the upgrade timeout has elapsed on the counterparty,
 	// thus no historical proofs can be submitted. It is not possible for the
-	// counterparty to have upgraded if we they were in FLUSHING and the upgrade
+	// counterparty to have upgraded if they were in FLUSHING and the upgrade
 	// timeout elapsed. Do not make use of the relayer provided fields without
 	// verifying them.
 
