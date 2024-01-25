@@ -152,7 +152,7 @@ func (k Keeper) ChanUpgradeTry(
 		// the sequence on both sides should move to a fresh sequence on the next upgrade attempt.
 		// Thus, we write an error receipt with our own upgrade sequence which will cause the counterparty
 		// to cancel their upgrade and move to the same sequence. When a new upgrade attempt is started from either
-		// side, it will be a fresh sequence for both sides (i.e. channel.upgradeSequence + 1). 
+		// side, it will be a fresh sequence for both sides (i.e. channel.upgradeSequence + 1).
 		// Note that expectedUpgradeSequence - 1 == channel.UpgradeSequence in the non-crossing hello case.
 
 		// NOTE: Two possible outcomes may occur in this scenario.
