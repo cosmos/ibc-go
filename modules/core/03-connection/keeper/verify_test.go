@@ -304,9 +304,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			timePerBlock = 1
 		}, false},
 		{"client state not found- changed client ID", func() {
-			path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) {
-				c.ClientId = ibctesting.InvalidID
-			})
+			path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
