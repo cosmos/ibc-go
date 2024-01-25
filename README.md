@@ -92,7 +92,7 @@ To report a security vulnerability, see our [Coordinated Vulnerability Disclosur
 
 The following audits have been performed on the `ibc-go` source code:
 
-- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/blob/main/docs/audits/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) by Trail of Bits
+- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/blob/main/docs/audits/27-interchain-accounts/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) by Trail of Bits
 
 ## Quick Navigation
 
