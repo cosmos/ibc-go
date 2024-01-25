@@ -873,9 +873,7 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 }
 
 func (suite *KeeperTestSuite) TestChanUpgrade_ReinitializedBeforeAck() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 	suite.Run("setup path", func() {
 		path = ibctesting.NewPath(suite.chainA, suite.chainB)
 		suite.coordinator.Setup(path)
