@@ -53,6 +53,11 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 		panic(fmt.Errorf("could not find existing channel when updating channel state in successful ChanUpgradeInit step, channelID: %s, portID: %s", channelID, portID))
 	}
 
+	if k.hasUpgrade(ctx, portID, channelID) {
+		// invalidating previous upgrade
+		k.WriteErrorReceipt(ctx, portID, channelID, types.NewUpgradeError(channel.UpgradeSequence, types.ErrInvalidUpgrade))
+	}
+
 	channel.UpgradeSequence++
 
 	upgrade.Fields.Version = upgradeVersion
