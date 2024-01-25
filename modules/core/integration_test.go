@@ -49,7 +49,7 @@ func (suite *IBCTestSuite) TestReplayProtectionAfterReceivePruning() {
 
 			tc.malleate()
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// Setup replay attack by sending a packet. We will save the receive
 			// proof to replay relaying after the channel upgrade compeletes.
