@@ -35,13 +35,16 @@ type IncentivizedInterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *IncentivizedInterchainAccountsTestSuite) SetupTest() {
+func (s *IncentivizedInterchainAccountsTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, nil, chainA, chainB)
 }
 
 func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSend_Incentivized() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -92,9 +95,8 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 		s.Require().NotZero(len(interchainAcc))
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		chanNumber++
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), chanNumber)
+		s.Require().Equal(len(channels), 2)
 
 		// interchain accounts channel at index: 0
 		channelOutput = channels[0]
@@ -218,6 +220,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 
 func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_Incentivized() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -268,9 +271,8 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 		s.Require().NotZero(len(interchainAcc))
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		chanNumber++
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), chanNumber)
+		s.Require().Equal(len(channels), 2)
 
 		// interchain accounts channel at index: 0
 		channelOutput = channels[0]

@@ -151,9 +151,6 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	s.Require().NoError(err)
 
 	proposalID := s.proposalIDs[cosmosChain.Config().ChainID]
-	defer func() {
-		s.proposalIDs[cosmosChain.Config().ChainID] = proposalID + 1
-	}()
 
 	msgs := []sdk.Msg{msg}
 
@@ -173,7 +170,11 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 
 	s.Require().NoError(cosmosChain.VoteOnProposalAllValidators(ctx, strconv.Itoa(int(proposalID)), cosmos.ProposalVoteYes))
 
-	return s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
+	err = s.waitForGovV1Beta1ProposalToPass(ctx, cosmosChain, proposalID)
+
+	s.proposalIDs[chain.Config().ChainID] = proposalID + 1
+
+	return err
 }
 
 // waitForGovV1ProposalToPass polls for the entire voting period to see if the proposal has passed.
@@ -207,9 +208,6 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 	}
 
 	proposalID := s.proposalIDs[chain.Config().ChainID]
-	defer func() {
-		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
-	}()
 
 	txResp := s.ExecuteGovV1Beta1Proposal(ctx, cosmosChain, user, content)
 	s.AssertTxSuccess(txResp)
@@ -230,6 +228,7 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 
 	err = s.waitForGovV1Beta1ProposalToPass(ctx, cosmosChain, proposalID)
 	s.Require().NoError(err)
+	s.proposalIDs[chain.Config().ChainID] = proposalID + 1
 }
 
 // waitForGovV1Beta1ProposalToPass polls for the entire voting period to see if the proposal has passed.

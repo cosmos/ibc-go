@@ -4,7 +4,7 @@ package client
 
 import (
 	"context"
-	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,10 +15,8 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
-	cmtjson "github.com/cometbft/cometbft/libs/json"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmtprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -44,7 +42,7 @@ type ClientTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *ClientTestSuite) SetupTest() {
+func (s *ClientTestSuite) SetupSuite() {
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
 }
@@ -62,27 +60,22 @@ func (s *ClientTestSuite) Status(ctx context.Context, chain ibc.Chain, clientID 
 	return res.Status, nil
 }
 
-// QueryAllowedClients queries the on-chain AllowedClients parameter for 02-client
-func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Chain) []string {
-	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
-	res, err := queryClient.ClientParams(ctx, &clienttypes.QueryClientParamsRequest{})
-	s.Require().NoError(err)
-
-	return res.Params.AllowedClients
-}
-
 // TestScheduleIBCUpgrade_Succeeds tests that a governance proposal to schedule an IBC software upgrade is successful.
 func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	_, _ = s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	const planHeight = int64(300)
 	const legacyPlanHeight = planHeight * 2
 	var newChainID string
+
+	t.Run("setup relayer", func(t *testing.T) {
+		_, _ = s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
+	})
 
 	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
 		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
@@ -164,7 +157,6 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	relayer, _ := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
 	var (
 		pathName           string
@@ -174,36 +166,27 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 		badTrustingPeriod = time.Second * 10
 	)
 
-	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
-		// TODO: update when client identifier created is accessible
-		// currently assumes first client is 07-tendermint-0
-		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
-
+	t.Run("setup relayer", func(t *testing.T) {
+		relayer, _ := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 		// TODO: replace with better handling of path names
 		pathName = s.GetPathNameFromSuite(relayer)
+		substituteClientID = strings.ReplaceAll(pathName, "path", ibcexported.Tendermint)
 	})
-
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("create subject client with bad trusting period", func(t *testing.T) {
 		createClientOptions := ibc.CreateClientOptions{
 			TrustingPeriod: badTrustingPeriod.String(),
 		}
 
-		s.SetupClients(ctx, relayer, createClientOptions)
+		s.SetupClients(ctx, s.GetRelayerFromPath(pathName), createClientOptions)
+		subjectClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, uint64(s.GetPathNameIndexFromSuite()-1))
 
-		// TODO: update when client identifier created is accessible
-		// currently assumes second client is 07-tendermint-1
-		subjectClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 1)
+		time.Sleep(badTrustingPeriod)
 	})
-
-	time.Sleep(badTrustingPeriod)
 
 	t.Run("update substitute client", func(t *testing.T) {
-		s.UpdateClients(ctx, relayer, pathName)
+		s.UpdateClients(ctx, s.GetRelayerFromPath(pathName), pathName)
 	})
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("check status of each client", func(t *testing.T) {
 		t.Run("substitute should be active", func(t *testing.T) {
@@ -220,6 +203,8 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	})
 
 	t.Run("pass client update proposal", func(t *testing.T) {
+		chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
 		proposal := clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, subjectClientID, substituteClientID)
 		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
 	})
@@ -239,60 +224,81 @@ func (s *ClientTestSuite) TestClientUpdateProposal_Succeeds() {
 	})
 }
 
-// TestAllowedClientsParam tests changing the AllowedClients parameter using a governance proposal
-func (s *ClientTestSuite) TestAllowedClientsParam() {
+// TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
+func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
-	_, _ = s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 
-	chainAVersion := chainA.Config().Images[0].Version
+	var (
+		pathName           string
+		subjectClientID    string
+		substituteClientID string
+		// set the trusting period to a value which will still be valid upon client creation, but invalid before the first update
+		badTrustingPeriod = time.Second * 10
+	)
 
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	t.Run("setup relayer", func(t *testing.T) {
+		relayer, _ := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
+		// TODO: replace with better handling of path names
+		pathName = s.GetPathNameFromSuite(relayer)
+		substituteClientID = strings.ReplaceAll(pathName, "path", ibcexported.Tendermint)
+	})
+
+	t.Run("create subject client with bad trusting period", func(t *testing.T) {
+		createClientOptions := ibc.CreateClientOptions{
+			TrustingPeriod: badTrustingPeriod.String(),
+		}
+
+		s.SetupClients(ctx, s.GetRelayerFromPath(pathName), createClientOptions)
+		subjectClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, uint64(s.GetPathNameIndexFromSuite()-1))
+		time.Sleep(badTrustingPeriod)
+	})
+
+	t.Run("update substitute client", func(t *testing.T) {
+		s.UpdateClients(ctx, s.GetRelayerFromPath(pathName), pathName)
+	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("ensure allowed clients are set to the default", func(t *testing.T) {
-		allowedClients := s.QueryAllowedClients(ctx, chainA)
+	t.Run("check status of each client", func(t *testing.T) {
+		t.Run("substitute should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, substituteClientID)
 
-		defaultAllowedClients := clienttypes.DefaultAllowedClients
-		if !testvalues.LocalhostClientFeatureReleases.IsSupported(chainAVersion) {
-			defaultAllowedClients = slices.DeleteFunc(defaultAllowedClients, func(s string) bool { return s == ibcexported.Localhost })
-		}
-		s.Require().Equal(defaultAllowedClients, allowedClients)
-	})
-
-	allowedClient := ibcexported.Solomachine
-	t.Run("change the allowed client to only allow solomachine clients", func(t *testing.T) {
-		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
-			s.Require().NotNil(authority)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
 
-			msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(allowedClient))
-			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
-		} else {
-			value, err := cmtjson.Marshal([]string{allowedClient})
+		t.Run("subject should be expired", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, subjectClientID)
 			s.Require().NoError(err)
-			changes := []paramsproposaltypes.ParamChange{
-				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(clienttypes.KeyAllowedClients), string(value)),
-			}
-
-			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
-		}
+			s.Require().Equal(ibcexported.Expired.String(), status)
+		})
 	})
 
-	t.Run("validate the param was successfully changed", func(t *testing.T) {
-		allowedClients := s.QueryAllowedClients(ctx, chainA)
-		s.Require().Equal([]string{allowedClient}, allowedClients)
-	})
-
-	t.Run("ensure querying non-allowed client's status returns Unauthorized Status", func(t *testing.T) {
-		status, err := s.QueryClientStatus(ctx, chainA, ibctesting.FirstClientID)
+	t.Run("execute proposal for MsgRecoverClient", func(t *testing.T) {
+		s.Require().NoError(test.WaitForBlocks(ctx, 15, chainA, chainB), "failed to wait for blocks")
+		chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+		authority, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
-		s.Require().Equal(ibcexported.Unauthorized.String(), status)
+		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
+		s.Require().NotNil(recoverClientMsg)
+		s.ExecuteAndPassGovV1Proposal(ctx, recoverClientMsg, chainA, chainAWallet)
+	})
+
+	t.Run("check status of each client", func(t *testing.T) {
+		t.Run("substitute should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, substituteClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
+
+		t.Run("subject should be active", func(t *testing.T) {
+			status, err := s.Status(ctx, chainA, subjectClientID)
+			s.Require().NoError(err)
+			s.Require().Equal(ibcexported.Active.String(), status)
+		})
 	})
 }
 

@@ -29,14 +29,17 @@ type ChannelTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *ChannelTestSuite) SetupTest() {
+func (s *ChannelTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, nil, chainA, chainB)
 }
 
 // TestChannelUpgrade_WithFeeMiddleware_Succeeds tests upgrading a transfer channel to wire up fee middleware
 func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -243,11 +246,12 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 // TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck tests upgrading a transfer channel to wire up fee middleware but fails on ACK because of timeout
 func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
-	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
+	relayer, channelA := s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
+	channelB := channelA.Counterparty
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)

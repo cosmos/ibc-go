@@ -37,7 +37,7 @@ type ParamsClientTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *ParamsClientTestSuite) SetupTest() {
+func (s *ParamsClientTestSuite) SetupSuite() {
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
 }

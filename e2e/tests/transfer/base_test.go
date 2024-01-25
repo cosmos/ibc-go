@@ -27,9 +27,11 @@ type TransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *TransferTestSuite) SetupTest() {
+func (s *TransferTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 }
 
 // QueryTransferSendEnabledParam queries the on-chain send enabled param for the transfer module
@@ -44,6 +46,7 @@ func (s *TransferTestSuite) QueryTransferParams(ctx context.Context, chain ibc.C
 // that the tokens on the sending chain are unescrowed.
 func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()

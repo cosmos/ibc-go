@@ -37,9 +37,10 @@ type E2ETestSuite struct {
 	testifysuite.Suite
 
 	// chain and relayer for each test suite
-	chainA   ibc.Chain
-	chainB   ibc.Chain
-	pathName map[ibc.Relayer]string
+	chainA           ibc.Chain
+	chainB           ibc.Chain
+	pathName         map[ibc.Relayer]string
+	pathNameRelayers map[string]ibc.Relayer
 
 	// proposalIDs keeps track of the active proposal ID for each chain.
 	proposalIDs    map[string]uint64
@@ -114,6 +115,7 @@ func (s *E2ETestSuite) SetupRelayer(ctx context.Context, channelOpts func(*ibc.C
 	if !s.relayerBuilt {
 		s.relayerBuilt = true
 		s.pathName = make(map[ibc.Relayer]string)
+		s.pathNameRelayers = make(map[string]ibc.Relayer)
 		rly = s.ConfigureRelayer(ctx, chainA, chainB, channelOpts)
 	} else {
 		pathName := s.generatePathName()
@@ -143,6 +145,7 @@ func (s *E2ETestSuite) SetupRelayer(ctx context.Context, channelOpts func(*ibc.C
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 		}
 		s.pathName[rly] = pathName
+		s.pathNameRelayers[pathName] = rly
 	}
 	s.InitGRPCClients(chainA)
 	s.InitGRPCClients(chainB)
@@ -192,6 +195,7 @@ func (s *E2ETestSuite) ConfigureRelayer(ctx context.Context, chainA, chainB ibc.
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 	}
 	s.pathName[r] = pathName
+	s.pathNameRelayers[pathName] = r
 	return r
 }
 
@@ -239,7 +243,6 @@ func (s *E2ETestSuite) generatePath(ctx context.Context, ibcrelayer ibc.Relayer)
 	chainBID := chainB.Config().ChainID
 
 	pathName := s.generatePathName()
-
 	err := ibcrelayer.GeneratePath(ctx, s.GetRelayerExecReporter(), chainAID, chainBID, pathName)
 	s.Require().NoError(err)
 
@@ -484,4 +487,12 @@ func (s *E2ETestSuite) SetChainsIntoSuite(chainA, chainB ibc.Chain) {
 
 func (s *E2ETestSuite) GetPathNameFromSuite(r ibc.Relayer) string {
 	return s.pathName[r]
+}
+
+func (s *E2ETestSuite) GetPathNameIndexFromSuite() int64 {
+	return s.pathNameIndex
+}
+
+func (s *E2ETestSuite) GetRelayerFromPath(pathName string) ibc.Relayer {
+	return s.pathNameRelayers[pathName]
 }

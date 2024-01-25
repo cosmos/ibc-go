@@ -4,7 +4,6 @@ package interchainaccounts
 
 import (
 	"context"
-	"strconv"
 	"testing"
 	"time"
 
@@ -27,16 +26,12 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-
-var chanNumber = 1
-
 // orderMapping is a mapping from channel ordering to the string representation of the ordering.
 // the representation can be different depending on the relayer implementation.
 var orderMapping = map[channeltypes.Order][]string{
 	channeltypes.ORDERED:   {channeltypes.ORDERED.String(), "Ordered"},
 	channeltypes.UNORDERED: {channeltypes.UNORDERED.String(), "Unordered"},
 }
-
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsTestSuite))
@@ -46,9 +41,11 @@ type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *InterchainAccountsTestSuite) SetupTest() {
+func (s *InterchainAccountsTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, nil, chainA, chainB)
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
@@ -67,6 +64,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_Unordered
 
 func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order channeltypes.Order) {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -99,9 +97,9 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		s.Require().NotZero(len(hostAccount))
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		chanNumber++
+
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), chanNumber)
+		s.Require().Equal(len(channels), 2)
 		icaChannel := channels[0]
 		s.Require().Contains(orderMapping[order], icaChannel.Ordering)
 	})
@@ -202,9 +200,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		s.Require().NotZero(len(hostAccount))
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		chanNumber++
+
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), chanNumber)
+		s.Require().Equal(len(channels), 2)
 	})
 
 	t.Run("fail to execute bank transfer over ICA", func(t *testing.T) {
@@ -279,6 +277,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	var (
 		portID      string
 		hostAccount string
+
+		initialChannelID        = "channel-1"
+		channelIDAfterReopening = "channel-2"
 	)
 
 	t.Run("register interchain account", func(t *testing.T) {
@@ -301,8 +302,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		s.Require().NoError(err)
 		s.Require().NotZero(len(hostAccount))
 
-		chanNumber++
-		_, err = s.QueryChannel(ctx, chainA, portID, "channel-"+strconv.Itoa(chanNumber-1))
+		_, err = s.QueryChannel(ctx, chainA, portID, initialChannelID)
 		s.Require().NoError(err)
 	})
 
@@ -362,7 +362,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 
 	t.Run("verify channel is closed due to timeout on ordered channel", func(t *testing.T) {
-		channel, err := s.QueryChannel(ctx, chainA, portID, "channel-"+strconv.Itoa(chanNumber-1))
+		channel, err := s.QueryChannel(ctx, chainA, portID, initialChannelID)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.CLOSED, channel.State, "the channel was not in an expected state")
@@ -391,8 +391,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 
 	t.Run("verify new channel is now open and interchain account has been reregistered with the same portID", func(t *testing.T) {
-		chanNumber++
-		channel, err := s.QueryChannel(ctx, chainA, portID, "channel-"+strconv.Itoa(chanNumber-1))
+		channel, err := s.QueryChannel(ctx, chainA, portID, channelIDAfterReopening)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel was not in an expected state")

@@ -36,7 +36,7 @@ type GenesisTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *GenesisTestSuite) SetupTest() {
+func (s *GenesisTestSuite) SetupSuite() {
 	configFileOverrides := make(map[string]any)
 	appTomlOverrides := make(test.Toml)
 

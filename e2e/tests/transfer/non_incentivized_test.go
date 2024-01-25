@@ -28,9 +28,11 @@ type NonIncentivizedTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *NonIncentivizedTransferTestSuite) SetupTest() {
+func (s *NonIncentivizedTransferTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, nil, chainA, chainB)
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -38,7 +40,7 @@ func (s *NonIncentivizedTransferTestSuite) SetupTest() {
 // will be sent forwards and backwards in the IBC transfer timeline (both chains will act as source and receiver chains).
 func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	t := s.T()
-
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -148,7 +150,7 @@ func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivi
 
 func (s *NonIncentivizedTransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	t := s.T()
-
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()

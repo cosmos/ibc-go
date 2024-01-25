@@ -27,14 +27,16 @@ type Incentivized2TransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *Incentivized2TransferTestSuite) SetupTest() {
+func (s *Incentivized2TransferTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
 }
 
 func (s *Incentivized2TransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCounterPartyAddress() {
 	t := s.T()
-
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()

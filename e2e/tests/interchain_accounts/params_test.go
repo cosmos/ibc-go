@@ -21,21 +21,23 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func TestParamsInterchainAccountsTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(ParamsInterchainAccountsTestSuite))
+func TestInterchainAccountsParamsTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(InterchainAccountsParamsTestSuite))
 }
 
-type ParamsInterchainAccountsTestSuite struct {
+type InterchainAccountsParamsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *ParamsInterchainAccountsTestSuite) SetupTest() {
+func (s *InterchainAccountsParamsTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, nil, chainA, chainB)
 }
 
 // QueryControllerParams queries the params for the controller
-func (s *ParamsInterchainAccountsTestSuite) QueryControllerParams(ctx context.Context, chain ibc.Chain) controllertypes.Params {
+func (s *InterchainAccountsParamsTestSuite) QueryControllerParams(ctx context.Context, chain ibc.Chain) controllertypes.Params {
 	queryClient := s.GetChainGRCPClients(chain).ICAControllerQueryClient
 	res, err := queryClient.Params(ctx, &controllertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
@@ -44,7 +46,7 @@ func (s *ParamsInterchainAccountsTestSuite) QueryControllerParams(ctx context.Co
 }
 
 // QueryHostParams queries the host chain for the params
-func (s *ParamsInterchainAccountsTestSuite) QueryHostParams(ctx context.Context, chain ibc.Chain) hosttypes.Params {
+func (s *InterchainAccountsParamsTestSuite) QueryHostParams(ctx context.Context, chain ibc.Chain) hosttypes.Params {
 	queryClient := s.GetChainGRCPClients(chain).ICAHostQueryClient
 	res, err := queryClient.Params(ctx, &hosttypes.QueryParamsRequest{})
 	s.Require().NoError(err)
@@ -53,8 +55,9 @@ func (s *ParamsInterchainAccountsTestSuite) QueryHostParams(ctx context.Context,
 }
 
 // TestControllerEnabledParam tests that changing the ControllerEnabled param works as expected
-func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
+func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -137,8 +140,9 @@ func (s *ParamsInterchainAccountsTestSuite) TestControllerEnabledParam() {
 	})
 }
 
-func (s *ParamsInterchainAccountsTestSuite) TestHostEnabledParam() {
+func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()

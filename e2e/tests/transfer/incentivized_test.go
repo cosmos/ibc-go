@@ -30,14 +30,17 @@ type IncentivizedTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *IncentivizedTransferTestSuite) SetupTest() {
+func (s *IncentivizedTransferTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, feeMiddlewareChannelOptions(), chainA, chainB)
+
 }
 
 func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Succeeds() {
 	t := s.T()
-
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()

@@ -27,9 +27,11 @@ type LocalhostTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *LocalhostTransferTestSuite) SetupTest() {
+func (s *LocalhostTransferTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, nil, chainA, chainB)
 }
 
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth
@@ -37,7 +39,7 @@ func (s *LocalhostTransferTestSuite) SetupTest() {
 // except that chain B is replaced with an additional wallet on chainA.
 func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
-
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()

@@ -35,13 +35,14 @@ type GovInterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *GovInterchainAccountsTestSuite) SetupTest() {
+func (s *GovInterchainAccountsTestSuite) SetupSuite() {
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
 }
 
 func (s *GovInterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
@@ -81,9 +82,8 @@ func (s *GovInterchainAccountsTestSuite) TestInterchainAccountsGovIntegration() 
 		s.Require().NotZero(len(interchainAccAddr))
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-		chanNumber++
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), chanNumber)
+		s.Require().Equal(len(channels), 2)
 	})
 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {

@@ -32,7 +32,7 @@ type ConnectionTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *ConnectionTestSuite) SetupTest() {
+func (s *ConnectionTestSuite) SetupSuite() {
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
 }
@@ -65,6 +65,7 @@ func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Cont
 // TestMaxExpectedTimePerBlockParam tests changing the MaxExpectedTimePerBlock param using a governance proposal
 func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()

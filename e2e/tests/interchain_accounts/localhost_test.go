@@ -29,25 +29,28 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
-func TestLocalhostInterchainAccountsTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(LocalhostInterchainAccountsTestSuite))
+func TestInterchainAccountsLocalhostTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(InterchainAccountsLocalhostTestSuite))
 }
 
-type LocalhostInterchainAccountsTestSuite struct {
+type InterchainAccountsLocalhostTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *LocalhostInterchainAccountsTestSuite) SetupTest() {
+func (s *InterchainAccountsLocalhostTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, nil, chainA, chainB)
 }
 
-func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost() {
+func (s *InterchainAccountsLocalhostTestSuite) TestInterchainAccounts_Localhost() {
 	t := s.T()
 	t.Parallel()
 	ctx := context.TODO()
 
-	chainA, _ := s.GetChains()
+	chainA, chainB := s.GetChains()
+	_, _ = s.SetupRelayer(ctx, nil, chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 
@@ -196,12 +199,13 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	})
 }
 
-func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChannel_Localhost() {
+func (s *InterchainAccountsLocalhostTestSuite) TestInterchainAccounts_ReopenChannel_Localhost() {
 	t := s.T()
 	t.Parallel()
 	ctx := context.TODO()
 
-	chainA, _ := s.GetChains()
+	chainA, chainB := s.GetChains()
+	_, _ = s.SetupRelayer(ctx, nil, chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 

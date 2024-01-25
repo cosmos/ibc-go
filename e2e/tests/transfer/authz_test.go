@@ -30,13 +30,16 @@ type AuthzTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *AuthzTransferTestSuite) SetupTest() {
+func (s *AuthzTransferTestSuite) SetupSuite() {
+	ctx := context.TODO()
 	chainA, chainB := s.GetChains()
 	s.SetChainsIntoSuite(chainA, chainB)
+	_, _ = s.SetupRelayer(ctx, s.TransferChannelOptions(), chainA, chainB)
 }
 
 func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := s.T()
+	t.Parallel()
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
