@@ -83,7 +83,7 @@ func (k Keeper) ChanUpgradeTry(
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if !channel.IsOpen() {
+	if channel.State != types.OPEN {
 		return types.Channel{}, types.Upgrade{}, errorsmod.Wrapf(types.ErrInvalidChannelState, "expected %s, got %s", types.OPEN, channel.State)
 	}
 
@@ -313,7 +313,7 @@ func (k Keeper) ChanUpgradeAck(
 	// in the crossing hello case, we do not modify version that our TRY call returned and instead enforce
 	// that both TRY calls returned the same version. It is possible that this will fail in the OnChanUpgradeAck
 	// callback if the version is invalid.
-	if channel.IsOpen() {
+	if channel.State == types.OPEN {
 		upgrade.Fields.Version = counterpartyUpgrade.Fields.Version
 	}
 
@@ -322,7 +322,7 @@ func (k Keeper) ChanUpgradeAck(
 		return types.NewUpgradeError(channel.UpgradeSequence, err)
 	}
 
-	if channel.IsOpen() {
+	if channel.State == types.OPEN {
 		if err := k.startFlushing(ctx, portID, channelID, &upgrade); err != nil {
 			return err
 		}
@@ -476,6 +476,7 @@ func (k Keeper) ChanUpgradeOpen(
 	portID,
 	channelID string,
 	counterpartyChannelState types.State,
+	counterpartyUpgradeSequence uint64,
 	channelProof []byte,
 	proofHeight clienttypes.Height,
 ) error {
@@ -514,13 +515,21 @@ func (k Keeper) ChanUpgradeOpen(
 			return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectiontypes.State(upgradeConnection.GetState()).String())
 		}
 
+		// The counterparty upgrade sequence must be greater than or equal to
+		// the channel upgrade sequence. It should normally be equivalent, but
+		// in the unlikely case a new upgrade is initiated after it reopens,
+		// then the upgrade sequence will be greater than our upgrade sequence.
+		if counterpartyUpgradeSequence < channel.UpgradeSequence {
+			return errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "counterparty channel upgrade sequence (%d) must be greater than or equal to current upgrade sequence (%d)", counterpartyUpgradeSequence, channel.UpgradeSequence)
+		}
+
 		counterpartyChannel = types.Channel{
 			State:           types.OPEN,
 			Ordering:        upgrade.Fields.Ordering,
 			ConnectionHops:  []string{upgradeConnection.GetCounterparty().GetConnectionID()},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         upgrade.Fields.Version,
-			UpgradeSequence: channel.UpgradeSequence,
+			UpgradeSequence: counterpartyUpgradeSequence,
 		}
 
 	case types.FLUSHCOMPLETE:

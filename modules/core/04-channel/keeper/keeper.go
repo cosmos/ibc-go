@@ -684,7 +684,7 @@ func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string,
 	}
 
 	start := pruningSequenceStart
-	end := pruningSequenceStart + limit
+	end := pruningSequenceStart + limit // note: checked against limit overflowing.
 	for ; start < end; start++ {
 		// stop pruning if pruningSequenceStart has reached pruningSequenceEnd, pruningSequenceEnd is
 		// set to be equal to the _next_ sequence to be sent by the counterparty.
