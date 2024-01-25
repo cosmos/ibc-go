@@ -133,6 +133,9 @@ func (k Keeper) ChanUpgradeTry(
 	if isCrossingHello {
 		expectedUpgradeSequence = channel.UpgradeSequence
 	} else {
+                // at the end of the TRY step, the current upgrade sequence will be incremented in the non-crossing 
+                // hello case due to calling chanUpgradeInit, we should use this expected upgrade sequence for 
+                // sequence mismatch comparison
 		expectedUpgradeSequence = channel.UpgradeSequence + 1
 	}
 	if counterpartyUpgradeSequence < expectedUpgradeSequence {
