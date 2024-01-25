@@ -1024,8 +1024,8 @@ func (k Keeper) WriteErrorReceipt(ctx sdk.Context, portID, channelID string, upg
 	// writing an error receipt for. This could lead to divergent behaviour
 	// on the counterparty.
 	if channel.UpgradeSequence <= errorReceiptToWrite.Sequence {
-		_, upgradeFound := k.GetUpgrade(ctx, portID, channelID)
-		_, counterpartyUpgradeFound := k.GetCounterpartyUpgrade(ctx, portID, channelID)
+		upgradeFound := k.HasUpgrade(ctx, portID, channelID)
+		counterpartyUpgradeFound := k.hasCounterpartyUpgrade(ctx, portID, channelID)
 		if upgradeFound || counterpartyUpgradeFound {
 			panic(errorsmod.Wrapf(types.ErrInvalidUpgradeSequence, "attempting to write error receipt at sequence (%d) while upgrade information exists at the same sequence", errorReceiptToWrite.Sequence))
 		}

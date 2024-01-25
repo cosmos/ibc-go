@@ -514,6 +514,12 @@ func (k Keeper) setUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string
 	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
 }
 
+// HasUpgrade returns true if a proposed upgrade exists in store
+func (k Keeper) HasUpgrade(ctx sdk.Context, portID, channelID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ChannelUpgradeKey(portID, channelID))
+}
+
 // GetUpgrade returns the proposed upgrade for the provided port and channel identifiers.
 func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -539,6 +545,12 @@ func (k Keeper) SetUpgrade(ctx sdk.Context, portID, channelID string, upgrade ty
 func (k Keeper) deleteUpgrade(ctx sdk.Context, portID, channelID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.ChannelUpgradeKey(portID, channelID))
+}
+
+// hasCounterpartyUpgrade returns true if a counterparty upgrade exists in store
+func (k Keeper) hasCounterpartyUpgrade(ctx sdk.Context, portID, channelID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ChannelCounterpartyUpgradeKey(portID, channelID))
 }
 
 // GetCounterpartyUpgrade gets the counterparty upgrade from the store.
