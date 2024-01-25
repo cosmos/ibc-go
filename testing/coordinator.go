@@ -106,7 +106,7 @@ func (*Coordinator) CreateConnections(path *Path) {
 // channels that use a mock application module that returns nil on all callbacks. This
 // function is expects the channels to be successfully opened otherwise testing will
 // fail.
-func (coord *Coordinator) CreateMockChannels(path *Path) {
+func (*Coordinator) CreateMockChannels(path *Path) {
 	path.EndpointA.ChannelConfig.PortID = MockPort
 	path.EndpointB.ChannelConfig.PortID = MockPort
 
@@ -116,7 +116,7 @@ func (coord *Coordinator) CreateMockChannels(path *Path) {
 // CreateTransferChannels constructs and executes channel handshake messages to create OPEN
 // ibc-transfer channels on chainA and chainB. The function expects the channels to be
 // successfully opened otherwise testing will fail.
-func (coord *Coordinator) CreateTransferChannels(path *Path) {
+func (*Coordinator) CreateTransferChannels(path *Path) {
 	path.EndpointA.ChannelConfig.PortID = TransferPort
 	path.EndpointB.ChannelConfig.PortID = TransferPort
 
