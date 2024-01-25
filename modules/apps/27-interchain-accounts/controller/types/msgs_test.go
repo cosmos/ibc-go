@@ -72,6 +72,13 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"order is not valid",
+			func() {
+				msg.Ordering = channeltypes.NONE
+			},
+			false,
+		},
 	}
 
 	for i, tc := range testCases {

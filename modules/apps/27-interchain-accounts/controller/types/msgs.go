@@ -1,6 +1,7 @@
 package types
 
 import (
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -26,12 +27,12 @@ var (
 )
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
-func NewMsgRegisterInterchainAccount(connectionID, owner, version string, order channeltypes.Order) *MsgRegisterInterchainAccount {
+func NewMsgRegisterInterchainAccount(connectionID, owner, version string, ordering channeltypes.Order) *MsgRegisterInterchainAccount {
 	return &MsgRegisterInterchainAccount{
 		ConnectionId: connectionID,
 		Owner:        owner,
 		Version:      version,
-		Order:        order,
+		Ordering:     ordering,
 	}
 }
 
@@ -39,6 +40,10 @@ func NewMsgRegisterInterchainAccount(connectionID, owner, version string, order 
 func (msg MsgRegisterInterchainAccount) ValidateBasic() error {
 	if err := host.ConnectionIdentifierValidator(msg.ConnectionId); err != nil {
 		return errorsmod.Wrap(err, "invalid connection ID")
+	}
+
+	if !slices.Contains([]channeltypes.Order{channeltypes.ORDERED, channeltypes.UNORDERED}, msg.Ordering) {
+		return errorsmod.Wrap(channeltypes.ErrInvalidChannelOrdering, msg.Ordering.String())
 	}
 
 	if strings.TrimSpace(msg.Owner) == "" {

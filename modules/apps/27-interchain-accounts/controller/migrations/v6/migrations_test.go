@@ -90,7 +90,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *MigrationsTestSuite) TestMigrateICS27ChannelCapability() {
 	suite.SetupTest()
-	suite.coordinator.SetupConnections(suite.path)
+	suite.path.SetupConnections()
 
 	err := suite.SetupPath()
 	suite.Require().NoError(err)

@@ -29,7 +29,7 @@ var clientHeight = types.NewHeight(1, 10)
 func (suite *TypesTestSuite) TestMarshalGenesisState() {
 	cdc := suite.chainA.App.AppCodec()
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path.Setup()
 	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 

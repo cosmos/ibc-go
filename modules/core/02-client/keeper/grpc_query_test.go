@@ -3,6 +3,11 @@ package keeper_test
 import (
 	"fmt"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -50,7 +55,7 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 			"success",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+				path.SetupClients()
 
 				var err error
 				expClientState, err = types.PackClientState(path.EndpointA.GetClientState())
@@ -134,10 +139,10 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			"success",
 			func() {
 				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path1)
+				path1.SetupClients()
 
 				path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path2)
+				path2.SetupClients()
 
 				clientStateA1 := path1.EndpointA.GetClientState()
 				clientStateA2 := path2.EndpointA.GetClientState()
@@ -231,7 +236,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			"success latest height",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+				path.SetupClients()
 				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientState().GetLatestHeight())
 
 				var err error
@@ -249,7 +254,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			"success with height",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+				path.SetupClients()
 				height := path.EndpointA.GetClientState().GetLatestHeight()
 				cs := path.EndpointA.GetConsensusState(height)
 
@@ -333,7 +338,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 			"success",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+				path.SetupClients()
 
 				height1 := path.EndpointA.GetClientState().GetLatestHeight().(types.Height)
 				expConsensusStates = append(
@@ -438,7 +443,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 			"success: returns consensus heights",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+				path.SetupClients()
 
 				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
 
@@ -527,7 +532,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			"Active client status",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+				path.SetupClients()
 				req = &types.QueryClientStatusRequest{
 					ClientId: path.EndpointA.ClientID,
 				}
@@ -538,7 +543,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			"Unknown client status",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+				path.SetupClients()
 				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 
 				// increment latest height so no consensus state is stored
@@ -555,7 +560,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			"Frozen client status",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+				path.SetupClients()
 				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 
 				clientState.FrozenHeight = types.NewHeight(0, 1)
@@ -585,6 +590,113 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 				suite.Require().Equal(tc.expStatus, res.Status)
 			} else {
 				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
+	var (
+		req            *types.QueryUpgradedClientStateRequest
+		path           *ibctesting.Path
+		expClientState *ibctm.ClientState
+	)
+
+	upgradePlan := upgradetypes.Plan{
+		Name:   "upgrade IBC clients",
+		Height: 1000,
+	}
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+
+				// update trusting period
+				clientState := path.EndpointA.GetClientState()
+				clientState.(*ibctm.ClientState).TrustingPeriod += 100
+
+				msg, err := types.NewMsgIBCSoftwareUpgrade(
+					validAuthority,
+					upgradePlan,
+					clientState,
+				)
+				suite.Require().NoError(err)
+
+				resp, err := suite.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+				suite.Require().NotNil(resp)
+
+				expClientState = clientState.(*ibctm.ClientState)
+			},
+			nil,
+		},
+		{
+			"req is nil",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"no plan",
+			func() {
+				req = &types.QueryUpgradedClientStateRequest{}
+			},
+			status.Error(codes.NotFound, "upgrade plan not found"),
+		},
+		{
+			"no upgraded client set in store",
+			func() {
+				err := suite.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(suite.chainA.GetContext(), upgradePlan)
+				suite.Require().NoError(err)
+			},
+			status.Error(codes.NotFound, "upgraded client not found"),
+		},
+		{
+			"invalid upgraded client state",
+			func() {
+				err := suite.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(suite.chainA.GetContext(), upgradePlan)
+				suite.Require().NoError(err)
+
+				bz := []byte{1, 2, 3}
+				err = suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), upgradePlan.Height, bz)
+				suite.Require().NoError(err)
+			},
+			status.Error(codes.Internal, "proto: Any: illegal tag 0 (wire type 1)"),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			req = &types.QueryUpgradedClientStateRequest{}
+
+			tc.malleate()
+
+			res, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.UpgradedClientState(suite.chainA.GetContext(), req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				upgradedClientState, err := types.UnpackClientState(res.UpgradedClientState)
+				suite.Require().NoError(err)
+				upgradedClientStateCmt, ok := upgradedClientState.(*ibctm.ClientState)
+				suite.Require().True(ok)
+
+				suite.Require().Equal(expClientState.ZeroCustomFields(), upgradedClientStateCmt)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
