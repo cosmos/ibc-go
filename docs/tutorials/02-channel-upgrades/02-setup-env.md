@@ -43,7 +43,7 @@ Test if Hermes is installed by running the following command:
 hermes version
 ```
 
-# Folder Structure
+# Folder structure
 
 This tutorial assumes the following folder structure:
 
