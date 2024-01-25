@@ -474,7 +474,7 @@ func (suite *KeeperTestSuite) TestSetPacketAcknowledgement() {
 func (suite *KeeperTestSuite) TestSetUpgradeErrorReceipt() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupConnections()
-	suite.coordinator.CreateChannels(path)
+	path.CreateChannels()
 
 	errorReceipt, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 	suite.Require().False(found)
