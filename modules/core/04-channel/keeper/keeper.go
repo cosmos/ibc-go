@@ -514,8 +514,8 @@ func (k Keeper) setUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string
 	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
 }
 
-// HasUpgrade returns true if a proposed upgrade exists in store
-func (k Keeper) HasUpgrade(ctx sdk.Context, portID, channelID string) bool {
+// hasUpgrade returns true if a proposed upgrade exists in store
+func (k Keeper) hasUpgrade(ctx sdk.Context, portID, channelID string) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(host.ChannelUpgradeKey(portID, channelID))
 }
