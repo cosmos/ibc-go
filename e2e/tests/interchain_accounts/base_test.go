@@ -32,6 +32,7 @@ var orderMapping = map[channeltypes.Order][]string{
 	channeltypes.ORDERED:   {channeltypes.ORDERED.String(), "Ordered"},
 	channeltypes.UNORDERED: {channeltypes.UNORDERED.String(), "Unordered"},
 }
+var chanNum int64
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsTestSuite))
@@ -69,6 +70,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 
 	chainA, chainB := s.GetChains()
 	relayer, _ := s.SetupRelayer(ctx, nil, chainA, chainB)
+	chanNum++
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
@@ -97,9 +99,9 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		s.Require().NotZero(len(hostAccount))
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
-
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		chanNum++
+		s.Require().Equal(len(channels), chanNum)
 		icaChannel := channels[0]
 		s.Require().Contains(orderMapping[order], icaChannel.Ordering)
 	})
