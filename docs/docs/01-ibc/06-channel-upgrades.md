@@ -138,7 +138,7 @@ All other parameters will remain the same during the upgrade handshake until the
 
 :::note
 
-When transitioning a channel from UNORDERED to ORDERED, new packet sends from the channel end which upgrade first will be incapable of being timed out until the counterparty has finished upgrading. 
+When transitioning a channel from UNORDERED to ORDERED, new packet sends from the channel end which upgrades first will be incapable of being timed out until the counterparty has finished upgrading. 
 
 :::
 
