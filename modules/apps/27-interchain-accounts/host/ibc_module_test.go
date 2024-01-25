@@ -808,9 +808,9 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 	suite.assertBalance(icaAddr, expBalAfterFirstSend)
 
 	// close the channel
-	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
+	err = path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 	suite.Require().NoError(err)
-	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
+	err = path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 	suite.Require().NoError(err)
 
 	// open a new channel on the same port

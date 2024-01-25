@@ -772,6 +772,17 @@ func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	return endpoint.Counterparty.UpdateClient()
 }
 
+// UpdateChannelState updates a channel
+func (endpoint *Endpoint) UpdateChannel(updater func(channel *channeltypes.Channel)) error {
+	channel := endpoint.GetChannel()
+	updater(&channel)
+	endpoint.SetChannel(channel)
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	return endpoint.Counterparty.UpdateClient()
+}
+
 // GetClientState retrieves the Client State for this endpoint. The
 // client state is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetClientState() exported.ClientState {

@@ -562,7 +562,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
+			err = path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			suite.Require().NoError(err)
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
@@ -579,7 +579,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
+			err = path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			suite.Require().NoError(err)
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
@@ -636,7 +636,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
+			err = path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			suite.Require().NoError(err)
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
@@ -669,7 +669,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
+			err = path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			suite.Require().NoError(err)
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
@@ -686,7 +686,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
+			err = path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			suite.Require().NoError(err)
 			err = path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
@@ -704,7 +704,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
-			err = path.EndpointB.SetChannelState(types.CLOSED)
+			err = path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			suite.Require().NoError(err)
 			// need to update chainA's client representing chainB to prove missing ack
 			err = path.EndpointA.UpdateClient()
@@ -729,7 +729,7 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				err = path.EndpointB.ChanUpgradeInit()
 				suite.Require().NoError(err)
 
-				err = path.EndpointB.SetChannelState(types.CLOSED)
+				err = path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 				suite.Require().NoError(err)
 
 				// need to update chainA's client representing chainB to prove missing ack

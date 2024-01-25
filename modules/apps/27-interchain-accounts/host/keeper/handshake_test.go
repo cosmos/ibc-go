@@ -30,10 +30,10 @@ func (suite *KeeperTestSuite) openAndCloseChannel(path *ibctesting.Path) {
 	err = path.EndpointB.ChanOpenConfirm()
 	suite.Require().NoError(err)
 
-	err = path.EndpointA.SetChannelState(channeltypes.CLOSED)
+	err = path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 	suite.Require().NoError(err)
 
-	err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
+	err = path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 	suite.Require().NoError(err)
 
 	path.EndpointA.ChannelID = ""

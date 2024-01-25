@@ -101,21 +101,21 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			err := path.EndpointA.SetChannelState(types.CLOSED)
+			err := path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			suite.Require().NoError(err)
 		}, false},
 		{"channel is in INIT state", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			err := path.EndpointA.SetChannelState(types.INIT)
+			err := path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.INIT })
 			suite.Require().NoError(err)
 		}, false},
 		{"channel is in TRYOPEN stage", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			err := path.EndpointA.SetChannelState(types.TRYOPEN)
+			err := path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.TRYOPEN })
 			suite.Require().NoError(err)
 		}, false},
 		{"connection not found", func() {
@@ -492,7 +492,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				path.Setup()
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 
-				err := path.EndpointB.SetChannelState(types.CLOSED)
+				err := path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 				suite.Require().NoError(err)
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			},
@@ -726,7 +726,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.MockAcknowledgement
 
-				err := path.EndpointB.SetChannelState(types.FLUSHING)
+				err := path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
 				suite.Require().NoError(err)
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			},
@@ -739,7 +739,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.MockAcknowledgement
 
-				err := path.EndpointB.SetChannelState(types.FLUSHCOMPLETE)
+				err := path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE })
 				suite.Require().NoError(err)
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			},
@@ -757,7 +757,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			ack = ibcmock.MockAcknowledgement
 
-			err := path.EndpointB.SetChannelState(types.CLOSED)
+			err := path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			suite.Require().NoError(err)
 			channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 		}, false},
@@ -1109,7 +1109,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 
-				err = path.EndpointA.SetChannelState(types.CLOSED)
+				err = path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 				suite.Require().NoError(err)
 				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			},

@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		{
 			"channel state is not in OPEN state",
 			func() {
-				suite.Require().NoError(path.EndpointA.SetChannelState(types.CLOSED))
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED }))
 			},
 			false,
 		},
@@ -167,7 +167,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"channel state is not in OPEN state",
 			func() {
-				suite.Require().NoError(path.EndpointB.SetChannelState(types.CLOSED))
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED }))
 			},
 			types.ErrInvalidChannelState,
 		},
@@ -658,7 +658,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 		{
 			"channel state is not in FLUSHING state",
 			func() {
-				suite.Require().NoError(path.EndpointA.SetChannelState(types.CLOSED))
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED }))
 			},
 			types.ErrInvalidChannelState,
 		},
@@ -948,7 +948,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 		{
 			"channel is not in FLUSHING state",
 			func() {
-				err := path.EndpointB.SetChannelState(types.CLOSED)
+				err := path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 				suite.Require().NoError(err)
 			},
 			types.ErrInvalidChannelState,
@@ -1605,7 +1605,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "success with flush complete state",
 			malleate: func() {
-				err := path.EndpointA.SetChannelState(types.FLUSHCOMPLETE)
+				err := path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE })
 				suite.Require().NoError(err)
 
 				var ok bool
@@ -1629,7 +1629,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "upgrade cannot be cancelled in FLUSHCOMPLETE with invalid error receipt",
 			malleate: func() {
-				err := path.EndpointA.SetChannelState(types.FLUSHCOMPLETE)
+				err := path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE })
 				suite.Require().NoError(err)
 
 				errorReceiptProof = nil
@@ -1673,7 +1673,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "error receipt sequence greater than channel upgrade sequence when channel in FLUSHCOMPLETE",
 			malleate: func() {
-				err := path.EndpointA.SetChannelState(types.FLUSHCOMPLETE)
+				err := path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE })
 				suite.Require().NoError(err)
 			},
 			expError: types.ErrInvalidUpgradeSequence,
@@ -2000,7 +2000,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		{
 			"channel state is not in FLUSHING or FLUSHINGCOMPLETE state",
 			func() {
-				suite.Require().NoError(path.EndpointA.SetChannelState(types.OPEN))
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.OPEN }))
 			},
 			types.ErrInvalidChannelState,
 		},

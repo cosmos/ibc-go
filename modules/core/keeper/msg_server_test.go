@@ -646,7 +646,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 
 			// close counterparty channel
-			err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
+			err = path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 			suite.Require().NoError(err)
 		}, true},
 		{"success: UNORDERED", func() {
@@ -664,7 +664,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 			// close counterparty channel
-			err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
+			err = path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 			suite.Require().NoError(err)
 		}, true},
 		{"success: UNORDERED timeout out of order packet", func() {
@@ -687,7 +687,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 			// close counterparty channel
-			err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
+			err = path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 			suite.Require().NoError(err)
 		}, true},
 		{"success: ORDERED timeout out of order packet", func() {
@@ -710,7 +710,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 
 			// close counterparty channel
-			err = path.EndpointB.SetChannelState(channeltypes.CLOSED)
+			err = path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 			suite.Require().NoError(err)
 		}, true},
 		{"channel does not exist", func() {
@@ -725,7 +725,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 			packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 
 			// close counterparty channel
-			err := path.EndpointB.SetChannelState(channeltypes.CLOSED)
+			err := path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.CLOSED })
 			suite.Require().NoError(err)
 		}, true},
 		{"ORDERED: channel not closed", func() {
@@ -2306,7 +2306,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeCancel() {
 			func() {
 				msg.Signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
 
-				suite.Require().NoError(path.EndpointA.SetChannelState(channeltypes.FLUSHCOMPLETE))
+				suite.Require().NoError(
+					path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.State = channeltypes.FLUSHCOMPLETE }),
+				)
 			},
 			func(res *channeltypes.MsgChannelUpgradeCancelResponse, events []abci.Event, err error) {
 				suite.Require().Error(err)
