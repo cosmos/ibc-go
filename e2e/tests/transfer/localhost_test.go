@@ -123,7 +123,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
-		s.Require().Equal(channelEndA.GetConnectionHops(), channelEndB.GetConnectionHops())
+		s.Require().Equal(channelEndA.ConnectionHops, channelEndB.ConnectionHops)
 	})
 
 	t.Run("send packet localhost ibc transfer", func(t *testing.T) {

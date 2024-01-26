@@ -1576,7 +1576,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 			errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", types.FLUSHCOMPLETE, types.OPEN, types.CLOSED),
 		},
 		{
-			"invalid counterparty upgrade seqeuence",
+			"invalid counterparty upgrade sequence",
 			func() {
 				msg.CounterpartyUpgradeSequence = 0
 			},

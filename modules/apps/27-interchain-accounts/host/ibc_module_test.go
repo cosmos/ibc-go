@@ -214,7 +214,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 			cbs, ok := suite.chainB.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			version, err := cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := cbs.OnChanOpenTry(suite.chainB.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, chanCap, channel.Counterparty, path.EndpointA.ChannelConfig.Version,
 			)
 
