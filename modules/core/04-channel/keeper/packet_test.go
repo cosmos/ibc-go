@@ -184,8 +184,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
 
 			clientState := path.EndpointA.GetClientState()
-			connection, found := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), path.EndpointA.ConnectionID)
-			suite.Require().True(found)
+			connection := path.EndpointA.GetConnection()
 
 			timestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection, clientState.GetLatestHeight())
 			suite.Require().NoError(err)
