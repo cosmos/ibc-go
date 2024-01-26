@@ -37,9 +37,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		{
 			"success with later upgrade sequence",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.UpgradeSequence = 4
-				path.EndpointA.SetChannel(channel)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 4 }))
 				expSequence = 5
 			},
 			true,
@@ -149,11 +147,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"success: upgrade sequence is fast forwarded to counterparty upgrade sequence",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.UpgradeSequence = 5
-				path.EndpointA.SetChannel(channel)
-
-				suite.coordinator.CommitBlock(suite.chainA)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 5 }))
 			},
 			nil,
 		},
@@ -174,9 +168,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"connection not found",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.ConnectionHops = []string{"connection-100"}
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops = []string{"connection-100"} }))
 			},
 			connectiontypes.ErrConnectionNotFound,
 		},
@@ -199,9 +191,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.Ordering = types.ORDERED
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.Ordering = types.ORDERED }))
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -230,9 +220,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"fails due to mismatch in upgrade sequences",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.UpgradeSequence = 5
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 5 }))
 			},
 			// channel sequence will be returned so that counterparty inits on completely fresh sequence for both sides
 			types.NewUpgradeError(5, types.ErrInvalidUpgradeSequence),
@@ -267,9 +255,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			// ChainB.TRY(ErrorReceipt: 4)
 			"crossing hellos: upgrade starts with mismatching upgrade sequences and try fails on counterparty due to incompatible version",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.UpgradeSequence = 4
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 4 }))
 
 				// use incompatible version
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = fmt.Sprintf("%s-v3", mock.Version)
@@ -369,9 +355,7 @@ func (suite *KeeperTestSuite) TestChanUpgrade_CrossingHellos_UpgradeSucceeds_Aft
 	})
 
 	suite.Run("set chainB upgrade sequence ahead of counterparty", func() {
-		channel := path.EndpointB.GetChannel()
-		channel.UpgradeSequence = 4
-		path.EndpointB.SetChannel(channel)
+		suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 4 }))
 	})
 
 	suite.Run("chainB upgrade init (crossing hello)", func() {
@@ -468,9 +452,7 @@ func (suite *KeeperTestSuite) TestChanUpgrade_CrossingHellos_UpgradeSucceeds_Aft
 	})
 
 	suite.Run("set chainB upgrade sequence ahead of counterparty", func() {
-		channel := path.EndpointB.GetChannel()
-		channel.UpgradeSequence = 4
-		path.EndpointB.SetChannel(channel)
+		suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 4 }))
 	})
 
 	suite.Run("chainB upgrade init (crossing hello)", func() {
@@ -632,15 +614,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 		{
 			"success with later upgrade sequence",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.UpgradeSequence = 10
-				path.EndpointA.SetChannel(channel)
-
-				channel = path.EndpointB.GetChannel()
-				channel.UpgradeSequence = 10
-				path.EndpointB.SetChannel(channel)
-
-				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 10 }))
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 10 }))
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
@@ -665,9 +640,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 		{
 			"connection not found",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.ConnectionHops = []string{"connection-100"}
-				path.EndpointA.SetChannel(channel)
+
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops = []string{"connection-100"} }))
 			},
 			connectiontypes.ErrConnectionNotFound,
 		},
@@ -706,9 +680,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 		{
 			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.Ordering = types.ORDERED
-				path.EndpointA.SetChannel(channel)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.Ordering = types.ORDERED }))
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -884,15 +856,8 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 		{
 			"success with later upgrade sequence",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.UpgradeSequence = 10
-				path.EndpointA.SetChannel(channel)
-
-				channel = path.EndpointB.GetChannel()
-				channel.UpgradeSequence = 10
-				path.EndpointB.SetChannel(channel)
-
-				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 10 }))
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 10 }))
 
 				err := path.EndpointB.UpdateClient()
 				suite.Require().NoError(err)
@@ -963,9 +928,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 		{
 			"connection not found",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.ConnectionHops = []string{"connection-100"}
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops = []string{"connection-100"} }))
 			},
 			connectiontypes.ErrConnectionNotFound,
 		},
@@ -981,11 +944,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 		{
 			"fails due to proof verification failure, counterparty channel ordering does not match expected ordering",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.Ordering = types.ORDERED
-				path.EndpointA.SetChannel(channel)
-
-				suite.coordinator.CommitBlock(suite.chainA)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.Ordering = types.ORDERED }))
 
 				err := path.EndpointB.UpdateClient()
 				suite.Require().NoError(err)
@@ -1204,9 +1163,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		{
 			"success: counterparty upgrade sequence is incorrect",
 			func() {
-				counterpartyCh := path.EndpointB.GetChannel()
-				counterpartyCh.UpgradeSequence--
-				path.EndpointB.SetChannel(counterpartyCh)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence-- }))
 			},
 			types.ErrInvalidUpgradeSequence,
 		},
@@ -1220,18 +1177,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		{
 			"channel state is not FLUSHCOMPLETE",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING }))
 			},
 			types.ErrInvalidChannelState,
 		},
 		{
 			"connection not found",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.ConnectionHops = []string{"connection-100"}
-				path.EndpointA.SetChannel(channel)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops = []string{"connection-100"} }))
 			},
 			connectiontypes.ErrConnectionNotFound,
 		},
@@ -1247,9 +1200,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		{
 			"invalid counterparty channel state",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.State = types.CLOSED
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED }))
 			},
 			types.ErrInvalidCounterparty,
 		},
@@ -1681,9 +1632,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "error receipt sequence smaller than channel upgrade sequence when channel in FLUSHCOMPLETE",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHCOMPLETE
-				path.EndpointA.SetChannel(channel)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE }))
 
 				var ok bool
 				errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
@@ -1705,9 +1654,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 		{
 			name: "connection not found",
 			malleate: func() {
-				channel := path.EndpointA.GetChannel()
-				channel.ConnectionHops = []string{"connection-100"}
-				path.EndpointA.SetChannel(channel)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops = []string{"connection-100"} }))
 			},
 			expError: connectiontypes.ErrConnectionNotFound,
 		},
@@ -1762,13 +1709,9 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			// cause the upgrade to fail on chain b so an error receipt is written.
 			// if the counterparty (chain A) upgrade sequence is less than the current sequence, (chain B)
 			// an upgrade error will be returned by chain B during ChanUpgradeTry.
-			channel := path.EndpointA.GetChannel()
-			channel.UpgradeSequence = 1
-			path.EndpointA.SetChannel(channel)
+			suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 1 }))
 
-			channel = path.EndpointB.GetChannel()
-			channel.UpgradeSequence = 2
-			path.EndpointB.SetChannel(channel)
+			suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 2 }))
 
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 			suite.Require().NoError(path.EndpointB.UpdateClient())
@@ -1785,9 +1728,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 			errorReceipt, ok = suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetUpgradeErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 			suite.Require().True(ok)
 
-			channel = path.EndpointA.GetChannel()
-			channel.State = types.FLUSHING
-			path.EndpointA.SetChannel(channel)
+			suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING }))
 
 			tc.malleate()
 
@@ -1817,13 +1758,8 @@ func (suite *KeeperTestSuite) TestChanUpgrade_UpgradeSucceeds_AfterCancel() {
 	// cause the upgrade to fail on chain b so an error receipt is written.
 	// if the counterparty (chain A) upgrade sequence is less than the current sequence, (chain B)
 	// an upgrade error will be returned by chain B during ChanUpgradeTry.
-	channel := path.EndpointA.GetChannel()
-	channel.UpgradeSequence = 1
-	path.EndpointA.SetChannel(channel)
-
-	channel = path.EndpointB.GetChannel()
-	channel.UpgradeSequence = 5
-	path.EndpointB.SetChannel(channel)
+	suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 1 }))
+	suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 5 }))
 
 	suite.Require().NoError(path.EndpointA.UpdateClient())
 	suite.Require().NoError(path.EndpointB.UpdateClient())
@@ -1914,13 +1850,8 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 			// cause the upgrade to fail on chain b so an error receipt is written.
 			// if the counterparty (chain A) upgrade sequence is less than the current sequence, (chain B)
 			// an upgrade error will be returned by chain B during ChanUpgradeTry.
-			channel := path.EndpointA.GetChannel()
-			channel.UpgradeSequence = 1
-			path.EndpointA.SetChannel(channel)
-
-			channel = path.EndpointB.GetChannel()
-			channel.UpgradeSequence = 2
-			path.EndpointB.SetChannel(channel)
+			suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 1 }))
+			suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 2 }))
 
 			err := path.EndpointB.ChanUpgradeTry()
 			suite.Require().NoError(err)
@@ -1941,7 +1872,7 @@ func (suite *KeeperTestSuite) TestWriteUpgradeCancelChannel() {
 			} else {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeCancelChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt.Sequence)
 
-				channel = path.EndpointA.GetChannel()
+				channel := path.EndpointA.GetChannel()
 
 				// Verify that channel has been restored to previous state
 				suite.Require().Equal(types.OPEN, channel.State)
@@ -2014,9 +1945,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		{
 			"connection not found",
 			func() {
-				channel := path.EndpointA.GetChannel()
-				channel.ConnectionHops[0] = ibctesting.InvalidID
-				path.EndpointA.SetChannel(channel)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops[0] = ibctesting.InvalidID }))
 			},
 			connectiontypes.ErrConnectionNotFound,
 		},
@@ -2040,9 +1969,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		{
 			"invalid channel state proof",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.State = types.OPEN
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.OPEN }))
 
 				timeoutUpgrade()
 
@@ -2052,18 +1979,16 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				channelProof, proofHeight = path.EndpointB.QueryProof(channelKey)
 
 				// modify state so the proof becomes invalid.
-				channel.State = types.FLUSHING
-				path.EndpointB.SetChannel(channel)
-				suite.coordinator.CommitNBlocks(suite.chainB, 1)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING }))
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
 		{
 			"invalid counterparty upgrade sequence",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.UpgradeSequence = path.EndpointA.GetChannel().UpgradeSequence - 1
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) {
+					channel.UpgradeSequence = path.EndpointA.GetChannel().UpgradeSequence - 1
+				}))
 
 				timeoutUpgrade()
 
@@ -2091,9 +2016,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		{
 			"counterparty channel state is not OPEN or FLUSHING (crossing hellos)",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.State = types.FLUSHCOMPLETE
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE }))
 
 				timeoutUpgrade()
 
@@ -2107,9 +2030,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		{
 			"counterparty proposed connection invalid",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.State = types.OPEN
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.OPEN }))
 
 				timeoutUpgrade()
 
@@ -2205,9 +2126,7 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 		{
 			"connection not found",
 			func() {
-				channel := path.EndpointB.GetChannel()
-				channel.ConnectionHops[0] = ibctesting.InvalidID
-				path.EndpointB.SetChannel(channel)
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) {	channel.ConnectionHops[0] = ibctesting.InvalidID }))
 			},
 			connectiontypes.ErrConnectionNotFound,
 		},

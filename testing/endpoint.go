@@ -760,6 +760,7 @@ func (endpoint *Endpoint) ChanUpgradeCancel() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// Deprecated: usage of this function should be replaced by `UpdateChannelState`
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()
@@ -772,7 +773,8 @@ func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	return endpoint.Counterparty.UpdateClient()
 }
 
-// UpdateChannelState updates a channel
+// UpdateChannel updates the channel associated with the given endpoint. It accepts a
+// closure which takes a channel allowing the caller to modify its fields.
 func (endpoint *Endpoint) UpdateChannel(updater func(channel *channeltypes.Channel)) error {
 	channel := endpoint.GetChannel()
 	updater(&channel)

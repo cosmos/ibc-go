@@ -482,9 +482,8 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
 				chanCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				channel := path.EndpointA.GetChannel()
-				channel.State = types.FLUSHING
-				path.EndpointA.SetChannel(channel)
+				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING }))
+
 				path.EndpointA.SetChannelUpgrade(types.Upgrade{
 					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
 					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
