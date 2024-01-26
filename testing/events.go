@@ -207,17 +207,12 @@ func AssertEvents(
 
 	for i, expectedEvent := range expected {
 		for _, actualEvent := range actual {
-			// the actual event will have an extra attribute added automatically
-			// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
-			// with the number of attributes in the expected event.
-			if expectedEvent.Type == actualEvent.Type && (len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1) {
-				// multiple events with the same type may be emitted, only mark the expected event as found
-				// if all of the attributes match
+			if shouldProcessEvent(expectedEvent, actualEvent) {
 				attributeMatch := true
 				for _, expectedAttr := range expectedEvent.Attributes {
 					// any expected attributes that are not contained in the actual events will cause this event
 					// not to match
-					attributeMatch = attributeMatch && slices.Contains(actualEvent.Attributes, expectedAttr)
+					attributeMatch = attributeMatch && containsAttribute(actualEvent.Attributes, expectedAttr.Key, expectedAttr.Value)
 				}
 
 				if attributeMatch {
@@ -230,4 +225,34 @@ func AssertEvents(
 	for i, expectedEvent := range expected {
 		suite.Require().True(foundEvents[i], "event: %s was not found in events", expectedEvent.Type)
 	}
+}
+
+// shouldProcessEvent returns true if the given expected event should be processed based on event type.
+func shouldProcessEvent(expectedEvent abci.Event, actualEvent abci.Event) bool {
+	if expectedEvent.Type != actualEvent.Type {
+		return false
+	}
+	// the actual event will have an extra attribute added automatically
+	// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
+	// with the number of attributes in the expected event.
+	if containsAttributeKey(actualEvent.Attributes, "msg_index") {
+		return len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1
+	}
+
+	return len(expectedEvent.Attributes) == len(actualEvent.Attributes)
+}
+
+// containsAttribute returns true if the given key/value pair is contained in the given attributes.
+// NOTE: this ignores the indexed field, which can be set or unset depending on how the events are retrieved.
+func containsAttribute(attrs []abci.EventAttribute, key, value string) bool {
+	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
+		return attr.Key == key && attr.Value == value
+	})
+}
+
+// containsAttributeKey returns true if the given key is contained in the given attributes.
+func containsAttributeKey(attrs []abci.EventAttribute, key string) bool {
+	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
+		return attr.Key == key
+	})
 }

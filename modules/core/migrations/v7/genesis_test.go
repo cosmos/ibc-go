@@ -47,7 +47,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	for i := 0; i < 3; i++ {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 
 		err := path.EndpointA.UpdateClient()
 		suite.Require().NoError(err)

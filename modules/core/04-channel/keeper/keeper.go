@@ -514,6 +514,12 @@ func (k Keeper) setUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string
 	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
 }
 
+// hasUpgrade returns true if a proposed upgrade exists in store
+func (k Keeper) hasUpgrade(ctx sdk.Context, portID, channelID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ChannelUpgradeKey(portID, channelID))
+}
+
 // GetUpgrade returns the proposed upgrade for the provided port and channel identifiers.
 func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -684,7 +690,7 @@ func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string,
 	}
 
 	start := pruningSequenceStart
-	end := pruningSequenceStart + limit
+	end := pruningSequenceStart + limit // note: checked against limit overflowing.
 	for ; start < end; start++ {
 		// stop pruning if pruningSequenceStart has reached pruningSequenceEnd, pruningSequenceEnd is
 		// set to be equal to the _next_ sequence to be sent by the counterparty.

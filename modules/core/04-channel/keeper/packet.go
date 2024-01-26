@@ -123,20 +123,15 @@ func (k Keeper) RecvPacket(
 	}
 
 	// If counterpartyUpgrade is stored we need to ensure that the
-	// packet sequence is < counterparty next sequence send. This is a defensive
-	// check and if the counterparty is implemented correctly, this should never abort.
+	// packet sequence is < counterparty next sequence send. If the
+	// counterparty is implemented correctly, this may only occur
+	// when we are in FLUSHCOMPLETE and the counterparty has already
+	// completed the channel upgrade.
 	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if found {
-		// only error if the counterparty next sequence send is set (> 0)
-		// this error should never be reached, as under normal circumstances the counterparty
-		// should not send any packets after the upgrade has been started.
 		counterpartyNextSequenceSend := counterpartyUpgrade.NextSequenceSend
 		if packet.GetSequence() >= counterpartyNextSequenceSend {
-			return errorsmod.Wrapf(
-				types.ErrInvalidPacket,
-				"failed to receive packet, cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d). UNEXPECTED BEHAVIOUR ON COUNTERPARTY, PLEASE REPORT ISSUE TO RELEVANT CHAIN DEVELOPERS",
-				packet.GetSequence(), counterpartyNextSequenceSend,
-			)
+			return errorsmod.Wrapf(types.ErrInvalidPacket, "cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d).", packet.GetSequence(), counterpartyNextSequenceSend)
 		}
 	}
 
