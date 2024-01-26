@@ -242,7 +242,7 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 			heightDiff = 5
 		}, false},
 		{"verification failed - changed channel state", func() {
-			
+
 			channel := path.EndpointA.GetChannel()
 			channel.State = channeltypes.TRYOPEN
 			path.EndpointA.SetChannel(channel)

@@ -672,7 +672,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 		{
 			"connection not found",
 			func() {
-
 				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops = []string{"connection-100"} }))
 			},
 			connectiontypes.ErrConnectionNotFound,
@@ -2228,7 +2227,7 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 		{
 			"connection not found",
 			func() {
-				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) {	channel.ConnectionHops[0] = ibctesting.InvalidID }))
+				suite.Require().NoError(path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops[0] = ibctesting.InvalidID }))
 			},
 			connectiontypes.ErrConnectionNotFound,
 		},

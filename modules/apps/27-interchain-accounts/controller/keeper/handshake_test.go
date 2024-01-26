@@ -579,7 +579,6 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
-
 				suite.Require().NoError(path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion }))
 			},
 			expError: icatypes.ErrUnknownDataType,
