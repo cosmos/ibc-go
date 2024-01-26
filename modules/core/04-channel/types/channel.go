@@ -27,31 +27,6 @@ func NewChannel(
 	}
 }
 
-// GetState implements Channel interface.
-func (ch Channel) GetState() int32 {
-	return int32(ch.State)
-}
-
-// GetOrdering implements Channel interface.
-func (ch Channel) GetOrdering() int32 {
-	return int32(ch.Ordering)
-}
-
-// GetCounterparty implements Channel interface.
-func (ch Channel) GetCounterparty() exported.CounterpartyChannelI {
-	return ch.Counterparty
-}
-
-// GetConnectionHops implements Channel interface.
-func (ch Channel) GetConnectionHops() []string {
-	return ch.ConnectionHops
-}
-
-// GetVersion implements Channel interface.
-func (ch Channel) GetVersion() string {
-	return ch.Version
-}
-
 // ValidateBasic performs a basic validation of the channel fields
 func (ch Channel) ValidateBasic() error {
 	if ch.State == UNINITIALIZED {
