@@ -151,7 +151,6 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 	s.Require().NoError(err)
 
 	proposalID := s.proposalIDs[cosmosChain.Config().ChainID]
-	fmt.Println(proposalID)
 	msgs := []sdk.Msg{msg}
 
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
