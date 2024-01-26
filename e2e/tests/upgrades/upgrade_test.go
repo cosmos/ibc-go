@@ -756,27 +756,27 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	// trying to create some inflight packets, although they might get relayed before the upgrade starts
-	//t.Run("create inflight transfer packets between chain A and chain B", func(t *testing.T) {
-	//	chainBWalletAmount := ibc.WalletAmount{
-	//		Address: chainBWallet.FormattedAddress(), // destination address
-	//		Denom:   chainADenom,
-	//		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
-	//	}
-	//
-	//	transferTxResp, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainBWalletAmount, ibc.TransferOptions{})
-	//	s.Require().NoError(err)
-	//	s.Require().NoError(transferTxResp.Validate(), "chain-a ibc transfer tx is invalid")
-	//
-	//	chainAwalletAmount := ibc.WalletAmount{
-	//		Address: chainAWallet.FormattedAddress(), // destination address
-	//		Denom:   chainBDenom,
-	//		Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
-	//	}
-	//
-	//	transferTxResp, err = chainB.SendIBCTransfer(ctx, channelB.ChannelID, chainBWallet.KeyName(), chainAwalletAmount, ibc.TransferOptions{})
-	//	s.Require().NoError(err)
-	//	s.Require().NoError(transferTxResp.Validate(), "chain-b ibc transfer tx is invalid")
-	//})
+	t.Run("create inflight transfer packets between chain A and chain B", func(t *testing.T) {
+		chainBWalletAmount := ibc.WalletAmount{
+			Address: chainBWallet.FormattedAddress(), // destination address
+			Denom:   chainADenom,
+			Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
+		}
+
+		transferTxResp, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainBWalletAmount, ibc.TransferOptions{})
+		s.Require().NoError(err)
+		s.Require().NoError(transferTxResp.Validate(), "chain-a ibc transfer tx is invalid")
+
+		chainAwalletAmount := ibc.WalletAmount{
+			Address: chainAWallet.FormattedAddress(), // destination address
+			Denom:   chainBDenom,
+			Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
+		}
+
+		transferTxResp, err = chainB.SendIBCTransfer(ctx, channelB.ChannelID, chainBWallet.KeyName(), chainAwalletAmount, ibc.TransferOptions{})
+		s.Require().NoError(err)
+		s.Require().NoError(transferTxResp.Validate(), "chain-b ibc transfer tx is invalid")
+	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
@@ -820,21 +820,21 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
-	//t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
-	//	// packet from chain A to chain B
-	//	//s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
-	//	actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
-	//	s.Require().NoError(err)
-	//	expected := testvalues.IBCTransferAmount
-	//	s.Require().Equal(expected, actualBalance.Int64())
-	//
-	//	// packet from chain B to chain A
-	//	//s.AssertPacketRelayed(ctx, chainB, channelB.PortID, channelB.ChannelID, 1)
-	//	actualBalance, err = s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
-	//	s.Require().NoError(err)
-	//	expected = testvalues.IBCTransferAmount
-	//	s.Require().Equal(expected, actualBalance.Int64())
-	//})
+	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
+		// packet from chain A to chain B
+		//s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance.Int64())
+
+		// packet from chain B to chain A
+		//s.AssertPacketRelayed(ctx, chainB, channelB.PortID, channelB.ChannelID, 1)
+		actualBalance, err = s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+		s.Require().NoError(err)
+		expected = testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance.Int64())
+	})
 
 	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
 		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
@@ -866,21 +866,21 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 		s.Require().Equal(true, feeEnabled)
 	})
 
-	//t.Run("prune packet acknowledgements", func(t *testing.T) {
-	//	// there should be one ack for the packet that we sent before the upgrade
-	//	acks, err := s.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
-	//	s.Require().NoError(err)
-	//	s.Require().Len(acks, 1)
-	//	s.Require().Equal(uint64(1), acks[0].Sequence)
-	//
-	//	pruneAcksTxResponse := s.PruneAcknowledgements(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, uint64(1))
-	//	s.AssertTxSuccess(pruneAcksTxResponse)
-	//
-	//	// after pruning there should not be any acks
-	//	acks, err = s.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
-	//	s.Require().NoError(err)
-	//	s.Require().Empty(acks)
-	//})
+	t.Run("prune packet acknowledgements", func(t *testing.T) {
+		// there should be one ack for the packet that we sent before the upgrade
+		acks, err := s.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
+		s.Require().NoError(err)
+		s.Require().Len(acks, 1)
+		s.Require().Equal(uint64(1), acks[0].Sequence)
+
+		pruneAcksTxResponse := s.PruneAcknowledgements(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, uint64(1))
+		s.AssertTxSuccess(pruneAcksTxResponse)
+
+		// after pruning there should not be any acks
+		acks, err = s.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
+		s.Require().NoError(err)
+		s.Require().Empty(acks)
+	})
 
 	t.Run("stop relayer", func(t *testing.T) {
 		s.StopRelayer(ctx, relayer)
