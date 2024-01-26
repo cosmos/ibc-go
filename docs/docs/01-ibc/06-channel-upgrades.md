@@ -175,9 +175,9 @@ It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenI
 
 :::warning
 
-Performing sequentially an upgrade cancellation, upgrade initialization, and another upgrade cancellation in a single block while the counterparty is in FLUSHCOMPLETE will lead to corrupted state.
+Performing sequentially an upgrade cancellation, upgrade initialization, and another upgrade cancellation in a single block while the counterparty is in `FLUSHCOMPLETE` will lead to corrupted state.
 The counterparty will be unable to cancel its upgrade attempt and will require a manual migration. 
-When the counterparty is in FLUSHCOMPLETE, it requires a proof that the counterparty cancelled its current upgrade attempt. 
+When the counterparty is in `FLUSHCOMPLETE`, it requires a proof that the counterparty cancelled its current upgrade attempt. 
 When this cancellation is succeeded by an initialization and cancellation in the same block, it results in the proof of cancellation existing only for the next upgrade attempt, not the current. 
 
 :::
