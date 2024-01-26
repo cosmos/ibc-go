@@ -238,6 +238,30 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 			types.NewUpgradeError(5, types.ErrInvalidUpgradeSequence),
 		},
 		{
+			"fails due to mismatch in upgrade sequences: chainB is on incremented sequence without an upgrade indicating it has already processed upgrade at this sequence.",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 1
+				errorReceipt := types.NewUpgradeError(1, types.ErrInvalidUpgrade)
+				suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper.WriteErrorReceipt(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, errorReceipt)
+				path.EndpointB.SetChannel(channel)
+			},
+			types.NewUpgradeError(1, types.ErrInvalidUpgradeSequence),
+		},
+		{
+			"fails due to mismatch in upgrade sequences, crossing hello with the TRY chain having a higher sequence",
+			func() {
+				channel := path.EndpointB.GetChannel()
+				channel.UpgradeSequence = 4
+				path.EndpointB.SetChannel(channel)
+
+				// upgrade sequence is 5 after this call
+				err := path.EndpointB.ChanUpgradeInit()
+				suite.Require().NoError(err)
+			},
+			types.NewUpgradeError(4, types.ErrInvalidUpgradeSequence),
+		},
+		{
 			// ChainA(Sequence: 0, mock-version-v2), ChainB(Sequence: 0, mock-version-v3)
 			// ChainA.INIT(Sequence: 1)
 			// ChainB.INIT(Sequence: 1)
@@ -648,6 +672,14 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 			nil,
 		},
 		{
+			"failure if initializing chain reinitializes before ACK",
+			func() {
+				err := path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+			},
+			commitmenttypes.ErrInvalidProof, // sequences are out of sync
+		},
+		{
 			"channel not found",
 			func() {
 				path.EndpointA.ChannelID = ibctesting.InvalidID
@@ -862,6 +894,76 @@ func (suite *KeeperTestSuite) TestWriteChannelUpgradeAck() {
 			suite.Require().Equal(proposedUpgrade, counterpartyUpgrade)
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestChanUpgrade_ReinitializedBeforeAck() {
+	var path *ibctesting.Path
+	suite.Run("setup path", func() {
+		path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		suite.coordinator.Setup(path)
+
+		path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+		path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+	})
+
+	suite.Run("chainA upgrade init", func() {
+		err := path.EndpointA.ChanUpgradeInit()
+		suite.Require().NoError(err)
+
+		channel := path.EndpointA.GetChannel()
+		suite.Require().Equal(uint64(1), channel.UpgradeSequence)
+	})
+
+	suite.Run("chainB upgrade try", func() {
+		err := path.EndpointB.ChanUpgradeTry()
+		suite.Require().NoError(err)
+	})
+
+	suite.Run("chainA upgrade init reinitialized after ack", func() {
+		err := path.EndpointA.ChanUpgradeInit()
+		suite.Require().NoError(err)
+
+		channel := path.EndpointA.GetChannel()
+		suite.Require().Equal(uint64(2), channel.UpgradeSequence)
+	})
+
+	suite.Run("chan upgrade ack fails", func() {
+		err := path.EndpointA.ChanUpgradeAck()
+		suite.Require().Error(err)
+	})
+
+	suite.Run("chainB upgrade cancel", func() {
+		err := path.EndpointB.ChanUpgradeCancel()
+		suite.Require().NoError(err)
+	})
+
+	suite.Run("upgrade handshake succeeds on new upgrade attempt", func() {
+		err := path.EndpointB.ChanUpgradeTry()
+		suite.Require().NoError(err)
+
+		err = path.EndpointA.ChanUpgradeAck()
+		suite.Require().NoError(err)
+
+		err = path.EndpointB.ChanUpgradeConfirm()
+		suite.Require().NoError(err)
+
+		err = path.EndpointA.ChanUpgradeOpen()
+		suite.Require().NoError(err)
+	})
+
+	suite.Run("assert successful upgrade expected channel state", func() {
+		channelA := path.EndpointA.GetChannel()
+		suite.Require().Equal(types.OPEN, channelA.State, "channel should be in OPEN state")
+		suite.Require().Equal(mock.UpgradeVersion, channelA.Version, "version should be correctly upgraded")
+		suite.Require().Equal(mock.UpgradeVersion, path.EndpointB.GetChannel().Version, "version should be correctly upgraded")
+		suite.Require().Equal(uint64(2), channelA.UpgradeSequence, "upgrade sequence should be incremented")
+
+		channelB := path.EndpointB.GetChannel()
+		suite.Require().Equal(types.OPEN, channelB.State, "channel should be in OPEN state")
+		suite.Require().Equal(mock.UpgradeVersion, channelB.Version, "version should be correctly upgraded")
+		suite.Require().Equal(mock.UpgradeVersion, channelB.Version, "version should be correctly upgraded")
+		suite.Require().Equal(uint64(2), channelB.UpgradeSequence, "upgrade sequence should be incremented")
+	})
 }
 
 func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
