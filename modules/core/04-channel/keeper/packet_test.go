@@ -259,7 +259,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 func (suite *KeeperTestSuite) TestRecvPacket() {
 	var (
 		path       *ibctesting.Path
-		packet     exported.PacketI
+		packet     types.Packet
 		channelCap *capabilitytypes.Capability
 	)
 
@@ -320,7 +320,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				err = path.EndpointB.RecvPacket(packet.(types.Packet))
+				err = path.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 			},
 			types.ErrNoOpMsg,
@@ -335,7 +335,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				channelCap = suite.chainB.GetChannelCapability(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 
 				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-				err = path.EndpointB.RecvPacket(packet.(types.Packet))
+				err = path.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 			},
 			types.ErrNoOpMsg,

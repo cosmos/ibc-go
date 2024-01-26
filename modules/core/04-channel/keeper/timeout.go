@@ -23,7 +23,7 @@ import (
 // ante handler.
 func (k Keeper) TimeoutPacket(
 	ctx sdk.Context,
-	packet exported.PacketI,
+	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
@@ -137,7 +137,7 @@ func (k Keeper) TimeoutPacket(
 func (k Keeper) TimeoutExecuted(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packet types.Packet,
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
@@ -184,7 +184,7 @@ func (k Keeper) TimeoutExecuted(
 func (k Keeper) TimeoutOnClose(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packet types.Packet,
 	proof,
 	proofClosed []byte,
 	proofHeight exported.Height,

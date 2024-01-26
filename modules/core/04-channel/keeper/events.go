@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -121,7 +122,7 @@ func emitChannelCloseConfirmEvent(ctx sdk.Context, portID string, channelID stri
 
 // emitSendPacketEvent emits an event with packet data along with other packet information for relayer
 // to pick up and relay to other chain
-func emitSendPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types.Channel, timeoutHeight exported.Height) {
+func emitSendPacketEvent(ctx sdk.Context, packet channeltypes.Packet, channel types.Channel, timeoutHeight exported.Height) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
@@ -149,7 +150,7 @@ func emitSendPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types
 
 // emitRecvPacketEvent emits a receive packet event. It will be emitted both the first time a packet
 // is received for a certain sequence and for all duplicate receives.
-func emitRecvPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types.Channel) {
+func emitRecvPacketEvent(ctx sdk.Context, packet channeltypes.Packet, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,
@@ -176,7 +177,7 @@ func emitRecvPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types
 }
 
 // emitWriteAcknowledgementEvent emits an event that the relayer can query for
-func emitWriteAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, channel types.Channel, acknowledgement []byte) {
+func emitWriteAcknowledgementEvent(ctx sdk.Context, packet channeltypes.Packet, channel types.Channel, acknowledgement []byte) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWriteAck,
@@ -205,7 +206,7 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet exported.PacketI, cha
 
 // emitAcknowledgePacketEvent emits an acknowledge packet event. It will be emitted both the first time
 // a packet is acknowledged for a certain sequence and for all duplicate acknowledgements.
-func emitAcknowledgePacketEvent(ctx sdk.Context, packet exported.PacketI, channel types.Channel) {
+func emitAcknowledgePacketEvent(ctx sdk.Context, packet channeltypes.Packet, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAcknowledgePacket,
@@ -231,7 +232,7 @@ func emitAcknowledgePacketEvent(ctx sdk.Context, packet exported.PacketI, channe
 
 // emitTimeoutPacketEvent emits a timeout packet event. It will be emitted both the first time a packet
 // is timed out for a certain sequence and for all duplicate timeouts.
-func emitTimeoutPacketEvent(ctx sdk.Context, packet exported.PacketI, channel types.Channel) {
+func emitTimeoutPacketEvent(ctx sdk.Context, packet channeltypes.Packet, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeoutPacket,
@@ -253,7 +254,7 @@ func emitTimeoutPacketEvent(ctx sdk.Context, packet exported.PacketI, channel ty
 }
 
 // emitChannelClosedEvent emits a channel closed event.
-func emitChannelClosedEvent(ctx sdk.Context, packet exported.PacketI, channel types.Channel) {
+func emitChannelClosedEvent(ctx sdk.Context, packet channeltypes.Packet, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelClosed,
