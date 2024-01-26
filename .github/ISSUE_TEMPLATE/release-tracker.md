@@ -22,7 +22,7 @@ v                     without deliberation
 
 ### Backwards compatibility
 
-<!-- List of tests that need be performed with previous
+<!-- List of tests that need to be performed with previous
 versions of ibc-go to guarantee that no regression is introduced -->
 
 - [ ] [Compatibility tests](https://github.com/cosmos/ibc-go/actions/workflows/e2e-compatibility.yaml) pass for the release branch.

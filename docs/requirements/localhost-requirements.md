@@ -66,4 +66,4 @@ Polymer plans to leverage the localhost client with multiple connections as part
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
-| 3.01 | Existing CLI interfaces used with IBC application modules shall be useable with the localhost client. | Manual test | `Verified` | v7.1.0 |
+| 3.01 | Existing CLI interfaces used with IBC application modules shall be usable with the localhost client. | Manual test | `Verified` | v7.1.0 |

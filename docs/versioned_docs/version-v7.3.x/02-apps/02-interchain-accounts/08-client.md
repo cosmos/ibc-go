@@ -87,7 +87,7 @@ simd tx interchain-accounts host --help
 
 ##### `generate-packet-data`
 
-The `generate-packet-data` command allows users to generate protobuf or proto3 JSON encoded interchain accounts packet data for input message(s). The packet data can then be used with the controller submodule's [`send-tx` command](#send-tx). The `--encoding` flag can be uesd to specify the encoding format (value must be either `proto3` or `proto3json`); if not specified, the default will be `proto3`. The `--memo` flag can be used to include a memo string in the interchain accounts packet data.
+The `generate-packet-data` command allows users to generate protobuf or proto3 JSON encoded interchain accounts packet data for input message(s). The packet data can then be used with the controller submodule's [`send-tx` command](#send-tx). The `--encoding` flag can be used to specify the encoding format (value must be either `proto3` or `proto3json`); if not specified, the default will be `proto3`. The `--memo` flag can be used to include a memo string in the interchain accounts packet data.
 
 ```shell
 simd tx interchain-accounts host generate-packet-data [message]

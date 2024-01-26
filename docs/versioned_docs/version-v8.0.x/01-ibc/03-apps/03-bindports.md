@@ -70,7 +70,7 @@ func (gs GenesisState) Validate() error {
   if err := host.PortIdentifierValidator(gs.PortId); err != nil {
     return err
   }
-  //addtional validations
+  //additional validations
 
   return gs.Params.Validate()
 }

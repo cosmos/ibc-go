@@ -80,7 +80,7 @@ func NewMsgConnectionOpenTry(
 	counterpartyClient exported.ClientState,
 	counterpartyPrefix commitmenttypes.MerklePrefix,
 	counterpartyVersions []*Version, delayPeriod uint64,
-	proofInit, proofClient, proofConsensus []byte,
+	initProof, clientProof, consensusProof []byte,
 	proofHeight, consensusHeight clienttypes.Height, signer string,
 ) *MsgConnectionOpenTry {
 	counterparty := NewCounterparty(counterpartyClientID, counterpartyConnectionID, counterpartyPrefix)
@@ -91,9 +91,9 @@ func NewMsgConnectionOpenTry(
 		Counterparty:         counterparty,
 		CounterpartyVersions: counterpartyVersions,
 		DelayPeriod:          delayPeriod,
-		ProofInit:            proofInit,
-		ProofClient:          proofClient,
-		ProofConsensus:       proofConsensus,
+		ProofInit:            initProof,
+		ProofClient:          clientProof,
+		ProofConsensus:       consensusProof,
 		ProofHeight:          proofHeight,
 		ConsensusHeight:      consensusHeight,
 		Signer:               signer,
@@ -161,7 +161,7 @@ func (msg MsgConnectionOpenTry) UnpackInterfaces(unpacker codectypes.AnyUnpacker
 // NewMsgConnectionOpenAck creates a new MsgConnectionOpenAck instance
 func NewMsgConnectionOpenAck(
 	connectionID, counterpartyConnectionID string, counterpartyClient exported.ClientState,
-	proofTry, proofClient, proofConsensus []byte,
+	tryProof, clientProof, consensusProof []byte,
 	proofHeight, consensusHeight clienttypes.Height,
 	version *Version,
 	signer string,
@@ -171,9 +171,9 @@ func NewMsgConnectionOpenAck(
 		ConnectionId:             connectionID,
 		CounterpartyConnectionId: counterpartyConnectionID,
 		ClientState:              protoAny,
-		ProofTry:                 proofTry,
-		ProofClient:              proofClient,
-		ProofConsensus:           proofConsensus,
+		ProofTry:                 tryProof,
+		ProofClient:              clientProof,
+		ProofConsensus:           consensusProof,
 		ProofHeight:              proofHeight,
 		ConsensusHeight:          consensusHeight,
 		Version:                  version,
@@ -228,12 +228,12 @@ func (msg MsgConnectionOpenAck) ValidateBasic() error {
 
 // NewMsgConnectionOpenConfirm creates a new MsgConnectionOpenConfirm instance
 func NewMsgConnectionOpenConfirm(
-	connectionID string, proofAck []byte, proofHeight clienttypes.Height,
+	connectionID string, ackProof []byte, proofHeight clienttypes.Height,
 	signer string,
 ) *MsgConnectionOpenConfirm {
 	return &MsgConnectionOpenConfirm{
 		ConnectionId: connectionID,
-		ProofAck:     proofAck,
+		ProofAck:     ackProof,
 		ProofHeight:  proofHeight,
 		Signer:       signer,
 	}

@@ -13,11 +13,6 @@ import (
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterInterface(
-		"ibc.core.channel.v1.ChannelI",
-		(*exported.ChannelI)(nil),
-		&Channel{},
-	)
-	registry.RegisterInterface(
 		"ibc.core.channel.v1.CounterpartyChannelI",
 		(*exported.CounterpartyChannelI)(nil),
 		&Counterparty{},
@@ -39,6 +34,15 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgAcknowledgement{},
 		&MsgTimeout{},
 		&MsgTimeoutOnClose{},
+		&MsgChannelUpgradeInit{},
+		&MsgChannelUpgradeTry{},
+		&MsgChannelUpgradeAck{},
+		&MsgChannelUpgradeConfirm{},
+		&MsgChannelUpgradeOpen{},
+		&MsgChannelUpgradeTimeout{},
+		&MsgChannelUpgradeCancel{},
+		&MsgPruneAcknowledgements{},
+		&MsgUpdateParams{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

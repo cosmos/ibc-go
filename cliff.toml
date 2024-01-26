@@ -63,7 +63,7 @@ filter_unconventional = true
 split_commits = true
 # regex for preprocessing the commit messages
 commit_preprocessors = [
-    # A reference to an issue is appened to commits that looks like "(#1234)", this will be replaced
+    # A reference to an issue is appended to commits that looks like "(#1234)", this will be replaced
     # with a link to that issue, e.g. "[#$1234](https://github.com/cosmos/ibc-go/issues/1234)".
     { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](https://github.com/cosmos/ibc-go/issues/${2}))" },
     # any reference to a pr like "pr-1234" will be replaced with a link to the PR.

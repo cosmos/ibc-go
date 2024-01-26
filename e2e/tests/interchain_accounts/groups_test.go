@@ -23,6 +23,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -35,7 +36,7 @@ const (
 	// exceeded for a proposal to succeed.
 	DefaultGroupThreshold = "1"
 
-	// DefaultMetadata defines a resusable metadata string for testing purposes
+	// DefaultMetadata defines a reusable metadata string for testing purposes
 	DefaultMetadata = "custom metadata"
 
 	// DefaultMinExecutionPeriod is the minimum duration after the proposal submission
@@ -114,7 +115,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 
 	t.Run("submit proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
 		groupPolicyAddr = s.QueryGroupPolicyAddress(ctx, chainA)
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID))
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID), channeltypes.ORDERED)
 
 		msgSubmitProposal, err := grouptypes.NewMsgSubmitProposal(groupPolicyAddr, []string{chainAAddress}, []sdk.Msg{msgRegisterAccount}, DefaultMetadata, grouptypes.Exec_EXEC_UNSPECIFIED, "e2e groups proposal: for MsgRegisterInterchainAccount", "e2e groups proposal: for MsgRegisterInterchainAccount")
 		s.Require().NoError(err)

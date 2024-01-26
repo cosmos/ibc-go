@@ -448,7 +448,7 @@ func NewSimApp(
 	// Both x/wasm's Keeper and 08-wasm Keeper should share the same Wasm VM instance.
 	// - Instantiate the Wasm VM in app.go with the parameters of your choice.
 	// - Create an Option with this Wasm VM instance (see https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/options.go#L26-L32).
-	// - Pass the option to the x/wasm NewKeeper contructor function (https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/keeper_cgo.go#L36).
+	// - Pass the option to the x/wasm NewKeeper constructor function (https://github.com/CosmWasm/wasmd/blob/v0.41.0/x/wasm/keeper/keeper_cgo.go#L36).
 	// - Pass a pointer to the Wasm VM instance to 08-wasm NewKeeperWithVM constructor function.
 	//
 	// 2. If the chain does not use x/wasm:
@@ -471,12 +471,12 @@ func NewSimApp(
 		// NOTE: mockVM is used for testing purposes only!
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
 			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, nil,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, app.GRPCQueryRouter(),
 		)
 	} else {
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, nil,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, app.GRPCQueryRouter(),
 		)
 	}
 

@@ -18,7 +18,6 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
@@ -37,7 +36,6 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
 const (
@@ -520,9 +518,9 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc
 	})
 
 	for _, filePV := range filePvs {
-		pvs = append(pvs, &ibcmock.PV{
-			PrivKey: &ed25519.PrivKey{Key: filePV.PrivKey.Bytes()},
-		})
+		pvs = append(pvs, cmttypes.NewMockPVWithParams(
+			filePV.PrivKey, false, false,
+		))
 	}
 
 	return pvs

@@ -58,7 +58,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 
 // PackClientState constructs a new Any packed with the given client state value. It returns
 // an error if the client state can't be casted to a protobuf message or if the concrete
-// implemention is not registered to the protobuf codec.
+// implementation is not registered to the protobuf codec.
 func PackClientState(clientState exported.ClientState) (*codectypes.Any, error) {
 	msg, ok := clientState.(proto.Message)
 	if !ok {
@@ -90,7 +90,7 @@ func UnpackClientState(any *codectypes.Any) (exported.ClientState, error) {
 
 // PackConsensusState constructs a new Any packed with the given consensus state value. It returns
 // an error if the consensus state can't be casted to a protobuf message or if the concrete
-// implemention is not registered to the protobuf codec.
+// implementation is not registered to the protobuf codec.
 func PackConsensusState(consensusState exported.ConsensusState) (*codectypes.Any, error) {
 	msg, ok := consensusState.(proto.Message)
 	if !ok {
@@ -132,7 +132,7 @@ func UnpackConsensusState(any *codectypes.Any) (exported.ConsensusState, error) 
 
 // PackClientMessage constructs a new Any packed with the given value. It returns
 // an error if the value can't be casted to a protobuf message or if the concrete
-// implemention is not registered to the protobuf codec.
+// implementation is not registered to the protobuf codec.
 func PackClientMessage(clientMessage exported.ClientMessage) (*codectypes.Any, error) {
 	msg, ok := clientMessage.(proto.Message)
 	if !ok {

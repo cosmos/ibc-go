@@ -19,11 +19,6 @@ func TestCodecTypeRegistration(t *testing.T) {
 		expPass bool
 	}{
 		{
-			"success: Channel",
-			sdk.MsgTypeURL(&types.Channel{}),
-			true,
-		},
-		{
 			"success: Counterparty",
 			sdk.MsgTypeURL(&types.Counterparty{}),
 			true,
@@ -81,6 +76,51 @@ func TestCodecTypeRegistration(t *testing.T) {
 		{
 			"success: MsgTimeoutOnClose",
 			sdk.MsgTypeURL(&types.MsgTimeoutOnClose{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeInit",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeInit{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeTry",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeTry{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeAck",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeAck{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeConfirm",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeConfirm{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeOpen",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeOpen{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeTimeout",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeTimeout{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeCancel",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeCancel{}),
+			true,
+		},
+		{
+			"success: MsgPruneAcknowledgements",
+			sdk.MsgTypeURL(&types.MsgPruneAcknowledgements{}),
+			true,
+		},
+		{
+			"success: MsgUpdateParams",
+			sdk.MsgTypeURL(&types.MsgUpdateParams{}),
 			true,
 		},
 		{

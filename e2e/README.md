@@ -51,8 +51,8 @@ options specified in your config file.
 | Environment Variable | Description                               | Default Value |
 |----------------------|-------------------------------------------|---------------|
 | CHAIN_IMAGE          | The image that will be used for the chain | ibc-go-simd   |
-| CHAIN_A_TAG          | The tag used for chain B                  | latest        |
-| CHAIN_B_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_A_TAG          | The tag used for chain A                  | latest        |
+| CHAIN_B_TAG          | The tag used for chain B                  | latest        |
 | CHAIN_BINARY         | The binary used in the container          | simd          |
 | RELAYER_TAG          | The tag used for the relayer              | main          |
 | RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes        |
@@ -60,7 +60,7 @@ options specified in your config file.
 > Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
 The images which are used only exist on your machine.
 
-These environment variables allow us to run tests with arbitrary verions (from branches or released) of simd
+These environment variables allow us to run tests with arbitrary versions (from branches or released) of simd
 and the go relayer.
 
 Every time changes are pushed to a branch or to `main`, a new `simd` image is built and pushed [here](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd).
@@ -115,7 +115,7 @@ Both chains have started, but the relayer is not yet started.
 The relayer should be started as part of the test if required. See [Starting the Relayer](#starting-the-relayer)
 
 ```go
-relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 chainA, chainB := s.GetChains()
 ```
 
@@ -154,16 +154,16 @@ We can broadcast arbitrary messages which are signed on behalf of users created 
 This example shows a multi message transaction being broadcast on chainA and signed on behalf of chainAWallet.
 
 ```go
-relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 chainA, chainB := s.GetChains()
 
 chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 t.Run("broadcast multi message transaction", func(t *testing.T){
-  payPacketFeeMsg := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
-  transferMsg := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
-  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, payPacketFeeMsg, transferMsg)
+  msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), nil)
+  msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.Bech32Address(chainA.Config().Bech32Prefix), chainBWallet.Bech32Address(chainB.Config().Bech32Prefix), clienttypes.NewHeight(1, 1000), 0)
+  resp, err := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 
   s.AssertValidTxResponse(resp)
   s.Require().NoError(err)

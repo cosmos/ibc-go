@@ -59,7 +59,7 @@ jobs:
           CHAIN_BINARY: 'simd'
           RELAYER_ID: '${{ matrix.relayer-type }}'
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         # we only want to upload logs on test failures.
         if: ${{ failure() }}
         continue-on-error: true

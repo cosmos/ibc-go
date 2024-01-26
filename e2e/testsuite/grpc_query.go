@@ -214,6 +214,33 @@ func (s *E2ETestSuite) QueryPacketCommitment(ctx context.Context, chain ibc.Chai
 	return res.Commitment, nil
 }
 
+// QueryPacketAcknowledgements queries the packet acknowledgements on the given chain for the provided channel (optional) list of packet commitment sequences.
+func (s *E2ETestSuite) QueryPacketAcknowledgements(ctx context.Context, chain ibc.Chain, portID, channelID string, packetCommitmentSequences []uint64) ([]*channeltypes.PacketState, error) {
+	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
+	res, err := queryClient.PacketAcknowledgements(ctx, &channeltypes.QueryPacketAcknowledgementsRequest{
+		PortId:                    portID,
+		ChannelId:                 channelID,
+		PacketCommitmentSequences: packetCommitmentSequences,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.Acknowledgements, nil
+}
+
+// QueryUpgradeError queries the upgrade error on the given chain for the provided channel.
+func (s *E2ETestSuite) QueryUpgradeError(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.ErrorReceipt, error) {
+	queryClient := s.GetChainGRCPClients(chain).ChannelQueryClient
+	res, err := queryClient.UpgradeError(ctx, &channeltypes.QueryUpgradeErrorRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+	if err != nil {
+		return channeltypes.ErrorReceipt{}, err
+	}
+	return res.ErrorReceipt, nil
+}
+
 // QueryTotalEscrowForDenom queries the total amount of tokens in escrow for a denom
 func (s *E2ETestSuite) QueryTotalEscrowForDenom(ctx context.Context, chain ibc.Chain, denom string) (sdk.Coin, error) {
 	queryClient := s.GetChainGRCPClients(chain).TransferQueryClient
@@ -256,6 +283,19 @@ func (s *E2ETestSuite) QueryIncentivizedPacketsForChannel(
 		return nil, err
 	}
 	return res.IncentivizedPackets, err
+}
+
+// QueryFeeEnabledChannel queries the fee-enabled status of a channel.
+func (s *E2ETestSuite) QueryFeeEnabledChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (bool, error) {
+	queryClient := s.GetChainGRCPClients(chain).FeeQueryClient
+	res, err := queryClient.FeeEnabledChannel(ctx, &feetypes.QueryFeeEnabledChannelRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	})
+	if err != nil {
+		return false, err
+	}
+	return res.FeeEnabled, nil
 }
 
 // QueryCounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.

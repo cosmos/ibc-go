@@ -112,7 +112,7 @@ app.IBCKeeper = ibckeeper.NewKeeper(
 
 ### UpdateClientProposal
 
-The `UpdateClient` has been modified to take in two client-identifiers and one initial height. Please see the [documentation](../01-ibc/06-proposals.md) for more information.
+The `UpdateClient` has been modified to take in two client-identifiers and one initial height. Please see the [documentation](../01-ibc/07-proposals.md) for more information.
 
 ### UpgradeProposal
 

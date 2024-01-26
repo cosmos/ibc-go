@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -29,6 +30,10 @@ func (p Params) Validate() error {
 }
 
 func validateAllowlist(allowMsgs []string) error {
+	if slices.Contains(allowMsgs, AllowAllHostMsgs) && len(allowMsgs) > 1 {
+		return fmt.Errorf("allow list must have only one element because the allow all host messages wildcard (%s) is present", AllowAllHostMsgs)
+	}
+
 	for _, typeURL := range allowMsgs {
 		if strings.TrimSpace(typeURL) == "" {
 			return fmt.Errorf("parameter must not contain empty strings: %s", allowMsgs)

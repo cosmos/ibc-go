@@ -67,7 +67,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			version = nil        // must be explicitly changed
 			expErrorMsgSubstring = ""
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			tc.malleate()
 
@@ -229,7 +229,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			versions = types.GetCompatibleVersions()   // may be changed in malleate
 			delayPeriod = 0                            // may be changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			tc.malleate()
 
@@ -240,22 +240,22 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			suite.Require().NoError(err)
 
 			connectionKey := host.ConnectionKey(path.EndpointA.ConnectionID)
-			proofInit, proofHeight := suite.chainA.QueryProof(connectionKey)
+			initProof, proofHeight := suite.chainA.QueryProof(connectionKey)
 
 			if consensusHeight.IsZero() {
 				// retrieve consensus state height to provide proof for
 				consensusHeight = counterpartyClient.GetLatestHeight()
 			}
 			consensusKey := host.FullConsensusStateKey(path.EndpointA.ClientID, consensusHeight)
-			proofConsensus, _ := suite.chainA.QueryProof(consensusKey)
+			consensusProof, _ := suite.chainA.QueryProof(consensusKey)
 
 			// retrieve proof of counterparty clientstate on chainA
 			clientKey := host.FullClientStateKey(path.EndpointA.ClientID)
-			proofClient, _ := suite.chainA.QueryProof(clientKey)
+			clientProof, _ := suite.chainA.QueryProof(clientKey)
 
 			connectionID, err := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.ConnOpenTry(
 				suite.chainB.GetContext(), counterparty, delayPeriod, path.EndpointB.ClientID, counterpartyClient,
-				versions, proofInit, proofClient, proofConsensus,
+				versions, initProof, clientProof, consensusProof,
 				proofHeight, consensusHeight,
 			)
 
@@ -482,7 +482,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			version = types.GetCompatibleVersions()[0] // must be explicitly changed in malleate
 			consensusHeight = clienttypes.ZeroHeight() // must be explicitly changed in malleate
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			tc.malleate()
 
@@ -491,7 +491,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			suite.Require().NoError(err)
 
 			connectionKey := host.ConnectionKey(path.EndpointB.ConnectionID)
-			proofTry, proofHeight := suite.chainB.QueryProof(connectionKey)
+			tryProof, proofHeight := suite.chainB.QueryProof(connectionKey)
 
 			if consensusHeight.IsZero() {
 				// retrieve consensus state height to provide proof for
@@ -499,15 +499,15 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 				consensusHeight = clientState.GetLatestHeight()
 			}
 			consensusKey := host.FullConsensusStateKey(path.EndpointB.ClientID, consensusHeight)
-			proofConsensus, _ := suite.chainB.QueryProof(consensusKey)
+			consensusProof, _ := suite.chainB.QueryProof(consensusKey)
 
 			// retrieve proof of counterparty clientstate on chainA
 			clientKey := host.FullClientStateKey(path.EndpointB.ClientID)
-			proofClient, _ := suite.chainB.QueryProof(clientKey)
+			clientProof, _ := suite.chainB.QueryProof(clientKey)
 
 			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.ConnOpenAck(
 				suite.chainA.GetContext(), path.EndpointA.ConnectionID, counterpartyClient, version, path.EndpointB.ConnectionID,
-				proofTry, proofClient, proofConsensus, proofHeight, consensusHeight,
+				tryProof, clientProof, consensusProof, proofHeight, consensusHeight,
 			)
 
 			if tc.expPass {
@@ -543,7 +543,7 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 		}, false},
 		{"chain B's connection state is not TRYOPEN", func() {
 			// connections are OPEN
-			suite.coordinator.CreateConnections(path)
+			path.CreateConnections()
 		}, false},
 		{"connection state verification failed", func() {
 			// chainA is in INIT
@@ -561,7 +561,7 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+			path.SetupClients()
 
 			tc.malleate()
 
@@ -570,10 +570,10 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 			suite.Require().NoError(err)
 
 			connectionKey := host.ConnectionKey(path.EndpointA.ConnectionID)
-			proofAck, proofHeight := suite.chainA.QueryProof(connectionKey)
+			ackProof, proofHeight := suite.chainA.QueryProof(connectionKey)
 
 			err = suite.chainB.App.GetIBCKeeper().ConnectionKeeper.ConnOpenConfirm(
-				suite.chainB.GetContext(), path.EndpointB.ConnectionID, proofAck, proofHeight,
+				suite.chainB.GetContext(), path.EndpointB.ConnectionID, ackProof, proofHeight,
 			)
 
 			if tc.expPass {

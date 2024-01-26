@@ -71,17 +71,6 @@ var SelfParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
-// MemoFeatureReleases represents the releases the memo field was released in.
-var MemoFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v6",
-	MinorVersions: []string{
-		"v2.5",
-		"v3.4",
-		"v4.2",
-		"v5.1",
-	},
-}
-
 // TotalEscrowFeatureReleases represents the releases the total escrow state entry was released in.
 var TotalEscrowFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
@@ -101,4 +90,25 @@ var LocalhostClientFeatureReleases = semverutil.FeatureReleases{
 	MinorVersions: []string{
 		"v7.1",
 	},
+}
+
+// AllowAllClientsWildcardFeatureReleases represents the releases the allow all clients wildcard was released in.
+var AllowAllClientsWildcardFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v9",
+	MinorVersions: []string{
+		"v8.1",
+	},
+}
+
+// ChannelParamsFeatureReleases represents the releases the params for 04-channel was released in.
+var ChannelParamsFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v9",
+	MinorVersions: []string{
+		"v8.1",
+	},
+}
+
+// GovV1MessagesFeatureReleases represents the releases the support for x/gov v1 messages was released in.
+var GovV1MessagesFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 }

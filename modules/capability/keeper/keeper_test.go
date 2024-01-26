@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) TestSeal() {
 	})
 
 	caps := make([]*types.Capability, 5)
-	// Get Latest Index before creating new ones to sychronize indices correctly
+	// Get Latest Index before creating new ones to synchronize indices correctly
 	prevIndex := suite.keeper.GetLatestIndex(suite.ctx)
 
 	for i := range caps {

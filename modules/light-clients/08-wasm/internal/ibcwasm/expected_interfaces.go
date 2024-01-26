@@ -3,6 +3,9 @@ package ibcwasm
 import (
 	wasmvm "github.com/CosmWasm/wasmvm"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var _ WasmEngine = (*wasmvm.VM)(nil)
@@ -77,11 +80,11 @@ type WasmEngine interface {
 		deserCost wasmvmtypes.UFraction,
 	) (*wasmvmtypes.Response, uint64, error)
 
-	// Sudo allows native Go modules to make priviledged (sudo) calls on the contract.
+	// Sudo allows native Go modules to make privileged (sudo) calls on the contract.
 	// The contract can expose entry points that cannot be triggered by any transaction, but only via
 	// native Go modules, and delegate the access control to the system.
 	//
-	// These work much like Migrate (same scenario) but allows custom apps to extend the priviledged entry points
+	// These work much like Migrate (same scenario) but allows custom apps to extend the privileged entry points
 	// without forking cosmwasm-vm.
 	Sudo(
 		checksum wasmvm.Checksum,
@@ -114,4 +117,15 @@ type WasmEngine interface {
 	// the implementor's choice.
 	// Unpin is idempotent.
 	Unpin(checksum wasmvm.Checksum) error
+}
+
+type QueryRouter interface {
+	// Route returns the GRPCQueryHandler for a given query route path or nil
+	// if not found
+	Route(path string) baseapp.GRPCQueryHandler
+}
+
+type QueryPluginsI interface {
+	// HandleQuery will route the query to the correct plugin and return the result
+	HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error)
 }

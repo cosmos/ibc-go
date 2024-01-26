@@ -108,7 +108,7 @@ func (k *Keeper) IsSealed() bool {
 }
 
 // InitMemStore will assure that the module store is a memory store (it will panic if it's not)
-// and willl initialize it. The function is safe to be called multiple times.
+// and will initialize it. The function is safe to be called multiple times.
 // InitMemStore must be called every time the app starts before the keeper is used (so
 // `BeginBlock` or `InitChain` - whichever is first). We need access to the store so we
 // can't initialize it in a constructor.
@@ -437,7 +437,7 @@ func (sk ScopedKeeper) GetOwners(ctx sdk.Context, name string) (*types.Capabilit
 // LookupModules returns all the module owners for a given capability
 // as a string array and the capability itself.
 // The method returns an error if either the capability or the owners cannot be
-// retreived from the memstore.
+// retrieved from the memstore.
 func (sk ScopedKeeper) LookupModules(ctx sdk.Context, name string) ([]string, *types.Capability, error) {
 	if strings.TrimSpace(name) == "" {
 		return nil, nil, errorsmod.Wrap(types.ErrInvalidCapabilityName, "cannot lookup modules with empty capability name")
