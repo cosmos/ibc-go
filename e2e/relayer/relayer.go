@@ -16,7 +16,7 @@ const (
 	Hermes     = "hermes"
 	Hyperspace = "hyperspace"
 
-	HermesRelayerRepository = "ghcr.io/informalsystems/hermes"
+	HermesRelayerRepository = "crodveg/carlos-channel-upgrades"
 	hermesRelayerUser       = "1000:1000"
 	RlyRelayerRepository    = "ghcr.io/cosmos/relayer"
 	rlyRelayerUser          = "100:1000"
