@@ -173,7 +173,6 @@ the channel will move back to `OPEN` state keeping its original parameters.
 
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
 
-
 :::warning
 
 Performing sequentially an upgrade cancellation, upgrade initialization, and another upgrade cancellation in a single block while the counterparty is in FLUSHCOMPLETE will lead to corrupted state.
