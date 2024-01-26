@@ -156,7 +156,7 @@ func (k Keeper) VerifyChannelState(
 	proof []byte,
 	portID,
 	channelID string,
-	channel exported.ChannelI,
+	channel channeltypes.Channel,
 ) error {
 	clientID := connection.GetClientID()
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
@@ -174,12 +174,7 @@ func (k Keeper) VerifyChannelState(
 		return err
 	}
 
-	channelEnd, ok := channel.(channeltypes.Channel)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid channel type %T", channel)
-	}
-
-	bz, err := k.cdc.Marshal(&channelEnd)
+	bz, err := k.cdc.Marshal(&channel)
 	if err != nil {
 		return err
 	}
@@ -370,8 +365,8 @@ func (k Keeper) VerifyNextSequenceRecv(
 func (k Keeper) VerifyChannelUpgradeError(
 	ctx sdk.Context,
 	connection exported.ConnectionI,
-	proofHeight exported.Height,
-	proofErrorReceipt []byte,
+	height exported.Height,
+	proof []byte,
 	portID,
 	channelID string,
 	errorReceipt channeltypes.ErrorReceipt,
@@ -398,9 +393,9 @@ func (k Keeper) VerifyChannelUpgradeError(
 	}
 
 	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, proofHeight,
+		ctx, clientStore, k.cdc, height,
 		0, 0, // skip delay period checks for non-packet processing verification
-		proofErrorReceipt, merklePath, bz,
+		proof, merklePath, bz,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed upgrade error receipt verification for client (%s)", clientID)
 	}
@@ -413,7 +408,7 @@ func (k Keeper) VerifyChannelUpgrade(
 	ctx sdk.Context,
 	connection exported.ConnectionI,
 	proofHeight exported.Height,
-	proofUpgrade []byte,
+	upgradeProof []byte,
 	portID,
 	channelID string,
 	upgrade channeltypes.Upgrade,
@@ -442,7 +437,7 @@ func (k Keeper) VerifyChannelUpgrade(
 	if err := clientState.VerifyMembership(
 		ctx, clientStore, k.cdc, proofHeight,
 		0, 0, // skip delay period checks for non-packet processing verification
-		proofUpgrade, merklePath, bz,
+		upgradeProof, merklePath, bz,
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed upgrade verification for client (%s) on channel (%s)", clientID, channelID)
 	}

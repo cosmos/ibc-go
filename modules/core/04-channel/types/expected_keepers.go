@@ -33,7 +33,7 @@ type ConnectionKeeper interface {
 		proof []byte,
 		portID,
 		channelID string,
-		channel exported.ChannelI,
+		channel Channel,
 	) error
 	VerifyPacketCommitment(
 		ctx sdk.Context,
@@ -85,8 +85,8 @@ type ConnectionKeeper interface {
 	VerifyChannelUpgradeError(
 		ctx sdk.Context,
 		connection exported.ConnectionI,
-		proofHeight exported.Height,
-		proofErrorReceipt []byte,
+		height exported.Height,
+		proof []byte,
 		portID,
 		channelID string,
 		errorReceipt ErrorReceipt,

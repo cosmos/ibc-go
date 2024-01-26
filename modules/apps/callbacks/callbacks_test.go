@@ -24,6 +24,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
@@ -81,7 +82,7 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 	s.path.EndpointA.ChannelConfig.Version = transfertypes.Version
 	s.path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
-	s.coordinator.Setup(s.path)
+	s.path.Setup()
 }
 
 // SetupFeeTransferTest sets up a fee middleware enabled transfer channel between chainA and chainB
@@ -94,7 +95,7 @@ func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 	s.path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 	s.path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	s.coordinator.Setup(s.path)
+	s.path.Setup()
 }
 
 func (s *CallbacksTestSuite) SetupMockFeeTest() {
@@ -111,7 +112,7 @@ func (s *CallbacksTestSuite) SetupMockFeeTest() {
 // It funds and returns the interchain account address owned by chainA's SenderAccount.
 func (s *CallbacksTestSuite) SetupICATest() string {
 	s.setupChains()
-	s.coordinator.SetupConnections(s.path)
+	s.path.SetupConnections()
 
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	// ICAVersion defines a interchain accounts version string
@@ -153,7 +154,7 @@ func (s *CallbacksTestSuite) SetupICATest() string {
 // RegisterInterchainAccount submits a MsgRegisterInterchainAccount and updates the controller endpoint with the
 // channel created.
 func (s *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
-	msgRegister := icacontrollertypes.NewMsgRegisterInterchainAccount(s.path.EndpointA.ConnectionID, owner, s.path.EndpointA.ChannelConfig.Version)
+	msgRegister := icacontrollertypes.NewMsgRegisterInterchainAccount(s.path.EndpointA.ConnectionID, owner, s.path.EndpointA.ChannelConfig.Version, channeltypes.ORDERED)
 
 	res, err := s.chainA.SendMsgs(msgRegister)
 	s.Require().NotEmpty(res)
@@ -264,8 +265,9 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 			sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
 		)
 
+		refundCoins := fee.Total().Sub(fee.RecvFee...).Sub(fee.AckFee...)
 		s.Require().Equal(
-			fee.AckFee.Add(fee.TimeoutFee...), // ack fee paid, timeout fee refunded
+			fee.AckFee.Add(refundCoins...), // ack fee paid, and refund processed
 			sdk.NewCoins(
 				GetSimApp(s.chainA).BankKeeper.GetBalance(
 					s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(),

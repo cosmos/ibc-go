@@ -68,100 +68,67 @@ func (coord *Coordinator) UpdateTime() {
 
 // UpdateTimeForChain updates the clock for a specific chain.
 func (coord *Coordinator) UpdateTimeForChain(chain *TestChain) {
-	chain.CurrentHeader.Time = coord.CurrentTime.UTC()
+	chain.ProposedHeader.Time = coord.CurrentTime.UTC()
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
-// fail if any error occurs. The clientID's, TestConnections, and TestChannels are returned
-// for both chains. The channels created are connected to the ibc-transfer application.
-func (coord *Coordinator) Setup(path *Path) {
-	coord.SetupConnections(path)
-
-	// channels can also be referenced through the returned connections
-	coord.CreateChannels(path)
+// fail if any error occurs.
+// Deprecated: please use path.Setup(), this function will be removed in v10
+func (*Coordinator) Setup(path *Path) {
+	path.Setup()
 }
 
 // SetupClients is a helper function to create clients on both chains. It assumes the
 // caller does not anticipate any errors.
-func (coord *Coordinator) SetupClients(path *Path) {
-	err := path.EndpointA.CreateClient()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointB.CreateClient()
-	require.NoError(coord.T, err)
+// Deprecated: please use path.SetupClients(), this function will be removed in v10
+func (*Coordinator) SetupClients(path *Path) {
+	path.SetupClients()
 }
 
 // SetupClientConnections is a helper function to create clients and the appropriate
 // connections on both the source and counterparty chain. It assumes the caller does not
 // anticipate any errors.
-func (coord *Coordinator) SetupConnections(path *Path) {
-	coord.SetupClients(path)
-
-	coord.CreateConnections(path)
+// Deprecated: please use path.SetupConnections(), this function will be removed in v10
+func (*Coordinator) SetupConnections(path *Path) {
+	path.SetupConnections()
 }
 
 // CreateConnection constructs and executes connection handshake messages in order to create
 // OPEN channels on chainA and chainB. The connection information of for chainA and chainB
 // are returned within a TestConnection struct. The function expects the connections to be
 // successfully opened otherwise testing will fail.
-func (coord *Coordinator) CreateConnections(path *Path) {
-	err := path.EndpointA.ConnOpenInit()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointB.ConnOpenTry()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointA.ConnOpenAck()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointB.ConnOpenConfirm()
-	require.NoError(coord.T, err)
-
-	// ensure counterparty is up to date
-	err = path.EndpointA.UpdateClient()
-	require.NoError(coord.T, err)
+// Deprecated: please use path.CreateConnections(), this function will be removed in v10
+func (*Coordinator) CreateConnections(path *Path) {
+	path.CreateConnections()
 }
 
 // CreateMockChannels constructs and executes channel handshake messages to create OPEN
 // channels that use a mock application module that returns nil on all callbacks. This
 // function is expects the channels to be successfully opened otherwise testing will
 // fail.
-func (coord *Coordinator) CreateMockChannels(path *Path) {
+func (*Coordinator) CreateMockChannels(path *Path) {
 	path.EndpointA.ChannelConfig.PortID = MockPort
 	path.EndpointB.ChannelConfig.PortID = MockPort
 
-	coord.CreateChannels(path)
+	path.CreateChannels()
 }
 
 // CreateTransferChannels constructs and executes channel handshake messages to create OPEN
 // ibc-transfer channels on chainA and chainB. The function expects the channels to be
 // successfully opened otherwise testing will fail.
-func (coord *Coordinator) CreateTransferChannels(path *Path) {
+func (*Coordinator) CreateTransferChannels(path *Path) {
 	path.EndpointA.ChannelConfig.PortID = TransferPort
 	path.EndpointB.ChannelConfig.PortID = TransferPort
 
-	coord.CreateChannels(path)
+	path.CreateChannels()
 }
 
 // CreateChannel constructs and executes channel handshake messages in order to create
 // OPEN channels on chainA and chainB. The function expects the channels to be successfully
 // opened otherwise testing will fail.
-func (coord *Coordinator) CreateChannels(path *Path) {
-	err := path.EndpointA.ChanOpenInit()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointB.ChanOpenTry()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointA.ChanOpenAck()
-	require.NoError(coord.T, err)
-
-	err = path.EndpointB.ChanOpenConfirm()
-	require.NoError(coord.T, err)
-
-	// ensure counterparty is up to date
-	err = path.EndpointA.UpdateClient()
-	require.NoError(coord.T, err)
+// Deprecated: please use path.CreateChannels(), this function will be removed in v10
+func (*Coordinator) CreateChannels(path *Path) {
+	path.CreateChannels()
 }
 
 // GetChain returns the TestChain using the given chainID and returns an error if it does

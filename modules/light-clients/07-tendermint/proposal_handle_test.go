@@ -27,7 +27,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 		},
 		{
 			"non-matching substitute", func() {
-				suite.coordinator.SetupClients(substitutePath)
+				substitutePath.SetupClients()
 				substituteClientState, ok := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*ibctm.ClientState)
 				suite.Require().True(ok)
 				// change trusting period so that test should fail
@@ -47,7 +47,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			substitutePath = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-			suite.coordinator.SetupClients(subjectPath)
+			subjectPath.SetupClients()
 			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*ibctm.ClientState)
 
 			// expire subject client
@@ -91,7 +91,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 
 			// construct subject using test case parameters
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(subjectPath)
+			subjectPath.SetupClients()
 			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*ibctm.ClientState)
 
 			if tc.FreezeClient {
@@ -101,7 +101,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			// construct the substitute to match the subject client
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(substitutePath)
+			substitutePath.SetupClients()
 			substituteClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*ibctm.ClientState)
 			// update trusting period of substitute client state
 			substituteClientState.TrustingPeriod = time.Hour * 24 * 7
@@ -222,8 +222,8 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 
 			subjectPath = ibctesting.NewPath(suite.chainA, suite.chainB)
 			substitutePath = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(subjectPath)
-			suite.coordinator.SetupClients(substitutePath)
+			subjectPath.SetupClients()
+			substitutePath.SetupClients()
 
 			tc.malleate()
 

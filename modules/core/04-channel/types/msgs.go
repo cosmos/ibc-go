@@ -94,7 +94,7 @@ func (msg MsgChannelOpenInit) ValidateBasic() error {
 func NewMsgChannelOpenTry(
 	portID, version string, channelOrder Order, connectionHops []string,
 	counterpartyPortID, counterpartyChannelID, counterpartyVersion string,
-	proofInit []byte, proofHeight clienttypes.Height, signer string,
+	initProof []byte, proofHeight clienttypes.Height, signer string,
 ) *MsgChannelOpenTry {
 	counterparty := NewCounterparty(counterpartyPortID, counterpartyChannelID)
 	channel := NewChannel(TRYOPEN, channelOrder, counterparty, connectionHops, version)
@@ -102,7 +102,7 @@ func NewMsgChannelOpenTry(
 		PortId:              portID,
 		Channel:             channel,
 		CounterpartyVersion: counterpartyVersion,
-		ProofInit:           proofInit,
+		ProofInit:           initProof,
 		ProofHeight:         proofHeight,
 		Signer:              signer,
 	}
@@ -139,7 +139,7 @@ func (msg MsgChannelOpenTry) ValidateBasic() error {
 
 // NewMsgChannelOpenAck creates a new MsgChannelOpenAck instance
 func NewMsgChannelOpenAck(
-	portID, channelID, counterpartyChannelID string, cpv string, proofTry []byte, proofHeight clienttypes.Height,
+	portID, channelID, counterpartyChannelID string, cpv string, tryProof []byte, proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelOpenAck {
 	return &MsgChannelOpenAck{
@@ -147,7 +147,7 @@ func NewMsgChannelOpenAck(
 		ChannelId:             channelID,
 		CounterpartyChannelId: counterpartyChannelID,
 		CounterpartyVersion:   cpv,
-		ProofTry:              proofTry,
+		ProofTry:              tryProof,
 		ProofHeight:           proofHeight,
 		Signer:                signer,
 	}
@@ -176,13 +176,13 @@ func (msg MsgChannelOpenAck) ValidateBasic() error {
 
 // NewMsgChannelOpenConfirm creates a new MsgChannelOpenConfirm instance
 func NewMsgChannelOpenConfirm(
-	portID, channelID string, proofAck []byte, proofHeight clienttypes.Height,
+	portID, channelID string, ackProof []byte, proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelOpenConfirm {
 	return &MsgChannelOpenConfirm{
 		PortId:      portID,
 		ChannelId:   channelID,
-		ProofAck:    proofAck,
+		ProofAck:    ackProof,
 		ProofHeight: proofHeight,
 		Signer:      signer,
 	}
@@ -234,13 +234,13 @@ func (msg MsgChannelCloseInit) ValidateBasic() error {
 
 // NewMsgChannelCloseConfirm creates a new MsgChannelCloseConfirm instance
 func NewMsgChannelCloseConfirm(
-	portID, channelID string, proofInit []byte, proofHeight clienttypes.Height,
+	portID, channelID string, initProof []byte, proofHeight clienttypes.Height,
 	signer string, counterpartyUpgradeSequence uint64,
 ) *MsgChannelCloseConfirm {
 	return &MsgChannelCloseConfirm{
 		PortId:                      portID,
 		ChannelId:                   channelID,
-		ProofInit:                   proofInit,
+		ProofInit:                   initProof,
 		ProofHeight:                 proofHeight,
 		Signer:                      signer,
 		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
@@ -267,12 +267,12 @@ func (msg MsgChannelCloseConfirm) ValidateBasic() error {
 
 // NewMsgRecvPacket constructs new MsgRecvPacket
 func NewMsgRecvPacket(
-	packet Packet, proofCommitment []byte, proofHeight clienttypes.Height,
+	packet Packet, commitmentProof []byte, proofHeight clienttypes.Height,
 	signer string,
 ) *MsgRecvPacket {
 	return &MsgRecvPacket{
 		Packet:          packet,
-		ProofCommitment: proofCommitment,
+		ProofCommitment: commitmentProof,
 		ProofHeight:     proofHeight,
 		Signer:          signer,
 	}
@@ -299,13 +299,13 @@ func (msg MsgRecvPacket) GetDataSignBytes() []byte {
 
 // NewMsgTimeout constructs new MsgTimeout
 func NewMsgTimeout(
-	packet Packet, nextSequenceRecv uint64, proofUnreceived []byte,
+	packet Packet, nextSequenceRecv uint64, unreceivedProof []byte,
 	proofHeight clienttypes.Height, signer string,
 ) *MsgTimeout {
 	return &MsgTimeout{
 		Packet:           packet,
 		NextSequenceRecv: nextSequenceRecv,
-		ProofUnreceived:  proofUnreceived,
+		ProofUnreceived:  unreceivedProof,
 		ProofHeight:      proofHeight,
 		Signer:           signer,
 	}
@@ -329,15 +329,15 @@ func (msg MsgTimeout) ValidateBasic() error {
 // NewMsgTimeoutOnClose constructs new MsgTimeoutOnClose
 func NewMsgTimeoutOnClose(
 	packet Packet, nextSequenceRecv uint64,
-	proofUnreceived, proofClose []byte,
+	unreceivedProof, closeProof []byte,
 	proofHeight clienttypes.Height, signer string,
 	counterpartyUpgradeSequence uint64,
 ) *MsgTimeoutOnClose {
 	return &MsgTimeoutOnClose{
 		Packet:                      packet,
 		NextSequenceRecv:            nextSequenceRecv,
-		ProofUnreceived:             proofUnreceived,
-		ProofClose:                  proofClose,
+		ProofUnreceived:             unreceivedProof,
+		ProofClose:                  closeProof,
 		ProofHeight:                 proofHeight,
 		Signer:                      signer,
 		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
@@ -365,14 +365,14 @@ func (msg MsgTimeoutOnClose) ValidateBasic() error {
 // NewMsgAcknowledgement constructs a new MsgAcknowledgement
 func NewMsgAcknowledgement(
 	packet Packet,
-	ack, proofAcked []byte,
+	ack, ackedProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgAcknowledgement {
 	return &MsgAcknowledgement{
 		Packet:          packet,
 		Acknowledgement: ack,
-		ProofAcked:      proofAcked,
+		ProofAcked:      ackedProof,
 		ProofHeight:     proofHeight,
 		Signer:          signer,
 	}
@@ -437,8 +437,8 @@ func NewMsgChannelUpgradeTry(
 	proposedConnectionHops []string,
 	counterpartyUpgradeFields UpgradeFields,
 	counterpartyUpgradeSequence uint64,
-	proofChannel []byte,
-	proofUpgrade []byte,
+	channelProof []byte,
+	upgradeProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeTry {
@@ -448,8 +448,8 @@ func NewMsgChannelUpgradeTry(
 		ProposedUpgradeConnectionHops: proposedConnectionHops,
 		CounterpartyUpgradeFields:     counterpartyUpgradeFields,
 		CounterpartyUpgradeSequence:   counterpartyUpgradeSequence,
-		ProofChannel:                  proofChannel,
-		ProofUpgrade:                  proofUpgrade,
+		ProofChannel:                  channelProof,
+		ProofUpgrade:                  upgradeProof,
 		ProofHeight:                   proofHeight,
 		Signer:                        signer,
 	}
@@ -497,13 +497,13 @@ var _ sdk.Msg = &MsgChannelUpgradeAck{}
 
 // NewMsgChannelUpgradeAck constructs a new MsgChannelUpgradeAck
 // nolint:interfacer
-func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyUpgrade Upgrade, proofChannel, proofUpgrade []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
+func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyUpgrade Upgrade, channelProof, upgradeProof []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
 	return &MsgChannelUpgradeAck{
 		PortId:              portID,
 		ChannelId:           channelID,
 		CounterpartyUpgrade: counterpartyUpgrade,
-		ProofChannel:        proofChannel,
-		ProofUpgrade:        proofUpgrade,
+		ProofChannel:        channelProof,
+		ProofUpgrade:        upgradeProof,
 		ProofHeight:         proofHeight,
 		Signer:              signer,
 	}
@@ -538,8 +538,8 @@ func NewMsgChannelUpgradeConfirm(
 	channelID string,
 	counterpartyChannelState State,
 	counterpartyUpgrade Upgrade,
-	proofChannel,
-	proofUpgrade []byte,
+	channelProof,
+	upgradeProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeConfirm {
@@ -548,8 +548,8 @@ func NewMsgChannelUpgradeConfirm(
 		ChannelId:                channelID,
 		CounterpartyChannelState: counterpartyChannelState,
 		CounterpartyUpgrade:      counterpartyUpgrade,
-		ProofChannel:             proofChannel,
-		ProofUpgrade:             proofUpgrade,
+		ProofChannel:             channelProof,
+		ProofUpgrade:             upgradeProof,
 		ProofHeight:              proofHeight,
 		Signer:                   signer,
 	}
@@ -593,17 +593,19 @@ func NewMsgChannelUpgradeOpen(
 	portID,
 	channelID string,
 	counterpartyChannelState State,
-	proofChannel []byte,
+	counterpartyUpgradeSequence uint64,
+	channelProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeOpen {
 	return &MsgChannelUpgradeOpen{
-		PortId:                   portID,
-		ChannelId:                channelID,
-		CounterpartyChannelState: counterpartyChannelState,
-		ProofChannel:             proofChannel,
-		ProofHeight:              proofHeight,
-		Signer:                   signer,
+		PortId:                      portID,
+		ChannelId:                   channelID,
+		CounterpartyChannelState:    counterpartyChannelState,
+		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
+		ProofChannel:                channelProof,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
 	}
 }
 
@@ -625,6 +627,10 @@ func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", FLUSHCOMPLETE, OPEN, msg.CounterpartyChannelState)
 	}
 
+	if msg.CounterpartyUpgradeSequence == 0 {
+		return errorsmod.Wrap(ErrInvalidUpgradeSequence, "counterparty upgrade sequence must be non-zero")
+	}
+
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
@@ -640,7 +646,7 @@ var _ sdk.Msg = &MsgChannelUpgradeTimeout{}
 func NewMsgChannelUpgradeTimeout(
 	portID, channelID string,
 	counterpartyChannel Channel,
-	proofChannel []byte,
+	channelProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeTimeout {
@@ -648,7 +654,7 @@ func NewMsgChannelUpgradeTimeout(
 		PortId:              portID,
 		ChannelId:           channelID,
 		CounterpartyChannel: counterpartyChannel,
-		ProofChannel:        proofChannel,
+		ProofChannel:        channelProof,
 		ProofHeight:         proofHeight,
 		Signer:              signer,
 	}
@@ -687,7 +693,7 @@ var _ sdk.Msg = &MsgChannelUpgradeCancel{}
 func NewMsgChannelUpgradeCancel(
 	portID, channelID string,
 	errorReceipt ErrorReceipt,
-	proofErrReceipt []byte,
+	errorReceiptProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeCancel {
@@ -695,13 +701,15 @@ func NewMsgChannelUpgradeCancel(
 		PortId:            portID,
 		ChannelId:         channelID,
 		ErrorReceipt:      errorReceipt,
-		ProofErrorReceipt: proofErrReceipt,
+		ProofErrorReceipt: errorReceiptProof,
 		ProofHeight:       proofHeight,
 		Signer:            signer,
 	}
 }
 
-// ValidateBasic implements sdk.Msg
+// ValidateBasic implements sdk.Msg. No checks are done for ErrorReceipt and ProofErrorReceipt
+// since they are not required if the current channel state is not in FLUSHCOMPLETE and the signer
+// is the designated authority (e.g. the governance module).
 func (msg MsgChannelUpgradeCancel) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
 		return errorsmod.Wrap(err, "invalid port ID")

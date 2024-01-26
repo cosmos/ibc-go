@@ -8,11 +8,20 @@ import (
 
 // IBC channel events
 const (
-	AttributeKeyConnectionID       = "connection_id"
-	AttributeKeyPortID             = "port_id"
-	AttributeKeyChannelID          = "channel_id"
-	AttributeKeyChannelState       = "channel_state"
-	AttributeVersion               = "version"
+	AttributeKeyConnectionID   = "connection_id"
+	AttributeKeyPortID         = "port_id"
+	AttributeKeyChannelID      = "channel_id"
+	AttributeKeyChannelState   = "channel_state"
+	AttributeKeyVersion        = "version"
+	AttributeKeyConnectionHops = "connection_hops"
+	AttributeKeyOrdering       = "ordering"
+
+	// upgrade specific keys
+	AttributeKeyUpgradeTimeoutHeight    = "timeout_height"
+	AttributeKeyUpgradeTimeoutTimestamp = "timeout_timestamp"
+	AttributeKeyUpgradeSequence         = "upgrade_sequence"
+	AttributeKeyErrorReceipt            = "error_receipt"
+
 	AttributeCounterpartyPortID    = "counterparty_port_id"
 	AttributeCounterpartyChannelID = "counterparty_channel_id"
 
@@ -38,14 +47,6 @@ const (
 	AttributeKeyDstChannel       = "packet_dst_channel"
 	AttributeKeyChannelOrdering  = "packet_channel_ordering"
 	AttributeKeyConnection       = "packet_connection"
-
-	// upgrade specific keys
-	AttributeKeyUpgradeSequence       = "upgrade_sequence"
-	AttributeKeyUpgradeVersion        = "upgrade_version"
-	AttributeKeyUpgradeConnectionHops = "upgrade_connection_hops"
-	AttributeKeyUpgradeOrdering       = "upgrade_ordering"
-	AttributeKeyUpgradeErrorReceipt   = "upgrade_error_receipt"
-	AttributeKeyUpgradeTimeout        = "upgrade_timeout"
 )
 
 // IBC channel events vars
