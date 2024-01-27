@@ -10,11 +10,10 @@ import (
 	"github.com/ava-labs/avalanchego/utils/math"
 	"github.com/ava-labs/avalanchego/utils/set"
 	"github.com/ava-labs/avalanchego/vms/platformvm/warp"
-	"github.com/ava-labs/coreth/ethdb/memorydb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/ethdb/memorydb"
 	"github.com/ethereum/go-ethereum/trie"
 )
 
@@ -158,7 +157,7 @@ func IterateVals(db *memorydb.Database) ([][]byte, error) {
 }
 
 func VerifyMembership(proof [][]byte, storageRoot []byte, value []byte, key *MerkleKey) error {
-	var proofEx ethdb.Database
+	var proofEx *memorydb.Database
 	// Populate proof when ProofVals are present in the response. Its ok to pass it as nil to the trie.VerifyRangeProof
 	// function as it will assert that all the leaves belonging to the specified root are present.
 	if len(proof) > 0 {
@@ -190,7 +189,7 @@ func VerifyMembership(proof [][]byte, storageRoot []byte, value []byte, key *Mer
 }
 
 func VerifyNonMembership(proof [][]byte, storageRoot []byte, key *MerkleKey) error {
-	var proofEx ethdb.Database
+	var proofEx *memorydb.Database
 	// Populate proof when ProofVals are present in the response. Its ok to pass it as nil to the trie.VerifyRangeProof
 	// function as it will assert that all the leaves belonging to the specified root are present.
 	if len(proof) > 0 {

@@ -49,11 +49,11 @@ func (cs *ClientState) verifyHeader(
 
 	// UpdateClient only accepts updates with a header at the same revision
 	// as the trusted consensus state
-	if header.SubnetHeader.Height.RevisionNumber != header.SubnetHeader.Height.RevisionNumber {
+	if header.PrevSubnetHeader.Height.RevisionNumber != header.SubnetHeader.Height.RevisionNumber {
 		return errorsmod.Wrapf(
 			ErrInvalidHeaderHeight,
 			"header height revision %d does not match trusted header revision %d",
-			header.SubnetHeader.Height.RevisionNumber, header.SubnetHeader.Height.RevisionNumber,
+			header.SubnetHeader.Height.RevisionNumber, header.PrevSubnetHeader.Height.RevisionNumber,
 		)
 	}
 

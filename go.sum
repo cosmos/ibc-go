@@ -266,8 +266,6 @@ github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/aryann/difflib v0.0.0-20170710044230-e206f873d14a/go.mod h1:DAHtR1m6lCRdSC2Tm3DSWRPvIPr6xNKyeHdqDQSQT+A=
-github.com/ava-labs/coreth v0.12.6-rc.2 h1:5P9/i3h6g2uUYf6BVhG8YrV6iqhov6vRxph6cvuKpvU=
-github.com/ava-labs/coreth v0.12.6-rc.2/go.mod h1:sNbwitXv4AhLvWpSqy6V8yzkhGFeWBQFD31/xiRDJ5M=
 github.com/ava-labs/subnet-evm v0.5.6 h1:u+xBvEExOa362Up02hgSgeF+aqDona57whhRIeEIim8=
 github.com/ava-labs/subnet-evm v0.5.6/go.mod h1:desGY3ghT+Ner+oqxeovwF37eM4dmMQbYZECONPQU9w=
 github.com/aws/aws-lambda-go v1.13.3/go.mod h1:4UKl9IzQMoD+QF79YdCuzCwp8VbmG4VAQwij/eHl5CU=

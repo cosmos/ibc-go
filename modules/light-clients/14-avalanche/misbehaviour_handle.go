@@ -57,13 +57,9 @@ func (cs ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCode
 		if existingConsState != nil {
 			// This header has already been submitted and the necessary state is already stored
 			// in client store, thus we can return early without further validation.
-			if reflect.DeepEqual(existingConsState, avaHeader.ConsensusState()) { //nolint:gosimple
-				return false
-			}
-
+			return !reflect.DeepEqual(existingConsState, avaHeader.ConsensusState())
 			// A consensus state already exists for this height, but it does not match the provided header.
 			// The assumption is that Header has already been validated. Thus we can return true as misbehaviour is present
-			return true
 		}
 
 		// Check that consensus state timestamps are monotonic
@@ -197,7 +193,7 @@ func checkMisbehaviourHeader(ctx sdk.Context,
 	// NOTE: misbehaviour verification is not supported for chains which upgrade to a new chainID without
 	// strictly following the chainID revision format
 	if clienttypes.IsRevisionFormat(chainID) {
-		chainID, _ = clienttypes.SetRevisionNumber(chainID, header.SubnetHeader.Height.RevisionNumber)
+		_, _ = clienttypes.SetRevisionNumber(chainID, header.SubnetHeader.Height.RevisionNumber)
 	}
 	return nil
 }
