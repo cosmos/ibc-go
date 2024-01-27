@@ -5,6 +5,7 @@ package upgrades
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -802,15 +803,28 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chains", func(t *testing.T) {
-		t.Run("chain A", func(t *testing.T) {
-			govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-			s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
-		})
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 
-		t.Run("chain B", func(t *testing.T) {
-			govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-			s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[1].Tag, testCfg.UpgradeConfig.Tag)
-		})
+			t.Run("chain A", func(t *testing.T) {
+				govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+				s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+			})
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			t.Run("chain B", func(t *testing.T) {
+				govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+				s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[1].Tag, testCfg.UpgradeConfig.Tag)
+			})
+		}()
+
+		wg.Wait()
 	})
 
 	t.Run("query params", func(t *testing.T) {
