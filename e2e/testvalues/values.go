@@ -100,9 +100,15 @@ var AllowAllClientsWildcardFeatureReleases = semverutil.FeatureReleases{
 	},
 }
 
+// ChannelParamsFeatureReleases represents the releases the params for 04-channel was released in.
 var ChannelParamsFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v9",
 	MinorVersions: []string{
 		"v8.1",
 	},
+}
+
+// GovV1MessagesFeatureReleases represents the releases the support for x/gov v1 messages was released in.
+var GovV1MessagesFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v8",
 }

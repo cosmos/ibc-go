@@ -732,7 +732,8 @@ func modifyClientGenesisAppState(ibcAppState []byte) ([]byte, error) {
 	return ibcGenBz, nil
 }
 
-// modifyChannelGenesisAppState takes the existing ibc app state and marshals it to a ibc GenesisState.
+// modifyChannelGenesisAppState takes the existing ibc app state, unmarshals it to a map and removes the `params` entry from ibc channel genesis.
+// It marshals and returns the ibc GenesisState JSON map as bytes.
 func modifyChannelGenesisAppState(ibcAppState []byte) ([]byte, error) {
 	var ibcGenesisMap map[string]interface{}
 	if err := json.Unmarshal(ibcAppState, &ibcGenesisMap); err != nil {

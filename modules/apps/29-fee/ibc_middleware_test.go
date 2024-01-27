@@ -79,7 +79,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 		suite.Run(tc.name, func() {
 			// reset suite
 			suite.SetupTest()
-			suite.coordinator.SetupConnections(suite.path)
+			suite.path.SetupConnections()
 
 			// setup mock callback
 			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
@@ -112,7 +112,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
 
 			if tc.expPass {
@@ -175,7 +175,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 		suite.Run(tc.name, func() {
 			// reset suite
 			suite.SetupTest()
-			suite.coordinator.SetupConnections(suite.path)
+			suite.path.SetupConnections()
 			err := suite.path.EndpointB.ChanOpenInit()
 			suite.Require().NoError(err)
 
@@ -215,7 +215,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 			cbs, ok := suite.chainA.App.GetIBCKeeper().Router.GetRoute(module)
 			suite.Require().True(ok)
 
-			_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.GetConnectionHops(),
+			_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.cpVersion)
 
 			if tc.expPass {
@@ -275,7 +275,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.SetupConnections(suite.path)
+			suite.path.SetupConnections()
 
 			// setup mock callback
 			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenAck = func(
@@ -364,7 +364,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path) // setup channel
+			suite.path.Setup() // setup channel
 
 			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			fee = types.Fee{
@@ -454,7 +454,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path) // setup channel
+			suite.path.Setup() // setup channel
 
 			packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 			fee = types.Fee{
@@ -541,9 +541,9 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			// setup pathAToC (chainA -> chainC) first in order to have different channel IDs for chainA & chainB
-			suite.coordinator.Setup(suite.pathAToC)
+			suite.pathAToC.Setup()
 			// setup path for chainA -> chainB
-			suite.coordinator.Setup(suite.path)
+			suite.path.Setup()
 
 			suite.chainB.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainB.GetContext(), suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID)
 
@@ -807,7 +807,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path)
+			suite.path.Setup()
 
 			relayerAddr = suite.chainA.SenderAccounts[0].SenderAccount.GetAddress()
 			refundAddr = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress()
@@ -1021,7 +1021,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path)
+			suite.path.Setup()
 
 			relayerAddr = suite.chainA.SenderAccounts[0].SenderAccount.GetAddress()
 			refundAddr = suite.chainA.SenderAccounts[1].SenderAccount.GetAddress()
@@ -1088,7 +1088,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 			},
 			nil,
 		},
@@ -1138,7 +1138,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 			path.EndpointA.ChannelConfig.Version = ibcmock.Version
 			path.EndpointB.ChannelConfig.Version = ibcmock.Version
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version to enabled ics29 fee middleware
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
@@ -1189,7 +1189,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 				err := path.EndpointA.ChanUpgradeInit()
 				suite.Require().NoError(err)
 			},
@@ -1248,7 +1248,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 			path.EndpointA.ChannelConfig.Version = ibcmock.Version
 			path.EndpointB.ChannelConfig.Version = ibcmock.Version
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version to enabled ics29 fee middleware
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
@@ -1345,8 +1345,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 			path.EndpointA.ChannelConfig.Version = ibcmock.Version
 			path.EndpointB.ChannelConfig.Version = ibcmock.Version
 
-			suite.coordinator.Setup(path)
-
+			path.Setup()
 			// configure the channel upgrade version to enabled ics29 fee middleware
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
@@ -1423,7 +1422,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 
-				suite.coordinator.Setup(path)
+				path.Setup()
 
 				// Assert in callback that correct version is passed
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
@@ -1451,7 +1450,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 			path.EndpointA.ChannelConfig.Version = ibcmock.Version
 			path.EndpointB.ChannelConfig.Version = ibcmock.Version
 
-			suite.coordinator.Setup(path)
+			path.Setup()
 
 			// configure the channel upgrade version to enabled ics29 fee middleware
 			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version}))
@@ -1519,7 +1518,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 				path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
 				path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
 				// by default a new path uses a non fee channel
-				suite.coordinator.Setup(path)
+				path.Setup()
 				portID = path.EndpointA.ChannelConfig.PortID
 				channelID = path.EndpointA.ChannelID
 
@@ -1540,7 +1539,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			suite.coordinator.Setup(suite.path)
+			suite.path.Setup()
 
 			portID = suite.path.EndpointA.ChannelConfig.PortID
 			channelID = suite.path.EndpointA.ChannelID

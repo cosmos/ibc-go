@@ -514,6 +514,12 @@ func (k Keeper) setUpgradeErrorReceipt(ctx sdk.Context, portID, channelID string
 	store.Set(host.ChannelUpgradeErrorKey(portID, channelID), bz)
 }
 
+// hasUpgrade returns true if a proposed upgrade exists in store
+func (k Keeper) hasUpgrade(ctx sdk.Context, portID, channelID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ChannelUpgradeKey(portID, channelID))
+}
+
 // GetUpgrade returns the proposed upgrade for the provided port and channel identifiers.
 func (k Keeper) GetUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -623,17 +629,20 @@ func (k Keeper) HasInflightPackets(ctx sdk.Context, portID, channelID string) bo
 	return iterator.Valid()
 }
 
-// SetPruningSequenceEnd sets the channel's pruning sequence end to the store.
-func (k Keeper) SetPruningSequenceEnd(ctx sdk.Context, portID, channelID string, sequence uint64) {
+// setRecvStartSequence sets the channel's recv start sequence to the store.
+func (k Keeper) setRecvStartSequence(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.PruningSequenceEndKey(portID, channelID), bz)
+	store.Set(host.RecvStartSequenceKey(portID, channelID), bz)
 }
 
-// GetPruningSequenceEnd gets a channel's pruning sequence end from the store.
-func (k Keeper) GetPruningSequenceEnd(ctx sdk.Context, portID, channelID string) (uint64, bool) {
+// GetRecvStartSequence gets a channel's recv start sequence from the store.
+// The recv start sequence will be set to the counterparty's next sequence send
+// upon a successful channel upgrade. It will be used for replay protection of
+// historical packets and as the upper bound for pruning stale packet receives.
+func (k Keeper) GetRecvStartSequence(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.PruningSequenceEndKey(portID, channelID))
+	bz := store.Get(host.RecvStartSequenceKey(portID, channelID))
 	if len(bz) == 0 {
 		return 0, false
 	}
@@ -675,13 +684,13 @@ func (k Keeper) PruneAcknowledgements(ctx sdk.Context, portID, channelID string,
 	if !found {
 		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceStartNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
-	pruningSequenceEnd, found := k.GetPruningSequenceEnd(ctx, portID, channelID)
+	pruningSequenceEnd, found := k.GetRecvStartSequence(ctx, portID, channelID)
 	if !found {
-		return 0, 0, errorsmod.Wrapf(types.ErrPruningSequenceEndNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+		return 0, 0, errorsmod.Wrapf(types.ErrRecvStartSequenceNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
 	start := pruningSequenceStart
-	end := pruningSequenceStart + limit
+	end := pruningSequenceStart + limit // note: checked against limit overflowing.
 	for ; start < end; start++ {
 		// stop pruning if pruningSequenceStart has reached pruningSequenceEnd, pruningSequenceEnd is
 		// set to be equal to the _next_ sequence to be sent by the counterparty.

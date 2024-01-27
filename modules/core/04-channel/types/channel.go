@@ -1,16 +1,15 @@
 package types
 
 import (
+	"slices"
+
 	errorsmod "cosmossdk.io/errors"
 
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-var (
-	_ exported.ChannelI             = (*Channel)(nil)
-	_ exported.CounterpartyChannelI = (*Counterparty)(nil)
-)
+var _ exported.CounterpartyChannelI = (*Counterparty)(nil)
 
 // NewChannel creates a new Channel instance
 func NewChannel(
@@ -28,47 +27,12 @@ func NewChannel(
 	}
 }
 
-// GetState implements Channel interface.
-func (ch Channel) GetState() int32 {
-	return int32(ch.State)
-}
-
-// GetOrdering implements Channel interface.
-func (ch Channel) GetOrdering() int32 {
-	return int32(ch.Ordering)
-}
-
-// GetCounterparty implements Channel interface.
-func (ch Channel) GetCounterparty() exported.CounterpartyChannelI {
-	return ch.Counterparty
-}
-
-// GetConnectionHops implements Channel interface.
-func (ch Channel) GetConnectionHops() []string {
-	return ch.ConnectionHops
-}
-
-// GetVersion implements Channel interface.
-func (ch Channel) GetVersion() string {
-	return ch.Version
-}
-
-// IsOpen returns true if the channel state is OPEN
-func (ch Channel) IsOpen() bool {
-	return ch.State == OPEN
-}
-
-// IsClosed returns true if the channel state is CLOSED
-func (ch Channel) IsClosed() bool {
-	return ch.State == CLOSED
-}
-
 // ValidateBasic performs a basic validation of the channel fields
 func (ch Channel) ValidateBasic() error {
 	if ch.State == UNINITIALIZED {
 		return ErrInvalidChannelState
 	}
-	if !(ch.Ordering == ORDERED || ch.Ordering == UNORDERED) {
+	if !slices.Contains([]Order{ORDERED, UNORDERED}, ch.Ordering) {
 		return errorsmod.Wrap(ErrInvalidChannelOrdering, ch.Ordering.String())
 	}
 	if len(ch.ConnectionHops) != 1 {

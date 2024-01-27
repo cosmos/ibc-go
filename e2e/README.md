@@ -115,7 +115,7 @@ Both chains have started, but the relayer is not yet started.
 The relayer should be started as part of the test if required. See [Starting the Relayer](#starting-the-relayer)
 
 ```go
-relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 chainA, chainB := s.GetChains()
 ```
 
@@ -154,7 +154,7 @@ We can broadcast arbitrary messages which are signed on behalf of users created 
 This example shows a multi message transaction being broadcast on chainA and signed on behalf of chainAWallet.
 
 ```go
-relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, feeMiddlewareChannelOptions())
+relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 chainA, chainB := s.GetChains()
 
 chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)

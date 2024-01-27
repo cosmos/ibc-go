@@ -118,7 +118,7 @@ func (suite *TypesTestSuite) TestIsPreviousMetadataEqual() {
 			suite.SetupTest() // reset
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			expectedMetadata := types.NewMetadata(types.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestOwnerAddress, types.EncodingProtobuf, types.TxTypeSDKMultiMsg)
 			metadata = expectedMetadata // default success case
@@ -269,7 +269,7 @@ func (suite *TypesTestSuite) TestValidateControllerMetadata() {
 			suite.SetupTest() // reset
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			metadata = types.NewMetadata(types.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestOwnerAddress, types.EncodingProtobuf, types.TxTypeSDKMultiMsg)
 
@@ -424,7 +424,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 			suite.SetupTest() // reset
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			metadata = types.NewMetadata(types.Version, ibctesting.FirstConnectionID, ibctesting.FirstConnectionID, TestOwnerAddress, types.EncodingProtobuf, types.TxTypeSDKMultiMsg)
 
