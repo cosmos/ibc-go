@@ -804,6 +804,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 
 	t.Run("upgrade chains", func(t *testing.T) {
 		var wg sync.WaitGroup
+
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -862,14 +863,12 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 
 	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
 		// packet from chain A to chain B
-		//s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
 
 		// packet from chain B to chain A
-		//s.AssertPacketRelayed(ctx, chainB, channelB.PortID, channelB.ChannelID, 1)
 		actualBalance, err = s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 		s.Require().NoError(err)
 		expected = testvalues.IBCTransferAmount
@@ -968,6 +967,15 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 		s.AssertTxSuccess(resp)
 	})
 
+	t.Run("escrow fees equal (ack fee + recv fee)", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		// walletA has done two IBC transfers of value testvalues.IBCTransferAmount since the start of the test.
+		expected := testvalues.StartingTokenAmount - (2 * testvalues.IBCTransferAmount) - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, actualBalance)
+	})
+
 	t.Run("packets are relayed", func(t *testing.T) {
 		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
@@ -981,16 +989,6 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 		// walletB has received two IBC transfers of value testvalues.IBCTransferAmount since the start of the test.
 		expected := 2 * testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
-	})
-
-	t.Run("timeout fee is refunded", func(t *testing.T) {
-		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-		s.Require().NoError(err)
-
-		// once the relayer has relayed the packets, the timeout fee should be refunded.
-		// walletA has done two IBC transfers of value testvalues.IBCTransferAmount since the start of the test.
-		expected := testvalues.StartingTokenAmount - (2 * testvalues.IBCTransferAmount) - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
-		s.Require().Equal(expected, actualBalance)
 	})
 
 	t.Run("relayerA is paid ack and recv fee", func(t *testing.T) {
