@@ -806,6 +806,11 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 			govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 			s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 		})
+
+		t.Run("chain B", func(t *testing.T) {
+			govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+			s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[1].Tag, testCfg.UpgradeConfig.Tag)
+		})
 	})
 
 	t.Run("query params", func(t *testing.T) {
