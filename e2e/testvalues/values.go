@@ -113,6 +113,14 @@ var GovV1MessagesFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
+// UnorderedICAChannelFeatureReleases represents the releases the support for unordered ICA channels was released in.
+var UnorderedICAChannelFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v9",
+	MinorVersions: []string{
+		"v8.1",
+	},
+}
+
 // CapitalEfficientFeeEscrowFeatureReleases represents the releases the support for capital efficient fee escrow was released in.
 var CapitalEfficientFeeEscrowFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v9",

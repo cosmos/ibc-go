@@ -63,6 +63,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
@@ -72,9 +73,16 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 	var hostAccount string
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+		// for the versions that don't support unordered channels, MsgRegisterInterchainAccount
+		// must be broadcasted with the default value for the order field
+		msgOrder := order
+		if !testvalues.UnorderedICAChannelFeatureReleases.IsSupported(chainAVersion) {
+			msgOrder = channeltypes.NONE
+		}
+
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, order)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, msgOrder)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
@@ -94,7 +102,13 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), 2)
 		icaChannel := channels[0]
-		s.Require().Contains(orderMapping[order], icaChannel.Ordering)
+
+		// for the versions that don't support unordered channels, the ordering will default to ordered
+		orderKey := order
+		if !testvalues.UnorderedICAChannelFeatureReleases.IsSupported(chainAVersion) {
+			orderKey = channeltypes.ORDERED
+		}
+		s.Require().Contains(orderMapping[orderKey], icaChannel.Ordering)
 	})
 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
