@@ -113,7 +113,7 @@ var GovV1MessagesFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
-// CapitalEfficientFeeEscrowFeatureReleases represents the releases .
+// CapitalEfficientFeeEscrowFeatureReleases represents the releases the support for capital efficient fee escrow was released in.
 var CapitalEfficientFeeEscrowFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v9",
 	MinorVersions: []string{
