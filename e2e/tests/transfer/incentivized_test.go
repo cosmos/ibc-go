@@ -35,6 +35,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -116,14 +117,26 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_AsyncSingleSender_Su
 			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
-		t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
-			// The balance should be lowered by the sum of the recv, ack and timeout fees.
-			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-			s.Require().NoError(err)
+		if testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
+			t.Run("balance should be lowered by max(recv_fee + ack_fee, timeout_fee)", func(t *testing.T) {
+				// The balance should be lowered by max(recv_fee + ack_fee, timeout_fee).
+				actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+				s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - walletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
-			s.Require().Equal(expected, actualBalance)
-		})
+				expected := testvalues.StartingTokenAmount - walletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
+				s.Require().Equal(expected, actualBalance)
+			})
+		} else {
+			t.Run("balance should be lowered by sum of recv_fee, ack_fee and timeout_fee", func(t *testing.T) {
+				// The balance should be lowered by the sum of the recv, ack and timeout fees.
+				actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+				s.Require().NoError(err)
+
+				legacyFeeTotal := testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
+				expected := testvalues.StartingTokenAmount - walletAmount.Amount.Int64() - legacyFeeTotal.AmountOf(chainADenom).Int64()
+				s.Require().Equal(expected, actualBalance)
+			})
+		}
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -152,6 +165,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -229,14 +243,26 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
-		t.Run("balance should be lowered by sum of recv, ack and timeout", func(t *testing.T) {
-			// The balance should be lowered by the sum of the recv, ack and timeout fees.
-			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-			s.Require().NoError(err)
+		if testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
+			t.Run("balance should be lowered by max(recv_fee + ack_fee, timeout_fee)", func(t *testing.T) {
+				// The balance should be lowered by max(recv_fee + ack_fee, timeout_fee).
+				actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+				s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - transferAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
-			s.Require().Equal(expected, actualBalance)
-		})
+				expected := testvalues.StartingTokenAmount - transferAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
+				s.Require().Equal(expected, actualBalance)
+			})
+		} else {
+			t.Run("balance should be lowered by sum of recv_fee, ack_fee and timeout_fee", func(t *testing.T) {
+				// The balance should be lowered by the sum of the recv, ack and timeout fees.
+				actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+				s.Require().NoError(err)
+
+				legacyFeeTotal := testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
+				expected := testvalues.StartingTokenAmount - transferAmount.Amount.Int64() - legacyFeeTotal.AmountOf(chainADenom).Int64()
+				s.Require().Equal(expected, actualBalance)
+			})
+		}
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -264,8 +290,8 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 	ctx := context.TODO()
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
-
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -329,14 +355,26 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 	})
 
-	t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
-		// The balance should be lowered by the sum of the recv, ack and timeout fees.
-		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-		s.Require().NoError(err)
+	if testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
+		t.Run("balance should be lowered by max(recv_fee + ack_fee, timeout_fee)", func(t *testing.T) {
+			// The balance should be lowered by max(recv_fee + ack_fee, timeout_fee).
+			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+			s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - testFee.Total().AmountOf(chainADenom).Int64()
-		s.Require().Equal(expected, actualBalance)
-	})
+			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - testFee.Total().AmountOf(chainADenom).Int64()
+			s.Require().Equal(expected, actualBalance)
+		})
+	} else {
+		t.Run("balance should be lowered by sum of recv_fee, ack_fee and timeout_fee", func(t *testing.T) {
+			// The balance should be lowered by the sum of the recv, ack and timeout fees.
+			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+			s.Require().NoError(err)
+
+			legacyFeeTotal := testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
+			expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount - legacyFeeTotal.AmountOf(chainADenom).Int64()
+			s.Require().Equal(expected, actualBalance)
+		})
+	}
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
@@ -371,6 +409,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -451,14 +490,26 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_SingleSender_TimesOu
 			s.Require().True(actualFee.TimeoutFee.Equal(testFee.TimeoutFee))
 		})
 
-		t.Run("balance should be lowered by sum of recv ack and timeout", func(t *testing.T) {
-			// The balance should be lowered by the sum of the recv, ack and timeout fees.
-			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-			s.Require().NoError(err)
+		if testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
+			t.Run("balance should be lowered by max(recv_fee + ack_fee, timeout_fee)", func(t *testing.T) {
+				// The balance should be lowered by max(recv_fee + ack_fee, timeout_fee).
+				actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+				s.Require().NoError(err)
 
-			expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
-			s.Require().Equal(expected, actualBalance)
-		})
+				expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
+				s.Require().Equal(expected, actualBalance)
+			})
+		} else {
+			t.Run("balance should be lowered by sum of recv_fee, ack_fee and timeout_fee", func(t *testing.T) {
+				// The balance should be lowered by the sum of the recv, ack and timeout fees.
+				actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+				s.Require().NoError(err)
+
+				legacyFeeTotal := testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
+				expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64() - legacyFeeTotal.AmountOf(chainADenom).Int64()
+				s.Require().Equal(expected, actualBalance)
+			})
+		}
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -486,6 +537,7 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 
 	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.FeeMiddlewareChannelOptions())
 	chainA, _ := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 
 	var (
 		chainADenom        = chainA.Config().Denom
@@ -549,14 +601,26 @@ func (s *IncentivizedTransferTestSuite) TestPayPacketFeeAsync_SingleSender_NoCou
 		})
 	})
 
-	t.Run("balance should be lowered by sum of recv, ack and timeout", func(t *testing.T) {
-		// The balance should be lowered by the sum of the recv, ack and timeout fees.
-		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-		s.Require().NoError(err)
+	if testvalues.CapitalEfficientFeeEscrowFeatureReleases.IsSupported(chainAVersion) {
+		t.Run("balance should be lowered by max(recv_fee + ack_fee, timeout_fee)", func(t *testing.T) {
+			// The balance should be lowered by max(recv_fee + ack_fee, timeout_fee).
+			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+			s.Require().NoError(err)
 
-		expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
-		s.Require().Equal(expected, actualBalance)
-	})
+			expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64() - testFee.Total().AmountOf(chainADenom).Int64()
+			s.Require().Equal(expected, actualBalance)
+		})
+	} else {
+		t.Run("balance should be lowered by sum of recv_fee, ack_fee and timeout_fee", func(t *testing.T) {
+			// The balance should be lowered by the sum of the recv, ack and timeout fees.
+			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+			s.Require().NoError(err)
+
+			legacyFeeTotal := testFee.RecvFee.Add(testFee.AckFee...).Add(testFee.TimeoutFee...)
+			expected := testvalues.StartingTokenAmount - chainBWalletAmount.Amount.Int64() - legacyFeeTotal.AmountOf(chainADenom).Int64()
+			s.Require().Equal(expected, actualBalance)
+		})
+	}
 
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
