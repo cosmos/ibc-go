@@ -764,7 +764,6 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
-	_ = chainAAddress
 
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
