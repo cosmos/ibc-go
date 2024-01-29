@@ -13,7 +13,7 @@ const (
 
 	// Version defines the current version the IBC transfer
 	// module supports
-	Version = "ics20-1"
+	Version = "ics20-2"
 
 	// PortID is the default port id that transfer module binds to
 	PortID = "transfer"

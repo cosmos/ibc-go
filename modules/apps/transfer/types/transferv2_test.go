@@ -1,9 +1,10 @@
-package internal
+package types_test
 
 import (
+	"testing"
+
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestConvertPacketV1ToPacketV2(t *testing.T) {
@@ -88,6 +89,11 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.FungibleTokenPacketDataV2{},
 			true,
 		},
+		{"failure: empty path",
+			types.NewFungibleTokenPacketData("", "1000", sender, receiver, ""),
+			types.FungibleTokenPacketDataV2{},
+			true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -95,11 +101,11 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 
 		shouldPanic := tc.shouldPanic
 		if !shouldPanic {
-			v2Data := ConvertPacketV1ToPacketV2(tc.v1Data)
+			v2Data := types.ConvertPacketV1ToPacketV2(tc.v1Data)
 			require.Equal(t, tc.v2Data, v2Data)
 		} else {
 			require.Panicsf(t, func() {
-				ConvertPacketV1ToPacketV2(tc.v1Data)
+				types.ConvertPacketV1ToPacketV2(tc.v1Data)
 			}, tc.name)
 		}
 	}

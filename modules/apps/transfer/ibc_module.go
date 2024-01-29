@@ -88,8 +88,8 @@ func (im IBCModule) OnChanOpenInit(
 		version = types.Version
 	}
 
-	if version != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, version)
+	if version != "ics20-1" && version != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected ics20-1 or ics20-2, got %s", version)
 	}
 
 	// Claim channel capability passed back by IBC module
@@ -97,7 +97,12 @@ func (im IBCModule) OnChanOpenInit(
 		return "", err
 	}
 
-	return version, nil
+	if version == "ics20-1" {
+		return "ics20-1", nil
+	}
+
+	// default to latest supported version
+	return types.Version, nil
 }
 
 // OnChanOpenTry implements the IBCModule interface.
@@ -115,8 +120,8 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	if counterpartyVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
+	if counterpartyVersion != "ics20-1" && counterpartyVersion != "ics20-2" {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected ics20-1 or ics20-2, got %s", counterpartyVersion)
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
@@ -124,11 +129,16 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	return types.Version, nil
+	// return counterparty version if we support it
+	if counterpartyVersion == "ics20-2" && types.Version == "ics20-2" {
+		return counterpartyVersion, nil
+	} else {
+		return "ics20-1", nil
+	}
 }
 
 // OnChanOpenAck implements the IBCModule interface
-func (IBCModule) OnChanOpenAck(
+func (im IBCModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -138,6 +148,7 @@ func (IBCModule) OnChanOpenAck(
 	if counterpartyVersion != types.Version {
 		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
 	}
+
 	return nil
 }
 

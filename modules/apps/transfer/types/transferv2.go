@@ -1,14 +1,14 @@
-package internal
+package types
 
 import (
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"strconv"
 	"strings"
+
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // ConvertPacketV1ToPacketV2 converts a v1 packet data to a v2 packet data.
-func ConvertPacketV1ToPacketV2(packetData types.FungibleTokenPacketData) types.FungibleTokenPacketDataV2 {
+func ConvertPacketV1ToPacketV2(packetData FungibleTokenPacketData) FungibleTokenPacketDataV2 {
 	amount, err := strconv.ParseUint(packetData.Amount, 10, 64)
 	if err != nil {
 		panic(err)
@@ -16,13 +16,13 @@ func ConvertPacketV1ToPacketV2(packetData types.FungibleTokenPacketData) types.F
 
 	v2Denom, trace := extractDenomAndTraceFromV1Denom(packetData.Denom)
 
-	return types.FungibleTokenPacketDataV2{
-		Tokens: []*types.Token{
+	return FungibleTokenPacketDataV2{
+		Tokens: []*Token{
 			{
 				Denom:    v2Denom,
 				Amount:   amount,
 				Trace:    trace,
-				Metadata: &types.Metadata{}, // TODO: figure out metadata
+				Metadata: &Metadata{}, // TODO: figure out metadata
 			},
 		},
 		Sender:   packetData.Sender,
@@ -32,10 +32,14 @@ func ConvertPacketV1ToPacketV2(packetData types.FungibleTokenPacketData) types.F
 }
 
 func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
-	v1DenomTrace := types.ParseDenomTrace(v1Denom)
+	v1DenomTrace := ParseDenomTrace(v1Denom)
 
 	splitPath := strings.Split(v1Denom, "/")
 	pathSlice := extractPathAndBaseFromFullDenomSlice(splitPath)
+
+	if len(pathSlice) == 0 {
+		panic("pathSlice length is 0")
+	}
 
 	if len(pathSlice)%2 != 0 {
 		panic("pathSlice length is not even")
@@ -44,10 +48,6 @@ func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 	var trace []string
 	for i := 0; i < len(pathSlice); i += 2 {
 		trace = append(trace, strings.Join(pathSlice[i:i+2], "/"))
-	}
-
-	if len(pathSlice) == 0 {
-		panic("pathSlice length is 0")
 	}
 
 	return v1DenomTrace.BaseDenom, trace
