@@ -109,26 +109,26 @@ func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
-// MsgModuleSafeQuery defines the payload for Msg/ModuleSafeQuery
-type MsgModuleSafeQuery struct {
+// MsgModuleQuerySafe defines the payload for Msg/ModuleQuerySafe
+type MsgModuleQuerySafe struct {
 	// signer address
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
-	// queries defines the module safe queries to execute.
-	Queries []*QueryRequest `protobuf:"bytes,2,rep,name=queries,proto3" json:"queries,omitempty"`
+	// requests defines the module safe queries to execute.
+	Requests []*QueryRequest `protobuf:"bytes,2,rep,name=requests,proto3" json:"requests,omitempty"`
 }
 
-func (m *MsgModuleSafeQuery) Reset()         { *m = MsgModuleSafeQuery{} }
-func (m *MsgModuleSafeQuery) String() string { return proto.CompactTextString(m) }
-func (*MsgModuleSafeQuery) ProtoMessage()    {}
-func (*MsgModuleSafeQuery) Descriptor() ([]byte, []int) {
+func (m *MsgModuleQuerySafe) Reset()         { *m = MsgModuleQuerySafe{} }
+func (m *MsgModuleQuerySafe) String() string { return proto.CompactTextString(m) }
+func (*MsgModuleQuerySafe) ProtoMessage()    {}
+func (*MsgModuleQuerySafe) Descriptor() ([]byte, []int) {
 	return fileDescriptor_fa437afde7f1e7ae, []int{2}
 }
-func (m *MsgModuleSafeQuery) XXX_Unmarshal(b []byte) error {
+func (m *MsgModuleQuerySafe) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgModuleSafeQuery) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgModuleQuerySafe) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgModuleSafeQuery.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgModuleQuerySafe.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -138,36 +138,36 @@ func (m *MsgModuleSafeQuery) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *MsgModuleSafeQuery) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgModuleSafeQuery.Merge(m, src)
+func (m *MsgModuleQuerySafe) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgModuleQuerySafe.Merge(m, src)
 }
-func (m *MsgModuleSafeQuery) XXX_Size() int {
+func (m *MsgModuleQuerySafe) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgModuleSafeQuery) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgModuleSafeQuery.DiscardUnknown(m)
+func (m *MsgModuleQuerySafe) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgModuleQuerySafe.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgModuleSafeQuery proto.InternalMessageInfo
+var xxx_messageInfo_MsgModuleQuerySafe proto.InternalMessageInfo
 
-// MsgModuleSafeQueryResponse defines the response for Msg/ModuleSafeQuery
-type MsgModuleSafeQueryResponse struct {
+// MsgModuleQuerySafeResponse defines the response for Msg/ModuleQuerySafe
+type MsgModuleQuerySafeResponse struct {
 	// protobuf encoded responses for each query
-	Results [][]byte `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	Responses [][]byte `protobuf:"bytes,1,rep,name=responses,proto3" json:"responses,omitempty"`
 }
 
-func (m *MsgModuleSafeQueryResponse) Reset()         { *m = MsgModuleSafeQueryResponse{} }
-func (m *MsgModuleSafeQueryResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgModuleSafeQueryResponse) ProtoMessage()    {}
-func (*MsgModuleSafeQueryResponse) Descriptor() ([]byte, []int) {
+func (m *MsgModuleQuerySafeResponse) Reset()         { *m = MsgModuleQuerySafeResponse{} }
+func (m *MsgModuleQuerySafeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgModuleQuerySafeResponse) ProtoMessage()    {}
+func (*MsgModuleQuerySafeResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_fa437afde7f1e7ae, []int{3}
 }
-func (m *MsgModuleSafeQueryResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgModuleQuerySafeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgModuleSafeQueryResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgModuleQuerySafeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgModuleSafeQueryResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgModuleQuerySafeResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -177,21 +177,21 @@ func (m *MsgModuleSafeQueryResponse) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *MsgModuleSafeQueryResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgModuleSafeQueryResponse.Merge(m, src)
+func (m *MsgModuleQuerySafeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgModuleQuerySafeResponse.Merge(m, src)
 }
-func (m *MsgModuleSafeQueryResponse) XXX_Size() int {
+func (m *MsgModuleQuerySafeResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgModuleSafeQueryResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgModuleSafeQueryResponse.DiscardUnknown(m)
+func (m *MsgModuleQuerySafeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgModuleQuerySafeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgModuleSafeQueryResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgModuleQuerySafeResponse proto.InternalMessageInfo
 
-func (m *MsgModuleSafeQueryResponse) GetResults() [][]byte {
+func (m *MsgModuleQuerySafeResponse) GetResponses() [][]byte {
 	if m != nil {
-		return m.Results
+		return m.Responses
 	}
 	return nil
 }
@@ -199,8 +199,8 @@ func (m *MsgModuleSafeQueryResponse) GetResults() [][]byte {
 func init() {
 	proto.RegisterType((*MsgUpdateParams)(nil), "ibc.applications.interchain_accounts.host.v1.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "ibc.applications.interchain_accounts.host.v1.MsgUpdateParamsResponse")
-	proto.RegisterType((*MsgModuleSafeQuery)(nil), "ibc.applications.interchain_accounts.host.v1.MsgModuleSafeQuery")
-	proto.RegisterType((*MsgModuleSafeQueryResponse)(nil), "ibc.applications.interchain_accounts.host.v1.MsgModuleSafeQueryResponse")
+	proto.RegisterType((*MsgModuleQuerySafe)(nil), "ibc.applications.interchain_accounts.host.v1.MsgModuleQuerySafe")
+	proto.RegisterType((*MsgModuleQuerySafeResponse)(nil), "ibc.applications.interchain_accounts.host.v1.MsgModuleQuerySafeResponse")
 }
 
 func init() {
@@ -208,36 +208,35 @@ func init() {
 }
 
 var fileDescriptor_fa437afde7f1e7ae = []byte{
-	// 449 bytes of a gzipped FileDescriptorProto
+	// 447 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x93, 0x4f, 0x6b, 0xd4, 0x40,
-	0x18, 0xc6, 0x33, 0x5d, 0xdd, 0xe2, 0xb4, 0x50, 0x08, 0x62, 0x63, 0x0e, 0xe9, 0xb2, 0xa7, 0x50,
-	0xdc, 0x19, 0x1a, 0xff, 0x54, 0x0a, 0x82, 0x14, 0x04, 0x11, 0x02, 0x1a, 0xf5, 0xe2, 0x45, 0x26,
-	0xb3, 0xe3, 0xec, 0xc0, 0x26, 0x93, 0xe6, 0x9d, 0x2c, 0xf6, 0x26, 0x9e, 0x3c, 0x89, 0xa0, 0x57,
-	0xc1, 0x8f, 0xd0, 0xef, 0xe0, 0xa5, 0xc7, 0x1e, 0x3d, 0x89, 0xec, 0x1e, 0xfa, 0x35, 0x24, 0x69,
-	0xa2, 0x36, 0xb5, 0x87, 0xb0, 0xb7, 0x0c, 0xc9, 0xf3, 0x7b, 0x7f, 0x79, 0x99, 0x07, 0xdf, 0x55,
-	0x31, 0xa7, 0x2c, 0xcb, 0xa6, 0x8a, 0x33, 0xa3, 0x74, 0x0a, 0x54, 0xa5, 0x46, 0xe4, 0x7c, 0xc2,
-	0x54, 0xfa, 0x9a, 0x71, 0xae, 0x8b, 0xd4, 0x00, 0x9d, 0x68, 0x30, 0x74, 0xb6, 0x43, 0xcd, 0x5b,
-	0x92, 0xe5, 0xda, 0x68, 0xfb, 0x96, 0x8a, 0x39, 0xf9, 0x37, 0x46, 0xfe, 0x13, 0x23, 0x65, 0x8c,
-	0xcc, 0x76, 0xdc, 0xeb, 0x52, 0x4b, 0x5d, 0x05, 0x69, 0xf9, 0x74, 0xc6, 0x70, 0x37, 0xb9, 0x86,
-	0x44, 0x03, 0x4d, 0x40, 0x96, 0xec, 0x04, 0x64, 0xfd, 0x62, 0xb7, 0x93, 0x53, 0x35, 0xa4, 0x0a,
-	0x0e, 0x3f, 0x22, 0xbc, 0x11, 0x82, 0x7c, 0x99, 0x8d, 0x99, 0x11, 0x4f, 0x59, 0xce, 0x12, 0xb0,
-	0x6f, 0xe0, 0x3e, 0x28, 0x99, 0x8a, 0xdc, 0x41, 0x03, 0xe4, 0x5f, 0x8b, 0xea, 0x93, 0x1d, 0xe1,
-	0x7e, 0x56, 0x7d, 0xe1, 0xac, 0x0c, 0x90, 0xbf, 0x16, 0xdc, 0x21, 0x5d, 0x7e, 0x89, 0x9c, 0xd1,
-	0xf7, 0xaf, 0x1c, 0xff, 0xdc, 0xb2, 0xa2, 0x9a, 0xb4, 0xb7, 0xf1, 0xe1, 0xdb, 0x96, 0xf5, 0xfe,
-	0xf4, 0x68, 0xbb, 0x1e, 0x32, 0xbc, 0x89, 0x37, 0x5b, 0x3e, 0x91, 0x80, 0x4c, 0xa7, 0x20, 0x86,
-	0x9f, 0x11, 0xb6, 0x43, 0x90, 0xa1, 0x1e, 0x17, 0x53, 0xf1, 0x9c, 0xbd, 0x11, 0xcf, 0x0a, 0x91,
-	0x1f, 0x5e, 0xaa, 0xfb, 0x02, 0xaf, 0x1e, 0x14, 0x22, 0x57, 0xa2, 0xf4, 0xed, 0xf9, 0x6b, 0xc1,
-	0x5e, 0x37, 0xdf, 0x8a, 0x1e, 0x89, 0x83, 0x42, 0x80, 0x89, 0x1a, 0xd4, 0x45, 0xe1, 0x7b, 0xd8,
-	0xbd, 0x28, 0xd5, 0x38, 0xdb, 0x0e, 0x5e, 0xcd, 0x05, 0x14, 0x53, 0x03, 0x0e, 0x1a, 0xf4, 0xfc,
-	0xf5, 0xa8, 0x39, 0x06, 0xdf, 0x57, 0x70, 0x2f, 0x04, 0x69, 0x7f, 0x41, 0x78, 0xfd, 0xdc, 0xfa,
-	0x1f, 0x74, 0xd3, 0x6c, 0x6d, 0xcb, 0x7d, 0xb4, 0x54, 0xfc, 0x8f, 0xf8, 0xd7, 0xf2, 0x62, 0xb4,
-	0x36, 0xfd, 0xb0, 0x33, 0xba, 0x45, 0x70, 0x1f, 0x2f, 0x4b, 0x68, 0xfc, 0xdc, 0xab, 0xef, 0x4e,
-	0x8f, 0xb6, 0xd1, 0xfe, 0xf8, 0x78, 0xee, 0xa1, 0x93, 0xb9, 0x87, 0x7e, 0xcd, 0x3d, 0xf4, 0x69,
-	0xe1, 0x59, 0x27, 0x0b, 0xcf, 0xfa, 0xb1, 0xf0, 0xac, 0x57, 0x4f, 0xa4, 0x32, 0x93, 0x22, 0x26,
-	0x5c, 0x27, 0xb4, 0xae, 0x8d, 0x8a, 0xf9, 0x48, 0x6a, 0x3a, 0xbb, 0x4f, 0x93, 0x8a, 0x0a, 0x65,
-	0x65, 0x80, 0x06, 0xbb, 0xa3, 0xbf, 0x12, 0xa3, 0xf3, 0x6d, 0x31, 0x87, 0x99, 0x80, 0xb8, 0x5f,
-	0x95, 0xe5, 0xf6, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0xde, 0x9a, 0xb6, 0x8f, 0xfb, 0x03, 0x00,
-	0x00,
+	0x18, 0xc6, 0x33, 0x5d, 0x5d, 0xec, 0xb4, 0x50, 0x08, 0x62, 0xd7, 0x20, 0xe9, 0xb2, 0xa7, 0x50,
+	0xdc, 0x19, 0x1a, 0x95, 0xca, 0x82, 0x20, 0x05, 0x41, 0x84, 0x80, 0x46, 0xf4, 0xe0, 0x45, 0x26,
+	0xb3, 0xe3, 0xec, 0x40, 0x93, 0x89, 0x79, 0x27, 0x8b, 0xbd, 0x89, 0x27, 0x4f, 0xe2, 0x41, 0x8f,
+	0x82, 0x1f, 0xa1, 0xdf, 0xc1, 0x4b, 0x8f, 0x3d, 0x7a, 0x12, 0xd9, 0x3d, 0xf4, 0x6b, 0x48, 0xb2,
+	0xe9, 0xae, 0x9b, 0xd5, 0x43, 0xd8, 0xdb, 0xe4, 0xcf, 0xf3, 0x7b, 0x7f, 0x99, 0xcc, 0x83, 0xef,
+	0xa9, 0x88, 0x53, 0x96, 0xa6, 0xc7, 0x8a, 0x33, 0xa3, 0x74, 0x02, 0x54, 0x25, 0x46, 0x64, 0x7c,
+	0xc4, 0x54, 0xf2, 0x9a, 0x71, 0xae, 0xf3, 0xc4, 0x00, 0x1d, 0x69, 0x30, 0x74, 0x7c, 0x40, 0xcd,
+	0x3b, 0x92, 0x66, 0xda, 0x68, 0xfb, 0xb6, 0x8a, 0x38, 0xf9, 0x3b, 0x46, 0xfe, 0x11, 0x23, 0x45,
+	0x8c, 0x8c, 0x0f, 0x9c, 0xeb, 0x52, 0x4b, 0x5d, 0x06, 0x69, 0xb1, 0x9a, 0x31, 0x9c, 0x5d, 0xae,
+	0x21, 0xd6, 0x40, 0x63, 0x90, 0x05, 0x3b, 0x06, 0x59, 0x3d, 0x38, 0x6c, 0xe4, 0x54, 0x0e, 0x29,
+	0x83, 0xbd, 0x4f, 0x08, 0xef, 0x04, 0x20, 0x5f, 0xa4, 0x43, 0x66, 0xc4, 0x53, 0x96, 0xb1, 0x18,
+	0xec, 0x1b, 0xb8, 0x0d, 0x4a, 0x26, 0x22, 0xeb, 0xa0, 0x2e, 0xf2, 0x36, 0xc3, 0xea, 0xca, 0x0e,
+	0x71, 0x3b, 0x2d, 0xdf, 0xe8, 0x6c, 0x74, 0x91, 0xb7, 0xe5, 0xdf, 0x25, 0x4d, 0x3e, 0x89, 0xcc,
+	0xe8, 0x47, 0x57, 0xce, 0x7e, 0xed, 0x59, 0x61, 0x45, 0x1a, 0xec, 0x7c, 0xfc, 0xbe, 0x67, 0x7d,
+	0xb8, 0x38, 0xdd, 0xaf, 0x86, 0xf4, 0x6e, 0xe2, 0xdd, 0x9a, 0x4f, 0x28, 0x20, 0xd5, 0x09, 0x88,
+	0xde, 0x57, 0x84, 0xed, 0x00, 0x64, 0xa0, 0x87, 0xf9, 0xb1, 0x78, 0x96, 0x8b, 0xec, 0xe4, 0x39,
+	0x7b, 0x23, 0xfe, 0xab, 0xfb, 0x12, 0x5f, 0xcb, 0xc4, 0xdb, 0x5c, 0x80, 0x29, 0x84, 0x5b, 0xde,
+	0x96, 0x3f, 0x68, 0x26, 0x5c, 0x8e, 0x08, 0x67, 0x88, 0x70, 0xce, 0x5a, 0x55, 0x1e, 0x60, 0x67,
+	0x55, 0xeb, 0xd2, 0xda, 0xbe, 0x85, 0x37, 0xb3, 0x6a, 0x0d, 0x1d, 0xd4, 0x6d, 0x79, 0xdb, 0xe1,
+	0xe2, 0x86, 0xff, 0x63, 0x03, 0xb7, 0x02, 0x90, 0xf6, 0x17, 0x84, 0xb7, 0x97, 0x7e, 0xc2, 0x83,
+	0x66, 0xae, 0xb5, 0x3d, 0x73, 0x1e, 0xad, 0x15, 0x9f, 0xcb, 0x7f, 0x2b, 0x8e, 0x47, 0x6d, 0xbf,
+	0x1f, 0x36, 0x46, 0xd7, 0x08, 0xce, 0xe3, 0x75, 0x09, 0x97, 0x7e, 0xce, 0xd5, 0xf7, 0x17, 0xa7,
+	0xfb, 0xe8, 0x68, 0x78, 0x36, 0x71, 0xd1, 0xf9, 0xc4, 0x45, 0xbf, 0x27, 0x2e, 0xfa, 0x3c, 0x75,
+	0xad, 0xf3, 0xa9, 0x6b, 0xfd, 0x9c, 0xba, 0xd6, 0xab, 0x27, 0x52, 0x99, 0x51, 0x1e, 0x11, 0xae,
+	0x63, 0x5a, 0x95, 0x47, 0x45, 0xbc, 0x2f, 0x35, 0x1d, 0xdf, 0xa7, 0x71, 0x49, 0x85, 0xa2, 0x38,
+	0x40, 0xfd, 0xc3, 0xfe, 0x42, 0xa2, 0xbf, 0xdc, 0x19, 0x73, 0x92, 0x0a, 0x88, 0xda, 0x65, 0x65,
+	0xee, 0xfc, 0x09, 0x00, 0x00, 0xff, 0xff, 0xa4, 0xf6, 0x20, 0xb2, 0x01, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -254,8 +253,8 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// UpdateParams defines a rpc handler for MsgUpdateParams.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
-	// ModuleSafeQuery defines a rpc handler for MsgModuleSafeQuery.
-	ModuleSafeQuery(ctx context.Context, in *MsgModuleSafeQuery, opts ...grpc.CallOption) (*MsgModuleSafeQueryResponse, error)
+	// ModuleQuerySafe defines a rpc handler for MsgModuleQuerySafe.
+	ModuleQuerySafe(ctx context.Context, in *MsgModuleQuerySafe, opts ...grpc.CallOption) (*MsgModuleQuerySafeResponse, error)
 }
 
 type msgClient struct {
@@ -275,9 +274,9 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 	return out, nil
 }
 
-func (c *msgClient) ModuleSafeQuery(ctx context.Context, in *MsgModuleSafeQuery, opts ...grpc.CallOption) (*MsgModuleSafeQueryResponse, error) {
-	out := new(MsgModuleSafeQueryResponse)
-	err := c.cc.Invoke(ctx, "/ibc.applications.interchain_accounts.host.v1.Msg/ModuleSafeQuery", in, out, opts...)
+func (c *msgClient) ModuleQuerySafe(ctx context.Context, in *MsgModuleQuerySafe, opts ...grpc.CallOption) (*MsgModuleQuerySafeResponse, error) {
+	out := new(MsgModuleQuerySafeResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.interchain_accounts.host.v1.Msg/ModuleQuerySafe", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -288,8 +287,8 @@ func (c *msgClient) ModuleSafeQuery(ctx context.Context, in *MsgModuleSafeQuery,
 type MsgServer interface {
 	// UpdateParams defines a rpc handler for MsgUpdateParams.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
-	// ModuleSafeQuery defines a rpc handler for MsgModuleSafeQuery.
-	ModuleSafeQuery(context.Context, *MsgModuleSafeQuery) (*MsgModuleSafeQueryResponse, error)
+	// ModuleQuerySafe defines a rpc handler for MsgModuleQuerySafe.
+	ModuleQuerySafe(context.Context, *MsgModuleQuerySafe) (*MsgModuleQuerySafeResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -299,8 +298,8 @@ type UnimplementedMsgServer struct {
 func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
 }
-func (*UnimplementedMsgServer) ModuleSafeQuery(ctx context.Context, req *MsgModuleSafeQuery) (*MsgModuleSafeQueryResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ModuleSafeQuery not implemented")
+func (*UnimplementedMsgServer) ModuleQuerySafe(ctx context.Context, req *MsgModuleQuerySafe) (*MsgModuleQuerySafeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ModuleQuerySafe not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -325,20 +324,20 @@ func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_ModuleSafeQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgModuleSafeQuery)
+func _Msg_ModuleQuerySafe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgModuleQuerySafe)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).ModuleSafeQuery(ctx, in)
+		return srv.(MsgServer).ModuleQuerySafe(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ibc.applications.interchain_accounts.host.v1.Msg/ModuleSafeQuery",
+		FullMethod: "/ibc.applications.interchain_accounts.host.v1.Msg/ModuleQuerySafe",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).ModuleSafeQuery(ctx, req.(*MsgModuleSafeQuery))
+		return srv.(MsgServer).ModuleQuerySafe(ctx, req.(*MsgModuleQuerySafe))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -352,8 +351,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_UpdateParams_Handler,
 		},
 		{
-			MethodName: "ModuleSafeQuery",
-			Handler:    _Msg_ModuleSafeQuery_Handler,
+			MethodName: "ModuleQuerySafe",
+			Handler:    _Msg_ModuleQuerySafe_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -423,7 +422,7 @@ func (m *MsgUpdateParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgModuleSafeQuery) Marshal() (dAtA []byte, err error) {
+func (m *MsgModuleQuerySafe) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -433,20 +432,20 @@ func (m *MsgModuleSafeQuery) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgModuleSafeQuery) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgModuleQuerySafe) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgModuleSafeQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgModuleQuerySafe) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Queries) > 0 {
-		for iNdEx := len(m.Queries) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.Requests) > 0 {
+		for iNdEx := len(m.Requests) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.Queries[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.Requests[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -467,7 +466,7 @@ func (m *MsgModuleSafeQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgModuleSafeQueryResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgModuleQuerySafeResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -477,21 +476,21 @@ func (m *MsgModuleSafeQueryResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgModuleSafeQueryResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgModuleQuerySafeResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgModuleSafeQueryResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgModuleQuerySafeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Results) > 0 {
-		for iNdEx := len(m.Results) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Results[iNdEx])
-			copy(dAtA[i:], m.Results[iNdEx])
-			i = encodeVarintTx(dAtA, i, uint64(len(m.Results[iNdEx])))
+	if len(m.Responses) > 0 {
+		for iNdEx := len(m.Responses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Responses[iNdEx])
+			copy(dAtA[i:], m.Responses[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Responses[iNdEx])))
 			i--
 			dAtA[i] = 0xa
 		}
@@ -534,7 +533,7 @@ func (m *MsgUpdateParamsResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgModuleSafeQuery) Size() (n int) {
+func (m *MsgModuleQuerySafe) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -544,8 +543,8 @@ func (m *MsgModuleSafeQuery) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	if len(m.Queries) > 0 {
-		for _, e := range m.Queries {
+	if len(m.Requests) > 0 {
+		for _, e := range m.Requests {
 			l = e.Size()
 			n += 1 + l + sovTx(uint64(l))
 		}
@@ -553,14 +552,14 @@ func (m *MsgModuleSafeQuery) Size() (n int) {
 	return n
 }
 
-func (m *MsgModuleSafeQueryResponse) Size() (n int) {
+func (m *MsgModuleQuerySafeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.Results) > 0 {
-		for _, b := range m.Results {
+	if len(m.Responses) > 0 {
+		for _, b := range m.Responses {
 			l = len(b)
 			n += 1 + l + sovTx(uint64(l))
 		}
@@ -739,7 +738,7 @@ func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgModuleSafeQuery) Unmarshal(dAtA []byte) error {
+func (m *MsgModuleQuerySafe) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -762,10 +761,10 @@ func (m *MsgModuleSafeQuery) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgModuleSafeQuery: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgModuleQuerySafe: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgModuleSafeQuery: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgModuleQuerySafe: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -802,7 +801,7 @@ func (m *MsgModuleSafeQuery) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Queries", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Requests", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -829,8 +828,8 @@ func (m *MsgModuleSafeQuery) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Queries = append(m.Queries, &QueryRequest{})
-			if err := m.Queries[len(m.Queries)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Requests = append(m.Requests, &QueryRequest{})
+			if err := m.Requests[len(m.Requests)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -855,7 +854,7 @@ func (m *MsgModuleSafeQuery) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgModuleSafeQueryResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgModuleQuerySafeResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -878,15 +877,15 @@ func (m *MsgModuleSafeQueryResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgModuleSafeQueryResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgModuleQuerySafeResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgModuleSafeQueryResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgModuleQuerySafeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Results", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Responses", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -913,8 +912,8 @@ func (m *MsgModuleSafeQueryResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Results = append(m.Results, make([]byte, postIndex-iNdEx))
-			copy(m.Results[len(m.Results)-1], dAtA[iNdEx:postIndex])
+			m.Responses = append(m.Responses, make([]byte, postIndex-iNdEx))
+			copy(m.Responses[len(m.Responses)-1], dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
