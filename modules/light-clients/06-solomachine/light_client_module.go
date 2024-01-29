@@ -13,6 +13,8 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine/keeper"
 )
 
+var _ exported.LightClientModule = (*LightClientModule)(nil)
+
 // LightClientModule implements the core IBC api.LightClientModule interface?
 type LightClientModule struct {
 	keeper keeper.Keeper
@@ -247,7 +249,9 @@ func validateClientID(clientID string) error {
 // // CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
 // // The light client must set the updated client and consensus states within the clientStore for the subject client.
 // // DEPRECATED: will be removed as performs internal functionality
-// RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error
+func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+	return nil
+}
 
 // // Upgrade functions
 // // NOTE: proof heights are not included as upgrade to a new revision is expected to pass only on the last
@@ -257,11 +261,6 @@ func validateClientID(clientID string) error {
 // // may be cancelled or modified before the last planned height.
 // // If the upgrade is verified, the upgraded client and consensus states must be set in the client store.
 // // DEPRECATED: will be removed as performs internal functionality
-// VerifyUpgradeAndUpdateState(
-// 	ctx sdk.Context,
-// 	clientID string,
-// 	newClient []byte,
-// 	newConsState []byte,
-// 	upgradeClientProof,
-// 	upgradeConsensusStateProof []byte,
-// ) error
+func (l LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient []byte, newConsState []byte, upgradeClientProof, upgradeConsensusStateProof []byte) error {
+	return nil
+}
