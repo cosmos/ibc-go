@@ -93,7 +93,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        types.Version,
+				Version:        types.CurrentVersion,
 			}
 
 			var err error
@@ -112,7 +112,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				if tc.v1 {
 					suite.Require().Equal("ics20-1", version)
 				} else {
-					suite.Require().Equal(types.Version, version)
+					suite.Require().Equal(types.CurrentVersion, version)
 				}
 			} else {
 				suite.Require().Error(err)
@@ -189,9 +189,9 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 				Ordering:       channeltypes.UNORDERED,
 				Counterparty:   counterparty,
 				ConnectionHops: []string{path.EndpointA.ConnectionID},
-				Version:        types.Version,
+				Version:        types.CurrentVersion,
 			}
-			counterpartyVersion = types.Version
+			counterpartyVersion = types.CurrentVersion
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)
@@ -213,7 +213,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 				if tc.v1 {
 					suite.Require().Equal("ics20-1", version)
 				} else {
-					suite.Require().Equal(types.Version, version)
+					suite.Require().Equal(types.CurrentVersion, version)
 				}
 			} else {
 				suite.Require().Error(err)
@@ -250,7 +250,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
-			counterpartyVersion = types.Version
+			counterpartyVersion = types.CurrentVersion
 
 			// ack callback requires the channel to have been created.
 			suite.Require().NoError(path.EndpointA.ChanOpenInit())
@@ -417,7 +417,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().Equal(types.Version, version)
+				suite.Require().Equal(types.CurrentVersion, version)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())

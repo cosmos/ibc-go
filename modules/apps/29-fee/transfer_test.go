@@ -8,6 +8,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
+
 // TODO: commented out due to middleware not working with ack callback
 //// Integration test to ensure ics29 works with ics20
 //func (suite *FeeTestSuite) TestFeeTransfer() {
@@ -94,13 +95,13 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 			// configure the initial path to create a regular transfer channel
 			path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 			path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
-			path.EndpointA.ChannelConfig.Version = transfertypes.Version
-			path.EndpointB.ChannelConfig.Version = transfertypes.Version
+			path.EndpointA.ChannelConfig.Version = transfertypes.CurrentVersion
+			path.EndpointB.ChannelConfig.Version = transfertypes.CurrentVersion
 
 			path.Setup()
 
 			// configure the channel upgrade to upgrade to an incentivized fee enabled transfer channel
-			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
+			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.CurrentVersion}))
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 

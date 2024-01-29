@@ -82,6 +82,7 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 		}
 	}
 }
+
 // TODO: commented out due to middleware not working with ack callback
 //func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 //	// create an incentivized transfer path
