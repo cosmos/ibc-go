@@ -20,6 +20,7 @@ import (
 	"github.com/cometbft/cometbft/crypto"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/v2"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -359,7 +360,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 
 					}
 				case "OnRecvPacket":
-					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+					dataV2 := transferv2.ConvertPacketV1ToPacketV2(tc.packet.Data)
+					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, dataV2)
 				case "OnTimeoutPacket":
 					registerDenomFn()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, tc.packet.Data)

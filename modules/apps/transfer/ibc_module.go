@@ -13,6 +13,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/v2"
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -192,6 +193,18 @@ func (IBCModule) OnChanCloseConfirm(
 	return nil
 }
 
+func getFungibleTokenPacketDataV2(bz []byte) (types.FungibleTokenPacketDataV2, error) {
+	var data types.FungibleTokenPacketDataV2
+	if err := types.ModuleCdc.UnmarshalJSON(bz, &data); err == nil {
+		return data, nil
+	}
+	var datav1 types.FungibleTokenPacketData
+	if err := types.ModuleCdc.UnmarshalJSON(bz, &datav1); err == nil {
+		return transferv2.ConvertPacketV1ToPacketV2(datav1), nil
+	}
+	return types.FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
+}
+
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
 // is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.
@@ -203,10 +216,8 @@ func (im IBCModule) OnRecvPacket(
 	logger := im.transferKeeper.Logger(ctx)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	var data types.FungibleTokenPacketData
-	var ackErr error
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ackErr = errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
+	data, ackErr := getFungibleTokenPacketDataV2(packet.GetData())
+	if ackErr != nil {
 		logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 	}
@@ -224,12 +235,14 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
+
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-		sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-		sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
+		// TODO: emit these for each token in the packet
+		sdk.NewAttribute(types.AttributeKeyDenom, data.Tokens[0].GetFullDenomPath()),
+		sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%d", data.Tokens[0].Amount)),
 		sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 	}

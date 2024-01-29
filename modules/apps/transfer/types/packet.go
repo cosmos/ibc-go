@@ -119,6 +119,45 @@ func NewFungibleTokenPacketDataV2(
 	}
 }
 
+// ValidateBasic is used for validating the token transfer.
+// NOTE: The addresses formats are not validated as the sender and recipient can have different
+// formats defined by their corresponding chains that are not known to IBC.
+func (ftpdv2 FungibleTokenPacketDataV2) ValidateBasic() error {
+	if strings.TrimSpace(ftpdv2.Sender) == "" {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "sender address cannot be blank")
+	}
+
+	if strings.TrimSpace(ftpdv2.Receiver) == "" {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "receiver address cannot be blank")
+	}
+
+	if len(ftpdv2.Tokens) == 0 {
+		return errorsmod.Wrap(ErrInvalidAmount, "tokens cannot be empty")
+	}
+
+	for _, token := range ftpdv2.Tokens {
+		if token.Amount == 0 {
+			return errorsmod.Wrapf(ErrInvalidAmount, "amount must be greater than zero: got %d", token.Amount)
+		}
+
+		if err := sdk.ValidateDenom(token.Denom); err != nil {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, err.Error())
+		}
+	}
+
+	if len(ftpdv2.Memo) > MaximumMemoLength {
+		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
+	}
+
+	return nil
+}
+
+func (t *Token) GetFullDenomPath() string {
+	baseDenom := t.Denom
+	remainder := strings.Join(t.Trace, "/")
+	return remainder + "/" + baseDenom
+}
+
 // GetBytes is a helper for serialising
 func (ftpdv2 FungibleTokenPacketDataV2) GetBytes() []byte {
 	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpdv2))
