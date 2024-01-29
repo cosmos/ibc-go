@@ -561,6 +561,8 @@ func NewSimApp(
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, keys[ibcexported.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String())
+
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[evidencetypes.StoreKey]), app.StakingKeeper, app.SlashingKeeper, app.AccountKeeper.AddressCodec(), runtime.ProvideCometInfoService(),
@@ -605,7 +607,7 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		ibctm.NewAppModule(),
+		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(),
 		mockModule,
 	)

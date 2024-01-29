@@ -51,6 +51,16 @@ func setClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, clien
 	clientStore.Set(key, val)
 }
 
+func getClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, bool) {
+	bz := store.Get(host.ClientStateKey())
+	if len(bz) == 0 {
+		return nil, false
+	}
+
+	clientStateI := clienttypes.MustUnmarshalClientState(cdc, bz)
+	return clientStateI.(*ClientState), true
+}
+
 // setConsensusState stores the consensus state at the given height.
 func setConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, consensusState *ConsensusState, height exported.Height) {
 	key := host.ConsensusStateKey(height)
