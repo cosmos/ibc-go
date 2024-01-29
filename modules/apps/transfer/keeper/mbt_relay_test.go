@@ -364,15 +364,18 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, dataV2)
 				case "OnTimeoutPacket":
 					registerDenomFn()
-					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+					dataV2 := transferv2.ConvertPacketV1ToPacketV2(tc.packet.Data)
+					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, dataV2)
 				case "OnRecvAcknowledgementResult":
+					dataV2 := transferv2.ConvertPacketV1ToPacketV2(tc.packet.Data)
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
-						suite.chainB.GetContext(), packet, tc.packet.Data,
+						suite.chainB.GetContext(), packet, dataV2,
 						channeltypes.NewResultAcknowledgement(nil))
 				case "OnRecvAcknowledgementError":
 					registerDenomFn()
+					dataV2 := transferv2.ConvertPacketV1ToPacketV2(tc.packet.Data)
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
-						suite.chainB.GetContext(), packet, tc.packet.Data,
+						suite.chainB.GetContext(), packet, dataV2,
 						channeltypes.NewErrorAcknowledgement(fmt.Errorf("MBT Error Acknowledgement")))
 				default:
 					err = fmt.Errorf("Unknown handler:  %s", tc.handler)

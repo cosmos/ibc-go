@@ -273,9 +273,10 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
-	var data types.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+
+	data, err := getFungibleTokenPacketDataV2(packet.GetData())
+	if err != nil {
+		return err
 	}
 
 	if err := im.transferKeeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
@@ -288,8 +289,8 @@ func (im IBCModule) OnAcknowledgementPacket(
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, data.Amount),
+			sdk.NewAttribute(types.AttributeKeyDenom, data.Tokens[0].GetFullDenomPath()),
+			sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%d", data.Tokens[0].Amount)),
 			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
@@ -321,10 +322,11 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	var data types.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+	data, err := getFungibleTokenPacketDataV2(packet.GetData())
+	if err != nil {
+		return err
 	}
+
 	// refund tokens
 	if err := im.transferKeeper.OnTimeoutPacket(ctx, packet, data); err != nil {
 		return err
@@ -335,8 +337,8 @@ func (im IBCModule) OnTimeoutPacket(
 			types.EventTypeTimeout,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 			sdk.NewAttribute(types.AttributeKeyRefundReceiver, data.Sender),
-			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyRefundAmount, data.Amount),
+			sdk.NewAttribute(types.AttributeKeyRefundDenom, data.Tokens[0].GetFullDenomPath()),
+			sdk.NewAttribute(types.AttributeKeyRefundAmount, fmt.Sprintf("%d", data.Tokens[0].Amount)),
 			sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
 		),
 	)
