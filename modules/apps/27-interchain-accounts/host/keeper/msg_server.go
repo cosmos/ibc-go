@@ -24,6 +24,12 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 }
 
 // UpdateParams updates the host submodule's params.
+func (m msgServer) ModuleSafeQuery(goCtx context.Context, msg *types.MsgModuleSafeQuery) (*types.MsgModuleSafeQueryResponse, error) {
+	// TODO: implement
+	return &types.MsgModuleSafeQueryResponse{}, nil
+}
+
+// UpdateParams updates the host submodule's params.
 func (m msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if m.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", m.GetAuthority(), msg.Signer)
