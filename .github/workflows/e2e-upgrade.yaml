@@ -68,6 +68,20 @@ jobs:
       upload-logs: true
       relayer-type: hermes
 
+  upgrade-v8_1-channel-upgrades-hermes:
+    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    with:
+      chain-image: ghcr.io/cosmos/ibc-go-simd
+      chain-binary: simd
+      chain-a-tag: v8.0.0
+      chain-b-tag: v8.0.0
+      chain-upgrade-tag: pr-5661 # TODO: add git tag for v8.1.0-{prelease}
+      upgrade-plan-name: "v8.1"
+      test-entry-point:  "TestUpgradeTestSuite"
+      test: "TestV8ToV8_1ChainUpgrade_ChannelUpgrades"
+      upload-logs: true
+      relayer-type: hermes
+
   upgrade-v7-rly:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     with:

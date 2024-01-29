@@ -547,6 +547,12 @@ func (k Keeper) deleteUpgrade(ctx sdk.Context, portID, channelID string) {
 	store.Delete(host.ChannelUpgradeKey(portID, channelID))
 }
 
+// hasCounterpartyUpgrade returns true if a counterparty upgrade exists in store
+func (k Keeper) hasCounterpartyUpgrade(ctx sdk.Context, portID, channelID string) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.ChannelCounterpartyUpgradeKey(portID, channelID))
+}
+
 // GetCounterpartyUpgrade gets the counterparty upgrade from the store.
 func (k Keeper) GetCounterpartyUpgrade(ctx sdk.Context, portID, channelID string) (types.Upgrade, bool) {
 	store := ctx.KVStore(k.storeKey)
