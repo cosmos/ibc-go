@@ -6,10 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
-
-var _ exported.CounterpartyChannelI = (*Counterparty)(nil)
 
 // NewChannel creates a new Channel instance
 func NewChannel(
@@ -53,16 +50,6 @@ func NewCounterparty(portID, channelID string) Counterparty {
 		PortId:    portID,
 		ChannelId: channelID,
 	}
-}
-
-// GetPortID implements CounterpartyChannelI interface
-func (c Counterparty) GetPortID() string {
-	return c.PortId
-}
-
-// GetChannelID implements CounterpartyChannelI interface
-func (c Counterparty) GetChannelID() string {
-	return c.ChannelId
 }
 
 // ValidateBasic performs a basic validation check of the identifiers
