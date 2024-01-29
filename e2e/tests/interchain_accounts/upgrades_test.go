@@ -162,7 +162,8 @@ func (s *InterchainAccountsChannelUpgradesTestSuite) TestChannelUpgrade_ICAChann
 				Memo: "e2e",
 			}
 
-			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(1), packetData)
+                        timeout := uint64(1)
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, timeout, packetData)
 
 			resp := s.BroadcastMessages(
 				ctx,
