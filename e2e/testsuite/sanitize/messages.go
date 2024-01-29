@@ -48,12 +48,26 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 			msg.Title = ""
 			msg.Summary = ""
 		}
+		// sanitize messages contained in the x/gov proposal
+		msgs, err := msg.GetMsgs()
+		if err != nil {
+			panic(err)
+		}
+		sanitizedMsgs := Messages(tag, msgs...)
+		msg.SetMsgs(sanitizedMsgs)
 		return msg
 	case *grouptypes.MsgSubmitProposal:
 		if !groupsv1ProposalTitleAndSummary.IsSupported(tag) {
 			msg.Title = ""
 			msg.Summary = ""
 		}
+		// sanitize messages contained in the x/group proposal
+		msgs, err := msg.GetMsgs()
+		if err != nil {
+			panic(err)
+		}
+		sanitizedMsgs := Messages(tag, msgs...)
+		msg.SetMsgs(sanitizedMsgs)
 		return msg
 	case *icacontrollertypes.MsgRegisterInterchainAccount:
 		if !icaUnorderedChannelFeatureReleases.IsSupported(tag) {
