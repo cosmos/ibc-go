@@ -4,6 +4,7 @@ package channel
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
@@ -260,18 +261,30 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Su
 		s.AssertTxSuccess(transferTxResp)
 	})
 
-	t.Run("execute gov proposals to initiate channel upgrade on chain A and chain B", func(t *testing.T) {
-		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
-		s.Require().NoError(err)
-		s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.createUpgradeFields(chA))
-
-		chB, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
-		s.Require().NoError(err)
-		s.initiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.createUpgradeFields(chB))
-	})
-
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
+	})
+
+	t.Run("execute gov proposals to initiate channel upgrade on chain A and chain B", func(t *testing.T) {
+		var wg sync.WaitGroup
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			s.Require().NoError(err)
+			s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.createUpgradeFields(chA))
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			chB, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+			s.Require().NoError(err)
+			s.initiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.createUpgradeFields(chB))
+		}()
+
+		wg.Wait()
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
