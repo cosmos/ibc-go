@@ -43,6 +43,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 
 	var (
 		chainADenom   = chainA.Config().Denom
@@ -71,8 +72,15 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+		// Must broadcast MsgRegisterInterchainAccount with default value for order field
+		// for those versions where MsgRegisterInterchainAccount does not have the order field
+		msgOrder := channeltypes.ORDERED
+		if !testvalues.UnorderedICAChannelFeatureReleases.IsSupported(chainAVersion) {
+			msgOrder = channeltypes.NONE
+		}
+
 		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version, channeltypes.ORDERED)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version, msgOrder)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
@@ -221,6 +229,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
+	chainAVersion := chainA.Config().Images[0].Version
 
 	var (
 		chainADenom   = chainA.Config().Denom
@@ -249,8 +258,15 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+		// Must broadcast MsgRegisterInterchainAccount with default value for order field
+		// for those versions where MsgRegisterInterchainAccount does not have the order field
+		msgOrder := channeltypes.ORDERED
+		if !testvalues.UnorderedICAChannelFeatureReleases.IsSupported(chainAVersion) {
+			msgOrder = channeltypes.NONE
+		}
+
 		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version, channeltypes.ORDERED)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version, msgOrder)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
