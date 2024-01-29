@@ -1,10 +1,9 @@
-package internal
+package transfer
 
 import (
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"strconv"
 	"strings"
+
 )
 
 // ConvertPacketV1ToPacketV2 converts a v1 packet data to a v2 packet data.
@@ -54,9 +53,7 @@ func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 }
 
 func extractPathAndBaseFromFullDenomSlice(fullDenomItems []string) []string {
-	var (
-		pathSlice []string
-	)
+	var pathSlice []string
 
 	length := len(fullDenomItems)
 	for i := 0; i < length; i += 2 {

@@ -1,9 +1,11 @@
-package internal
+package transfer
 
 import (
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 func TestConvertPacketV1ToPacketV2(t *testing.T) {
@@ -18,7 +20,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 		v2Data      types.FungibleTokenPacketDataV2
 		shouldPanic bool
 	}{
-		{"success",
+		{
+			"success",
 			types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
 				[]*types.Token{
@@ -31,7 +34,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				}, sender, receiver, ""),
 			false,
 		},
-		{"success: base denom with '/'",
+		{
+			"success: base denom with '/'",
 			types.NewFungibleTokenPacketData("transfer/channel-0/atom/withslash", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
 				[]*types.Token{
@@ -44,7 +48,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				}, sender, receiver, ""),
 			false,
 		},
-		{"success: base denom with '/' at the end",
+		{
+			"success: base denom with '/' at the end",
 			types.NewFungibleTokenPacketData("transfer/channel-0/atom/", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
 				[]*types.Token{
@@ -57,7 +62,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				}, sender, receiver, ""),
 			false,
 		},
-		{"success: longer trace base denom with '/'",
+		{
+			"success: longer trace base denom with '/'",
 			types.NewFungibleTokenPacketData("transfer/channel-0/transfer/channel-1/atom/pool", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
 				[]*types.Token{
@@ -70,7 +76,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				}, sender, receiver, ""),
 			false,
 		},
-		{"success: longer trace with non transfer port",
+		{
+			"success: longer trace with non transfer port",
 			types.NewFungibleTokenPacketData("transfer/channel-0/transfer/channel-1/transfer-custom/channel-2/atom", "1000", sender, receiver, ""),
 			types.NewFungibleTokenPacketDataV2(
 				[]*types.Token{
@@ -83,7 +90,8 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				}, sender, receiver, ""),
 			false,
 		},
-		{"failure: invalid short v1 denom",
+		{
+			"failure: invalid short v1 denom",
 			types.NewFungibleTokenPacketData("transfer/atom", "1000", sender, receiver, ""),
 			types.FungibleTokenPacketDataV2{},
 			true,
