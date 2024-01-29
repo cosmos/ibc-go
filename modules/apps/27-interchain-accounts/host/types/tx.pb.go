@@ -6,6 +6,7 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
@@ -109,9 +110,98 @@ func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
+// MsgModuleSafeQuery defines the payload for Msg/ModuleSafeQuery
+type MsgModuleSafeQuery struct {
+	// signer address
+	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
+	// queries defines the module safe queries to execute.
+	Queries []*types.Any `protobuf:"bytes,2,rep,name=queries,proto3" json:"queries,omitempty"`
+}
+
+func (m *MsgModuleSafeQuery) Reset()         { *m = MsgModuleSafeQuery{} }
+func (m *MsgModuleSafeQuery) String() string { return proto.CompactTextString(m) }
+func (*MsgModuleSafeQuery) ProtoMessage()    {}
+func (*MsgModuleSafeQuery) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa437afde7f1e7ae, []int{2}
+}
+func (m *MsgModuleSafeQuery) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgModuleSafeQuery) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgModuleSafeQuery.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgModuleSafeQuery) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgModuleSafeQuery.Merge(m, src)
+}
+func (m *MsgModuleSafeQuery) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgModuleSafeQuery) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgModuleSafeQuery.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgModuleSafeQuery proto.InternalMessageInfo
+
+// MsgModuleSafeQueryResponse defines the response for Msg/ModuleSafeQuery
+type MsgModuleSafeQueryResponse struct {
+	// results defines the results of the module safe queries.
+	Results []*types.Any `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+}
+
+func (m *MsgModuleSafeQueryResponse) Reset()         { *m = MsgModuleSafeQueryResponse{} }
+func (m *MsgModuleSafeQueryResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgModuleSafeQueryResponse) ProtoMessage()    {}
+func (*MsgModuleSafeQueryResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa437afde7f1e7ae, []int{3}
+}
+func (m *MsgModuleSafeQueryResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgModuleSafeQueryResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgModuleSafeQueryResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgModuleSafeQueryResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgModuleSafeQueryResponse.Merge(m, src)
+}
+func (m *MsgModuleSafeQueryResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgModuleSafeQueryResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgModuleSafeQueryResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgModuleSafeQueryResponse proto.InternalMessageInfo
+
+func (m *MsgModuleSafeQueryResponse) GetResults() []*types.Any {
+	if m != nil {
+		return m.Results
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*MsgUpdateParams)(nil), "ibc.applications.interchain_accounts.host.v1.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "ibc.applications.interchain_accounts.host.v1.MsgUpdateParamsResponse")
+	proto.RegisterType((*MsgModuleSafeQuery)(nil), "ibc.applications.interchain_accounts.host.v1.MsgModuleSafeQuery")
+	proto.RegisterType((*MsgModuleSafeQueryResponse)(nil), "ibc.applications.interchain_accounts.host.v1.MsgModuleSafeQueryResponse")
 }
 
 func init() {
@@ -119,29 +209,36 @@ func init() {
 }
 
 var fileDescriptor_fa437afde7f1e7ae = []byte{
-	// 352 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x32, 0xcd, 0x4c, 0x4a, 0xd6,
-	0x4f, 0x2c, 0x28, 0xc8, 0xc9, 0x4c, 0x4e, 0x2c, 0xc9, 0xcc, 0xcf, 0x2b, 0xd6, 0xcf, 0xcc, 0x2b,
-	0x49, 0x2d, 0x4a, 0xce, 0x48, 0xcc, 0xcc, 0x8b, 0x4f, 0x4c, 0x4e, 0xce, 0x2f, 0xcd, 0x2b, 0x29,
-	0xd6, 0xcf, 0xc8, 0x2f, 0x2e, 0xd1, 0x2f, 0x33, 0xd4, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f,
-	0xc9, 0x17, 0xd2, 0xc9, 0x4c, 0x4a, 0xd6, 0x43, 0xd6, 0xa6, 0x87, 0x45, 0x9b, 0x1e, 0x48, 0x9b,
-	0x5e, 0x99, 0xa1, 0x94, 0x48, 0x7a, 0x7e, 0x7a, 0x3e, 0x58, 0xa3, 0x3e, 0x88, 0x05, 0x31, 0x43,
-	0x4a, 0x3c, 0x39, 0xbf, 0x38, 0x37, 0xbf, 0x58, 0x3f, 0xb7, 0x38, 0x1d, 0x64, 0x76, 0x6e, 0x71,
-	0x3a, 0x54, 0xc2, 0x9c, 0x24, 0x37, 0x81, 0x2d, 0x01, 0x6b, 0x54, 0xea, 0x63, 0xe4, 0xe2, 0xf7,
-	0x2d, 0x4e, 0x0f, 0x2d, 0x48, 0x49, 0x2c, 0x49, 0x0d, 0x48, 0x2c, 0x4a, 0xcc, 0x2d, 0x16, 0x12,
-	0xe3, 0x62, 0x2b, 0xce, 0x4c, 0xcf, 0x4b, 0x2d, 0x92, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x0c, 0x82,
-	0xf2, 0x84, 0x82, 0xb8, 0xd8, 0x0a, 0xc0, 0x2a, 0x24, 0x98, 0x14, 0x18, 0x35, 0xb8, 0x8d, 0x4c,
-	0xf4, 0x48, 0xf1, 0x92, 0x1e, 0xc4, 0x74, 0x27, 0x96, 0x13, 0xf7, 0xe4, 0x19, 0x82, 0xa0, 0x26,
-	0x59, 0xf1, 0x77, 0x2c, 0x90, 0x67, 0x68, 0x7a, 0xbe, 0x41, 0x0b, 0x6a, 0x89, 0x92, 0x24, 0x97,
-	0x38, 0x9a, 0x7b, 0x82, 0x52, 0x8b, 0x0b, 0xf2, 0xf3, 0x8a, 0x53, 0x8d, 0x16, 0x33, 0x72, 0x31,
-	0xfb, 0x16, 0xa7, 0x0b, 0x4d, 0x61, 0xe4, 0xe2, 0x41, 0x71, 0xb0, 0x2d, 0x69, 0x0e, 0x41, 0x33,
-	0x5f, 0xca, 0x95, 0x22, 0xed, 0x30, 0xe7, 0x49, 0xb1, 0x36, 0x3c, 0xdf, 0xa0, 0xc5, 0xe8, 0x94,
-	0x72, 0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c,
-	0xc7, 0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x51, 0x5e, 0xe9, 0x99, 0x25, 0x19,
-	0xa5, 0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0xd0, 0x88, 0xcc, 0x4c, 0x4a, 0xd6, 0x4d, 0xcf, 0xd7,
-	0x2f, 0xb3, 0xd0, 0xcf, 0xcd, 0x4f, 0x29, 0xcd, 0x49, 0x2d, 0x06, 0x45, 0x62, 0xb1, 0xbe, 0x91,
-	0xb9, 0x2e, 0xc2, 0x05, 0xba, 0xa8, 0xf1, 0x57, 0x52, 0x59, 0x90, 0x5a, 0x9c, 0xc4, 0x06, 0x8e,
-	0x3e, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0x76, 0xa2, 0x96, 0x3e, 0x8d, 0x02, 0x00, 0x00,
+	// 460 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x93, 0x4f, 0x6b, 0xd4, 0x40,
+	0x18, 0xc6, 0x33, 0xad, 0xae, 0x38, 0x15, 0x0a, 0xa1, 0xd8, 0x6d, 0x0e, 0x69, 0xd9, 0xd3, 0x52,
+	0xdc, 0x19, 0xba, 0x2a, 0x15, 0x41, 0xd0, 0x82, 0x20, 0xe2, 0x82, 0x46, 0xbc, 0x78, 0x91, 0xc9,
+	0xec, 0x74, 0x76, 0x20, 0x99, 0x89, 0x79, 0x27, 0x8b, 0xb9, 0x89, 0x27, 0x4f, 0xe2, 0xc1, 0xab,
+	0xe0, 0x47, 0xe8, 0x77, 0xf0, 0xd2, 0x63, 0x8f, 0x9e, 0x44, 0x76, 0x0f, 0xfd, 0x1a, 0x92, 0x7f,
+	0x6a, 0x53, 0x15, 0x42, 0x6f, 0x19, 0xe6, 0x7d, 0x7e, 0xef, 0xf3, 0x3e, 0x99, 0x17, 0xdf, 0x56,
+	0x21, 0xa7, 0x2c, 0x49, 0x22, 0xc5, 0x99, 0x55, 0x46, 0x03, 0x55, 0xda, 0x8a, 0x94, 0xcf, 0x98,
+	0xd2, 0xaf, 0x18, 0xe7, 0x26, 0xd3, 0x16, 0xe8, 0xcc, 0x80, 0xa5, 0xf3, 0x3d, 0x6a, 0xdf, 0x90,
+	0x24, 0x35, 0xd6, 0xb8, 0x37, 0x54, 0xc8, 0xc9, 0x9f, 0x32, 0xf2, 0x17, 0x19, 0x29, 0x64, 0x64,
+	0xbe, 0xe7, 0x6d, 0x48, 0x23, 0x4d, 0x29, 0xa4, 0xc5, 0x57, 0xc5, 0xf0, 0x36, 0xb9, 0x81, 0xd8,
+	0x00, 0x8d, 0x41, 0x16, 0xec, 0x18, 0x64, 0x7d, 0xb1, 0xdf, 0xc9, 0x53, 0xd9, 0xa4, 0x12, 0x6e,
+	0x49, 0x63, 0x64, 0x24, 0x68, 0x79, 0x0a, 0xb3, 0x43, 0xca, 0x74, 0x5e, 0x5d, 0x0d, 0x3e, 0x20,
+	0xbc, 0x3e, 0x01, 0xf9, 0x22, 0x99, 0x32, 0x2b, 0x9e, 0xb2, 0x94, 0xc5, 0xe0, 0x5e, 0xc7, 0x3d,
+	0x50, 0x52, 0x8b, 0xb4, 0x8f, 0x76, 0xd0, 0xf0, 0x6a, 0x50, 0x9f, 0xdc, 0x00, 0xf7, 0x92, 0xb2,
+	0xa2, 0xbf, 0xb2, 0x83, 0x86, 0x6b, 0xe3, 0x5b, 0xa4, 0xcb, 0xb4, 0xa4, 0xa2, 0x1f, 0x5c, 0x3a,
+	0xfe, 0xbe, 0xed, 0x04, 0x35, 0xe9, 0xee, 0xfa, 0xfb, 0x2f, 0xdb, 0xce, 0xbb, 0xd3, 0xa3, 0xdd,
+	0xba, 0xc9, 0x60, 0x0b, 0x6f, 0xb6, 0xfc, 0x04, 0x02, 0x12, 0xa3, 0x41, 0x0c, 0x62, 0xec, 0x4e,
+	0x40, 0x4e, 0xcc, 0x34, 0x8b, 0xc4, 0x73, 0x76, 0x28, 0x9e, 0x65, 0x22, 0xcd, 0xff, 0xe9, 0x96,
+	0xe0, 0x2b, 0xaf, 0x33, 0x91, 0x2a, 0x51, 0xd8, 0x5d, 0x1d, 0xae, 0x8d, 0x37, 0x48, 0x15, 0x03,
+	0x69, 0x62, 0x20, 0x0f, 0x74, 0x1e, 0x34, 0x45, 0xe7, 0x9d, 0x3c, 0xc1, 0xde, 0xf9, 0x76, 0x8d,
+	0x99, 0x02, 0x9f, 0x0a, 0xc8, 0x22, 0x0b, 0x7d, 0xf4, 0x3f, 0x7c, 0x5d, 0x34, 0xfe, 0xba, 0x82,
+	0x57, 0x27, 0x20, 0xdd, 0x4f, 0x08, 0x5f, 0x3b, 0x93, 0xf6, 0xbd, 0x6e, 0x29, 0xb6, 0xc2, 0xf1,
+	0x1e, 0x5e, 0x48, 0xfe, 0x6b, 0x9c, 0xcf, 0xc5, 0x3b, 0x68, 0x25, 0x7b, 0xbf, 0x33, 0xba, 0x45,
+	0xf0, 0x1e, 0x5d, 0x94, 0xd0, 0xf8, 0xf3, 0x2e, 0xbf, 0x3d, 0x3d, 0xda, 0x45, 0x07, 0xd3, 0xe3,
+	0x85, 0x8f, 0x4e, 0x16, 0x3e, 0xfa, 0xb1, 0xf0, 0xd1, 0xc7, 0xa5, 0xef, 0x9c, 0x2c, 0x7d, 0xe7,
+	0xdb, 0xd2, 0x77, 0x5e, 0x3e, 0x96, 0xca, 0xce, 0xb2, 0x90, 0x70, 0x13, 0xd3, 0x7a, 0x81, 0x54,
+	0xc8, 0x47, 0xd2, 0xd0, 0xf9, 0x1d, 0x1a, 0x97, 0x54, 0x28, 0x96, 0x07, 0xe8, 0x78, 0x7f, 0xf4,
+	0xdb, 0xc4, 0xe8, 0xec, 0xde, 0xd8, 0x3c, 0x11, 0x10, 0xf6, 0xca, 0x5f, 0x78, 0xf3, 0x67, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0xf9, 0x1d, 0xfd, 0x8c, 0x05, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -158,6 +255,8 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// UpdateParams defines a rpc handler for MsgUpdateParams.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// ModuleSafeQuery defines a rpc handler for MsgModuleSafeQuery.
+	ModuleSafeQuery(ctx context.Context, in *MsgModuleSafeQuery, opts ...grpc.CallOption) (*MsgModuleSafeQueryResponse, error)
 }
 
 type msgClient struct {
@@ -177,10 +276,21 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 	return out, nil
 }
 
+func (c *msgClient) ModuleSafeQuery(ctx context.Context, in *MsgModuleSafeQuery, opts ...grpc.CallOption) (*MsgModuleSafeQueryResponse, error) {
+	out := new(MsgModuleSafeQueryResponse)
+	err := c.cc.Invoke(ctx, "/ibc.applications.interchain_accounts.host.v1.Msg/ModuleSafeQuery", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// UpdateParams defines a rpc handler for MsgUpdateParams.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// ModuleSafeQuery defines a rpc handler for MsgModuleSafeQuery.
+	ModuleSafeQuery(context.Context, *MsgModuleSafeQuery) (*MsgModuleSafeQueryResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -189,6 +299,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
+}
+func (*UnimplementedMsgServer) ModuleSafeQuery(ctx context.Context, req *MsgModuleSafeQuery) (*MsgModuleSafeQueryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ModuleSafeQuery not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -213,6 +326,24 @@ func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_ModuleSafeQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgModuleSafeQuery)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ModuleSafeQuery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.applications.interchain_accounts.host.v1.Msg/ModuleSafeQuery",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ModuleSafeQuery(ctx, req.(*MsgModuleSafeQuery))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.applications.interchain_accounts.host.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -220,6 +351,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateParams",
 			Handler:    _Msg_UpdateParams_Handler,
+		},
+		{
+			MethodName: "ModuleSafeQuery",
+			Handler:    _Msg_ModuleSafeQuery_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -289,6 +424,87 @@ func (m *MsgUpdateParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgModuleSafeQuery) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgModuleSafeQuery) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgModuleSafeQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Queries) > 0 {
+		for iNdEx := len(m.Queries) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Queries[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTx(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgModuleSafeQueryResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgModuleSafeQueryResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgModuleSafeQueryResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Results) > 0 {
+		for iNdEx := len(m.Results) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Results[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTx(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -321,6 +537,40 @@ func (m *MsgUpdateParamsResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
+	return n
+}
+
+func (m *MsgModuleSafeQuery) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Queries) > 0 {
+		for _, e := range m.Queries {
+			l = e.Size()
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MsgModuleSafeQueryResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Results) > 0 {
+		for _, e := range m.Results {
+			l = e.Size()
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -474,6 +724,206 @@ func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: MsgUpdateParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgModuleSafeQuery) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgModuleSafeQuery: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgModuleSafeQuery: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Queries", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Queries = append(m.Queries, &types.Any{})
+			if err := m.Queries[len(m.Queries)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgModuleSafeQueryResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgModuleSafeQueryResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgModuleSafeQueryResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Results", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Results = append(m.Results, &types.Any{})
+			if err := m.Results[len(m.Results)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
