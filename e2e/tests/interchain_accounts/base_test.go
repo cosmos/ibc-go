@@ -95,6 +95,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), 2)
 		icaChannel := channels[0]
+
 		s.Require().Contains(orderMapping[order], icaChannel.Ordering)
 	})
 
