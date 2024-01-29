@@ -118,3 +118,8 @@ func NewFungibleTokenPacketDataV2(
 		Memo:     memo,
 	}
 }
+
+// GetBytes is a helper for serialising
+func (ftpdv2 FungibleTokenPacketDataV2) GetBytes() []byte {
+	return sdk.MustSortJSON(mustProtoMarshalJSON(&ftpdv2))
+}

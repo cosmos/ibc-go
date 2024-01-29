@@ -15,7 +15,7 @@ func ConvertPacketV1ToPacketV2(packetData types.FungibleTokenPacketData) types.F
 		panic(err)
 	}
 
-	v2Denom, trace := extractDenomAndTraceFromV1Denom(packetData.Denom)
+	v2Denom, trace := ExtractDenomAndTraceFromV1Denom(packetData.Denom)
 
 	return types.FungibleTokenPacketDataV2{
 		Tokens: []*types.Token{
@@ -32,14 +32,14 @@ func ConvertPacketV1ToPacketV2(packetData types.FungibleTokenPacketData) types.F
 	}
 }
 
-func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
+func ExtractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 	v1DenomTrace := types.ParseDenomTrace(v1Denom)
 
 	splitPath := strings.Split(v1Denom, "/")
 	pathSlice := extractPathAndBaseFromFullDenomSlice(splitPath)
 
 	if len(pathSlice) == 0 {
-		panic("pathSlice length is 0")
+		return v1DenomTrace.BaseDenom, []string{}
 	}
 
 	if len(pathSlice)%2 != 0 {

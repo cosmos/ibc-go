@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/v2"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -56,7 +57,7 @@ func (k Keeper) sendTransfer(
 	ctx sdk.Context,
 	sourcePort,
 	sourceChannel string,
-	token sdk.Coin,
+	coins []sdk.Coin,
 	sender sdk.AccAddress,
 	receiver string,
 	timeoutHeight clienttypes.Height,
@@ -78,82 +79,95 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
-	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
-	fullDenomPath := token.Denom
+	var v2Tokens []*types.Token
 
-	var err error
+	for _, coin := range coins {
+		// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
+		fullDenomPath := coin.Denom
 
-	// deconstruct the token denomination into the denomination trace info
-	// to determine if the sender is the source chain
-	if strings.HasPrefix(token.Denom, "ibc/") {
-		fullDenomPath, err = k.DenomPathFromHash(ctx, token.Denom)
-		if err != nil {
-			return 0, err
+		var err error
+
+		// deconstruct the token denomination into the denomination trace info
+		// to determine if the sender is the source chain
+		if strings.HasPrefix(coin.Denom, "ibc/") {
+			fullDenomPath, err = k.DenomPathFromHash(ctx, coin.Denom)
+			if err != nil {
+				return 0, err
+			}
 		}
+
+		labels := []metrics.Label{
+			telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
+			telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
+		}
+
+		// NOTE: SendTransfer simply sends the denomination as it exists on its own
+		// chain inside the packet data. The receiving chain will perform denom
+		// prefixing as necessary.
+
+		if types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath) {
+			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
+
+			// obtain the escrow address for the source channel end
+			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+			if err := k.escrowToken(ctx, sender, escrowAddress, coin); err != nil {
+				return 0, err
+			}
+
+		} else {
+			labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
+
+			// transfer the coins to the module account and burn them
+			if err := k.bankKeeper.SendCoinsFromAccountToModule(
+				ctx, sender, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				return 0, err
+			}
+
+			if err := k.bankKeeper.BurnCoins(
+				ctx, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				// NOTE: should not happen as the module account was
+				// retrieved on the step above and it has enough balance
+				// to burn.
+				panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
+			}
+		}
+
+		denom, trace := transferv2.ExtractDenomAndTraceFromV1Denom(fullDenomPath)
+
+		token := &types.Token{
+			Denom:    denom,
+			Amount:   coin.Amount.Uint64(),
+			Trace:    trace,
+			Metadata: &types.Metadata{},
+		}
+
+		v2Tokens = append(v2Tokens, token)
 	}
 
-	labels := []metrics.Label{
-		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
-		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
-	}
+	packetDataV2 := types.NewFungibleTokenPacketDataV2(v2Tokens, sender.String(), receiver, memo)
 
-	// NOTE: SendTransfer simply sends the denomination as it exists on its own
-	// chain inside the packet data. The receiving chain will perform denom
-	// prefixing as necessary.
-
-	if types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath) {
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
-
-		// obtain the escrow address for the source channel end
-		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-		if err := k.escrowToken(ctx, sender, escrowAddress, token); err != nil {
-			return 0, err
-		}
-
-	} else {
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
-
-		// transfer the coins to the module account and burn them
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(
-			ctx, sender, types.ModuleName, sdk.NewCoins(token),
-		); err != nil {
-			return 0, err
-		}
-
-		if err := k.bankKeeper.BurnCoins(
-			ctx, types.ModuleName, sdk.NewCoins(token),
-		); err != nil {
-			// NOTE: should not happen as the module account was
-			// retrieved on the step above and it has enough balance
-			// to burn.
-			panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
-		}
-	}
-
-	packetData := types.NewFungibleTokenPacketData(
-		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
-	)
-
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataV2.GetBytes())
 	if err != nil {
 		return 0, err
 	}
 
-	defer func() {
-		if token.Amount.IsInt64() {
-			telemetry.SetGaugeWithLabels(
-				[]string{"tx", "msg", "ibc", "transfer"},
-				float32(token.Amount.Int64()),
-				[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullDenomPath)},
-			)
-		}
+	// defer func() {
+	// 	if token.Amount.IsInt64() {
+	// 		telemetry.SetGaugeWithLabels(
+	// 			[]string{"tx", "msg", "ibc", "transfer"},
+	// 			float32(token.Amount.Int64()),
+	// 			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullDenomPath)},
+	// 		)
+	// 	}
 
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", types.ModuleName, "send"},
-			1,
-			labels,
-		)
-	}()
+	// 	telemetry.IncrCounterWithLabels(
+	// 		[]string{"ibc", types.ModuleName, "send"},
+	// 		1,
+	// 		labels,
+	// 	)
+	// }()
 
 	return sequence, nil
 }
