@@ -68,8 +68,8 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
-	destinationPort := channel.Counterparty.GetPortID()
-	destinationChannel := channel.Counterparty.GetChannelID()
+	destinationPort := channel.Counterparty.PortId
+	destinationChannel := channel.Counterparty.ChannelId
 
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
