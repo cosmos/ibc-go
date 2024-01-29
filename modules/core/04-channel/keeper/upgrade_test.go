@@ -2811,6 +2811,18 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 			errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "error receipt sequence (10) must be greater than existing error receipt sequence (11)"),
 		},
 		{
+			"failure: upgrade exists for error receipt being written",
+			func() {
+				// attempt to write error receipt for existing upgrade without deleting upgrade info
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+				err := path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+				ch := path.EndpointA.GetChannel()
+				upgradeError = types.NewUpgradeError(ch.UpgradeSequence, types.ErrInvalidUpgrade)
+			},
+			errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "attempting to write error receipt at sequence (1) while upgrade information exists at the same sequence"),
+		},
+		{
 			"failure: channel not found",
 			func() {
 				suite.chainA.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
