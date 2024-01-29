@@ -3,6 +3,7 @@ package transfer
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -85,11 +86,11 @@ func (im IBCModule) OnChanOpenInit(
 	}
 
 	if strings.TrimSpace(version) == "" {
-		version = types.Version
+		version = types.CurrentVersion
 	}
 
-	if version != "ics20-1" && version != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected ics20-1 or ics20-2, got %s", version)
+	if !slices.Contains([]string{types.CurrentVersion, types.Version1}, version) {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, version)
 	}
 
 	// Claim channel capability passed back by IBC module
@@ -97,12 +98,12 @@ func (im IBCModule) OnChanOpenInit(
 		return "", err
 	}
 
-	if version == "ics20-1" {
-		return "ics20-1", nil
+	if version == types.Version1 {
+		return types.Version1, nil
 	}
 
 	// default to latest supported version
-	return types.Version, nil
+	return types.CurrentVersion, nil
 }
 
 // OnChanOpenTry implements the IBCModule interface.
@@ -120,8 +121,8 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	if counterpartyVersion != "ics20-1" && counterpartyVersion != "ics20-2" {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected ics20-1 or ics20-2, got %s", counterpartyVersion)
+	if !slices.Contains([]string{types.CurrentVersion, types.Version1}, counterpartyVersion) {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, counterpartyVersion)
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
@@ -130,11 +131,11 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	// return counterparty version if we support it
-	if counterpartyVersion == "ics20-2" && types.Version == "ics20-2" {
+	if counterpartyVersion == types.CurrentVersion {
 		return counterpartyVersion, nil
-	} else {
-		return "ics20-1", nil
 	}
+
+	return types.Version1, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -145,8 +146,8 @@ func (im IBCModule) OnChanOpenAck(
 	_ string,
 	counterpartyVersion string,
 ) error {
-	if counterpartyVersion != types.Version {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
+	if counterpartyVersion != types.CurrentVersion {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.CurrentVersion, counterpartyVersion)
 	}
 
 	return nil
@@ -325,8 +326,8 @@ func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string,
 		return "", err
 	}
 
-	if proposedVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, proposedVersion)
+	if proposedVersion != types.CurrentVersion {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.CurrentVersion, proposedVersion)
 	}
 
 	return proposedVersion, nil
@@ -338,8 +339,8 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 		return "", err
 	}
 
-	if counterpartyVersion != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
+	if counterpartyVersion != types.CurrentVersion {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.CurrentVersion, counterpartyVersion)
 	}
 
 	return counterpartyVersion, nil
@@ -347,8 +348,8 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 
 // OnChanUpgradeAck implements the IBCModule interface
 func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	if counterpartyVersion != types.Version {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.Version, counterpartyVersion)
+	if counterpartyVersion != types.CurrentVersion {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.CurrentVersion, counterpartyVersion)
 	}
 
 	return nil

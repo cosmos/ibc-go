@@ -108,7 +108,7 @@ func AddressFromTla(addr []string) string {
 		s = addr[2]
 	} else if len(addr[2]) == 0 {
 		// escrow address: ics20-1\x00port/channel
-		s = fmt.Sprintf("%s\x00%s/%s", types.Version, addr[0], addr[1])
+		s = fmt.Sprintf("%s\x00%s/%s", types.CurrentVersion, addr[0], addr[1])
 	} else {
 		panic(errors.New("failed to convert from TLA+ address: neither simple nor escrow address"))
 	}
