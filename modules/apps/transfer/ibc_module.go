@@ -88,8 +88,8 @@ func (im IBCModule) OnChanOpenInit(
 		version = types.Version
 	}
 
-	if version != "ics20-1" && version != types.Version {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected ics20-1 or ics20-2, got %s", version)
+	if version != types.Version1 && version != types.Version {
+		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s or %s, got %s", types.Version1, types.Version, version)
 	}
 
 	// Claim channel capability passed back by IBC module
@@ -97,8 +97,8 @@ func (im IBCModule) OnChanOpenInit(
 		return "", err
 	}
 
-	if version == "ics20-1" {
-		return "ics20-1", nil
+	if version == types.Version1 {
+		return types.Version1, nil
 	}
 
 	// default to latest supported version
@@ -120,7 +120,8 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	if counterpartyVersion != "ics20-1" && counterpartyVersion != "ics20-2" {
+	// TODO: slice.CONTAINS
+	if counterpartyVersion != types.Version1 && counterpartyVersion != "ics20-2" {
 		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected ics20-1 or ics20-2, got %s", counterpartyVersion)
 	}
 
@@ -130,11 +131,11 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	// return counterparty version if we support it
+	// no
 	if counterpartyVersion == "ics20-2" && types.Version == "ics20-2" {
 		return counterpartyVersion, nil
-	} else {
-		return "ics20-1", nil
 	}
+	return types.Version1, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
