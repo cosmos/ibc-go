@@ -25,14 +25,13 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
-// UpdateParams updates the host submodule's params.
-func (m msgServer) ModuleSafeQuery(goCtx context.Context, msg *types.MsgModuleSafeQuery) (*types.MsgModuleSafeQueryResponse, error) {
-	// sender is not used in this handler
-
+// ModuleQuerySafe routes the queries to the keeper's query router if they are module_query_safe.
+// This handler doesn't use the signer.
+func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQuerySafe) (*types.MsgModuleQuerySafeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	var responses = make([][]byte, len(msg.Queries))
-	for i, query := range msg.Queries {
+	var responses = make([][]byte, len(msg.Requests))
+	for i, query := range msg.Requests {
 		route := m.queryRouter.Route(query.Path)
 		if route == nil {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no route to query: %s", query.Path)
@@ -52,7 +51,7 @@ func (m msgServer) ModuleSafeQuery(goCtx context.Context, msg *types.MsgModuleSa
 		responses[i] = res.Value
 	}
 
-	return &types.MsgModuleSafeQueryResponse{Results: responses}, nil
+	return &types.MsgModuleQuerySafeResponse{Responses: responses}, nil
 }
 
 // UpdateParams updates the host submodule's params.

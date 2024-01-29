@@ -12,8 +12,8 @@ var (
 	_ sdk.Msg              = (*MsgUpdateParams)(nil)
 	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 
-	_ sdk.Msg              = (*MsgModuleSafeQuery)(nil)
-	_ sdk.HasValidateBasic = (*MsgModuleSafeQuery)(nil)
+	_ sdk.Msg              = (*MsgModuleQuerySafe)(nil)
+	_ sdk.HasValidateBasic = (*MsgModuleQuerySafe)(nil)
 )
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
@@ -34,22 +34,22 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	return msg.Params.Validate()
 }
 
-// NewMsgModuleSafeQuery creates a new MsgModuleSafeQuery instance
-func NewMsgModuleSafeQuery(signer string, queries []*QueryRequest) *MsgModuleSafeQuery {
-	return &MsgModuleSafeQuery{
-		Signer:  signer,
-		Queries: queries,
+// NewMsgModuleQuerySafe creates a new MsgModuleQuerySafe instance
+func NewMsgModuleQuerySafe(signer string, requests []*QueryRequest) *MsgModuleQuerySafe {
+	return &MsgModuleQuerySafe{
+		Signer:   signer,
+		Requests: requests,
 	}
 }
 
 // ValidateBasic implements sdk.HasValidateBasic
-func (msg MsgModuleSafeQuery) ValidateBasic() error {
+func (msg MsgModuleQuerySafe) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if len(msg.Queries) == 0 {
+	if len(msg.Requests) == 0 {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no queries provided")
 	}
 
