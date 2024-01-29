@@ -5,6 +5,9 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 
+	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 )
 
@@ -16,6 +19,13 @@ var (
 	// govv1ProposalTitleAndSummary represents the releases that support the new title and summary fields.
 	govv1ProposalTitleAndSummary = semverutil.FeatureReleases{
 		MajorVersion: "v7",
+	}
+	// icaUnorderedChannelFeatureReleases represents the releasees that support the new ordering field.
+	icaUnorderedChannelFeatureReleases = semverutil.FeatureReleases{
+		MajorVersion: "v9",
+		MinorVersions: []string{
+			"v8.1",
+		},
 	}
 )
 
@@ -45,6 +55,10 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 			msg.Summary = ""
 		}
 		return msg
+	case *icacontrollertypes.MsgRegisterInterchainAccount:
+		if !icaUnorderedChannelFeatureReleases.IsSupported(tag) {
+			msg.Ordering = channeltypes.NONE
+		}
 	}
 	return msg
 }

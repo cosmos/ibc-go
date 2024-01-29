@@ -43,7 +43,6 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
@@ -54,15 +53,8 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	s.Require().NotNil(govModuleAddress)
 
 	t.Run("execute proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
-		// Must broadcast MsgRegisterInterchainAccount with default value for order field
-		// for those versions where MsgRegisterInterchainAccount does not have the order field
-		msgOrder := channeltypes.ORDERED
-		if !testvalues.UnorderedICAChannelFeatureReleases.IsSupported(chainAVersion) {
-			msgOrder = channeltypes.NONE
-		}
-
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version, msgOrder)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version, channeltypes.ORDERED)
 		s.ExecuteAndPassGovV1Proposal(ctx, msgRegisterAccount, chainA, controllerAccount)
 	})
 
