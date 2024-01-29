@@ -510,9 +510,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgr
 		)
 
 		s.AssertTxSuccess(resp)
-
-		// time for the packet to be relayed
-		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
+		s.AssertPacketRelayed(ctx, chainA, portID, initialChannelID, 1)
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
@@ -591,9 +589,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgr
 		)
 
 		s.AssertTxSuccess(resp)
-
-		// time for the packet to be relayed
-		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
+		s.AssertPacketRelayed(ctx, chainA, portID, initialChannelID, 2)
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
