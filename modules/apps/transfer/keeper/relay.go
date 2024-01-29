@@ -81,6 +81,11 @@ func (k Keeper) sendTransfer(
 
 	var v2Tokens []*types.Token
 
+	labels := []metrics.Label{
+		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
+		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
+	}
+
 	for _, coin := range coins {
 		// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
 		fullDenomPath := coin.Denom
@@ -96,10 +101,6 @@ func (k Keeper) sendTransfer(
 			}
 		}
 
-		labels := []metrics.Label{
-			telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
-			telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
-		}
 
 		// NOTE: SendTransfer simply sends the denomination as it exists on its own
 		// chain inside the packet data. The receiving chain will perform denom
@@ -144,6 +145,7 @@ func (k Keeper) sendTransfer(
 		}
 
 		v2Tokens = append(v2Tokens, token)
+
 	}
 
 	packetDataV2 := types.NewFungibleTokenPacketDataV2(v2Tokens, sender.String(), receiver, memo)
@@ -153,21 +155,19 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
-	// defer func() {
-	// 	if token.Amount.IsInt64() {
-	// 		telemetry.SetGaugeWithLabels(
-	// 			[]string{"tx", "msg", "ibc", "transfer"},
-	// 			float32(token.Amount.Int64()),
-	// 			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullDenomPath)},
-	// 		)
-	// 	}
+	for _, token := range v2Tokens {
+		telemetry.SetGaugeWithLabels(
+			[]string{"tx", "msg", "ibc", "transfer"},
+			float32(token.Amount),
+			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.GetFullDenomPath())},
+		)
 
-	// 	telemetry.IncrCounterWithLabels(
-	// 		[]string{"ibc", types.ModuleName, "send"},
-	// 		1,
-	// 		labels,
-	// 	)
-	// }()
+		telemetry.IncrCounterWithLabels(
+			[]string{"ibc", types.ModuleName, "send"},
+			1,
+			labels,
+		)
+	}
 
 	return sequence, nil
 }
@@ -192,7 +192,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to decode receiver address: %s", data.Receiver)
 	}
-
 
 	for _, token := range data.Tokens {
 		fullDenom := token.GetFullDenomPath()
@@ -264,7 +263,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		// construct the denomination trace from the full raw denomination
 		denomTrace := types.ParseDenomTrace(prefixedDenom)
 
-
 		traceHash := denomTrace.Hash()
 		if !k.HasDenomTrace(ctx, traceHash) {
 			k.SetDenomTrace(ctx, denomTrace)
@@ -282,7 +280,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
 			),
 		)
-		voucher := sdk.NewCoin(voucherDenom,  sdkmath.NewIntFromUint64(token.Amount))
+		voucher := sdk.NewCoin(voucherDenom, sdkmath.NewIntFromUint64(token.Amount))
 
 		// mint new tokens if the source of the transfer is the same chain
 		if err := k.bankKeeper.MintCoins(
