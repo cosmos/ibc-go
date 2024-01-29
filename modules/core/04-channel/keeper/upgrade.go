@@ -55,6 +55,7 @@ func (k Keeper) WriteUpgradeInitChannel(ctx sdk.Context, portID, channelID strin
 
 	if k.hasUpgrade(ctx, portID, channelID) {
 		// invalidating previous upgrade
+		k.deleteUpgradeInfo(ctx, portID, channelID)
 		k.WriteErrorReceipt(ctx, portID, channelID, types.NewUpgradeError(channel.UpgradeSequence, types.ErrInvalidUpgrade))
 	}
 
