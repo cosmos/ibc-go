@@ -102,7 +102,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
+			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper, suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
 			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, counterparty, channel.Version,
 			)
@@ -251,6 +251,10 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			counterpartyVersion = types.Version
+
+			// ack callback requires the channel to have been created.
+			suite.Require().NoError(path.EndpointA.ChanOpenInit())
+			suite.Require().NoError(path.EndpointB.ChanOpenTry())
 
 			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.TransferPort)
 			suite.Require().NoError(err)

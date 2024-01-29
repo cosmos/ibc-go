@@ -12,6 +12,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
@@ -25,15 +26,17 @@ var (
 	_ porttypes.UpgradableModule      = (*IBCModule)(nil)
 )
 
-// IBCModule implements the ICS26 interface for transfer given the transfer keeper.
+// IBCModule implements the ICS26 interface for transfer given the transfer transferKeeper.
 type IBCModule struct {
-	keeper keeper.Keeper
+	transferKeeper keeper.Keeper
+	channelKeeper  channelkeeper.Keeper
 }
 
-// NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) IBCModule {
+// NewIBCModule creates a new IBCModule given the transferKeeper
+func NewIBCModule(transferKeeper keeper.Keeper, channelKeeper channelkeeper.Keeper) IBCModule {
 	return IBCModule{
-		keeper: k,
+		transferKeeper: transferKeeper,
+		channelKeeper:  channelKeeper,
 	}
 }
 
@@ -80,7 +83,7 @@ func (im IBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+	if err := ValidateTransferChannelParams(ctx, im.transferKeeper, order, portID, channelID); err != nil {
 		return "", err
 	}
 
@@ -93,7 +96,7 @@ func (im IBCModule) OnChanOpenInit(
 	}
 
 	// Claim channel capability passed back by IBC module
-	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+	if err := im.transferKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
 	}
 
@@ -116,7 +119,7 @@ func (im IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+	if err := ValidateTransferChannelParams(ctx, im.transferKeeper, order, portID, channelID); err != nil {
 		return "", err
 	}
 
@@ -126,7 +129,7 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	// OpenTry must claim the channelCapability that IBC passes into the callback
-	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
+	if err := im.transferKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return "", err
 	}
 
@@ -146,8 +149,16 @@ func (im IBCModule) OnChanOpenAck(
 	_ string,
 	counterpartyVersion string,
 ) error {
-	if counterpartyVersion != types.Version {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", types.Version, counterpartyVersion)
+
+	// TODO: this does not work with middleware
+	// ref: https://github.com/cosmos/ibc/pull/1020/files#r1469559632
+	channel, found := im.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !found {
+		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
+	}
+
+	if counterpartyVersion != channel.Version {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", channel.Version, counterpartyVersion)
 	}
 
 	return nil
@@ -189,7 +200,7 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	logger := im.keeper.Logger(ctx)
+	logger := im.transferKeeper.Logger(ctx)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
 	var data types.FungibleTokenPacketData
@@ -203,7 +214,7 @@ func (im IBCModule) OnRecvPacket(
 	// only attempt the application logic if the packet data
 	// was successfully decoded
 	if ack.Success() {
-		err := im.keeper.OnRecvPacket(ctx, packet, data)
+		err := im.transferKeeper.OnRecvPacket(ctx, packet, data)
 		if err != nil {
 			ack = channeltypes.NewErrorAcknowledgement(err)
 			ackErr = err
@@ -254,7 +265,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
+	if err := im.transferKeeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
 		return err
 	}
 
@@ -302,7 +313,7 @@ func (im IBCModule) OnTimeoutPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 	// refund tokens
-	if err := im.keeper.OnTimeoutPacket(ctx, packet, data); err != nil {
+	if err := im.transferKeeper.OnTimeoutPacket(ctx, packet, data); err != nil {
 		return err
 	}
 
@@ -322,7 +333,7 @@ func (im IBCModule) OnTimeoutPacket(
 
 // OnChanUpgradeInit implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, proposedOrder, portID, channelID); err != nil {
+	if err := ValidateTransferChannelParams(ctx, im.transferKeeper, proposedOrder, portID, channelID); err != nil {
 		return "", err
 	}
 
@@ -335,7 +346,7 @@ func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string,
 
 // OnChanUpgradeTry implements the IBCModule interface
 func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, proposedOrder, portID, channelID); err != nil {
+	if err := ValidateTransferChannelParams(ctx, im.transferKeeper, proposedOrder, portID, channelID); err != nil {
 		return "", err
 	}
 
