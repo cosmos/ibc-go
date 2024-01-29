@@ -67,8 +67,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgementAsync() {
 				suite.Require().False(found)
 
 				expectedAck := types.NewIncentivizedAcknowledgement(suite.chainB.SenderAccount.GetAddress().String(), ack.Acknowledgement(), ack.Success())
-				commitedAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
-				suite.Require().Equal(commitedAck, channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement()))
+				committedAck, _ := suite.chainB.GetSimApp().GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, 1)
+				suite.Require().Equal(committedAck, channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement()))
 			} else {
 				suite.Require().Error(err)
 			}
