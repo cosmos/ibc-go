@@ -15,8 +15,8 @@ service Msg {
   // UpdateParams defines a rpc handler for MsgUpdateParams.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
-  // ModuleSafeQuery defines a rpc handler for MsgModuleSafeQuery.
-  rpc ModuleSafeQuery(MsgModuleSafeQuery) returns (MsgModuleSafeQueryResponse);
+  // ModuleQuerySafe defines a rpc handler for MsgModuleQuerySafe.
+  rpc ModuleQuerySafe(MsgModuleQuerySafe) returns (MsgModuleQuerySafeResponse);
 }
 
 // MsgUpdateParams defines the payload for Msg/UpdateParams
@@ -37,8 +37,8 @@ message MsgUpdateParams {
 // MsgUpdateParamsResponse defines the response for Msg/UpdateParams
 message MsgUpdateParamsResponse {}
 
-// MsgModuleSafeQuery defines the payload for Msg/ModuleSafeQuery
-message MsgModuleSafeQuery {
+// MsgModuleQuerySafe defines the payload for Msg/ModuleQuerySafe
+message MsgModuleQuerySafe {
   option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.goproto_getters) = false;
@@ -46,12 +46,12 @@ message MsgModuleSafeQuery {
   // signer address
   string signer = 1;
 
-  // queries defines the module safe queries to execute.
-  repeated QueryRequest queries = 2;
+  // requests defines the module safe queries to execute.
+  repeated QueryRequest requests = 2;
 }
 
-// MsgModuleSafeQueryResponse defines the response for Msg/ModuleSafeQuery
-message MsgModuleSafeQueryResponse {
+// MsgModuleQuerySafeResponse defines the response for Msg/ModuleQuerySafe
+message MsgModuleQuerySafeResponse {
   // protobuf encoded responses for each query
-  repeated bytes results = 1;
+  repeated bytes responses = 1;
 }
