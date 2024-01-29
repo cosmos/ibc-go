@@ -147,6 +147,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().ScopedICAHostKeeper,
 				suite.chainA.GetSimApp().MsgServiceRouter(),
+				suite.chainA.GetSimApp().GRPCQueryRouter(),
 				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
 		}, true},
@@ -161,6 +162,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				authkeeper.AccountKeeper{}, // empty account keeper
 				suite.chainA.GetSimApp().ScopedICAHostKeeper,
 				suite.chainA.GetSimApp().MsgServiceRouter(),
+				suite.chainA.GetSimApp().GRPCQueryRouter(),
 				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
 		}, false},
@@ -175,6 +177,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().ScopedICAHostKeeper,
 				suite.chainA.GetSimApp().MsgServiceRouter(),
+				suite.chainA.GetSimApp().GRPCQueryRouter(),
 				"", // authority
 			)
 		}, false},

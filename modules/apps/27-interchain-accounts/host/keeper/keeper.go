@@ -36,7 +36,8 @@ type Keeper struct {
 
 	scopedKeeper exported.ScopedKeeper
 
-	msgRouter icatypes.MessageRouter
+	msgRouter   icatypes.MessageRouter
+	queryRouter icatypes.QueryRouter
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -48,7 +49,7 @@ func NewKeeper(
 	cdc codec.Codec, key storetypes.StoreKey, legacySubspace icatypes.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	accountKeeper icatypes.AccountKeeper, scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
-	authority string,
+	queryRouter icatypes.QueryRouter, authority string,
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
@@ -69,6 +70,7 @@ func NewKeeper(
 		accountKeeper:  accountKeeper,
 		scopedKeeper:   scopedKeeper,
 		msgRouter:      msgRouter,
+		queryRouter:    queryRouter,
 		authority:      authority,
 	}
 }
