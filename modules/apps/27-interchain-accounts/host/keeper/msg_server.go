@@ -7,6 +7,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
@@ -25,8 +27,32 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 // UpdateParams updates the host submodule's params.
 func (m msgServer) ModuleSafeQuery(goCtx context.Context, msg *types.MsgModuleSafeQuery) (*types.MsgModuleSafeQueryResponse, error) {
-	// TODO: implement
-	return &types.MsgModuleSafeQueryResponse{}, nil
+	// sender is not used in this handler
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	var responses = make([][]byte, len(msg.Queries))
+	for i, query := range msg.Queries {
+		route := m.queryRouter.Route(query.Path)
+		if route == nil {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no route to query: %s", query.Path)
+		}
+
+		res, err := route(ctx, &abci.RequestQuery{
+			Path: query.Path,
+			Data: query.Data,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if res == nil || res.Value == nil {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no response for query: %s", query.Path)
+		}
+
+		responses[i] = res.Value
+	}
+
+	return &types.MsgModuleSafeQueryResponse{Results: responses}, nil
 }
 
 // UpdateParams updates the host submodule's params.
