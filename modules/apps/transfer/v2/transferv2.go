@@ -1,14 +1,15 @@
-package types
+package transfer
 
 import (
 	"strconv"
 	"strings"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 // ConvertPacketV1ToPacketV2 converts a v1 packet data to a v2 packet data.
-func ConvertPacketV1ToPacketV2(packetData FungibleTokenPacketData) FungibleTokenPacketDataV2 {
+func ConvertPacketV1ToPacketV2(packetData types.FungibleTokenPacketData) types.FungibleTokenPacketDataV2 {
 	amount, err := strconv.ParseUint(packetData.Amount, 10, 64)
 	if err != nil {
 		panic(err)
@@ -16,13 +17,13 @@ func ConvertPacketV1ToPacketV2(packetData FungibleTokenPacketData) FungibleToken
 
 	v2Denom, trace := extractDenomAndTraceFromV1Denom(packetData.Denom)
 
-	return FungibleTokenPacketDataV2{
-		Tokens: []*Token{
+	return types.FungibleTokenPacketDataV2{
+		Tokens: []*types.Token{
 			{
 				Denom:    v2Denom,
 				Amount:   amount,
 				Trace:    trace,
-				Metadata: &Metadata{}, // TODO: figure out metadata
+				Metadata: &types.Metadata{}, // TODO: figure out metadata
 			},
 		},
 		Sender:   packetData.Sender,
@@ -32,7 +33,7 @@ func ConvertPacketV1ToPacketV2(packetData FungibleTokenPacketData) FungibleToken
 }
 
 func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
-	v1DenomTrace := ParseDenomTrace(v1Denom)
+	v1DenomTrace := types.ParseDenomTrace(v1Denom)
 
 	splitPath := strings.Split(v1Denom, "/")
 	pathSlice := extractPathAndBaseFromFullDenomSlice(splitPath)
@@ -54,9 +55,7 @@ func extractDenomAndTraceFromV1Denom(v1Denom string) (string, []string) {
 }
 
 func extractPathAndBaseFromFullDenomSlice(fullDenomItems []string) []string {
-	var (
-		pathSlice []string
-	)
+	var pathSlice []string
 
 	length := len(fullDenomItems)
 	for i := 0; i < length; i += 2 {

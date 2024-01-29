@@ -136,6 +136,12 @@ The state will change to `FLUSHCOMPLETE` once there are no in-flight packets lef
 
 All other parameters will remain the same during the upgrade handshake until the upgrade handshake completes. When the channel is reset to `OPEN` on a successful upgrade handshake, the relevant fields on the channel end will be switched over to the `UpgradeFields` specified in the upgrade.
 
+:::note
+
+When transitioning a channel from UNORDERED to ORDERED, new packet sends from the channel end which upgrades first will be incapable of being timed out until the counterparty has finished upgrading. 
+
+:::
+
 :::warning
 
 Due to the addition of new channel states, packets can still be received and processed in both `FLUSHING` and `FLUSHCOMPLETE` states.
@@ -166,6 +172,15 @@ Upon cancelling a channel upgrade, an `ErrorReceipt` will be written with the ch
 the channel will move back to `OPEN` state keeping its original parameters.
 
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
+
+:::warning
+
+Performing sequentially an upgrade cancellation, upgrade initialization, and another upgrade cancellation in a single block while the counterparty is in `FLUSHCOMPLETE` will lead to corrupted state.
+The counterparty will be unable to cancel its upgrade attempt and will require a manual migration. 
+When the counterparty is in `FLUSHCOMPLETE`, it requires a proof that the counterparty cancelled its current upgrade attempt. 
+When this cancellation is succeeded by an initialization and cancellation in the same block, it results in the proof of cancellation existing only for the next upgrade attempt, not the current. 
+
+:::
 
 ## Timing Out a Channel Upgrade
 
