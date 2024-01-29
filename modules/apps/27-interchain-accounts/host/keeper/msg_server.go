@@ -30,7 +30,7 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQuerySafe) (*types.MsgModuleQuerySafeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	var responses = make([][]byte, len(msg.Requests))
+	responses := make([][]byte, len(msg.Requests))
 	for i, query := range msg.Requests {
 		route := m.queryRouter.Route(query.Path)
 		if route == nil {
