@@ -7,7 +7,6 @@ option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-acco
 import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 import "ibc/applications/interchain_accounts/host/v1/host.proto";
-import "google/protobuf/any.proto";
 
 // Msg defines the 27-interchain-accounts/host Msg service.
 service Msg {
@@ -48,11 +47,11 @@ message MsgModuleSafeQuery {
   string signer = 1;
 
   // queries defines the module safe queries to execute.
-  repeated google.protobuf.Any queries = 2;
+  repeated QueryRequest queries = 2;
 }
 
 // MsgModuleSafeQueryResponse defines the response for Msg/ModuleSafeQuery
 message MsgModuleSafeQueryResponse {
-  // results defines the results of the module safe queries.
-  repeated google.protobuf.Any results = 1;
+  // protobuf encoded responses for each query
+  repeated bytes results = 1;
 }
