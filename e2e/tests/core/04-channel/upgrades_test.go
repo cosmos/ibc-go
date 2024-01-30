@@ -34,7 +34,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptionsV1())
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
 
@@ -240,7 +240,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeout
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptionsV1())
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
 

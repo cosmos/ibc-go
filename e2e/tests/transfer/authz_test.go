@@ -34,7 +34,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
+	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptionsV1())
 	chainA, chainB := suite.GetChains()
 
 	chainADenom := chainA.Config().Denom
@@ -187,7 +187,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
+	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptionsV1())
 	chainA, chainB := suite.GetChains()
 
 	chainAVersion := chainA.Config().Images[0].Version

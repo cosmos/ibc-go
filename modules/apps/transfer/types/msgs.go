@@ -72,11 +72,17 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
 		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
-	if !msg.Token.IsValid() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.String())
+
+	if msg.Token.IsZero() {
+		if len(msg.Tokens) == 0 {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "must specify at least one token in tokens")
+		}
 	}
-	if !msg.Token.IsPositive() {
-		return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, msg.Token.String())
+
+	if len(msg.Tokens) == 0 {
+		if msg.Token.IsZero() {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "token must be non zero")
+		}
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
@@ -92,5 +98,25 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if len(msg.Memo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
-	return ValidateIBCDenom(msg.Token.Denom)
+
+	tokensToValidate := msg.Tokens
+	if !msg.Token.IsZero() {
+		tokensToValidate = []sdk.Coin{msg.Token}
+	}
+
+	for _, token := range tokensToValidate {
+
+		if !token.IsValid() {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.String())
+		}
+		if !token.IsPositive() {
+			return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, msg.Token.String())
+		}
+
+		if err := ValidateIBCDenom(token.Denom); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
