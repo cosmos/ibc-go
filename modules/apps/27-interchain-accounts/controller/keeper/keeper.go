@@ -26,12 +26,11 @@ import (
 
 // Keeper defines the IBC interchain accounts controller keeper
 type Keeper struct {
-	storeKey       storetypes.StoreKey
-	cdc            codec.Codec
-	legacySubspace icatypes.ParamSubspace
-	ics4Wrapper    porttypes.ICS4Wrapper
-	channelKeeper  icatypes.ChannelKeeper
-	portKeeper     icatypes.PortKeeper
+	storeKey      storetypes.StoreKey
+	cdc           codec.Codec
+	ics4Wrapper   porttypes.ICS4Wrapper
+	channelKeeper icatypes.ChannelKeeper
+	portKeeper    icatypes.PortKeeper
 
 	scopedKeeper exported.ScopedKeeper
 
@@ -44,7 +43,7 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
-	cdc codec.Codec, key storetypes.StoreKey, legacySubspace icatypes.ParamSubspace,
+	cdc codec.Codec, key storetypes.StoreKey,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
 	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter, authority string,
 ) Keeper {
@@ -53,15 +52,14 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		storeKey:       key,
-		cdc:            cdc,
-		legacySubspace: legacySubspace,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
-		portKeeper:     portKeeper,
-		scopedKeeper:   scopedKeeper,
-		msgRouter:      msgRouter,
-		authority:      authority,
+		storeKey:      key,
+		cdc:           cdc,
+		ics4Wrapper:   ics4Wrapper,
+		channelKeeper: channelKeeper,
+		portKeeper:    portKeeper,
+		scopedKeeper:  scopedKeeper,
+		msgRouter:     msgRouter,
+		authority:     authority,
 	}
 }
 

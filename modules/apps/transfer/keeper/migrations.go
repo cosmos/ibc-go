@@ -22,8 +22,7 @@ func NewMigrator(keeper Keeper) Migrator {
 
 // MigrateParams migrates the transfer module's parameters from the x/params to self store.
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
-	var params types.Params
-	m.keeper.legacySubspace.GetParamSet(ctx, &params)
+	params := m.keeper.GetParams(ctx)
 
 	m.keeper.SetParams(ctx, params)
 	m.keeper.Logger(ctx).Info("successfully migrated transfer app self-manage params")

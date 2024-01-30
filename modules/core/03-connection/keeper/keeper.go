@@ -22,19 +22,17 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	storeKey       storetypes.StoreKey
-	legacySubspace types.ParamSubspace
-	cdc            codec.BinaryCodec
-	clientKeeper   types.ClientKeeper
+	storeKey     storetypes.StoreKey
+	cdc          codec.BinaryCodec
+	clientKeeper types.ClientKeeper
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, ck types.ClientKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, ck types.ClientKeeper) Keeper {
 	return Keeper{
-		storeKey:       key,
-		cdc:            cdc,
-		legacySubspace: legacySubspace,
-		clientKeeper:   ck,
+		storeKey:     key,
+		cdc:          cdc,
+		clientKeeper: ck,
 	}
 }
 

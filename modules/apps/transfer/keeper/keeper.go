@@ -25,9 +25,8 @@ import (
 
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
-	storeKey       storetypes.StoreKey
-	cdc            codec.BinaryCodec
-	legacySubspace types.ParamSubspace
+	storeKey storetypes.StoreKey
+	cdc      codec.BinaryCodec
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -45,7 +44,6 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
-	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
@@ -64,16 +62,15 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:            cdc,
-		storeKey:       key,
-		legacySubspace: legacySubspace,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
-		portKeeper:     portKeeper,
-		authKeeper:     authKeeper,
-		bankKeeper:     bankKeeper,
-		scopedKeeper:   scopedKeeper,
-		authority:      authority,
+		cdc:           cdc,
+		storeKey:      key,
+		ics4Wrapper:   ics4Wrapper,
+		channelKeeper: channelKeeper,
+		portKeeper:    portKeeper,
+		authKeeper:    authKeeper,
+		bankKeeper:    bankKeeper,
+		scopedKeeper:  scopedKeeper,
+		authority:     authority,
 	}
 }
 
