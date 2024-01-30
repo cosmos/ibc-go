@@ -134,12 +134,7 @@ func (im IBCModule) OnChanOpenTry(
 		return "", err
 	}
 
-	// return counterparty version if we support it
-	if counterpartyVersion == types.CurrentVersion {
-		return counterpartyVersion, nil
-	}
-
-	return types.Version1, nil
+	return counterpartyVersion, nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -150,16 +145,8 @@ func (im IBCModule) OnChanOpenAck(
 	_ string,
 	counterpartyVersion string,
 ) error {
-
-	// TODO: this does not work with middleware
-	// ref: https://github.com/cosmos/ibc/pull/1020/files#r1469559632
-	channel, found := im.channelKeeper.GetChannel(ctx, portID, channelID)
-	if !found {
-		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
-
-	if counterpartyVersion != types.CurrentVersion {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", channel.Version, counterpartyVersion)
+	if !slices.Contains([]string{types.CurrentVersion, types.Version1}, counterpartyVersion) {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, counterpartyVersion)
 	}
 
 	return nil
