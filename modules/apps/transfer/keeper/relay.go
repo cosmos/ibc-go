@@ -363,6 +363,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet channeltypes.Packet, d
 			if err := k.unescrowToken(ctx, escrowAddress, sender, token); err != nil {
 				return err
 			}
+			continue
 		}
 
 		// mint vouchers back to sender
