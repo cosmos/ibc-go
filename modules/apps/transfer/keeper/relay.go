@@ -211,8 +211,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			// sender chain is not the source, unescrow tokens
 
 			// remove prefix added by sender chain
-			//voucherPrefix := types.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
-			unprefixedDenom := token.Denom
+			voucherPrefix := types.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
+			fullDenomPAth := token.GetFullDenomPath()
+			unprefixedDenom := fullDenomPAth[len(voucherPrefix):]
 
 			// coin denomination used in sending from the escrow address
 			denom := unprefixedDenom
@@ -223,14 +224,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			if !denomTrace.IsNativeDenom() {
 				denom = denomTrace.IBCDenom()
 			}
-			token := sdk.NewCoin(denom, sdkmath.NewIntFromUint64(token.Amount))
+			coin := sdk.NewCoin(denom, sdkmath.NewIntFromUint64(token.Amount))
 
 			if k.bankKeeper.BlockedAddr(receiver) {
 				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 			}
 
 			escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-			if err := k.unescrowToken(ctx, escrowAddress, receiver, token); err != nil {
+			if err := k.unescrowToken(ctx, escrowAddress, receiver, coin); err != nil {
 				return err
 			}
 
@@ -252,7 +253,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				)
 			}()
 
-			return nil
+			continue
 		}
 
 		// sender chain is the source, mint vouchers

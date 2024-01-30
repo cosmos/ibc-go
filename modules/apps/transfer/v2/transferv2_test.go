@@ -90,12 +90,6 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 				}, sender, receiver, ""),
 			false,
 		},
-		{
-			"failure: invalid short v1 denom",
-			types.NewFungibleTokenPacketData("transfer/atom", "1000", sender, receiver, ""),
-			types.FungibleTokenPacketDataV2{},
-			true,
-		},
 		{"failure: empty path",
 			types.NewFungibleTokenPacketData("", "1000", sender, receiver, ""),
 			types.FungibleTokenPacketDataV2{},

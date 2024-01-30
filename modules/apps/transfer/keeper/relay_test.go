@@ -482,8 +482,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(), "",
 	)
+	datav2 := transferv2.ConvertPacketV1ToPacketV2(data)
 	packet := channeltypes.NewPacket(
-		data.GetBytes(),
+		datav2.GetBytes(),
 		seq,
 		path2.EndpointA.ChannelConfig.PortID,
 		path2.EndpointA.ChannelID,
@@ -513,7 +514,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(sdkmath.NewInt(100), totalEscrowChainB.Amount)
 
-	datav2 := transferv2.ConvertPacketV1ToPacketV2(data)
+
 
 	// execute onRecvPacket, when chaninB receives the source token the escrow amount should decrease
 	err := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, datav2)
