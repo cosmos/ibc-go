@@ -47,6 +47,7 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 	if err := lcm.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
 		return err
 	}
+
 	if err := consensusState.ValidateBasic(); err != nil {
 		return err
 	}

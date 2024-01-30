@@ -19,48 +19,55 @@ import (
 
 func (suite *KeeperTestSuite) TestCreateClient() {
 	var (
-		clientState    exported.ClientState
-		consensusState exported.ConsensusState
+		clientState    []byte
+		consensusState []byte
 	)
 
 	testCases := []struct {
-		msg      string
-		malleate func()
-		expPass  bool
+		msg        string
+		malleate   func()
+		clientType string
+		expPass    bool
 	}{
 		{
 			"success: 07-tendermint client type supported",
 			func() {
-				clientState = ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-				consensusState = suite.consensusState
+				tmClientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				clientState = suite.chainA.App.AppCodec().MustMarshal(tmClientState)
+				consensusState = suite.chainA.App.AppCodec().MustMarshal(suite.consensusState)
 			},
+			exported.Tendermint,
 			true,
 		},
 		{
 			"failure: 07-tendermint client status is not active",
 			func() {
-				clientState = ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-				tmcs, ok := clientState.(*ibctm.ClientState)
-				suite.Require().True(ok)
-				tmcs.FrozenHeight = ibctm.FrozenHeight
-				consensusState = suite.consensusState
+				tmClientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				tmClientState.FrozenHeight = ibctm.FrozenHeight
+				clientState = suite.chainA.App.AppCodec().MustMarshal(tmClientState)
+				consensusState = suite.chainA.App.AppCodec().MustMarshal(suite.consensusState)
 			},
+			exported.Tendermint,
 			false,
 		},
 		{
 			"success: 06-solomachine client type supported",
 			func() {
-				clientState = solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time})
-				consensusState = &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time}
+				smClientState := solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time})
+				smConsensusState := &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time}
+				clientState = suite.chainA.App.AppCodec().MustMarshal(smClientState)
+				consensusState = suite.chainA.App.AppCodec().MustMarshal(smConsensusState)
 			},
+			exported.Solomachine,
 			true,
 		},
 		{
 			"failure: 09-localhost client type not supported",
 			func() {
-				clientState = localhost.NewClientState(clienttypes.GetSelfHeight(suite.chainA.GetContext()))
-				consensusState = nil
+				lhClientState := localhost.NewClientState(clienttypes.GetSelfHeight(suite.chainA.GetContext()))
+				clientState = suite.chainA.App.AppCodec().MustMarshal(lhClientState)
 			},
+			exported.Localhost,
 			false,
 		},
 	}
@@ -70,12 +77,11 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+			clientState, consensusState = []byte{}, []byte{}
+
 			tc.malleate()
 
-			clientStateBz := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.MustMarshalClientState(clientState)
-			consensusStateBz := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.MustMarshalConsensusState(consensusState)
-
-			clientID, err := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.CreateClient(suite.chainA.GetContext(), clientState.ClientType(), clientStateBz, consensusStateBz)
+			clientID, err := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.CreateClient(suite.chainA.GetContext(), tc.clientType, clientState, consensusState)
 
 			// assert correct behaviour based on expected error
 			clientState, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)

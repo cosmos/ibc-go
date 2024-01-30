@@ -425,7 +425,7 @@ func (k Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Statu
 		return exported.Unauthorized
 	}
 
-	lightClientModule, found := k.router.GetRoute(clientID)
+	lightClientModule, found := k.router.GetRoute(clientType)
 	if !found {
 		return exported.Unauthorized
 	}
