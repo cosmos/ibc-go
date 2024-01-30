@@ -337,7 +337,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		trustedHeight   clienttypes.Height
 		latestHeight    clienttypes.Height
 		clientState     ibcexported.ClientState
-		header          testsuite.Header
+		header          *cmtservice.Header
 		signers         []cmttypes.PrivValidator
 		validatorSet    []*cmttypes.Validator
 		maliciousHeader *ibctm.Header
@@ -531,7 +531,7 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc
 }
 
 // createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
-func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *cmttypes.ValidatorSet, signers []cmttypes.PrivValidator, oldHeader testsuite.Header) (*ibctm.Header, error) {
+func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *cmttypes.ValidatorSet, signers []cmttypes.PrivValidator, oldHeader *cmtservice.Header) (*ibctm.Header, error) {
 	tmHeader := cmttypes.Header{
 		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
