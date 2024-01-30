@@ -45,14 +45,14 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 // NewMsgTransfer creates a new MsgTransfer instance
 func NewMsgTransfer(
 	sourcePort, sourceChannel string,
-	token sdk.Coin, sender, receiver string,
+	tokens sdk.Coins, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	memo string,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
 		SourceChannel:    sourceChannel,
-		Token:            token,
+		Tokens:           tokens,
 		Sender:           sender,
 		Receiver:         receiver,
 		TimeoutHeight:    timeoutHeight,
@@ -72,11 +72,21 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
 		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
-	if !msg.Token.IsValid() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.String())
+
+	if len(msg.Tokens) == 0 {
+		return errorsmod.Wrap(ErrInvalidAmount, "either token or token array must be filled")
 	}
-	if !msg.Token.IsPositive() {
-		return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, msg.Token.String())
+
+	for _, token := range msg.Tokens {
+		if !token.IsValid() {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.String())
+		}
+		if !token.IsPositive() {
+			return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, token.String())
+		}
+		if err := ValidateIBCDenom(token.Denom); err != nil {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.Denom)
+		}
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
@@ -92,5 +102,6 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if len(msg.Memo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
-	return ValidateIBCDenom(msg.Token.Denom)
+
+	return nil
 }

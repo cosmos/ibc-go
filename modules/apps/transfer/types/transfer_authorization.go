@@ -58,12 +58,14 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			return authz.AcceptResponse{}, err
 		}
 
+		//TODO
 		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
-		if allocation.SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(UnboundedSpendLimit()) {
+		if allocation.SpendLimit.AmountOf(msgTransfer.Tokens[0].Denom).Equal(UnboundedSpendLimit()) {
 			return authz.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
 		}
 
-		limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Token)
+		//TODO
+		limitLeft, isNegative := allocation.SpendLimit.SafeSub(msgTransfer.Tokens[0])
 		if isNegative {
 			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount is more than spend limit")
 		}
