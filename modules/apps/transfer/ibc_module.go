@@ -158,7 +158,7 @@ func (im IBCModule) OnChanOpenAck(
 		return errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
 	}
 
-	if counterpartyVersion != channel.Version {
+	if counterpartyVersion != types.CurrentVersion {
 		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s, got %s", channel.Version, counterpartyVersion)
 	}
 

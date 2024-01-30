@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 			amount := sdkmath.NewInt(100)
 
 			// send coins from chain A to chain B so that we have them in escrow
-			coins := sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, amount)}
+			coins := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 			msg := types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,

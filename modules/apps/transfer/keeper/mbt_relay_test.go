@@ -151,11 +151,11 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 		DestPort:      packet.DestPort,
 		Data: transferv2.ConvertPacketV1ToPacketV2(
 			types.NewFungibleTokenPacketData(
-			DenomFromTla(packet.Data.Denom),
-			packet.Data.Amount,
-			AddressFromString(packet.Data.Sender),
-			AddressFromString(packet.Data.Receiver),
-			"")),
+				DenomFromTla(packet.Data.Denom),
+				packet.Data.Amount,
+				AddressFromString(packet.Data.Sender),
+				AddressFromString(packet.Data.Receiver),
+				"")),
 	}
 }
 
@@ -347,7 +347,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
 							tc.packet.SourceChannel,
-							sdk.Coins{sdk.NewCoin(denom, amount)},
+							sdk.NewCoin(denom, amount),
 							sender.String(),
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height

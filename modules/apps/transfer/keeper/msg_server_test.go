@@ -95,7 +95,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			msg = types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
-				sdk.Coins{coin}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
+				coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
 				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
 				"memo",
 			)
@@ -107,75 +107,6 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 			// Verify events
 			events := ctx.EventManager().Events().ToABCIEvents()
-			expEvents := ibctesting.EventsMap{
-				"ibc_transfer": {
-					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
-					"receiver": suite.chainB.SenderAccount.GetAddress().String(),
-					"amount":   coin.Amount.String(),
-					"denom":    coin.Denom,
-					"memo":     "memo",
-				},
-			}
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().NotEqual(res.Sequence, uint64(0))
-				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
-			} else {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-				suite.Require().Len(events, 0)
-			}
-		})
-	}
-}
-
-// TestMsgTransfer tests Transfer rpc handler
-func (suite *KeeperTestSuite) TestMsgTransfer_MultiDenom() {
-	var msg *types.MsgTransfer
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
-	}{
-		{
-			"success: multidenom",
-			func() {},
-			true,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			path.Setup()
-
-			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
-			coin2 := sdk.NewCoin("base", sdkmath.NewInt(100))
-			coins := sdk.NewCoins(coin, coin2)
-
-			msg = types.NewMsgTransfer(
-				path.EndpointA.ChannelConfig.PortID,
-				path.EndpointA.ChannelID,
-				coins, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
-				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
-				"memo",
-			)
-
-			tc.malleate()
-
-			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
-
-			// Verify events
-			events := ctx.EventManager().Events().ToABCIEvents()
-
 			expEvents := ibctesting.EventsMap{
 				"ibc_transfer": {
 					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
