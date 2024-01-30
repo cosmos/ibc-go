@@ -66,7 +66,7 @@ type FungibleTokenPacket struct {
 	SourcePort    string
 	DestChannel   string
 	DestPort      string
-	Data          types.FungibleTokenPacketData
+	Data          types.FungibleTokenPacketDataV2
 }
 
 type OnRecvPacketTestCase = struct {
@@ -149,12 +149,13 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 		SourcePort:    packet.SourcePort,
 		DestChannel:   packet.DestChannel,
 		DestPort:      packet.DestPort,
-		Data: types.NewFungibleTokenPacketData(
+		Data: transferv2.ConvertPacketV1ToPacketV2(
+			types.NewFungibleTokenPacketData(
 			DenomFromTla(packet.Data.Denom),
 			packet.Data.Amount,
 			AddressFromString(packet.Data.Sender),
 			AddressFromString(packet.Data.Receiver),
-			""),
+			"")),
 	}
 }
 
@@ -311,7 +312,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)
 			registerDenomFn := func() {
-				denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
+				denomTrace := types.ParseDenomTrace(tc.packet.Data.Tokens[0].GetFullDenomPath())
 				traceHash := denomTrace.Hash()
 				if !suite.chainB.GetSimApp().TransferKeeper.HasDenomTrace(suite.chainB.GetContext(), traceHash) {
 					suite.chainB.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainB.GetContext(), denomTrace)
@@ -338,14 +339,11 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						panic(errors.New("MBT failed to convert sender address"))
 					}
 					registerDenomFn()
-					denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
+					denomTrace := types.ParseDenomTrace(tc.packet.Data.Tokens[0].GetFullDenomPath())
 					denom := denomTrace.IBCDenom()
 					err = sdk.ValidateDenom(denom)
 					if err == nil {
-						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Amount)
-						if !ok {
-							panic(errors.New("MBT failed to parse amount from string"))
-						}
+						amount := sdkmath.NewIntFromUint64(tc.packet.Data.Tokens[0].Amount)
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
 							tc.packet.SourceChannel,
@@ -360,22 +358,18 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 
 					}
 				case "OnRecvPacket":
-					dataV2 := transferv2.ConvertPacketV1ToPacketV2(tc.packet.Data)
-					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, dataV2)
+					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
 				case "OnTimeoutPacket":
 					registerDenomFn()
-					dataV2 := transferv2.ConvertPacketV1ToPacketV2(tc.packet.Data)
-					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, dataV2)
+					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
 				case "OnRecvAcknowledgementResult":
-					dataV2 := transferv2.ConvertPacketV1ToPacketV2(tc.packet.Data)
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
-						suite.chainB.GetContext(), packet, dataV2,
+						suite.chainB.GetContext(), packet, tc.packet.Data,
 						channeltypes.NewResultAcknowledgement(nil))
 				case "OnRecvAcknowledgementError":
 					registerDenomFn()
-					dataV2 := transferv2.ConvertPacketV1ToPacketV2(tc.packet.Data)
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
-						suite.chainB.GetContext(), packet, dataV2,
+						suite.chainB.GetContext(), packet, tc.packet.Data,
 						channeltypes.NewErrorAcknowledgement(fmt.Errorf("MBT Error Acknowledgement")))
 				default:
 					err = fmt.Errorf("Unknown handler:  %s", tc.handler)

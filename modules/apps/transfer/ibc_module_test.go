@@ -9,6 +9,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/v2"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -499,7 +500,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
 		data          []byte
-		expPacketData types.FungibleTokenPacketData
+		expPacketData types.FungibleTokenPacketDataV2
 	)
 
 	testCases := []struct {
@@ -510,13 +511,14 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		{
 			"success: valid packet data with memo",
 			func() {
-				expPacketData = types.FungibleTokenPacketData{
+				expPacketData = transferv2.ConvertPacketV1ToPacketV2(
+					types.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
 					Sender:   sender,
 					Receiver: receiver,
 					Memo:     "some memo",
-				}
+				})
 				data = expPacketData.GetBytes()
 			},
 			true,
@@ -524,13 +526,14 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		{
 			"success: valid packet data without memo",
 			func() {
-				expPacketData = types.FungibleTokenPacketData{
+				expPacketData = transferv2.ConvertPacketV1ToPacketV2(
+					types.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
 					Sender:   sender,
 					Receiver: receiver,
 					Memo:     "",
-				}
+				})
 				data = expPacketData.GetBytes()
 			},
 			true,
