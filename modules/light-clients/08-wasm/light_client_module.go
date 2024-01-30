@@ -21,6 +21,13 @@ type LightClientModule struct {
 	keeper keeper.Keeper
 }
 
+// NewLightClientModule creates and returns a new 08-wasm LightClientModule.
+func NewLightClientModule(keeper keeper.Keeper) LightClientModule {
+	return LightClientModule{
+		keeper: keeper,
+	}
+}
+
 // Initialize is called upon client creation, it allows the client to perform validation on the initial consensus state and set the
 // client state, consensus state and any client-specific metadata necessary for correct light client operation in the provided client store.
 func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
