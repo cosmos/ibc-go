@@ -21,7 +21,7 @@ func TestCommitPacket(t *testing.T) {
 
 	cdc := codec.NewProtoCodec(registry)
 
-	commitment := types.CommitPacket(cdc, &packet)
+	commitment := types.CommitPacket(cdc, packet)
 	require.NotNil(t, commitment)
 }
 
