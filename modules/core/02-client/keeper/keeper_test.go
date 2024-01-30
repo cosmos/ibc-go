@@ -431,64 +431,63 @@ func (suite KeeperTestSuite) TestIterateClientStates() { //nolint:govet // this 
 	}
 }
 
-// TODO(damian): uncomment and address this test
-// func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
-// 	var (
-// 		clientID string
-// 		height   exported.Height
-// 	)
+func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
+	var (
+		clientID string
+		height   exported.Height
+	)
 
-// 	cases := []struct {
-// 		msg      string
-// 		malleate func()
-// 		expPass  bool
-// 	}{
-// 		{
-// 			"verification success",
-// 			func() {
-// 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-// 				path.SetupConnections()
+	cases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"verification success",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupConnections()
 
-// 				clientID = path.EndpointA.ClientID
-// 				height = suite.chainB.LatestCommittedHeader.GetHeight()
-// 			},
-// 			true,
-// 		},
-// 		{
-// 			"client state not found",
-// 			func() {},
-// 			false,
-// 		},
-// 		{
-// 			"consensus state not found", func() {
-// 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-// 				path.SetupConnections()
-// 				clientID = path.EndpointA.ClientID
-// 				height = suite.chainB.LatestCommittedHeader.GetHeight().Increment()
-// 			},
-// 			false,
-// 		},
-// 	}
+				clientID = path.EndpointA.ClientID
+				height = suite.chainB.LatestCommittedHeader.GetHeight()
+			},
+			true,
+		},
+		{
+			"client state not found",
+			func() {},
+			false,
+		},
+		{
+			"consensus state not found", func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupConnections()
+				clientID = path.EndpointA.ClientID
+				height = suite.chainB.LatestCommittedHeader.GetHeight().Increment()
+			},
+			false,
+		},
+	}
 
-// 	for _, tc := range cases {
-// 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-// 			suite.SetupTest() // reset
+	for _, tc := range cases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
 
-// 			tc.malleate()
+			tc.malleate()
 
-// 			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(
-// 				suite.chainA.GetContext(), clientID, height,
-// 			)
+			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(
+				suite.chainA.GetContext(), clientID, height,
+			)
 
-// 			if tc.expPass {
-// 				suite.Require().NoError(err)
-// 				suite.Require().EqualValues(uint64(suite.chainB.LatestCommittedHeader.GetTime().UnixNano()), actualTimestamp)
-// 			} else {
-// 				suite.Require().Error(err)
-// 			}
-// 		})
-// 	}
-// }
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().EqualValues(uint64(suite.chainB.LatestCommittedHeader.GetTime().UnixNano()), actualTimestamp)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
 
 // TestDefaultSetParams tests the default params set are what is expected
 func (suite *KeeperTestSuite) TestDefaultSetParams() {
