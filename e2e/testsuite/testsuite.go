@@ -17,11 +17,13 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
 const (
@@ -422,6 +424,40 @@ func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain ibc.Chain) cl
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err)
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), height+1000)
+}
+
+// CreateUpgradeFields creates upgrade fields for channel with fee middleware
+func (s *E2ETestSuite) CreateUpgradeFields(channel channeltypes.Channel) channeltypes.UpgradeFields {
+	versionMetadata := feetypes.Metadata{
+		FeeVersion: feetypes.Version,
+		AppVersion: transfertypes.Version,
+	}
+	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
+	s.Require().NoError(err)
+
+	return channeltypes.NewUpgradeFields(channel.Ordering, channel.ConnectionHops, string(versionBytes))
+}
+
+// SetUpgradeTimeoutParam creates and submits a governance proposal to execute the message to update 04-channel params with a timeout of 1s
+func (s *E2ETestSuite) SetUpgradeTimeoutParam(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet) {
+	const timeoutDelta = 1000000000 // use 1 second as relative timeout to force upgrade timeout on the counterparty
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
+	upgradeTimeout := channeltypes.NewTimeout(channeltypes.DefaultTimeout.Height, timeoutDelta)
+	msg := channeltypes.NewMsgUpdateChannelParams(govModuleAddress.String(), channeltypes.NewParams(upgradeTimeout))
+	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, wallet)
+}
+
+// InitiateChannelUpgrade creates and submits a governance proposal to execute the message to initiate a channel upgrade
+func (s *E2ETestSuite) InitiateChannelUpgrade(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, portID, channelID string, upgradeFields channeltypes.UpgradeFields) {
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
+	msg := channeltypes.NewMsgChannelUpgradeInit(portID, channelID, upgradeFields, govModuleAddress.String())
+	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, wallet)
 }
 
 // GetIBCToken returns the denomination of the full token denom sent to the receiving channel

@@ -1,0 +1,43 @@
+---
+chains:
+  # the entry at index 0 corresponds to CHAIN_A
+- chainId: chainA-1
+  numValidators: 1
+  numFullNodes: 0
+  image: ghcr.io/cosmos/ibc-go-simd # override with CHAIN_IMAGE
+  tag: v8.0.0 # override with CHAIN_A_TAG
+  binary: simd # override with CHAIN_BINARY
+
+  # the entry at index 1 corresponds to CHAIN_B
+- chainId: chainB-1
+  numValidators: 1
+  numFullNodes: 0
+  image: ghcr.io/cosmos/ibc-go-simd # override with CHAIN_IMAGE
+  tag: main 
+  binary: simd # override with CHAIN_BINARY
+
+activeRelayer: hermes # override with RELAYER_ID
+relayers:
+  - id: hermes
+    image: ghcr.io/informalsystems/hermes
+    tag: "latest"
+  - id: rly
+    image: ghcr.io/cosmos/relayer
+    tag: "latest"
+  - id: hyperspace
+    image: ghcr.io/misko9/hyperspace
+    tag: "20231122v39"
+
+cometbft:
+  logLevel: info
+
+debug:
+  # setting this value to true will force log collection even if the test passes.
+  dumpLogs: false
+
+# Required only for upgrade tests.
+# Chain A will be upgraded the specified tag.
+# The plan name must be registered as an upgrade handler in the given tag.
+upgrade:
+  planName: "v8.1"
+  tag: "main"
