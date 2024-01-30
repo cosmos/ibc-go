@@ -10,7 +10,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine/keeper"
+	"github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine/internal/keeper"
 )
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
