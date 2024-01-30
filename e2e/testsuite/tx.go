@@ -270,7 +270,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 func (s *E2ETestSuite) TransferV2(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
 	portID, channelID string, tokens []sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) sdk.TxResponse {
-	msg := transfertypes.NewMsgTransfer(portID, channelID, sdk.NewCoin("", sdkmath.NewInt(0)), sender, receiver, timeoutHeight, timeoutTimestamp, memo, tokens...)
+	msg := transfertypes.NewMsgTransfer(portID, channelID, sdk.Coin{}, sender, receiver, timeoutHeight, timeoutTimestamp, memo, tokens...)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 

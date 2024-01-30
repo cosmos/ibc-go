@@ -77,27 +77,20 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidAmount, "either token or token array must be filled")
 	}
 
+	tokensToValidate := msg.Tokens
 	if !msg.Token.IsZero() {
-		if !msg.Token.IsValid() {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.String())
+		tokensToValidate = []sdk.Coin{msg.Token}
+	}
+
+	for _, token := range tokensToValidate {
+		if !token.IsValid() {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.String())
 		}
-		if !msg.Token.IsPositive() {
-			return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, msg.Token.String())
+		if !token.IsPositive() {
+			return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, token.String())
 		}
-		if err := ValidateIBCDenom(msg.Token.Denom); err != nil {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.Denom)
-		}
-	} else {
-		for _, token := range msg.Tokens {
-			if !token.IsValid() {
-				return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.String())
-			}
-			if !token.IsPositive() {
-				return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, token.String())
-			}
-			if err := ValidateIBCDenom(token.Denom); err != nil {
-				return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.Denom)
-			}
+		if err := ValidateIBCDenom(token.Denom); err != nil {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.Denom)
 		}
 	}
 

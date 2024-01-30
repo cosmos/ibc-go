@@ -141,6 +141,7 @@ func (ftpdv2 FungibleTokenPacketDataV2) ValidateBasic() error {
 		}
 
 		if err := sdk.ValidateDenom(token.Denom); err != nil {
+			// TODO: correct error
 			return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, err.Error())
 		}
 	}
