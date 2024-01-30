@@ -76,12 +76,12 @@ func emitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState export
 }
 
 // emitSubmitMisbehaviourEvent emits a client misbehaviour event
-func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientType string) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSubmitMisbehaviour,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

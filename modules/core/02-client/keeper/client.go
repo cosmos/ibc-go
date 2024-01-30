@@ -61,24 +61,27 @@ func (k Keeper) CreateClient(
 
 // UpdateClient updates the consensus state and the state root from a provided header.
 func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
-	clientState, found := k.GetClientState(ctx, clientID)
-	if !found {
-		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
-	}
-
-	clientStore := k.ClientStore(ctx, clientID)
-
 	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
-	if err := clientState.VerifyClientMessage(ctx, k.cdc, clientStore, clientMsg); err != nil {
+	clientType, _, err := types.ParseClientIdentifier(clientID)
+	if err != nil {
+		return errorsmod.Wrapf(types.ErrClientNotFound, "clientID (%s)", clientID)
+	}
+
+	lightClientModule, found := k.router.GetRoute(clientType)
+	if !found {
+		return errorsmod.Wrap(types.ErrRouteNotFound, clientType)
+	}
+
+	if err := lightClientModule.VerifyClientMessage(ctx, clientID, clientMsg); err != nil {
 		return err
 	}
 
-	foundMisbehaviour := clientState.CheckForMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
+	foundMisbehaviour := lightClientModule.CheckForMisbehaviour(ctx, clientID, clientMsg)
 	if foundMisbehaviour {
-		clientState.UpdateStateOnMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
+		lightClientModule.UpdateStateOnMisbehaviour(ctx, clientID, clientMsg)
 
 		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID)
 
@@ -86,18 +89,18 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 			[]string{"ibc", "client", "misbehaviour"},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(types.LabelClientType, clientType),
 				telemetry.NewLabel(types.LabelClientID, clientID),
 				telemetry.NewLabel(types.LabelMsgType, "update"),
 			},
 		)
 
-		emitSubmitMisbehaviourEvent(ctx, clientID, clientState)
+		emitSubmitMisbehaviourEvent(ctx, clientID, clientType)
 
 		return nil
 	}
 
-	consensusHeights := clientState.UpdateState(ctx, k.cdc, clientStore, clientMsg)
+	consensusHeights := lightClientModule.UpdateState(ctx, clientID, clientMsg)
 
 	k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
@@ -105,14 +108,14 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 		[]string{"ibc", "client", "update"},
 		1,
 		[]metrics.Label{
-			telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+			telemetry.NewLabel(types.LabelClientType, clientType),
 			telemetry.NewLabel(types.LabelClientID, clientID),
 			telemetry.NewLabel(types.LabelUpdateType, "msg"),
 		},
 	)
 
 	// emitting events in the keeper emits for both begin block and handler client updates
-	emitUpdateClientEvent(ctx, clientID, clientState.ClientType(), consensusHeights, k.cdc, clientMsg)
+	emitUpdateClientEvent(ctx, clientID, clientType, consensusHeights, k.cdc, clientMsg)
 
 	return nil
 }
