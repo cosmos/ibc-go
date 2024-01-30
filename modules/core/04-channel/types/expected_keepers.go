@@ -16,16 +16,12 @@ type ClientKeeper interface {
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
+	GetTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error)
 }
 
 // ConnectionKeeper expected account IBC connection keeper
 type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
-	GetTimestampAtHeight(
-		ctx sdk.Context,
-		connection connectiontypes.ConnectionEnd,
-		height exported.Height,
-	) (uint64, error)
 	VerifyChannelState(
 		ctx sdk.Context,
 		connection exported.ConnectionI,

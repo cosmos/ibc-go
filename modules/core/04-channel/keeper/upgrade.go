@@ -753,7 +753,7 @@ func (k Keeper) ChanUpgradeTimeout(
 		)
 	}
 
-	proofTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connection, proofHeight)
+	proofTimestamp, err := k.clientKeeper.GetTimestampAtHeight(ctx, connection.GetClientID(), proofHeight)
 	if err != nil {
 		return err
 	}

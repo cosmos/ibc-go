@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -114,53 +113,54 @@ func (suite KeeperTestSuite) TestGetAllClientConnectionPaths() { //nolint:govet 
 	suite.Require().Equal(expPaths, connPaths)
 }
 
-// TestGetTimestampAtHeight verifies if the clients on each chain return the
-// correct timestamp for the other chain.
-func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
-	var (
-		connection types.ConnectionEnd
-		height     exported.Height
-	)
+// TODO(damian): move this test to clientkeeper :)
+// // TestGetTimestampAtHeight verifies if the clients on each chain return the
+// // correct timestamp for the other chain.
+// func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
+// 	var (
+// 		connection types.ConnectionEnd
+// 		height     exported.Height
+// 	)
 
-	cases := []struct {
-		msg      string
-		malleate func()
-		expPass  bool
-	}{
-		{"verification success", func() {
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
-			connection = path.EndpointA.GetConnection()
-			height = suite.chainB.LatestCommittedHeader.GetHeight()
-		}, true},
-		{"client state not found", func() {}, false},
-		{"consensus state not found", func() {
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
-			connection = path.EndpointA.GetConnection()
-			height = suite.chainB.LatestCommittedHeader.GetHeight().Increment()
-		}, false},
-	}
+// 	cases := []struct {
+// 		msg      string
+// 		malleate func()
+// 		expPass  bool
+// 	}{
+// 		{"verification success", func() {
+// 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+// 			path.SetupConnections()
+// 			connection = path.EndpointA.GetConnection()
+// 			height = suite.chainB.LatestCommittedHeader.GetHeight()
+// 		}, true},
+// 		{"client state not found", func() {}, false},
+// 		{"consensus state not found", func() {
+// 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+// 			path.SetupConnections()
+// 			connection = path.EndpointA.GetConnection()
+// 			height = suite.chainB.LatestCommittedHeader.GetHeight().Increment()
+// 		}, false},
+// 	}
 
-	for _, tc := range cases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+// 	for _, tc := range cases {
+// 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+// 			suite.SetupTest() // reset
 
-			tc.malleate()
+// 			tc.malleate()
 
-			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(
-				suite.chainA.GetContext(), connection, height,
-			)
+// 			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(
+// 				suite.chainA.GetContext(), connection, height,
+// 			)
 
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().EqualValues(uint64(suite.chainB.LatestCommittedHeader.GetTime().UnixNano()), actualTimestamp)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
-}
+// 			if tc.expPass {
+// 				suite.Require().NoError(err)
+// 				suite.Require().EqualValues(uint64(suite.chainB.LatestCommittedHeader.GetTime().UnixNano()), actualTimestamp)
+// 			} else {
+// 				suite.Require().Error(err)
+// 			}
+// 		})
+// 	}
+// }
 
 func (suite *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
 	ctx := suite.chainA.GetContext()

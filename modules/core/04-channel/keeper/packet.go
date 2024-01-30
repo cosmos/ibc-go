@@ -74,7 +74,7 @@ func (k Keeper) SendPacket(
 	}
 
 	latestHeight := clientState.GetLatestHeight()
-	latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
+	latestTimestamp, err := k.clientKeeper.GetTimestampAtHeight(ctx, connectionEnd.GetClientID(), latestHeight)
 	if err != nil {
 		return 0, err
 	}

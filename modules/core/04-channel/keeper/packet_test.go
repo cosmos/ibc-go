@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			// use latest time on client state
 			clientState := path.EndpointA.GetClientState()
 			connection := path.EndpointA.GetConnection()
-			timestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection, clientState.GetLatestHeight())
+			timestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection.GetClientID(), clientState.GetLatestHeight())
 			suite.Require().NoError(err)
 
 			timeoutHeight = disabledTimeoutHeight
@@ -190,7 +190,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.SetConnection(connection)
 
 			clientState := path.EndpointA.GetClientState()
-			timestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection, clientState.GetLatestHeight())
+			timestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection.GetClientID(), clientState.GetLatestHeight())
 			suite.Require().NoError(err)
 
 			sourceChannel = path.EndpointA.ChannelID
