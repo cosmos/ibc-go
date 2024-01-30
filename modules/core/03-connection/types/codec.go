@@ -13,11 +13,6 @@ import (
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterInterface(
-		"ibc.core.connection.v1.ConnectionI",
-		(*exported.ConnectionI)(nil),
-		&ConnectionEnd{},
-	)
-	registry.RegisterInterface(
 		"ibc.core.connection.v1.CounterpartyConnectionI",
 		(*exported.CounterpartyConnectionI)(nil),
 		&Counterparty{},
