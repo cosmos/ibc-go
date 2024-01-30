@@ -31,16 +31,18 @@ import (
 type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.BinaryCodec
+	router         *types.Router
 	legacySubspace types.ParamSubspace
 	stakingKeeper  types.StakingKeeper
 	upgradeKeeper  types.UpgradeKeeper
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, router *types.Router, legacySubspace types.ParamSubspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
 	return Keeper{
 		storeKey:       key,
 		cdc:            cdc,
+		router:         router,
 		legacySubspace: legacySubspace,
 		stakingKeeper:  sk,
 		upgradeKeeper:  uk,

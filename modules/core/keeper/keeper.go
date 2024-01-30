@@ -59,7 +59,7 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper, upgradeKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, key, clienttypes.NewRouter(), paramSpace, stakingKeeper, upgradeKeeper)
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
 	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, &portKeeper, scopedKeeper)
