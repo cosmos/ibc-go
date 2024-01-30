@@ -152,10 +152,8 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	}
 }
 
-// TestMsgTransfer_Succeeds_Nonincentivized_V2 will test sending successful IBC transfers from chainA to chainB.
-// The transfer will occur over a basic transfer channel (non incentivized) and both native and non-native tokens
-// will be sent forwards and backwards in the IBC transfer timeline (both chains will act as source and receiver chains).
-func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_V2() {
+// TestMsgTransfer_Succeeds_Multi_Denom TODO docstring
+func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Multi_Denom() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -178,6 +176,8 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_V2() {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)

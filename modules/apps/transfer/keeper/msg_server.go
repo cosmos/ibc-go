@@ -26,11 +26,15 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	// if len(tokens) == 0 {
+	var tokens []sdk.Coin
 
-	// }
+	if msg.Token.IsZero() {
+		tokens = msg.Tokens
+	} else {
+		tokens = []sdk.Coin{msg.Token}
+	}
 
-	for _, token := range msg.Tokens {
+	for _, token := range tokens {
 		if !k.bankKeeper.IsSendEnabledCoin(ctx, token) {
 			return nil, errorsmod.Wrapf(types.ErrSendDisabled, "transfers are currently disabled for %s", token.Denom)
 		}
@@ -41,7 +45,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 
 	sequence, err := k.sendTransfer(
-		ctx, msg.SourcePort, msg.SourceChannel, msg.Tokens, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
+		ctx, msg.SourcePort, msg.SourceChannel, tokens, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
 		msg.Memo)
 	if err != nil {
 		return nil, err
