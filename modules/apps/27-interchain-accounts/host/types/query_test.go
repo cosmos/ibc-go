@@ -5,7 +5,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -17,16 +20,28 @@ func TestIsModuleQuerySafe(t *testing.T) {
 		expErr            error
 	}{
 		{
-			"success",
+			"success: module query safe",
 			"cosmos.bank.v1beta1.Query.Balance",
 			true,
 			nil,
 		},
 		{
-			"failure",
+			"success: not module query safe",
 			"ibc.applications.transfer.v1.Query.DenomTraces",
 			false,
 			nil,
+		},
+		{
+			"failure: invalid method path",
+			"invalid",
+			false,
+			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "invalid query method path"),
+		},
+		{
+			"failure: service path not found",
+			"invalid.Query.Balance",
+			false,
+			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "failed to find descriptor"),
 		},
 	}
 
@@ -37,7 +52,7 @@ func TestIsModuleQuerySafe(t *testing.T) {
 
 			res, err := types.IsModuleQuerySafe(tc.servicePath)
 			require.Equal(t, tc.isModuleQuerySafe, res)
-			require.Equal(t, tc.expErr, err)
+			require.ErrorIs(t, err, tc.expErr)
 		})
 	}
 }
