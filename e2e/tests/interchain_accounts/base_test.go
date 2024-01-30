@@ -17,6 +17,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -94,6 +95,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), 2)
 		icaChannel := channels[0]
+
 		s.Require().Contains(orderMapping[order], icaChannel.Ordering)
 	})
 
@@ -424,8 +426,6 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 }
 
-/*
-TODO: uncomment when hermes works with upgrades, https://github.com/cosmos/ibc-go/issues/5644
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgradingOrdertoUnordered() {
 	t := s.T()
 	ctx := context.TODO()
@@ -433,13 +433,13 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgr
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
 	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
-	chainA, _ := s.GetChains()
+	chainA, chainB := s.GetChains()
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	controllerAddress := controllerAccount.FormattedAddress()
-	// chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	var (
 		portID      string
@@ -472,57 +472,55 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgr
 		s.Require().NoError(err)
 	})
 
-	// t.Run("fund interchain account wallet", func(t *testing.T) {
-	// 	// fund the host account account so it has some $$ to send
-	// 	err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
-	// 		Address: hostAccount,
-	// 		Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
-	// 		Denom:   chainB.Config().Denom,
-	// 	})
-	// 	s.Require().NoError(err)
-	// })
+	t.Run("fund interchain account wallet", func(t *testing.T) {
+		// fund the host account account so it has some $$ to send
+		err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
+			Address: hostAccount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
+			Denom:   chainB.Config().Denom,
+		})
+		s.Require().NoError(err)
+	})
 
-	// t.Run("broadcast MsgSendTx", func(t *testing.T) {
-	// 	// assemble bank transfer message from host account to user account on host chain
-	// 	msgSend := &banktypes.MsgSend{
-	// 		FromAddress: hostAccount,
-	// 		ToAddress:   chainBAccount.FormattedAddress(),
-	// 		Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
-	// 	}
+	t.Run("broadcast MsgSendTx", func(t *testing.T) {
+		// assemble bank transfer message from host account to user account on host chain
+		msgSend := &banktypes.MsgSend{
+			FromAddress: hostAccount,
+			ToAddress:   chainBAccount.FormattedAddress(),
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+		}
 
-	// 	cdc := testsuite.Codec()
+		cdc := testsuite.Codec()
 
-	// 	bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
-	// 	s.Require().NoError(err)
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
+		s.Require().NoError(err)
 
-	// 	packetData := icatypes.InterchainAccountPacketData{
-	// 		Type: icatypes.EXECUTE_TX,
-	// 		Data: bz,
-	// 		Memo: "e2e",
-	// 	}
+		packetData := icatypes.InterchainAccountPacketData{
+			Type: icatypes.EXECUTE_TX,
+			Data: bz,
+			Memo: "e2e",
+		}
 
-	// 	msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(5*time.Minute), packetData)
+		msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(5*time.Minute), packetData)
 
-	// 	resp := s.BroadcastMessages(
-	// 		ctx,
-	// 		chainA,
-	// 		controllerAccount,
-	// 		msgSendTx,
-	// 	)
+		resp := s.BroadcastMessages(
+			ctx,
+			chainA,
+			controllerAccount,
+			msgSendTx,
+		)
 
-	// 	s.AssertTxSuccess(resp)
+		s.AssertTxSuccess(resp)
+		s.AssertPacketRelayed(ctx, chainA, portID, initialChannelID, 1)
+	})
 
-	// 	// time for the packet to be relayed
-	// 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
-	// })
+	t.Run("verify tokens transferred", func(t *testing.T) {
+		balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+		s.Require().NoError(err)
 
-	// t.Run("verify tokens transferred", func(t *testing.T) {
-	// 	balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
-	// 	s.Require().NoError(err)
-
-	// 	expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
-	// 	s.Require().Equal(expected, balance.Int64())
-	// })
+		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		s.Require().Equal(expected, balance.Int64())
+	})
 
 	channel, err := s.QueryChannel(ctx, chainA, portID, initialChannelID)
 	s.Require().NoError(err)
@@ -550,5 +548,56 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgr
 		})
 		s.Require().NoErrorf(waitErr, "channel was not upgraded: expected %s got %s", channeltypes.UNORDERED, channel.Ordering)
 	})
+
+	t.Run("verify channel B upgraded and is now unordered", func(t *testing.T) {
+		var channel channeltypes.Channel
+		waitErr := test.WaitForCondition(time.Minute*2, time.Second*5, func() (bool, error) {
+			channel, err = s.QueryChannel(ctx, chainB, icatypes.HostPortID, initialChannelID)
+			if err != nil {
+				return false, err
+			}
+			return channel.Ordering == channeltypes.UNORDERED, nil
+		})
+		s.Require().NoErrorf(waitErr, "channel was not upgraded: expected %s got %s", channeltypes.UNORDERED, channel.Ordering)
+	})
+
+	t.Run("broadcast MsgSendTx", func(t *testing.T) {
+		// assemble bank transfer message from host account to user account on host chain
+		msgSend := &banktypes.MsgSend{
+			FromAddress: hostAccount,
+			ToAddress:   chainBAccount.FormattedAddress(),
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+		}
+
+		cdc := testsuite.Codec()
+
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
+		s.Require().NoError(err)
+
+		packetData := icatypes.InterchainAccountPacketData{
+			Type: icatypes.EXECUTE_TX,
+			Data: bz,
+			Memo: "e2e",
+		}
+
+		msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(5*time.Minute), packetData)
+
+		resp := s.BroadcastMessages(
+			ctx,
+			chainA,
+			controllerAccount,
+			msgSendTx,
+		)
+
+		s.AssertTxSuccess(resp)
+		s.AssertPacketRelayed(ctx, chainA, portID, initialChannelID, 2)
+	})
+
+	t.Run("verify tokens transferred", func(t *testing.T) {
+		balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+		s.Require().NoError(err)
+
+		expected := 2*testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		s.Require().Equal(expected, balance.Int64())
+	})
 }
-*/
