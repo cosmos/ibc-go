@@ -15,11 +15,20 @@ On this page, you can find helpful links to set up your work environment.
 
 In this section, you can find all you need to install:
 
+- [jq](https://jqlang.github.io/jq/)
 - [gm](https://github.com/informalsystems/gm/)
 - [ibc-go simd](https://github.com/cosmos/ibc-go/)
 - [Hermes v1.9.0](https://hermes.informal.systems/)
 
 </HighlightBox>
+
+## jq
+
+Install `jq` following the instructions on [its website](https://jqlang.github.io/jq/download/). Test if it is installed by running the following command:
+
+```bash
+jq --version
+```
 
 ## gm
 
@@ -30,6 +39,12 @@ The [gaiad manager](https://github.com/informalsystems/gm) (`gm`) is a configura
 Download the simd binary from the [v8.1.0 release](https://github.com/cosmos/ibc-go/releases/tag/v8.1.0). This chain binary has the Fee Middleware already wired up and wrapping the ICS 20 transfer application. If you want to know how to wire up the Fee Middleware, please read [this section](../01-fee/04-wire-feeibc-mod.md) from the Fee Middleware tutorial.
 
 ## Hermes
+
+:::warning
+
+There is no release of Hermes availabe yet that supports channel upgradability. This tutorial assumes that it will be released in v1.9.0, but the final version might be different. The tutorial will be updated with the release is out.
+
+:::
 
 Install Hermes relayer version `v1.9.0` via cargo following the instructions on the [Hermes website](https://hermes.informal.systems/quick-start/installation.html#install-via-cargo) or by using the command below.
 
@@ -52,8 +67,9 @@ testing
 ├── bin
 │   ├── chain1
 │   │   ├── simd
+│   │   └── proposal.json
 │   └── chain2
-│       ├── simd
+│       └── simd
 ├── gm
 └── hermes
     ├── hermes
@@ -61,5 +77,3 @@ testing
 ```
 
 `simd` if the chain binary that will be used to run 2 blockchains (`chain1` and `chain2`). THe folder `gm` will contain the data folders for both blockchains.
-
-

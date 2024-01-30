@@ -41,12 +41,17 @@ The [initiation of the upgrade process is authority-gated](https://ibc.cosmos.ne
 }
 ```
 
-where `cosmos10d07y265gmmuvt4z0w9aw880jnsr700j6zn9kn` is the address of the governance module on `chain1`. The upgrade will modify the channel version to include the fee version.
-
-We submit the proposal:
+where `cosmos10d07y265gmmuvt4z0w9aw880jnsr700j6zn9kn` is the address of the governance module on `chain1`. You can retrieve the account of the governance module running the following command:
 
 ```bash
-simd tx gov submit-proposal ./proposal_upgrade_channel.json --from cosmos1vdy5fp0jy2l2ees870a7mls357v7uad6ufzcyz \
+simd query auth module-account gov --node http://localhost:27000
+```
+
+The upgrade will modify the channel version to include the fee version. We submit the proposal:
+
+```bash
+simd tx gov submit-proposal ./proposal_upgrade_channel.json \
+--from $VALIDATOR_CHAIN1 \
 --chain-id chain1 \
 --keyring-backend test \
 --home ../../gm/chain1 \
@@ -57,7 +62,7 @@ Now we vote for the proposal:
 
 ```bash
 simd tx gov vote 1 yes \
---from cosmos18phmkrpnn6gmpzscf6hnf5zpv06sygxc6f2v92 \
+--from $VALIDATOR_CHAIN1 \
 --chain-id chain1 \
 --keyring-backend test \
 --home ../../gm/chain1 \

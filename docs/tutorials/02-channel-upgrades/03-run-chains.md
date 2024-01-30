@@ -80,3 +80,25 @@ We start both blockchains by running the following command:
 ```bash
 gm start
 ```
+
+For convenience, we are going to store a few account addresses as variables in the current shell environment. Execute the following commands to store the relayer addresses on chains `chain1` and `chain2`, respectively:
+
+```bash
+export RLY_CHAIN1=$(simd keys show wallet -a \
+--keyring-backend test \
+--home ../../gm/chain1) && echo $RLY_CHAIN1;
+export RLY_CHAIN2=$(simd keys show wallet -a \
+--keyring-backend test \
+--home ../../gm/chain2) && echo $RLY_CHAIN2;
+```
+
+And execute also the following commands to store the validator account addresses on chains `chain1` and `chain2` that we will use throughout this tutorial:
+
+```bash
+export VALIDATOR_CHAIN1=$(simd keys show validator -a \
+--keyring-backend test \
+--home ../../gm/chain1) && echo $VALIDATOR_CHAIN1;
+export VALIDATOR_CHAIN2=$(simd keys show validator -a \
+--keyring-backend test \
+--home ../../gm/chain2) && echo $VALIDATOR_CHAIN2;
+```
