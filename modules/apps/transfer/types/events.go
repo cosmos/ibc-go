@@ -11,6 +11,7 @@ const (
 	AttributeKeyReceiver       = "receiver"
 	AttributeKeyDenom          = "denom"
 	AttributeKeyAmount         = "amount"
+	AttributeKeyTokens         = "tokens"
 	AttributeKeyRefundReceiver = "refund_receiver"
 	AttributeKeyRefundDenom    = "refund_denom"
 	AttributeKeyRefundAmount   = "refund_amount"

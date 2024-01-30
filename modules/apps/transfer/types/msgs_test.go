@@ -56,6 +56,7 @@ func TestMsgTransferValidation(t *testing.T) {
 	}{
 		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), true},
 		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoin, sender, receiver, timeoutHeight, 0, ""), true},
+		{"multidenom", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{}, sender, receiver, timeoutHeight, 0, "", coin, ibcCoin), true},
 		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoin, sender, receiver, timeoutHeight, 0, ""), false},
 		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
 		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coin, sender, receiver, timeoutHeight, 0, ""), false},
@@ -70,6 +71,9 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"missing recipient address", types.NewMsgTransfer(validPort, validChannel, coin, sender, "", timeoutHeight, 0, ""), false},
 		{"too long recipient address", types.NewMsgTransfer(validPort, validChannel, coin, sender, ibctesting.GenerateString(types.MaximumReceiverLength+1), timeoutHeight, 0, ""), false},
 		{"empty coin", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{}, sender, receiver, timeoutHeight, 0, ""), false},
+		{"multidenom: invalid denom", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{}, sender, receiver, timeoutHeight, 0, "", coin, invalidDenomCoin), false},
+		{"multidenom: invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{}, sender, receiver, timeoutHeight, 0, "", coin, invalidIBCCoin), false},
+		{"multidenom: zero coin", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{}, sender, receiver, timeoutHeight, 0, "", zeroCoin), false},
 	}
 
 	for i, tc := range testCases {

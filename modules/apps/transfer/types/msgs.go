@@ -73,11 +73,11 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
 
-	if len(msg.Tokens) == 0 && msg.Token.IsZero() {
+	if len(msg.Tokens) == 0 && msg.Token.IsNil() {
 		return errorsmod.Wrap(ErrInvalidAmount, "either token or token array must be filled")
 	}
 
-	if !msg.Token.IsZero() {
+	if !msg.Token.IsNil() {
 		if !msg.Token.IsValid() {
 			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.String())
 		}

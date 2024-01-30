@@ -28,7 +28,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	var tokens []sdk.Coin
 
-	if msg.Token.IsZero() {
+	if msg.Token.IsNil() {
 		tokens = msg.Tokens
 	} else {
 		tokens = append(tokens, msg.Token)
@@ -51,23 +51,22 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	// TODO
-	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeTransfer,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Token.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Token.Denom),
-			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+	for _, token := range tokens {
+		k.Logger(ctx).Info("IBC fungible token transfer", "token", token.Denom, "amount", token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(types.EventTypeTransfer,
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+				sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+				sdk.NewAttribute(types.AttributeKeyDenom, token.Denom),
+				sdk.NewAttribute(types.AttributeKeyAmount, token.Amount.String()),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			),
+		})
+	}
 
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }

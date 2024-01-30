@@ -107,6 +107,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 
 			// Verify events
 			events := ctx.EventManager().Events().ToABCIEvents()
+
 			expEvents := ibctesting.EventsMap{
 				"ibc_transfer": {
 					"sender":   suite.chainA.SenderAccount.GetAddress().String(),
@@ -122,6 +123,89 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				suite.Require().NotNil(res)
 				suite.Require().NotEqual(res.Sequence, uint64(0))
 				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Nil(res)
+				suite.Require().Len(events, 0)
+			}
+		})
+	}
+}
+
+// TestMsgTransfer tests Transfer rpc handler
+func (suite *KeeperTestSuite) TestMsgTransfer_MultiDenom() {
+	var msg *types.MsgTransfer
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
+			coin1 := sdk.NewCoin("bond", sdkmath.NewInt(100))
+
+			// send some coins of the second denom from bank module to the sender account as well
+			suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin1))
+			suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin1))
+
+			msg = types.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				sdk.Coin{}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
+				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
+				"memo", coin, coin1,
+			)
+
+			tc.malleate()
+
+			ctx := suite.chainA.GetContext()
+			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(ctx, msg)
+
+			// Verify events
+			expEvents := sdk.Events{
+				sdk.NewEvent(types.EventTypeTransfer,
+					sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+					sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+					sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+					sdk.NewAttribute(types.AttributeKeyDenom, coin.Denom),
+					sdk.NewAttribute(types.AttributeKeyAmount, coin.Amount.String()),
+				),
+				sdk.NewEvent(types.EventTypeTransfer,
+					sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+					sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+					sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+					sdk.NewAttribute(types.AttributeKeyDenom, coin1.Denom),
+					sdk.NewAttribute(types.AttributeKeyAmount, coin1.Amount.String()),
+				),
+				sdk.NewEvent(
+					sdk.EventTypeMessage,
+					sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+				),
+			}.ToABCIEvents()
+
+			events := ctx.EventManager().Events().ToABCIEvents()
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().NotEqual(res.Sequence, uint64(0))
+				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Nil(res)
