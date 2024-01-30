@@ -32,7 +32,6 @@ counterparty_payee: cosmos1vdy5fp0jy2l2ees870a7mls357v7uad6ufzcyz
 
 We see that the counterparty payee address matches what we expected (i.e. the `RLY_CHAIN1` address). In this tutorial we are going to send only one packet from chain `chain1` to chain `chain2`, so we only need to register the counterparty payee on chain `chain2`. In real life circumstances relayers relay packets on both directions (i.e. from chain `chain1` to `chain2` and also viceversa), and thus relayers should register as well on chain `chain1` the counterparty payee address to be compensated for delivering the `MsgRecvPacket` on chain `chain1`.
 
-
 ## Multi-message transaction with single `MsgPayPacketFee` message
 
 We first generate (not execute) an IBC transfer transaction (again `1000samoleans` from `VALIDATOR_CHAIN1` to `VALIDATOR_CHAIN2`):
@@ -53,7 +52,7 @@ Then we prepend a `MsgPayPacketFee`, sign the transaction and broadcast it. Plea
 jq '.body.messages |= [{"@type":"/ibc.applications.fee.v1.MsgPayPacketFee","fee": {"recv_fee": [{"denom": "samoleans", "amount": "50"}], "ack_fee": [{"denom": "samoleans", "amount": "25"}], "timeout_fee": [{"denom": "samoleans", "amount": "10"}]}, "source_port_id": "transfer", "source_channel_id": "channel-0", "signer": "cosmos18phmkrpnn6gmpzscf6hnf5zpv06sygxc6f2v92" }] + .' transfer.json > incentivized_transfer.json
 `
 
-```
+```bash
 simd tx sign incentivized_transfer.json \
 --from $VALIDATOR_CHAIN1 \
 --chain-id chain1 \
@@ -62,7 +61,7 @@ simd tx sign incentivized_transfer.json \
 --node tcp://localhost:27000 > signed.json
 ```
 
-```
+```bash
 simd tx broadcast signed.json \
 --home ../../gm/chain1 \
 --node tcp://localhost:27000

@@ -69,7 +69,7 @@ simd tx gov vote 1 yes \
 --node http://localhost:27000
 ```
 
-And we wait for the voting period to end. Once it ends we can check that the proposal has passed (i.e. the status has changed from `PROPOSAL_STATUS_VOTING_PERIOD` to `PROPOSAL_STATUS_PASSED`):
+And we wait for the voting period to end (approximately 3 minutes). Once it ends we can check that the proposal has passed (i.e. the status has changed from `PROPOSAL_STATUS_VOTING_PERIOD` to `PROPOSAL_STATUS_PASSED`):
 
 ```bash
 simd q gov proposals --node http://localhost:27000
