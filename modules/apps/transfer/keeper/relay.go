@@ -101,7 +101,6 @@ func (k Keeper) sendTransfer(
 			}
 		}
 
-
 		// NOTE: SendTransfer simply sends the denomination as it exists on its own
 		// chain inside the packet data. The receiving chain will perform denom
 		// prefixing as necessary.
@@ -138,10 +137,9 @@ func (k Keeper) sendTransfer(
 		denom, trace := transferv2.ExtractDenomAndTraceFromV1Denom(fullDenomPath)
 
 		token := &types.Token{
-			Denom:    denom,
-			Amount:   coin.Amount.Uint64(),
-			Trace:    trace,
-			Metadata: &types.Metadata{},
+			Denom:  denom,
+			Amount: coin.Amount.Uint64(),
+			Trace:  trace,
 		}
 
 		v2Tokens = append(v2Tokens, token)
