@@ -9,8 +9,10 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
-	storetypes "cosmossdk.io/core/store"
+	"cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,6 +20,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
 // Keeper defines the 08-wasm keeper
@@ -25,8 +28,10 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc          codec.BinaryCodec
-	storeService storetypes.KVStoreService
+	cdc codec.BinaryCodec
+
+	storeKey     storetypes.StoreKey
+	storeService store.KVStoreService
 
 	clientKeeper types.ClientKeeper
 
@@ -38,7 +43,7 @@ type Keeper struct {
 // and the same Wasm VM instance should be shared with it.
 func NewKeeperWithVM(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeService store.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm ibcwasm.WasmEngine,
@@ -87,7 +92,7 @@ func NewKeeperWithVM(
 // and a Wasm VM needs to be instantiated using the provided parameters.
 func NewKeeperWithConfig(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeService store.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
@@ -100,6 +105,17 @@ func NewKeeperWithConfig(
 	}
 
 	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, queryRouter, opts...)
+}
+
+// Codec returns the 08-wasm module's codec.
+func (k Keeper) Codec() codec.BinaryCodec {
+	return k.cdc
+}
+
+// ClientStore returns a namespaced prefix store for the provided IBC client identifier.
+func (k Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
+	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
+	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }
 
 // GetAuthority returns the 08-wasm module's authority.
