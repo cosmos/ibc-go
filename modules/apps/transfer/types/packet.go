@@ -153,9 +153,10 @@ func (ftpdv2 FungibleTokenPacketDataV2) ValidateBasic() error {
 }
 
 func (t *Token) GetFullDenomPath() string {
-	baseDenom := t.Denom
-	remainder := strings.Join(t.Trace, "/")
-	return remainder + "/" + baseDenom
+	if len(t.Trace) == 0 {
+		return t.Denom
+	}
+	return strings.Join(t.Trace, "/") + "/" + t.Denom
 }
 
 // GetBytes is a helper for serialising
