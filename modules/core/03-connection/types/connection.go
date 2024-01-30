@@ -20,11 +20,6 @@ func NewConnectionEnd(state State, clientID string, counterparty Counterparty, v
 	}
 }
 
-// GetState implements the Connection interface
-func (c ConnectionEnd) GetState() int32 {
-	return int32(c.State)
-}
-
 // GetClientID implements the Connection interface
 func (c ConnectionEnd) GetClientID() string {
 	return c.ClientId
