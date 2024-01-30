@@ -614,7 +614,7 @@ func NewSimApp(
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		ibctm.NewAppModule(tmLightClientModule),
-		solomachine.NewAppModule(),
+		solomachine.NewAppModule(smClientModule),
 		mockModule,
 	)
 
