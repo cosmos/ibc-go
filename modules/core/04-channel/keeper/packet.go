@@ -109,7 +109,7 @@ func (k Keeper) SendPacket(
 func (k Keeper) RecvPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
@@ -337,7 +337,7 @@ func (k Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	emitWriteAcknowledgementEvent(ctx, packet, channel, bz)
+	emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
 
 	return nil
 }
@@ -351,7 +351,7 @@ func (k Keeper) WriteAcknowledgement(
 func (k Keeper) AcknowledgePacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
+	packet types.Packet,
 	acknowledgement []byte,
 	proof []byte,
 	proofHeight exported.Height,
