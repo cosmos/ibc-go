@@ -445,7 +445,7 @@ func (k Keeper) GetTimestampAtHeight(ctx sdk.Context, clientID string, height ex
 		return 0, errorsmod.Wrapf(types.ErrInvalidClientType, "client state type %s is not registered in the allowlist", clientType)
 	}
 
-	lightClientModule, found := k.router.GetRoute(clientID)
+	lightClientModule, found := k.router.GetRoute(clientType)
 	if !found {
 		return 0, errorsmod.Wrap(types.ErrRouteNotFound, clientType)
 	}
