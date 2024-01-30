@@ -372,7 +372,7 @@ func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string
 	msgTransfer := transfertypes.MsgTransfer{
 		SourcePort:       portID,
 		SourceChannel:    channelID,
-		Token:            sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100)),
+		Tokens:           sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))},
 		Sender:           chain.SenderAccount.GetAddress().String(),
 		Receiver:         chain.SenderAccount.GetAddress().String(),
 		TimeoutHeight:    clienttypes.ZeroHeight(),

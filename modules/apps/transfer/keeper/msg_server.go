@@ -31,7 +31,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	if msg.Token.IsNil() {
 		tokens = msg.Tokens
 	} else {
-		tokens = append(tokens, msg.Token)
+		tokens = []sdk.Coin{msg.Token}
 	}
 
 	for _, token := range tokens {

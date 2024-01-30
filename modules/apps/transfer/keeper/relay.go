@@ -57,7 +57,7 @@ func (k Keeper) sendTransfer(
 	ctx sdk.Context,
 	sourcePort,
 	sourceChannel string,
-	coins []sdk.Coin,
+	coins sdk.Coins,
 	sender sdk.AccAddress,
 	receiver string,
 	timeoutHeight clienttypes.Height,

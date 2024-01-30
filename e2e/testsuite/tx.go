@@ -266,6 +266,14 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
+// TransferV2 broadcasts a MsgTransfer message.
+func (s *E2ETestSuite) TransferV2(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
+	portID, channelID string, tokens []sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
+) sdk.TxResponse {
+	msg := transfertypes.NewMsgTransfer(portID, channelID, sdk.Coin{}, sender, receiver, timeoutHeight, timeoutTimestamp, memo, tokens...)
+	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
 // RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
 func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain ibc.Chain,
 	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
