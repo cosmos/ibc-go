@@ -10,7 +10,7 @@ import HighlightBox from '@site/src/components/HighlightBox';
 
 # Introduction
 
-<HighlightTag type="ibc-go" version="v8.1"/> <HighlightTag type="cosmos-sdk" version="v0.50"/> <HighlightTag type="cosmjs"/> <HighlightTag type="guided-coding"/>
+<HighlightTag type="ibc-go" version="v8.1"/> <HighlightTag type="cosmos-sdk" version="v0.50"/>
 
 This is a tutorial for upgrading an existing ICS 20 transfer channel to wrap it with the ICS 29 Fee Middleware.
 
@@ -33,6 +33,6 @@ In this tutorial, you will:
 
 - Run two IBC-enabled blockchains locally.
 - Open an ICS 20 transfer channel using the Hermes relayer.
-- Upgrade the ICS 20 transfer channel to add packet incentivization.
+- Upgrade the ICS 20 transfer channel to add ICS-29 Fee Middleware.
 
 </HighlightBox>

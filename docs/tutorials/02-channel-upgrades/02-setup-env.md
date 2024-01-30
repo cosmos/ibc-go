@@ -62,7 +62,7 @@ hermes version
 
 This tutorial assumes the following folder structure:
 
-```
+```text
 testing
 ├── bin
 │   ├── chain1

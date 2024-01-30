@@ -44,15 +44,21 @@ In order to shorten the voting period of governance proposal, we are going to ch
     "min_deposit": [
       {
         "denom": "stake",
+// minus-diff-line
 -       "amount": "10000000"
+// plus-diff-line
 +       "amount": "100"
       }
     ],
     "max_deposit_period": "172800s",
+// minus-diff-line
 -   "voting_period": "172800s",
+// plus-diff-line
 +   "voting_period": "180s",
     "quorum": "0.334000000000000000",
+// minus-diff-line
 -   "threshold": "0.500000000000000000",
+// plus-diff-line
 +   "threshold": "0.300000000000000000",
     "veto_threshold": "0.334000000000000000",
     "min_initial_deposit_ratio": "0.000000000000000000",
