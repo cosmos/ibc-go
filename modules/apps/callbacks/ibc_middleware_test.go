@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/v2"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -385,7 +386,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 	)
 
 	var (
-		packetData transfertypes.FungibleTokenPacketData
+		packetData transfertypes.FungibleTokenPacketDataV2
 		packet     channeltypes.Packet
 		ctx        sdk.Context
 	)
@@ -408,7 +409,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				packet.Data = []byte("invalid packet data")
 			},
 			noExecution,
-			ibcerrors.ErrUnknownRequest,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"success: no-op on callback data is not valid",
@@ -547,7 +548,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	)
 
 	var (
-		packetData   transfertypes.FungibleTokenPacketData
+		packetData   transfertypes.FungibleTokenPacketDataV2
 		packet       channeltypes.Packet
 		ctx          sdk.Context
 		userGasLimit uint64
@@ -624,10 +625,11 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 
 			// set user gas limit above panic level in mock contract keeper
 			userGasLimit = 600_000
-			packetData = transfertypes.NewFungibleTokenPacketData(
-				ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress, s.chainB.SenderAccount.GetAddress().String(),
-				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit),
-			)
+			packetData = transferv2.ConvertPacketV1ToPacketV2(
+				transfertypes.NewFungibleTokenPacketData(
+					ibctesting.TestCoin.GetDenom(), ibctesting.TestCoin.Amount.String(), ibctesting.TestAccAddress, s.chainB.SenderAccount.GetAddress().String(),
+					fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit),
+				))
 
 			packet = channeltypes.Packet{
 				Sequence:           1,
@@ -952,13 +954,13 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketData() {
 	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
 	s.Require().True(ok)
 
-	expPacketData := transfertypes.FungibleTokenPacketData{
+	expPacketData := transferv2.ConvertPacketV1ToPacketV2(transfertypes.FungibleTokenPacketData{
 		Denom:    ibctesting.TestCoin.Denom,
 		Amount:   ibctesting.TestCoin.Amount.String(),
 		Sender:   ibctesting.TestAccAddress,
 		Receiver: ibctesting.TestAccAddress,
 		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
-	}
+	})
 	data := expPacketData.GetBytes()
 
 	packetData, err := unmarshalerStack.UnmarshalPacketData(data)

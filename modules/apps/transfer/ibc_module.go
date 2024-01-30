@@ -235,15 +235,20 @@ func (im IBCModule) OnRecvPacket(
 		}
 	}
 
+	// TODO: emit these for each token in the packet
+	var denomPath, amount string
+	if len(data.Tokens) > 0 {
+		denomPath = data.Tokens[0].GetFullDenomPath()
+		amount = fmt.Sprintf("%d", data.Tokens[0].Amount)
+	}
 
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
 		sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
-		// TODO: emit these for each token in the packet
-		sdk.NewAttribute(types.AttributeKeyDenom, data.Tokens[0].GetFullDenomPath()),
-		sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%d", data.Tokens[0].Amount)),
 		sdk.NewAttribute(types.AttributeKeyMemo, data.Memo),
+		sdk.NewAttribute(types.AttributeKeyDenom, denomPath),
+		sdk.NewAttribute(types.AttributeKeyAmount, amount),
 		sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 	}
 
@@ -389,10 +394,5 @@ func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, pr
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (IBCModule) UnmarshalPacketData(bz []byte) (interface{}, error) {
-	var packetData types.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(bz, &packetData); err != nil {
-		return nil, err
-	}
-
-	return packetData, nil
+	return getFungibleTokenPacketDataV2(bz)
 }
