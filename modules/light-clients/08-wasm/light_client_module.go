@@ -1,8 +1,6 @@
 package wasm
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,7 +8,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -53,8 +50,10 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 		return err
 	}
 
-	store := l.keeper.ClientStore(ctx, clientID)
-	return clientState.Initialize(ctx, l.keeper.Codec(), store, &consensusState)
+	clientStore := l.keeper.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
+
+	return clientState.Initialize(ctx, cdc, clientStore, &consensusState)
 }
 
 // VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
@@ -66,18 +65,15 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 		return err
 	}
 
-	store := l.keeper.ClientStore(ctx, clientID)
-	bz := store.Get(host.ClientStateKey())
-	if len(bz) == 0 {
-		return fmt.Errorf("failed to retrieve client state for client ID: %s", clientID)
+	clientStore := l.keeper.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
+
+	clientState, found := types.GetClientState(clientStore, cdc)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	var clientState types.ClientState
-	if err := l.keeper.Codec().Unmarshal(bz, &clientState); err != nil {
-		return err
-	}
-
-	return clientState.VerifyClientMessage(ctx, l.keeper.Codec(), store, clientMsg)
+	return clientState.VerifyClientMessage(ctx, l.keeper.Codec(), clientStore, clientMsg)
 }
 
 // Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
@@ -87,18 +83,15 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 		panic(err)
 	}
 
-	store := l.keeper.ClientStore(ctx, clientID)
-	bz := store.Get(host.ClientStateKey())
-	if len(bz) == 0 {
-		panic(fmt.Errorf("failed to retrieve client state for client ID: %s", clientID))
+	clientStore := l.keeper.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
+
+	clientState, found := types.GetClientState(clientStore, cdc)
+	if !found {
+		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	var clientState types.ClientState
-	if err := l.keeper.Codec().Unmarshal(bz, &clientState); err != nil {
-		panic(err)
-	}
-
-	return clientState.CheckForMisbehaviour(ctx, l.keeper.Codec(), store, clientMsg)
+	return clientState.CheckForMisbehaviour(ctx, cdc, clientStore, clientMsg)
 }
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
@@ -107,18 +100,15 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 		panic(err)
 	}
 
-	store := l.keeper.ClientStore(ctx, clientID)
-	bz := store.Get(host.ClientStateKey())
-	if len(bz) == 0 {
-		panic(fmt.Errorf("failed to retrieve client state for client ID: %s", clientID))
+	clientStore := l.keeper.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
+
+	clientState, found := types.GetClientState(clientStore, cdc)
+	if !found {
+		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	var clientState types.ClientState
-	if err := l.keeper.Codec().Unmarshal(bz, &clientState); err != nil {
-		panic(err)
-	}
-
-	clientState.UpdateStateOnMisbehaviour(ctx, l.keeper.Codec(), store, clientMsg)
+	clientState.UpdateStateOnMisbehaviour(ctx, cdc, clientStore, clientMsg)
 }
 
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
@@ -128,18 +118,15 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 		panic(err)
 	}
 
-	store := l.keeper.ClientStore(ctx, clientID)
-	bz := store.Get(host.ClientStateKey())
-	if len(bz) == 0 {
-		panic(fmt.Errorf("failed to retrieve client state for client ID: %s", clientID))
+	clientStore := l.keeper.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
+
+	clientState, found := types.GetClientState(clientStore, cdc)
+	if !found {
+		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	var clientState types.ClientState
-	if err := l.keeper.Codec().Unmarshal(bz, &clientState); err != nil {
-		panic(err)
-	}
-
-	return clientState.UpdateState(ctx, l.keeper.Codec(), store, clientMsg)
+	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
@@ -158,18 +145,15 @@ func (l LightClientModule) VerifyMembership(
 		return err
 	}
 
-	store := l.keeper.ClientStore(ctx, clientID)
-	bz := store.Get(host.ClientStateKey())
-	if len(bz) == 0 {
-		return fmt.Errorf("failed to retrieve client state for client ID: %s", clientID)
+	clientStore := l.keeper.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
+
+	clientState, found := types.GetClientState(clientStore, cdc)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	var clientState types.ClientState
-	if err := l.keeper.Codec().Unmarshal(bz, &clientState); err != nil {
-		return err
-	}
-
-	return clientState.VerifyMembership(ctx, store, l.keeper.Codec(), height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	return clientState.VerifyMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
@@ -187,18 +171,15 @@ func (l LightClientModule) VerifyNonMembership(
 		return err
 	}
 
-	store := l.keeper.ClientStore(ctx, clientID)
-	bz := store.Get(host.ClientStateKey())
-	if len(bz) == 0 {
-		return fmt.Errorf("failed to retrieve client state for client ID: %s", clientID)
+	clientStore := l.keeper.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
+
+	clientState, found := types.GetClientState(clientStore, cdc)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	var clientState types.ClientState
-	if err := l.keeper.Codec().Unmarshal(bz, &clientState); err != nil {
-		return err
-	}
-
-	return clientState.VerifyNonMembership(ctx, store, l.keeper.Codec(), height, delayTimePeriod, delayBlockPeriod, proof, path)
+	return clientState.VerifyNonMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
 // Status must return the status of the client. Only Active clients are allowed to process packets.
@@ -207,18 +188,15 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 		return exported.Unknown // TODO: or panic
 	}
 
-	store := l.keeper.ClientStore(ctx, clientID)
-	bz := store.Get(host.ClientStateKey())
-	if len(bz) == 0 {
-		panic(fmt.Errorf("failed to retrieve client state for client ID: %s", clientID))
+	clientStore := l.keeper.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
+
+	clientState, found := types.GetClientState(clientStore, cdc)
+	if !found {
+		return exported.Unknown
 	}
 
-	var clientState types.ClientState
-	if err := l.keeper.Codec().Unmarshal(bz, &clientState); err != nil {
-		panic(err)
-	}
-
-	return clientState.Status(ctx, store, l.keeper.Codec())
+	return clientState.Status(ctx, clientStore, cdc)
 }
 
 // TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
@@ -227,18 +205,15 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 		return 0, err
 	}
 
-	store := l.keeper.ClientStore(ctx, clientID)
-	bz := store.Get(host.ClientStateKey())
-	if len(bz) == 0 {
-		return 0, fmt.Errorf("failed to retrieve client state for client ID: %s", clientID)
+	clientStore := l.keeper.ClientStore(ctx, clientID)
+	cdc := l.keeper.Codec()
+
+	clientState, found := types.GetClientState(clientStore, cdc)
+	if !found {
+		return 0, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	var clientState types.ClientState
-	if err := l.keeper.Codec().Unmarshal(bz, &clientState); err != nil {
-		return 0, err
-	}
-
-	return clientState.GetTimestampAtHeight(ctx, store, l.keeper.Codec(), height)
+	return clientState.GetTimestampAtHeight(ctx, clientStore, cdc, height)
 }
 
 func validateClientID(clientID string) error {
