@@ -271,7 +271,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 			defer wg.Done()
 			chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
-			s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.createUpgradeFields(chA))
+			s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeField(chA))
 		}()
 
 		wg.Add(1)
@@ -279,7 +279,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 			defer wg.Done()
 			chB, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 			s.Require().NoError(err)
-			s.InitiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.createUpgradeFields(chB))
+			s.InitiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.CreateUpgradeFields(chB))
 		}()
 
 		wg.Wait()
