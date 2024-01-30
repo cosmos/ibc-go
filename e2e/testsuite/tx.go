@@ -262,7 +262,7 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
 	portID, channelID string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) sdk.TxResponse {
-	msg := transfertypes.NewMsgTransfer(portID, channelID, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
+	msg := transfertypes.NewMsgTransfer(portID, channelID, []sdk.Coin{token}, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
@@ -270,10 +270,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 func (s *E2ETestSuite) TransferV2(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
 	portID, channelID string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
 ) sdk.TxResponse {
-	msg := transfertypes.NewMsgTransfer(portID, channelID, sdk.NewCoin("", sdkmath.NewInt(0)), sender, receiver, timeoutHeight, timeoutTimestamp, memo)
-	// TODO: modify constructor to accept multiple tokens
-	msg.Tokens = tokens
-
+	msg := transfertypes.NewMsgTransfer(portID, channelID, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 

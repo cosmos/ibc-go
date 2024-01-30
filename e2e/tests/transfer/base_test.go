@@ -171,11 +171,8 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_V2() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
-	//chainADenoms := []string{"foo", "bar", "baz"}
-	//var transferCoins []sdk.Coin
-	//for _, denom := range chainADenoms {
-	//	transferCoins = append(transferCoins, testvalues.DefaultTransferAmount(denom))
-	//}
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
+	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID)
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
@@ -199,8 +196,6 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_V2() {
 	t.Run("start relayer", func(t *testing.T) {
 		s.StartRelayer(relayer)
 	})
-
-	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 
 	t.Run("packets are relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
@@ -227,35 +222,34 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_V2() {
 		transferTxResp := s.TransferV2(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, transferCoins, chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
-	//
-	//t.Run("tokens are escrowed", func(t *testing.T) {
-	//	actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
-	//	s.Require().NoError(err)
-	//
-	//	s.Require().Equal(sdkmath.ZeroInt(), actualBalance)
-	//
-	//	actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
-	//	s.Require().NoError(err)
-	//	s.Require().Equal(sdk.NewCoin(chainBIBCToken.IBCDenom(), sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because sending chain is not source for tokens
-	//})
-	//
-	//s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
-	//
-	//t.Run("packets are relayed", func(t *testing.T) {
-	//	s.AssertPacketRelayed(ctx, chainB, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
-	//
-	//	actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
-	//	s.Require().NoError(err)
-	//
-	//	expected := testvalues.StartingTokenAmount
-	//	s.Require().Equal(expected, actualBalance)
-	//})
-	//
-	//t.Run("tokens are un-escrowed", func(t *testing.T) {
-	//	actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
-	//	s.Require().NoError(err)
-	//	s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
-	//})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		s.AssertPacketRelayed(ctx, chainB, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
+
+		t.Run("chain A native denom", func(t *testing.T) {
+			actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+			s.Require().NoError(err)
+
+			expected := testvalues.StartingTokenAmount
+			s.Require().Equal(expected, actualBalance)
+		})
+
+		t.Run("chain B ibc denom", func(t *testing.T) {
+			actualBalance, err := s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+			s.Require().NoError(err)
+
+			expected := testvalues.IBCTransferAmount
+			s.Require().Equal(expected, actualBalance.Int64())
+		})
+	})
+
+	t.Run("tokens are un-escrowed", func(t *testing.T) {
+		actualTotalEscrow, err := s.QueryTotalEscrowForDenom(ctx, chainA, chainADenom)
+		s.Require().NoError(err)
+		s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
+	})
 }
 
 // TestMsgTransfer_Fails_InvalidAddress attempts to send an IBC transfer to an invalid address and ensures
