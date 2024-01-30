@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -18,6 +20,13 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 // LightClientModule implements the core IBC api.LightClientModule interface?
 type LightClientModule struct {
 	keeper keeper.Keeper
+}
+
+// NewLightClientModule creates and returns a new 06-solomachine LightClientModule.
+func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) LightClientModule {
+	return LightClientModule{
+		keeper: keeper.NewKeeper(cdc, key),
+	}
 }
 
 // Initialize is called upon client creation, it allows the client to perform validation on the initial consensus state and set the
