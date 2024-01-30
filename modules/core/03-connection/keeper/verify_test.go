@@ -30,9 +30,7 @@ func (suite *KeeperTestSuite) TestVerifyClientState() {
 	}{
 		{"verification success", func() {}, true},
 		{"client state not found", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state for proof height not found", func() {
 			heightDiff = 5
@@ -95,9 +93,7 @@ func (suite *KeeperTestSuite) TestVerifyClientConsensusState() {
 	}{
 		{"verification success", func() {}, true},
 		{"client state not found", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found", func() {
 			heightDiff = 5
@@ -169,17 +165,13 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 	}{
 		{"verification success", func() {}, true},
 		{"client state not found - changed client ID", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
 		}, false},
 		{"verification failed - connection state is different than proof", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.State = types.TRYOPEN
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.State = types.TRYOPEN })
 		}, false},
 		{"client status is not active - client is expired", func() {
 			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
@@ -234,9 +226,7 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 	}{
 		{"verification success", func() {}, true},
 		{"client state not found- changed client ID", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
@@ -314,9 +304,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			timePerBlock = 1
 		}, false},
 		{"client state not found- changed client ID", func() {
-			connection := path.EndpointB.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointB.SetConnection(connection)
+			path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
@@ -406,9 +394,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			timePerBlock = 1
 		}, false},
 		{"client state not found- changed client ID", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
@@ -507,9 +493,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			timePerBlock = 1
 		}, false},
 		{"client state not found - changed client ID", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
@@ -613,9 +597,7 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			timePerBlock = 1
 		}, false},
 		{"client state not found- changed client ID", func() {
-			connection := path.EndpointA.GetConnection()
-			connection.ClientId = ibctesting.InvalidID
-			path.EndpointA.SetConnection(connection)
+			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 		}, false},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
@@ -709,9 +691,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 		{
 			name: "fails with bad client id",
 			malleate: func() {
-				connection := path.EndpointB.GetConnection()
-				connection.ClientId = ibctesting.InvalidID
-				path.EndpointB.SetConnection(connection)
+				path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 			},
 			expPass: false,
 		},
@@ -792,9 +772,7 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 		{
 			name: "fails with bad client id",
 			malleate: func() {
-				connection := path.EndpointB.GetConnection()
-				connection.ClientId = ibctesting.InvalidID
-				path.EndpointB.SetConnection(connection)
+				path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
 			},
 			expPass: false,
 		},
