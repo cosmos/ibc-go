@@ -309,7 +309,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Su
 		s.Require().Equal(true, feeEnabled)
 	})
 
-	t.Run("verify channel B upgraded and has version with ics29", func(t *testing.T) {
+	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
 		channel, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 		s.Require().NoError(err)
 
