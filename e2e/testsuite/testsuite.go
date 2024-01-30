@@ -430,7 +430,7 @@ func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain ibc.Chain) cl
 func (s *E2ETestSuite) CreateUpgradeFields(channel channeltypes.Channel) channeltypes.UpgradeFields {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: transfertypes.Version,
+		AppVersion: channel.Version,
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)
