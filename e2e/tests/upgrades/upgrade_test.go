@@ -5,8 +5,11 @@ package upgrades
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
+
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/cosmos/gogoproto/proto"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
@@ -744,6 +747,258 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	})
 }
 
+func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
+	t := s.T()
+	testCfg := testsuite.LoadConfig()
+	ctx := context.Background()
+
+	relayer, channelA := s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
+	channelB := channelA.Counterparty
+	chainA, chainB := s.GetChains()
+
+	chainADenom := chainA.Config().Denom
+	chainBDenom := chainB.Config().Denom
+	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID)
+	_ = chainAIBCToken
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelB.PortID, channelB.ChannelID)
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.FormattedAddress()
+
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.FormattedAddress()
+
+	var (
+		chainARelayerWallet, chainBRelayerWallet ibc.Wallet
+		relayerAStartingBalance                  int64
+		testFee                                  = testvalues.DefaultFee(chainADenom)
+	)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	// trying to create some inflight packets, although they might get relayed before the upgrade starts
+	t.Run("create inflight transfer packets between chain A and chain B", func(t *testing.T) {
+		chainBWalletAmount := ibc.WalletAmount{
+			Address: chainBWallet.FormattedAddress(), // destination address
+			Denom:   chainADenom,
+			Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
+		}
+
+		transferTxResp, err := chainA.SendIBCTransfer(ctx, channelA.ChannelID, chainAWallet.KeyName(), chainBWalletAmount, ibc.TransferOptions{})
+		s.Require().NoError(err)
+		s.Require().NoError(transferTxResp.Validate(), "chain-a ibc transfer tx is invalid")
+
+		chainAwalletAmount := ibc.WalletAmount{
+			Address: chainAWallet.FormattedAddress(), // destination address
+			Denom:   chainBDenom,
+			Amount:  sdkmath.NewInt(testvalues.IBCTransferAmount),
+		}
+
+		transferTxResp, err = chainB.SendIBCTransfer(ctx, channelB.ChannelID, chainBWallet.KeyName(), chainAwalletAmount, ibc.TransferOptions{})
+		s.Require().NoError(err)
+		s.Require().NoError(transferTxResp.Validate(), "chain-b ibc transfer tx is invalid")
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("upgrade chains", func(t *testing.T) {
+		var wg sync.WaitGroup
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			t.Run("chain A", func(t *testing.T) {
+				govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+				s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+			})
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			t.Run("chain B", func(t *testing.T) {
+				govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+				s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[1].Tag, testCfg.UpgradeConfig.Tag)
+			})
+		}()
+
+		wg.Wait()
+	})
+
+	t.Run("query params", func(t *testing.T) {
+		t.Run("on chain A", func(t *testing.T) {
+			channelParams, err := s.GetChainGRCPClients(chainA).ChannelQueryClient.ChannelParams(ctx, &channeltypes.QueryChannelParamsRequest{})
+			s.Require().NoError(err)
+
+			upgradeTimeout := channelParams.Params.UpgradeTimeout
+			s.Require().Equal(clienttypes.ZeroHeight(), upgradeTimeout.Height)
+			s.Require().Equal(uint64(time.Minute*10), upgradeTimeout.Timestamp)
+		})
+
+		t.Run("on chain B", func(t *testing.T) {
+			channelParams, err := s.GetChainGRCPClients(chainB).ChannelQueryClient.ChannelParams(ctx, &channeltypes.QueryChannelParamsRequest{})
+			s.Require().NoError(err)
+
+			upgradeTimeout := channelParams.Params.UpgradeTimeout
+			s.Require().Equal(clienttypes.ZeroHeight(), upgradeTimeout.Height)
+			s.Require().Equal(uint64(time.Minute*10), upgradeTimeout.Timestamp)
+		})
+	})
+
+	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
+		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+
+		s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.createUpgradeFields(chA))
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
+		// packet from chain A to chain B
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+		expected := testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance.Int64())
+
+		// packet from chain B to chain A
+		actualBalance, err = s.QueryBalance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
+		s.Require().NoError(err)
+		expected = testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance.Int64())
+	})
+
+	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
+		channel, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+
+		// check the channel version include the fee version
+		version, err := feetypes.MetadataFromVersion(channel.Version)
+		s.Require().NoError(err)
+		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
+
+		// extra check
+		feeEnabled, err := s.QueryFeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(true, feeEnabled)
+	})
+
+	t.Run("verify channel B upgraded and is fee enabled", func(t *testing.T) {
+		channel, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+
+		// check the channel version include the fee version
+		version, err := feetypes.MetadataFromVersion(channel.Version)
+		s.Require().NoError(err)
+		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
+
+		// extra check
+		feeEnabled, err := s.QueryFeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(true, feeEnabled)
+	})
+
+	t.Run("prune packet acknowledgements", func(t *testing.T) {
+		// there should be one ack for the packet that we sent before the upgrade
+		acks, err := s.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
+		s.Require().NoError(err)
+		s.Require().Len(acks, 1)
+		s.Require().Equal(uint64(1), acks[0].Sequence)
+
+		pruneAcksTxResponse := s.PruneAcknowledgements(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, uint64(1))
+		s.AssertTxSuccess(pruneAcksTxResponse)
+
+		// after pruning there should not be any acks
+		acks, err = s.QueryPacketAcknowledgements(ctx, chainA, channelA.PortID, channelA.ChannelID, []uint64{})
+		s.Require().NoError(err)
+		s.Require().Empty(acks)
+	})
+
+	t.Run("stop relayer", func(t *testing.T) {
+		s.StopRelayer(ctx, relayer)
+	})
+
+	t.Run("recover relayer wallets", func(t *testing.T) {
+		err := s.RecoverRelayerWallets(ctx, relayer)
+		s.Require().NoError(err)
+
+		chainARelayerWallet, chainBRelayerWallet, err = s.GetRelayerWallets(relayer)
+		s.Require().NoError(err)
+
+		relayerAStartingBalance, err = s.GetChainANativeBalance(ctx, chainARelayerWallet)
+		s.Require().NoError(err)
+		t.Logf("relayer A user starting with balance: %d", relayerAStartingBalance)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("register and verify counterparty payee", func(t *testing.T) {
+		_, chainBRelayerUser := s.GetRelayerUsers(ctx)
+		resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
+		s.AssertTxSuccess(resp)
+
+		address, err := s.QueryCounterPartyPayee(ctx, chainB, chainBRelayerWallet.FormattedAddress(), channelA.Counterparty.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(chainARelayerWallet.FormattedAddress(), address)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	t.Run("send incentivized transfer packet", func(t *testing.T) {
+		// before adding fees for the packet, there should not be incentivized packets
+		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Empty(packets)
+
+		transferAmount := testvalues.DefaultTransferAmount(chainA.Config().Denom)
+
+		msgPayPacketFee := feetypes.NewMsgPayPacketFee(testFee, channelA.PortID, channelA.ChannelID, chainAWallet.FormattedAddress(), nil)
+		msgTransfer := transfertypes.NewMsgTransfer(channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), chainBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
+		resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
+		s.AssertTxSuccess(resp)
+	})
+
+	t.Run("escrow fees equal (ack fee + recv fee)", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
+		s.Require().NoError(err)
+
+		// walletA has done two IBC transfers of value testvalues.IBCTransferAmount since the start of the test.
+		expected := testvalues.StartingTokenAmount - (2 * testvalues.IBCTransferAmount) - testFee.AckFee.AmountOf(chainADenom).Int64() - testFee.RecvFee.AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, actualBalance)
+	})
+
+	t.Run("packets are relayed", func(t *testing.T) {
+		packets, err := s.QueryIncentivizedPacketsForChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Empty(packets)
+	})
+
+	t.Run("tokens are received by walletB", func(t *testing.T) {
+		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		// walletB has received two IBC transfers of value testvalues.IBCTransferAmount since the start of the test.
+		expected := 2 * testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actualBalance.Int64())
+	})
+
+	t.Run("relayerA is paid ack and recv fee", func(t *testing.T) {
+		actualBalance, err := s.GetChainANativeBalance(ctx, chainARelayerWallet)
+		s.Require().NoError(err)
+
+		expected := relayerAStartingBalance + testFee.AckFee.AmountOf(chainADenom).Int64() + testFee.RecvFee.AmountOf(chainADenom).Int64()
+		s.Require().Equal(expected, actualBalance)
+	})
+}
+
 // ClientState queries the current ClientState by clientID
 func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, clientID string) (*clienttypes.QueryClientStateResponse, error) {
 	queryClient := s.GetChainGRCPClients(chain).ClientQueryClient
@@ -755,4 +1010,26 @@ func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, cli
 	}
 
 	return res, nil
+}
+
+// createUpgradeFields created the upgrade fields for channel
+func (s *UpgradeTestSuite) createUpgradeFields(channel channeltypes.Channel) channeltypes.UpgradeFields {
+	versionMetadata := feetypes.Metadata{
+		FeeVersion: feetypes.Version,
+		AppVersion: transfertypes.Version,
+	}
+	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
+	s.Require().NoError(err)
+
+	return channeltypes.NewUpgradeFields(channel.Ordering, channel.ConnectionHops, string(versionBytes))
+}
+
+// initiateChannelUpgrade creates and submits a governance proposal to execute the message to initiate a channel upgrade
+func (s *UpgradeTestSuite) initiateChannelUpgrade(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, portID, channelID string, upgradeFields channeltypes.UpgradeFields) {
+	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
+	s.Require().NoError(err)
+	s.Require().NotNil(govModuleAddress)
+
+	msg := channeltypes.NewMsgChannelUpgradeInit(portID, channelID, upgradeFields, govModuleAddress.String())
+	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, wallet)
 }
