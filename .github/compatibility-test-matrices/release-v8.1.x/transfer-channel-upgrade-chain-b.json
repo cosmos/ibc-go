@@ -10,6 +10,7 @@
   ],
   "test": [
     "TestChannelUpgrade_WithFeeMiddleware_Succeeds",
+    "TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds",
     "TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck"
   ],
   "relayer-type": [
