@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package ibc.core.port.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v8/modules/core/05-port/types";
+
+import "gogoproto/gogo.proto";
+
+// EncodingType defines the type of encoding used for the packet data
+enum EncodingType {
+  // UNSPECIFIED is an uninitialized encoding type.
+  ENCODING_TYPE_UNSPECIFIED = 0;
+  // PROTOBUF is used for protobuf binary encoding.
+  ENCODING_TYPE_PROTOBUF = 1;
+  // JSON is used for JSON encoding.
+  ENCODING_TYPE_JSON = 2;
+}
+
+// ModuleVersion defines the versioning scheme used for IBC modules.
+message ModuleVersion {
+  // version is the version string of the module
+  string version = 1;
+  // encoding is the encoding type used for the module's packet data
+  EncodingType encoding = 2;
+}
+
+// Route specifies a module's callback route along with its version information
+// to be stored on the routing table
+message Route {
+  // route declared by the module
+  string route = 1;
+  // version for the module
+  ModuleVersion version = 2 [(gogoproto.nullable) = false];
+}
+
+// RoutedVersion will be set for a particular port in order that must be called for channels with the given port
+// Note the Routes must be unique
+message RoutedVersion {
+  // ordered list of routes that will be called by port keeper for a given port
+  repeated Route routes = 1 [(gogoproto.nullable) = false];
+}
+
+// RoutedPacketData is a map of packet data that contains separate application specific packet data
+// for each route
+message RoutedPacketData {
+  map<string, bytes> packet_data = 1 [(gogoproto.nullable) = false];
+}
+
+// RoutedPacketAcknowledgement is a map of packet acknowledgements that contains separate application specific
+// packet acknowledgements for each route
+message RoutedPacketAcknowledgement {
+  map<string, bytes> packet_ack = 1 [(gogoproto.nullable) = false];
+}
