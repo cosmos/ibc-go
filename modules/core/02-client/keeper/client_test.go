@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		{
 			"success: 06-solomachine client type supported",
 			func() {
-				smClientState := solomachine.NewClientState(0, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time})
+				smClientState := solomachine.NewClientState(1, &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time})
 				smConsensusState := &solomachine.ConsensusState{PublicKey: suite.solomachine.ConsensusState().PublicKey, Diversifier: suite.solomachine.Diversifier, Timestamp: suite.solomachine.Time}
 				clientState = suite.chainA.App.AppCodec().MustMarshal(smClientState)
 				consensusState = suite.chainA.App.AppCodec().MustMarshal(smConsensusState)

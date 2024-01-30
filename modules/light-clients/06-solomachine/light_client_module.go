@@ -214,8 +214,8 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 		panic(fmt.Errorf("failed to retrieve client state for client ID: %s", clientID))
 	}
 
-	var clientState ClientState
-	if err := l.keeper.Codec().Unmarshal(bz, &clientState); err != nil {
+	var clientState exported.ClientState
+	if err := l.keeper.Codec().UnmarshalInterface(bz, &clientState); err != nil {
 		panic(err)
 	}
 
@@ -234,8 +234,8 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 		return 0, fmt.Errorf("failed to retrieve client state for client ID: %s", clientID)
 	}
 
-	var clientState ClientState
-	if err := l.keeper.Codec().Unmarshal(bz, &clientState); err != nil {
+	var clientState exported.ClientState
+	if err := l.keeper.Codec().UnmarshalInterface(bz, &clientState); err != nil {
 		return 0, err
 	}
 

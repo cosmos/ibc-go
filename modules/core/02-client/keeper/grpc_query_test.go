@@ -526,7 +526,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 					ClientId: ibctesting.InvalidID,
 				}
 			},
-			false, "",
+			true, exported.Unauthorized.String(),
 		},
 		{
 			"Active client status",
