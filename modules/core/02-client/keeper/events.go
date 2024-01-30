@@ -15,13 +15,13 @@ import (
 )
 
 // emitCreateClientEvent emits a create client event
-func emitCreateClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+func emitCreateClientEvent(ctx sdk.Context, clientID, clientType string) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
+			//			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

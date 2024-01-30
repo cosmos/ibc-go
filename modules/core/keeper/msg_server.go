@@ -34,12 +34,15 @@ func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateCl
 		return nil, err
 	}
 
-	consensusState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
-	if err != nil {
-		return nil, err
-	}
+	/*
+		consensusState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
+		if err != nil {
+			return nil, err
+		}
 
-	if _, err = k.ClientKeeper.CreateClient(ctx, clientState, consensusState); err != nil {
+	*/
+
+	if _, err = k.ClientKeeper.CreateClient(ctx, clientState.ClientType(), msg.ClientState.Value, msg.ConsensusState.Value); err != nil {
 		return nil, err
 	}
 

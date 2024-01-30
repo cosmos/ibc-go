@@ -1,10 +1,8 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -24,9 +22,9 @@ func NewRouter() *Router {
 // AddRoute adds LightClientModule for a given module name. It returns the Router
 // so AddRoute calls can be linked. It will panic if the Router is sealed.
 func (rtr *Router) AddRoute(module string, cbs exported.LightClientModule) *Router {
-	if !sdk.IsAlphaNumeric(module) {
-		panic(errors.New("route expressions can only contain alphanumeric characters"))
-	}
+	//	if !sdk.IsAlphaNumeric(module) {
+	//		panic(errors.New("route expressions can only contain alphanumeric characters"))
+	//	}
 	if rtr.HasRoute(module) {
 		panic(fmt.Errorf("route %s has already been registered", module))
 	}

@@ -72,7 +72,10 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 			suite.SetupTest() // reset
 			tc.malleate()
 
-			clientID, err := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.CreateClient(suite.chainA.GetContext(), clientState, consensusState)
+			clientStateBz := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.MustMarshalClientState(clientState)
+			consensusStateBz := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.MustMarshalConsensusState(consensusState)
+
+			clientID, err := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.CreateClient(suite.chainA.GetContext(), clientState.ClientType(), clientStateBz, consensusStateBz)
 
 			// assert correct behaviour based on expected error
 			clientState, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)

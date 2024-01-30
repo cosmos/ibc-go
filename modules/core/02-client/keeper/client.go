@@ -17,40 +17,44 @@ import (
 // The client state is responsible for setting any client-specific data in the store via the Initialize method.
 // This includes the client state, initial consensus state and any associated metadata.
 func (k Keeper) CreateClient(
-	ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState,
+	ctx sdk.Context, clientType string, clientState []byte, consensusState []byte,
 ) (string, error) {
-	if clientState.ClientType() == exported.Localhost {
-		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientState.ClientType())
+	if clientType == exported.Localhost {
+		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientType)
 	}
 
 	params := k.GetParams(ctx)
-	if !params.IsAllowedClient(clientState.ClientType()) {
+	if !params.IsAllowedClient(clientType) {
 		return "", errorsmod.Wrapf(
 			types.ErrInvalidClientType,
-			"client state type %s is not registered in the allowlist", clientState.ClientType(),
+			"client state type %s is not registered in the allowlist", clientType,
 		)
 	}
 
-	clientID := k.GenerateClientIdentifier(ctx, clientState.ClientType())
-	clientStore := k.ClientStore(ctx, clientID)
+	clientID := k.GenerateClientIdentifier(ctx, clientType)
 
-	if err := clientState.Initialize(ctx, k.cdc, clientStore, consensusState); err != nil {
+	lightClientModule, found := k.router.GetRoute(clientType)
+	if !found {
+		return "", errorsmod.Wrap(types.ErrRouteNotFound, clientType)
+	}
+
+	if err := lightClientModule.Initialize(ctx, clientID, clientState, consensusState); err != nil {
 		return "", err
 	}
 
-	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
 		return "", errorsmod.Wrapf(types.ErrClientNotActive, "cannot create client (%s) with status %s", clientID, status)
 	}
 
-	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
+	// 	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", clientState.GetLatestHeight().String())
 
 	defer telemetry.IncrCounterWithLabels(
 		[]string{"ibc", "client", "create"},
 		1,
-		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientState.ClientType())},
+		[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientType)},
 	)
 
-	emitCreateClientEvent(ctx, clientID, clientState)
+	emitCreateClientEvent(ctx, clientID, clientType)
 
 	return clientID, nil
 }
@@ -64,7 +68,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exporte
 
 	clientStore := k.ClientStore(ctx, clientID)
 
-	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", clientID, status)
 	}
 
@@ -125,7 +129,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, clientID string, upgradedClient e
 
 	clientStore := k.ClientStore(ctx, clientID)
 
-	if status := k.GetClientStatus(ctx, clientState, clientID); status != exported.Active {
+	if status := k.GetClientStatus(ctx, clientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot upgrade client (%s) with status %s", clientID, status)
 	}
 
@@ -174,7 +178,7 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 
 	subjectClientStore := k.ClientStore(ctx, subjectClientID)
 
-	if status := k.GetClientStatus(ctx, subjectClientState, subjectClientID); status == exported.Active {
+	if status := k.GetClientStatus(ctx, subjectClientID); status == exported.Active {
 		return errorsmod.Wrapf(types.ErrInvalidRecoveryClient, "cannot recover %s subject client", exported.Active)
 	}
 
@@ -189,7 +193,7 @@ func (k Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClient
 
 	substituteClientStore := k.ClientStore(ctx, substituteClientID)
 
-	if status := k.GetClientStatus(ctx, substituteClientState, substituteClientID); status != exported.Active {
+	if status := k.GetClientStatus(ctx, substituteClientID); status != exported.Active {
 		return errorsmod.Wrapf(types.ErrClientNotActive, "substitute client is not %s, status is %s", exported.Active, status)
 	}
 

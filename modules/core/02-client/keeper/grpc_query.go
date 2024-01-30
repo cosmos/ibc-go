@@ -239,15 +239,7 @@ func (k Keeper) ClientStatus(c context.Context, req *types.QueryClientStatusRequ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	clientState, found := k.GetClientState(ctx, req.ClientId)
-	if !found {
-		return nil, status.Error(
-			codes.NotFound,
-			errorsmod.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
-		)
-	}
-
-	clientStatus := k.GetClientStatus(ctx, clientState, req.ClientId)
+	clientStatus := k.GetClientStatus(ctx, req.ClientId)
 
 	return &types.QueryClientStatusResponse{
 		Status: clientStatus.String(),

@@ -54,6 +54,10 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
+func (k Keeper) GetRouter() *types.Router {
+	return k.router
+}
+
 // CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
 	var clientState localhost.ClientState
@@ -411,11 +415,22 @@ func (k Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
 
 // GetClientStatus returns the status for a given clientState. If the client type is not in the allowed
 // clients param field, Unauthorized is returned, otherwise the client state status is returned.
-func (k Keeper) GetClientStatus(ctx sdk.Context, clientState exported.ClientState, clientID string) exported.Status {
-	if !k.GetParams(ctx).IsAllowedClient(clientState.ClientType()) {
+func (k Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Status {
+	clientType, _, err := types.ParseClientIdentifier(clientID)
+	if err != nil {
 		return exported.Unauthorized
 	}
-	return clientState.Status(ctx, k.ClientStore(ctx, clientID), k.cdc)
+
+	if !k.GetParams(ctx).IsAllowedClient(clientType) {
+		return exported.Unauthorized
+	}
+
+	lightClientModule, found := k.router.GetRoute(clientID)
+	if !found {
+		return exported.Unauthorized
+	}
+
+	return lightClientModule.Status(ctx, clientID)
 }
 
 // GetParams returns the total set of ibc-client parameters.
