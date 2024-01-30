@@ -14,12 +14,20 @@ import (
 
 // Keeper defines the 06-solomachine Keeper.
 type Keeper struct {
-	cdc      codec.Codec
+	cdc      codec.BinaryCodec
 	storeKey storetypes.StoreKey
 }
 
+// NewKeeper creates and returns a new 06-solomachine keeper.
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey) Keeper {
+	return Keeper{
+		cdc:      cdc,
+		storeKey: storeKey,
+	}
+}
+
 // Codec returns the keeper codec.
-func (k Keeper) Codec() codec.Codec {
+func (k Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
 
