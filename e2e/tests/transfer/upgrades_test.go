@@ -1,6 +1,6 @@
 //go:build !test_e2e
 
-package channel
+package transfer
 
 import (
 	"context"
@@ -13,8 +13,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
@@ -22,16 +20,16 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 )
 
-func TestChannelTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(ChannelTestSuite))
+func TestTransferChannelUpgradesTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(TransferChannelUpgradesTestSuite))
 }
 
-type ChannelTestSuite struct {
+type TransferChannelUpgradesTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
 // TestChannelUpgrade_WithFeeMiddleware_Succeeds tests upgrading a transfer channel to wire up fee middleware
-func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
+func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -85,7 +83,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
-		s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.createUpgradeFields(chA))
+		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -237,7 +235,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_Succeeds() {
 }
 
 // TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds tests upgrading a transfer channel to wire up fee middleware under crossing hello
-func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds() {
+func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -273,7 +271,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Su
 			defer wg.Done()
 			chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			s.Require().NoError(err)
-			s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.createUpgradeFields(chA))
+			s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
 		}()
 
 		wg.Add(1)
@@ -281,7 +279,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Su
 			defer wg.Done()
 			chB, err := s.QueryChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
 			s.Require().NoError(err)
-			s.initiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.createUpgradeFields(chB))
+			s.InitiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.CreateUpgradeFields(chB))
 		}()
 
 		wg.Wait()
@@ -326,7 +324,7 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Su
 }
 
 // TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck tests upgrading a transfer channel to wire up fee middleware but fails on ACK because of timeout
-func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck() {
+func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck() {
 	t := s.T()
 	ctx := context.TODO()
 
@@ -340,14 +338,14 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeout
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("execute gov proposal to set upgrade timeout", func(t *testing.T) {
-		s.setUpgradeTimeoutParam(ctx, chainB, chainBWallet)
+		s.SetUpgradeTimeoutParam(ctx, chainB, chainBWallet)
 	})
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
 		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
-		s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.createUpgradeFields(chA))
+		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -381,38 +379,4 @@ func (s *ChannelTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeout
 		s.Require().Equal(uint64(1), errorReceipt.Sequence)
 		s.Require().Contains(errorReceipt.Message, "restored channel to pre-upgrade state")
 	})
-}
-
-// createUpgradeFields created the upgrade fields for channel
-func (s *ChannelTestSuite) createUpgradeFields(channel channeltypes.Channel) channeltypes.UpgradeFields {
-	versionMetadata := feetypes.Metadata{
-		FeeVersion: feetypes.Version,
-		AppVersion: transfertypes.Version,
-	}
-	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
-	s.Require().NoError(err)
-
-	return channeltypes.NewUpgradeFields(channel.Ordering, channel.ConnectionHops, string(versionBytes))
-}
-
-// setUpgradeTimeoutParam creates and submits a governance proposal to execute the message to update 04-channel params with a timeout of 1s
-func (s *ChannelTestSuite) setUpgradeTimeoutParam(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet) {
-	const timeoutDelta = 1000000000 // use 1 second as relative timeout to force upgrade timeout on the counterparty
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
-	s.Require().NoError(err)
-	s.Require().NotNil(govModuleAddress)
-
-	upgradeTimeout := channeltypes.NewTimeout(channeltypes.DefaultTimeout.Height, timeoutDelta)
-	msg := channeltypes.NewMsgUpdateChannelParams(govModuleAddress.String(), channeltypes.NewParams(upgradeTimeout))
-	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, wallet)
-}
-
-// initiateChannelUpgrade creates and submits a governance proposal to execute the message to initiate a channel upgrade
-func (s *ChannelTestSuite) initiateChannelUpgrade(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, portID, channelID string, upgradeFields channeltypes.UpgradeFields) {
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
-	s.Require().NoError(err)
-	s.Require().NotNil(govModuleAddress)
-
-	msg := channeltypes.NewMsgChannelUpgradeInit(portID, channelID, upgradeFields, govModuleAddress.String())
-	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, wallet)
 }

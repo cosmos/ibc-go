@@ -1,0 +1,18 @@
+{
+  "chain-a": [
+    "release-v8.1.x"
+  ],
+  "chain-b": [
+    "release-v8.1.x"
+  ],
+  "entrypoint": [
+    "TestInterchainAccountsChannelUpgradesTestSuite"
+  ],
+  "test": [
+    "TestMsgSendTx_SuccessfulTransfer_AfterUpgradingOrdertoUnordered",
+    "TestChannelUpgrade_ICAChannelClosesAfterTimeout_Succeeds"
+  ],
+  "relayer-type": [
+    "hermes"
+  ]
+}
