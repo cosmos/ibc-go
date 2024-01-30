@@ -85,7 +85,6 @@ type ConnectionKeeper interface {
 	VerifyChannelUpgradeError(
 		ctx sdk.Context,
 		connection connectiontypes.ConnectionEnd,
-
 		height exported.Height,
 		proof []byte,
 		portID,
