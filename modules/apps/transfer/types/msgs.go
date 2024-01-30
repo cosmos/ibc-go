@@ -45,14 +45,14 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 // NewMsgTransfer creates a new MsgTransfer instance
 func NewMsgTransfer(
 	sourcePort, sourceChannel string,
-	token sdk.Coin, sender, receiver string,
+	tokens sdk.Coins, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	memo string,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
 		SourceChannel:    sourceChannel,
-		Token:            token,
+		Tokens:           tokens,
 		Sender:           sender,
 		Receiver:         receiver,
 		TimeoutHeight:    timeoutHeight,
@@ -73,15 +73,19 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
 
-	if msg.Token.IsZero() {
-		if len(msg.Tokens) == 0 {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "must specify at least one token in tokens")
-		}
+	if len(msg.Tokens) == 0 {
+		return errorsmod.Wrap(ErrInvalidAmount, "either token or token array must be filled")
 	}
 
-	if len(msg.Tokens) == 0 {
-		if msg.Token.IsZero() {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "token must be non zero")
+	for _, token := range msg.Tokens {
+		if !token.IsValid() {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.String())
+		}
+		if !token.IsPositive() {
+			return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, token.String())
+		}
+		if err := ValidateIBCDenom(token.Denom); err != nil {
+			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, token.Denom)
 		}
 	}
 
@@ -97,25 +101,6 @@ func (msg MsgTransfer) ValidateBasic() error {
 	}
 	if len(msg.Memo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
-	}
-
-	tokensToValidate := msg.Tokens
-	if !msg.Token.IsZero() {
-		tokensToValidate = []sdk.Coin{msg.Token}
-	}
-
-	for _, token := range tokensToValidate {
-
-		if !token.IsValid() {
-			return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.String())
-		}
-		if !token.IsPositive() {
-			return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, msg.Token.String())
-		}
-
-		if err := ValidateIBCDenom(token.Denom); err != nil {
-			return err
-		}
 	}
 
 	return nil

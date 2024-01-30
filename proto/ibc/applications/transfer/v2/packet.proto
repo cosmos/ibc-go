@@ -40,20 +40,4 @@ message Token {
   uint64 amount = 2;
   // the trace
   repeated string trace = 3;
-  // metadata
-  Metadata metadata = 4;
-}
-
-// the Metadata
-message Metadata {
-  // the denom unit
-  repeated DenomUnit denom_units = 1;
-}
-
-// the DenomUnit
-message DenomUnit {
-  // the denom
-  string denom = 1;
-  // the exponent
-  uint64 exponent = 2;
 }

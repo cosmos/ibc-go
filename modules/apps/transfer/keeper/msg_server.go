@@ -26,15 +26,11 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	var tokens []sdk.Coin
+	// if len(tokens) == 0 {
 
-	if msg.Token.IsZero() {
-		tokens = msg.Tokens
-	} else {
-		tokens = append(tokens, msg.Token)
-	}
+	// }
 
-	for _, token := range tokens {
+	for _, token := range msg.Tokens {
 		if !k.bankKeeper.IsSendEnabledCoin(ctx, token) {
 			return nil, errorsmod.Wrapf(types.ErrSendDisabled, "transfers are currently disabled for %s", token.Denom)
 		}
@@ -45,29 +41,30 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 
 	sequence, err := k.sendTransfer(
-		ctx, msg.SourcePort, msg.SourceChannel, tokens, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
+		ctx, msg.SourcePort, msg.SourceChannel, msg.Tokens, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
 		msg.Memo)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO
-	k.Logger(ctx).Info("IBC fungible token transfer", "token", msg.Token.Denom, "amount", msg.Token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
+	for _, token := range msg.Tokens {
+		k.Logger(ctx).Info("IBC fungible token transfer", "token", token.Denom, "amount", token.Amount.String(), "sender", msg.Sender, "receiver", msg.Receiver)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeTransfer,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Token.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Token.Denom),
-			sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeTransfer,
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+				sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+				sdk.NewAttribute(types.AttributeKeyAmount, token.Amount.String()),
+				sdk.NewAttribute(types.AttributeKeyDenom, token.Denom),
+				sdk.NewAttribute(types.AttributeKeyMemo, msg.Memo),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			),
+		})
+	}
 
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }
