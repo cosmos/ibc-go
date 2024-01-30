@@ -25,10 +25,9 @@ func ConvertPacketV1ToPacketV2(packetData types.FungibleTokenPacketData) types.F
 	return types.FungibleTokenPacketDataV2{
 		Tokens: []*types.Token{
 			{
-				Denom:    v2Denom,
-				Amount:   amount,
-				Trace:    trace,
-				Metadata: &types.Metadata{}, // TODO: figure out metadata
+				Denom:  v2Denom,
+				Amount: amount,
+				Trace:  trace,
 			},
 		},
 		Sender:   packetData.Sender,
