@@ -9,7 +9,6 @@ import (
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 func TestIsModuleQuerySafe(t *testing.T) {
@@ -48,8 +47,6 @@ func TestIsModuleQuerySafe(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			_ = ibctesting.NewCoordinator(t, 1)
-
 			res, err := types.IsModuleQuerySafe(tc.servicePath)
 			require.Equal(t, tc.isModuleQuerySafe, res)
 			require.ErrorIs(t, err, tc.expErr)
