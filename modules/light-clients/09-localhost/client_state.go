@@ -19,7 +19,7 @@ import (
 var _ exported.ClientState = (*ClientState)(nil)
 
 // NewClientState creates a new 09-localhost ClientState instance.
-func NewClientState(height clienttypes.Height) exported.ClientState {
+func NewClientState(height clienttypes.Height) *ClientState {
 	return &ClientState{
 		LatestHeight: height,
 	}
@@ -33,11 +33,6 @@ func (ClientState) ClientType() string {
 // GetLatestHeight returns the 09-localhost client state latest height.
 func (cs ClientState) GetLatestHeight() exported.Height {
 	return cs.LatestHeight
-}
-
-// Status always returns Active. The 09-localhost status cannot be changed.
-func (ClientState) Status(_ sdk.Context, _ storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
-	return exported.Active
 }
 
 // Validate performs a basic validation of the client state fields.

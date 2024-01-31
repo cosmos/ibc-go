@@ -15,11 +15,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/testing/mock"
 )
 
-func (suite *LocalhostTestSuite) TestStatus() {
-	clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
-	suite.Require().Equal(exported.Active, clientState.Status(suite.chain.GetContext(), nil, nil))
-}
-
 func (suite *LocalhostTestSuite) TestClientType() {
 	clientState := localhost.NewClientState(clienttypes.NewHeight(3, 10))
 	suite.Require().Equal(exported.Localhost, clientState.ClientType())
@@ -419,7 +414,7 @@ func (suite *LocalhostTestSuite) TestUpdateState() {
 	expHeight := clienttypes.NewHeight(1, uint64(suite.chain.GetContext().BlockHeight()))
 	suite.Require().True(heights[0].EQ(expHeight))
 
-	clientState = suite.chain.GetClientState(exported.LocalhostClientID)
+	clientState = suite.chain.GetClientState(exported.LocalhostClientID).(*localhost.ClientState)
 	suite.Require().True(heights[0].EQ(clientState.GetLatestHeight()))
 }
 

@@ -18,7 +18,7 @@ type LightClientModule struct {
 	storeProvider exported.ClientStoreProvider
 }
 
-func NewLightClientModule(cdc codec.BinaryCodec, authority string) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string) LightClientModule {
 	return LightClientModule{
 		keeper: keeper.NewKeeper(cdc, authority),
 	}
@@ -180,25 +180,9 @@ func (lcm LightClientModule) VerifyNonMembership(
 	return clientState.VerifyNonMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
+// Status always returns Active. The 09-localhost status cannot be changed.
 func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
-	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
-	if err != nil {
-		return exported.Unknown
-	}
-
-	if clientType != exported.Localhost {
-		return exported.Unknown
-	}
-
-	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
-	cdc := lcm.keeper.Codec()
-
-	clientState, found := getClientState(clientStore, cdc)
-	if !found {
-		return exported.Unknown
-	}
-
-	return clientState.Status(ctx, clientStore, cdc)
+	return exported.Active
 }
 
 func (lcm LightClientModule) TimestampAtHeight(
