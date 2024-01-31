@@ -52,24 +52,16 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 			srcChannel := args[1]
 			receiver := args[2]
 
-			isMultiDenom, err := cmd.Flags().GetBool(flagMultiDenom)
-			if err != nil {
-				return err
-			}
-
 			var coins sdk.Coins
 
-			if isMultiDenom {
+			coin, err := sdk.ParseCoinNormalized(args[3])
+			if err == nil {
+				coins = append(coins, coin)
+			} else {
 				coins, err = sdk.ParseCoinsNormalized(args[3])
 				if err != nil {
 					return err
 				}
-			} else {
-				coin, err := sdk.ParseCoinNormalized(args[3])
-				if err != nil {
-					return err
-				}
-				coins = append(coins, coin)
 			}
 
 			for _, coin := range coins {
@@ -176,7 +168,6 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, types.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	cmd.Flags().String(flagMemo, "", "Memo to be sent along with the packet.")
-	cmd.Flags().Bool(flagMultiDenom, false, "if true, the amount is a list of tokens, otherwise it is a single token")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
