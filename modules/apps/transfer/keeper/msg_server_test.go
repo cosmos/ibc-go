@@ -160,8 +160,8 @@ func (suite *KeeperTestSuite) TestMsgTransfer_MultiDenom() {
 			coin1 := sdk.NewCoin("bond", sdkmath.NewInt(100))
 
 			// send some coins of the second denom from bank module to the sender account as well
-			suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin1))
-			suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin1))
+			suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.MintCoins(suite.chainA.GetContext(), types.ModuleName, sdk.NewCoins(coin1)))
+			suite.Require().NoError(suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), types.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(coin1)))
 
 			msg = types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,

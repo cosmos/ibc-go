@@ -179,7 +179,7 @@ func (suite *TypesTestSuite) TestTransferAuthorizationAccept() {
 						sdk.NewCoin("test-denom2", sdkmath.NewInt(100)),
 					)...,
 				)
-				//TODO
+
 				msgTransfer.Tokens = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(50))}
 			},
 			func(res authz.AcceptResponse, err error) {

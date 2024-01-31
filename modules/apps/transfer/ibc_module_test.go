@@ -136,7 +136,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 		name     string
 		malleate func()
 		expPass  bool
-		v1 bool
+		v1       bool
 	}{
 		{
 			"success", func() {}, true, false,
@@ -513,12 +513,12 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			func() {
 				expPacketData = transferv2.ConvertPacketV1ToPacketV2(
 					types.FungibleTokenPacketData{
-					Denom:    ibctesting.TestCoin.Denom,
-					Amount:   ibctesting.TestCoin.Amount.String(),
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     "some memo",
-				})
+						Denom:    ibctesting.TestCoin.Denom,
+						Amount:   ibctesting.TestCoin.Amount.String(),
+						Sender:   sender,
+						Receiver: receiver,
+						Memo:     "some memo",
+					})
 				data = expPacketData.GetBytes()
 			},
 			true,
@@ -528,12 +528,12 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			func() {
 				expPacketData = transferv2.ConvertPacketV1ToPacketV2(
 					types.FungibleTokenPacketData{
-					Denom:    ibctesting.TestCoin.Denom,
-					Amount:   ibctesting.TestCoin.Amount.String(),
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     "",
-				})
+						Denom:    ibctesting.TestCoin.Denom,
+						Amount:   ibctesting.TestCoin.Amount.String(),
+						Sender:   sender,
+						Receiver: receiver,
+						Memo:     "",
+					})
 				data = expPacketData.GetBytes()
 			},
 			true,

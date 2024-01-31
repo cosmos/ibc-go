@@ -32,6 +32,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
@@ -336,7 +337,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		trustedHeight   clienttypes.Height
 		latestHeight    clienttypes.Height
 		clientState     ibcexported.ClientState
-		header          testsuite.Header
+		header          *cmtservice.Header
 		signers         []cmttypes.PrivValidator
 		validatorSet    []*cmttypes.Validator
 		maliciousHeader *ibctm.Header
@@ -447,6 +448,9 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 		allowedClients := s.QueryAllowedClients(ctx, chainA)
 
 		defaultAllowedClients := clienttypes.DefaultAllowedClients
+		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(chainAVersion) {
+			defaultAllowedClients = []string{ibcexported.Solomachine, ibcexported.Tendermint, ibcexported.Localhost, wasmtypes.Wasm}
+		}
 		if !testvalues.LocalhostClientFeatureReleases.IsSupported(chainAVersion) {
 			defaultAllowedClients = slices.DeleteFunc(defaultAllowedClients, func(s string) bool { return s == ibcexported.Localhost })
 		}
@@ -527,7 +531,7 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc
 }
 
 // createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
-func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *cmttypes.ValidatorSet, signers []cmttypes.PrivValidator, oldHeader testsuite.Header) (*ibctm.Header, error) {
+func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *cmttypes.ValidatorSet, signers []cmttypes.PrivValidator, oldHeader *cmtservice.Header) (*ibctm.Header, error) {
 	tmHeader := cmttypes.Header{
 		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
 		ChainID:            chainID,

@@ -26,9 +26,9 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]*types.Token{
 					{
-						Denom:    "atom",
-						Amount:   1000,
-						Trace:    []string{"transfer/channel-0"},
+						Denom:  "atom",
+						Amount: 1000,
+						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
 			false,
@@ -39,9 +39,9 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]*types.Token{
 					{
-						Denom:    "atom/withslash",
-						Amount:   1000,
-						Trace:    []string{"transfer/channel-0"},
+						Denom:  "atom/withslash",
+						Amount: 1000,
+						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
 			false,
@@ -52,9 +52,9 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]*types.Token{
 					{
-						Denom:    "atom/",
-						Amount:   1000,
-						Trace:    []string{"transfer/channel-0"},
+						Denom:  "atom/",
+						Amount: 1000,
+						Trace:  []string{"transfer/channel-0"},
 					},
 				}, sender, receiver, ""),
 			false,
@@ -65,9 +65,9 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]*types.Token{
 					{
-						Denom:    "atom/pool",
-						Amount:   1000,
-						Trace:    []string{"transfer/channel-0", "transfer/channel-1"},
+						Denom:  "atom/pool",
+						Amount: 1000,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1"},
 					},
 				}, sender, receiver, ""),
 			false,
@@ -78,16 +78,16 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 			types.NewFungibleTokenPacketDataV2(
 				[]*types.Token{
 					{
-						Denom:    "atom",
-						Amount:   1000,
-						Trace:    []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
+						Denom:  "atom",
+						Amount: 1000,
+						Trace:  []string{"transfer/channel-0", "transfer/channel-1", "transfer-custom/channel-2"},
 					},
 				}, sender, receiver, ""),
 			false,
 		},
-		
+
 		// TODO: re-enable this test.
-		//{"failure: empty path",
+		// {"failure: empty path",
 		//	types.NewFungibleTokenPacketData("", "1000", sender, receiver, ""),
 		//	types.FungibleTokenPacketDataV2{},
 		//	true,
