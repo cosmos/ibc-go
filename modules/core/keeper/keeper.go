@@ -39,7 +39,7 @@ type Keeper struct {
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace,
+	cdc codec.BinaryCodec, key storetypes.StoreKey,
 	stakingKeeper clienttypes.StakingKeeper, upgradeKeeper clienttypes.UpgradeKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
 ) *Keeper {

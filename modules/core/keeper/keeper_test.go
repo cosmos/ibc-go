@@ -108,7 +108,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
 					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
-					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					stakingKeeper,
 					upgradeKeeper,
 					scopedKeeper,
@@ -134,7 +133,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
 					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
-					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					stakingKeeper,
 					upgradeKeeper,
 					scopedKeeper,
