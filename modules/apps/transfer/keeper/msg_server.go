@@ -30,6 +30,17 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	// if the ics20-1 token field is populated, and the ics20-2 array is empty.
 	tokens := msg.GetTokens()
 
+	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, msg.SourcePort, msg.SourceChannel)
+	if !found {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", msg.SourcePort, msg.SourceChannel)
+	}
+
+	if appVersion == types.Version1 {
+		if len(tokens) > 1 {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple tokens with ics20-1")
+		}
+	}
+
 	for _, token := range tokens {
 		if !k.bankKeeper.IsSendEnabledCoin(ctx, token) {
 			return nil, errorsmod.Wrapf(types.ErrSendDisabled, "transfers are currently disabled for %s", token.Denom)

@@ -52,6 +52,11 @@ var (
 	SupportedVersions = []string{CurrentVersion, Version1}
 )
 
+const (
+	// EscrowAddressVersion should remain as ics20-1 to avoid the address changing.
+	EscrowAddressVersion = "ics20-1"
+)
+
 // GetEscrowAddress returns the escrow address for the specified channel.
 // The escrow address follows the format as outlined in ADR 028:
 // https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-028-public-key-addresses.md
@@ -61,7 +66,7 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 	contents := fmt.Sprintf("%s/%s", portID, channelID)
 
 	// ADR 028 AddressHash construction
-	preImage := []byte(CurrentVersion)
+	preImage := []byte(EscrowAddressVersion)
 	preImage = append(preImage, 0)
 	preImage = append(preImage, contents...)
 	hash := sha256.Sum256(preImage)
