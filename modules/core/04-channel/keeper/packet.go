@@ -63,13 +63,13 @@ func (k Keeper) SendPacket(
 		return 0, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
+	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.ClientId)
 	if !found {
 		return 0, clienttypes.ErrClientNotFound
 	}
 
 	// prevent accidental sends with clients that cannot be updated
-	if status := k.clientKeeper.GetClientStatus(ctx, connectionEnd.GetClientID()); status != exported.Active {
+	if status := k.clientKeeper.GetClientStatus(ctx, connectionEnd.ClientId); status != exported.Active {
 		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
 	}
 

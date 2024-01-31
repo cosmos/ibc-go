@@ -35,7 +35,7 @@ func (k Keeper) ChanOpenInit(
 		return "", nil, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
 	}
 
-	getVersions := connectionEnd.GetVersions()
+	getVersions := connectionEnd.Versions
 	if len(getVersions) != 1 {
 		return "", nil, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
@@ -130,7 +130,7 @@ func (k Keeper) ChanOpenTry(
 		return "", nil, errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	getVersions := connectionEnd.GetVersions()
+	getVersions := connectionEnd.Versions
 	if len(getVersions) != 1 {
 		return "", nil, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
@@ -147,7 +147,7 @@ func (k Keeper) ChanOpenTry(
 		)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	// expectedCounterpaty is the counterparty of the counterparty's channel end
 	// (i.e self)
@@ -238,7 +238,7 @@ func (k Keeper) ChanOpenAck(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	// counterparty of the counterparty channel end (i.e self)
 	expectedCounterparty := types.NewCounterparty(portID, channelID)
@@ -314,7 +314,7 @@ func (k Keeper) ChanOpenConfirm(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	counterparty := types.NewCounterparty(portID, channelID)
 	expectedChannel := types.NewChannel(
@@ -435,7 +435,7 @@ func (k Keeper) ChanCloseConfirm(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	counterpartyHops := []string{connectionEnd.GetCounterparty().GetConnectionID()}
+	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
 
 	counterparty := types.NewCounterparty(portID, channelID)
 	expectedChannel := types.Channel{
