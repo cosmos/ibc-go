@@ -342,7 +342,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviour() {
 
 			tc.malleate()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, misbehaviour)
@@ -629,7 +629,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 
 			tc.malleate()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			err = clientState.VerifyClientMessage(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, misbehaviour)

@@ -290,7 +290,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 			tc.malleate()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
@@ -489,7 +489,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 
 			tc.malleate()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			if tc.expPass {
@@ -771,7 +771,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 
 			tc.malleate()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			foundMisbehaviour := clientState.CheckForMisbehaviour(
@@ -818,7 +818,7 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			tc.malleate()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
 			clientState.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), clientStore, nil)

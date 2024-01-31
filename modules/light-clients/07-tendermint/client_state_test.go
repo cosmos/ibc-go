@@ -106,7 +106,7 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			clientState := path.EndpointA.GetClientState()
+			clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			height = clientState.GetLatestHeight()
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
