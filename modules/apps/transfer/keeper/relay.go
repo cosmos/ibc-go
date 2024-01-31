@@ -240,7 +240,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				//		float32(transferAmount.Int64()),
 				//		[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, unprefixedDenom)},
 				//	)
-				//}
+				// }
 
 				telemetry.IncrCounterWithLabels(
 					[]string{"ibc", types.ModuleName, "receive"},
@@ -311,7 +311,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		//			labels, telemetry.NewLabel(coretypes.LabelSource, "false"),
 		//		),
 		//	)
-		//}()
+		// }()
 	}
 	return nil
 }

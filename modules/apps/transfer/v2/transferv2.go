@@ -20,7 +20,7 @@ func ConvertPacketV1ToPacketV2(packetData types.FungibleTokenPacketData) types.F
 	// TODO: we should fail here, but some tests fail with this panic. We can re-visit.
 	// if v2Denom == "" {
 	//	panic("base denom cannot be empty")
-	//}
+	// }
 
 	return types.FungibleTokenPacketDataV2{
 		Tokens: []*types.Token{

@@ -91,7 +91,7 @@ func TestConvertPacketV1ToPacketV2(t *testing.T) {
 		//	types.NewFungibleTokenPacketData("", "1000", sender, receiver, ""),
 		//	types.FungibleTokenPacketDataV2{},
 		//	true,
-		//},
+		// },
 	}
 
 	for _, tc := range testCases {

@@ -18,6 +18,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
