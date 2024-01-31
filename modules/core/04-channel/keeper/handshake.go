@@ -35,7 +35,7 @@ func (k Keeper) ChanOpenInit(
 		return "", nil, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, connectionHops[0])
 	}
 
-	getVersions := connectionEnd.GetVersions()
+	getVersions := connectionEnd.Versions
 	if len(getVersions) != 1 {
 		return "", nil, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,
@@ -135,7 +135,7 @@ func (k Keeper) ChanOpenTry(
 		return "", nil, errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	getVersions := connectionEnd.GetVersions()
+	getVersions := connectionEnd.Versions
 	if len(getVersions) != 1 {
 		return "", nil, errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,

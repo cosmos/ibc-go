@@ -926,7 +926,7 @@ func (k Keeper) validateSelfUpgradeFields(ctx sdk.Context, proposedUpgrade types
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
-	getVersions := connection.GetVersions()
+	getVersions := connection.Versions
 	if len(getVersions) != 1 {
 		return errorsmod.Wrapf(
 			connectiontypes.ErrInvalidVersion,

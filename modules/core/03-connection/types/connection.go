@@ -20,11 +20,6 @@ func NewConnectionEnd(state State, clientID string, counterparty Counterparty, v
 	}
 }
 
-// GetVersions implements the Connection interface
-func (c ConnectionEnd) GetVersions() []*Version {
-	return c.Versions
-}
-
 // GetDelayPeriod implements the Connection interface
 func (c ConnectionEnd) GetDelayPeriod() uint64 {
 	return c.DelayPeriod
