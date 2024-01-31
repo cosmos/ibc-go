@@ -70,11 +70,11 @@ func (k Keeper) SendPacket(
 
 	// prevent accidental sends with clients that cannot be updated
 	if status := k.clientKeeper.GetClientStatus(ctx, connectionEnd.ClientId); status != exported.Active {
-		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.GetClientID(), status)
+		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot send packet using client (%s) with status %s", connectionEnd.ClientId, status)
 	}
 
 	latestHeight := clientState.GetLatestHeight()
-	latestTimestamp, err := k.clientKeeper.GetTimestampAtHeight(ctx, connectionEnd.GetClientID(), latestHeight)
+	latestTimestamp, err := k.clientKeeper.GetTimestampAtHeight(ctx, connectionEnd.ClientId, latestHeight)
 	if err != nil {
 		return 0, err
 	}

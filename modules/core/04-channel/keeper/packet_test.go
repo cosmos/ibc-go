@@ -167,7 +167,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			// use latest time on client state
 			clientState := path.EndpointA.GetClientState()
 			connection := path.EndpointA.GetConnection()
-			timestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection.GetClientID(), clientState.GetLatestHeight())
+			timestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetTimestampAtHeight(suite.chainA.GetContext(), connection.ClientId, clientState.GetLatestHeight())
 			suite.Require().NoError(err)
 
 			timeoutHeight = disabledTimeoutHeight
