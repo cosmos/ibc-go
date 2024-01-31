@@ -34,23 +34,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [[Unreleased]]
+## [v7.2.3](https://github.com/cosmos/ibc-go/releases/tag/v7.2.3) - 2024-01-31
 
 ### Dependencies
 
 * [\#5716](https://github.com/cosmos/ibc-go/pull/5716) Update Cosmos SDK to v0.47.8 and CometBFT to v0.37.4.
 
-### API Breaking
-
-### State Machine Breaking
-
 ### Improvements
 
 * (core) [\#5541](https://github.com/cosmos/ibc-go/pull/5541) Enable emission of events on erroneous IBC application callbacks by appending a prefix to all event type and attribute keys.
-
-### Features
-
-### Bug Fixes
 
 ## [v7.2.2](https://github.com/cosmos/ibc-go/releases/tag/v7.2.2) - 2023-10-20
 
