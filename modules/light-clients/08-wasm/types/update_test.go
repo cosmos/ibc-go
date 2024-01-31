@@ -146,7 +146,7 @@ func (suite *TypesTestSuite) TestUpdateState() {
 
 			tc.malleate()
 
-			clientState := endpoint.GetClientState()
+			clientState := endpoint.GetClientState().(*types.ClientState)
 
 			var heights []exported.Height
 			updateState := func() {
@@ -273,7 +273,7 @@ func (suite *TypesTestSuite) TestUpdateStateOnMisbehaviour() {
 			clientMsg = &types.ClientMessage{
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientMisbehaviour),
 			}
-			clientState := endpoint.GetClientState()
+			clientState := endpoint.GetClientState().(*types.ClientState)
 
 			tc.malleate()
 

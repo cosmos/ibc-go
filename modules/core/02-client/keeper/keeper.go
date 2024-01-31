@@ -39,10 +39,14 @@ type Keeper struct {
 
 // NewKeeper creates a new NewKeeper instance
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
+	router := types.NewRouter(key)
+	localhostModule := localhost.NewLightClientModule(cdc, key)
+	router.AddRoute(exported.Localhost, localhostModule)
+
 	return Keeper{
 		storeKey:       key,
 		cdc:            cdc,
-		router:         types.NewRouter(key),
+		router:         router,
 		legacySubspace: legacySubspace,
 		stakingKeeper:  sk,
 		upgradeKeeper:  uk,
@@ -60,8 +64,11 @@ func (k Keeper) GetRouter() *types.Router {
 
 // CreateLocalhostClient initialises the 09-localhost client state and sets it in state.
 func (k Keeper) CreateLocalhostClient(ctx sdk.Context) error {
-	localhostModule := localhost.NewLightClientModule(k.cdc, k.storeKey)
-	k.router.AddRoute(exported.Localhost, localhostModule)
+	localhostModule, found := k.router.GetRoute(exported.Localhost)
+	if !found {
+		errorsmod.Wrap(types.ErrRouteNotFound, exported.Localhost)
+	}
+
 	return localhostModule.Initialize(ctx, exported.LocalhostClientID, nil, nil)
 }
 

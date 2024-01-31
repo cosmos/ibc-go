@@ -100,7 +100,7 @@ func (suite *TypesTestSuite) TestVerifyClientMessage() {
 			suite.Require().NoError(err)
 
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState := endpoint.GetClientState()
+			clientState := endpoint.GetClientState().(*types.ClientState)
 
 			clientMsg = &types.ClientMessage{
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader),
