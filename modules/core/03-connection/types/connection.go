@@ -26,7 +26,7 @@ func (c ConnectionEnd) GetClientID() string {
 }
 
 // GetCounterparty implements the Connection interface
-func (c ConnectionEnd) GetCounterparty() exported.CounterpartyConnectionI {
+func (c ConnectionEnd) GetCounterparty() Counterparty {
 	return c.Counterparty
 }
 
@@ -57,8 +57,6 @@ func (c ConnectionEnd) ValidateBasic() error {
 	}
 	return c.Counterparty.ValidateBasic()
 }
-
-var _ exported.CounterpartyConnectionI = (*Counterparty)(nil)
 
 // NewCounterparty creates a new Counterparty instance.
 func NewCounterparty(clientID, connectionID string, prefix commitmenttypes.MerklePrefix) Counterparty {
