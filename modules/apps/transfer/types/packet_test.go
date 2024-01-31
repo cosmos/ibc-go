@@ -151,4 +151,11 @@ func (suite *TypesTestSuite) TestFungibleTokenPacketDataOmitEmpty() {
 
 	// check that the memo field is not present in the marshalled bytes
 	suite.Require().NotContains(string(bz), "memo")
+
+	packetData.Memo = "abc"
+	bz, err = json.Marshal(packetData)
+	suite.Require().NoError(err)
+
+	// check that the memo field is present in the marshalled bytes
+	suite.Require().Contains(string(bz), "memo")
 }
