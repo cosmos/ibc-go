@@ -39,6 +39,7 @@ func NewTxCmd() *cobra.Command {
 
 	txCmd.AddCommand(
 		NewTransferTxCmd(),
+		NewTransferMultiDenomTxCmd(),
 	)
 
 	return txCmd
