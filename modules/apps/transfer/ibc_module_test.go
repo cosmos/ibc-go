@@ -1,7 +1,11 @@
 package transfer_test
 
 import (
+	sdkmath "cosmossdk.io/math"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"math"
+	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -492,6 +496,94 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 			}
 		})
 	}
+}
+
+func (suite *TransferTestSuite) TestUpgradeTransferChannel() {
+	suite.SetupTest()
+	path := NewTransferPath(suite.chainA, suite.chainB)
+
+	// start both channels on ics20-1
+	path.EndpointA.ChannelConfig.Version = types.Version1
+	path.EndpointB.ChannelConfig.Version = types.Version1
+	path.Setup()
+
+	// upgrade both channels to ics20-2
+	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{path.EndpointA.ConnectionID}
+	path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = types.CurrentVersion
+
+	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{path.EndpointB.ConnectionID}
+	path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = types.CurrentVersion
+
+	suite.T().Run("perform channel upgrade to ics20-2", func(t *testing.T) {
+		err := path.EndpointA.ChanUpgradeInit()
+		suite.Require().NoError(err)
+
+		err = path.EndpointB.ChanUpgradeTry()
+		suite.Require().NoError(err)
+
+		err = path.EndpointA.ChanUpgradeAck()
+		suite.Require().NoError(err)
+
+		err = path.EndpointB.ChanUpgradeConfirm()
+		suite.Require().NoError(err)
+
+		err = path.EndpointA.ChanUpgradeOpen()
+		suite.Require().NoError(err)
+
+		channelA := path.EndpointA.GetChannel()
+		suite.Require().Equal(types.CurrentVersion, channelA.Version)
+
+		channelB := path.EndpointB.GetChannel()
+		suite.Require().Equal(types.CurrentVersion, channelB.Version)
+
+	})
+
+	secondCoin := sdk.NewCoin("atom", sdkmath.NewInt(1000))
+	suite.T().Run("fund second denom", func(t *testing.T) {
+		err := suite.chainA.GetSimApp().MintKeeper.MintCoins(suite.chainA.GetContext(), sdk.NewCoins(sdk.NewCoin(secondCoin.Denom, sdkmath.NewInt(1000))))
+		suite.Require().NoError(err)
+		err = suite.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(suite.chainA.GetContext(), minttypes.ModuleName, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(secondCoin))
+		suite.Require().NoError(err)
+	})
+
+	timeoutHeight := clienttypes.NewHeight(1, 110)
+	msgTransfer := types.NewMsgTransfer(
+		path.EndpointA.ChannelConfig.PortID,
+		path.EndpointA.ChannelID,
+		sdk.Coin{},
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+		timeoutHeight, 0, "", ibctesting.TestCoin, ibctesting.TestCoin, secondCoin)
+
+	suite.T().Run("execute msg transfer", func(t *testing.T) {
+		res, err := suite.chainA.SendMsgs(msgTransfer)
+		suite.Require().NoError(err)
+
+		packet, err := ibctesting.ParsePacketFromEvents(res.Events)
+		suite.Require().NoError(err)
+
+		// relay send
+		err = path.RelayPacket(packet)
+		suite.Require().NoError(err) // relay committed
+
+		suite.Require().NotNil(res)
+		suite.Require().NoError(err)
+	})
+
+	suite.T().Run("multiple tokens of stake denom sent", func(t *testing.T) {
+		// check that voucher exists on chain B
+		voucherDenomTrace := types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
+		balance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
+		coinSentFromAToB := types.GetTransferCoin(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.DefaultBondDenom, ibctesting.TestCoin.Amount.Mul(sdkmath.NewInt(2)))
+		suite.Require().Equal(coinSentFromAToB, balance)
+	})
+
+	suite.T().Run("atom denom sent", func(t *testing.T) {
+		voucherDenomTraceSecond := types.ParseDenomTrace(types.GetPrefixedDenom(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, secondCoin.Denom))
+		balance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTraceSecond.IBCDenom())
+		coinSentFromAToB := types.GetTransferCoin(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, secondCoin.Denom, secondCoin.Amount)
+		suite.Require().Equal(coinSentFromAToB, balance)
+	})
 }
 
 func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
