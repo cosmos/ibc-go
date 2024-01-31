@@ -204,33 +204,6 @@ func (k Keeper) ConnectionOpenConfirm(goCtx context.Context, msg *connectiontype
 func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChannelOpenInit) (*channeltypes.MsgChannelOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// If the port capability is already claimed by a list of modules for the provided portID
-	// then the modules must be identical to the ones passed in the message version for the message to be valid
-	// For a non-routed version, the module owner of the capability is the one assumed to be opening the channel.
-	modules, portCap := k.PortKeeper.LookupModuleByPort(ctx, msg.PortId)
-	var routedVersion porttypes.RoutedVersion
-	routeErr := k.cdc.UnmarshalJSON([]byte(msg.Channel.Version), &routedVersion)
-	var routes []string
-	if routeErr != nil {
-		for i, r := range routedVersion.Routes {
-			if modules[i] != r.Route {
-				return nil, errorsmod.Wrap(porttypes.ErrInvalidRoute, "port is already bound to a different stack of applications")
-			}
-			routes = append(routes, r.Route)
-		}
-	} else {
-		// Lookup modules by port capability
-		if len(modules) != 1 {
-			return nil, errorsmod.Wrap(porttypes.ErrInvalidRoute, "version is not a routed version, so the port must already be claimed by a single module")
-		}
-		routes = []string{modules[0]}
-	}
-
-	// If portcapability does not already exist, we will create a new one and assign it to the routed modules
-	if portCap == nil {
-		portCap = k.PortKeeper.BindPort(ctx, msg.PortId)
-	}
-
 	// // Retrieve application callbacks from router
 	// cbs, ok := k.Router.GetRoute(module)
 	// if !ok {
@@ -239,9 +212,9 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	// }
 
 	// Perform 04-channel verification
-	channelID, chanCap, err := k.ChannelKeeper.ChanOpenInit(
+	channelID, err := k.ChannelKeeper.ChanOpenInit(
 		ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId,
-		portCap, msg.Channel.Counterparty, msg.Channel.Version,
+		msg.Channel.Counterparty, msg.Channel.Version,
 	)
 	if err != nil {
 		ctx.Logger().Error("channel open init failed", "error", errorsmod.Wrap(err, "channel handshake open init failed"))
@@ -256,7 +229,7 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 	// }
 
 	// Send application callback to port Router
-	version, err := k.PortKeeper.OnChanOpenInit(ctx, msg.PortId, channelID, portCap, chanCap, msg.Channel.Counterparty, msg.Channel.Version)
+	version, err := k.PortKeeper.OnChanOpenInit(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, msg.Channel.Counterparty, msg.Channel.Version)
 
 	// Write channel into state
 	k.ChannelKeeper.WriteOpenInitChannel(ctx, msg.PortId, channelID, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.Channel.Counterparty, version)
@@ -275,23 +248,23 @@ func (k Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChan
 func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChannelOpenTry) (*channeltypes.MsgChannelOpenTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Lookup module by port capability
-	module, portCap, err := k.PortKeeper.LookupModuleByPort(ctx, msg.PortId)
-	if err != nil {
-		ctx.Logger().Error("channel open try failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
+	// // Lookup module by port capability
+	// module, portCap, err := k.PortKeeper.LookupModuleByPort(ctx, msg.PortId)
+	// if err != nil {
+	// 	ctx.Logger().Error("channel open try failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
+	// 	return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
+	// }
 
-	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
-	if !ok {
-		ctx.Logger().Error("channel open try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-	}
+	// // Retrieve application callbacks from router
+	// cbs, ok := k.Router.GetRoute(module)
+	// if !ok {
+	// 	ctx.Logger().Error("channel open try failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
+	// 	return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+	// }
 
 	// Perform 04-channel verification
-	channelID, capability, err := k.ChannelKeeper.ChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId,
-		portCap, msg.Channel.Counterparty, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
+	channelID, err := k.ChannelKeeper.ChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId,
+		msg.Channel.Counterparty, msg.CounterpartyVersion, msg.ProofInit, msg.ProofHeight,
 	)
 	if err != nil {
 		ctx.Logger().Error("channel open try failed", "error", errorsmod.Wrap(err, "channel handshake open try failed"))
@@ -299,7 +272,7 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 	}
 
 	// Perform application logic callback
-	version, err := cbs.OnChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, capability, msg.Channel.Counterparty, msg.CounterpartyVersion)
+	version, err := k.PortKeeper.OnChanOpenTry(ctx, msg.Channel.Ordering, msg.Channel.ConnectionHops, msg.PortId, channelID, msg.Channel.Counterparty, msg.CounterpartyVersion)
 	if err != nil {
 		ctx.Logger().Error("channel open try failed", "port-id", msg.PortId, "channel-id", channelID, "error", errorsmod.Wrap(err, "channel open try callback failed"))
 		return nil, errorsmod.Wrapf(err, "channel open try callback failed for port ID: %s, channel ID: %s", msg.PortId, channelID)
@@ -322,23 +295,9 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChannelOpenAck) (*channeltypes.MsgChannelOpenAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Lookup module by channel capability
-	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
-	if err != nil {
-		ctx.Logger().Error("channel open ack failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
-
-	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
-	if !ok {
-		ctx.Logger().Error("channel open ack failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-	}
-
 	// Perform 04-channel verification
-	if err = k.ChannelKeeper.ChanOpenAck(
-		ctx, msg.PortId, msg.ChannelId, capability, msg.CounterpartyVersion, msg.CounterpartyChannelId, msg.ProofTry, msg.ProofHeight,
+	if err := k.ChannelKeeper.ChanOpenAck(
+		ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion, msg.CounterpartyChannelId, msg.ProofTry, msg.ProofHeight,
 	); err != nil {
 		ctx.Logger().Error("channel open ack failed", "error", err.Error())
 		return nil, errorsmod.Wrap(err, "channel handshake open ack failed")
@@ -348,7 +307,7 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 	k.ChannelKeeper.WriteOpenAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyVersion, msg.CounterpartyChannelId)
 
 	// Perform application logic callback
-	if err = cbs.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelId, msg.CounterpartyVersion); err != nil {
+	if err := k.PortKeeper.OnChanOpenAck(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannelId, msg.CounterpartyVersion); err != nil {
 		ctx.Logger().Error("channel open ack failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "channel open ack callback failed"))
 		return nil, errorsmod.Wrapf(err, "channel open ack callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
@@ -364,22 +323,8 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgChannelOpenConfirm) (*channeltypes.MsgChannelOpenConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Lookup module by channel capability
-	module, capability, err := k.ChannelKeeper.LookupModuleByChannel(ctx, msg.PortId, msg.ChannelId)
-	if err != nil {
-		ctx.Logger().Error("channel open confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
-	}
-
-	// Retrieve application callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
-	if !ok {
-		ctx.Logger().Error("channel open confirm failed", "port-id", msg.PortId, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module))
-		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
-	}
-
 	// Perform 04-channel verification
-	if err = k.ChannelKeeper.ChanOpenConfirm(ctx, msg.PortId, msg.ChannelId, capability, msg.ProofAck, msg.ProofHeight); err != nil {
+	if err := k.ChannelKeeper.ChanOpenConfirm(ctx, msg.PortId, msg.ChannelId, msg.ProofAck, msg.ProofHeight); err != nil {
 		ctx.Logger().Error("channel open confirm failed", "error", errorsmod.Wrap(err, "channel handshake open confirm failed"))
 		return nil, errorsmod.Wrap(err, "channel handshake open confirm failed")
 	}
@@ -388,7 +333,7 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 	k.ChannelKeeper.WriteOpenConfirmChannel(ctx, msg.PortId, msg.ChannelId)
 
 	// Perform application logic callback
-	if err = cbs.OnChanOpenConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
+	if err := k.PortKeeper.OnChanOpenConfirm(ctx, msg.PortId, msg.ChannelId); err != nil {
 		ctx.Logger().Error("channel open confirm failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "channel open confirm callback failed"))
 		return nil, errorsmod.Wrapf(err, "channel open confirm callback failed for port ID: %s, channel ID: %s", msg.PortId, msg.ChannelId)
 	}
