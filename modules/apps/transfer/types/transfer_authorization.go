@@ -22,6 +22,10 @@ import (
 
 var _ authz.Authorization = (*TransferAuthorization)(nil)
 
+const (
+	allocationNotFound = -1
+)
+
 // maxUint256 is the maximum value for a 256 bit unsigned integer.
 var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
 
@@ -45,14 +49,14 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 	}
 
 	index := getAllocationIndex(*msgTransfer, a.Allocations)
-	if index == -1 {
+	if index == allocationNotFound {
 		return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 	}
 
 	allocation := a.Allocations[index]
 
 	// bool flag to see if we have updated any of the allocations
-	isModified := false
+	modificationMade := false
 
 	if !isAllowedAddress(sdk.UnwrapSDKContext(ctx), msgTransfer.Receiver, allocation.AllowList) {
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
@@ -76,7 +80,7 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", token.Denom)
 		}
 
-		isModified = true
+		modificationMade = true
 
 		a.Allocations[index] = Allocation{
 			SourcePort:        allocation.SourcePort,
@@ -87,24 +91,21 @@ func (a TransferAuthorization) Accept(ctx context.Context, msg proto.Message) (a
 		}
 	}
 
-	var allocations []Allocation
-
-	for _, allocation := range a.Allocations {
-		if !allocation.SpendLimit.IsZero() {
-			allocations = append(allocations, allocation)
-		}
+	// if the spend limit is zero of the associated allocation then we delete it.
+	if a.Allocations[index].SpendLimit.IsZero() {
+		a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
 	}
 
-	if len(allocations) == 0 {
+	if len(a.Allocations) == 0 {
 		return authz.AcceptResponse{Accept: true, Delete: true}, nil
 	}
 
-	if !isModified {
+	if !modificationMade {
 		return authz.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
 	}
 
 	return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
-		Allocations: allocations,
+		Allocations: a.Allocations,
 	}}, nil
 }
 
@@ -232,5 +233,5 @@ func getAllocationIndex(msg MsgTransfer, allocations []Allocation) int {
 			return index
 		}
 	}
-	return -1
+	return allocationNotFound
 }
