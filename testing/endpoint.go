@@ -905,3 +905,12 @@ func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
 
 	return upgrade
 }
+
+// UpdateConnection updates the connection associated with the given endpoint. It accepts a
+// closure which takes a connection allowing the caller to modify the connection fields.
+func (endpoint *Endpoint) UpdateConnection(updater func(connection *connectiontypes.ConnectionEnd)) {
+	connection := endpoint.GetConnection()
+	updater(&connection)
+
+	endpoint.SetConnection(connection)
+}

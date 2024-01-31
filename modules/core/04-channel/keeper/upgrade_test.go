@@ -75,10 +75,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 		{
 			"invalid proposed channel connection state",
 			func() {
-				connectionEnd := path.EndpointA.GetConnection()
-				connectionEnd.State = connectiontypes.UNINITIALIZED
-
-				suite.chainA.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainA.GetContext(), "connection-100", connectionEnd)
+				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 				upgradeFields.ConnectionHops = []string{"connection-100"}
 			},
 			false,
@@ -175,9 +172,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		{
 			"invalid connection state",
 			func() {
-				connectionEnd := path.EndpointB.GetConnection()
-				connectionEnd.State = connectiontypes.UNINITIALIZED
-				suite.chainB.GetSimApp().GetIBCKeeper().ConnectionKeeper.SetConnection(suite.chainB.GetContext(), path.EndpointB.ConnectionID, connectionEnd)
+				path.EndpointB.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 			},
 			connectiontypes.ErrInvalidConnectionState,
 		},
@@ -679,9 +674,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 		{
 			"invalid connection state",
 			func() {
-				connectionEnd := path.EndpointA.GetConnection()
-				connectionEnd.State = connectiontypes.UNINITIALIZED
-				path.EndpointA.SetConnection(connectionEnd)
+				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 			},
 			connectiontypes.ErrInvalidConnectionState,
 		},
@@ -1036,9 +1029,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 		{
 			"invalid connection state",
 			func() {
-				connectionEnd := path.EndpointB.GetConnection()
-				connectionEnd.State = connectiontypes.UNINITIALIZED
-				path.EndpointB.SetConnection(connectionEnd)
+				path.EndpointB.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 			},
 			connectiontypes.ErrInvalidConnectionState,
 		},
@@ -1292,9 +1283,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeOpen() {
 		{
 			"invalid connection state",
 			func() {
-				connectionEnd := path.EndpointA.GetConnection()
-				connectionEnd.State = connectiontypes.UNINITIALIZED
-				path.EndpointA.SetConnection(connectionEnd)
+				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 			},
 			connectiontypes.ErrInvalidConnectionState,
 		},
@@ -2053,9 +2042,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		{
 			"connection not open",
 			func() {
-				connectionEnd := path.EndpointA.GetConnection()
-				connectionEnd.State = connectiontypes.UNINITIALIZED
-				path.EndpointA.SetConnection(connectionEnd)
+				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 			},
 			connectiontypes.ErrInvalidConnectionState,
 		},
@@ -2234,9 +2221,7 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 		{
 			"connection state is not in OPEN state",
 			func() {
-				conn := path.EndpointB.GetConnection()
-				conn.State = connectiontypes.INIT
-				path.EndpointB.SetConnection(conn)
+				path.EndpointB.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.INIT })
 			},
 			connectiontypes.ErrInvalidConnectionState,
 		},
@@ -2341,9 +2326,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 		{
 			name: "fails when connection is not open",
 			malleate: func() {
-				connection := path.EndpointA.GetConnection()
-				connection.State = connectiontypes.UNINITIALIZED
-				path.EndpointA.SetConnection(connection)
+				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 			},
 			expPass: false,
 		},
@@ -2353,9 +2336,9 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 				// update channel version first so that existing channel end is not identical to proposed upgrade
 				proposedUpgrade.Version = mock.UpgradeVersion
 
-				connection := path.EndpointA.GetConnection()
-				connection.Versions = []*connectiontypes.Version{}
-				path.EndpointA.SetConnection(connection)
+				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
+					c.Versions = []*connectiontypes.Version{}
+				})
 			},
 			expPass: false,
 		},
@@ -2365,11 +2348,9 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 				// update channel version first so that existing channel end is not identical to proposed upgrade
 				proposedUpgrade.Version = mock.UpgradeVersion
 
-				connection := path.EndpointA.GetConnection()
-				connection.Versions = []*connectiontypes.Version{
-					connectiontypes.NewVersion("1", []string{"ORDER_ORDERED"}),
-				}
-				path.EndpointA.SetConnection(connection)
+				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
+					c.Versions = []*connectiontypes.Version{connectiontypes.NewVersion("1", []string{"ORDER_ORDERED"})}
+				})
 			},
 			expPass: false,
 		},
@@ -2727,6 +2708,18 @@ func (suite *KeeperTestSuite) TestWriteErrorReceipt() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, previousUpgradeError)
 			},
 			errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "error receipt sequence (10) must be greater than existing error receipt sequence (11)"),
+		},
+		{
+			"failure: upgrade exists for error receipt being written",
+			func() {
+				// attempt to write error receipt for existing upgrade without deleting upgrade info
+				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
+				err := path.EndpointA.ChanUpgradeInit()
+				suite.Require().NoError(err)
+				ch := path.EndpointA.GetChannel()
+				upgradeError = types.NewUpgradeError(ch.UpgradeSequence, types.ErrInvalidUpgrade)
+			},
+			errorsmod.Wrap(types.ErrInvalidUpgradeSequence, "attempting to write error receipt at sequence (1) while upgrade information exists at the same sequence"),
 		},
 		{
 			"failure: channel not found",
