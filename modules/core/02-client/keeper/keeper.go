@@ -154,9 +154,8 @@ func (k Keeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string,
 	}
 }
 
-// IterateMetadata provides an iterator over all stored light client State
-// objects. For each State object, cb will be called. If the cb returns true,
-// the iterator will close and stop.
+// IterateMetadata provides an iterator over all stored metadata keys in the client store.
+// For each metadata object, it will perform a callback.
 func (k Keeper) IterateMetadata(ctx sdk.Context, storeprefix []byte, cb func(clientID string, key, value []byte) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
