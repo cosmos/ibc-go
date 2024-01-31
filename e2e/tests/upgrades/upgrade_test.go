@@ -850,7 +850,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_ChannelUpgrades() {
 		chA, err := s.QueryChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 		s.Require().NoError(err)
 
-		s.initiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.createUpgradeFields(chA))
+		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -1009,26 +1009,4 @@ func (s *UpgradeTestSuite) ClientState(ctx context.Context, chain ibc.Chain, cli
 	}
 
 	return res, nil
-}
-
-// createUpgradeFields created the upgrade fields for channel
-func (s *UpgradeTestSuite) createUpgradeFields(channel channeltypes.Channel) channeltypes.UpgradeFields {
-	versionMetadata := feetypes.Metadata{
-		FeeVersion: feetypes.Version,
-		AppVersion: transfertypes.Version,
-	}
-	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
-	s.Require().NoError(err)
-
-	return channeltypes.NewUpgradeFields(channel.Ordering, channel.ConnectionHops, string(versionBytes))
-}
-
-// initiateChannelUpgrade creates and submits a governance proposal to execute the message to initiate a channel upgrade
-func (s *UpgradeTestSuite) initiateChannelUpgrade(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, portID, channelID string, upgradeFields channeltypes.UpgradeFields) {
-	govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chain)
-	s.Require().NoError(err)
-	s.Require().NotNil(govModuleAddress)
-
-	msg := channeltypes.NewMsgChannelUpgradeInit(portID, channelID, upgradeFields, govModuleAddress.String())
-	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, wallet)
 }
