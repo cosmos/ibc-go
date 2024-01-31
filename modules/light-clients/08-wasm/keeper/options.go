@@ -3,8 +3,6 @@ package keeper
 import (
 	"errors"
 
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -30,12 +28,5 @@ func WithQueryPlugins(plugins *types.QueryPlugins) Option {
 		}
 		newPlugins := currentPlugins.Merge(plugins)
 		ibcwasm.SetQueryPlugins(&newPlugins)
-	})
-}
-
-// TODO(damian): remove this in favour of store service approach
-func WithStoreKey(storeKey storetypes.StoreKey) Option {
-	return optsFn(func(k *Keeper) {
-		k.storeKey = storeKey
 	})
 }

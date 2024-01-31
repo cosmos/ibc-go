@@ -2,7 +2,6 @@ package solomachine
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,14 +15,19 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface?
 type LightClientModule struct {
-	keeper keeper.Keeper
+	keeper        keeper.Keeper
+	storeProvider exported.ClientStoreProvider
 }
 
 // NewLightClientModule creates and returns a new 06-solomachine LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec) LightClientModule {
 	return LightClientModule{
-		keeper: keeper.NewKeeper(cdc, key),
+		keeper: keeper.NewKeeper(cdc),
 	}
+}
+
+func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
+	l.storeProvider = storeProvider
 }
 
 // Initialize is called upon client creation, it allows the client to perform validation on the initial consensus state and set the
@@ -51,7 +55,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 		return err
 	}
 
-	clientStore := l.keeper.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
 	return clientState.Initialize(ctx, cdc, clientStore, &consensusState)
@@ -66,7 +70,7 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 		return err
 	}
 
-	clientStore := l.keeper.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -84,7 +88,7 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 		panic(err)
 	}
 
-	clientStore := l.keeper.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -101,7 +105,7 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 		panic(err)
 	}
 
-	clientStore := l.keeper.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -119,7 +123,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 		panic(err)
 	}
 
-	clientStore := l.keeper.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -146,7 +150,7 @@ func (l LightClientModule) VerifyMembership(
 		return err
 	}
 
-	clientStore := l.keeper.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -172,7 +176,7 @@ func (l LightClientModule) VerifyNonMembership(
 		return err
 	}
 
-	clientStore := l.keeper.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -189,7 +193,7 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 		return exported.Unknown // TODO: or panic
 	}
 
-	clientStore := l.keeper.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -206,7 +210,7 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 		return 0, err
 	}
 
-	clientStore := l.keeper.ClientStore(ctx, clientID)
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)

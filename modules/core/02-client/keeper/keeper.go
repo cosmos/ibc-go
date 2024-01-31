@@ -38,11 +38,11 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, router *types.Router, legacySubspace types.ParamSubspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, legacySubspace types.ParamSubspace, sk types.StakingKeeper, uk types.UpgradeKeeper) Keeper {
 	return Keeper{
 		storeKey:       key,
 		cdc:            cdc,
-		router:         router,
+		router:         types.NewRouter(key),
 		legacySubspace: legacySubspace,
 		stakingKeeper:  sk,
 		upgradeKeeper:  uk,

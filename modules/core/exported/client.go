@@ -44,7 +44,16 @@ const (
 	Unauthorized Status = "Unauthorized"
 )
 
+type ClientStoreProvider interface {
+	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
+}
+
 type LightClientModule interface {
+	// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
+	// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
+	// to IBC light client instances.
+	RegisterStoreProvider(storeProvider ClientStoreProvider)
+
 	// Initialize is called upon client creation, it allows the client to perform validation on the initial consensus state and set the
 	// client state, consensus state and any client-specific metadata necessary for correct light client operation in the provided client store.
 	Initialize(ctx sdk.Context, clientID string, clientState, consensusState []byte) error
