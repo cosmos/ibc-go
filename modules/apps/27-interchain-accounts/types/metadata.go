@@ -94,7 +94,7 @@ func ValidateControllerMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, co
 		return err
 	}
 
-	if err := validateConnectionParams(metadata, connectionHops[0], connection.GetCounterparty().GetConnectionID()); err != nil {
+	if err := validateConnectionParams(metadata, connectionHops[0], connection.Counterparty.GetConnectionID()); err != nil {
 		return err
 	}
 
@@ -126,7 +126,7 @@ func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connecti
 		return err
 	}
 
-	if err := validateConnectionParams(metadata, connection.GetCounterparty().GetConnectionID(), connectionHops[0]); err != nil {
+	if err := validateConnectionParams(metadata, connection.Counterparty.GetConnectionID(), connectionHops[0]); err != nil {
 		return err
 	}
 
