@@ -20,11 +20,6 @@ func NewConnectionEnd(state State, clientID string, counterparty Counterparty, v
 	}
 }
 
-// GetDelayPeriod implements the Connection interface
-func (c ConnectionEnd) GetDelayPeriod() uint64 {
-	return c.DelayPeriod
-}
-
 // ValidateBasic implements the Connection interface.
 // NOTE: the protocol supports that the connection and client IDs match the
 // counterparty's.

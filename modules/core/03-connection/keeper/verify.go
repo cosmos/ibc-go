@@ -207,7 +207,7 @@ func (k Keeper) VerifyPacketCommitment(
 	}
 
 	// get time and block delays
-	timeDelay := connection.GetDelayPeriod()
+	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
@@ -250,7 +250,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	}
 
 	// get time and block delays
-	timeDelay := connection.GetDelayPeriod()
+	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
@@ -293,7 +293,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	}
 
 	// get time and block delays
-	timeDelay := connection.GetDelayPeriod()
+	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
@@ -335,7 +335,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 	}
 
 	// get time and block delays
-	timeDelay := connection.GetDelayPeriod()
+	timeDelay := connection.DelayPeriod
 	blockDelay := k.getBlockDelay(ctx, connection)
 
 	merklePath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
@@ -450,7 +450,7 @@ func (k Keeper) getBlockDelay(ctx sdk.Context, connection types.ConnectionEnd) u
 	}
 	// calculate minimum block delay by dividing time delay period
 	// by the expected time per block. Round up the block delay.
-	timeDelay := connection.GetDelayPeriod()
+	timeDelay := connection.DelayPeriod
 	return uint64(math.Ceil(float64(timeDelay) / float64(expectedTimePerBlock)))
 }
 
