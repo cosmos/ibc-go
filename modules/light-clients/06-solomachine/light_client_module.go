@@ -8,21 +8,20 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine/internal/keeper"
 )
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface?
 type LightClientModule struct {
-	keeper        keeper.Keeper
+	cdc           codec.BinaryCodec
 	storeProvider exported.ClientStoreProvider
 }
 
 // NewLightClientModule creates and returns a new 06-solomachine LightClientModule.
 func NewLightClientModule(cdc codec.BinaryCodec) LightClientModule {
 	return LightClientModule{
-		keeper: keeper.NewKeeper(cdc),
+		cdc: cdc,
 	}
 }
 
@@ -38,7 +37,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 	}
 
 	var clientState ClientState
-	if err := l.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
+	if err := l.cdc.Unmarshal(clientStateBz, &clientState); err != nil {
 		return err
 	}
 
@@ -47,7 +46,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 	}
 
 	var consensusState ConsensusState
-	if err := l.keeper.Codec().Unmarshal(consensusStateBz, &consensusState); err != nil {
+	if err := l.cdc.Unmarshal(consensusStateBz, &consensusState); err != nil {
 		return err
 	}
 
@@ -56,9 +55,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
-
-	return clientState.Initialize(ctx, cdc, clientStore, &consensusState)
+	return clientState.Initialize(ctx, l.cdc, clientStore, &consensusState)
 }
 
 // VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
@@ -71,14 +68,12 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
-
-	clientState, found := getClientState(clientStore, cdc)
+	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyClientMessage(ctx, l.keeper.Codec(), clientStore, clientMsg)
+	return clientState.VerifyClientMessage(ctx, l.cdc, clientStore, clientMsg)
 }
 
 // Checks for evidence of a misbehaviour in Header or Misbehaviour type. It assumes the ClientMessage
@@ -89,14 +84,12 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
-
-	clientState, found := getClientState(clientStore, cdc)
+	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	return clientState.CheckForMisbehaviour(ctx, l.keeper.Codec(), clientStore, clientMsg)
+	return clientState.CheckForMisbehaviour(ctx, l.cdc, clientStore, clientMsg)
 }
 
 // UpdateStateOnMisbehaviour should perform appropriate state changes on a client state given that misbehaviour has been detected and verified
@@ -106,14 +99,12 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
-
-	clientState, found := getClientState(clientStore, cdc)
+	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	clientState.UpdateStateOnMisbehaviour(ctx, l.keeper.Codec(), clientStore, clientMsg)
+	clientState.UpdateStateOnMisbehaviour(ctx, l.cdc, clientStore, clientMsg)
 }
 
 // UpdateState updates and stores as necessary any associated information for an IBC client, such as the ClientState and corresponding ConsensusState.
@@ -124,14 +115,12 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
-
-	clientState, found := getClientState(clientStore, cdc)
+	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
 	}
 
-	return clientState.UpdateState(ctx, cdc, clientStore, clientMsg)
+	return clientState.UpdateState(ctx, l.cdc, clientStore, clientMsg)
 }
 
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
@@ -151,14 +140,12 @@ func (l LightClientModule) VerifyMembership(
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
-
-	clientState, found := getClientState(clientStore, cdc)
+	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	return clientState.VerifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
@@ -177,14 +164,12 @@ func (l LightClientModule) VerifyNonMembership(
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
-
-	clientState, found := getClientState(clientStore, cdc)
+	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.VerifyNonMembership(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+	return clientState.VerifyNonMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
 }
 
 // Status must return the status of the client. Only Active clients are allowed to process packets.
@@ -194,14 +179,12 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
-
-	clientState, found := getClientState(clientStore, cdc)
+	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		return exported.Unknown
 	}
 
-	return clientState.Status(ctx, clientStore, cdc)
+	return clientState.Status(ctx, clientStore, l.cdc)
 }
 
 // TimestampAtHeight must return the timestamp for the consensus state associated with the provided height.
@@ -211,14 +194,12 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 	}
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	cdc := l.keeper.Codec()
-
-	clientState, found := getClientState(clientStore, cdc)
+	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		return 0, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.GetTimestampAtHeight(ctx, clientStore, cdc, height)
+	return clientState.GetTimestampAtHeight(ctx, clientStore, l.cdc, height)
 }
 
 func validateClientID(clientID string) error {
