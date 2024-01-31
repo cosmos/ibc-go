@@ -25,7 +25,7 @@ func (k Keeper) VerifyClientState(
 	proof []byte,
 	clientState exported.ClientState,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	targetClient, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ func (k Keeper) VerifyClientState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.GetCounterparty().GetClientID()))
+	merklePath := commitmenttypes.NewMerklePath(host.FullClientStatePath(connection.GetCounterparty().ClientId))
 	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func (k Keeper) VerifyClientConsensusState(
 	proof []byte,
 	consensusState exported.ConsensusState,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (k Keeper) VerifyClientConsensusState(
 		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
-	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.GetCounterparty().GetClientID(), consensusHeight))
+	merklePath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(connection.GetCounterparty().ClientId, consensusHeight))
 	merklePath, err = commitmenttypes.ApplyPrefix(connection.GetCounterparty().GetPrefix(), merklePath)
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func (k Keeper) VerifyConnectionState(
 	connectionID string,
 	counterpartyConnection types.ConnectionEnd, // opposite connection
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -152,7 +152,7 @@ func (k Keeper) VerifyChannelState(
 	channelID string,
 	channel channeltypes.Channel,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -196,7 +196,7 @@ func (k Keeper) VerifyPacketCommitment(
 	sequence uint64,
 	commitmentBytes []byte,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -239,7 +239,7 @@ func (k Keeper) VerifyPacketAcknowledgement(
 	sequence uint64,
 	acknowledgement []byte,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -282,7 +282,7 @@ func (k Keeper) VerifyPacketReceiptAbsence(
 	channelID string,
 	sequence uint64,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -324,7 +324,7 @@ func (k Keeper) VerifyNextSequenceRecv(
 	channelID string,
 	nextSequenceRecv uint64,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -365,7 +365,7 @@ func (k Keeper) VerifyChannelUpgradeError(
 	channelID string,
 	errorReceipt channeltypes.ErrorReceipt,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
@@ -407,7 +407,7 @@ func (k Keeper) VerifyChannelUpgrade(
 	channelID string,
 	upgrade channeltypes.Upgrade,
 ) error {
-	clientID := connection.GetClientID()
+	clientID := connection.ClientId
 	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
 	if err != nil {
 		return err
