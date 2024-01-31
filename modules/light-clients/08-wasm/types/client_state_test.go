@@ -342,7 +342,7 @@ func (suite *TypesTestSuite) TestInitialize() {
 
 func (suite *TypesTestSuite) TestVerifyMembership() {
 	var (
-		clientState      exported.ClientState
+		clientState      *types.ClientState
 		expClientStateBz []byte
 		path             exported.Path
 		proof            []byte
@@ -465,7 +465,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 			value = []byte("value")
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState = endpoint.GetClientState()
+			clientState = endpoint.GetClientState().(*types.ClientState)
 
 			tc.malleate()
 
@@ -486,7 +486,7 @@ func (suite *TypesTestSuite) TestVerifyMembership() {
 
 func (suite *TypesTestSuite) TestVerifyNonMembership() {
 	var (
-		clientState      exported.ClientState
+		clientState      *types.ClientState
 		expClientStateBz []byte
 		path             exported.Path
 		proof            []byte
@@ -605,7 +605,7 @@ func (suite *TypesTestSuite) TestVerifyNonMembership() {
 			proofHeight = clienttypes.NewHeight(0, 1)
 
 			clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), endpoint.ClientID)
-			clientState = endpoint.GetClientState()
+			clientState = endpoint.GetClientState().(*types.ClientState)
 
 			tc.malleate()
 

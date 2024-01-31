@@ -149,33 +149,6 @@ type ClientState interface {
 	// Used to verify upgrades
 	ZeroCustomFields() ClientState
 
-	// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
-	// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-	VerifyMembership(
-		ctx sdk.Context,
-		clientStore storetypes.KVStore,
-		cdc codec.BinaryCodec,
-		height Height,
-		delayTimePeriod uint64,
-		delayBlockPeriod uint64,
-		proof []byte,
-		path Path,
-		value []byte,
-	) error
-
-	// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
-	// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-	VerifyNonMembership(
-		ctx sdk.Context,
-		clientStore storetypes.KVStore,
-		cdc codec.BinaryCodec,
-		height Height,
-		delayTimePeriod uint64,
-		delayBlockPeriod uint64,
-		proof []byte,
-		path Path,
-	) error
-
 	// CheckSubstituteAndUpdateState must verify that the provided substitute may be used to update the subject client.
 	// The light client must set the updated client and consensus states within the clientStore for the subject client.
 	CheckSubstituteAndUpdateState(ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore, substituteClientStore storetypes.KVStore, substituteClient ClientState) error
