@@ -2,7 +2,6 @@ package tendermint
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,14 +11,21 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint/internal/keeper"
 )
 
+var _ exported.LightClientModule = (*LightClientModule)(nil)
+
 type LightClientModule struct {
-	keeper keeper.Keeper
+	keeper        keeper.Keeper
+	storeProvider exported.ClientStoreProvider
 }
 
-func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey, authority string) LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, authority string) LightClientModule {
 	return LightClientModule{
-		keeper: keeper.NewKeeper(cdc, key, authority),
+		keeper: keeper.NewKeeper(cdc, authority),
 	}
+}
+
+func (lcm *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
+	lcm.storeProvider = storeProvider
 }
 
 // Initialize checks that the initial consensus state is an 07-tendermint consensus state and
@@ -52,7 +58,7 @@ func (lcm LightClientModule) Initialize(ctx sdk.Context, clientID string, client
 		return err
 	}
 
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 
 	return clientState.Initialize(ctx, lcm.keeper.Codec(), clientStore, &consensusState)
 }
@@ -67,7 +73,7 @@ func (lcm LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID strin
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -88,7 +94,7 @@ func (lcm LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID stri
 		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType))
 	}
 
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -109,7 +115,7 @@ func (lcm LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID
 		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType))
 	}
 
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -129,7 +135,7 @@ func (lcm LightClientModule) UpdateState(ctx sdk.Context, clientID string, clien
 	if clientType != exported.Tendermint {
 		panic(errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType))
 	}
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -159,7 +165,7 @@ func (lcm LightClientModule) VerifyMembership(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -188,7 +194,7 @@ func (lcm LightClientModule) VerifyNonMembership(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -209,7 +215,7 @@ func (lcm LightClientModule) Status(ctx sdk.Context, clientID string) exported.S
 		return exported.Unknown
 	}
 
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -234,7 +240,7 @@ func (lcm LightClientModule) TimestampAtHeight(
 		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -255,7 +261,7 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected: %s, got: %s", exported.Tendermint, clientType)
 	}
 
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)
@@ -263,7 +269,7 @@ func (lcm LightClientModule) RecoverClient(ctx sdk.Context, clientID, substitute
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	substituteClientStore := lcm.keeper.ClientStore(ctx, substituteClientID)
+	substituteClientStore := lcm.storeProvider.ClientStore(ctx, substituteClientID)
 	substituteClient, found := getClientState(substituteClientStore, cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, substituteClientID)
@@ -306,7 +312,7 @@ func (lcm LightClientModule) VerifyUpgradeAndUpdateState(
 		return err
 	}
 
-	clientStore := lcm.keeper.ClientStore(ctx, clientID)
+	clientStore := lcm.storeProvider.ClientStore(ctx, clientID)
 	cdc := lcm.keeper.Codec()
 
 	clientState, found := getClientState(clientStore, cdc)

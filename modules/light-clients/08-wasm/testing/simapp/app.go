@@ -471,7 +471,7 @@ func NewSimApp(
 		// NOTE: mockVM is used for testing purposes only!
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
 			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, app.GRPCQueryRouter(), wasmkeeper.WithStoreKey(keys[ibcexported.StoreKey]),
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, app.GRPCQueryRouter(),
 		)
 	} else {
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
@@ -598,14 +598,14 @@ func NewSimApp(
 
 	clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
 
-	tmLightClientModule := ibctm.NewLightClientModule(appCodec, keys[ibcexported.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String())
-	clientRouter.AddRoute(ibctm.ModuleName, tmLightClientModule)
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
-	smLightClientModule := solomachine.NewLightClientModule(appCodec, keys[ibcexported.StoreKey])
-	clientRouter.AddRoute(solomachine.ModuleName, smLightClientModule)
+	smLightClientModule := solomachine.NewLightClientModule(appCodec)
+	clientRouter.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
 	wasmLightClientModule := wasm.NewLightClientModule(app.WasmClientKeeper)
-	clientRouter.AddRoute(wasmtypes.ModuleName, wasmLightClientModule)
+	clientRouter.AddRoute(wasmtypes.ModuleName, &wasmLightClientModule)
 
 	// wasmClientModule := wasm.
 	// create evidence keeper with router

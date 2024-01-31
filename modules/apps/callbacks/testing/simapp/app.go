@@ -569,11 +569,11 @@ func NewSimApp(
 
 	clientRouter := app.IBCKeeper.ClientKeeper.GetRouter()
 
-	tmLightClientModule := ibctm.NewLightClientModule(appCodec, keys[ibcexported.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String())
-	clientRouter.AddRoute(ibctm.ModuleName, tmLightClientModule)
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	clientRouter.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
-	smLightClientModule := solomachine.NewLightClientModule(appCodec, keys[ibcexported.StoreKey])
-	clientRouter.AddRoute(solomachine.ModuleName, smLightClientModule)
+	smLightClientModule := solomachine.NewLightClientModule(appCodec)
+	clientRouter.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
