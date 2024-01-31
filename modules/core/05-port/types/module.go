@@ -188,6 +188,22 @@ type ICS4Wrapper interface {
 type Middleware interface {
 	IBCModule
 	ICS4Wrapper
+	ProcessPacket(
+		ctx sdk.Context,
+		sourcePort string,
+		sourceChannel string,
+		packetData RoutedPacketData,
+	) (RoutedPacketData, error)
+	ProcessRecvPacket(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+		relayer sdk.AccAddress,
+	) error
+	ProcessWriteAck(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+		packetAck RoutedPacketAcknowledgement,
+	) (RoutedPacketAcknowledgement, error)
 }
 
 // PacketDataUnmarshaler defines an optional interface which allows a middleware to
