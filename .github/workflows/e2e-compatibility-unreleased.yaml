@@ -157,3 +157,19 @@ jobs:
     with:
       test-file-directory: "unreleased"
       test-suite: "transfer-authz"
+
+  transfer-channel-upgrade:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-channel-upgrade"
+
+  ica-channel-upgrade:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "ica-channel-upgrade"
