@@ -48,7 +48,7 @@ func (k Keeper) OnChanOpenInit(
 			return "", err
 		}
 
-		metadata = icatypes.NewDefaultMetadata(connectionHops[0], connection.Counterparty.GetConnectionID())
+		metadata = icatypes.NewDefaultMetadata(connectionHops[0], connection.Counterparty.ConnectionId)
 	} else {
 		metadata, err = icatypes.MetadataFromVersion(version)
 		if err != nil {
