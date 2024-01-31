@@ -154,6 +154,44 @@ func (k Keeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string,
 	}
 }
 
+// IterateMetadata provides an iterator over all stored light client State
+// objects. For each State object, cb will be called. If the cb returns true,
+// the iterator will close and stop.
+func (k Keeper) IterateMetadata(ctx sdk.Context, storeprefix []byte, cb func(clientID string, key, value []byte) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
+
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	for ; iterator.Valid(); iterator.Next() {
+		path := string(iterator.Key())
+		if strings.Contains(path, host.KeyClientState) {
+			// skip non client state keys
+			continue
+		}
+
+		split := strings.Split(path, "/")
+		if len(split) == 4 && split[2] != string(host.KeyConsensusStatePrefix) {
+			// skip consensus state keys
+			continue
+		}
+
+		if split[0] != string(host.KeyClientStorePrefix) {
+			panic(errorsmod.Wrapf(host.ErrInvalidPath, "path does not begin with client store prefix: expected %s, got %s", host.KeyClientStorePrefix, split[0]))
+		}
+		if strings.TrimSpace(split[1]) == "" {
+			panic(errorsmod.Wrap(host.ErrInvalidPath, "clientID is empty"))
+		}
+
+		clientID := split[1]
+
+		key := []byte(strings.Join(split[2:], "/"))
+
+		if cb(clientID, key, iterator.Value()) {
+			break
+		}
+	}
+}
+
 // GetAllGenesisClients returns all the clients in state with their client ids returned as IdentifiedClientState
 func (k Keeper) GetAllGenesisClients(ctx sdk.Context) types.IdentifiedClientStates {
 	var genClients types.IdentifiedClientStates
@@ -169,30 +207,23 @@ func (k Keeper) GetAllGenesisClients(ctx sdk.Context) types.IdentifiedClientStat
 // of IdentifiedGenesisMetadata necessary for exporting and importing client metadata
 // into the client store.
 func (k Keeper) GetAllClientMetadata(ctx sdk.Context, genClients []types.IdentifiedClientState) ([]types.IdentifiedGenesisMetadata, error) {
+	metadataMap := make(map[string][]types.GenesisMetadata)
+	k.IterateMetadata(ctx, nil, func(clientID string, key, value []byte) bool {
+		metadataMap[clientID] = append(metadataMap[clientID], types.NewGenesisMetadata(key, value))
+		return false
+	})
+
 	genMetadata := make([]types.IdentifiedGenesisMetadata, 0)
 	for _, ic := range genClients {
-		cs, err := types.UnpackClientState(ic.ClientState)
-		if err != nil {
-			return nil, err
+		metadata := metadataMap[ic.ClientId]
+		if len(metadata) != 0 {
+			genMetadata = append(genMetadata, types.NewIdentifiedGenesisMetadata(
+				ic.ClientId,
+				metadata,
+			))
 		}
-		gms := cs.ExportMetadata(k.ClientStore(ctx, ic.ClientId))
-		if len(gms) == 0 {
-			continue
-		}
-		clientMetadata := make([]types.GenesisMetadata, len(gms))
-		for i, metadata := range gms {
-			cmd, ok := metadata.(types.GenesisMetadata)
-			if !ok {
-				return nil, errorsmod.Wrapf(types.ErrInvalidClientMetadata, "expected metadata type: %T, got: %T",
-					types.GenesisMetadata{}, cmd)
-			}
-			clientMetadata[i] = cmd
-		}
-		genMetadata = append(genMetadata, types.NewIdentifiedGenesisMetadata(
-			ic.ClientId,
-			clientMetadata,
-		))
 	}
+
 	return genMetadata, nil
 }
 

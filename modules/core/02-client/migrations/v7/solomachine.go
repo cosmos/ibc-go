@@ -82,11 +82,6 @@ func (ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.K
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
-// ExportMetadata panics!
-func (ClientState) ExportMetadata(_ storetypes.KVStore) []exported.GenesisMetadata {
-	panic(errors.New("legacy solo machine is deprecated"))
-}
-
 // CheckForMisbehaviour panics!
 func (ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) bool {
 	panic(errors.New("legacy solo machine is deprecated"))
