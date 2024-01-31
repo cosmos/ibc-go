@@ -11,7 +11,7 @@ import (
 
 // TODO: commented out due to middleware not working with ack callback
 //// Integration test to ensure ics29 works with ics20
-//func (suite *FeeTestSuite) TestFeeTransfer() {
+// func (suite *FeeTestSuite) TestFeeTransfer() {
 //	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 //	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))
 //	path.EndpointA.ChannelConfig.Version = feeTransferVersion

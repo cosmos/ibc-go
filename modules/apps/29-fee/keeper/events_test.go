@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 }
 
 // TODO: commented out due to middleware not working with ack callback
-//func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
+// func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 //	// create an incentivized transfer path
 //	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 //	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.Version}))

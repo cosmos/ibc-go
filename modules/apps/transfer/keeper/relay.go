@@ -234,7 +234,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			}
 
 			defer func() {
-				//if transferAmount.IsInt64() {
+				// if transferAmount.IsInt64() {
 				//	telemetry.SetGaugeWithLabels(
 				//		[]string{"ibc", types.ModuleName, "packet", "receive"},
 				//		float32(transferAmount.Int64()),
@@ -295,7 +295,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 		}
 
-		//defer func() {
+		// defer func() {
 		//	if transferAmount.IsInt64() {
 		//		telemetry.SetGaugeWithLabels(
 		//			[]string{"ibc", types.ModuleName, "packet", "receive"},
