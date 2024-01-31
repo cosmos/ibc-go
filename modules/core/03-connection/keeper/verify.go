@@ -4,7 +4,6 @@ import (
 	"math"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -355,13 +354,18 @@ func (k Keeper) VerifyNextSequenceRecv(
 	nextSequenceRecv uint64,
 ) error {
 	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		return err
 	}
 
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
 	}
 
 	// get time and block delays
@@ -374,8 +378,8 @@ func (k Keeper) VerifyNextSequenceRecv(
 		return err
 	}
 
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+	if err := lightClientModule.VerifyMembership(
+		ctx, clientID, height,
 		timeDelay, blockDelay,
 		proof, merklePath, sdk.Uint64ToBigEndian(nextSequenceRecv),
 	); err != nil {
@@ -396,13 +400,18 @@ func (k Keeper) VerifyChannelUpgradeError(
 	errorReceipt channeltypes.ErrorReceipt,
 ) error {
 	clientID := connection.GetClientID()
-	clientState, clientStore, err := k.getClientStateAndVerificationStore(ctx, clientID)
+	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	}
+
+	clientType, _, err := clienttypes.ParseClientIdentifier(clientID)
 	if err != nil {
 		return err
 	}
 
-	if status := k.clientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	lightClientModule, found := k.clientKeeper.GetRouter().GetRoute(clientType)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrRouteNotFound, clientType)
 	}
 
 	merklePath := commitmenttypes.NewMerklePath(host.ChannelUpgradeErrorPath(portID, channelID))
@@ -416,8 +425,8 @@ func (k Keeper) VerifyChannelUpgradeError(
 		return err
 	}
 
-	if err := clientState.VerifyMembership(
-		ctx, clientStore, k.cdc, height,
+	if err := lightClientModule.VerifyMembership(
+		ctx, clientID, height,
 		0, 0, // skip delay period checks for non-packet processing verification
 		proof, merklePath, bz,
 	); err != nil {
@@ -487,20 +496,4 @@ func (k Keeper) getBlockDelay(ctx sdk.Context, connection types.ConnectionEnd) u
 	// by the expected time per block. Round up the block delay.
 	timeDelay := connection.GetDelayPeriod()
 	return uint64(math.Ceil(float64(timeDelay) / float64(expectedTimePerBlock)))
-}
-
-// getClientStateAndVerificationStore returns the client state and associated KVStore for the provided client identifier.
-// If the client type is localhost then the core IBC KVStore is returned, otherwise the client prefixed store is returned.
-func (k Keeper) getClientStateAndVerificationStore(ctx sdk.Context, clientID string) (exported.ClientState, storetypes.KVStore, error) {
-	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
-	if !found {
-		return nil, nil, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
-	}
-
-	store := k.clientKeeper.ClientStore(ctx, clientID)
-	if clientID == exported.LocalhostClientID {
-		store = ctx.KVStore(k.storeKey)
-	}
-
-	return clientState, store, nil
 }
