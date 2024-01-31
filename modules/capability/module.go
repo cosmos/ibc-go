@@ -46,6 +46,11 @@ func NewAppModuleBasic(cdc codec.Codec) AppModuleBasic {
 	return AppModuleBasic{cdc: cdc}
 }
 
+// Name returns the capability module's name.
+func (AppModuleBasic) Name() string {
+	return types.ModuleName
+}
+
 // RegisterLegacyAminoCodec does nothing. Capability does not support amino.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
@@ -96,11 +101,6 @@ func (AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
-
-// Name returns the capability module's name.
-func (am AppModule) Name() string {
-	return types.ModuleName
-}
 
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.

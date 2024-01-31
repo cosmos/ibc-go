@@ -37,6 +37,25 @@ The `tx` commands allow users to interact with the controller submodule.
 simd tx interchain-accounts controller --help
 ```
 
+#### `register`
+
+The `register` command allows users to register an interchain account on a host chain on the provided connection.
+
+```shell
+simd tx interchain-accounts controller register [connection-id] [flags]
+```
+
+During registration a new channel is set up between controller and host. There are two flags available that influence the channel that is created:
+
+- `--version` to specify the (JSON-formatted) version string of the channel. For example: `{\"version\":\"ics27-1\",\"encoding\":\"proto3\",\"tx_type\":\"sdk_multi_msg\",\"controller_connection_id\":\"connection-0\",\"host_connection_id\":\"connection-0\"}`. Passing a custom version string is useful if you want to specify, for example, the encoding format of the interchain accounts packet data (either `proto3` or `proto3json`). If not specified the controller submodule will generate a default version string.
+- `--ordering` to specify the ordering of the channel. Available options are `order_ordered` (default if not specified) and `order_unordered`.
+
+Example:
+
+```shell
+simd tx interchain-accounts controller register connection-0 --ordering order_unordered --from cosmos1..
+```
+
 #### `send-tx`
 
 The `send-tx` command allows users to send a transaction on the provided connection to be executed using an interchain account on the host chain.
@@ -87,7 +106,7 @@ simd tx interchain-accounts host --help
 
 ##### `generate-packet-data`
 
-The `generate-packet-data` command allows users to generate protobuf or proto3 JSON encoded interchain accounts packet data for input message(s). The packet data can then be used with the controller submodule's [`send-tx` command](#send-tx). The `--encoding` flag can be uesd to specify the encoding format (value must be either `proto3` or `proto3json`); if not specified, the default will be `proto3`. The `--memo` flag can be used to include a memo string in the interchain accounts packet data.
+The `generate-packet-data` command allows users to generate protobuf or proto3 JSON encoded interchain accounts packet data for input message(s). The packet data can then be used with the controller submodule's [`send-tx` command](#send-tx). The `--encoding` flag can be used to specify the encoding format (value must be either `proto3` or `proto3json`); if not specified, the default will be `proto3`. The `--memo` flag can be used to include a memo string in the interchain accounts packet data.
 
 ```shell
 simd tx interchain-accounts host generate-packet-data [message]

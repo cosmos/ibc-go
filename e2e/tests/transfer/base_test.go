@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -58,11 +59,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
 	t.Run("ensure capability module BeginBlock is executed", func(t *testing.T) {
 		// by restarting the chain we ensure that the capability module's BeginBlocker is executed.
-		s.Require().NoError(chainA.StopAllNodes(ctx))
-		s.Require().NoError(chainA.StartAllNodes(ctx))
+		s.Require().NoError(chainA.(*cosmos.CosmosChain).StopAllNodes(ctx))
+		s.Require().NoError(chainA.(*cosmos.CosmosChain).StartAllNodes(ctx))
 		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
 		s.InitGRPCClients(chainA)
 	})
@@ -442,24 +442,10 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	chainAVersion := chainA.Config().Images[0].Version
-	chainBVersion := chainB.Config().Images[0].Version
-
 	t.Run("IBC token transfer with memo from chainA to chainB", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "memo")
-
-		if testvalues.MemoFeatureReleases.IsSupported(chainAVersion) {
-			s.AssertTxSuccess(transferTxResp)
-		} else {
-			s.Require().Equal(uint32(2), transferTxResp.Code)
-			s.Require().Contains(transferTxResp.RawLog, "errUnknownField")
-		}
+		s.AssertTxSuccess(transferTxResp)
 	})
-
-	if !testvalues.MemoFeatureReleases.IsSupported(chainAVersion) {
-		// transfer not sent, end test
-		return
-	}
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
@@ -480,11 +466,6 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 		actualBalance, err := s.QueryBalance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
 
 		s.Require().NoError(err)
-
-		if testvalues.MemoFeatureReleases.IsSupported(chainBVersion) {
-			s.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
-		} else {
-			s.Require().Equal(int64(0), actualBalance)
-		}
+		s.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
 	})
 }

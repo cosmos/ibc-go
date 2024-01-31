@@ -9,23 +9,23 @@ slug: /ibc/overview
 # Overview
 
 :::note Synopsis
-Learn about IBC, its components, and IBC use cases.
+Learn about IBC, its components, and its use cases.
 :::
 
-## What is the Interblockchain Communication Protocol (IBC)?
+## What is the Inter-Blockchain Communication Protocol (IBC)?
 
 This document serves as a guide for developers who want to write their own Inter-Blockchain
-Communication protocol (IBC) applications for custom use cases.
+Communication Protocol (IBC) applications for custom use cases.
 
 > IBC applications must be written as self-contained modules.
 
-Due to the modular design of the IBC protocol, IBC
+Due to the modular design of the IBC Protocol, IBC
 application developers do not need to be concerned with the low-level details of clients,
 connections, and proof verification.
 
 This brief explanation of the lower levels of the
 stack gives application developers a broad understanding of the IBC
-protocol. Abstraction layer details for channels and ports are most relevant for application developers and describe how to define custom packets and `IBCModule` callbacks.
+Protocol. Abstraction layer details for channels and ports are most relevant for application developers and describe how to define custom packets and `IBCModule` callbacks.
 
 The requirements to have your module interact over IBC are:
 
@@ -118,12 +118,32 @@ The IBC interfaces expect an `ibcexported.Height` interface, however all clients
 
 ### [Connections](https://github.com/cosmos/ibc-go/blob/main/modules/core/03-connection)
 
-Connections encapsulate two `ConnectionEnd` objects on two separate blockchains. Each
-`ConnectionEnd` is associated with a client of the other blockchain (for example, the counterparty blockchain).
-The connection handshake is responsible for verifying that the light clients on each chain are
-correct for their respective counterparties. Connections, once established, are responsible for
-facilitating all cross-chain verifications of IBC state. A connection can be associated with any
-number of channels.
+Connections encapsulate two [`ConnectionEnd`](https://github.com/cosmos/ibc-go/blob/v8.0.0/proto/ibc/core/connection/v1/connection.proto#L17)
+objects on two separate blockchains. Each `ConnectionEnd` is associated with a client of the
+other blockchain (for example, the counterparty blockchain). The connection handshake is responsible
+for verifying that the light clients on each chain are correct for their respective counterparties.
+Connections, once established, are responsible for facilitating all cross-chain verifications of IBC state.
+A connection can be associated with any number of channels.
+
+The connection handshake is a 4-step handshake. Briefly, if a given chain A wants to open a connection with
+chain B using already established light-clients on both chains:
+
+1. chain A sends a `ConnectionOpenInit` message to signal a connection initialization attempt with chain B.
+2. chain B sends a `ConnectionOpenTry` message to try opening the connection on chain A.
+3. chain A sends a `ConnectionOpenAck` message to mark its connection end state as open.
+4. chain B sends a `ConnectionOpenConfirm` message to mark its connection end state as open.
+
+#### Time Delayed Connections
+
+Connections can be opened with a time delay by setting the `delayPeriod` field (in nanoseconds) in the [`MsgConnectionOpenInit`](https://github.com/cosmos/ibc-go/blob/v8.0.0/proto/ibc/core/connection/v1/tx.proto#L45).
+The time delay is used to require that the underlying light clients have been updated to a certain height before commitment verification can be performed.
+
+`delayPeriod` is used in conjunction with the [`max_expected_time_per_block`](https://github.com/cosmos/ibc-go/blob/v8.0.0/proto/ibc/core/connection/v1/connection.proto#L113) parameter of the connection submodule to determine the `blockDelay`, which is number of blocks that the connection must be delayed by.
+
+When commitment verification is performed, the connection submodule will pass `delayPeriod` and `blockDelay` to the light client. It is up to the light client to determine whether the light client has been updated to the required height. Only the following light clients in `ibc-go` support time delayed connections:
+
+- `07-tendermint`
+- `08-wasm` (passed to the contact)
 
 ### [Proofs](https://github.com/cosmos/ibc-go/blob/main/modules/core/23-commitment) and [Paths](https://github.com/cosmos/ibc-go/blob/main/modules/core/24-host)
   
@@ -217,15 +237,27 @@ handshake; either `OnChanOpenInit` on the initializing chain or `OnChanOpenTry` 
 #### Closing channels
 
 Closing a channel occurs in 2 handshake steps as defined in [ICS 04](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics).
+Once a channel is closed, it cannot be reopened. The channel handshake steps are:
 
-`ChanCloseInit` closes a channel on the executing chain if the channel exists, it is not
-already closed and the connection it exists upon is OPEN. Channels can only be closed by a
-calling module or in the case of a packet timeout on an ORDERED channel.
+**`ChanCloseInit`** closes a channel on the executing chain if
 
-`ChanCloseConfirm` is a response to a counterparty channel executing `ChanCloseInit`. The channel
-on the executing chain closes if the channel exists, the channel is not already closed,
-the connection the channel exists upon is OPEN and the executing chain successfully verifies
-that the counterparty channel has been closed.
+- the channel exists and it is not already closed,
+- the connection it exists upon is OPEN,
+- the [IBC module callback `OnChanCloseInit`](./03-apps/02-ibcmodule.md#channel-closing-callbacks) returns `nil`.
+
+`ChanCloseInit` can be initiated by any user by submitting a `MsgChannelCloseInit` transaction. 
+Note that channels are automatically closed when a packet times out on an `ORDERED` channel.
+A timeout on an `ORDERED` channel skips the `ChanCloseInit` step and immediately closes the channel.
+
+**`ChanCloseConfirm`** is a response to a counterparty channel executing `ChanCloseInit`. The channel
+on the executing chain closes if
+
+- the channel exists and is not already closed,
+- the connection the channel exists upon is OPEN,
+- the executing chain successfully verifies that the counterparty channel has been closed
+- the [IBC module callback `OnChanCloseConfirm`](./03-apps/02-ibcmodule.md#channel-closing-callbacks) returns `nil`.
+
+Currently, none of the IBC applications provided in ibc-go support `ChanCloseInit`.
 
 ### [Packets](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel)
 

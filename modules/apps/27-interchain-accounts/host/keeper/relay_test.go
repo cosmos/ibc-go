@@ -185,7 +185,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 				msg := &govtypes.MsgSubmitProposal{
 					Content:        protoAny,
-					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000))),
+					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))),
 					Proposer:       interchainAccountAddr,
 				}
 
@@ -305,7 +305,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			func(encoding string) {
 				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 
-				suite.coordinator.Setup(transferPath)
+				transferPath.Setup()
 
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
@@ -339,7 +339,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"Msg fails its ValidateBasic: MsgTransfer has an empty receiver",
 			func(encoding string) {
 				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
-				suite.coordinator.Setup(transferPath)
+				transferPath.Setup()
 
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
@@ -497,7 +497,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.SetupTest() // reset
 
 				path = NewICAPath(suite.chainA, suite.chainB, encoding)
-				suite.coordinator.SetupConnections(path)
+				path.SetupConnections()
 
 				err := SetupICAPath(path, TestOwnerAddress)
 				suite.Require().NoError(err)
@@ -516,7 +516,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
 				suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
 
-				suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(10000))))
+				suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000000))))
 
 				tc.malleate(encoding) // malleate mutates test data
 
@@ -639,7 +639,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 								"title": "IBC Gov Proposal",
 								"description": "tokens for all!"
 							},
-							"initial_deposit": [{ "denom": "stake", "amount": "5000" }],
+							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
 						}
 					]
@@ -710,7 +710,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 								"title": "IBC Gov Proposal",
 								"description": "tokens for all!"
 							},
-							"initial_deposit": [{ "denom": "stake", "amount": "5000" }],
+							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
 						},
 						{
@@ -744,7 +744,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			func(icaAddress string) {
 				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 
-				suite.coordinator.Setup(transferPath)
+				transferPath.Setup()
 
 				msgBytes := []byte(`{
 					"messages": [
@@ -847,7 +847,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			suite.SetupTest() // reset
 
 			path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProto3JSON)
-			suite.coordinator.SetupConnections(path)
+			path.SetupConnections()
 
 			err := SetupICAPath(path, TestOwnerAddress)
 			suite.Require().NoError(err)

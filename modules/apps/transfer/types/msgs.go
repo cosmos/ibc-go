@@ -42,16 +42,6 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
-}
-
 // NewMsgTransfer creates a new MsgTransfer instance
 func NewMsgTransfer(
 	sourcePort, sourceChannel string,
@@ -88,7 +78,7 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if !msg.Token.IsPositive() {
 		return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, msg.Token.String())
 	}
-	// NOTE: sender format must be validated as it is required by the GetSigners function.
+
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
@@ -103,13 +93,4 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
 	return ValidateIBCDenom(msg.Token.Denom)
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgTransfer) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
 }

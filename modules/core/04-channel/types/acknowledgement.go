@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -33,7 +31,7 @@ func NewResultAcknowledgement(result []byte) Acknowledgement {
 func NewErrorAcknowledgement(err error) Acknowledgement {
 	// the ABCI code is included in the abcitypes.ResponseDeliverTx hash
 	// constructed in Tendermint and is therefore deterministic
-	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
+	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-deterministic codespace and log values
 
 	return Acknowledgement{
 		Response: &Acknowledgement_Error{
@@ -70,5 +68,5 @@ func (ack Acknowledgement) Success() bool {
 // Acknowledgement implements the Acknowledgement interface. It returns the
 // acknowledgement serialised using JSON.
 func (ack Acknowledgement) Acknowledgement() []byte {
-	return sdk.MustSortJSON(SubModuleCdc.MustMarshalJSON(&ack))
+	return SubModuleCdc.MustMarshalJSON(&ack)
 }

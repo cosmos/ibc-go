@@ -12,7 +12,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
@@ -30,18 +29,10 @@ import (
 func (cs ClientState) VerifyUpgradeAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
 	upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState,
-	proofUpgradeClient, proofUpgradeConsState []byte,
+	upgradeClientProof, upgradeConsStateProof []byte,
 ) error {
 	if len(cs.UpgradePath) == 0 {
 		return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade client, no upgrade path set")
-	}
-
-	// last height of current counterparty chain must be client's latest height
-	lastHeight := cs.GetLatestHeight()
-
-	if !upgradedClient.GetLatestHeight().GT(lastHeight) {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s",
-			upgradedClient.GetLatestHeight(), lastHeight)
 	}
 
 	// upgraded client state and consensus state must be IBC tendermint client state and consensus state
@@ -60,12 +51,15 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 
 	// unmarshal proofs
 	var merkleProofClient, merkleProofConsState commitmenttypes.MerkleProof
-	if err := cdc.Unmarshal(proofUpgradeClient, &merkleProofClient); err != nil {
+	if err := cdc.Unmarshal(upgradeClientProof, &merkleProofClient); err != nil {
 		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "could not unmarshal client merkle proof: %v", err)
 	}
-	if err := cdc.Unmarshal(proofUpgradeConsState, &merkleProofConsState); err != nil {
+	if err := cdc.Unmarshal(upgradeConsStateProof, &merkleProofConsState); err != nil {
 		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "could not unmarshal consensus state merkle proof: %v", err)
 	}
+
+	// last height of current counterparty chain must be client's latest height
+	lastHeight := cs.GetLatestHeight()
 
 	// Must prove against latest consensus state to ensure we are verifying against latest upgrade plan
 	// This verifies that upgrade is intended for the provided revision, since committed client must exist

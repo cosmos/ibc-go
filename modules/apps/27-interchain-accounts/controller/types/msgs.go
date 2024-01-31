@@ -1,6 +1,7 @@
 package types
 
 import (
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -8,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 )
@@ -25,11 +27,12 @@ var (
 )
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
-func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRegisterInterchainAccount {
+func NewMsgRegisterInterchainAccount(connectionID, owner, version string, ordering channeltypes.Order) *MsgRegisterInterchainAccount {
 	return &MsgRegisterInterchainAccount{
 		ConnectionId: connectionID,
 		Owner:        owner,
 		Version:      version,
+		Ordering:     ordering,
 	}
 }
 
@@ -37,6 +40,10 @@ func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRe
 func (msg MsgRegisterInterchainAccount) ValidateBasic() error {
 	if err := host.ConnectionIdentifierValidator(msg.ConnectionId); err != nil {
 		return errorsmod.Wrap(err, "invalid connection ID")
+	}
+
+	if !slices.Contains([]channeltypes.Order{channeltypes.ORDERED, channeltypes.UNORDERED}, msg.Ordering) {
+		return errorsmod.Wrap(channeltypes.ErrInvalidChannelOrdering, msg.Ordering.String())
 	}
 
 	if strings.TrimSpace(msg.Owner) == "" {
@@ -48,16 +55,6 @@ func (msg MsgRegisterInterchainAccount) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgRegisterInterchainAccount) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
 }
 
 // NewMsgSendTx creates a new instance of MsgSendTx
@@ -95,16 +92,6 @@ func (msg MsgSendTx) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgSendTx) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
-}
-
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
 func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 	return &MsgUpdateParams{
@@ -121,14 +108,4 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
 }

@@ -24,6 +24,12 @@ var (
 // a no-op.
 type AppModuleBasic struct{}
 
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModuleBasic) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModuleBasic) IsAppModule() {}
+
 // Name returns the tendermint module name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
@@ -49,7 +55,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 
-// ValidateGenesis performs a no-op. Genesis is not supported for the tendermint light cilent.
+// ValidateGenesis performs a no-op. Genesis is not supported for the tendermint light client.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return nil
 }

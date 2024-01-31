@@ -68,8 +68,8 @@ func (k Keeper) sendTransfer(
 		return 0, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
 
-	destinationPort := channel.GetCounterparty().GetPortID()
-	destinationChannel := channel.GetCounterparty().GetChannelID()
+	destinationPort := channel.Counterparty.PortId
+	destinationChannel := channel.Counterparty.ChannelId
 
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
@@ -124,7 +124,7 @@ func (k Keeper) sendTransfer(
 			ctx, types.ModuleName, sdk.NewCoins(token),
 		); err != nil {
 			// NOTE: should not happen as the module account was
-			// retrieved on the step above and it has enough balace
+			// retrieved on the step above and it has enough balance
 			// to burn.
 			panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
 		}
@@ -248,9 +248,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	// sender chain is the source, mint vouchers
 
 	// since SendPacket did not prefix the denomination, we must prefix denomination here
-	sourcePrefix := types.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
-	// NOTE: sourcePrefix contains the trailing "/"
-	prefixedDenom := sourcePrefix + data.Denom
+	prefixedDenom := types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), data.Denom)
 
 	// construct the denomination trace from the full raw denomination
 	denomTrace := types.ParseDenomTrace(prefixedDenom)

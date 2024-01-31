@@ -10,13 +10,14 @@ slug: /apps/interchain-accounts/messages
 
 ## `MsgRegisterInterchainAccount`
 
-An Interchain Accounts channel handshake can be initated using `MsgRegisterInterchainAccount`:
+An Interchain Accounts channel handshake can be initiated using `MsgRegisterInterchainAccount`:
 
 ```go
 type MsgRegisterInterchainAccount struct {
   Owner        string
   ConnectionID string
   Version      string
+  Ordering     channeltypes.Order
 }
 ```
 

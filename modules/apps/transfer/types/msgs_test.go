@@ -9,7 +9,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -85,11 +87,12 @@ func TestMsgTransferValidation(t *testing.T) {
 // TestMsgTransferGetSigners tests GetSigners for MsgTransfer
 func TestMsgTransferGetSigners(t *testing.T) {
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-
 	msg := types.NewMsgTransfer(validPort, validChannel, coin, addr.String(), receiver, timeoutHeight, 0, "")
-	res := msg.GetSigners()
 
-	require.Equal(t, []sdk.AccAddress{addr}, res)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	require.NoError(t, err)
+	require.Equal(t, addr.Bytes(), signers[0])
 }
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
@@ -134,12 +137,14 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
 		}
+
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expPass {
-			require.Equal(t, []sdk.AccAddress{tc.address}, msg.GetSigners())
+			require.NoError(t, err)
+			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
-			require.Panics(t, func() {
-				msg.GetSigners()
-			})
+			require.Error(t, err)
 		}
 	}
 }

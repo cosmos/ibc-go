@@ -91,7 +91,7 @@ As @seunlanlege [states](https://github.com/cosmos/ibc-go/issues/284#issuecommen
 
 > I'm in support of these changes for 2 reasons:
 >
-> - This would allow light clients handle batch header updates in CheckHeaderAndUpdateState, for the special case of 11-beefy proving the finality for a batch of headers is much more space and time efficient than the space/time complexity of proving each individual headers in that batch, combined.
+> - This would allow light clients to handle batch header updates in CheckHeaderAndUpdateState, for the special case of 11-beefy proving the finality for a batch of headers is much more space and time efficient than the space/time complexity of proving each individual headers in that batch, combined.
 >
 > - This also allows for a single light client instance of 11-beefy be used to prove finality for every parachain connected to the relay chain (Polkadot/Kusama). We achieve this by setting the appropriate ConsensusState for individual parachain headers in CheckHeaderAndUpdateState
 

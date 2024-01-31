@@ -33,9 +33,15 @@ The denomination trace corresponds to the information that allows a token to be 
 origin chain. It contains a sequence of port and channel identifiers ordered from the most recent to
 the oldest in the timeline of transfers.
 
-This information is included on the token denomination field in the form of a hash to prevent an
+This information is included on the token's base denomination field in the form of a hash to prevent an
 unbounded denomination length. For example, the token `transfer/channelToA/uatom` will be displayed
-as `ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2`.
+as `ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2`. The human readable denomination
+is stored using `x/bank` module's [denom metadata](https://docs.cosmos.network/main/build/modules/bank#denom-metadata)
+feature. You may display the human readable denominations by querying balances with the `--resolve-denom` flag, as in:
+
+```shell
+simd query bank balances [address] --resolve-denom
+```
 
 Each send to any chain other than the one it was previously received from is a movement forwards in
 the token's timeline. This causes trace to be added to the token's history and the destination port
@@ -126,3 +132,7 @@ form.
 
 For safety, no other module must be capable of minting tokens with the `ibc/` prefix. The IBC
 transfer module needs a subset of the denomination space that only it can create tokens in.
+
+## Channel Closure
+
+The IBC transfer module does not support channel closure.

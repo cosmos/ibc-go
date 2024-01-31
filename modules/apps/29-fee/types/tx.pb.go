@@ -203,7 +203,7 @@ type MsgPayPacketFee struct {
 	Fee Fee `protobuf:"bytes,1,opt,name=fee,proto3" json:"fee"`
 	// the source port unique identifier
 	SourcePortId string `protobuf:"bytes,2,opt,name=source_port_id,json=sourcePortId,proto3" json:"source_port_id,omitempty"`
-	// the source channel unique identifer
+	// the source channel unique identifier
 	SourceChannelId string `protobuf:"bytes,3,opt,name=source_channel_id,json=sourceChannelId,proto3" json:"source_channel_id,omitempty"`
 	// account address to refund fee if necessary
 	Signer string `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`

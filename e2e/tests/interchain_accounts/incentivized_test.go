@@ -23,6 +23,7 @@ import (
 	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
 	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
@@ -40,7 +41,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -71,7 +72,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_SuccessfulBankSe
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version, channeltypes.ORDERED)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
@@ -218,7 +219,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	var (
@@ -249,7 +250,7 @@ func (s *IncentivizedInterchainAccountsTestSuite) TestMsgSendTx_FailedBankSend_I
 
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		version := "" // allow version to be specified by the controller chain since both chains should support incentivized channels
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAccount.FormattedAddress(), version, channeltypes.ORDERED)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)

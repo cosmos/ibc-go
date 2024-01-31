@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-The IBC module was originally developed in the Cosmos SDK and released during with the Stargate release series (v0.42).
+The IBC module was originally developed in the Cosmos SDK and released during the Stargate release series (v0.42).
 It was subsequently migrated to its own repository, ibc-go.
 The first official release on ibc-go was v1.0.0.
 v1.0.0 was decided to be used instead of v0.1.0 primarily for the following reasons:
@@ -30,7 +30,7 @@ For example, changing the go package version from `v2` to `v3` bumps the import 
 If the Go module version is not incremented then attempting to go get a module @v3.0.0 without the suffix results in:
 `invalid version: module contains a go.mod file, so major version must be compatible: should be v0 or v1, not v3`
 
-Version validation was added in Go 1.13. This means is that in order to release a v3.0.0 git tag without a /v3 suffix on the module definition, the tag must explicitly **not** contain a go.mod file.
+Version validation was added in Go 1.13. This means that in order to release a v3.0.0 git tag without a /v3 suffix on the module definition, the tag must explicitly **not** contain a go.mod file.
 Not including a go.mod in our release is not a viable option.
 
 #### Attempting to import multiple go module versions for ibc-go
@@ -47,7 +47,7 @@ Thus, bumping the import versioning causes the protobuf definitions to be genera
 When registering these types at compile time, the go compiler will panic.
 The generated types need to be registered against the proto codec, but there exist two definitions for the same name.
 
-The protobuf conflict policy can be overriden via the environment variable `GOLANG_PROTOBUF_REGISTRATION_CONFLICT`, but it is possible this could lead to various runtime errors or unexpected behaviour (see [here](https://github.com/protocolbuffers/protobuf-go/blob/master/reflect/protoregistry/registry.go#L46)).
+The protobuf conflict policy can be overridden via the environment variable `GOLANG_PROTOBUF_REGISTRATION_CONFLICT`, but it is possible this could lead to various runtime errors or unexpected behaviour (see [here](https://github.com/protocolbuffers/protobuf-go/blob/master/reflect/protoregistry/registry.go#L46)).
 More information [here](https://developers.google.com/protocol-buffers/docs/reference/go/faq#namespace-conflict) on namespace conflicts for protobuf versioning.
 
 ### Potential solutions
@@ -74,7 +74,7 @@ This prevents the Go module version from being incremented with breaking changes
 It also requires all extended functions to live in the same Go module, disrupting the existing code structure.
 
 The version that implements this change will still be incompatible with previous versions, but future versions could be imported together without namespace collisions.
-For example, lets say this solution is implemented in v3. Then
+For example, let's say this solution is implemented in v3. Then
 
 `github.com/cosmos/ibc-go/v2` cannot be imported with any other ibc-go version
 

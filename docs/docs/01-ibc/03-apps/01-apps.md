@@ -7,7 +7,7 @@ slug: /ibc/apps/apps
 
 # IBC Applications
 
-Learn how to configure your application to use IBC and send data packets to other chains. {synopsis}
+Learn how to configure your application to use IBC and send data packets to other chains.
 
 This document serves as a guide for developers who want to write their own Inter-blockchain
 Communication Protocol (IBC) applications for custom use cases.
@@ -413,7 +413,7 @@ message Acknowledgement {
 
 After a module writes an acknowledgement, a relayer can relay back the acknowledgement to the sender module. The sender module can
 then process the acknowledgement using the `OnAcknowledgementPacket` callback. The contents of the
-acknowledgement is entirely upto the modules on the channel (just like the packet data); however, it
+acknowledgement is entirely up to the modules on the channel (just like the packet data); however, it
 may often contain information on whether the packet was successfully processed along
 with some additional data that could be useful for remediation if the packet processing failed.
 

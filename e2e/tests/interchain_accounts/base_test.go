@@ -9,7 +9,6 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -18,6 +17,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -26,6 +26,13 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
+
+// orderMapping is a mapping from channel ordering to the string representation of the ordering.
+// the representation can be different depending on the relayer implementation.
+var orderMapping = map[channeltypes.Order][]string{
+	channeltypes.ORDERED:   {channeltypes.ORDERED.String(), "Ordered"},
+	channeltypes.UNORDERED: {channeltypes.UNORDERED.String(), "Unordered"},
+}
 
 func TestInterchainAccountsTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsTestSuite))
@@ -36,18 +43,26 @@ type InterchainAccountsTestSuite struct {
 }
 
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
-func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
+func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
 	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)
 	s.AssertTxSuccess(txResp)
 }
 
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
+	s.testMsgSendTxSuccessfulTransfer(channeltypes.ORDERED)
+}
+
+func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_UnorderedChannel() {
+	s.testMsgSendTxSuccessfulTransfer(channeltypes.UNORDERED)
+}
+
+func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order channeltypes.Order) {
 	t := s.T()
 	ctx := context.TODO()
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
@@ -60,7 +75,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, order)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
@@ -79,6 +94,9 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
 		s.Require().Equal(len(channels), 2)
+		icaChannel := channels[0]
+
+		s.Require().Contains(orderMapping[order], icaChannel.Ordering)
 	})
 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
@@ -143,7 +161,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
@@ -156,7 +174,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
+		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
 
 		txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, msgRegisterAccount)
 		s.AssertTxSuccess(txResp)
@@ -233,7 +251,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 
 	// setup relayers and connection-0 between two chains
 	// channel-0 is a transfer channel but it will not be used in this test case
-	relayer, _ := s.SetupChainsRelayerAndChannel(ctx)
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
 	chainA, chainB := s.GetChains()
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
@@ -254,7 +272,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		var err error
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
+		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 		portID, err = icatypes.NewControllerPortID(controllerAddress)
 		s.Require().NoError(err)
@@ -352,7 +370,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	t.Run("register interchain account", func(t *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version)
+		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
 		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
@@ -404,6 +422,182 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		s.Require().NoError(err)
 
 		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		s.Require().Equal(expected, balance.Int64())
+	})
+}
+
+func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterUpgradingOrdertoUnordered() {
+	t := s.T()
+	ctx := context.TODO()
+
+	// setup relayers and connection-0 between two chains
+	// channel-0 is a transfer channel but it will not be used in this test case
+	relayer, _ := s.SetupChainsRelayerAndChannel(ctx, nil)
+	chainA, chainB := s.GetChains()
+
+	// setup 2 accounts: controller account on chain A, a second chain B account.
+	// host account will be created when the ICA is registered
+	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	controllerAddress := controllerAccount.FormattedAddress()
+	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	var (
+		portID      string
+		hostAccount string
+
+		initialChannelID = "channel-1"
+	)
+
+	t.Run("register interchain account", func(t *testing.T) {
+		var err error
+		// explicitly set the version string because we don't want to use incentivized channels.
+		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
+		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
+		s.RegisterInterchainAccount(ctx, chainA, controllerAccount, msgRegisterInterchainAccount)
+		portID, err = icatypes.NewControllerPortID(controllerAddress)
+		s.Require().NoError(err)
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer)
+	})
+
+	t.Run("verify interchain account", func(t *testing.T) {
+		var err error
+		hostAccount, err = s.QueryInterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
+		s.Require().NoError(err)
+		s.Require().NotZero(len(hostAccount))
+
+		_, err = s.QueryChannel(ctx, chainA, portID, initialChannelID)
+		s.Require().NoError(err)
+	})
+
+	t.Run("fund interchain account wallet", func(t *testing.T) {
+		// fund the host account account so it has some $$ to send
+		err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
+			Address: hostAccount,
+			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
+			Denom:   chainB.Config().Denom,
+		})
+		s.Require().NoError(err)
+	})
+
+	t.Run("broadcast MsgSendTx", func(t *testing.T) {
+		// assemble bank transfer message from host account to user account on host chain
+		msgSend := &banktypes.MsgSend{
+			FromAddress: hostAccount,
+			ToAddress:   chainBAccount.FormattedAddress(),
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+		}
+
+		cdc := testsuite.Codec()
+
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
+		s.Require().NoError(err)
+
+		packetData := icatypes.InterchainAccountPacketData{
+			Type: icatypes.EXECUTE_TX,
+			Data: bz,
+			Memo: "e2e",
+		}
+
+		msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(5*time.Minute), packetData)
+
+		resp := s.BroadcastMessages(
+			ctx,
+			chainA,
+			controllerAccount,
+			msgSendTx,
+		)
+
+		s.AssertTxSuccess(resp)
+		s.AssertPacketRelayed(ctx, chainA, portID, initialChannelID, 1)
+	})
+
+	t.Run("verify tokens transferred", func(t *testing.T) {
+		balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+		s.Require().NoError(err)
+
+		expected := testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
+		s.Require().Equal(expected, balance.Int64())
+	})
+
+	channel, err := s.QueryChannel(ctx, chainA, portID, initialChannelID)
+	s.Require().NoError(err)
+
+	// upgrade the channel ordering to UNORDERED
+	upgradeFields := channeltypes.NewUpgradeFields(channeltypes.UNORDERED, channel.ConnectionHops, channel.Version)
+
+	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
+		govModuleAddress, err := s.QueryModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Require().NotNil(govModuleAddress)
+
+		msg := channeltypes.NewMsgChannelUpgradeInit(portID, initialChannelID, upgradeFields, govModuleAddress.String())
+		s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, controllerAccount)
+	})
+
+	t.Run("verify channel A upgraded and is now unordered", func(t *testing.T) {
+		var channel channeltypes.Channel
+		waitErr := test.WaitForCondition(time.Minute*2, time.Second*5, func() (bool, error) {
+			channel, err = s.QueryChannel(ctx, chainA, portID, initialChannelID)
+			if err != nil {
+				return false, err
+			}
+			return channel.Ordering == channeltypes.UNORDERED, nil
+		})
+		s.Require().NoErrorf(waitErr, "channel was not upgraded: expected %s got %s", channeltypes.UNORDERED, channel.Ordering)
+	})
+
+	t.Run("verify channel B upgraded and is now unordered", func(t *testing.T) {
+		var channel channeltypes.Channel
+		waitErr := test.WaitForCondition(time.Minute*2, time.Second*5, func() (bool, error) {
+			channel, err = s.QueryChannel(ctx, chainB, icatypes.HostPortID, initialChannelID)
+			if err != nil {
+				return false, err
+			}
+			return channel.Ordering == channeltypes.UNORDERED, nil
+		})
+		s.Require().NoErrorf(waitErr, "channel was not upgraded: expected %s got %s", channeltypes.UNORDERED, channel.Ordering)
+	})
+
+	t.Run("broadcast MsgSendTx", func(t *testing.T) {
+		// assemble bank transfer message from host account to user account on host chain
+		msgSend := &banktypes.MsgSend{
+			FromAddress: hostAccount,
+			ToAddress:   chainBAccount.FormattedAddress(),
+			Amount:      sdk.NewCoins(testvalues.DefaultTransferAmount(chainB.Config().Denom)),
+		}
+
+		cdc := testsuite.Codec()
+
+		bz, err := icatypes.SerializeCosmosTx(cdc, []proto.Message{msgSend}, icatypes.EncodingProtobuf)
+		s.Require().NoError(err)
+
+		packetData := icatypes.InterchainAccountPacketData{
+			Type: icatypes.EXECUTE_TX,
+			Data: bz,
+			Memo: "e2e",
+		}
+
+		msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(5*time.Minute), packetData)
+
+		resp := s.BroadcastMessages(
+			ctx,
+			chainA,
+			controllerAccount,
+			msgSendTx,
+		)
+
+		s.AssertTxSuccess(resp)
+		s.AssertPacketRelayed(ctx, chainA, portID, initialChannelID, 2)
+	})
+
+	t.Run("verify tokens transferred", func(t *testing.T) {
+		balance, err := s.QueryBalance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
+		s.Require().NoError(err)
+
+		expected := 2*testvalues.IBCTransferAmount + testvalues.StartingTokenAmount
 		s.Require().Equal(expected, balance.Int64())
 	})
 }

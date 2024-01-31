@@ -219,7 +219,7 @@ func (cs *ClientState) VerifyNonMembership(
 	return nil
 }
 
-// produceVerificationArgs perfoms the basic checks on the arguments that are
+// produceVerificationArgs performs the basic checks on the arguments that are
 // shared between the verification functions and returns the public key of the
 // consensus state, the unmarshalled proof representing the signature and timestamp.
 func produceVerificationArgs(

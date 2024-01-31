@@ -18,9 +18,11 @@ It takes:
 
 - a `SourcePort` and a `SourceChannel` which together comprise the unique transfer channel identifier over which authorized funds can be transferred.
 
-- a `SpendLimit` that specifies the maximum amount of tokens the grantee can transfer. The `SpendLimit` is updated as the tokens are transfered, unless the sentinel value of the maximum value for a 256-bit unsigned integer (i.e. 2^256 - 1) is used for the amount, in which case the `SpendLimit` will not be updated (please be aware that using this sentinel value will grant the grantee the privilege to transfer **all** the tokens of a given denomination available at the granter's account). The helper function `UnboundedSpendLimit` in the `types` package of the `transfer` module provides the sentinel value that can be used. This `SpendLimit` may also be updated to increase or decrease the limit as the granter wishes.
+- a `SpendLimit` that specifies the maximum amount of tokens the grantee can transfer. The `SpendLimit` is updated as the tokens are transferred, unless the sentinel value of the maximum value for a 256-bit unsigned integer (i.e. 2^256 - 1) is used for the amount, in which case the `SpendLimit` will not be updated (please be aware that using this sentinel value will grant the grantee the privilege to transfer **all** the tokens of a given denomination available at the granter's account). The helper function `UnboundedSpendLimit` in the `types` package of the `transfer` module provides the sentinel value that can be used. This `SpendLimit` may also be updated to increase or decrease the limit as the granter wishes.
 
 - an `AllowList` list that specifies the list of addresses that are allowed to receive funds. If this list is empty, then all addresses are allowed to receive funds from the `TransferAuthorization`.
+
+- an `AllowedPacketData` list that specifies the list of memo packet data keys that are allowed to send the packet. If this list is empty, then only an empty memo is allowed (a `memo` field with non-empty content will be denied). If this list includes a single element equal to `"*"`, then any content in `memo` field will be allowed.
 
 Setting a `TransferAuthorization` is expected to fail if:
 
@@ -29,6 +31,7 @@ Setting a `TransferAuthorization` is expected to fail if:
 - the source port ID is invalid
 - the source channel ID is invalid
 - there are duplicate entries in the `AllowList`
+- the `memo` field is not allowed by `AllowedPacketData`
 
 Below is the `TransferAuthorization` message:
 
@@ -48,6 +51,9 @@ type Allocation struct {
   SpendLimit sdk.Coins  
   // allow list of receivers, an empty allow list permits any receiver address
   AllowList []string 
+  // allow list of packet data keys, an empty list prohibits all packet data keys;
+  // a list only with "*" permits any packet data key
+  AllowedPacketData []string 
 }
 
 ```

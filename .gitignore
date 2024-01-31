@@ -27,6 +27,7 @@ artifacts
 baseapp/data/*
 client/lcd/keys/*
 mytestnet
+modules/light-clients/08-wasm/**/ibc_08-wasm_client_data/
 
 # Testing
 coverage.txt
@@ -58,9 +59,14 @@ dependency-graph.png
 
 *.history
 
+tmp/
+*.wasm
 # Go
 go.work
 go.work.sum
+
+# E2E WASM contract
+!ics10_grandpa_cw.wasm
 
 # Python
 venv

@@ -152,3 +152,18 @@ func (k Keeper) NextSequenceReceive(c context.Context, req *channeltypes.QueryNe
 func (k Keeper) NextSequenceSend(c context.Context, req *channeltypes.QueryNextSequenceSendRequest) (*channeltypes.QueryNextSequenceSendResponse, error) {
 	return k.ChannelKeeper.NextSequenceSend(c, req)
 }
+
+// UpgradeError implements the IBC QueryServer interface
+func (k Keeper) UpgradeError(c context.Context, req *channeltypes.QueryUpgradeErrorRequest) (*channeltypes.QueryUpgradeErrorResponse, error) {
+	return k.ChannelKeeper.UpgradeErrorReceipt(c, req)
+}
+
+// Upgrade implements the IBC QueryServer interface
+func (k Keeper) Upgrade(c context.Context, req *channeltypes.QueryUpgradeRequest) (*channeltypes.QueryUpgradeResponse, error) {
+	return k.ChannelKeeper.Upgrade(c, req)
+}
+
+// ChannelParams implements the IBC QueryServer interface
+func (k Keeper) ChannelParams(c context.Context, req *channeltypes.QueryChannelParamsRequest) (*channeltypes.QueryChannelParamsResponse, error) {
+	return k.ChannelKeeper.ChannelParams(c, req)
+}

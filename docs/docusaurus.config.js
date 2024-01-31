@@ -1,8 +1,10 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require("prism-react-renderer/themes/github");
-const darkCodeTheme = require("prism-react-renderer/themes/dracula");
+import { Highlight, themes } from "prism-react-renderer";
+
+const lightCodeTheme = themes.github;
+const darkCodeTheme = themes.dracula;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -47,27 +49,31 @@ const config = {
           // Exclude template markdown files from the docs
           exclude: ["**/*.template.md"],
           // Select the latest version
-          lastVersion: "v7.3.x",
+          lastVersion: "v8.0.x",
           // Assign banners to specific versions
           versions: {
             current: {
               path: "main",
               banner: "unreleased",
             },
+            "v8.0.x": {
+              path: "v8",
+              banner: "none",
+            },
             "v7.3.x": {
-              path: "v7.3.x",
+              path: "v7",
               banner: "none",
             },
             "v6.2.x": {
-              path: "v6.2.x",
+              path: "v6",
               banner: "none",
             },
             "v5.3.x": {
-              path: "v5.3.x",
+              path: "v5",
               banner: "none",
             },
             "v4.5.x": {
-              path: "v4.5.x",
+              path: "v4",
               banner: "none",
             },
           },
@@ -79,6 +85,11 @@ const config = {
           trackingID: "G-HP8ZXWVLJG",
           anonymizeIP: true,
         },
+        sitemap: {
+          changefreq: "weekly",
+          priority: 0.5,
+          filename: "sitemap.xml",
+        },
       }),
     ],
   ],
@@ -86,7 +97,7 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: "img/ibc-go-image.png",
+      image: "img/ibc-go-docs-social-card.png",
       navbar: {
         logo: {
           alt: "IBC Logo",
@@ -244,7 +255,7 @@ const config = {
         ],
       },
     }),
-  themes: ["@saucelabs/theme-github-codeblock"],
+  themes: ["docusaurus-theme-github-codeblock"],
   plugins: [
     [
       "@docusaurus/plugin-content-docs",

@@ -214,6 +214,7 @@ type SimApp struct {
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
+	IBCMockModule ibcmock.IBCModule
 	ICAAuthModule ibcmock.IBCModule
 	FeeMockModule ibcmock.IBCModule
 
@@ -340,6 +341,7 @@ func NewSimApp(
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName)
+	scopedIBCMockBlockUpgradeKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.MockBlockUpgrade)
 	scopedFeeMockKeeper := app.CapabilityKeeper.ScopeToModule(MockFeePort)
 	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(ibcmock.ModuleName + icacontrollertypes.SubModuleName)
 
@@ -485,7 +487,15 @@ func NewSimApp(
 
 	// The mock module is used for testing IBC
 	mockIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.ModuleName, scopedIBCMockKeeper))
+	app.IBCMockModule = mockIBCModule
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockIBCModule)
+
+	// Mock IBC app wrapped with a middleware which does not implement the UpgradeableModule interface.
+	// NOTE: this is used to test integration with apps which do not yet fulfill the UpgradeableModule interface and error when
+	// an upgrade is tried on the channel.
+	mockBlockUpgradeIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.MockBlockUpgrade, scopedIBCMockBlockUpgradeKeeper))
+	mockBlockUpgradeMw := ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockBlockUpgradeIBCModule.IBCApp)
+	ibcRouter.AddRoute(ibcmock.MockBlockUpgrade, mockBlockUpgradeMw)
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:

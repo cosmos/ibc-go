@@ -6,7 +6,7 @@
 function check_golangci_lint_version(){
   local git_root="$(git rev-parse --show-toplevel)"
 
-  # Note: we are explicitly stripping out the 'v' prefix from the versions. Different verisons of
+  # Note: we are explicitly stripping out the 'v' prefix from the versions. Different versions of
   # golangci-lint have different version formats. For example, v1.27.0 (if installed with go get) vs 1.27.0 (installed with curl).
 
   # extract the version of golangci-lint from the CI workflow file.

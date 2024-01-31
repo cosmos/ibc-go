@@ -8,7 +8,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
-	tmstate "github.com/cometbft/cometbft/state"
+	cmtstate "github.com/cometbft/cometbft/state"
 
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
@@ -116,9 +116,9 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	resultsDifferentABCICode := []*abcitypes.ExecTxResult{deliverTxDifferentABCICode}
 
-	hash := tmstate.TxResultsHash(execTxResults)
-	hashSameABCICode := tmstate.TxResultsHash(resultsSameABCICode)
-	hashDifferentABCICode := tmstate.TxResultsHash(resultsDifferentABCICode)
+	hash := cmtstate.TxResultsHash(execTxResults)
+	hashSameABCICode := cmtstate.TxResultsHash(resultsSameABCICode)
+	hashDifferentABCICode := cmtstate.TxResultsHash(resultsDifferentABCICode)
 
 	suite.Require().Equal(hash, hashSameABCICode)
 	suite.Require().NotEqual(hash, hashDifferentABCICode)

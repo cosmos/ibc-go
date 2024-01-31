@@ -164,10 +164,10 @@ correctness (core logic only). If the packet is valid, a hash of the packet
 will be stored as a packet commitment using the packet sequence in the key.
 Packet commitments are stored on the sending chain.
 
-A message should be sent to the receving chain indicating that the packet
+A message should be sent to the receiving chain indicating that the packet
 has been committed on the sending chain and should be received on the
 receiving chain. The light client on the receiving chain, which verifies
-the sending chain's state, should be updated to the lastest sending chain
+the sending chain's state, should be updated to the latest sending chain
 state if possible. The verification will fail if the latest state of the
 light client does not include the packet commitment. The receiving chain
 is responsible for verifying that the counterparty set the hash of the
