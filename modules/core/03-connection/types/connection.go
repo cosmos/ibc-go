@@ -9,8 +9,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-var _ exported.ConnectionI = (*ConnectionEnd)(nil)
-
 // NewConnectionEnd creates a new ConnectionEnd instance.
 func NewConnectionEnd(state State, clientID string, counterparty Counterparty, versions []*Version, delayPeriod uint64) ConnectionEnd {
 	return ConnectionEnd{
@@ -20,31 +18,6 @@ func NewConnectionEnd(state State, clientID string, counterparty Counterparty, v
 		Counterparty: counterparty,
 		DelayPeriod:  delayPeriod,
 	}
-}
-
-// GetState implements the Connection interface
-func (c ConnectionEnd) GetState() int32 {
-	return int32(c.State)
-}
-
-// GetClientID implements the Connection interface
-func (c ConnectionEnd) GetClientID() string {
-	return c.ClientId
-}
-
-// GetCounterparty implements the Connection interface
-func (c ConnectionEnd) GetCounterparty() exported.CounterpartyConnectionI {
-	return c.Counterparty
-}
-
-// GetVersions implements the Connection interface
-func (c ConnectionEnd) GetVersions() []*Version {
-	return c.Versions
-}
-
-// GetDelayPeriod implements the Connection interface
-func (c ConnectionEnd) GetDelayPeriod() uint64 {
-	return c.DelayPeriod
 }
 
 // ValidateBasic implements the Connection interface.
@@ -64,8 +37,6 @@ func (c ConnectionEnd) ValidateBasic() error {
 	}
 	return c.Counterparty.ValidateBasic()
 }
-
-var _ exported.CounterpartyConnectionI = (*Counterparty)(nil)
 
 // NewCounterparty creates a new Counterparty instance.
 func NewCounterparty(clientID, connectionID string, prefix commitmenttypes.MerklePrefix) Counterparty {
