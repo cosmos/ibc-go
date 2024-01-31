@@ -20,27 +20,33 @@ func TestIsModuleQuerySafe(t *testing.T) {
 	}{
 		{
 			"success: module query safe",
-			"cosmos.bank.v1beta1.Query.Balance",
+			"/cosmos.bank.v1beta1.Query/Balance",
 			true,
 			nil,
 		},
 		{
 			"success: not module query safe",
-			"ibc.applications.transfer.v1.Query.DenomTraces",
+			"/ibc.applications.transfer.v1.Query/DenomTraces",
 			false,
 			nil,
 		},
 		{
-			"failure: invalid method path",
+			"failure: invalid service path",
 			"invalid",
 			false,
-			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "invalid query method path"),
+			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "invalid gRPC service path: invalid"),
+		},
+		{
+			"failure: invalid method path",
+			"/invalid",
+			false,
+			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "invalid method path: invalid"),
 		},
 		{
 			"failure: service path not found",
-			"invalid.Query.Balance",
+			"/invalid.Query/Balance",
 			false,
-			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "failed to find descriptor"),
+			errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "failed to find the descriptor: invalid.Query.Balance"),
 		},
 	}
 
