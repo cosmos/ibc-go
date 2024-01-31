@@ -366,8 +366,8 @@ func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, 
 
 // OnChanUpgradeAck implements the IBCModule interface
 func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	if counterpartyVersion != types.CurrentVersion {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "expected %s, got %s", types.CurrentVersion, counterpartyVersion)
+	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
+		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected %s or %s, got %s", types.Version1, types.CurrentVersion, counterpartyVersion)
 	}
 
 	return nil

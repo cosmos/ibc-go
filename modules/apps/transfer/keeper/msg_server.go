@@ -35,10 +35,9 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", msg.SourcePort, msg.SourceChannel)
 	}
 
-	if appVersion == types.Version1 {
-		if len(tokens) > 1 {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple tokens with ics20-1")
-		}
+	// ics20-1 only supports a single token, so if that is the current version, we must only process a single token.
+	if appVersion == types.Version1 && len(tokens) > 1 {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple tokens with ics20-1")
 	}
 
 	for _, token := range tokens {
