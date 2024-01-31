@@ -2,6 +2,9 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
+	"errors"
+	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -13,16 +16,17 @@ import (
 // TestMsgTransfer tests Transfer rpc handler
 func (suite *KeeperTestSuite) TestMsgTransfer() {
 	var msg *types.MsgTransfer
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"bank send enabled for denom",
@@ -34,7 +38,28 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				)
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
+		},
+		{
+			"multi-denom with version ics20-2",
+			func() {
+				msg.Tokens = []sdk.Coin{msg.Token, msg.Token, msg.Token}
+				msg.Token = sdk.Coin{}
+			},
+			nil,
+		},
+		{
+			"multi-denom with version ics20-1",
+			func() {
+				msg.Tokens = []sdk.Coin{msg.Token, msg.Token, msg.Token}
+				msg.Token = sdk.Coin{}
+
+				channel := path.EndpointA.GetChannel()
+				channel.Version = types.Version1
+				path.EndpointA.SetChannel(channel)
+
+			},
+			ibcerrors.ErrInvalidRequest,
 		},
 		{
 			"send transfers disabled",
@@ -45,21 +70,21 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 					},
 				)
 			},
-			false,
+			types.ErrSendDisabled,
 		},
 		{
 			"invalid sender",
 			func() {
 				msg.Sender = "address"
 			},
-			false,
+			errors.New("decoding bech32 failed"),
 		},
 		{
 			"sender is a blocked address",
 			func() {
 				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
 			},
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"bank send disabled for denom",
@@ -71,14 +96,14 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				)
 				suite.Require().NoError(err)
 			},
-			false,
+			types.ErrSendDisabled,
 		},
 		{
 			"channel does not exist",
 			func() {
 				msg.SourceChannel = "channel-100"
 			},
-			false,
+			ibcerrors.ErrInvalidRequest,
 		},
 	}
 
@@ -88,7 +113,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
 			path.Setup()
 
 			coin := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
@@ -117,13 +142,15 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				},
 			}
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().NotEqual(res.Sequence, uint64(0))
 				ibctesting.AssertEventsLegacy(&suite.Suite, expEvents, events)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().True(errors.Is(err, tc.expError) || strings.Contains(err.Error(), tc.expError.Error()), err.Error())
 				suite.Require().Nil(res)
 				suite.Require().Len(events, 0)
 			}
