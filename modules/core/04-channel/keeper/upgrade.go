@@ -104,7 +104,7 @@ func (k Keeper) ChanUpgradeTry(
 
 	// construct expected counterparty channel from information in state
 	// only the counterpartyUpgradeSequence is provided by the relayer
-	counterpartyConnectionHops := []string{connection.Counterparty.GetConnectionID()}
+	counterpartyConnectionHops := []string{connection.Counterparty.ConnectionId}
 	counterpartyChannel := types.Channel{
 		State:           types.OPEN,
 		Ordering:        channel.Ordering,
@@ -278,7 +278,7 @@ func (k Keeper) ChanUpgradeAck(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
-	counterpartyHops := []string{connection.Counterparty.GetConnectionID()}
+	counterpartyHops := []string{connection.Counterparty.ConnectionId}
 	counterpartyChannel := types.Channel{
 		State:           types.FLUSHING,
 		Ordering:        channel.Ordering,
@@ -414,7 +414,7 @@ func (k Keeper) ChanUpgradeConfirm(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connection.State)
 	}
 
-	counterpartyHops := []string{connection.Counterparty.GetConnectionID()}
+	counterpartyHops := []string{connection.Counterparty.ConnectionId}
 	counterpartyChannel := types.Channel{
 		State:           counterpartyChannelState,
 		Ordering:        channel.Ordering,
@@ -537,7 +537,7 @@ func (k Keeper) ChanUpgradeOpen(
 		counterpartyChannel = types.Channel{
 			State:           types.OPEN,
 			Ordering:        upgrade.Fields.Ordering,
-			ConnectionHops:  []string{upgradeConnection.Counterparty.GetConnectionID()},
+			ConnectionHops:  []string{upgradeConnection.Counterparty.ConnectionId},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         upgrade.Fields.Version,
 			UpgradeSequence: counterpartyUpgradeSequence,
@@ -547,7 +547,7 @@ func (k Keeper) ChanUpgradeOpen(
 		counterpartyChannel = types.Channel{
 			State:           types.FLUSHCOMPLETE,
 			Ordering:        channel.Ordering,
-			ConnectionHops:  []string{connection.Counterparty.GetConnectionID()},
+			ConnectionHops:  []string{connection.Counterparty.ConnectionId},
 			Counterparty:    types.NewCounterparty(portID, channelID),
 			Version:         channel.Version,
 			UpgradeSequence: channel.UpgradeSequence,
@@ -769,7 +769,7 @@ func (k Keeper) ChanUpgradeTimeout(
 				upgrade.Fields.ConnectionHops[0],
 			)
 		}
-		counterpartyHops := []string{upgradeConnection.Counterparty.GetConnectionID()}
+		counterpartyHops := []string{upgradeConnection.Counterparty.ConnectionId}
 
 		upgradeAlreadyComplete := upgrade.Fields.Version == counterpartyChannel.Version && upgrade.Fields.Ordering == counterpartyChannel.Ordering && upgrade.Fields.ConnectionHops[0] == counterpartyHops[0]
 		if upgradeAlreadyComplete {
@@ -895,9 +895,9 @@ func (k Keeper) checkForUpgradeCompatibility(ctx sdk.Context, upgradeFields, cou
 	}
 
 	// connectionHops can change in a channelUpgrade, however both sides must still be each other's counterparty.
-	if counterpartyUpgradeFields.ConnectionHops[0] != connection.Counterparty.GetConnectionID() {
+	if counterpartyUpgradeFields.ConnectionHops[0] != connection.Counterparty.ConnectionId {
 		return errorsmod.Wrapf(
-			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgradeFields.ConnectionHops[0], connection.Counterparty.GetConnectionID())
+			types.ErrIncompatibleCounterpartyUpgrade, "counterparty upgrade connection end is not a counterparty of self proposed connection end (%s != %s)", counterpartyUpgradeFields.ConnectionHops[0], connection.Counterparty.ConnectionId)
 	}
 
 	return nil

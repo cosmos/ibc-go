@@ -6,7 +6,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // NewConnectionEnd creates a new ConnectionEnd instance.
@@ -45,21 +44,6 @@ func NewCounterparty(clientID, connectionID string, prefix commitmenttypes.Merkl
 		ConnectionId: connectionID,
 		Prefix:       prefix,
 	}
-}
-
-// GetClientID implements the CounterpartyConnectionI interface
-func (c Counterparty) GetClientID() string {
-	return c.ClientId
-}
-
-// GetConnectionID implements the CounterpartyConnectionI interface
-func (c Counterparty) GetConnectionID() string {
-	return c.ConnectionId
-}
-
-// GetPrefix implements the CounterpartyConnectionI interface
-func (c Counterparty) GetPrefix() exported.Prefix {
-	return &c.Prefix
 }
 
 // ValidateBasic performs a basic validation check of the identifiers and prefix
