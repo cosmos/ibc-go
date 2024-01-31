@@ -32,6 +32,14 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 
 	responses := make([][]byte, len(msg.Requests))
 	for i, query := range msg.Requests {
+		isModuleQuerySafe, err := types.IsModuleQuerySafe(query.Path)
+		if err != nil {
+			return nil, err
+		}
+		if !isModuleQuerySafe {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "not module query safe: %s", query.Path)
+		}
+
 		route := m.queryRouter.Route(query.Path)
 		if route == nil {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no route to query: %s", query.Path)
