@@ -41,7 +41,7 @@ slug: /apps/transfer/events
 | fungible_token_packet | amount          | \{amount\}        |
 | fungible_token_packet | memo            | \{memo\}          |
 | fungible_token_packet | acknowledgement | \{ack.String()\}  |
-| fungible_token_packet | success | error | \{ack.Response\}  |
+| fungible_token_packet | success / error | \{ack.Response\}  |
 
 ## `OnTimeoutPacket` callback
 
